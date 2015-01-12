@@ -53,7 +53,8 @@ bool ClientOnlyStreaming(const google::protobuf::MethodDescriptor* method) {
 }
 
 bool ServerOnlyStreaming(const google::protobuf::MethodDescriptor* method) {
-  return !method->client_streaming() && method->server_streaming();
+  return !method->client_streaming() &&
+         method->server_streaming();
 }
 
 bool BidiStreaming(const google::protobuf::MethodDescriptor* method) {
@@ -97,7 +98,7 @@ bool HasBidiStreaming(const google::protobuf::FileDescriptor* file) {
 
 string GetHeaderIncludes(const google::protobuf::FileDescriptor* file) {
   string temp =
-      "#include \"grpc++/impl/internal_stub.h\"\n"
+      "#include \"src/cpp/client/internal_stub.h\"\n"
       "#include \"grpc++/status.h\"\n"
       "\n"
       "namespace grpc {\n"
@@ -125,9 +126,9 @@ string GetHeaderIncludes(const google::protobuf::FileDescriptor* file) {
 }
 
 string GetSourceIncludes() {
-  return "#include \"grpc++/channel_interface.h\"\n"
-         "#include \"grpc++/impl/rpc_method.h\"\n"
-         "#include \"grpc++/impl/rpc_service_method.h\"\n"
+  return "#include \"src/cpp/rpc_method.h\"\n"
+         "#include \"src/cpp/server/rpc_service_method.h\"\n"
+         "#include \"grpc++/channel_interface.h\"\n"
          "#include \"grpc++/stream.h\"\n";
 }
 
