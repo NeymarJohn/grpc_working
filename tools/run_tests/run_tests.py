@@ -13,14 +13,13 @@ import watch_dirs
 
 # flags required for make for each configuration
 _CONFIGS = ['dbg', 'opt', 'tsan', 'msan', 'asan']
-_DEFAULT = ['dbg', 'opt']
 
 # parse command line
 argp = argparse.ArgumentParser(description='Run grpc tests.')
 argp.add_argument('-c', '--config',
                   choices=['all'] + _CONFIGS,
                   nargs='+',
-                  default=_DEFAULT)
+                  default=['all'])
 argp.add_argument('-t', '--test-filter', nargs='*', default=['*'])
 argp.add_argument('-n', '--runs_per_test', default=1, type=int)
 argp.add_argument('-f', '--forever',
@@ -44,10 +43,10 @@ def _build_and_run(check_cancelled):
   # build latest, sharing cpu between the various makes
   if not jobset.run(
       (['make',
-        '-j', '%d' % max(multiprocessing.cpu_count() / len(configs), 1),
+        '-j', '%d' % (multiprocessing.cpu_count() + 1),
         'buildtests_c',
         'CONFIG=%s' % cfg]
-       for cfg in configs), check_cancelled):
+       for cfg in configs), check_cancelled, maxjobs=1):
     sys.exit(1)
 
   # run all the tests
