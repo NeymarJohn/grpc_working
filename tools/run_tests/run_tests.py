@@ -43,10 +43,10 @@ def _build_and_run(check_cancelled):
   # build latest, sharing cpu between the various makes
   if not jobset.run(
       (['make',
-        '-j', '%d' % (multiprocessing.cpu_count() + 1),
+        '-j', '%d' % max(multiprocessing.cpu_count() / len(configs), 1),
         'buildtests_c',
         'CONFIG=%s' % cfg]
-       for cfg in configs), check_cancelled, maxjobs=1):
+       for cfg in configs), check_cancelled):
     sys.exit(1)
 
   # run all the tests

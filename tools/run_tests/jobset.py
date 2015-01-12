@@ -8,7 +8,7 @@ import tempfile
 import time
 
 
-_DEFAULT_MAX_JOBS = 16 * multiprocessing.cpu_count()
+_MAX_JOBS = 16 * multiprocessing.cpu_count()
 
 
 def shuffle_iteratable(it):
@@ -81,16 +81,15 @@ class Job(object):
 class Jobset(object):
   """Manages one run of jobs."""
 
-  def __init__(self, check_cancelled, maxjobs):
+  def __init__(self, check_cancelled):
     self._running = set()
     self._check_cancelled = check_cancelled
     self._cancelled = False
     self._failures = 0
-    self._maxjobs = maxjobs
 
   def start(self, cmdline):
     """Start a job. Return True on success, False on failure."""
-    while len(self._running) >= self._maxjobs:
+    while len(self._running) >= _MAX_JOBS:
       if self.cancelled(): return False
       self.reap()
     if self.cancelled(): return False
@@ -131,10 +130,10 @@ def _never_cancelled():
   return False
 
 
-def run(cmdlines, check_cancelled=_never_cancelled, maxjobs=None):
-  js = Jobset(check_cancelled,
-              maxjobs if maxjobs is not None else _DEFAULT_MAX_JOBS)
+def run(cmdlines, check_cancelled=_never_cancelled):
+  js = Jobset(check_cancelled)
   for cmdline in shuffle_iteratable(cmdlines):
     if not js.start(cmdline):
       break
   return js.finish()
+
