@@ -1280,7 +1280,6 @@
         "test/cpp/end2end/sync_client_async_server_test.cc"
       ],
       "deps": [
-        "grpc++_test_util",
         "grpc_test_util",
         "grpc++",
         "grpc",
@@ -1385,8 +1384,7 @@
       ],
       "deps": [
         "grpc++",
-        "grpc",
-	"gpr"
+        "grpc"
       ]
     },
     {
@@ -1398,8 +1396,7 @@
       ],
       "deps": [
         "grpc++",
-        "grpc",
-	"gpr"
+        "grpc"
       ]
     },
     {
