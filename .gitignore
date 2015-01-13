@@ -1,0 +1,9 @@
+bins
+coverage
+deps
+gens
+libs
+objs
+*.pyc
+*.gcno
+
