@@ -62,4 +62,6 @@ void *gpr_malloc_aligned(size_t size, size_t alignment) {
   return (void *)ret;
 }
 
-void gpr_free_aligned(void *ptr) { free(((void **)ptr)[-1]); }
+void gpr_free_aligned(void *ptr) {
+  free(((void **)ptr)[-1]);
+}

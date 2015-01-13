@@ -124,4 +124,7 @@ TEST_F(ChannelArgumentsTest, SetString) {
 }  // namespace testing
 }  // namespace grpc
 
-int main(int argc, char** argv) { return RUN_ALL_TESTS(); }
+int main(int argc, char** argv) {
+
+  return RUN_ALL_TESTS();
+}

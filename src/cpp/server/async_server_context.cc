@@ -48,7 +48,8 @@ AsyncServerContext::AsyncServerContext(
       host_(host),
       absolute_deadline_(absolute_deadline),
       request_(nullptr),
-      call_(call) {}
+      call_(call) {
+}
 
 AsyncServerContext::~AsyncServerContext() { grpc_call_destroy(call_); }
 

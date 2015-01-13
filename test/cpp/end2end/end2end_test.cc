@@ -151,7 +151,9 @@ class End2endTest : public ::testing::Test {
     server_ = builder.BuildAndStart();
   }
 
-  void TearDown() override { server_->Shutdown(); }
+  void TearDown() override {
+    server_->Shutdown();
+  }
 
   void ResetStub() {
     std::shared_ptr<ChannelInterface> channel =

@@ -45,19 +45,23 @@ using namespace std;
 namespace grpc_go_generator {
 
 bool NoStreaming(const google::protobuf::MethodDescriptor* method) {
-  return !method->client_streaming() && !method->server_streaming();
+  return !method->client_streaming() &&
+         !method->server_streaming();
 }
 
 bool ClientOnlyStreaming(const google::protobuf::MethodDescriptor* method) {
-  return method->client_streaming() && !method->server_streaming();
+  return method->client_streaming() &&
+         !method->server_streaming();
 }
 
 bool ServerOnlyStreaming(const google::protobuf::MethodDescriptor* method) {
-  return !method->client_streaming() && method->server_streaming();
+  return !method->client_streaming() &&
+         method->server_streaming();
 }
 
 bool BidiStreaming(const google::protobuf::MethodDescriptor* method) {
-  return method->client_streaming() && method->server_streaming();
+  return method->client_streaming() &&
+         method->server_streaming();
 }
 
 bool HasClientOnlyStreaming(const google::protobuf::FileDescriptor* file) {
@@ -87,22 +91,20 @@ void PrintClientMethodDef(google::protobuf::io::Printer* printer,
   (*vars)["Response"] = method->output_type()->name();
   if (NoStreaming(method)) {
     printer->Print(*vars,
-                   "\t$Method$(ctx context.Context, in *$Request$, opts "
-                   "...rpc.CallOption) "
-                   "(*$Response$, error)\n");
+        "\t$Method$(ctx context.Context, in *$Request$, opts ...rpc.CallOption) "
+        "(*$Response$, error)\n");
   } else if (BidiStreaming(method)) {
     printer->Print(*vars,
-                   "\t$Method$(ctx context.Context, opts ...rpc.CallOption) "
-                   "($Service$_$Method$Client, error)\n");
+        "\t$Method$(ctx context.Context, opts ...rpc.CallOption) "
+        "($Service$_$Method$Client, error)\n");
   } else if (ServerOnlyStreaming(method)) {
-    printer->Print(
-        *vars,
+    printer->Print(*vars,
         "\t$Method$(ctx context.Context, m *$Request$, opts ...rpc.CallOption) "
         "($Service$_$Method$Client, error)\n");
   } else if (ClientOnlyStreaming(method)) {
     printer->Print(*vars,
-                   "\t$Method$(ctx context.Context, opts ...rpc.CallOption) "
-                   "($Service$_$Method$Client, error)\n");
+        "\t$Method$(ctx context.Context, opts ...rpc.CallOption) "
+        "($Service$_$Method$Client, error)\n");
   }
 }
 
@@ -114,11 +116,11 @@ void PrintClientMethodImpl(google::protobuf::io::Printer* printer,
   (*vars)["Response"] = method->output_type()->name();
 
   if (NoStreaming(method)) {
-    printer->Print(
-        *vars,
+    printer->Print(*vars,
         "func (c *$ServiceStruct$Client) $Method$(ctx context.Context, "
         "in *$Request$, opts ...rpc.CallOption) (*$Response$, error) {\n");
-    printer->Print(*vars, "\tout := new($Response$)\n");
+    printer->Print(*vars,
+                   "\tout := new($Response$)\n");
     printer->Print(*vars,
                    "\terr := rpc.Invoke(ctx, \"/$Package$$Service$/$Method$\", "
                    "in, out, c.cc, opts...)\n");
@@ -140,22 +142,20 @@ void PrintClientMethodImpl(google::protobuf::io::Printer* printer,
         "\treturn &$ServiceStruct$$Method$Client{stream}, nil\n"
         "}\n\n");
     printer->Print(*vars,
-                   "type $Service$_$Method$Client interface {\n"
-                   "\tSend(*$Request$) error\n"
-                   "\tRecv() (*$Response$, error)\n"
-                   "\trpc.ClientStream\n"
-                   "}\n\n");
+        "type $Service$_$Method$Client interface {\n"
+        "\tSend(*$Request$) error\n"
+        "\tRecv() (*$Response$, error)\n"
+        "\trpc.ClientStream\n"
+        "}\n\n");
     printer->Print(*vars,
-                   "type $ServiceStruct$$Method$Client struct {\n"
-                   "\trpc.ClientStream\n"
-                   "}\n\n");
-    printer->Print(
-        *vars,
+        "type $ServiceStruct$$Method$Client struct {\n"
+        "\trpc.ClientStream\n"
+        "}\n\n");
+    printer->Print(*vars,
         "func (x *$ServiceStruct$$Method$Client) Send(m *$Request$) error {\n"
         "\treturn x.ClientStream.SendProto(m)\n"
         "}\n\n");
-    printer->Print(
-        *vars,
+    printer->Print(*vars,
         "func (x *$ServiceStruct$$Method$Client) Recv() (*$Response$, error) "
         "{\n"
         "\tm := new($Response$)\n"
@@ -185,16 +185,15 @@ void PrintClientMethodImpl(google::protobuf::io::Printer* printer,
         "\treturn x, nil\n"
         "}\n\n");
     printer->Print(*vars,
-                   "type $Service$_$Method$Client interface {\n"
-                   "\tRecv() (*$Response$, error)\n"
-                   "\trpc.ClientStream\n"
-                   "}\n\n");
+        "type $Service$_$Method$Client interface {\n"
+        "\tRecv() (*$Response$, error)\n"
+        "\trpc.ClientStream\n"
+        "}\n\n");
     printer->Print(*vars,
-                   "type $ServiceStruct$$Method$Client struct {\n"
-                   "\trpc.ClientStream\n"
-                   "}\n\n");
-    printer->Print(
-        *vars,
+        "type $ServiceStruct$$Method$Client struct {\n"
+        "\trpc.ClientStream\n"
+        "}\n\n");
+    printer->Print(*vars,
         "func (x *$ServiceStruct$$Method$Client) Recv() (*$Response$, error) "
         "{\n"
         "\tm := new($Response$)\n"
@@ -216,22 +215,20 @@ void PrintClientMethodImpl(google::protobuf::io::Printer* printer,
         "\treturn &$ServiceStruct$$Method$Client{stream}, nil\n"
         "}\n\n");
     printer->Print(*vars,
-                   "type $Service$_$Method$Client interface {\n"
-                   "\tSend(*$Request$) error\n"
-                   "\tCloseAndRecv() (*$Response$, error)\n"
-                   "\trpc.ClientStream\n"
-                   "}\n\n");
+        "type $Service$_$Method$Client interface {\n"
+        "\tSend(*$Request$) error\n"
+        "\tCloseAndRecv() (*$Response$, error)\n"
+        "\trpc.ClientStream\n"
+        "}\n\n");
     printer->Print(*vars,
-                   "type $ServiceStruct$$Method$Client struct {\n"
-                   "\trpc.ClientStream\n"
-                   "}\n\n");
-    printer->Print(
-        *vars,
+        "type $ServiceStruct$$Method$Client struct {\n"
+        "\trpc.ClientStream\n"
+        "}\n\n");
+    printer->Print(*vars,
         "func (x *$ServiceStruct$$Method$Client) Send(m *$Request$) error {\n"
         "\treturn x.ClientStream.SendProto(m)\n"
         "}\n\n");
-    printer->Print(
-        *vars,
+    printer->Print(*vars,
         "func (x *$ServiceStruct$$Method$Client) CloseAndRecv() (*$Response$, "
         "error) {\n"
         "\tif err := x.ClientStream.CloseSend(); err != nil {\n"
@@ -267,8 +264,7 @@ void PrintClient(google::protobuf::io::Printer* printer,
                  "type $ServiceStruct$Client struct {\n"
                  "\tcc *rpc.ClientConn\n"
                  "}\n\n");
-  printer->Print(
-      *vars,
+  printer->Print(*vars,
       "func New$Service$Client(cc *rpc.ClientConn) $Service$Client {\n"
       "\treturn &$ServiceStruct$Client{cc}\n"
       "}\n\n");
@@ -284,16 +280,17 @@ void PrintServerMethodDef(google::protobuf::io::Printer* printer,
   (*vars)["Request"] = method->input_type()->name();
   (*vars)["Response"] = method->output_type()->name();
   if (NoStreaming(method)) {
-    printer->Print(
-        *vars,
+    printer->Print(*vars,
         "\t$Method$(context.Context, *$Request$) (*$Response$, error)\n");
   } else if (BidiStreaming(method)) {
-    printer->Print(*vars, "\t$Method$($Service$_$Method$Server) error\n");
+    printer->Print(*vars,
+        "\t$Method$($Service$_$Method$Server) error\n");
   } else if (ServerOnlyStreaming(method)) {
     printer->Print(*vars,
-                   "\t$Method$(*$Request$, $Service$_$Method$Server) error\n");
+        "\t$Method$(*$Request$, $Service$_$Method$Server) error\n");
   } else if (ClientOnlyStreaming(method)) {
-    printer->Print(*vars, "\t$Method$($Service$_$Method$Server) error\n");
+    printer->Print(*vars,
+        "\t$Method$($Service$_$Method$Server) error\n");
   }
 }
 
@@ -304,11 +301,11 @@ void PrintServerHandler(google::protobuf::io::Printer* printer,
   (*vars)["Request"] = method->input_type()->name();
   (*vars)["Response"] = method->output_type()->name();
   if (NoStreaming(method)) {
-    printer->Print(
-        *vars,
+    printer->Print(*vars,
         "func _$Service$_$Method$_Handler(srv interface{}, ctx context.Context,"
         " buf []byte) (proto.Message, error) {\n");
-    printer->Print(*vars, "\tin := new($Request$)\n");
+    printer->Print(*vars,
+                   "\tin := new($Request$)\n");
     printer->Print("\tif err := proto.Unmarshal(buf, in); err != nil {\n");
     printer->Print("\t\treturn nil, err\n");
     printer->Print("\t}\n");
@@ -320,30 +317,27 @@ void PrintServerHandler(google::protobuf::io::Printer* printer,
     printer->Print("\treturn out, nil\n");
     printer->Print("}\n\n");
   } else if (BidiStreaming(method)) {
-    printer->Print(
-        *vars,
+    printer->Print(*vars,
         "func _$Service$_$Method$_Handler(srv interface{}, stream rpc.Stream) "
         "error {\n"
         "\treturn srv.($Service$Server).$Method$(&$ServiceStruct$$Method$Server"
         "{stream})\n"
         "}\n\n");
     printer->Print(*vars,
-                   "type $Service$_$Method$Server interface {\n"
-                   "\tSend(*$Response$) error\n"
-                   "\tRecv() (*$Request$, error)\n"
-                   "\trpc.Stream\n"
-                   "}\n\n");
+        "type $Service$_$Method$Server interface {\n"
+        "\tSend(*$Response$) error\n"
+        "\tRecv() (*$Request$, error)\n"
+        "\trpc.Stream\n"
+        "}\n\n");
     printer->Print(*vars,
-                   "type $ServiceStruct$$Method$Server struct {\n"
-                   "\trpc.Stream\n"
-                   "}\n\n");
-    printer->Print(
-        *vars,
+        "type $ServiceStruct$$Method$Server struct {\n"
+        "\trpc.Stream\n"
+        "}\n\n");
+    printer->Print(*vars,
         "func (x *$ServiceStruct$$Method$Server) Send(m *$Response$) error {\n"
         "\treturn x.Stream.SendProto(m)\n"
         "}\n\n");
-    printer->Print(
-        *vars,
+    printer->Print(*vars,
         "func (x *$ServiceStruct$$Method$Server) Recv() (*$Request$, error) "
         "{\n"
         "\tm := new($Request$)\n"
@@ -353,8 +347,7 @@ void PrintServerHandler(google::protobuf::io::Printer* printer,
         "\treturn m, nil\n"
         "}\n\n");
   } else if (ServerOnlyStreaming(method)) {
-    printer->Print(
-        *vars,
+    printer->Print(*vars,
         "func _$Service$_$Method$_Handler(srv interface{}, stream rpc.Stream) "
         "error {\n"
         "\tm := new($Request$)\n"
@@ -365,39 +358,36 @@ void PrintServerHandler(google::protobuf::io::Printer* printer,
         "&$ServiceStruct$$Method$Server{stream})\n"
         "}\n\n");
     printer->Print(*vars,
-                   "type $Service$_$Method$Server interface {\n"
-                   "\tSend(*$Response$) error\n"
-                   "\trpc.Stream\n"
-                   "}\n\n");
+        "type $Service$_$Method$Server interface {\n"
+        "\tSend(*$Response$) error\n"
+        "\trpc.Stream\n"
+        "}\n\n");
     printer->Print(*vars,
-                   "type $ServiceStruct$$Method$Server struct {\n"
-                   "\trpc.Stream\n"
-                   "}\n\n");
-    printer->Print(
-        *vars,
+        "type $ServiceStruct$$Method$Server struct {\n"
+        "\trpc.Stream\n"
+        "}\n\n");
+    printer->Print(*vars,
         "func (x *$ServiceStruct$$Method$Server) Send(m *$Response$) error {\n"
         "\treturn x.Stream.SendProto(m)\n"
         "}\n\n");
   } else if (ClientOnlyStreaming(method)) {
-    printer->Print(
-        *vars,
+    printer->Print(*vars,
         "func _$Service$_$Method$_Handler(srv interface{}, stream rpc.Stream) "
         "error {\n"
         "\treturn srv.($Service$Server).$Method$(&$ServiceStruct$$Method$Server"
         "{stream})\n"
         "}\n\n");
     printer->Print(*vars,
-                   "type $Service$_$Method$Server interface {\n"
-                   "\tSendAndClose(*$Response$) error\n"
-                   "\tRecv() (*$Request$, error)\n"
-                   "\trpc.Stream\n"
-                   "}\n\n");
+        "type $Service$_$Method$Server interface {\n"
+        "\tSendAndClose(*$Response$) error\n"
+        "\tRecv() (*$Request$, error)\n"
+        "\trpc.Stream\n"
+        "}\n\n");
     printer->Print(*vars,
-                   "type $ServiceStruct$$Method$Server struct {\n"
-                   "\trpc.Stream\n"
-                   "}\n\n");
-    printer->Print(
-        *vars,
+        "type $ServiceStruct$$Method$Server struct {\n"
+        "\trpc.Stream\n"
+        "}\n\n");
+    printer->Print(*vars,
         "func (x *$ServiceStruct$$Method$Server) SendAndClose(m *$Response$) "
         "error {\n"
         "\tif err := x.Stream.SendProto(m); err != nil {\n"
@@ -405,8 +395,7 @@ void PrintServerHandler(google::protobuf::io::Printer* printer,
         "\t}\n"
         "\treturn nil\n"
         "}\n\n");
-    printer->Print(
-        *vars,
+    printer->Print(*vars,
         "func (x *$ServiceStruct$$Method$Server) Recv() (*$Request$, error) {\n"
         "\tm := new($Request$)\n"
         "\tif err := x.Stream.RecvProto(m); err != nil {\n"
@@ -422,19 +411,22 @@ void PrintServerMethodDesc(google::protobuf::io::Printer* printer,
                            map<string, string>* vars) {
   (*vars)["Method"] = method->name();
   printer->Print("\t\t{\n");
-  printer->Print(*vars, "\t\t\tMethodName:\t\"$Method$\",\n");
-  printer->Print(*vars, "\t\t\tHandler:\t_$Service$_$Method$_Handler,\n");
+  printer->Print(*vars,
+                 "\t\t\tMethodName:\t\"$Method$\",\n");
+  printer->Print(*vars,
+                 "\t\t\tHandler:\t_$Service$_$Method$_Handler,\n");
   printer->Print("\t\t},\n");
 }
 
-void PrintServerStreamingMethodDesc(
-    google::protobuf::io::Printer* printer,
-    const google::protobuf::MethodDescriptor* method,
-    map<string, string>* vars) {
+void PrintServerStreamingMethodDesc(google::protobuf::io::Printer* printer,
+                                    const google::protobuf::MethodDescriptor* method,
+                                    map<string, string>* vars) {
   (*vars)["Method"] = method->name();
   printer->Print("\t\t{\n");
-  printer->Print(*vars, "\t\t\tStreamName:\t\"$Method$\",\n");
-  printer->Print(*vars, "\t\t\tHandler:\t_$Service$_$Method$_Handler,\n");
+  printer->Print(*vars,
+                 "\t\t\tStreamName:\t\"$Method$\",\n");
+  printer->Print(*vars,
+                 "\t\t\tHandler:\t_$Service$_$Method$_Handler,\n");
   printer->Print("\t\t},\n");
 }
 
@@ -475,9 +467,8 @@ void PrintServer(google::protobuf::io::Printer* printer,
       PrintServerStreamingMethodDesc(printer, service->method(i), vars);
     }
   }
-  printer->Print(
-      "\t},\n"
-      "}\n\n");
+  printer->Print("\t},\n"
+                 "}\n\n");
 }
 
 std::string BadToUnderscore(std::string str) {
@@ -502,9 +493,8 @@ string GetServices(const google::protobuf::FileDescriptor* file) {
   printer.Print(vars, "package $PackageName$\n\n");
   printer.Print("import (\n");
   if (HasClientOnlyStreaming(file)) {
-    printer.Print(
-        "\t\"fmt\"\n"
-        "\t\"io\"\n");
+    printer.Print("\t\"fmt\"\n"
+                  "\t\"io\"\n");
   }
   printer.Print(
       "\t\"google/net/grpc/go/rpc\"\n"
