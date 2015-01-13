@@ -31,6 +31,8 @@
  *
  */
 
+using namespace std;
+
 #include "src/compiler/go_generator.h"
 
 #include <cctype>
@@ -39,8 +41,6 @@
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/descriptor.h>
-
-using namespace std;
 
 namespace grpc_go_generator {
 
