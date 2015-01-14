@@ -32,24 +32,13 @@ class ValgrindConfig(object):
     return ['valgrind', binary, '--tool=%s' % self.tool]
 
 
-# SanConfig: compile with CONFIG=config, filter out incompatible binaries
-class SanConfig(object):
-  def __init__(self, config):
-    self.build_config = config
-    self.maxjobs = 16 * multiprocessing.cpu_count()
-
-  def run_command(self, binary):
-    if '_ssl_' in binary:
-      return None
-    return [binary]
-
 # different configurations we can run under
 _CONFIGS = {
   'dbg': SimpleConfig('dbg'),
   'opt': SimpleConfig('opt'),
-  'tsan': SanConfig('tsan'),
-  'msan': SanConfig('msan'),
-  'asan': SanConfig('asan'),
+  'tsan': SimpleConfig('tsan'),
+  'msan': SimpleConfig('msan'),
+  'asan': SimpleConfig('asan'),
   'gcov': SimpleConfig('gcov'),
   'memcheck': ValgrindConfig('dbg', 'memcheck'),
   'helgrind': ValgrindConfig('dbg', 'helgrind')
