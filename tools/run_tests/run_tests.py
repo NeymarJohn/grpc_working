@@ -75,8 +75,10 @@ def _build_and_run(check_cancelled):
   if not jobset.run(
       (['make',
         '-j', '%d' % (multiprocessing.cpu_count() + 1),
-        'CONFIG=%s' % cfg] + _MAKE_TEST_TARGETS
-       for cfg in build_configs),
+        target,
+        'CONFIG=%s' % cfg]
+       for cfg in build_configs
+       for target in _MAKE_TEST_TARGETS),
       check_cancelled, maxjobs=1):
     sys.exit(1)
 
