@@ -320,10 +320,9 @@ grpc_call_error grpc_call_add_metadata(grpc_call *call, grpc_metadata *metadata,
    Produces a GRPC_FINISHED event with finished_tag when the call has been
        completed (there may be other events for the call pending at this
        time) */
-grpc_call_error grpc_call_invoke(grpc_call *call,
-                                 grpc_completion_queue *cq,
-                                 void *metadata_read_tag,
-                                 void *finished_tag, gpr_uint32 flags);
+grpc_call_error grpc_call_invoke(grpc_call *call, grpc_completion_queue *cq,
+                                 void *metadata_read_tag, void *finished_tag,
+                                 gpr_uint32 flags);
 grpc_call_error grpc_call_start_invoke(grpc_call *call,
                                        grpc_completion_queue *cq,
                                        void *invoke_accepted_tag,
@@ -433,7 +432,8 @@ grpc_call_error grpc_server_request_call(grpc_server *server, void *tag_new);
 grpc_server *grpc_server_create(grpc_completion_queue *cq,
                                 const grpc_channel_args *args);
 
-/* Add a http2 over tcp listener; returns 1 on success, 0 on failure
+/* Add a http2 over tcp listener.
+   Returns bound port number on success, 0 on failure.
    REQUIRES: server not started */
 int grpc_server_add_http2_port(grpc_server *server, const char *addr);
 
@@ -457,4 +457,4 @@ void grpc_server_destroy(grpc_server *server);
 }
 #endif
 
-#endif  /* __GRPC_GRPC_H__ */
+#endif /* __GRPC_GRPC_H__ */
