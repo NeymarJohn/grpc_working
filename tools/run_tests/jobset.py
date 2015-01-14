@@ -39,36 +39,6 @@ _RUNNING = object()
 _KILLED = object()
 
 
-_COLORS = {
-    'red': 31,
-    'green': 32,
-    'yellow': 33,
-    }
-
-
-_BEGINNING_OF_LINE = '\x1b[0G'
-_CLEAR_LINE = '\x1b[2K'
-
-
-_TAG_COLOR = {
-    'FAILED': 'red',
-    'PASSED': 'green',
-    'START': 'yellow',
-    'WAITING': 'yellow',
-    }
-
-
-def message(tag, message, explanatory_text=None):
-  sys.stdout.write('%s%s\x1b[%dm%s\x1b[0m: %s%s' % (
-      _BEGINNING_OF_LINE,
-      _CLEAR_LINE,
-      _COLORS[_TAG_COLOR[tag]],
-      tag,
-      message,
-      '\n%s\n' % explanatory_text if explanatory_text is not None else ''))
-  sys.stdout.flush()
-
-
 class Job(object):
   """Manages one job."""
 
@@ -79,7 +49,9 @@ class Job(object):
                                      stderr=subprocess.STDOUT,
                                      stdout=self._tempfile)
     self._state = _RUNNING
-    message('START', self._cmdline)
+    sys.stdout.write('\x1b[0G\x1b[2K\x1b[33mSTART\x1b[0m: %s' %
+                     self._cmdline)
+    sys.stdout.flush()
 
   def state(self):
     """Poll current state of the job. Prints messages at completion."""
@@ -88,10 +60,16 @@ class Job(object):
         self._state = _FAILURE
         self._tempfile.seek(0)
         stdout = self._tempfile.read()
-        message('FAILED', '%s [ret=%d]' % (self._cmdline, self._process.returncode), stdout)
+        sys.stdout.write('\x1b[0G\x1b[2K\x1b[31mFAILED\x1b[0m: %s'
+                         ' [ret=%d]\n'
+                         '%s\n' % (
+                             self._cmdline, self._process.returncode, stdout))
+        sys.stdout.flush()
       else:
         self._state = _SUCCESS
-        message('PASSED', '%s' % self._cmdline)
+        sys.stdout.write('\x1b[0G\x1b[2K\x1b[32mPASSED\x1b[0m: %s' %
+                         self._cmdline)
+        sys.stdout.flush()
     return self._state
 
   def kill(self):
@@ -108,7 +86,6 @@ class Jobset(object):
     self._check_cancelled = check_cancelled
     self._cancelled = False
     self._failures = 0
-    self._completed = 0
     self._maxjobs = maxjobs
 
   def start(self, cmdline):
@@ -130,11 +107,8 @@ class Jobset(object):
         if st == _FAILURE: self._failures += 1
         dead.add(job)
       for job in dead:
-        self._completed += 1
         self._running.remove(job)
-      if dead: return
-      message('WAITING', '%d jobs running, %d complete' % (
-          len(self._running), self._completed))
+      if not dead: return
       time.sleep(0.1)
 
   def cancelled(self):

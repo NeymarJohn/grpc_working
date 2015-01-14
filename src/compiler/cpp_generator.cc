@@ -43,11 +43,13 @@ namespace grpc_cpp_generator {
 namespace {
 
 bool NoStreaming(const google::protobuf::MethodDescriptor* method) {
-  return !method->client_streaming() && !method->server_streaming();
+  return !method->client_streaming() &&
+         !method->server_streaming();
 }
 
 bool ClientOnlyStreaming(const google::protobuf::MethodDescriptor* method) {
-  return method->client_streaming() && !method->server_streaming();
+  return method->client_streaming() &&
+         !method->server_streaming();
 }
 
 bool ServerOnlyStreaming(const google::protobuf::MethodDescriptor* method) {
@@ -55,7 +57,8 @@ bool ServerOnlyStreaming(const google::protobuf::MethodDescriptor* method) {
 }
 
 bool BidiStreaming(const google::protobuf::MethodDescriptor* method) {
-  return method->client_streaming() && method->server_streaming();
+  return method->client_streaming() &&
+         method->server_streaming();
 }
 
 bool HasClientOnlyStreaming(const google::protobuf::FileDescriptor* file) {
@@ -129,8 +132,8 @@ string GetSourceIncludes() {
 }
 
 void PrintHeaderClientMethod(google::protobuf::io::Printer* printer,
-                             const google::protobuf::MethodDescriptor* method,
-                             map<string, string>* vars) {
+                       const google::protobuf::MethodDescriptor* method,
+                       map<string, string>* vars) {
   (*vars)["Method"] = method->name();
   (*vars)["Request"] =
       grpc_cpp_generator::ClassName(method->input_type(), true);
@@ -201,9 +204,8 @@ void PrintHeaderService(google::protobuf::io::Printer* printer,
   printer->Indent();
 
   // Client side
-  printer->Print(
-      "class Stub : public ::grpc::InternalStub {\n"
-      " public:\n");
+  printer->Print("class Stub : public ::grpc::InternalStub {\n"
+                 " public:\n");
   printer->Indent();
   for (int i = 0; i < service->method_count(); ++i) {
     PrintHeaderClientMethod(printer, service->method(i), vars);
@@ -217,9 +219,8 @@ void PrintHeaderService(google::protobuf::io::Printer* printer,
   printer->Print("\n");
 
   // Server side
-  printer->Print(
-      "class Service {\n"
-      " public:\n");
+  printer->Print("class Service {\n"
+                " public:\n");
   printer->Indent();
   printer->Print("Service() : service_(nullptr) {}\n");
   printer->Print("virtual ~Service();\n");
@@ -228,9 +229,8 @@ void PrintHeaderService(google::protobuf::io::Printer* printer,
   }
   printer->Print("::grpc::RpcService* service();\n");
   printer->Outdent();
-  printer->Print(
-      " private:\n"
-      "  ::grpc::RpcService* service_;\n");
+  printer->Print(" private:\n"
+                 "  ::grpc::RpcService* service_;\n");
   printer->Print("};\n");
 
   printer->Outdent();
@@ -251,8 +251,8 @@ string GetHeaderServices(const google::protobuf::FileDescriptor* file) {
 }
 
 void PrintSourceClientMethod(google::protobuf::io::Printer* printer,
-                             const google::protobuf::MethodDescriptor* method,
-                             map<string, string>* vars) {
+                       const google::protobuf::MethodDescriptor* method,
+                       map<string, string>* vars) {
   (*vars)["Method"] = method->name();
   (*vars)["Request"] =
       grpc_cpp_generator::ClassName(method->input_type(), true);
@@ -308,8 +308,8 @@ void PrintSourceClientMethod(google::protobuf::io::Printer* printer,
 }
 
 void PrintSourceServerMethod(google::protobuf::io::Printer* printer,
-                             const google::protobuf::MethodDescriptor* method,
-                             map<string, string>* vars) {
+                       const google::protobuf::MethodDescriptor* method,
+                       map<string, string>* vars) {
   (*vars)["Method"] = method->name();
   (*vars)["Request"] =
       grpc_cpp_generator::ClassName(method->input_type(), true);
@@ -362,12 +362,12 @@ void PrintSourceService(google::protobuf::io::Printer* printer,
                         map<string, string>* vars) {
   (*vars)["Service"] = service->name();
   printer->Print(*vars,
-                 "$Service$::Stub* $Service$::NewStub("
-                 "const std::shared_ptr<::grpc::ChannelInterface>& channel) {\n"
-                 "  $Service$::Stub* stub = new $Service$::Stub();\n"
-                 "  stub->set_channel(channel);\n"
-                 "  return stub;\n"
-                 "};\n\n");
+      "$Service$::Stub* $Service$::NewStub("
+      "const std::shared_ptr<::grpc::ChannelInterface>& channel) {\n"
+      "  $Service$::Stub* stub = new $Service$::Stub();\n"
+      "  stub->set_channel(channel);\n"
+      "  return stub;\n"
+      "};\n\n");
   for (int i = 0; i < service->method_count(); ++i) {
     PrintSourceClientMethod(printer, service->method(i), vars);
   }
@@ -380,12 +380,11 @@ void PrintSourceService(google::protobuf::io::Printer* printer,
     PrintSourceServerMethod(printer, service->method(i), vars);
   }
   printer->Print(*vars,
-                 "::grpc::RpcService* $Service$::Service::service() {\n");
+      "::grpc::RpcService* $Service$::Service::service() {\n");
   printer->Indent();
-  printer->Print(
-      "if (service_ != nullptr) {\n"
-      "  return service_;\n"
-      "}\n");
+  printer->Print("if (service_ != nullptr) {\n"
+                 "  return service_;\n"
+                 "}\n");
   printer->Print("service_ = new ::grpc::RpcService();\n");
   for (int i = 0; i < service->method_count(); ++i) {
     const google::protobuf::MethodDescriptor* method = service->method(i);

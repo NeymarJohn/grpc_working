@@ -1341,7 +1341,6 @@
         "test/cpp/end2end/sync_client_async_server_test.cc"
       ],
       "deps": [
-        "grpc++_test_util",
         "grpc_test_util",
         "grpc++",
         "grpc",
@@ -1354,7 +1353,9 @@
       "build": "test",
       "c++": true,
       "src": [
-        "test/cpp/qps/qpstest.proto",
+        "test/cpp/interop/empty.proto",
+        "test/cpp/interop/messages.proto",
+        "test/cpp/interop/test.proto",
         "test/cpp/qps/client.cc"
       ],
       "deps": [
@@ -1371,7 +1372,9 @@
       "build": "test",
       "c++": true,
       "src": [
-        "test/cpp/qps/qpstest.proto",
+        "test/cpp/interop/empty.proto",
+        "test/cpp/interop/messages.proto",
+        "test/cpp/interop/test.proto",
         "test/cpp/qps/server.cc"
       ],
       "deps": [
@@ -1448,8 +1451,7 @@
       ],
       "deps": [
         "grpc++",
-        "grpc",
-        "gpr"
+        "grpc"
       ]
     },
     {
@@ -1461,8 +1463,7 @@
       ],
       "deps": [
         "grpc++",
-        "grpc",
-        "gpr"
+        "grpc"
       ]
     },
     {

@@ -40,8 +40,7 @@
 
 namespace grpc {
 
-bool SerializeProto(const google::protobuf::Message& msg,
-                    grpc_byte_buffer** bp) {
+bool SerializeProto(const google::protobuf::Message& msg, grpc_byte_buffer** bp) {
   grpc::string msg_str;
   bool success = msg.SerializeToString(&msg_str);
   if (success) {
@@ -53,8 +52,7 @@ bool SerializeProto(const google::protobuf::Message& msg,
   return success;
 }
 
-bool DeserializeProto(grpc_byte_buffer* buffer,
-                      google::protobuf::Message* msg) {
+bool DeserializeProto(grpc_byte_buffer* buffer, google::protobuf::Message* msg) {
   grpc::string msg_string;
   grpc_byte_buffer_reader* reader = grpc_byte_buffer_reader_create(buffer);
   gpr_slice slice;
