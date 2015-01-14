@@ -136,9 +136,7 @@ static void test_request_response_with_metadata_and_payload(
   GPR_ASSERT(GRPC_CALL_OK == grpc_call_add_metadata(c, &meta2, 0));
 
   GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_call_start_invoke(c, f.client_cq, tag(1), tag(2), tag(3), 0));
-  cq_expect_invoke_accepted(v_client, tag(1), GRPC_OP_OK);
-  cq_verify(v_client);
+             grpc_call_invoke(c, f.client_cq, tag(2), tag(3), 0));
 
   GPR_ASSERT(GRPC_CALL_OK ==
              grpc_call_start_write(c, request_payload, tag(4), 0));
@@ -203,7 +201,6 @@ static void test_request_response_with_metadata_and_payload(
   cq_verifier_destroy(v_client);
   cq_verifier_destroy(v_server);
 }
-
 
 void grpc_end2end_tests(grpc_end2end_test_config config) {
   test_request_response_with_metadata_and_payload(config);
