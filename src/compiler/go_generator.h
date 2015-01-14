@@ -31,51 +31,21 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
-#include "test/core/end2end/cq_verifier.h"
-#include "test/core/util/test_config.h"
+#ifndef NET_GRPC_COMPILER_GO_GENERATOR_H_
+#define NET_GRPC_COMPILER_GO_GENERATOR_H_
 
-static void *tag(gpr_intptr i) { return (void *)i; }
+#include <string>
 
-int main(int argc, char **argv) {
-  grpc_channel *chan;
-  grpc_call *call;
-  gpr_timespec timeout = gpr_time_from_seconds(4);
-  gpr_timespec deadline = gpr_time_add(gpr_now(), timeout);
-  grpc_completion_queue *cq;
-  cq_verifier *cqv;
-  grpc_event *ev;
-  int done;
+namespace google {
+namespace protobuf {
+class FileDescriptor;
+}  // namespace protobuf
+}  // namespace google
 
-  grpc_test_init(argc, argv);
-  grpc_init();
+namespace grpc_go_generator {
 
-  cq = grpc_completion_queue_create();
-  cqv = cq_verifier_create(cq);
+std::string GetServices(const google::protobuf::FileDescriptor* file);
 
-  /* create a call, channel to a non existant server */
-  chan = grpc_channel_create("nonexistant:54321", NULL);
-  call = grpc_channel_create_call(chan, "/foo", "nonexistant", deadline);
-  GPR_ASSERT(grpc_call_invoke(call, cq, tag(2), tag(3), 0) == GRPC_CALL_OK);
-  /* verify that all tags get completed */
-  cq_expect_client_metadata_read(cqv, tag(2), NULL);
-  cq_expect_finished_with_status(cqv, tag(3), GRPC_STATUS_CANCELLED, NULL,
-                                 NULL);
-  cq_verify(cqv);
+}  // namespace grpc_go_generator
 
-  grpc_completion_queue_shutdown(cq);
-  for (done = 0; !done;) {
-    ev = grpc_completion_queue_next(cq, gpr_inf_future);
-    done = ev->type == GRPC_QUEUE_SHUTDOWN;
-    grpc_event_finish(ev);
-  }
-  grpc_completion_queue_destroy(cq);
-  grpc_call_destroy(call);
-  grpc_channel_destroy(chan);
-  cq_verifier_destroy(cqv);
-
-  grpc_shutdown();
-
-  return 0;
-}
+#endif  // NET_GRPC_COMPILER_GO_GENERATOR_H_
