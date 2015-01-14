@@ -76,8 +76,6 @@ int grpc_server_add_http2_port(grpc_server *server, const char *addr) {
   grpc_tcp_server *tcp = NULL;
   size_t i;
   int count = 0;
-  int port_num = -1;
-  int port_temp;
 
   resolved = grpc_blocking_resolve_address(addr, "http");
   if (!resolved) {
@@ -90,15 +88,9 @@ int grpc_server_add_http2_port(grpc_server *server, const char *addr) {
   }
 
   for (i = 0; i < resolved->naddrs; i++) {
-    port_temp = grpc_tcp_server_add_port(
-        tcp, (struct sockaddr *)&resolved->addrs[i].addr,
-        resolved->addrs[i].len);
-    if (port_temp >= 0) {
-      if (port_num == -1) {
-        port_num = port_temp;
-      } else {
-        GPR_ASSERT(port_num == port_temp);
-      }
+    if (grpc_tcp_server_add_port(tcp,
+                                 (struct sockaddr *)&resolved->addrs[i].addr,
+                                 resolved->addrs[i].len)) {
       count++;
     }
   }
@@ -116,7 +108,7 @@ int grpc_server_add_http2_port(grpc_server *server, const char *addr) {
   /* Register with the server only upon success */
   grpc_server_add_listener(server, tcp, start, destroy);
 
-  return port_num;
+  return 1;
 
 /* Error path: cleanup and return */
 error:

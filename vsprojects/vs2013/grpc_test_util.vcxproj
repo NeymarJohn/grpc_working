@@ -91,11 +91,13 @@
     </ClCompile>
     <ClCompile Include="..\..\test\core\util\grpc_profiler.c">
     </ClCompile>
-    <ClCompile Include="..\..\test\core\util\port_posix.c">
-    </ClCompile>
     <ClCompile Include="..\..\test\core\util\parse_hexstring.c">
     </ClCompile>
+    <ClCompile Include="..\..\test\core\util\port_posix.c">
+    </ClCompile>
     <ClCompile Include="..\..\test\core\util\slice_splitter.c">
+    </ClCompile>
+    <ClCompile Include="..\..\test\core\util\test_config.c">
     </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

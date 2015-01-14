@@ -52,8 +52,7 @@ grpc_tcp_server *grpc_tcp_server_create();
 void grpc_tcp_server_start(grpc_tcp_server *server, grpc_pollset *pollset,
                            grpc_tcp_server_cb cb, void *cb_arg);
 
-/* Add a port to the server, returning port number on success, or negative
-   on failure.
+/* Add a port to the server, returning true on success, or false otherwise.
 
    The :: and 0.0.0.0 wildcard addresses are treated identically, accepting
    both IPv4 and IPv6 connections, but :: is the preferred style.  This usually
@@ -61,8 +60,6 @@ void grpc_tcp_server_start(grpc_tcp_server *server, grpc_pollset *pollset,
    but not dualstack sockets.
 
    For raw access to the underlying sockets, see grpc_tcp_server_get_fd(). */
-/* TODO(ctiller): deprecate this, and make grpc_tcp_server_add_ports to handle
-                  all of the multiple socket port matching logic in one place */
 int grpc_tcp_server_add_port(grpc_tcp_server *s, const struct sockaddr *addr,
                              int addr_len);
 

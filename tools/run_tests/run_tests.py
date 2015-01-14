@@ -11,44 +11,15 @@ import time
 import jobset
 import watch_dirs
 
-# SimpleConfig: just compile with CONFIG=config, and run the binary to test
-class SimpleConfig(object):
-  def __init__(self, config):
-    self.build_config = config
-
-  def run_command(self, binary):
-    return [binary]
-
-
-# ValgrindConfig: compile with some CONFIG=config, but use valgrind to run
-class ValgrindConfig(object):
-  def __init__(self, config):
-    self.build_config = config
-
-  def run_command(self, binary):
-    return ['valgrind', binary]
-
-
-# different configurations we can run under
-_CONFIGS = {
-  'dbg': SimpleConfig('dbg'),
-  'opt': SimpleConfig('opt'),
-  'tsan': SimpleConfig('tsan'),
-  'msan': SimpleConfig('msan'),
-  'asan': SimpleConfig('asan'),
-  'valgrind': ValgrindConfig('dbg'),
-  }
-
-
-_DEFAULT = ['dbg', 'opt']
-_MAKE_TEST_TARGETS = ['buildtests_c', 'buildtests_cxx']
+# flags required for make for each configuration
+_CONFIGS = ['dbg', 'opt', 'tsan', 'msan', 'asan']
 
 # parse command line
 argp = argparse.ArgumentParser(description='Run grpc tests.')
 argp.add_argument('-c', '--config',
-                  choices=['all'] + sorted(_CONFIGS.keys()),
+                  choices=['all'] + _CONFIGS,
                   nargs='+',
-                  default=_DEFAULT)
+                  default=['all'])
 argp.add_argument('-t', '--test-filter', nargs='*', default=['*'])
 argp.add_argument('-n', '--runs_per_test', default=1, type=int)
 argp.add_argument('-f', '--forever',
@@ -58,11 +29,10 @@ argp.add_argument('-f', '--forever',
 args = argp.parse_args()
 
 # grab config
-run_configs = set(_CONFIGS[cfg]
-                  for cfg in itertools.chain.from_iterable(
-                      _CONFIGS.iterkeys() if x == 'all' else [x]
-                      for x in args.config))
-build_configs = set(cfg.build_config for cfg in run_configs)
+configs = [cfg
+           for cfg in itertools.chain.from_iterable(
+               _CONFIGS if x == 'all' else [x]
+               for x in args.config)]
 filters = args.test_filter
 runs_per_test = args.runs_per_test
 forever = args.forever
@@ -74,22 +44,19 @@ def _build_and_run(check_cancelled):
   if not jobset.run(
       (['make',
         '-j', '%d' % (multiprocessing.cpu_count() + 1),
-        target,
+        'buildtests_c',
         'CONFIG=%s' % cfg]
-       for cfg in build_configs
-       for target in _MAKE_TEST_TARGETS),
-      check_cancelled, maxjobs=1):
+       for cfg in configs), check_cancelled, maxjobs=1):
     sys.exit(1)
 
   # run all the tests
-  jobset.run((
-      config.run_command(x)
-      for config in run_configs
-      for filt in filters
-      for x in itertools.chain.from_iterable(itertools.repeat(
-          glob.glob('bins/%s/%s_test' % (
-              config.build_config, filt)),
-          runs_per_test))), check_cancelled)
+  jobset.run(([x]
+              for x in itertools.chain.from_iterable(
+                  itertools.chain.from_iterable(itertools.repeat(
+                      glob.glob('bins/%s/%s_test' % (config, filt)),
+                      runs_per_test))
+                  for config in configs
+                  for filt in filters)), check_cancelled)
 
 
 if forever:

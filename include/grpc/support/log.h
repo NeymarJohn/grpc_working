@@ -72,21 +72,9 @@ const char *gpr_log_severity_string(gpr_log_severity severity);
 void gpr_log(const char *file, int line, gpr_log_severity severity,
              const char *format, ...);
 
-void gpr_log_message(const char *file, int line, gpr_log_severity severity,
-                     const char *message);
-
-/* Log overrides: applications can use this API to intercept logging calls
-   and use their own implementations */
-
-typedef struct {
-  const char *file;
-  int line;
-  gpr_log_severity severity;
-  const char *message;
-} gpr_log_func_args;
-
-typedef void (*gpr_log_func)(gpr_log_func_args *args);
-void gpr_set_log_function(gpr_log_func func);
+/* Same as above, but using a va_list instead. */
+void gpr_vlog(const char *file, int line, gpr_log_severity severity,
+              const char *format, va_list args);
 
 /* abort() the process if x is zero, having written a line to the log.
 
@@ -105,4 +93,4 @@ void gpr_set_log_function(gpr_log_func func);
 }
 #endif
 
-#endif /* __GRPC_SUPPORT_LOG_H__ */
+#endif  /* __GRPC_SUPPORT_LOG_H__ */

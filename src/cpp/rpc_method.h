@@ -31,18 +31,39 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_TIMEVAL_H_
-#define NET_GRPC_NODE_TIMEVAL_H_
+#ifndef __GRPCPP_INTERNAL_RPC_METHOD_H__
+#define __GRPCPP_INTERNAL_RPC_METHOD_H__
 
-#include "grpc/support/time.h"
+namespace google {
+namespace protobuf {
+class Message;
+}
+}
 
 namespace grpc {
-namespace node {
 
-double TimespecToMilliseconds(gpr_timespec time);
-gpr_timespec MillisecondsToTimespec(double millis);
+class RpcMethod {
+ public:
+  enum RpcType {
+    NORMAL_RPC = 0,
+    CLIENT_STREAMING,  // request streaming
+    SERVER_STREAMING,  // response streaming
+    BIDI_STREAMING
+  };
 
-}  // namespace node
+  explicit RpcMethod(const char* name)
+      : name_(name), method_type_(NORMAL_RPC) {}
+  RpcMethod(const char* name, RpcType type) : name_(name), method_type_(type) {}
+
+  const char *name() const { return name_; }
+
+  RpcType method_type() const { return method_type_; }
+
+ private:
+  const char *name_;
+  const RpcType method_type_;
+};
+
 }  // namespace grpc
 
-#endif  // NET_GRPC_NODE_TIMEVAL_H_
+#endif  // __GRPCPP_INTERNAL_RPC_METHOD_H__
