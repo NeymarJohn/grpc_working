@@ -36,13 +36,12 @@
 #ifdef GPR_WIN32
 
 #include <grpc/support/log.h>
-#include <grpc/support/alloc.h>
 #include <stdio.h>
 #include <stdarg.h>
 
 void gpr_log(const char *file, int line, gpr_log_severity severity,
-             const char *format, ...) {
-  char *message = NULL;
+             const char *message) {
+  const char *message = NULL;
   va_list args;
   int ret;
 
@@ -54,7 +53,7 @@ void gpr_log(const char *file, int line, gpr_log_severity severity,
     message = NULL;
   } else {
     /* Allocate a new buffer, with space for the NUL terminator. */
-    size_t strp_buflen = (size_t)ret + 1;
+    strp_buflen = (size_t)ret + 1;
     message = gpr_malloc(strp_buflen);
 
     /* Print to the buffer. */
@@ -74,7 +73,7 @@ void gpr_log(const char *file, int line, gpr_log_severity severity,
 
 /* Simple starter implementation */
 void gpr_default_log(gpr_log_func_args *args) {
-  fprintf(stderr, "%s %s:%d: %s\n", gpr_log_severity_string(args->severity),
+  fprintf(stderr, "%s %s:%d: %s\n", gpr_log_severity_string(severity),
           args->file, args->line, args->message);
 }
 
