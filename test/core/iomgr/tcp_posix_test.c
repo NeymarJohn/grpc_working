@@ -36,6 +36,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <string.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -490,6 +491,8 @@ static grpc_endpoint_test_config configs[] = {
 int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
   grpc_iomgr_init();
+  /* disable SIGPIPE */
+  signal(SIGPIPE, SIG_IGN);
   run_tests();
   grpc_endpoint_tests(configs[0]);
   grpc_iomgr_shutdown();
