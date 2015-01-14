@@ -158,6 +158,7 @@ typedef struct grpc_byte_buffer grpc_byte_buffer;
 
 /* Sample helpers to obtain byte buffers (these will certainly move place */
 grpc_byte_buffer *grpc_byte_buffer_create(gpr_slice *slices, size_t nslices);
+grpc_byte_buffer *grpc_byte_buffer_copy(grpc_byte_buffer *bb);
 size_t grpc_byte_buffer_length(grpc_byte_buffer *bb);
 void grpc_byte_buffer_destroy(grpc_byte_buffer *byte_buffer);
 
@@ -319,6 +320,9 @@ grpc_call_error grpc_call_add_metadata(grpc_call *call, grpc_metadata *metadata,
    Produces a GRPC_FINISHED event with finished_tag when the call has been
        completed (there may be other events for the call pending at this
        time) */
+grpc_call_error grpc_call_invoke(grpc_call *call, grpc_completion_queue *cq,
+                                 void *metadata_read_tag, void *finished_tag,
+                                 gpr_uint32 flags);
 grpc_call_error grpc_call_start_invoke(grpc_call *call,
                                        grpc_completion_queue *cq,
                                        void *invoke_accepted_tag,
@@ -364,6 +368,14 @@ grpc_call_error grpc_call_server_end_initial_metadata(grpc_call *call,
 /* Called by clients to cancel an RPC on the server.
    Can be called multiple times, from any thread. */
 grpc_call_error grpc_call_cancel(grpc_call *call);
+
+/* Called by clients to cancel an RPC on the server.
+   Can be called multiple times, from any thread. 
+   If a status has not been received for the call, set it to the status code
+   and description passed in. 
+   Importantly, this function does not send status nor description to the
+   remote endpoint. */
+grpc_call_error grpc_call_cancel_with_status(grpc_call *call, grpc_status_code status, const char *description);
 
 /* Queue a byte buffer for writing.
    flags is a bit-field combination of the write flags defined above.
