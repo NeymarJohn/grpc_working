@@ -38,10 +38,77 @@ var util = require('util');
 
 var Transform = require('stream').Transform;
 
-var grpc = require('..');
-var math = grpc.load(__dirname + '/math.proto').math;
+var builder = ProtoBuf.loadProtoFile(__dirname + '/math.proto');
+var math = builder.build('math');
 
-var Server = grpc.buildServer([math.Math.service]);
+var makeConstructor = require('../surface_server.js').makeServerConstructor;
+
+/**
+ * Get a function that deserializes a specific type of protobuf.
+ * @param {function()} cls The constructor of the message type to deserialize
+ * @return {function(Buffer):cls} The deserialization function
+ */
+function deserializeCls(cls) {
+  /**
+   * Deserialize a buffer to a message object
+   * @param {Buffer} arg_buf The buffer to deserialize
+   * @return {cls} The resulting object
+   */
+  return function deserialize(arg_buf) {
+    return cls.decode(arg_buf);
+  };
+}
+
+/**
+ * Get a function that serializes objects to a buffer by protobuf class.
+ * @param {function()} Cls The constructor of the message type to serialize
+ * @return {function(Cls):Buffer} The serialization function
+ */
+function serializeCls(Cls) {
+  /**
+   * Serialize an object to a Buffer
+   * @param {Object} arg The object to serialize
+   * @return {Buffer} The serialized object
+   */
+  return function serialize(arg) {
+    return new Buffer(new Cls(arg).encode().toBuffer());
+  };
+}
+
+/* This function call creates a server constructor for servers that that expose
+ * the four specified methods. This specifies how to serialize messages that the
+ * server sends and deserialize messages that the client sends, and whether the
+ * client or the server will send a stream of messages, for each method. This
+ * also specifies a prefix that will be added to method names when sending them
+ * on the wire. This function call and all of the preceding code in this file
+ * are intended to approximate what the generated code will look like for the
+ * math service */
+var Server = makeConstructor({
+  Div: {
+    serialize: serializeCls(math.DivReply),
+    deserialize: deserializeCls(math.DivArgs),
+    client_stream: false,
+    server_stream: false
+  },
+  Fib: {
+    serialize: serializeCls(math.Num),
+    deserialize: deserializeCls(math.FibArgs),
+    client_stream: false,
+    server_stream: true
+  },
+  Sum: {
+    serialize: serializeCls(math.Num),
+    deserialize: deserializeCls(math.Num),
+    client_stream: true,
+    server_stream: false
+  },
+  DivMany: {
+    serialize: serializeCls(math.DivReply),
+    deserialize: deserializeCls(math.DivArgs),
+    client_stream: true,
+    server_stream: true
+  }
+}, '/Math/');
 
 /**
  * Server function for division. Provides the /Math/DivMany and /Math/Div
@@ -118,12 +185,10 @@ function mathDivMany(stream) {
 }
 
 var server = new Server({
-  'math.Math' : {
-    Div: mathDiv,
-    Fib: mathFib,
-    Sum: mathSum,
-    DivMany: mathDivMany
-  }
+  Div: mathDiv,
+  Fib: mathFib,
+  Sum: mathSum,
+  DivMany: mathDivMany
 });
 
 if (require.main === module) {

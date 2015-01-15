@@ -35,8 +35,6 @@ var _ = require('underscore');
 
 var client = require('./client.js');
 
-var common = require('./common.js');
-
 var EventEmitter = require('events').EventEmitter;
 
 var stream = require('stream');
@@ -45,7 +43,6 @@ var Readable = stream.Readable;
 var Writable = stream.Writable;
 var Duplex = stream.Duplex;
 var util = require('util');
-
 
 function forwardEvent(fromEmitter, toEmitter, event) {
   fromEmitter.on(event, function forward() {
@@ -320,13 +317,16 @@ var requester_makers = {
 }
 
 /**
- * Creates a constructor for clients for the given service
- * @param {ProtoBuf.Reflect.Service} service The service to generate a client
- *     for
+ * Creates a constructor for clients with a service defined by the methods
+ * object. The methods object has string keys and values of this form:
+ * {serialize: function, deserialize: function, client_stream: bool,
+ *  server_stream: bool}
+ * @param {!Object<string, Object>} methods Method descriptor for each method
+ *     the client should expose
+ * @param {string} prefix The prefix to prepend to each method name
  * @return {function(string, Object)} New client constructor
  */
-function makeClientConstructor(service) {
-  var prefix = '/' + common.fullyQualifiedName(service) + '/';
+function makeClientConstructor(methods, prefix) {
   /**
    * Create a client with the given methods
    * @constructor
@@ -337,28 +337,26 @@ function makeClientConstructor(service) {
     this.channel = new client.Channel(address, options);
   }
 
-  _.each(service.children, function(method) {
+  _.each(methods, function(method, name) {
     var method_type;
-    if (method.requestStream) {
-      if (method.responseStream) {
+    if (method.client_stream) {
+      if (method.server_stream) {
         method_type = 'bidi';
       } else {
         method_type = 'client_stream';
       }
     } else {
-      if (method.responseStream) {
+      if (method.server_stream) {
         method_type = 'server_stream';
       } else {
         method_type = 'unary';
       }
     }
-    SurfaceClient.prototype[method.name] = requester_makers[method_type](
-        prefix + method.name,
-        common.serializeCls(method.resolvedRequestType.build()),
-        common.deserializeCls(method.resolvedResponseType.build()));
+    SurfaceClient.prototype[name] = requester_makers[method_type](
+        prefix + name,
+        method.serialize,
+        method.deserialize);
   });
-
-  SurfaceClient.service = service;
 
   return SurfaceClient;
 }

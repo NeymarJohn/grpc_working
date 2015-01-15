@@ -42,8 +42,6 @@ var Writable = stream.Writable;
 var Duplex = stream.Duplex;
 var util = require('util');
 
-var common = require('./common.js');
-
 util.inherits(ServerReadableObjectStream, Readable);
 
 /**
@@ -289,59 +287,36 @@ var handler_makers = {
  * @param {string} prefix The prefex to prepend to each method name
  * @return {function(Object, Object)} New server constructor
  */
-function makeServerConstructor(services) {
-  var qual_names = [];
-  _.each(services, function(service) {
-    _.each(service.children, function(method) {
-      var name = common.fullyQualifiedName(method);
-      if (_.indexOf(qual_names, name) !== -1) {
-        throw new Error('Method ' + name + ' exposed by more than one service');
-      }
-      qual_names.push(name);
-    });
-  });
+function makeServerConstructor(methods, prefix) {
   /**
    * Create a server with the given handlers for all of the methods.
    * @constructor
-   * @param {Object} service_handlers Map from service names to map from method
-   *     names to handlers
+   * @param {Object} handlers Map from method names to method handlers.
    * @param {Object} options Options to pass to the underlying server
    */
-  function SurfaceServer(service_handlers, options) {
+  function SurfaceServer(handlers, options) {
     var server = new Server(options);
     this.inner_server = server;
-    _.each(services, function(service) {
-      var service_name = common.fullyQualifiedName(service);
-      if (service_handlers[service_name] === undefined) {
-        throw new Error('Handlers for service ' +
-            service_name + ' not provided.');
-      }
-      var prefix = '/' + common.fullyQualifiedName(service) + '/';
-      _.each(service.children, function(method) {
-        var method_type;
-        if (method.requestStream) {
-          if (method.responseStream) {
-            method_type = 'bidi';
-          } else {
-            method_type = 'client_stream';
-          }
+    _.each(handlers, function(handler, name) {
+      var method = methods[name];
+      var method_type;
+      if (method.client_stream) {
+        if (method.server_stream) {
+          method_type = 'bidi';
         } else {
-          if (method.responseStream) {
-            method_type = 'server_stream';
-          } else {
-            method_type = 'unary';
-          }
+          method_type = 'client_stream';
         }
-        if (service_handlers[service_name][method.name] === undefined) {
-          throw new Error('Method handler for ' +
-              common.fullyQualifiedName(method) + ' not provided.');
+      } else {
+        if (method.server_stream) {
+          method_type = 'server_stream';
+        } else {
+          method_type = 'unary';
         }
-        var binary_handler = handler_makers[method_type](
-            service_handlers[service_name][method.name],
-            common.serializeCls(method.resolvedResponseType.build()),
-            common.deserializeCls(method.resolvedRequestType.build()));
-        server.register(prefix + method.name, binary_handler);
-      });
+      }
+      var binary_handler = handler_makers[method_type](handler,
+                                                       method.serialize,
+                                                       method.deserialize);
+      server.register('' + prefix + name, binary_handler);
     }, this);
   }
 
