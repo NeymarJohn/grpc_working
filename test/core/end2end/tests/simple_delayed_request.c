@@ -52,7 +52,7 @@ static gpr_timespec n_seconds_time(int n) {
   return gpr_time_add(gpr_now(), gpr_time_from_micros(GPR_US_PER_SEC * n));
 }
 
-static gpr_timespec five_seconds_time() { return n_seconds_time(5); }
+static gpr_timespec five_seconds_time(void) { return n_seconds_time(5); }
 
 static void drain_cq(grpc_completion_queue *cq) {
   grpc_event *ev;
@@ -106,8 +106,10 @@ static void simple_delayed_request_body(grpc_end2end_test_config config,
   c = grpc_channel_create_call(f->client, "/foo", "test.google.com", deadline);
   GPR_ASSERT(c);
 
-  GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_call_invoke(c, f->client_cq, tag(2), tag(3), 0));
+  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_invoke(c, f->client_cq, tag(1),
+                                                    tag(2), tag(3), 0));
+  gpr_sleep_until(gpr_time_add(gpr_now(), gpr_time_from_micros(delay_us)));
+  cq_expect_invoke_accepted(v_client, tag(1), GRPC_OP_OK);
 
   config.init_server(f, server_args);
 
@@ -122,7 +124,9 @@ static void simple_delayed_request_body(grpc_end2end_test_config config,
                            deadline, NULL);
   cq_verify(v_server);
 
-  GPR_ASSERT(GRPC_CALL_OK == grpc_call_accept(s, f->server_cq, tag(102), 0));
+  GPR_ASSERT(GRPC_CALL_OK ==
+             grpc_call_server_accept(s, f->server_cq, tag(102)));
+  GPR_ASSERT(GRPC_CALL_OK == grpc_call_server_end_initial_metadata(s, 0));
   cq_expect_client_metadata_read(v_client, tag(2), NULL);
   cq_verify(v_client);
 
