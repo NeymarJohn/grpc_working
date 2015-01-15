@@ -40,7 +40,7 @@ _CONFIGS = {
   'msan': SimpleConfig('msan'),
   'asan': SimpleConfig('asan'),
   'gcov': SimpleConfig('gcov'),
-  'memcheck': ValgrindConfig('valgrind', 'memcheck'),
+  'memcheck': ValgrindConfig('dbg', 'memcheck'),
   'helgrind': ValgrindConfig('dbg', 'helgrind')
   }
 
