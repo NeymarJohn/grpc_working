@@ -48,7 +48,7 @@ namespace grpc {
 class ClientContext;
 class RpcMethod;
 
-class StreamContext final : public StreamContextInterface {
+class StreamContext : public StreamContextInterface {
  public:
   StreamContext(const RpcMethod& method, ClientContext* context,
                 const google::protobuf::Message* request,
@@ -63,7 +63,7 @@ class StreamContext final : public StreamContextInterface {
   bool Read(google::protobuf::Message* msg) override;
   bool Write(const google::protobuf::Message* msg, bool is_last) override;
   const Status& Wait() override;
-  void Cancel() override;
+  void FinishStream(const Status& status, bool send) override;
 
   google::protobuf::Message* request() override { return request_; }
   google::protobuf::Message* response() override { return result_; }

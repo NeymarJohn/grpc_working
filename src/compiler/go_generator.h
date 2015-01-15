@@ -31,47 +31,21 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_SERVER_CREDENTIALS_H_
-#define NET_GRPC_NODE_SERVER_CREDENTIALS_H_
+#ifndef NET_GRPC_COMPILER_GO_GENERATOR_H_
+#define NET_GRPC_COMPILER_GO_GENERATOR_H_
 
-#include <node.h>
-#include <nan.h>
-#include "grpc/grpc.h"
-#include "grpc/grpc_security.h"
+#include <string>
 
-namespace grpc {
-namespace node {
+namespace google {
+namespace protobuf {
+class FileDescriptor;
+}  // namespace protobuf
+}  // namespace google
 
-/* Wrapper class for grpc_server_credentials structs */
-class ServerCredentials : public ::node::ObjectWrap {
- public:
-  static void Init(v8::Handle<v8::Object> exports);
-  static bool HasInstance(v8::Handle<v8::Value> val);
-  /* Wrap a grpc_server_credentials struct in a javascript object */
-  static v8::Handle<v8::Value> WrapStruct(grpc_server_credentials *credentials);
+namespace grpc_go_generator {
 
-  /* Returns the grpc_server_credentials struct that this object wraps */
-  grpc_server_credentials *GetWrappedServerCredentials();
+std::string GetServices(const google::protobuf::FileDescriptor* file);
 
- private:
-  explicit ServerCredentials(grpc_server_credentials *credentials);
-  ~ServerCredentials();
+}  // namespace grpc_go_generator
 
-  // Prevent copying
-  ServerCredentials(const ServerCredentials&);
-  ServerCredentials& operator=(const ServerCredentials&);
-
-  static NAN_METHOD(New);
-  static NAN_METHOD(CreateSsl);
-  static NAN_METHOD(CreateFake);
-  static v8::Persistent<v8::Function> constructor;
-  // Used for typechecking instances of this javascript class
-  static v8::Persistent<v8::FunctionTemplate> fun_tpl;
-
-  grpc_server_credentials *wrapped_credentials;
-};
-
-}  // namespace node
-}  // namespace grpc
-
-#endif  // NET_GRPC_NODE_SERVER_CREDENTIALS_H_
+#endif  // NET_GRPC_COMPILER_GO_GENERATOR_H_

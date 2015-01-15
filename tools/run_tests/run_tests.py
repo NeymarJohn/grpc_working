@@ -15,7 +15,6 @@ import watch_dirs
 class SimpleConfig(object):
   def __init__(self, config):
     self.build_config = config
-    self.maxjobs = 32 * multiprocessing.cpu_count()
 
   def run_command(self, binary):
     return [binary]
@@ -23,13 +22,11 @@ class SimpleConfig(object):
 
 # ValgrindConfig: compile with some CONFIG=config, but use valgrind to run
 class ValgrindConfig(object):
-  def __init__(self, config, tool):
+  def __init__(self, config):
     self.build_config = config
-    self.tool = tool
-    self.maxjobs = 4 * multiprocessing.cpu_count()
 
   def run_command(self, binary):
-    return ['valgrind', binary, '--tool=%s' % self.tool]
+    return ['valgrind', binary]
 
 
 # different configurations we can run under
@@ -39,9 +36,7 @@ _CONFIGS = {
   'tsan': SimpleConfig('tsan'),
   'msan': SimpleConfig('msan'),
   'asan': SimpleConfig('asan'),
-  'gcov': SimpleConfig('gcov'),
-  'memcheck': ValgrindConfig('dbg', 'memcheck'),
-  'helgrind': ValgrindConfig('dbg', 'helgrind')
+  'valgrind': ValgrindConfig('dbg'),
   }
 
 
@@ -79,27 +74,22 @@ def _build_and_run(check_cancelled):
   if not jobset.run(
       (['make',
         '-j', '%d' % (multiprocessing.cpu_count() + 1),
-        'CONFIG=%s' % cfg] + _MAKE_TEST_TARGETS
-       for cfg in build_configs),
+        target,
+        'CONFIG=%s' % cfg]
+       for cfg in build_configs
+       for target in _MAKE_TEST_TARGETS),
       check_cancelled, maxjobs=1):
-    return 1
+    sys.exit(1)
 
   # run all the tests
-  if not jobset.run(
-      itertools.ifilter(
-          lambda x: x is not None, (
-              config.run_command(x)
-              for config in run_configs
-              for filt in filters
-              for x in itertools.chain.from_iterable(itertools.repeat(
-                  glob.glob('bins/%s/%s_test' % (
-                      config.build_config, filt)),
-                  runs_per_test)))),
-              check_cancelled,
-              maxjobs=min(c.maxjobs for c in run_configs)):
-    return 2
-
-  return 0
+  jobset.run((
+      config.run_command(x)
+      for config in run_configs
+      for filt in filters
+      for x in itertools.chain.from_iterable(itertools.repeat(
+          glob.glob('bins/%s/%s_test' % (
+              config.build_config, filt)),
+          runs_per_test))), check_cancelled)
 
 
 if forever:
@@ -111,5 +101,5 @@ if forever:
     while not have_files_changed():
       time.sleep(1)
 else:
-  sys.exit(_build_and_run(lambda: False))
+  _build_and_run(lambda: False)
 
