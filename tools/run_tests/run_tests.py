@@ -60,10 +60,6 @@ argp.add_argument('-f', '--forever',
                   default=False,
                   action='store_const',
                   const=True)
-argp.add_argument('--newline_on_success',
-                  default=False,
-                  action='store_const',
-                  const=True)
 args = argp.parse_args()
 
 # grab config
@@ -77,7 +73,7 @@ runs_per_test = args.runs_per_test
 forever = args.forever
 
 
-def _build_and_run(check_cancelled, newline_on_success, forever=False):
+def _build_and_run(check_cancelled):
   """Do one pass of building & running tests."""
   # build latest, sharing cpu between the various makes
   if not jobset.run(
@@ -100,7 +96,6 @@ def _build_and_run(check_cancelled, newline_on_success, forever=False):
                       config.build_config, filt)),
                   runs_per_test)))),
               check_cancelled,
-              newline_on_success=newline_on_success,
               maxjobs=min(c.maxjobs for c in run_configs)):
     return 2
 
@@ -108,27 +103,13 @@ def _build_and_run(check_cancelled, newline_on_success, forever=False):
 
 
 if forever:
-  success = True
   while True:
     dw = watch_dirs.DirWatcher(['src', 'include', 'test'])
     initial_time = dw.most_recent_change()
     have_files_changed = lambda: dw.most_recent_change() != initial_time
-    previous_success = success
-    success = _build_and_run(have_files_changed,
-                             newline_on_success=False,
-                             forever=True) == 0
-    if not previous_success and success:
-      jobset.message('SUCCESS',
-                     'All tests are now passing properly',
-                     do_newline=True)
-    jobset.message('IDLE', 'No change detected')
+    _build_and_run(have_files_changed)
     while not have_files_changed():
       time.sleep(1)
 else:
-  result = _build_and_run(lambda: False,
-                          newline_on_success=args.newline_on_success)
-  if result == 0:
-    jobset.message('SUCCESS', 'All tests passed', do_newline=True)
-  else:
-    jobset.message('FAILED', 'Some tests failed', do_newline=True)
-  sys.exit(result)
+  sys.exit(_build_and_run(lambda: False))
+
