@@ -15,6 +15,7 @@ import watch_dirs
 class SimpleConfig(object):
   def __init__(self, config):
     self.build_config = config
+    self.maxjobs = 32 * multiprocessing.cpu_count()
 
   def run_command(self, binary):
     return [binary]
@@ -22,22 +23,36 @@ class SimpleConfig(object):
 
 # ValgrindConfig: compile with some CONFIG=config, but use valgrind to run
 class ValgrindConfig(object):
-  def __init__(self, config):
+  def __init__(self, config, tool):
     self.build_config = config
+    self.tool = tool
+    self.maxjobs = 4 * multiprocessing.cpu_count()
 
   def run_command(self, binary):
-    return ['valgrind', binary]
+    return ['valgrind', binary, '--tool=%s' % self.tool]
 
+
+# SanConfig: compile with CONFIG=config, filter out incompatible binaries
+class SanConfig(object):
+  def __init__(self, config):
+    self.build_config = config
+    self.maxjobs = 16 * multiprocessing.cpu_count()
+
+  def run_command(self, binary):
+    if '_ssl_' in binary:
+      return None
+    return [binary]
 
 # different configurations we can run under
 _CONFIGS = {
   'dbg': SimpleConfig('dbg'),
   'opt': SimpleConfig('opt'),
-  'tsan': SimpleConfig('tsan'),
-  'msan': SimpleConfig('msan'),
-  'asan': SimpleConfig('asan'),
+  'tsan': SanConfig('tsan'),
+  'msan': SanConfig('msan'),
+  'asan': SanConfig('asan'),
   'gcov': SimpleConfig('gcov'),
-  'valgrind': ValgrindConfig('dbg'),
+  'memcheck': ValgrindConfig('dbg', 'memcheck'),
+  'helgrind': ValgrindConfig('dbg', 'helgrind')
   }
 
 
@@ -56,10 +71,6 @@ argp.add_argument('-f', '--forever',
                   default=False,
                   action='store_const',
                   const=True)
-argp.add_argument('--newline_on_success',
-                  default=False,
-                  action='store_const',
-                  const=True)
 args = argp.parse_args()
 
 # grab config
@@ -73,7 +84,7 @@ runs_per_test = args.runs_per_test
 forever = args.forever
 
 
-def _build_and_run(check_cancelled, newline_on_success, forever=False):
+def _build_and_run(check_cancelled):
   """Do one pass of building & running tests."""
   # build latest, sharing cpu between the various makes
   if not jobset.run(
@@ -85,36 +96,31 @@ def _build_and_run(check_cancelled, newline_on_success, forever=False):
     return 1
 
   # run all the tests
-  if not jobset.run((
-      config.run_command(x)
-      for config in run_configs
-      for filt in filters
-      for x in itertools.chain.from_iterable(itertools.repeat(
-          glob.glob('bins/%s/%s_test' % (
-              config.build_config, filt)),
-          runs_per_test))), check_cancelled, newline_on_success=newline_on_success):
-    if not forever:
-      jobset.message('FAILED', 'Some tests failed', do_newline=True)
+  if not jobset.run(
+      itertools.ifilter(
+          lambda x: x is not None, (
+              config.run_command(x)
+              for config in run_configs
+              for filt in filters
+              for x in itertools.chain.from_iterable(itertools.repeat(
+                  glob.glob('bins/%s/%s_test' % (
+                      config.build_config, filt)),
+                  runs_per_test)))),
+              check_cancelled,
+              maxjobs=min(c.maxjobs for c in run_configs)):
     return 2
 
-  if not forever:
-    jobset.message('SUCCESS', 'All tests passed', do_newline=True)
   return 0
 
 
 if forever:
-  success = True
   while True:
     dw = watch_dirs.DirWatcher(['src', 'include', 'test'])
     initial_time = dw.most_recent_change()
     have_files_changed = lambda: dw.most_recent_change() != initial_time
-    previous_success = success
-    success = _build_and_run(have_files_changed, newline_on_success=False, forever=True) == 0
-    if not previous_success and success:
-      jobset.message('SUCCESS', 'All tests are now passing properly', do_newline=True)
-    jobset.message('IDLE', 'No change detected')
+    _build_and_run(have_files_changed)
     while not have_files_changed():
       time.sleep(1)
 else:
-  sys.exit(_build_and_run(lambda: False, newline_on_success=args.newline_on_success))
+  sys.exit(_build_and_run(lambda: False))
 

@@ -25,12 +25,7 @@ class DirWatcher(object):
         continue
       for root, _, files in os.walk(path):
         for f in files:
-          try:
-            st = os.stat(os.path.join(root, f))
-          except OSError as e:
-            if e.errno == os.errno.ENOENT:
-              continue
-            raise
+          st = os.stat(os.path.join(root, f))
           if most_recent_change is None:
             most_recent_change = st.st_mtime
           else:

@@ -40,11 +40,9 @@ _KILLED = object()
 
 
 _COLORS = {
-    'red': [ 31, 0 ],
-    'green': [ 32, 0 ],
-    'yellow': [ 33, 0 ],
-    'lightgray': [ 37, 0],
-    'gray': [ 30, 1 ],
+    'red': 31,
+    'green': 32,
+    'yellow': 33,
     }
 
 
@@ -55,37 +53,32 @@ _CLEAR_LINE = '\x1b[2K'
 _TAG_COLOR = {
     'FAILED': 'red',
     'PASSED': 'green',
-    'START': 'gray',
+    'START': 'yellow',
     'WAITING': 'yellow',
-    'SUCCESS': 'green',
-    'IDLE': 'gray',
     }
 
 
-def message(tag, message, explanatory_text=None, do_newline=False):
-  sys.stdout.write('%s%s%s\x1b[%d;%dm%s\x1b[0m: %s%s' % (
+def message(tag, message, explanatory_text=None):
+  sys.stdout.write('%s%s\x1b[%dm%s\x1b[0m: %s%s' % (
       _BEGINNING_OF_LINE,
       _CLEAR_LINE,
-      '\n%s' % explanatory_text if explanatory_text is not None else '',
-      _COLORS[_TAG_COLOR[tag]][1],
-      _COLORS[_TAG_COLOR[tag]][0],
+      _COLORS[_TAG_COLOR[tag]],
       tag,
       message,
-      '\n' if do_newline or explanatory_text is not None else ''))
+      '\n%s\n' % explanatory_text if explanatory_text is not None else ''))
   sys.stdout.flush()
 
 
 class Job(object):
   """Manages one job."""
 
-  def __init__(self, cmdline, newline_on_success):
+  def __init__(self, cmdline):
     self._cmdline = ' '.join(cmdline)
     self._tempfile = tempfile.TemporaryFile()
     self._process = subprocess.Popen(args=cmdline,
                                      stderr=subprocess.STDOUT,
                                      stdout=self._tempfile)
     self._state = _RUNNING
-    self._newline_on_success = newline_on_success
     message('START', self._cmdline)
 
   def state(self):
@@ -98,7 +91,7 @@ class Job(object):
         message('FAILED', '%s [ret=%d]' % (self._cmdline, self._process.returncode), stdout)
       else:
         self._state = _SUCCESS
-        message('PASSED', '%s' % self._cmdline, do_newline=self._newline_on_success)
+        message('PASSED', '%s' % self._cmdline)
     return self._state
 
   def kill(self):
@@ -110,14 +103,13 @@ class Job(object):
 class Jobset(object):
   """Manages one run of jobs."""
 
-  def __init__(self, check_cancelled, maxjobs, newline_on_success):
+  def __init__(self, check_cancelled, maxjobs):
     self._running = set()
     self._check_cancelled = check_cancelled
     self._cancelled = False
     self._failures = 0
     self._completed = 0
     self._maxjobs = maxjobs
-    self._newline_on_success = newline_on_success
 
   def start(self, cmdline):
     """Start a job. Return True on success, False on failure."""
@@ -125,7 +117,7 @@ class Jobset(object):
       if self.cancelled(): return False
       self.reap()
     if self.cancelled(): return False
-    self._running.add(Job(cmdline, self._newline_on_success))
+    self._running.add(Job(cmdline))
     return True
 
   def reap(self):
@@ -165,10 +157,9 @@ def _never_cancelled():
   return False
 
 
-def run(cmdlines, check_cancelled=_never_cancelled, maxjobs=None, newline_on_success=False):
+def run(cmdlines, check_cancelled=_never_cancelled, maxjobs=None):
   js = Jobset(check_cancelled,
-              maxjobs if maxjobs is not None else _DEFAULT_MAX_JOBS,
-              newline_on_success)
+              maxjobs if maxjobs is not None else _DEFAULT_MAX_JOBS)
   for cmdline in shuffle_iteratable(cmdlines):
     if not js.start(cmdline):
       break
