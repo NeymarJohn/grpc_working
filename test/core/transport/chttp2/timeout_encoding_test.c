@@ -49,7 +49,7 @@ static void assert_encodes_as(gpr_timespec ts, const char *s) {
   GPR_ASSERT(0 == strcmp(buffer, s));
 }
 
-void test_encoding(void) {
+void test_encoding() {
   LOG_TEST();
   assert_encodes_as(gpr_time_from_micros(-1), "1n");
   assert_encodes_as(gpr_time_from_seconds(-10), "1n");
@@ -106,7 +106,7 @@ void decode_suite(char ext, gpr_timespec (*answer)(long x)) {
   }
 }
 
-void test_decoding(void) {
+void test_decoding() {
   LOG_TEST();
   decode_suite('n', gpr_time_from_nanos);
   decode_suite('u', gpr_time_from_micros);
@@ -117,7 +117,7 @@ void test_decoding(void) {
   assert_decodes_as("1000000000000000000000u", gpr_inf_future);
 }
 
-void test_decoding_fails(void) {
+void test_decoding_fails() {
   gpr_timespec x;
   LOG_TEST();
   GPR_ASSERT(0 == grpc_chttp2_decode_timeout("", &x));

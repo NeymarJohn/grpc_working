@@ -58,19 +58,19 @@ static void on_connect(void *arg, grpc_endpoint *tcp) {
   gpr_mu_unlock(&mu);
 }
 
-static void test_no_op(void) {
+static void test_no_op() {
   grpc_tcp_server *s = grpc_tcp_server_create();
   grpc_tcp_server_destroy(s);
 }
 
-static void test_no_op_with_start(void) {
+static void test_no_op_with_start() {
   grpc_tcp_server *s = grpc_tcp_server_create();
   LOG_TEST();
   grpc_tcp_server_start(s, NULL, on_connect, NULL);
   grpc_tcp_server_destroy(s);
 }
 
-static void test_no_op_with_port(void) {
+static void test_no_op_with_port() {
   struct sockaddr_in addr;
   grpc_tcp_server *s = grpc_tcp_server_create();
   LOG_TEST();
@@ -83,7 +83,7 @@ static void test_no_op_with_port(void) {
   grpc_tcp_server_destroy(s);
 }
 
-static void test_no_op_with_port_and_start(void) {
+static void test_no_op_with_port_and_start() {
   struct sockaddr_in addr;
   grpc_tcp_server *s = grpc_tcp_server_create();
   LOG_TEST();

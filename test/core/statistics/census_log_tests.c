@@ -114,7 +114,7 @@ static size_t perform_read_iteration(size_t record_size) {
 }
 
 /* Asserts that the log is empty. */
-static void assert_log_empty(void) {
+static void assert_log_empty() {
   size_t bytes_available;
   census_log_init_reader();
   GPR_ASSERT(census_log_read_next(&bytes_available) == NULL);
@@ -345,7 +345,7 @@ static void setup_test(int circular_log) {
 
 /* Attempts to create a record of invalid size (size >
    CENSUS_LOG_MAX_RECORD_SIZE). */
-void test_invalid_record_size(void) {
+void test_invalid_record_size() {
   static const size_t INVALID_SIZE = CENSUS_LOG_MAX_RECORD_SIZE + 1;
   static const size_t VALID_SIZE = 1;
   void* record;
@@ -368,7 +368,7 @@ void test_invalid_record_size(void) {
 
 /* Tests end_write() with a different size than what was specified in
    start_write(). */
-void test_end_write_with_different_size(void) {
+void test_end_write_with_different_size() {
   static const size_t START_WRITE_SIZE = 10;
   static const size_t END_WRITE_SIZE = 7;
   void* record_written;
@@ -388,7 +388,7 @@ void test_end_write_with_different_size(void) {
 }
 
 /* Verifies that pending records are not available via read_next(). */
-void test_read_pending_record(void) {
+void test_read_pending_record() {
   static const size_t PR_RECORD_SIZE = 1024;
   size_t bytes_available;
   const void* record_read;
@@ -413,7 +413,7 @@ void test_read_pending_record(void) {
 }
 
 /* Tries reading beyond pending write. */
-void test_read_beyond_pending_record(void) {
+void test_read_beyond_pending_record() {
   /* Start a write. */
   gpr_int32 incomplete_record_size = 10;
   gpr_int32 complete_record_size = 20;
@@ -452,7 +452,7 @@ void test_read_beyond_pending_record(void) {
 
 /* Tests scenario where block being read is detached from a core and put on the
    dirty list. */
-void test_detached_while_reading(void) {
+void test_detached_while_reading() {
   static const size_t DWR_RECORD_SIZE = 10;
   size_t bytes_available;
   const void* record_read;
@@ -488,7 +488,7 @@ void test_detached_while_reading(void) {
 
 /* Fills non-circular log with records sized such that size is a multiple of
    CENSUS_LOG_MAX_RECORD_SIZE (no per-block fragmentation). */
-void test_fill_log_no_fragmentation(void) {
+void test_fill_log_no_fragmentation() {
   const int circular = 0;
   printf("Starting test: fill log no fragmentation\n");
   setup_test(circular);
@@ -498,7 +498,7 @@ void test_fill_log_no_fragmentation(void) {
 
 /* Fills circular log with records sized such that size is a multiple of
    CENSUS_LOG_MAX_RECORD_SIZE (no per-block fragmentation). */
-void test_fill_circular_log_no_fragmentation(void) {
+void test_fill_circular_log_no_fragmentation() {
   const int circular = 1;
   printf("Starting test: fill circular log no fragmentation\n");
   setup_test(circular);
@@ -507,7 +507,7 @@ void test_fill_circular_log_no_fragmentation(void) {
 }
 
 /* Fills non-circular log with records that may straddle end of a block. */
-void test_fill_log_with_straddling_records(void) {
+void test_fill_log_with_straddling_records() {
   const int circular = 0;
   printf("Starting test: fill log with straddling records\n");
   setup_test(circular);
@@ -516,7 +516,7 @@ void test_fill_log_with_straddling_records(void) {
 }
 
 /* Fills circular log with records that may straddle end of a block. */
-void test_fill_circular_log_with_straddling_records(void) {
+void test_fill_circular_log_with_straddling_records() {
   const int circular = 1;
   printf("Starting test: fill circular log with straddling records\n");
   setup_test(circular);
@@ -526,7 +526,7 @@ void test_fill_circular_log_with_straddling_records(void) {
 
 /* Tests scenario where multiple writers and a single reader are using a log
    that is configured to discard old records. */
-void test_multiple_writers_circular_log(void) {
+void test_multiple_writers_circular_log() {
   const int circular = 1;
   printf("Starting test: multiple writers circular log\n");
   setup_test(circular);
@@ -536,7 +536,7 @@ void test_multiple_writers_circular_log(void) {
 
 /* Tests scenario where multiple writers and a single reader are using a log
    that is configured to discard old records. */
-void test_multiple_writers(void) {
+void test_multiple_writers() {
   const int circular = 0;
   printf("Starting test: multiple writers\n");
   setup_test(circular);
@@ -545,7 +545,7 @@ void test_multiple_writers(void) {
 }
 
 /* Repeat the straddling records and multiple writers tests with a small log. */
-void test_small_log(void) {
+void test_small_log() {
   size_t log_size;
   const int circular = 0;
   printf("Starting test: small log\n");
@@ -559,7 +559,7 @@ void test_small_log(void) {
   census_log_shutdown();
 }
 
-void test_performance(void) {
+void test_performance() {
   int write_size = 1;
   for (; write_size < CENSUS_LOG_MAX_RECORD_SIZE; write_size *= 2) {
     gpr_timespec write_time;

@@ -38,7 +38,7 @@
 #include <grpc/support/log.h>
 #include "test/core/util/test_config.h"
 
-static void test_format_get_request(void) {
+static void test_format_get_request() {
   grpc_httpcli_header hdr = {"x-yz", "abc"};
   grpc_httpcli_request req;
   gpr_slice slice;
@@ -63,7 +63,7 @@ static void test_format_get_request(void) {
   gpr_slice_unref(slice);
 }
 
-static void test_format_post_request(void) {
+static void test_format_post_request() {
   grpc_httpcli_header hdr = {"x-yz", "abc"};
   grpc_httpcli_request req;
   gpr_slice slice;
@@ -93,7 +93,7 @@ static void test_format_post_request(void) {
   gpr_slice_unref(slice);
 }
 
-static void test_format_post_request_no_body(void) {
+static void test_format_post_request_no_body() {
   grpc_httpcli_header hdr = {"x-yz", "abc"};
   grpc_httpcli_request req;
   gpr_slice slice;
@@ -118,7 +118,7 @@ static void test_format_post_request_no_body(void) {
   gpr_slice_unref(slice);
 }
 
-static void test_format_post_request_content_type_override(void) {
+static void test_format_post_request_content_type_override() {
   grpc_httpcli_header hdrs[2];
   grpc_httpcli_request req;
   gpr_slice slice;
