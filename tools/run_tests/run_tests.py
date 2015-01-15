@@ -40,16 +40,13 @@ _CONFIGS = {
   'msan': SimpleConfig('msan'),
   'asan': SimpleConfig('asan'),
   'gcov': SimpleConfig('gcov'),
-  'memcheck': ValgrindConfig('valgrind', 'memcheck'),
+  'memcheck': ValgrindConfig('dbg', 'memcheck'),
   'helgrind': ValgrindConfig('dbg', 'helgrind')
   }
 
 
 _DEFAULT = ['dbg', 'opt']
-_LANGUAGE_TEST_TARGETS = {
-    'c++': 'buildtests_cxx',
-    'c': 'buildtests_c',
-}
+_MAKE_TEST_TARGETS = ['buildtests_c', 'buildtests_cxx']
 
 # parse command line
 argp = argparse.ArgumentParser(description='Run grpc tests.')
@@ -67,10 +64,6 @@ argp.add_argument('--newline_on_success',
                   default=False,
                   action='store_const',
                   const=True)
-argp.add_argument('-l', '--language',
-                  choices=sorted(_LANGUAGE_TEST_TARGETS.keys()),
-                  nargs='+',
-                  default=sorted(_LANGUAGE_TEST_TARGETS.keys()))
 args = argp.parse_args()
 
 # grab config
@@ -79,7 +72,6 @@ run_configs = set(_CONFIGS[cfg]
                       _CONFIGS.iterkeys() if x == 'all' else [x]
                       for x in args.config))
 build_configs = set(cfg.build_config for cfg in run_configs)
-make_targets = set(_LANGUAGE_TEST_TARGETS[x] for x in args.language)
 filters = args.test_filter
 runs_per_test = args.runs_per_test
 forever = args.forever
@@ -91,7 +83,7 @@ def _build_and_run(check_cancelled, newline_on_success, forever=False):
   if not jobset.run(
       (['make',
         '-j', '%d' % (multiprocessing.cpu_count() + 1),
-        'CONFIG=%s' % cfg] + list(make_targets)
+        'CONFIG=%s' % cfg] + _MAKE_TEST_TARGETS
        for cfg in build_configs),
       check_cancelled, maxjobs=1):
     return 1
