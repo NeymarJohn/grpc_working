@@ -39,48 +39,30 @@ CPPFLAGS_dbg = -O0
 LDFLAGS_dbg =
 DEFINES_dbg = _DEBUG DEBUG
 
-VALID_CONFIG_valgrind = 1
-REQUIRE_CUSTOM_LIBRARIES_valgrind = 1
-CC_valgrind = gcc
-CXX_valgrind = g++
-LD_valgrind = gcc
-LDXX_valgrind = g++
-CPPFLAGS_valgrind = -O0
-OPENSSL_CFLAGS_valgrind = -DPURIFY
-LDFLAGS_valgrind =
-DEFINES_valgrind = _DEBUG DEBUG
-
 VALID_CONFIG_tsan = 1
-REQUIRE_CUSTOM_LIBRARIES_tsan = 1
 CC_tsan = clang
 CXX_tsan = clang++
 LD_tsan = clang
 LDXX_tsan = clang++
 CPPFLAGS_tsan = -O1 -fsanitize=thread -fno-omit-frame-pointer
-OPENSSL_CONFIG_tsan = no-asm
 LDFLAGS_tsan = -fsanitize=thread
 DEFINES_tsan = NDEBUG
 
 VALID_CONFIG_asan = 1
-REQUIRE_CUSTOM_LIBRARIES_asan = 1
 CC_asan = clang
 CXX_asan = clang++
 LD_asan = clang
 LDXX_asan = clang++
 CPPFLAGS_asan = -O1 -fsanitize=address -fno-omit-frame-pointer
-OPENSSL_CONFIG_asan = no-asm
 LDFLAGS_asan = -fsanitize=address
 DEFINES_asan = NDEBUG
 
 VALID_CONFIG_msan = 1
-REQUIRE_CUSTOM_LIBRARIES_msan = 1
 CC_msan = clang
 CXX_msan = clang++
 LD_msan = clang
 LDXX_msan = clang++
 CPPFLAGS_msan = -O1 -fsanitize=memory -fno-omit-frame-pointer
-OPENSSL_CFLAGS_msan = -DPURIFY
-OPENSSL_CONFIG_msan = no-asm
 LDFLAGS_msan = -fsanitize=memory
 DEFINES_msan = NDEBUG
 
@@ -190,14 +172,8 @@ endif
 OPENSSL_ALPN_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o /dev/null test/build/openssl-alpn.c -lssl -lcrypto -ldl $(LDFLAGS)
 ZLIB_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o /dev/null test/build/zlib.c -lz $(LDFLAGS)
 
-ifndef REQUIRE_CUSTOM_LIBRARIES_$(CONFIG)
 HAS_SYSTEM_OPENSSL_ALPN = $(shell $(OPENSSL_ALPN_CHECK_CMD) 2> /dev/null && echo true || echo false)
 HAS_SYSTEM_ZLIB = $(shell $(ZLIB_CHECK_CMD) 2> /dev/null && echo true || echo false)
-else
-# override system libraries if the config requires a custom compiled library
-HAS_SYSTEM_OPENSSL_ALPN = false
-HAS_SYSTEM_ZLIB = false
-endif
 
 ifeq ($(wildcard third_party/openssl/ssl/ssl.h),)
 HAS_EMBEDDED_OPENSSL_ALPN = false
@@ -213,7 +189,7 @@ endif
 
 ifeq ($(HAS_SYSTEM_ZLIB),false)
 ifeq ($(HAS_EMBEDDED_ZLIB),true)
-ZLIB_DEP = libs/$(CONFIG)/zlib/libz.a
+ZLIB_DEP = third_party/zlib/libz.a
 CPPFLAGS += -Ithird_party/zlib
 LDFLAGS += -Lthird_party/zlib
 else
@@ -223,10 +199,10 @@ endif
 
 ifeq ($(HAS_SYSTEM_OPENSSL_ALPN),false)
 ifeq ($(HAS_EMBEDDED_OPENSSL_ALPN),true)
-OPENSSL_DEP = libs/$(CONFIG)/openssl/libssl.a
-OPENSSL_MERGE_LIBS += libs/$(CONFIG)/openssl/libssl.a libs/$(CONFIG)/openssl/libcrypto.a
+OPENSSL_DEP = third_party/openssl/libssl.a
+OPENSSL_MERGE_LIBS += third_party/openssl/libssl.a third_party/openssl/libcrypto.a
 CPPFLAGS += -Ithird_party/openssl/include
-LDFLAGS += -Llibs/$(CONFIG)/openssl
+LDFLAGS += -Lthird_party/openssl
 LIBS_SECURE = dl
 else
 NO_SECURE = true
@@ -314,19 +290,13 @@ run_dep_checks:
 	$(OPENSSL_ALPN_CHECK_CMD) || true
 	$(ZLIB_CHECK_CMD) || true
 
-libs/$(CONFIG)/zlib/libz.a:
-	(cd third_party/zlib ; CFLAGS="-fPIC -fvisibility=hidden $(CPPFLAGS_$(CONFIG))" ./configure --static)
-	$(MAKE) -c third_party/zlib clean
+third_party/zlib/libz.a:
+	(cd third_party/zlib ; CFLAGS="-fPIC -fvisibility=hidden" ./configure --static)
 	$(MAKE) -C third_party/zlib
-	mkdir -p libs/$(CONFIG)/zlib
-	cp third_party/zlib/libz.a libs/$(CONFIG)/zlib
 
-libs/$(CONFIG)/openssl/libssl.a:
-	(cd third_party/openssl ; CC="$(CC) -fPIC -fvisibility=hidden $(CPPFLAGS_$(CONFIG)) $(OPENSSL_CFLAGS_$(CONFIG))" ./config $(OPENSSL_CONFIG_$(CONFIG)))
-	$(MAKE) -C third_party/openssl clean
+third_party/openssl/libssl.a:
+	(cd third_party/openssl ; CC="$(CC) -fPIC -fvisibility=hidden" ./config)
 	$(MAKE) -C third_party/openssl build_crypto build_ssl
-	mkdir -p libs/$(CONFIG)/openssl
-	cp third_party/openssl/libssl.a third_party/openssl/libcrypto.a libs/$(CONFIG)/openssl
 
 static: static_c static_cxx
 
@@ -654,15 +624,8 @@ ifneq ($(SYSTEM),Darwin)
 endif
 endif
 
-clean:\
-% for lib in libs:
- clean_lib${lib.name}\
-% endfor
-% for tgt in targets:
- clean_${tgt.name}\
-% endfor
-
-	$(Q) $(RM) -r deps objs libs bins gens
+clean:
+	$(Q) $(RM) -rf deps objs libs bins gens
 
 
 # The various libraries
