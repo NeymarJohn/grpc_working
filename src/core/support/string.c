@@ -63,7 +63,7 @@ typedef struct {
   char *data;
 } hexout;
 
-static hexout hexout_create(void) {
+static hexout hexout_create() {
   hexout r = {0, 0, NULL};
   return r;
 }

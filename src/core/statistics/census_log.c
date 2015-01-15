@@ -368,7 +368,7 @@ static void cl_block_end_read(cl_block* block) {
 
 /* Allocates a new free block (or recycles an available dirty block if log is
    configured to discard old records). Returns NULL if out-of-space. */
-static cl_block* cl_allocate_block(void) {
+static cl_block* cl_allocate_block() {
   cl_block* block = cl_block_list_head(&g_log.free_block_list);
   if (block != NULL) {
     cl_block_list_remove(&g_log.free_block_list, block);
@@ -496,7 +496,7 @@ void census_log_initialize(size_t size_in_mb, int discard_old_records) {
   g_log.initialized = 1;
 }
 
-void census_log_shutdown(void) {
+void census_log_shutdown() {
   GPR_ASSERT(g_log.initialized);
   gpr_mu_destroy(&g_log.lock);
   gpr_free_aligned(g_log.core_local_blocks);
@@ -551,7 +551,7 @@ void census_log_end_write(void* record, size_t bytes_written) {
   cl_block_end_write(cl_get_block(record), bytes_written);
 }
 
-void census_log_init_reader(void) {
+void census_log_init_reader() {
   GPR_ASSERT(g_log.initialized);
   gpr_mu_lock(&g_log.lock);
   /* If a block is locked for reading unlock it. */
@@ -584,7 +584,7 @@ const void* census_log_read_next(size_t* bytes_available) {
   return NULL;
 }
 
-size_t census_log_remaining_space(void) {
+size_t census_log_remaining_space() {
   size_t space;
   GPR_ASSERT(g_log.initialized);
   gpr_mu_lock(&g_log.lock);
@@ -598,7 +598,7 @@ size_t census_log_remaining_space(void) {
   return space;
 }
 
-int census_log_out_of_space_count(void) {
+int census_log_out_of_space_count() {
   GPR_ASSERT(g_log.initialized);
   return gpr_atm_acq_load(&g_log.out_of_space_count);
 }

@@ -158,6 +158,7 @@ typedef struct grpc_byte_buffer grpc_byte_buffer;
 
 /* Sample helpers to obtain byte buffers (these will certainly move place */
 grpc_byte_buffer *grpc_byte_buffer_create(gpr_slice *slices, size_t nslices);
+grpc_byte_buffer *grpc_byte_buffer_copy(grpc_byte_buffer *bb);
 size_t grpc_byte_buffer_length(grpc_byte_buffer *bb);
 void grpc_byte_buffer_destroy(grpc_byte_buffer *byte_buffer);
 
@@ -232,12 +233,12 @@ typedef struct grpc_event {
 } grpc_event;
 
 /* Initialize the grpc library */
-void grpc_init(void);
+void grpc_init();
 
 /* Shutdown the grpc library */
-void grpc_shutdown(void);
+void grpc_shutdown();
 
-grpc_completion_queue *grpc_completion_queue_create(void);
+grpc_completion_queue *grpc_completion_queue_create();
 
 /* Blocks until an event is available, the completion queue is being shutdown,
    or deadline is reached. Returns NULL on timeout, otherwise the event that
@@ -312,18 +313,30 @@ grpc_call_error grpc_call_add_metadata(grpc_call *call, grpc_metadata *metadata,
    flags is a bit-field combination of the write flags defined above.
    REQUIRES: Can be called at most once per call.
              Can only be called on the client.
-   Produces a GRPC_INVOKE_ACCEPTED event with invoke_accepted_tag when the
-       call has been invoked (meaning bytes can start flowing to the wire).
    Produces a GRPC_CLIENT_METADATA_READ event with metadata_read_tag when
        the servers initial metadata has been read.
    Produces a GRPC_FINISHED event with finished_tag when the call has been
        completed (there may be other events for the call pending at this
        time) */
-grpc_call_error grpc_call_start_invoke(grpc_call *call,
-                                       grpc_completion_queue *cq,
-                                       void *invoke_accepted_tag,
-                                       void *metadata_read_tag,
-                                       void *finished_tag, gpr_uint32 flags);
+grpc_call_error grpc_call_invoke(grpc_call *call, grpc_completion_queue *cq,
+                                 void *metadata_read_tag, void *finished_tag,
+                                 gpr_uint32 flags);
+
+/* DEPRECATED: users should use grpc_call_server_accept, and
+   grpc_call_server_end_initial_metadata instead now.
+
+
+   Accept an incoming RPC, binding a completion queue to it.
+   To be called after adding metadata to the call, but before sending
+   messages.
+   flags is a bit-field combination of the write flags defined above.
+   REQUIRES: Can be called at most once per call.
+             Can only be called on the server.
+   Produces a GRPC_FINISHED event with finished_tag when the call has been
+       completed (there may be other events for the call pending at this
+       time) */
+grpc_call_error grpc_call_accept(grpc_call *call, grpc_completion_queue *cq,
+                                 void *finished_tag, gpr_uint32 flags);
 
 /* Accept an incoming RPC, binding a completion queue to it.
    To be called before sending or receiving messages.

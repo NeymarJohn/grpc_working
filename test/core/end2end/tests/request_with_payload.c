@@ -64,7 +64,7 @@ static gpr_timespec n_seconds_time(int n) {
   return gpr_time_add(gpr_now(), gpr_time_from_micros(GPR_US_PER_SEC * n));
 }
 
-static gpr_timespec five_seconds_time(void) { return n_seconds_time(5); }
+static gpr_timespec five_seconds_time() { return n_seconds_time(5); }
 
 static void drain_cq(grpc_completion_queue *cq) {
   grpc_event *ev;
@@ -122,9 +122,7 @@ static void test_invoke_request_with_payload(grpc_end2end_test_config config) {
   GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, tag(100)));
 
   GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_call_start_invoke(c, f.client_cq, tag(1), tag(2), tag(3), 0));
-  cq_expect_invoke_accepted(v_client, tag(1), GRPC_OP_OK);
-  cq_verify(v_client);
+             grpc_call_invoke(c, f.client_cq, tag(2), tag(3), 0));
 
   GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_write(c, payload, tag(4), 0));
   /* destroy byte buffer early to ensure async code keeps track of its contents

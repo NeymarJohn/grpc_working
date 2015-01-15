@@ -40,7 +40,7 @@
 #include <grpc/support/log.h>
 #include "test/core/util/test_config.h"
 
-static gpr_timespec random_deadline(void) {
+static gpr_timespec random_deadline() {
   gpr_timespec ts;
   ts.tv_sec = rand();
   ts.tv_nsec = rand();
@@ -150,7 +150,7 @@ static void check_valid(grpc_alarm_heap *pq) {
   }
 }
 
-static void test1(void) {
+static void test1() {
   grpc_alarm_heap pq;
   const int num_test_elements = 200;
   const int num_test_operations = 10000;
@@ -206,7 +206,7 @@ static void test1(void) {
   gpr_free(inpq);
 }
 
-static void shrink_test(void) {
+static void shrink_test() {
   grpc_alarm_heap pq;
   int i;
   int expected_size;

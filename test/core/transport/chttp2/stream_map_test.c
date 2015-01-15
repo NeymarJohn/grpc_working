@@ -38,7 +38,7 @@
 #define LOG_TEST() gpr_log(GPR_INFO, "%s", __FUNCTION__)
 
 /* test creation & destruction */
-static void test_no_op(void) {
+static void test_no_op() {
   grpc_chttp2_stream_map map;
 
   LOG_TEST();
@@ -48,7 +48,7 @@ static void test_no_op(void) {
 }
 
 /* test lookup on an empty map */
-static void test_empty_find(void) {
+static void test_empty_find() {
   grpc_chttp2_stream_map map;
 
   LOG_TEST();
@@ -59,7 +59,7 @@ static void test_empty_find(void) {
 }
 
 /* test it's safe to delete twice */
-static void test_double_deletion(void) {
+static void test_double_deletion() {
   grpc_chttp2_stream_map map;
 
   LOG_TEST();

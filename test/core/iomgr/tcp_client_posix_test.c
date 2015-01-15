@@ -43,7 +43,7 @@
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
 
-static gpr_timespec test_deadline(void) {
+static gpr_timespec test_deadline() {
   return gpr_time_add(gpr_now(), gpr_time_from_seconds(10));
 }
 
@@ -59,7 +59,7 @@ static void must_fail(void *arg, grpc_endpoint *tcp) {
   gpr_event_set(arg, (void *)1);
 }
 
-void test_succeeds(void) {
+void test_succeeds() {
   struct sockaddr_in addr;
   socklen_t addr_len = sizeof(addr);
   int svr_fd;
@@ -94,7 +94,7 @@ void test_succeeds(void) {
   GPR_ASSERT(gpr_event_wait(&ev, test_deadline()));
 }
 
-void test_fails(void) {
+void test_fails() {
   struct sockaddr_in addr;
   socklen_t addr_len = sizeof(addr);
   gpr_event ev;
@@ -112,7 +112,7 @@ void test_fails(void) {
   GPR_ASSERT(gpr_event_wait(&ev, test_deadline()));
 }
 
-void test_times_out(void) {
+void test_times_out() {
   struct sockaddr_in addr;
   socklen_t addr_len = sizeof(addr);
   int svr_fd;

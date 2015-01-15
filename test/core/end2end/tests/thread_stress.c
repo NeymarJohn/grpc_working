@@ -56,7 +56,7 @@ static gpr_timespec n_seconds_time(int n) {
   return gpr_time_add(gpr_now(), gpr_time_from_micros(GPR_US_PER_SEC * n));
 }
 
-static gpr_timespec five_seconds_time(void) { return n_seconds_time(5); }
+static gpr_timespec five_seconds_time() { return n_seconds_time(5); }
 
 /* Drain pending events on a completion queue until it's ready to destroy.
    Does some post-processing to safely release memory on some of the events. */
@@ -105,26 +105,31 @@ static void drain_cq(int client, grpc_completion_queue *cq) {
 }
 
 /* Kick off a new request - assumes g_mu taken */
-static void start_request(void) {
+static void start_request() {
+  gpr_slice slice = gpr_slice_malloc(100);
+  grpc_byte_buffer *buf;
   grpc_call *call = grpc_channel_create_call(
       g_fixture.client, "/Foo", "test.google.com", g_test_end_time);
+
+  memset(GPR_SLICE_START_PTR(slice), 1, GPR_SLICE_LENGTH(slice));
+  buf = grpc_byte_buffer_create(&slice, 1);
+  gpr_slice_unref(slice);
+
   g_active_requests++;
-  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_invoke(call, g_fixture.client_cq,
-                                                    NULL, NULL, NULL, 0));
+  GPR_ASSERT(GRPC_CALL_OK ==
+             grpc_call_invoke(call, g_fixture.client_cq, NULL, NULL, 0));
+  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_read(call, NULL));
+  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_write(call, buf, NULL, 0));
+
+  grpc_byte_buffer_destroy(buf);
 }
 
 /* Async client: handle sending requests, reading responses, and starting
    new requests when old ones finish */
 static void client_thread(void *p) {
-  int id = (gpr_intptr)p;
+  gpr_intptr id = (gpr_intptr)p;
   grpc_event *ev;
-  gpr_slice slice = gpr_slice_malloc(100);
-  grpc_byte_buffer *buf;
   char *estr;
-  memset(GPR_SLICE_START_PTR(slice), id, GPR_SLICE_LENGTH(slice));
-
-  buf = grpc_byte_buffer_create(&slice, 1);
-  gpr_slice_unref(slice);
 
   for (;;) {
     ev = grpc_completion_queue_next(g_fixture.client_cq, n_seconds_time(1));
@@ -134,14 +139,6 @@ static void client_thread(void *p) {
           estr = grpc_event_string(ev);
           gpr_log(GPR_ERROR, "unexpected event: %s", estr);
           gpr_free(estr);
-          break;
-        case GRPC_INVOKE_ACCEPTED:
-          /* better not keep going if the invoke failed */
-          if (ev->data.invoke_accepted == GRPC_OP_OK) {
-            GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_read(ev->call, NULL));
-            GPR_ASSERT(GRPC_CALL_OK ==
-                       grpc_call_start_write(ev->call, buf, NULL, 0));
-          }
           break;
         case GRPC_READ:
           break;
@@ -173,14 +170,13 @@ static void client_thread(void *p) {
     gpr_mu_unlock(&g_mu);
   }
 
-  grpc_byte_buffer_destroy(buf);
   gpr_event_set(&g_client_done[id], (void *)1);
 }
 
 /* Request a new server call. We tag them with a ref-count that starts at two,
    and decrements after each of: a read completes and a write completes.
    When it drops to zero, we write status */
-static void request_server_call(void) {
+static void request_server_call() {
   gpr_refcount *rc = gpr_malloc(sizeof(gpr_refcount));
   gpr_ref_init(rc, 2);
   grpc_server_request_call(g_fixture.server, rc);
@@ -196,16 +192,16 @@ static void maybe_end_server_call(grpc_call *call, gpr_refcount *rc) {
 
 static void server_thread(void *p) {
   int id = (gpr_intptr)p;
-  grpc_event *ev;
   gpr_slice slice = gpr_slice_malloc(100);
   grpc_byte_buffer *buf;
+  grpc_event *ev;
   char *estr;
-  memset(GPR_SLICE_START_PTR(slice), id, GPR_SLICE_LENGTH(slice));
 
-  request_server_call();
-
+  memset(GPR_SLICE_START_PTR(slice), 1, GPR_SLICE_LENGTH(slice));
   buf = grpc_byte_buffer_create(&slice, 1);
   gpr_slice_unref(slice);
+
+  request_server_call();
 
   for (;;) {
     ev = grpc_completion_queue_next(g_fixture.server_cq, n_seconds_time(1));
@@ -218,11 +214,9 @@ static void server_thread(void *p) {
           break;
         case GRPC_SERVER_RPC_NEW:
           if (ev->call) {
-            GPR_ASSERT(GRPC_CALL_OK ==
-                       grpc_call_server_accept(ev->call, g_fixture.server_cq,
-                                               ev->tag));
-            GPR_ASSERT(GRPC_CALL_OK ==
-                       grpc_call_server_end_initial_metadata(ev->call, 0));
+            GPR_ASSERT(GRPC_CALL_OK == grpc_call_accept(ev->call,
+                                                        g_fixture.server_cq,
+                                                        ev->tag, 0));
             GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_read(ev->call, ev->tag));
             GPR_ASSERT(GRPC_CALL_OK ==
                        grpc_call_start_write(ev->call, buf, ev->tag, 0));

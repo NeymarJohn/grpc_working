@@ -75,7 +75,7 @@
 
 #include <grpc/support/log.h>
 
-int gpr_cpu_num_cores(void) {
+int gpr_cpu_num_cores() {
   static int ncpus = 0;
   if (ncpus == 0) {
     ncpus = sysconf(_SC_NPROCESSORS_ONLN);
@@ -87,7 +87,7 @@ int gpr_cpu_num_cores(void) {
   return ncpus;
 }
 
-int gpr_cpu_current_cpu(void) {
+int gpr_cpu_current_cpu() {
   int cpu = sched_getcpu();
   if (cpu < 0) {
     gpr_log(GPR_ERROR, "Error determining current CPU: %s\n", strerror(errno));

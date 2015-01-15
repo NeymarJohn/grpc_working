@@ -45,7 +45,7 @@
 /* a large number */
 #define MANY 1000000
 
-static void test_no_op(void) {
+static void test_no_op() {
   grpc_mdctx *ctx;
 
   LOG_TEST();
@@ -54,7 +54,7 @@ static void test_no_op(void) {
   grpc_mdctx_orphan(ctx);
 }
 
-static void test_create_string(void) {
+static void test_create_string() {
   grpc_mdctx *ctx;
   grpc_mdstr *s1, *s2, *s3;
 
@@ -74,7 +74,7 @@ static void test_create_string(void) {
   grpc_mdstr_unref(s3);
 }
 
-static void test_create_metadata(void) {
+static void test_create_metadata() {
   grpc_mdctx *ctx;
   grpc_mdelem *m1, *m2, *m3;
 
@@ -97,7 +97,7 @@ static void test_create_metadata(void) {
   grpc_mdctx_orphan(ctx);
 }
 
-static void test_create_many_ephemeral_metadata(void) {
+static void test_create_many_ephemeral_metadata() {
   grpc_mdctx *ctx;
   char buffer[256];
   long i;
@@ -118,7 +118,7 @@ static void test_create_many_ephemeral_metadata(void) {
   grpc_mdctx_orphan(ctx);
 }
 
-static void test_create_many_persistant_metadata(void) {
+static void test_create_many_persistant_metadata() {
   grpc_mdctx *ctx;
   char buffer[256];
   long i;
@@ -149,7 +149,7 @@ static void test_create_many_persistant_metadata(void) {
   gpr_free(created);
 }
 
-static void test_spin_creating_the_same_thing(void) {
+static void test_spin_creating_the_same_thing() {
   grpc_mdctx *ctx;
 
   LOG_TEST();
@@ -173,7 +173,7 @@ static void test_spin_creating_the_same_thing(void) {
   grpc_mdctx_orphan(ctx);
 }
 
-static void test_things_stick_around(void) {
+static void test_things_stick_around() {
   grpc_mdctx *ctx;
   int i, j;
   char buffer[64];
@@ -220,7 +220,7 @@ static void test_things_stick_around(void) {
   gpr_free(shuf);
 }
 
-static void test_slices_work(void) {
+static void test_slices_work() {
   /* ensure no memory leaks when switching representation from mdstr to slice */
   grpc_mdctx *ctx;
   grpc_mdstr *str;
@@ -245,7 +245,7 @@ static void test_slices_work(void) {
   grpc_mdctx_orphan(ctx);
 }
 
-static void test_base64_and_huffman_works(void) {
+static void test_base64_and_huffman_works() {
   grpc_mdctx *ctx;
   grpc_mdstr *str;
   gpr_slice slice1;

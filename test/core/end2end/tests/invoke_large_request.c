@@ -100,7 +100,7 @@ static void end_test(grpc_end2end_test_fixture *f) {
   grpc_completion_queue_destroy(f->client_cq);
 }
 
-static gpr_slice large_slice(void) {
+static gpr_slice large_slice() {
   gpr_slice slice = gpr_slice_malloc(1000000);
   memset(GPR_SLICE_START_PTR(slice), 0xab, GPR_SLICE_LENGTH(slice));
   return slice;
@@ -126,9 +126,7 @@ static void test_invoke_large_request(grpc_end2end_test_config config) {
   GPR_ASSERT(c);
 
   GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_call_start_invoke(c, f.client_cq, tag(1), tag(2), tag(3), 0));
-  cq_expect_invoke_accepted(v_client, tag(1), GRPC_OP_OK);
-  cq_verify(v_client);
+             grpc_call_invoke(c, f.client_cq, tag(2), tag(3), 0));
 
   GPR_ASSERT(GRPC_CALL_OK ==
              grpc_call_start_write(c, request_payload, tag(4), 0));
@@ -143,8 +141,7 @@ static void test_invoke_large_request(grpc_end2end_test_config config) {
                            deadline, NULL);
   cq_verify(v_server);
 
-  GPR_ASSERT(GRPC_CALL_OK == grpc_call_server_accept(s, f.server_cq, tag(102)));
-  GPR_ASSERT(GRPC_CALL_OK == grpc_call_server_end_initial_metadata(s, 0));
+  grpc_call_accept(s, f.server_cq, tag(102), 0);
   cq_expect_client_metadata_read(v_client, tag(2), NULL);
   cq_verify(v_client);
 
