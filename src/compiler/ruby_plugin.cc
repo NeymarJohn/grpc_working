@@ -37,7 +37,6 @@
 // and net/proto2/compiler/public/plugin.h for more information on plugins.
 
 #include <memory>
-#include <string>
 
 #include "src/compiler/ruby_generator.h"
 #include "src/compiler/ruby_generator_helpers-inl.h"
@@ -53,16 +52,16 @@ class RubyGrpcGenerator : public google::protobuf::compiler::CodeGenerator {
   ~RubyGrpcGenerator() override {}
 
   bool Generate(const google::protobuf::FileDescriptor* file,
-                const std::string& parameter,
+                const string& parameter,
                 google::protobuf::compiler::GeneratorContext* context,
-                std::string* error) const override {
-    std::string code = grpc_ruby_generator::GetServices(file);
+                string* error) const override {
+    string code = grpc_ruby_generator::GetServices(file);
     if (code.size() == 0) {
       return true;  // don't generate a file if there are no services
     }
 
     // Get output file name.
-    std::string file_name;
+    string file_name;
     if (!grpc_ruby_generator::ServicesFilename(file, &file_name)) {
       return false;
     }
