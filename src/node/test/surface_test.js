@@ -31,22 +31,45 @@
  *
  */
 
-#ifndef __GRPC_TEST_END2END_TESTS_CANCEL_TEST_HELPERS_H__
-#define __GRPC_TEST_END2END_TESTS_CANCEL_TEST_HELPERS_H__
+var assert = require('assert');
 
-typedef struct {
-  grpc_call_error (*initiate_cancel)(grpc_call *call);
-  grpc_status_code expect_status;
-  const char *expect_details;
-} cancellation_mode;
+var surface_server = require('../surface_server.js');
 
-static grpc_call_error wait_for_deadline(grpc_call *call) {
-  return GRPC_CALL_OK;
-}
+var ProtoBuf = require('protobufjs');
 
-static const cancellation_mode cancellation_modes[] = {
-    {grpc_call_cancel, GRPC_STATUS_CANCELLED, NULL},
-    {wait_for_deadline, GRPC_STATUS_DEADLINE_EXCEEDED, "Deadline Exceeded"},
-};
+var grpc = require('..');
 
-#endif
+var math_proto = ProtoBuf.loadProtoFile(__dirname + '/../examples/math.proto');
+
+var mathService = math_proto.lookup('math.Math');
+
+describe('Surface server constructor', function() {
+  it('Should fail with conflicting method names', function() {
+    assert.throws(function() {
+      grpc.buildServer([mathService, mathService]);
+    });
+  });
+  it('Should succeed with a single service', function() {
+    assert.doesNotThrow(function() {
+      grpc.buildServer([mathService]);
+    });
+  });
+  it('Should fail with missing handlers', function() {
+    var Server = grpc.buildServer([mathService]);
+    assert.throws(function() {
+      new Server({
+        'math.Math': {
+          'Div': function() {},
+          'DivMany': function() {},
+          'Fib': function() {}
+        }
+      });
+    }, /math.Math.Sum/);
+  });
+  it('Should fail with no handlers for the service', function() {
+    var Server = grpc.buildServer([mathService]);
+    assert.throws(function() {
+      new Server({});
+    }, /math.Math/);
+  });
+});

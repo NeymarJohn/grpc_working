@@ -25,6 +25,7 @@ END2END_TESTS = [
     'disappearing_server',
     'early_server_shutdown_finishes_inflight_calls',
     'early_server_shutdown_finishes_tags',
+    'graceful_server_shutdown',
     'invoke_large_request',
     'max_concurrent_streams',
     'no_op',
@@ -55,8 +56,7 @@ def main():
               'name': 'end2end_test_%s' % t,
               'build': 'private',
               'secure': False,
-              'src': ['test/core/end2end/tests/%s.c' % t],
-              'headers': ['test/core/end2end/tests/cancel_test_helpers.h']
+              'src': ['test/core/end2end/tests/%s.c' % t]
           }
           for t in END2END_TESTS] + [
           {
