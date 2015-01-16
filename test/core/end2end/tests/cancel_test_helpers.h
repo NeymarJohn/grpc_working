@@ -31,21 +31,22 @@
  *
  */
 
-#ifndef NET_GRPC_COMPILER_RUBY_GENERATOR_H_
-#define NET_GRPC_COMPILER_RUBY_GENERATOR_H_
+#ifndef __GRPC_TEST_END2END_TESTS_CANCEL_TEST_HELPERS_H__
+#define __GRPC_TEST_END2END_TESTS_CANCEL_TEST_HELPERS_H__
 
-#include <string>
+typedef struct {
+  grpc_call_error (*initiate_cancel)(grpc_call *call);
+  grpc_status_code expect_status;
+  const char *expect_details;
+} cancellation_mode;
 
-namespace google {
-namespace protobuf {
-class FileDescriptor;
-}  // namespace protobuf
-}  // namespace google
+static grpc_call_error wait_for_deadline(grpc_call *call) {
+  return GRPC_CALL_OK;
+}
 
-namespace grpc_ruby_generator {
+static const cancellation_mode cancellation_modes[] = {
+    {grpc_call_cancel, GRPC_STATUS_CANCELLED, NULL},
+    {wait_for_deadline, GRPC_STATUS_DEADLINE_EXCEEDED, "Deadline Exceeded"},
+};
 
-std::string GetServices(const google::protobuf::FileDescriptor* file);
-
-}  // namespace grpc_ruby_generator
-
-#endif  // NET_GRPC_COMPILER_RUBY_GENERATOR_H_
+#endif
