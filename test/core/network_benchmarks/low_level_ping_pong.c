@@ -293,7 +293,7 @@ static void print_histogram(gpr_histogram *histogram) {
           gpr_histogram_percentile(histogram, 99.9));
 }
 
-static double now(void) {
+static double now() {
   gpr_timespec tv = gpr_now();
   return 1e9 * tv.tv_sec + tv.tv_nsec;
 }

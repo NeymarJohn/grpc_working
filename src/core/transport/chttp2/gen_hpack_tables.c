@@ -86,7 +86,7 @@ static unsigned char suffix_mask(unsigned char prefix_len) {
   return ~prefix_mask(prefix_len);
 }
 
-static void generate_first_byte_lut(void) {
+static void generate_first_byte_lut() {
   int i, j, n;
   const spec *chrspec;
   unsigned char suffix;
@@ -136,21 +136,21 @@ typedef struct { char included[GRPC_CHTTP2_NUM_HUFFSYMS]; } symset;
 typedef struct { int values[16]; } nibblelut;
 
 /* returns a symset that includes all possible symbols */
-static symset symset_all(void) {
+static symset symset_all() {
   symset x;
   memset(x.included, 1, sizeof(x.included));
   return x;
 }
 
 /* returns a symset that includes no symbols */
-static symset symset_none(void) {
+static symset symset_none() {
   symset x;
   memset(x.included, 0, sizeof(x.included));
   return x;
 }
 
 /* returns an empty nibblelut */
-static nibblelut nibblelut_empty(void) {
+static nibblelut nibblelut_empty() {
   nibblelut x;
   int i;
   for (i = 0; i < 16; i++) {
@@ -296,7 +296,7 @@ static void dump_ctbl(const char *name) {
   printf("};\n");
 }
 
-static void generate_huff_tables(void) {
+static void generate_huff_tables() {
   int i;
   build_dec_tbl(state_index(0, symset_all(), &i), 0, 0, 0, -1, symset_all());
 
@@ -317,7 +317,7 @@ static void generate_huff_tables(void) {
   dump_ctbl("emit_sub_tbl");
 }
 
-static void generate_base64_huff_encoder_table(void) {
+static void generate_base64_huff_encoder_table() {
   static const char alphabet[] =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   int i;
@@ -332,7 +332,7 @@ static void generate_base64_huff_encoder_table(void) {
   printf("};\n");
 }
 
-static void generate_base64_inverse_table(void) {
+static void generate_base64_inverse_table() {
   static const char alphabet[] =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
   unsigned char inverse[256];

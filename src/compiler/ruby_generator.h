@@ -36,6 +36,8 @@
 
 #include <string>
 
+using namespace std;
+
 namespace google {
 namespace protobuf {
 class FileDescriptor;
@@ -44,7 +46,7 @@ class FileDescriptor;
 
 namespace grpc_ruby_generator {
 
-std::string GetServices(const google::protobuf::FileDescriptor* file);
+string GetServices(const google::protobuf::FileDescriptor* file);
 
 }  // namespace grpc_ruby_generator
 

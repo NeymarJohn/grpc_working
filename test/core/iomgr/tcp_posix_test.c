@@ -444,7 +444,7 @@ static void write_error_test(ssize_t num_bytes, ssize_t slice_size) {
   free(slices);
 }
 
-void run_tests(void) {
+void run_tests() {
   int i = 0;
 
   read_test(100, 8192);
@@ -469,7 +469,7 @@ void run_tests(void) {
   }
 }
 
-static void clean_up(void) {}
+static void clean_up() {}
 
 static grpc_endpoint_test_fixture create_fixture_tcp_socketpair(
     size_t slice_size) {

@@ -47,7 +47,7 @@ static void increment_int_on_finish(void *user_data, grpc_op_error error) {
   ++*(int *)user_data;
 }
 
-static void *create_test_tag(void) {
+static void *create_test_tag() {
   static gpr_intptr i = 0;
   return (void *)(++i);
 }
@@ -64,12 +64,12 @@ static void shutdown_and_destroy(grpc_completion_queue *cc) {
 }
 
 /* ensure we can create and destroy a completion channel */
-static void test_no_op(void) {
+static void test_no_op() {
   LOG_TEST();
   shutdown_and_destroy(grpc_completion_queue_create());
 }
 
-static void test_wait_empty(void) {
+static void test_wait_empty() {
   grpc_completion_queue *cc;
 
   LOG_TEST();
@@ -79,7 +79,7 @@ static void test_wait_empty(void) {
   shutdown_and_destroy(cc);
 }
 
-static void test_cq_end_read(void) {
+static void test_cq_end_read() {
   grpc_event *ev;
   grpc_completion_queue *cc;
   int on_finish_called = 0;
@@ -105,7 +105,7 @@ static void test_cq_end_read(void) {
   shutdown_and_destroy(cc);
 }
 
-static void test_cq_end_invoke_accepted(void) {
+static void test_cq_end_invoke_accepted() {
   grpc_event *ev;
   grpc_completion_queue *cc;
   int on_finish_called = 0;
@@ -131,7 +131,7 @@ static void test_cq_end_invoke_accepted(void) {
   shutdown_and_destroy(cc);
 }
 
-static void test_cq_end_write_accepted(void) {
+static void test_cq_end_write_accepted() {
   grpc_event *ev;
   grpc_completion_queue *cc;
   int on_finish_called = 0;
@@ -157,7 +157,7 @@ static void test_cq_end_write_accepted(void) {
   shutdown_and_destroy(cc);
 }
 
-static void test_cq_end_finish_accepted(void) {
+static void test_cq_end_finish_accepted() {
   grpc_event *ev;
   grpc_completion_queue *cc;
   int on_finish_called = 0;
@@ -183,7 +183,7 @@ static void test_cq_end_finish_accepted(void) {
   shutdown_and_destroy(cc);
 }
 
-static void test_cq_end_client_metadata_read(void) {
+static void test_cq_end_client_metadata_read() {
   grpc_event *ev;
   grpc_completion_queue *cc;
   int on_finish_called = 0;
@@ -210,7 +210,7 @@ static void test_cq_end_client_metadata_read(void) {
   shutdown_and_destroy(cc);
 }
 
-static void test_pluck(void) {
+static void test_pluck() {
   grpc_event *ev;
   grpc_completion_queue *cc;
   void *tags[128];
@@ -273,7 +273,7 @@ typedef struct test_thread_options {
   grpc_completion_queue *cc;
 } test_thread_options;
 
-gpr_timespec ten_seconds_time(void) {
+gpr_timespec ten_seconds_time() {
   return gpr_time_add(gpr_now(), gpr_time_from_micros(10 * 1000000));
 }
 
