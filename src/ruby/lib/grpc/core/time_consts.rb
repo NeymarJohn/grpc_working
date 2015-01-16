@@ -32,10 +32,9 @@ require 'grpc'
 module Google
   module RPC
     module Core
-      # TimeConsts is a module from the C extension.
-      #
-      # Here it's re-opened to add a utility func.
-      module TimeConsts
+
+      module TimeConsts  # re-opens a module in the C extension.
+
         # Converts a time delta to an absolute deadline.
         #
         # Assumes timeish is a relative time, and converts its to an absolute,
@@ -49,23 +48,24 @@ module Google
         # @param timeish [Number|TimeSpec]
         # @return timeish [Number|TimeSpec]
         def from_relative_time(timeish)
-          if timeish.is_a? TimeSpec
+          if timeish.is_a?TimeSpec
             timeish
           elsif timeish.nil?
             TimeConsts::ZERO
-          elsif !timeish.is_a? Numeric
-            fail(TypeError,
-                 "Cannot make an absolute deadline from #{timeish.inspect}")
+          elsif !timeish.is_a?Numeric
+            raise TypeError('Cannot make an absolute deadline from %s',
+                            timeish.inspect)
           elsif timeish < 0
             TimeConsts::INFINITE_FUTURE
           elsif timeish == 0
             TimeConsts::ZERO
-          else
+          else !timeish.nil?
             Time.now + timeish
           end
         end
 
         module_function :from_relative_time
+
       end
     end
   end

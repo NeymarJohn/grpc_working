@@ -40,29 +40,26 @@ $LOAD_PATH.unshift(lib_dir) unless $LOAD_PATH.include?(lib_dir)
 require 'grpc'
 require 'optparse'
 
-# a simple non-protobuf message class.
 class NoProtoMsg
-  def self.marshal(_o)
+  def self.marshal(o)
     ''
   end
 
-  def self.unmarshal(_o)
+  def self.unmarshal(o)
     NoProtoMsg.new
   end
 end
 
-# service the uses the non-protobuf message class.
 class NoProtoService
   include GRPC::GenericService
   rpc :AnRPC, NoProtoMsg, NoProtoMsg
 end
 
-# an implementation of the non-protobuf service.
 class NoProto < NoProtoService
-  def initialize(_default_var = 'ignored')
+  def initialize(default_var='ignored')
   end
 
-  def an_rpc(req, _call)
+  def an_rpc(req, call)
     logger.info('echo service received a request')
     req
   end
@@ -77,7 +74,7 @@ end
 
 def test_server_creds
   certs = load_test_certs
-  GRPC::Core::ServerCredentials.new(nil, certs[1], certs[2])
+  server_creds = GRPC::Core::ServerCredentials.new(nil, certs[1], certs[2])
 end
 
 def main
@@ -91,7 +88,7 @@ def main
       options['host'] = v
     end
     opts.on('-s', '--secure', 'access using test creds') do |v|
-      options['secure'] = v
+      options['secure'] = true
     end
   end.parse!
 
@@ -108,5 +105,6 @@ def main
   s.handle(NoProto)
   s.run
 end
+
 
 main

@@ -29,6 +29,7 @@
 
 require 'grpc'
 
+
 def load_test_certs
   test_root = File.join(File.dirname(__FILE__), 'testdata')
   files = ['ca.pem', 'server1.pem', 'server1.key']
@@ -38,7 +39,9 @@ end
 Credentials = GRPC::Core::Credentials
 
 describe Credentials do
+
   describe '#new' do
+
     it 'can be constructed with fake inputs' do
       expect { Credentials.new('root_certs', 'key', 'cert') }.not_to raise_error
     end
@@ -55,23 +58,30 @@ describe Credentials do
 
     it 'cannot be constructed with a nil server roots' do
       _, client_key, client_chain = load_test_certs
-      blk = proc { Credentials.new(nil, client_key, client_chain) }
+      blk = Proc.new { Credentials.new(nil, client_key, client_chain) }
       expect(&blk).to raise_error
     end
+
   end
 
   describe '#compose' do
+
     it 'can be completed OK' do
       certs = load_test_certs
       cred1 = Credentials.new(*certs)
       cred2 = Credentials.new(*certs)
       expect { cred1.compose(cred2) }.to_not raise_error
     end
+
   end
 
   describe 'Credentials#default' do
+
     it 'is not implemented yet' do
-      expect { Credentials.default }.to raise_error RuntimeError
+      expect { Credentials.default() }.to raise_error RuntimeError
     end
+
   end
+
+
 end
