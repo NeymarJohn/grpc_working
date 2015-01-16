@@ -43,14 +43,7 @@
 #include <grpc/support/time.h>
 #include <grpc/support/useful.h>
 #include "test/core/end2end/cq_verifier.h"
-
-/* allow cancellation by either grpc_call_cancel, or by wait_for_deadline (which
- * does nothing) */
-typedef grpc_call_error (*canceller)(grpc_call *call);
-
-static grpc_call_error wait_for_deadline(grpc_call *call) {
-  return GRPC_CALL_OK;
-}
+#include "test/core/end2end/tests/cancel_test_helpers.h"
 
 enum { TIMEOUT = 200000 };
 
@@ -112,7 +105,7 @@ static void end_test(grpc_end2end_test_fixture *f) {
 
 /* Cancel after accept with a writes closed, no payload */
 static void test_cancel_after_accept_and_writes_closed(
-    grpc_end2end_test_config config, canceller call_cancel) {
+    grpc_end2end_test_config config, cancellation_mode mode) {
   grpc_call *c;
   grpc_call *s;
   grpc_end2end_test_fixture f = begin_test(config, __FUNCTION__, NULL, NULL);
@@ -124,7 +117,9 @@ static void test_cancel_after_accept_and_writes_closed(
   GPR_ASSERT(c);
 
   GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_call_invoke(c, f.client_cq, tag(2), tag(3), 0));
+             grpc_call_start_invoke(c, f.client_cq, tag(1), tag(2), tag(3), 0));
+  cq_expect_invoke_accepted(v_client, tag(1), GRPC_OP_OK);
+  cq_verify(v_client);
 
   GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, tag(100)));
   cq_expect_server_rpc_new(v_server, &s, tag(100), "/foo", "test.google.com",
@@ -144,10 +139,10 @@ static void test_cancel_after_accept_and_writes_closed(
   cq_expect_empty_read(v_server, tag(101));
   cq_verify(v_server);
 
-  GPR_ASSERT(GRPC_CALL_OK == call_cancel(c));
+  GPR_ASSERT(GRPC_CALL_OK == mode.initiate_cancel(c));
 
-  cq_expect_finished_with_status(v_client, tag(3), GRPC_STATUS_CANCELLED, NULL,
-                                 NULL);
+  cq_expect_finished_with_status(v_client, tag(3), mode.expect_status,
+                                 mode.expect_details, NULL);
   cq_verify(v_client);
 
   cq_expect_finished_with_status(v_server, tag(102), GRPC_STATUS_CANCELLED,
@@ -165,9 +160,8 @@ static void test_cancel_after_accept_and_writes_closed(
 
 void grpc_end2end_tests(grpc_end2end_test_config config) {
   int i;
-  canceller cancellers[2] = {grpc_call_cancel, wait_for_deadline};
 
-  for (i = 0; i < GPR_ARRAY_SIZE(cancellers); i++) {
-    test_cancel_after_accept_and_writes_closed(config, cancellers[i]);
+  for (i = 0; i < GPR_ARRAY_SIZE(cancellation_modes); i++) {
+    test_cancel_after_accept_and_writes_closed(config, cancellation_modes[i]);
   }
 }

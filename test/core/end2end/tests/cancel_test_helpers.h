@@ -31,52 +31,22 @@
  *
  */
 
-#include "src/core/surface/lame_client.h"
+#ifndef __GRPC_TEST_END2END_TESTS_CANCEL_TEST_HELPERS_H__
+#define __GRPC_TEST_END2END_TESTS_CANCEL_TEST_HELPERS_H__
 
-#include "test/core/end2end/cq_verifier.h"
-#include "test/core/util/test_config.h"
-#include <grpc/support/log.h>
+typedef struct {
+  grpc_call_error (*initiate_cancel)(grpc_call *call);
+  grpc_status_code expect_status;
+  const char *expect_details;
+} cancellation_mode;
 
-static void *tag(gpr_intptr x) { return (void *)x; }
-
-int main(int argc, char **argv) {
-  grpc_channel *chan;
-  grpc_call *call;
-  grpc_metadata md = {"a", "b", 1};
-  grpc_completion_queue *cq;
-  cq_verifier *cqv;
-
-  grpc_test_init(argc, argv);
-  grpc_init();
-
-  chan = grpc_lame_client_channel_create();
-  GPR_ASSERT(chan);
-  call = grpc_channel_create_call(
-      chan, "/Foo", "anywhere",
-      gpr_time_add(gpr_now(), gpr_time_from_seconds(100)));
-  GPR_ASSERT(call);
-  cq = grpc_completion_queue_create();
-  cqv = cq_verifier_create(cq);
-
-  /* we should be able to add metadata */
-  GPR_ASSERT(GRPC_CALL_OK == grpc_call_add_metadata(call, &md, 0));
-
-  /* and invoke the call */
-  GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_call_start_invoke(call, cq, tag(1), tag(2), tag(3), 0));
-
-  /* the call should immediately fail */
-  cq_expect_invoke_accepted(cqv, tag(1), GRPC_OP_ERROR);
-  cq_expect_client_metadata_read(cqv, tag(2), NULL);
-  cq_expect_finished(cqv, tag(3), NULL);
-  cq_verify(cqv);
-
-  grpc_call_destroy(call);
-  grpc_channel_destroy(chan);
-  cq_verifier_destroy(cqv);
-  grpc_completion_queue_destroy(cq);
-
-  grpc_shutdown();
-
-  return 0;
+static grpc_call_error wait_for_deadline(grpc_call *call) {
+  return GRPC_CALL_OK;
 }
+
+static const cancellation_mode cancellation_modes[] = {
+    {grpc_call_cancel, GRPC_STATUS_CANCELLED, NULL},
+    {wait_for_deadline, GRPC_STATUS_DEADLINE_EXCEEDED, "Deadline Exceeded"},
+};
+
+#endif
