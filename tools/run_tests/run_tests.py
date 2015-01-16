@@ -51,10 +51,9 @@ _CONFIGS = {
 
 
 _DEFAULT = ['dbg', 'opt']
-_LANGUAGE_BUILD_RULE = {
-    'c++': ['make', 'buildtests_cxx'],
-    'c': ['make', 'buildtests_c'],
-    'php': ['tools/run_tests/build_php.sh']
+_LANGUAGE_TEST_TARGETS = {
+    'c++': 'buildtests_cxx',
+    'c': 'buildtests_c',
 }
 
 # parse command line
@@ -74,9 +73,9 @@ argp.add_argument('--newline_on_success',
                   action='store_const',
                   const=True)
 argp.add_argument('-l', '--language',
-                  choices=sorted(_LANGUAGE_BUILD_RULE.keys()),
+                  choices=sorted(_LANGUAGE_TEST_TARGETS.keys()),
                   nargs='+',
-                  default=sorted(_LANGUAGE_BUILD_RULE.keys()))
+                  default=sorted(_LANGUAGE_TEST_TARGETS.keys()))
 args = argp.parse_args()
 
 # grab config
@@ -85,21 +84,7 @@ run_configs = set(_CONFIGS[cfg]
                       _CONFIGS.iterkeys() if x == 'all' else [x]
                       for x in args.config))
 build_configs = set(cfg.build_config for cfg in run_configs)
-
-make_targets = set()
-build_steps = []
-for language in args.language:
-  cmd = _LANGUAGE_BUILD_RULE[language]
-  if cmd[0] == 'make':
-    make_targets.update(cmd[1:])
-  else:
-    build_steps.append(cmd)
-if make_targets:
-  build_steps = [['make',
-                  '-j', '%d' % (multiprocessing.cpu_count() + 1),
-                  'CONFIG=%s' % cfg] + list(make_targets)
-                 for cfg in build_configs] + build_steps
-
+make_targets = set(_LANGUAGE_TEST_TARGETS[x] for x in args.language)
 filters = args.test_filter
 runs_per_test = args.runs_per_test
 forever = args.forever
@@ -142,7 +127,12 @@ class TestCache(object):
 def _build_and_run(check_cancelled, newline_on_success, cache):
   """Do one pass of building & running tests."""
   # build latest, sharing cpu between the various makes
-  if not jobset.run(build_steps):
+  if not jobset.run(
+      (['make',
+        '-j', '%d' % (multiprocessing.cpu_count() + 1),
+        'CONFIG=%s' % cfg] + list(make_targets)
+       for cfg in build_configs),
+      check_cancelled, maxjobs=1):
     return 1
 
   # run all the tests
