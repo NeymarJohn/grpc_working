@@ -42,19 +42,21 @@ class FileDescriptor;
 }  // namespace protobuf
 }  // namespace google
 
+using namespace std;
+
 namespace grpc_cpp_generator {
 
 // Return the includes needed for generated header file.
-std::string GetHeaderIncludes(const google::protobuf::FileDescriptor* file);
+string GetHeaderIncludes(const google::protobuf::FileDescriptor* file);
 
 // Return the includes needed for generated source file.
-std::string GetSourceIncludes();
+string GetSourceIncludes();
 
 // Return the services for generated header file.
-std::string GetHeaderServices(const google::protobuf::FileDescriptor* file);
+string GetHeaderServices(const google::protobuf::FileDescriptor* file);
 
 // Return the services for generated source file.
-std::string GetSourceServices(const google::protobuf::FileDescriptor* file);
+string GetSourceServices(const google::protobuf::FileDescriptor* file);
 
 }  // namespace grpc_cpp_generator
 
