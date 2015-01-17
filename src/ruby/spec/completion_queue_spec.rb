@@ -30,6 +30,7 @@
 require 'grpc'
 
 describe GRPC::Core::CompletionQueue do
+
   describe '#new' do
     it 'is constructed successufully' do
       expect { GRPC::Core::CompletionQueue.new }.not_to raise_error
@@ -52,6 +53,7 @@ describe GRPC::Core::CompletionQueue do
         expect { ch.next(a_time) }.not_to raise_error
       end
     end
+
   end
 
   describe '#pluck' do
@@ -72,5 +74,8 @@ describe GRPC::Core::CompletionQueue do
         expect { ch.pluck(tag, a_time) }.not_to raise_error
       end
     end
+
   end
+
+
 end
