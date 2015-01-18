@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -x
 
 if [ "x$TEST" == "x" ] ; then
   TEST=false
