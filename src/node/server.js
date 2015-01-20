@@ -47,21 +47,10 @@ util.inherits(GrpcServerStream, Duplex);
  * from stream.Duplex.
  * @constructor
  * @param {grpc.Call} call Call object to proxy
- * @param {function(*):Buffer} serialize Serialization function for responses
- * @param {function(Buffer):*} deserialize Deserialization function for requests
+ * @param {object} options Stream options
  */
-function GrpcServerStream(call, serialize, deserialize) {
-  Duplex.call(this, {objectMode: true});
-  if (!serialize) {
-    serialize = function(value) {
-      return value;
-    };
-  }
-  if (!deserialize) {
-    deserialize = function(value) {
-      return value;
-    };
-  }
+function GrpcServerStream(call, options) {
+  Duplex.call(this, options);
   this._call = call;
   // Indicate that a status has been sent
   var finished = false;
@@ -70,33 +59,6 @@ function GrpcServerStream(call, serialize, deserialize) {
     'code' : grpc.status.OK,
     'details' : 'OK'
   };
-
-  /**
-   * Serialize a response value to a buffer. Always maps null to null. Otherwise
-   * uses the provided serialize function
-   * @param {*} value The value to serialize
-   * @return {Buffer} The serialized value
-   */
-  this.serialize = function(value) {
-    if (value === null || value === undefined) {
-      return null;
-    }
-    return serialize(value);
-  };
-
-  /**
-   * Deserialize a request buffer to a value. Always maps null to null.
-   * Otherwise uses the provided deserialize function.
-   * @param {Buffer} buffer The buffer to deserialize
-   * @return {*} The deserialized value
-   */
-  this.deserialize = function(buffer) {
-    if (buffer === null) {
-      return null;
-    }
-    return deserialize(buffer);
-  };
-
   /**
    * Send the pending status
    */
@@ -113,6 +75,7 @@ function GrpcServerStream(call, serialize, deserialize) {
    * @param {Error} err The error object
    */
   function setStatus(err) {
+    console.log('Server setting status to', err);
     var code = grpc.status.INTERNAL;
     var details = 'Unknown Error';
 
@@ -150,7 +113,7 @@ function GrpcServerStream(call, serialize, deserialize) {
       return;
     }
     var data = event.data;
-    if (self.push(deserialize(data)) && data != null) {
+    if (self.push(data) && data != null) {
       self._call.startRead(readCallback);
     } else {
       reading = false;
@@ -192,7 +155,7 @@ GrpcServerStream.prototype._read = function(size) {
  */
 GrpcServerStream.prototype._write = function(chunk, encoding, callback) {
   var self = this;
-  self._call.startWrite(self.serialize(chunk), function(event) {
+  self._call.startWrite(chunk, function(event) {
     callback();
   }, 0);
 };
@@ -248,13 +211,12 @@ function Server(options) {
         }
       }, 0);
       call.serverEndInitialMetadata(0);
-      var stream = new GrpcServerStream(call, handler.serialize,
-                                        handler.deserialize);
+      var stream = new GrpcServerStream(call);
       Object.defineProperty(stream, 'cancelled', {
         get: function() { return cancelled;}
       });
       try {
-        handler.func(stream, data.metadata);
+        handler(stream, data.metadata);
       } catch (e) {
         stream.emit('error', e);
       }
@@ -275,20 +237,14 @@ function Server(options) {
  *     handle/respond to.
  * @param {function} handler Function that takes a stream of request values and
  *     returns a stream of response values
- * @param {function(*):Buffer} serialize Serialization function for responses
- * @param {function(Buffer):*} deserialize Deserialization function for requests
  * @return {boolean} True if the handler was set. False if a handler was already
  *     set for that name.
  */
-Server.prototype.register = function(name, handler, serialize, deserialize) {
+Server.prototype.register = function(name, handler) {
   if (this.handlers.hasOwnProperty(name)) {
     return false;
   }
-  this.handlers[name] = {
-    func: handler,
-    serialize: serialize,
-    deserialize: deserialize
-  };
+  this.handlers[name] = handler;
   return true;
 };
 
