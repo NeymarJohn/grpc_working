@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,71 +31,39 @@
  *
  */
 
-#include "src/core/iomgr/pollset_kick.h"
+var interop_server = require('../interop/interop_server.js');
+var interop_client = require('../interop/interop_client.js');
 
-#include <grpc/support/log.h>
-#include "test/core/util/test_config.h"
+var port_picker = require('../port_picker');
 
-static void test_allocation() {
-  grpc_pollset_kick_state state;
-  grpc_pollset_kick_init(&state);
-  grpc_pollset_kick_destroy(&state);
-}
+var server;
 
-static void test_non_kick() {
-  grpc_pollset_kick_state state;
-  int fd;
+var port;
 
-  grpc_pollset_kick_init(&state);
-  fd = grpc_pollset_kick_pre_poll(&state);
-  GPR_ASSERT(fd >= 0);
-
-  grpc_pollset_kick_post_poll(&state);
-  grpc_pollset_kick_destroy(&state);
-}
-
-static void test_basic_kick() {
-  /* Kicked during poll */
-  grpc_pollset_kick_state state;
-  int fd;
-  grpc_pollset_kick_init(&state);
-
-  fd = grpc_pollset_kick_pre_poll(&state);
-  GPR_ASSERT(fd >= 0);
-
-  grpc_pollset_kick_kick(&state);
-
-  /* Now hypothetically we polled and found that we were kicked */
-  grpc_pollset_kick_consume(&state);
-
-  grpc_pollset_kick_post_poll(&state);
-
-  grpc_pollset_kick_destroy(&state);
-}
-
-static void test_non_poll_kick() {
-  /* Kick before entering poll */
-  grpc_pollset_kick_state state;
-  int fd;
-
-  grpc_pollset_kick_init(&state);
-
-  grpc_pollset_kick_kick(&state);
-  fd = grpc_pollset_kick_pre_poll(&state);
-  GPR_ASSERT(fd < 0);
-  grpc_pollset_kick_destroy(&state);
-}
-
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-
-  grpc_pollset_kick_global_init();
-
-  test_allocation();
-  test_basic_kick();
-  test_non_poll_kick();
-  test_non_kick();
-
-  grpc_pollset_kick_global_destroy();
-  return 0;
-}
+describe('Interop tests', function() {
+  before(function(done) {
+    port_picker.nextAvailablePort(function(addr) {
+      server = interop_server.getServer(addr.substring(addr.indexOf(':') + 1));
+      port = addr;
+      done();
+    });
+  });
+  it.only('should pass empty_unary', function(done) {
+    interop_client.runTest(port, null, 'empty_unary', false, done);
+  });
+  it('should pass large_unary', function(done) {
+    interop_client.runTest(port, null, 'large_unary', false, done);
+  });
+  it('should pass client_streaming', function(done) {
+    interop_client.runTest(port, null, 'client_streaming', false, done);
+  });
+  it('should pass server_streaming', function(done) {
+    interop_client.runTest(port, null, 'server_streaming', false, done);
+  });
+  it('should pass ping_pong', function(done) {
+    interop_client.runTest(port, null, 'ping_pong', false, done);
+  });
+  it('should pass empty_stream', function(done) {
+    interop_client.runTest(port, null, 'empty_stream', false, done);
+  });
+});

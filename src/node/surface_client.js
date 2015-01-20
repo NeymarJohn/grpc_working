@@ -33,6 +33,9 @@
 
 var _ = require('underscore');
 
+var capitalize = require('underscore.string/capitalize');
+var decapitalize = require('underscore.string/decapitalize');
+
 var client = require('./client.js');
 
 var common = require('./common.js');
@@ -49,6 +52,7 @@ var util = require('util');
 
 function forwardEvent(fromEmitter, toEmitter, event) {
   fromEmitter.on(event, function forward() {
+    debugger;
     _.partial(toEmitter.emit, event).apply(toEmitter, arguments);
   });
 }
@@ -352,10 +356,11 @@ function makeClientConstructor(service) {
         method_type = 'unary';
       }
     }
-    SurfaceClient.prototype[method.name] = requester_makers[method_type](
-        prefix + method.name,
-        common.serializeCls(method.resolvedRequestType.build()),
-        common.deserializeCls(method.resolvedResponseType.build()));
+    SurfaceClient.prototype[decapitalize(method.name)] =
+        requester_makers[method_type](
+            prefix + capitalize(method.name),
+            common.serializeCls(method.resolvedRequestType.build()),
+            common.deserializeCls(method.resolvedResponseType.build()));
   });
 
   SurfaceClient.service = service;

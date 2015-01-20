@@ -30,7 +30,9 @@
 require 'grpc'
 
 describe GRPC::Core::ByteBuffer do
+
   describe '#new' do
+
     it 'is constructed from a string' do
       expect { GRPC::Core::ByteBuffer.new('#new') }.not_to raise_error
     end
@@ -48,6 +50,7 @@ describe GRPC::Core::ByteBuffer do
         expect { GRPC::Core::ByteBuffer.new(x) }.to raise_error TypeError
       end
     end
+
   end
 
   describe '#to_s' do
@@ -64,4 +67,5 @@ describe GRPC::Core::ByteBuffer do
       expect(a_copy.dup.to_s).to eq('#dup')
     end
   end
+
 end
