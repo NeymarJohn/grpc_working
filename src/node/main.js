@@ -55,7 +55,7 @@ function loadObject(value) {
     return result;
   } else if (value.className === 'Service') {
     return surface_client.makeClientConstructor(value);
-  } else if (value.className === 'Message' || value.className === 'Enum') {
+  } else if (value.className === 'Service.Message') {
     return value.build();
   } else {
     return value;
