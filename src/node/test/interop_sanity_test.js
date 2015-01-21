@@ -31,52 +31,44 @@
  *
  */
 
-#include "src/core/surface/lame_client.h"
+var interop_server = require('../interop/interop_server.js');
+var interop_client = require('../interop/interop_client.js');
 
-#include "test/core/end2end/cq_verifier.h"
-#include "test/core/util/test_config.h"
-#include <grpc/support/log.h>
+var port_picker = require('../port_picker');
 
-static void *tag(gpr_intptr x) { return (void *)x; }
+var server;
 
-int main(int argc, char **argv) {
-  grpc_channel *chan;
-  grpc_call *call;
-  grpc_metadata md = {"a", "b", 1};
-  grpc_completion_queue *cq;
-  cq_verifier *cqv;
+var port;
 
-  grpc_test_init(argc, argv);
-  grpc_init();
+var name_override = 'foo.test.google.com';
 
-  chan = grpc_lame_client_channel_create();
-  GPR_ASSERT(chan);
-  call = grpc_channel_create_call(
-      chan, "/Foo", "anywhere",
-      gpr_time_add(gpr_now(), gpr_time_from_seconds(100)));
-  GPR_ASSERT(call);
-  cq = grpc_completion_queue_create();
-  cqv = cq_verifier_create(cq);
-
-  /* we should be able to add metadata */
-  GPR_ASSERT(GRPC_CALL_OK == grpc_call_add_metadata(call, &md, 0));
-
-  /* and invoke the call */
-  GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_call_start_invoke(call, cq, tag(1), tag(2), tag(3), 0));
-
-  /* the call should immediately fail */
-  cq_expect_invoke_accepted(cqv, tag(1), GRPC_OP_ERROR);
-  cq_expect_client_metadata_read(cqv, tag(2), NULL);
-  cq_expect_finished(cqv, tag(3), NULL);
-  cq_verify(cqv);
-
-  grpc_call_destroy(call);
-  grpc_channel_destroy(chan);
-  cq_verifier_destroy(cqv);
-  grpc_completion_queue_destroy(cq);
-
-  grpc_shutdown();
-
-  return 0;
-}
+describe('Interop tests', function() {
+  before(function(done) {
+    port_picker.nextAvailablePort(function(addr) {
+      server = interop_server.getServer(addr.substring(addr.indexOf(':') + 1), true);
+      server.listen();
+      port = addr;
+      done();
+    });
+  });
+  // This depends on not using a binary stream
+  it('should pass empty_unary', function(done) {
+    interop_client.runTest(port, name_override, 'empty_unary', true, done);
+  });
+  it('should pass large_unary', function(done) {
+    interop_client.runTest(port, name_override, 'large_unary', true, done);
+  });
+  it('should pass client_streaming', function(done) {
+    interop_client.runTest(port, name_override, 'client_streaming', true, done);
+  });
+  it('should pass server_streaming', function(done) {
+    interop_client.runTest(port, name_override, 'server_streaming', true, done);
+  });
+  it('should pass ping_pong', function(done) {
+    interop_client.runTest(port, name_override, 'ping_pong', true, done);
+  });
+  // This depends on the new invoke API
+  it.skip('should pass empty_stream', function(done) {
+    interop_client.runTest(port, name_override, 'empty_stream', true, done);
+  });
+});

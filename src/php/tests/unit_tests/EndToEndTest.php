@@ -25,11 +25,17 @@ class EndToEndTest extends PHPUnit_Framework_TestCase{
                           $deadline);
     $tag = 1;
     $this->assertEquals(Grpc\CALL_OK,
-                        $call->invoke($this->client_queue,
-                                      $tag,
-                                      $tag));
+                        $call->start_invoke($this->client_queue,
+                                            $tag,
+                                            $tag,
+                                            $tag));
 
     $server_tag = 2;
+
+    // the client invocation was accepted
+    $event = $this->client_queue->next($deadline);
+    $this->assertNotNull($event);
+    $this->assertEquals(Grpc\INVOKE_ACCEPTED, $event->type);
 
     $call->writes_done($tag);
     $event = $this->client_queue->next($deadline);
@@ -97,11 +103,17 @@ class EndToEndTest extends PHPUnit_Framework_TestCase{
                           $deadline);
     $tag = 1;
     $this->assertEquals(Grpc\CALL_OK,
-                        $call->invoke($this->client_queue,
-                                      $tag,
-                                      $tag));
+                        $call->start_invoke($this->client_queue,
+                                            $tag,
+                                            $tag,
+                                            $tag));
 
     $server_tag = 2;
+
+    // the client invocation was accepted
+    $event = $this->client_queue->next($deadline);
+    $this->assertNotNull($event);
+    $this->assertEquals(Grpc\INVOKE_ACCEPTED, $event->type);
 
     // the client writes
     $call->start_write($req_text, $tag);
