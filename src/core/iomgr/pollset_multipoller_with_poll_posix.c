@@ -131,11 +131,7 @@ static int multipoll_with_poll_pollset_maybe_work(
   }
   nf = 0;
   np = 1;
-  h->pfds[0].fd = grpc_pollset_kick_pre_poll(&pollset->kick_state);
-  if (h->pfds[0].fd < 0) {
-    /* Already kicked */
-    return 1;
-  }
+  h->pfds[0].fd = grpc_kick_read_fd(pollset);
   h->pfds[0].events = POLLIN;
   h->pfds[0].revents = POLLOUT;
   for (i = 0; i < h->fd_count; i++) {
@@ -177,7 +173,7 @@ static int multipoll_with_poll_pollset_maybe_work(
     /* do nothing */
   } else {
     if (h->pfds[0].revents & POLLIN) {
-      grpc_pollset_kick_consume(&pollset->kick_state);
+      grpc_kick_drain(pollset);
     }
     for (i = 1; i < np; i++) {
       if (h->pfds[i].revents & POLLIN) {
@@ -188,7 +184,6 @@ static int multipoll_with_poll_pollset_maybe_work(
       }
     }
   }
-  grpc_pollset_kick_post_poll(&pollset->kick_state);
   end_polling(pollset);
 
   gpr_mu_lock(&pollset->mu);
