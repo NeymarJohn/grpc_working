@@ -33,17 +33,16 @@
 
 #include "src/core/iomgr/pollset_kick.h"
 
-#include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include "test/core/util/test_config.h"
 
-static void test_allocation(void) {
+static void test_allocation() {
   grpc_pollset_kick_state state;
   grpc_pollset_kick_init(&state);
   grpc_pollset_kick_destroy(&state);
 }
 
-static void test_non_kick(void) {
+static void test_non_kick() {
   grpc_pollset_kick_state state;
   int fd;
 
@@ -55,7 +54,7 @@ static void test_non_kick(void) {
   grpc_pollset_kick_destroy(&state);
 }
 
-static void test_basic_kick(void) {
+static void test_basic_kick() {
   /* Kicked during poll */
   grpc_pollset_kick_state state;
   int fd;
@@ -74,7 +73,7 @@ static void test_basic_kick(void) {
   grpc_pollset_kick_destroy(&state);
 }
 
-static void test_non_poll_kick(void) {
+static void test_non_poll_kick() {
   /* Kick before entering poll */
   grpc_pollset_kick_state state;
   int fd;
@@ -87,26 +86,6 @@ static void test_non_poll_kick(void) {
   grpc_pollset_kick_destroy(&state);
 }
 
-#define GRPC_MAX_CACHED_PIPES 50
-
-static void test_over_free(void) {
-  /* Check high watermark pipe free logic */
-  int i;
-  struct grpc_pollset_kick_state *kick_state =
-      gpr_malloc(sizeof(grpc_pollset_kick_state) * GRPC_MAX_CACHED_PIPES);
-  for (i = 0; i < GRPC_MAX_CACHED_PIPES; ++i) {
-    int fd;
-    grpc_pollset_kick_init(&kick_state[i]);
-    fd = grpc_pollset_kick_pre_poll(&kick_state[i]);
-    GPR_ASSERT(fd >= 0);
-  }
-
-  for (i = 0; i < GRPC_MAX_CACHED_PIPES; ++i) {
-    grpc_pollset_kick_post_poll(&kick_state[i]);
-    grpc_pollset_kick_destroy(&kick_state[i]);
-  }
-}
-
 int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
 
@@ -116,7 +95,6 @@ int main(int argc, char **argv) {
   test_basic_kick();
   test_non_poll_kick();
   test_non_kick();
-  test_over_free();
 
   grpc_pollset_kick_global_destroy();
   return 0;

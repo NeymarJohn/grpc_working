@@ -31,68 +31,42 @@
  *
  */
 
-var _ = require('underscore');
+var interop_server = require('../interop/interop_server.js');
+var interop_client = require('../interop/interop_client.js');
 
-var ProtoBuf = require('protobufjs');
+var port_picker = require('../port_picker');
 
-var surface_client = require('./surface_client.js');
+var server;
 
-var surface_server = require('./surface_server.js');
+var port;
 
-var grpc = require('bindings')('grpc');
-
-/**
- * Load a gRPC object from an existing ProtoBuf.Reflect object.
- * @param {ProtoBuf.Reflect.Namespace} value The ProtoBuf object to load.
- * @return {Object<string, *>} The resulting gRPC object
- */
-function loadObject(value) {
-  var result = {};
-  if (value.className === 'Namespace') {
-    _.each(value.children, function(child) {
-      result[child.name] = loadObject(child);
+describe('Interop tests', function() {
+  before(function(done) {
+    port_picker.nextAvailablePort(function(addr) {
+      server = interop_server.getServer(addr.substring(addr.indexOf(':') + 1));
+      server.listen();
+      port = addr;
+      done();
     });
-    return result;
-  } else if (value.className === 'Service') {
-    return surface_client.makeClientConstructor(value);
-  } else if (value.className === 'Message' || value.className === 'Enum') {
-    return value.build();
-  } else {
-    return value;
-  }
-}
-
-/**
- * Load a gRPC object from a .proto file.
- * @param {string} filename The file to load
- * @return {Object<string, *>} The resulting gRPC object
- */
-function load(filename) {
-  var builder = ProtoBuf.loadProtoFile(filename);
-
-  return loadObject(builder.ns);
-}
-
-/**
- * See docs for loadObject
- */
-exports.loadObject = loadObject;
-
-/**
- * See docs for load
- */
-exports.load = load;
-
-/**
- * See docs for surface_server.makeServerConstructor
- */
-exports.buildServer = surface_server.makeServerConstructor;
-
-/**
- * Status name to code number mapping
- */
-exports.status = grpc.status;
-/**
- * Call error name to code number mapping
- */
-exports.callError = grpc.callError;
+  });
+  // This depends on not using a binary stream
+  it.skip('should pass empty_unary', function(done) {
+    interop_client.runTest(port, null, 'empty_unary', false, done);
+  });
+  it('should pass large_unary', function(done) {
+    interop_client.runTest(port, null, 'large_unary', false, done);
+  });
+  it('should pass client_streaming', function(done) {
+    interop_client.runTest(port, null, 'client_streaming', false, done);
+  });
+  it('should pass server_streaming', function(done) {
+    interop_client.runTest(port, null, 'server_streaming', false, done);
+  });
+  it('should pass ping_pong', function(done) {
+    interop_client.runTest(port, null, 'ping_pong', false, done);
+  });
+  // This depends on the new invoke API
+  it.skip('should pass empty_stream', function(done) {
+    interop_client.runTest(port, null, 'empty_stream', false, done);
+  });
+});
