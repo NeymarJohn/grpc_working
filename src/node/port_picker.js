@@ -31,45 +31,22 @@
  *
  */
 
-var assert = require('assert');
+var net = require('net');
 
-var surface_server = require('../surface_server.js');
-
-var ProtoBuf = require('protobufjs');
-
-var grpc = require('..');
-
-var math_proto = ProtoBuf.loadProtoFile(__dirname + '/../examples/math.proto');
-
-var mathService = math_proto.lookup('math.Math');
-
-describe('Surface server constructor', function() {
-  it('Should fail with conflicting method names', function() {
-    assert.throws(function() {
-      grpc.buildServer([mathService, mathService]);
+/**
+ * Finds a free port that a server can bind to, in the format
+ * "address:port"
+ * @param {function(string)} cb The callback that should execute when the port
+ *     is available
+ */
+function nextAvailablePort(cb) {
+  var server = net.createServer();
+  server.listen(function() {
+    var address = server.address();
+    server.close(function() {
+      cb(address.address + ':' + address.port.toString());
     });
   });
-  it('Should succeed with a single service', function() {
-    assert.doesNotThrow(function() {
-      grpc.buildServer([mathService]);
-    });
-  });
-  it('Should fail with missing handlers', function() {
-    var Server = grpc.buildServer([mathService]);
-    assert.throws(function() {
-      new Server({
-        'math.Math': {
-          'div': function() {},
-          'divMany': function() {},
-          'fib': function() {}
-        }
-      });
-    }, /math.Math.Sum/);
-  });
-  it('Should fail with no handlers for the service', function() {
-    var Server = grpc.buildServer([mathService]);
-    assert.throws(function() {
-      new Server({});
-    }, /math.Math/);
-  });
-});
+}
+
+exports.nextAvailablePort = nextAvailablePort;
