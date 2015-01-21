@@ -31,58 +31,48 @@
  *
  */
 
-/* Posix code for gpr time support. */
-
-/* So we get nanosleep and clock_* */
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 199309L
-#endif
-
-#include <grpc/support/port_platform.h>
-
-#ifdef GPR_POSIX_TIME
+#ifndef __GRPC_SRC_CORE_JSON_JSON_H__
+#define __GRPC_SRC_CORE_JSON_JSON_H__
 
 #include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
-#include <grpc/support/time.h>
 
-#if _POSIX_TIMERS > 0
-gpr_timespec gpr_now(void) {
-  gpr_timespec now;
-  clock_gettime(CLOCK_REALTIME, &now);
-  return now;
-}
-#else
-/* For some reason Apple's OSes haven't implemented clock_gettime. */
-/* TODO(klempner): Add special handling for Apple. */
-gpr_timespec gpr_now(void) {
-  gpr_timespec now;
-  struct timeval now_tv;
-  gettimeofday(&now_tv, NULL);
-  now.tv_sec = now_tv.tv_sec;
-  now.tv_nsec = now_tv.tv_usec / 1000;
-  return now;
-}
-#endif
+#include "src/core/json/json-defs.h"
 
-void gpr_sleep_until(gpr_timespec until) {
-  gpr_timespec now;
-  gpr_timespec delta;
+typedef struct grpc_json_t {
+  struct grpc_json_t* next, *prev, *child, *parent;
+  enum grpc_json_type_t type;
 
-  for (;;) {
-    /* We could simplify by using clock_nanosleep instead, but it might be
-     * slightly less portable. */
-    now = gpr_now();
-    if (gpr_time_cmp(until, now) <= 0) {
-      return;
-    }
+  const char* key;
+  const char* value;
+} grpc_json;
 
-    delta = gpr_time_sub(until, now);
-    if (nanosleep(&delta, NULL) == 0) {
-      break;
-    }
-  }
-}
+/* The next two functions are going to parse the input string, and
+ * destroy it in the process, in order to use its space to store
+ * all of the keys and values for the returned object tree.
+ *
+ * They assume UTF-8 input stream, and will output UTF-8 encoded
+ * strings in the tree.
+ *
+ * Delete the allocated tree afterward using grpc_json_delete().
+ */
+grpc_json* grpc_json_parse_string_with_len(char* input, size_t size);
+grpc_json* grpc_json_parse_string(char* input);
 
-#endif /* GPR_POSIX_TIME */
+/* This function will create a new string using gpr_realloc, and will
+ * deserialize the grpc_json tree into it. It'll be zero-terminated,
+ * but will be allocated in chunks of 256 bytes.
+ *
+ * The indent parameter controls the way the output is formatted.
+ * If indent is 0, then newlines will be suppressed as well, and the
+ * output will be condensed at its maximum.
+ */
+char* grpc_json_dump_to_string(grpc_json* json, int indent);
+
+/* Use these to create or delete a grpc_json object.
+ * Deletion is recursive. We will not attempt to free any of the strings
+ * in any of the objects of that tree.
+ */
+grpc_json* grpc_json_new(enum grpc_json_type_t type);
+void grpc_json_delete(grpc_json* json);
+
+#endif /* __GRPC_SRC_CORE_JSON_JSON_H__ */

@@ -31,58 +31,34 @@
  *
  */
 
-/* Posix code for gpr time support. */
+#include <grpc/support/alloc.h>
 
-/* So we get nanosleep and clock_* */
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 199309L
-#endif
+#include "src/core/json/json.h"
 
-#include <grpc/support/port_platform.h>
+grpc_json *grpc_json_new(enum grpc_json_type_t type) {
+  grpc_json *json = (grpc_json *)gpr_malloc(sizeof(grpc_json));
+  json->parent = json->child = json->next = json->prev = NULL;
+  json->type = type;
 
-#ifdef GPR_POSIX_TIME
+  json->value = json->key = NULL;
 
-#include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
-#include <grpc/support/time.h>
-
-#if _POSIX_TIMERS > 0
-gpr_timespec gpr_now(void) {
-  gpr_timespec now;
-  clock_gettime(CLOCK_REALTIME, &now);
-  return now;
+  return json;
 }
-#else
-/* For some reason Apple's OSes haven't implemented clock_gettime. */
-/* TODO(klempner): Add special handling for Apple. */
-gpr_timespec gpr_now(void) {
-  gpr_timespec now;
-  struct timeval now_tv;
-  gettimeofday(&now_tv, NULL);
-  now.tv_sec = now_tv.tv_sec;
-  now.tv_nsec = now_tv.tv_usec / 1000;
-  return now;
-}
-#endif
 
-void gpr_sleep_until(gpr_timespec until) {
-  gpr_timespec now;
-  gpr_timespec delta;
-
-  for (;;) {
-    /* We could simplify by using clock_nanosleep instead, but it might be
-     * slightly less portable. */
-    now = gpr_now();
-    if (gpr_time_cmp(until, now) <= 0) {
-      return;
-    }
-
-    delta = gpr_time_sub(until, now);
-    if (nanosleep(&delta, NULL) == 0) {
-      break;
-    }
+void grpc_json_delete(grpc_json *json) {
+  while (json->child) {
+    grpc_json_delete(json->child);
   }
-}
 
-#endif /* GPR_POSIX_TIME */
+  if (json->next) {
+    json->next->prev = json->prev;
+  }
+
+  if (json->prev) {
+    json->prev->next = json->next;
+  } else if (json->parent) {
+    json->parent->child = json->next;
+  }
+
+  gpr_free(json);
+}

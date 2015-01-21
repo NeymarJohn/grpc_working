@@ -31,58 +31,22 @@
  *
  */
 
-/* Posix code for gpr time support. */
+var net = require('net');
 
-/* So we get nanosleep and clock_* */
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 199309L
-#endif
-
-#include <grpc/support/port_platform.h>
-
-#ifdef GPR_POSIX_TIME
-
-#include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
-#include <grpc/support/time.h>
-
-#if _POSIX_TIMERS > 0
-gpr_timespec gpr_now(void) {
-  gpr_timespec now;
-  clock_gettime(CLOCK_REALTIME, &now);
-  return now;
-}
-#else
-/* For some reason Apple's OSes haven't implemented clock_gettime. */
-/* TODO(klempner): Add special handling for Apple. */
-gpr_timespec gpr_now(void) {
-  gpr_timespec now;
-  struct timeval now_tv;
-  gettimeofday(&now_tv, NULL);
-  now.tv_sec = now_tv.tv_sec;
-  now.tv_nsec = now_tv.tv_usec / 1000;
-  return now;
-}
-#endif
-
-void gpr_sleep_until(gpr_timespec until) {
-  gpr_timespec now;
-  gpr_timespec delta;
-
-  for (;;) {
-    /* We could simplify by using clock_nanosleep instead, but it might be
-     * slightly less portable. */
-    now = gpr_now();
-    if (gpr_time_cmp(until, now) <= 0) {
-      return;
-    }
-
-    delta = gpr_time_sub(until, now);
-    if (nanosleep(&delta, NULL) == 0) {
-      break;
-    }
-  }
+/**
+ * Finds a free port that a server can bind to, in the format
+ * "address:port"
+ * @param {function(string)} cb The callback that should execute when the port
+ *     is available
+ */
+function nextAvailablePort(cb) {
+  var server = net.createServer();
+  server.listen(function() {
+    var address = server.address();
+    server.close(function() {
+      cb(address.address + ':' + address.port.toString());
+    });
+  });
 }
 
-#endif /* GPR_POSIX_TIME */
+exports.nextAvailablePort = nextAvailablePort;
