@@ -31,8 +31,6 @@
  *
  */
 
-var capitalize = require('underscore.string/capitalize');
-
 /**
  * Get a function that deserializes a specific type of protobuf.
  * @param {function()} cls The constructor of the message type to deserialize
@@ -75,9 +73,6 @@ function fullyQualifiedName(value) {
     return '';
   }
   var name = value.name;
-  if (value.className === 'Service.RPCMethod') {
-    name = capitalize(name);
-  }
   if (value.hasOwnProperty('parent')) {
     var parent_name = fullyQualifiedName(value.parent);
     if (parent_name !== '') {

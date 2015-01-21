@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,39 +31,17 @@
  *
  */
 
-var interop_server = require('../interop/interop_server.js');
-var interop_client = require('../interop/interop_client.js');
+#ifndef __GRPC_INTERNAL_IOMGR_POLLSET_KICK_POSIX_H_
+#define __GRPC_INTERNAL_IOMGR_POLLSET_KICK_POSIX_H_
 
-var port_picker = require('../port_picker');
+#include <grpc/support/sync.h>
 
-var server;
+struct grpc_kick_pipe_info;
 
-var port;
+typedef struct grpc_pollset_kick_state {
+  gpr_mu mu;
+  int kicked;
+  struct grpc_kick_pipe_info *pipe_info;
+} grpc_pollset_kick_state;
 
-describe('Interop tests', function() {
-  before(function(done) {
-    port_picker.nextAvailablePort(function(addr) {
-      server = interop_server.getServer(addr.substring(addr.indexOf(':') + 1));
-      port = addr;
-      done();
-    });
-  });
-  it.only('should pass empty_unary', function(done) {
-    interop_client.runTest(port, null, 'empty_unary', false, done);
-  });
-  it('should pass large_unary', function(done) {
-    interop_client.runTest(port, null, 'large_unary', false, done);
-  });
-  it('should pass client_streaming', function(done) {
-    interop_client.runTest(port, null, 'client_streaming', false, done);
-  });
-  it('should pass server_streaming', function(done) {
-    interop_client.runTest(port, null, 'server_streaming', false, done);
-  });
-  it('should pass ping_pong', function(done) {
-    interop_client.runTest(port, null, 'ping_pong', false, done);
-  });
-  it('should pass empty_stream', function(done) {
-    interop_client.runTest(port, null, 'empty_stream', false, done);
-  });
-});
+#endif /* __GRPC_INTERNAL_IOMGR_POLLSET_KICK_POSIX_H_ */
