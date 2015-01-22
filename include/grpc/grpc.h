@@ -194,6 +194,7 @@ typedef enum grpc_completion_type {
   GRPC_FINISHED,             /* An RPC has finished. The event contains status.
                                 On the server this will be OK or Cancelled. */
   GRPC_SERVER_RPC_NEW,       /* A new RPC has arrived at the server */
+  GRPC_SERVER_SHUTDOWN,      /* The server has finished shutting down */
   GRPC_COMPLETION_DO_NOT_USE /* must be last, forces users to include
                                 a default: case */
 } grpc_completion_type;
@@ -427,7 +428,8 @@ grpc_server *grpc_server_create(grpc_completion_queue *cq,
    REQUIRES: server not started */
 int grpc_server_add_http2_port(grpc_server *server, const char *addr);
 
-/* Add a secure port to server; returns 1 on success, 0 on failure
+/* Add a secure port to server.
+   Returns bound port number on success, 0 on failure.
    REQUIRES: server not started */
 int grpc_server_add_secure_http2_port(grpc_server *server, const char *addr);
 
@@ -438,6 +440,10 @@ void grpc_server_start(grpc_server *server);
    After completion, no new calls or connections will be admitted.
    Existing calls will be allowed to complete. */
 void grpc_server_shutdown(grpc_server *server);
+
+/* As per grpc_server_shutdown, but send a GRPC_SERVER_SHUTDOWN event when
+   there are no more calls being serviced. */
+void grpc_server_shutdown_and_notify(grpc_server *server, void *tag);
 
 /* Destroy a server.
    Forcefully cancels all existing calls. */
