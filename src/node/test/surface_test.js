@@ -59,9 +59,9 @@ describe('Surface server constructor', function() {
     assert.throws(function() {
       new Server({
         'math.Math': {
-          'div': function() {},
-          'divMany': function() {},
-          'fib': function() {}
+          'Div': function() {},
+          'DivMany': function() {},
+          'Fib': function() {}
         }
       });
     }, /math.Math.Sum/);

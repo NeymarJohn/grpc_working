@@ -31,41 +31,23 @@
  *
  */
 
-var interop_server = require('../interop/interop_server.js');
-var interop_client = require('../interop/interop_client.js');
+#include <grpc++/channel_interface.h>
+#include <grpc++/status.h>
+#include "examples/tips/pubsub.pb.h"
 
-var server;
+namespace grpc {
+namespace examples {
+namespace tips {
 
-var port;
+class Client {
+ public:
+  Client(std::shared_ptr<grpc::ChannelInterface> channel);
+  Status CreateTopic(grpc::string topic);
 
-var name_override = 'foo.test.google.com';
+ private:
+  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
+};
 
-describe('Interop tests', function() {
-  before(function(done) {
-    var server_obj = interop_server.getServer(0, true);
-    server = server_obj.server;
-    server.listen();
-    port = 'localhost:' + server_obj.port;
-    done();
-  });
-  // This depends on not using a binary stream
-  it.skip('should pass empty_unary', function(done) {
-    interop_client.runTest(port, name_override, 'empty_unary', true, done);
-  });
-  it('should pass large_unary', function(done) {
-    interop_client.runTest(port, name_override, 'large_unary', true, done);
-  });
-  it('should pass client_streaming', function(done) {
-    interop_client.runTest(port, name_override, 'client_streaming', true, done);
-  });
-  it('should pass server_streaming', function(done) {
-    interop_client.runTest(port, name_override, 'server_streaming', true, done);
-  });
-  it('should pass ping_pong', function(done) {
-    interop_client.runTest(port, name_override, 'ping_pong', true, done);
-  });
-  // This depends on the new invoke API
-  it.skip('should pass empty_stream', function(done) {
-    interop_client.runTest(port, name_override, 'empty_stream', true, done);
-  });
-});
+}  // namesapce tips
+}  // namespace examples
+}  // namespace grpc
