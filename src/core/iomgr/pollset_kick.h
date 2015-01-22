@@ -48,10 +48,6 @@
 void grpc_pollset_kick_global_init(void);
 void grpc_pollset_kick_global_destroy(void);
 
-/* Guarantees a pure posix implementation rather than a specialized one, if
- * applicable. Intended for testing. */
-void grpc_pollset_kick_global_init_posix(void);
-
 void grpc_pollset_kick_init(grpc_pollset_kick_state *kick_state);
 void grpc_pollset_kick_destroy(grpc_pollset_kick_state *kick_state);
 

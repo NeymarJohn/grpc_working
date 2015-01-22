@@ -36,23 +36,12 @@
 
 #include <grpc/support/sync.h>
 
-typedef struct grpc_kick_fd_info {
-  int read_fd;
-  int write_fd;
-  struct grpc_kick_fd_info *next;
-} grpc_kick_fd_info;
-
-typedef struct grpc_pollset_kick_vtable {
-  void (*create)(struct grpc_kick_fd_info *fd_info);
-  void (*consume)(struct grpc_kick_fd_info *fd_info);
-  void (*kick)(struct grpc_kick_fd_info *fd_info);
-  void (*destroy)(struct grpc_kick_fd_info *fd_info);
-} grpc_pollset_kick_vtable;
+struct grpc_kick_pipe_info;
 
 typedef struct grpc_pollset_kick_state {
   gpr_mu mu;
   int kicked;
-  struct grpc_kick_fd_info *fd_info;
+  struct grpc_kick_pipe_info *pipe_info;
 } grpc_pollset_kick_state;
 
 #endif /* __GRPC_INTERNAL_IOMGR_POLLSET_KICK_POSIX_H_ */
