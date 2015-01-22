@@ -31,10 +31,6 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
-
-#ifdef GPR_POSIX_SOCKET
-
 #include "src/core/iomgr/socket_utils_posix.h"
 
 #include <arpa/inet.h>
@@ -191,5 +187,3 @@ int grpc_create_dualstack_socket(const struct sockaddr *addr, int type,
   *dsmode = family == AF_INET ? GRPC_DSMODE_IPV4 : GRPC_DSMODE_NONE;
   return socket(family, type, protocol);
 }
-
-#endif

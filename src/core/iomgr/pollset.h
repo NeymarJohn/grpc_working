@@ -48,10 +48,6 @@
 #include "src/core/iomgr/pollset_posix.h"
 #endif
 
-#ifdef GPR_WIN32
-#include "src/core/iomgr/pollset_windows.h"
-#endif
-
 void grpc_pollset_init(grpc_pollset *pollset);
 void grpc_pollset_destroy(grpc_pollset *pollset);
 

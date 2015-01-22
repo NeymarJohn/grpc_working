@@ -34,12 +34,10 @@
 #ifndef __GRPC_INTERNAL_IOMGR_RESOLVE_ADDRESS_H__
 #define __GRPC_INTERNAL_IOMGR_RESOLVE_ADDRESS_H__
 
-#include <stddef.h>
-
-#define GRPC_MAX_SOCKADDR_SIZE 128
+#include <sys/socket.h>
 
 typedef struct {
-  char addr[GRPC_MAX_SOCKADDR_SIZE];
+  struct sockaddr_storage addr;
   int len;
 } grpc_resolved_address;
 

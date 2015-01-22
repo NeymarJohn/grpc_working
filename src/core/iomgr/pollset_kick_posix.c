@@ -31,10 +31,6 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
-
-#ifdef GPR_POSIX_SOCKET
-
 #include "src/core/iomgr/pollset_kick_posix.h"
 
 #include <errno.h>
@@ -163,5 +159,3 @@ void grpc_pollset_kick_kick(grpc_pollset_kick_state *kick_state) {
   }
   gpr_mu_unlock(&kick_state->mu);
 }
-
-#endif
