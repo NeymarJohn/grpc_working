@@ -31,58 +31,32 @@
  *
  */
 
-/* Posix code for gpr time support. */
+#include <grpc++/client_context.h>
 
-/* So we get nanosleep and clock_* */
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 199309L
-#endif
+#include "examples/tips/client.h"
 
-#include <grpc/support/port_platform.h>
+using grpc::ChannelInterface;
+using grpc::ClientContext;
+using tech::pubsub::Topic;
+using tech::pubsub::PublisherService;
 
-#ifdef GPR_POSIX_TIME
+namespace grpc {
+namespace examples {
+namespace tips {
 
-#include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
-#include <grpc/support/time.h>
-
-#if _POSIX_TIMERS > 0
-gpr_timespec gpr_now(void) {
-  gpr_timespec now;
-  clock_gettime(CLOCK_REALTIME, &now);
-  return now;
-}
-#else
-/* For some reason Apple's OSes haven't implemented clock_gettime. */
-/* TODO(klempner): Add special handling for Apple. */
-gpr_timespec gpr_now(void) {
-  gpr_timespec now;
-  struct timeval now_tv;
-  gettimeofday(&now_tv, NULL);
-  now.tv_sec = now_tv.tv_sec;
-  now.tv_nsec = now_tv.tv_usec / 1000;
-  return now;
-}
-#endif
-
-void gpr_sleep_until(gpr_timespec until) {
-  gpr_timespec now;
-  gpr_timespec delta;
-
-  for (;;) {
-    /* We could simplify by using clock_nanosleep instead, but it might be
-     * slightly less portable. */
-    now = gpr_now();
-    if (gpr_time_cmp(until, now) <= 0) {
-      return;
-    }
-
-    delta = gpr_time_sub(until, now);
-    if (nanosleep(&delta, NULL) == 0) {
-      break;
-    }
-  }
+Client::Client(std::shared_ptr<ChannelInterface> channel)
+    : stub_(PublisherService::NewStub(channel)) {
 }
 
-#endif /* GPR_POSIX_TIME */
+Status Client::CreateTopic(grpc::string topic) {
+  Topic request;
+  Topic response;
+  request.set_name(topic);
+  ClientContext context;
+
+  return stub_->CreateTopic(&context, request, &response);
+}
+
+}  // namesapce tips
+}  // namespace examples
+}  // namespace grpc
