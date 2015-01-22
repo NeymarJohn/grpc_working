@@ -31,34 +31,44 @@
  *
  */
 
-#include <grpc++/credentials.h>
+var interop_server = require('../interop/interop_server.js');
+var interop_client = require('../interop/interop_client.js');
 
-#include <memory>
+var port_picker = require('../port_picker');
 
-#include <grpc/grpc.h>
-#include <gtest/gtest.h>
+var server;
 
-namespace grpc {
-namespace testing {
+var port;
 
-class CredentialsTest : public ::testing::Test {
- protected:
-};
+var name_override = 'foo.test.google.com';
 
-TEST_F(CredentialsTest, InvalidServiceAccountCreds) {
-  std::unique_ptr<Credentials> bad1 =
-      CredentialsFactory::ServiceAccountCredentials("", "",
-                                                    std::chrono::seconds(1));
-  EXPECT_EQ(nullptr, bad1.get());
-}
-
-}  // namespace testing
-}  // namespace grpc
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  grpc_init();
-  int ret = RUN_ALL_TESTS();
-  grpc_shutdown();
-  return ret;
-}
+describe('Interop tests', function() {
+  before(function(done) {
+    port_picker.nextAvailablePort(function(addr) {
+      server = interop_server.getServer(addr.substring(addr.indexOf(':') + 1), true);
+      server.listen();
+      port = addr;
+      done();
+    });
+  });
+  // This depends on not using a binary stream
+  it.skip('should pass empty_unary', function(done) {
+    interop_client.runTest(port, name_override, 'empty_unary', true, done);
+  });
+  it('should pass large_unary', function(done) {
+    interop_client.runTest(port, name_override, 'large_unary', true, done);
+  });
+  it('should pass client_streaming', function(done) {
+    interop_client.runTest(port, name_override, 'client_streaming', true, done);
+  });
+  it('should pass server_streaming', function(done) {
+    interop_client.runTest(port, name_override, 'server_streaming', true, done);
+  });
+  it('should pass ping_pong', function(done) {
+    interop_client.runTest(port, name_override, 'ping_pong', true, done);
+  });
+  // This depends on the new invoke API
+  it.skip('should pass empty_stream', function(done) {
+    interop_client.runTest(port, name_override, 'empty_stream', true, done);
+  });
+});
