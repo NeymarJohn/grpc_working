@@ -27,38 +27,25 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Tests for _framework.foundation.logging_pool."""
+"""Enables scheduling execution at a later time."""
 
-import unittest
+import time
 
-from _framework.foundation import logging_pool
-
-_POOL_SIZE = 16
+from _framework.foundation import _timer_future
 
 
-class LoggingPoolTest(unittest.TestCase):
+def later(delay, computation):
+  """Schedules later execution of a callable.
 
-  def testUpAndDown(self):
-    pool = logging_pool.pool(_POOL_SIZE)
-    pool.shutdown(wait=True)
+  Args:
+    delay: Any numeric value. Represents the minimum length of time in seconds
+      to allow to pass before beginning the computation. No guarantees are made
+      about the maximum length of time that will pass.
+    computation: A callable that accepts no arguments.
 
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      self.assertIsNotNone(pool)
-
-  def testTaskExecuted(self):
-    test_list = []
-
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      pool.submit(lambda: test_list.append(object())).result()
-
-    self.assertTrue(test_list)
-
-  def testException(self):
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      raised_exception = pool.submit(lambda: 1/0).exception()
-
-    self.assertIsNotNone(raised_exception)
-
-
-if __name__ == '__main__':
-  unittest.main()
+  Returns:
+    A Future representing the scheduled computation.
+  """
+  timer_future = _timer_future.TimerFuture(time.time() + delay, computation)
+  timer_future.start()
+  return timer_future

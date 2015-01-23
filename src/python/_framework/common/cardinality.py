@@ -27,38 +27,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Tests for _framework.foundation.logging_pool."""
+"""Defines an enum for classifying RPC methods by streaming semantics."""
 
-import unittest
-
-from _framework.foundation import logging_pool
-
-_POOL_SIZE = 16
+import enum
 
 
-class LoggingPoolTest(unittest.TestCase):
+@enum.unique
+class Cardinality(enum.Enum):
+  """Describes the streaming semantics of an RPC method."""
 
-  def testUpAndDown(self):
-    pool = logging_pool.pool(_POOL_SIZE)
-    pool.shutdown(wait=True)
-
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      self.assertIsNotNone(pool)
-
-  def testTaskExecuted(self):
-    test_list = []
-
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      pool.submit(lambda: test_list.append(object())).result()
-
-    self.assertTrue(test_list)
-
-  def testException(self):
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      raised_exception = pool.submit(lambda: 1/0).exception()
-
-    self.assertIsNotNone(raised_exception)
-
-
-if __name__ == '__main__':
-  unittest.main()
+  UNARY_UNARY = 'request-unary/response-unary'
+  UNARY_STREAM = 'request-unary/response-streaming'
+  STREAM_UNARY = 'request-streaming/response-unary'
+  STREAM_STREAM = 'request-streaming/response-streaming'

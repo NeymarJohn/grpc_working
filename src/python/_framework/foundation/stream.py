@@ -27,38 +27,34 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Tests for _framework.foundation.logging_pool."""
+"""Interfaces related to streams of values or objects."""
 
-import unittest
-
-from _framework.foundation import logging_pool
-
-_POOL_SIZE = 16
+import abc
 
 
-class LoggingPoolTest(unittest.TestCase):
+class Consumer(object):
+  """Interface for consumers of finite streams of values or objects."""
+  __metaclass__ = abc.ABCMeta
 
-  def testUpAndDown(self):
-    pool = logging_pool.pool(_POOL_SIZE)
-    pool.shutdown(wait=True)
+  @abc.abstractmethod
+  def consume(self, value):
+    """Accepts a value.
 
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      self.assertIsNotNone(pool)
+    Args:
+      value: Any value accepted by this Consumer.
+    """
+    raise NotImplementedError()
 
-  def testTaskExecuted(self):
-    test_list = []
+  @abc.abstractmethod
+  def terminate(self):
+    """Indicates to this Consumer that no more values will be supplied."""
+    raise NotImplementedError()
 
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      pool.submit(lambda: test_list.append(object())).result()
+  @abc.abstractmethod
+  def consume_and_terminate(self, value):
+    """Supplies a value and signals that no more values will be supplied.
 
-    self.assertTrue(test_list)
-
-  def testException(self):
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      raised_exception = pool.submit(lambda: 1/0).exception()
-
-    self.assertIsNotNone(raised_exception)
-
-
-if __name__ == '__main__':
-  unittest.main()
+    Args:
+      value: Any value accepted by this Consumer.
+    """
+    raise NotImplementedError()
