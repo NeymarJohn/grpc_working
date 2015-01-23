@@ -761,7 +761,7 @@ grpc_call_error grpc_call_start_write_status(grpc_call *call,
   {
     grpc_mdelem *md;
     char buffer[32];
-    gpr_ltoa(status, buffer);
+    sprintf(buffer, "%d", status);
     md =
         grpc_mdelem_from_strings(call->metadata_context, "grpc-status", buffer);
 
