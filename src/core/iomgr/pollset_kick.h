@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,22 +31,40 @@
  *
  */
 
-var net = require('net');
+#ifndef __GRPC_INTERNAL_IOMGR_POLLSET_KICK_H_
+#define __GRPC_INTERNAL_IOMGR_POLLSET_KICK_H_
 
-/**
- * Finds a free port that a server can bind to, in the format
- * "address:port"
- * @param {function(string)} cb The callback that should execute when the port
- *     is available
+#include <grpc/support/port_platform.h>
+
+/* This is an abstraction around the typical pipe mechanism for waking up a
+   thread sitting in a poll() style call. */
+
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/pollset_kick_posix.h"
+#endif
+
+#ifdef GPR_WIN32
+#include "src/core/iomgr/pollset_kick_windows.h"
+#endif
+
+void grpc_pollset_kick_global_init(void);
+void grpc_pollset_kick_global_destroy(void);
+
+void grpc_pollset_kick_init(grpc_pollset_kick_state *kick_state);
+void grpc_pollset_kick_destroy(grpc_pollset_kick_state *kick_state);
+
+/* Must be called before entering poll(). If return value is -1, this consumed
+   an existing kick. Otherwise the return value is an FD to add to the poll set.
  */
-function nextAvailablePort(cb) {
-  var server = net.createServer();
-  server.listen(function() {
-    var address = server.address();
-    server.close(function() {
-      cb(address.address + ':' + address.port.toString());
-    });
-  });
-}
+int grpc_pollset_kick_pre_poll(grpc_pollset_kick_state *kick_state);
 
-exports.nextAvailablePort = nextAvailablePort;
+/* Consume an existing kick. Must be called after poll returns that the fd was
+   readable, and before calling kick_post_poll. */
+void grpc_pollset_kick_consume(grpc_pollset_kick_state *kick_state);
+
+/* Must be called after pre_poll, and after consume if applicable */
+void grpc_pollset_kick_post_poll(grpc_pollset_kick_state *kick_state);
+
+void grpc_pollset_kick_kick(grpc_pollset_kick_state *kick_state);
+
+#endif /* __GRPC_INTERNAL_IOMGR_POLLSET_KICK_H_ */

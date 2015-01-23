@@ -56,7 +56,6 @@ void cq_verify_empty(cq_verifier *v);
    Any functions taking ... expect a NULL terminated list of key/value pairs
    (each pair using two parameter slots) of metadata that MUST be present in
    the event. */
-void cq_expect_invoke_accepted(cq_verifier *v, void *tag, grpc_op_error result);
 void cq_expect_write_accepted(cq_verifier *v, void *tag, grpc_op_error result);
 void cq_expect_finish_accepted(cq_verifier *v, void *tag, grpc_op_error result);
 void cq_expect_read(cq_verifier *v, void *tag, gpr_slice bytes);
@@ -70,5 +69,6 @@ void cq_expect_finished_with_status(cq_verifier *v, void *tag,
                                     grpc_status_code status_code,
                                     const char *details, ...);
 void cq_expect_finished(cq_verifier *v, void *tag, ...);
+void cq_expect_server_shutdown(cq_verifier *v, void *tag);
 
 #endif /* __GRPC_TEST_END2END_CQ_VERIFIER_H__ */

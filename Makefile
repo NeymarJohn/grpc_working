@@ -2,6 +2,14 @@
 # This currently builds C and C++ code.
 
 
+
+# Basic platform detection
+HOST_SYSTEM = $(shell uname | cut -f 1 -d_)
+ifeq ($(SYSTEM),)
+SYSTEM = $(HOST_SYSTEM)
+endif
+
+
 # Configurations
 
 VALID_CONFIG_opt = 1
@@ -76,6 +84,7 @@ CPPFLAGS_gcov = -O0 -fprofile-arcs -ftest-coverage
 LDFLAGS_gcov = -fprofile-arcs -ftest-coverage
 DEFINES_gcov = NDEBUG
 
+
 # General settings.
 # You may want to change these depending on your system.
 
@@ -96,6 +105,12 @@ ifndef VALID_CONFIG_$(CONFIG)
 $(error Invalid CONFIG value '$(CONFIG)')
 endif
 
+
+# The HOST compiler settings are used to compile the protoc plugins.
+# In most cases, you won't have to change anything, but if you are
+# cross-compiling, you can override these variables from GNU make's
+# command line: make CC=cross-gcc HOST_CC=gcc
+
 HOST_CC = $(CC)
 HOST_CXX = $(CXX)
 HOST_LD = $(LD)
@@ -108,10 +123,15 @@ LDFLAGS += $(LDFLAGS_$(CONFIG))
 CFLAGS += -std=c89 -pedantic
 CXXFLAGS += -std=c++11
 CPPFLAGS += -g -fPIC -Wall -Werror -Wno-long-long
-LDFLAGS += -g -pthread -fPIC
+LDFLAGS += -g -fPIC
 
 INCLUDES = . include gens
+ifeq ($(SYSTEM),Darwin)
+LIBS = m z
+else
 LIBS = rt m z pthread
+LDFLAGS += -pthread
+endif
 LIBSXX = protobuf
 LIBS_PROTOC = protoc protobuf
 
@@ -149,11 +169,6 @@ HOST_LDLIBS = $(LDLIBS)
 # These are automatically computed variables.
 # There shouldn't be any need to change anything from now on.
 
-HOST_SYSTEM = $(shell uname | cut -f 1 -d_)
-ifeq ($(SYSTEM),)
-SYSTEM = $(HOST_SYSTEM)
-endif
-
 ifeq ($(SYSTEM),MINGW32)
 SHARED_EXT = dll
 endif
@@ -172,6 +187,13 @@ endif
 
 OPENSSL_ALPN_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o /dev/null test/build/openssl-alpn.c -lssl -lcrypto -ldl $(LDFLAGS)
 ZLIB_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o /dev/null test/build/zlib.c -lz $(LDFLAGS)
+PERFTOOLS_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o /dev/null test/build/perftools.c -lprofiler $(LDFLAGS)
+
+HAS_SYSTEM_PERFTOOLS = $(shell $(PERFTOOLS_CHECK_CMD) 2> /dev/null && echo true || echo false)
+ifeq ($(HAS_SYSTEM_PERFTOOLS),true)
+DEFINES += GRPC_HAVE_PERFTOOLS
+LIBS += profiler
+endif
 
 ifndef REQUIRE_CUSTOM_LIBRARIES_$(CONFIG)
 HAS_SYSTEM_OPENSSL_ALPN = $(shell $(OPENSSL_ALPN_CHECK_CMD) 2> /dev/null && echo true || echo false)
@@ -280,89 +302,92 @@ openssl_dep_message:
 stop:
 	@false
 
+alarm_heap_test: bins/$(CONFIG)/alarm_heap_test
+alarm_list_test: bins/$(CONFIG)/alarm_list_test
+alarm_test: bins/$(CONFIG)/alarm_test
+alpn_test: bins/$(CONFIG)/alpn_test
+bin_encoder_test: bins/$(CONFIG)/bin_encoder_test
+census_hash_table_test: bins/$(CONFIG)/census_hash_table_test
+census_statistics_multiple_writers_circular_buffer_test: bins/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test
+census_statistics_multiple_writers_test: bins/$(CONFIG)/census_statistics_multiple_writers_test
+census_statistics_performance_test: bins/$(CONFIG)/census_statistics_performance_test
+census_statistics_quick_test: bins/$(CONFIG)/census_statistics_quick_test
+census_statistics_small_log_test: bins/$(CONFIG)/census_statistics_small_log_test
+census_stats_store_test: bins/$(CONFIG)/census_stats_store_test
+census_stub_test: bins/$(CONFIG)/census_stub_test
+census_trace_store_test: bins/$(CONFIG)/census_trace_store_test
+census_window_stats_test: bins/$(CONFIG)/census_window_stats_test
+chttp2_status_conversion_test: bins/$(CONFIG)/chttp2_status_conversion_test
+chttp2_stream_encoder_test: bins/$(CONFIG)/chttp2_stream_encoder_test
+chttp2_stream_map_test: bins/$(CONFIG)/chttp2_stream_map_test
+chttp2_transport_end2end_test: bins/$(CONFIG)/chttp2_transport_end2end_test
+dualstack_socket_test: bins/$(CONFIG)/dualstack_socket_test
+echo_client: bins/$(CONFIG)/echo_client
+echo_server: bins/$(CONFIG)/echo_server
+echo_test: bins/$(CONFIG)/echo_test
+fd_posix_test: bins/$(CONFIG)/fd_posix_test
+fling_client: bins/$(CONFIG)/fling_client
+fling_server: bins/$(CONFIG)/fling_server
+fling_stream_test: bins/$(CONFIG)/fling_stream_test
+fling_test: bins/$(CONFIG)/fling_test
 gen_hpack_tables: bins/$(CONFIG)/gen_hpack_tables
-cpp_plugin: bins/$(CONFIG)/cpp_plugin
-ruby_plugin: bins/$(CONFIG)/ruby_plugin
-grpc_byte_buffer_reader_test: bins/$(CONFIG)/grpc_byte_buffer_reader_test
 gpr_cancellable_test: bins/$(CONFIG)/gpr_cancellable_test
-gpr_log_test: bins/$(CONFIG)/gpr_log_test
-gpr_useful_test: bins/$(CONFIG)/gpr_useful_test
 gpr_cmdline_test: bins/$(CONFIG)/gpr_cmdline_test
 gpr_histogram_test: bins/$(CONFIG)/gpr_histogram_test
 gpr_host_port_test: bins/$(CONFIG)/gpr_host_port_test
+gpr_log_test: bins/$(CONFIG)/gpr_log_test
 gpr_slice_buffer_test: bins/$(CONFIG)/gpr_slice_buffer_test
 gpr_slice_test: bins/$(CONFIG)/gpr_slice_test
 gpr_string_test: bins/$(CONFIG)/gpr_string_test
 gpr_sync_test: bins/$(CONFIG)/gpr_sync_test
 gpr_thd_test: bins/$(CONFIG)/gpr_thd_test
 gpr_time_test: bins/$(CONFIG)/gpr_time_test
-murmur_hash_test: bins/$(CONFIG)/murmur_hash_test
-grpc_stream_op_test: bins/$(CONFIG)/grpc_stream_op_test
-alpn_test: bins/$(CONFIG)/alpn_test
-time_averaged_stats_test: bins/$(CONFIG)/time_averaged_stats_test
-chttp2_stream_encoder_test: bins/$(CONFIG)/chttp2_stream_encoder_test
-hpack_table_test: bins/$(CONFIG)/hpack_table_test
-chttp2_stream_map_test: bins/$(CONFIG)/chttp2_stream_map_test
-hpack_parser_test: bins/$(CONFIG)/hpack_parser_test
-transport_metadata_test: bins/$(CONFIG)/transport_metadata_test
-chttp2_status_conversion_test: bins/$(CONFIG)/chttp2_status_conversion_test
-chttp2_transport_end2end_test: bins/$(CONFIG)/chttp2_transport_end2end_test
-tcp_posix_test: bins/$(CONFIG)/tcp_posix_test
-dualstack_socket_test: bins/$(CONFIG)/dualstack_socket_test
-no_server_test: bins/$(CONFIG)/no_server_test
-resolve_address_test: bins/$(CONFIG)/resolve_address_test
-sockaddr_utils_test: bins/$(CONFIG)/sockaddr_utils_test
-tcp_server_posix_test: bins/$(CONFIG)/tcp_server_posix_test
-tcp_client_posix_test: bins/$(CONFIG)/tcp_client_posix_test
+gpr_useful_test: bins/$(CONFIG)/gpr_useful_test
+grpc_base64_test: bins/$(CONFIG)/grpc_base64_test
+grpc_byte_buffer_reader_test: bins/$(CONFIG)/grpc_byte_buffer_reader_test
 grpc_channel_stack_test: bins/$(CONFIG)/grpc_channel_stack_test
-metadata_buffer_test: bins/$(CONFIG)/metadata_buffer_test
-grpc_completion_queue_test: bins/$(CONFIG)/grpc_completion_queue_test
 grpc_completion_queue_benchmark: bins/$(CONFIG)/grpc_completion_queue_benchmark
-census_trace_store_test: bins/$(CONFIG)/census_trace_store_test
-census_stats_store_test: bins/$(CONFIG)/census_stats_store_test
-census_window_stats_test: bins/$(CONFIG)/census_window_stats_test
-census_statistics_quick_test: bins/$(CONFIG)/census_statistics_quick_test
-census_statistics_small_log_test: bins/$(CONFIG)/census_statistics_small_log_test
-census_statistics_performance_test: bins/$(CONFIG)/census_statistics_performance_test
-census_statistics_multiple_writers_test: bins/$(CONFIG)/census_statistics_multiple_writers_test
-census_statistics_multiple_writers_circular_buffer_test: bins/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test
-census_stub_test: bins/$(CONFIG)/census_stub_test
-census_hash_table_test: bins/$(CONFIG)/census_hash_table_test
-fling_server: bins/$(CONFIG)/fling_server
-fling_client: bins/$(CONFIG)/fling_client
-fling_test: bins/$(CONFIG)/fling_test
-echo_server: bins/$(CONFIG)/echo_server
-echo_client: bins/$(CONFIG)/echo_client
-echo_test: bins/$(CONFIG)/echo_test
-low_level_ping_pong_benchmark: bins/$(CONFIG)/low_level_ping_pong_benchmark
-message_compress_test: bins/$(CONFIG)/message_compress_test
-bin_encoder_test: bins/$(CONFIG)/bin_encoder_test
-secure_endpoint_test: bins/$(CONFIG)/secure_endpoint_test
+grpc_completion_queue_test: bins/$(CONFIG)/grpc_completion_queue_test
+grpc_credentials_test: bins/$(CONFIG)/grpc_credentials_test
+grpc_fetch_oauth2: bins/$(CONFIG)/grpc_fetch_oauth2
+grpc_json_token_test: bins/$(CONFIG)/grpc_json_token_test
+grpc_stream_op_test: bins/$(CONFIG)/grpc_stream_op_test
+hpack_parser_test: bins/$(CONFIG)/hpack_parser_test
+hpack_table_test: bins/$(CONFIG)/hpack_table_test
 httpcli_format_request_test: bins/$(CONFIG)/httpcli_format_request_test
 httpcli_parser_test: bins/$(CONFIG)/httpcli_parser_test
 httpcli_test: bins/$(CONFIG)/httpcli_test
-grpc_credentials_test: bins/$(CONFIG)/grpc_credentials_test
-grpc_fetch_oauth2: bins/$(CONFIG)/grpc_fetch_oauth2
-grpc_base64_test: bins/$(CONFIG)/grpc_base64_test
-grpc_json_token_test: bins/$(CONFIG)/grpc_json_token_test
-timeout_encoding_test: bins/$(CONFIG)/timeout_encoding_test
-fd_posix_test: bins/$(CONFIG)/fd_posix_test
-fling_stream_test: bins/$(CONFIG)/fling_stream_test
 lame_client_test: bins/$(CONFIG)/lame_client_test
-thread_pool_test: bins/$(CONFIG)/thread_pool_test
-status_test: bins/$(CONFIG)/status_test
-sync_client_async_server_test: bins/$(CONFIG)/sync_client_async_server_test
+low_level_ping_pong_benchmark: bins/$(CONFIG)/low_level_ping_pong_benchmark
+message_compress_test: bins/$(CONFIG)/message_compress_test
+metadata_buffer_test: bins/$(CONFIG)/metadata_buffer_test
+murmur_hash_test: bins/$(CONFIG)/murmur_hash_test
+no_server_test: bins/$(CONFIG)/no_server_test
+poll_kick_test: bins/$(CONFIG)/poll_kick_test
+resolve_address_test: bins/$(CONFIG)/resolve_address_test
+secure_endpoint_test: bins/$(CONFIG)/secure_endpoint_test
+sockaddr_utils_test: bins/$(CONFIG)/sockaddr_utils_test
+tcp_client_posix_test: bins/$(CONFIG)/tcp_client_posix_test
+tcp_posix_test: bins/$(CONFIG)/tcp_posix_test
+tcp_server_posix_test: bins/$(CONFIG)/tcp_server_posix_test
+time_averaged_stats_test: bins/$(CONFIG)/time_averaged_stats_test
+time_test: bins/$(CONFIG)/time_test
+timeout_encoding_test: bins/$(CONFIG)/timeout_encoding_test
+transport_metadata_test: bins/$(CONFIG)/transport_metadata_test
+channel_arguments_test: bins/$(CONFIG)/channel_arguments_test
+cpp_plugin: bins/$(CONFIG)/cpp_plugin
+credentials_test: bins/$(CONFIG)/credentials_test
+end2end_test: bins/$(CONFIG)/end2end_test
+interop_client: bins/$(CONFIG)/interop_client
+interop_server: bins/$(CONFIG)/interop_server
+tips_client: bins/$(CONFIG)/tips_client
+tips_client_test: bins/$(CONFIG)/tips_client_test
 qps_client: bins/$(CONFIG)/qps_client
 qps_server: bins/$(CONFIG)/qps_server
-interop_server: bins/$(CONFIG)/interop_server
-interop_client: bins/$(CONFIG)/interop_client
-end2end_test: bins/$(CONFIG)/end2end_test
-channel_arguments_test: bins/$(CONFIG)/channel_arguments_test
-credentials_test: bins/$(CONFIG)/credentials_test
-alarm_test: bins/$(CONFIG)/alarm_test
-alarm_list_test: bins/$(CONFIG)/alarm_list_test
-alarm_heap_test: bins/$(CONFIG)/alarm_heap_test
-time_test: bins/$(CONFIG)/time_test
+ruby_plugin: bins/$(CONFIG)/ruby_plugin
+status_test: bins/$(CONFIG)/status_test
+sync_client_async_server_test: bins/$(CONFIG)/sync_client_async_server_test
+thread_pool_test: bins/$(CONFIG)/thread_pool_test
 chttp2_fake_security_cancel_after_accept_test: bins/$(CONFIG)/chttp2_fake_security_cancel_after_accept_test
 chttp2_fake_security_cancel_after_accept_and_writes_closed_test: bins/$(CONFIG)/chttp2_fake_security_cancel_after_accept_and_writes_closed_test
 chttp2_fake_security_cancel_after_invoke_test: bins/$(CONFIG)/chttp2_fake_security_cancel_after_invoke_test
@@ -372,6 +397,7 @@ chttp2_fake_security_census_simple_request_test: bins/$(CONFIG)/chttp2_fake_secu
 chttp2_fake_security_disappearing_server_test: bins/$(CONFIG)/chttp2_fake_security_disappearing_server_test
 chttp2_fake_security_early_server_shutdown_finishes_inflight_calls_test: bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_inflight_calls_test
 chttp2_fake_security_early_server_shutdown_finishes_tags_test: bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_tags_test
+chttp2_fake_security_graceful_server_shutdown_test: bins/$(CONFIG)/chttp2_fake_security_graceful_server_shutdown_test
 chttp2_fake_security_invoke_large_request_test: bins/$(CONFIG)/chttp2_fake_security_invoke_large_request_test
 chttp2_fake_security_max_concurrent_streams_test: bins/$(CONFIG)/chttp2_fake_security_max_concurrent_streams_test
 chttp2_fake_security_no_op_test: bins/$(CONFIG)/chttp2_fake_security_no_op_test
@@ -393,6 +419,7 @@ chttp2_fullstack_census_simple_request_test: bins/$(CONFIG)/chttp2_fullstack_cen
 chttp2_fullstack_disappearing_server_test: bins/$(CONFIG)/chttp2_fullstack_disappearing_server_test
 chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_test: bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_test
 chttp2_fullstack_early_server_shutdown_finishes_tags_test: bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_test
+chttp2_fullstack_graceful_server_shutdown_test: bins/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_test
 chttp2_fullstack_invoke_large_request_test: bins/$(CONFIG)/chttp2_fullstack_invoke_large_request_test
 chttp2_fullstack_max_concurrent_streams_test: bins/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_test
 chttp2_fullstack_no_op_test: bins/$(CONFIG)/chttp2_fullstack_no_op_test
@@ -414,6 +441,7 @@ chttp2_simple_ssl_fullstack_census_simple_request_test: bins/$(CONFIG)/chttp2_si
 chttp2_simple_ssl_fullstack_disappearing_server_test: bins/$(CONFIG)/chttp2_simple_ssl_fullstack_disappearing_server_test
 chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_inflight_calls_test: bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_inflight_calls_test
 chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_tags_test: bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_tags_test
+chttp2_simple_ssl_fullstack_graceful_server_shutdown_test: bins/$(CONFIG)/chttp2_simple_ssl_fullstack_graceful_server_shutdown_test
 chttp2_simple_ssl_fullstack_invoke_large_request_test: bins/$(CONFIG)/chttp2_simple_ssl_fullstack_invoke_large_request_test
 chttp2_simple_ssl_fullstack_max_concurrent_streams_test: bins/$(CONFIG)/chttp2_simple_ssl_fullstack_max_concurrent_streams_test
 chttp2_simple_ssl_fullstack_no_op_test: bins/$(CONFIG)/chttp2_simple_ssl_fullstack_no_op_test
@@ -435,6 +463,7 @@ chttp2_simple_ssl_with_oauth2_fullstack_census_simple_request_test: bins/$(CONFI
 chttp2_simple_ssl_with_oauth2_fullstack_disappearing_server_test: bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_disappearing_server_test
 chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_inflight_calls_test: bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_inflight_calls_test
 chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_tags_test: bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_tags_test
+chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test: bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test
 chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test: bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test
 chttp2_simple_ssl_with_oauth2_fullstack_max_concurrent_streams_test: bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_max_concurrent_streams_test
 chttp2_simple_ssl_with_oauth2_fullstack_no_op_test: bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_no_op_test
@@ -456,6 +485,7 @@ chttp2_socket_pair_census_simple_request_test: bins/$(CONFIG)/chttp2_socket_pair
 chttp2_socket_pair_disappearing_server_test: bins/$(CONFIG)/chttp2_socket_pair_disappearing_server_test
 chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_test: bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_test
 chttp2_socket_pair_early_server_shutdown_finishes_tags_test: bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_test
+chttp2_socket_pair_graceful_server_shutdown_test: bins/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_test
 chttp2_socket_pair_invoke_large_request_test: bins/$(CONFIG)/chttp2_socket_pair_invoke_large_request_test
 chttp2_socket_pair_max_concurrent_streams_test: bins/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_test
 chttp2_socket_pair_no_op_test: bins/$(CONFIG)/chttp2_socket_pair_no_op_test
@@ -477,6 +507,7 @@ chttp2_socket_pair_one_byte_at_a_time_census_simple_request_test: bins/$(CONFIG)
 chttp2_socket_pair_one_byte_at_a_time_disappearing_server_test: bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_test
 chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_test: bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_test
 chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_test: bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_test
+chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test: bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test
 chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test: bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test
 chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_test: bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_test
 chttp2_socket_pair_one_byte_at_a_time_no_op_test: bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_test
@@ -503,8 +534,12 @@ libs/$(CONFIG)/zlib/libz.a:
 	$(Q)cp third_party/zlib/libz.a libs/$(CONFIG)/zlib
 
 libs/$(CONFIG)/openssl/libssl.a:
-	$(E) "[MAKE]    Building openssl"
+	$(E) "[MAKE]    Building openssl for $(SYSTEM)"
+ifeq ($(SYSTEM),Darwin)
+	$(Q)(cd third_party/openssl ; CC="$(CC) -fPIC -fvisibility=hidden $(CPPFLAGS_$(CONFIG)) $(OPENSSL_CFLAGS_$(CONFIG))" ./Configure darwin64-x86_64-cc $(OPENSSL_CONFIG_$(CONFIG)))
+else
 	$(Q)(cd third_party/openssl ; CC="$(CC) -fPIC -fvisibility=hidden $(CPPFLAGS_$(CONFIG)) $(OPENSSL_CFLAGS_$(CONFIG))" ./config $(OPENSSL_CONFIG_$(CONFIG)))
+endif
 	$(Q)$(MAKE) -C third_party/openssl clean
 	$(Q)$(MAKE) -C third_party/openssl build_crypto build_ssl
 	$(Q)mkdir -p libs/$(CONFIG)/openssl
@@ -524,33 +559,73 @@ shared_cxx:  libs/$(CONFIG)/libgrpc++.$(SHARED_EXT)
 
 privatelibs: privatelibs_c privatelibs_cxx
 
-privatelibs_c:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a libs/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a libs/$(CONFIG)/libend2end_test_cancel_after_accept.a libs/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a libs/$(CONFIG)/libend2end_test_cancel_after_invoke.a libs/$(CONFIG)/libend2end_test_cancel_before_invoke.a libs/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a libs/$(CONFIG)/libend2end_test_census_simple_request.a libs/$(CONFIG)/libend2end_test_disappearing_server.a libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a libs/$(CONFIG)/libend2end_test_invoke_large_request.a libs/$(CONFIG)/libend2end_test_max_concurrent_streams.a libs/$(CONFIG)/libend2end_test_no_op.a libs/$(CONFIG)/libend2end_test_ping_pong_streaming.a libs/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a libs/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a libs/$(CONFIG)/libend2end_test_request_response_with_payload.a libs/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload.a libs/$(CONFIG)/libend2end_test_simple_delayed_request.a libs/$(CONFIG)/libend2end_test_simple_request.a libs/$(CONFIG)/libend2end_test_thread_stress.a libs/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a libs/$(CONFIG)/libend2end_certs.a
+privatelibs_c:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a libs/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a libs/$(CONFIG)/libend2end_test_cancel_after_accept.a libs/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a libs/$(CONFIG)/libend2end_test_cancel_after_invoke.a libs/$(CONFIG)/libend2end_test_cancel_before_invoke.a libs/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a libs/$(CONFIG)/libend2end_test_census_simple_request.a libs/$(CONFIG)/libend2end_test_disappearing_server.a libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a libs/$(CONFIG)/libend2end_test_invoke_large_request.a libs/$(CONFIG)/libend2end_test_max_concurrent_streams.a libs/$(CONFIG)/libend2end_test_no_op.a libs/$(CONFIG)/libend2end_test_ping_pong_streaming.a libs/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a libs/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a libs/$(CONFIG)/libend2end_test_request_response_with_payload.a libs/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload.a libs/$(CONFIG)/libend2end_test_simple_delayed_request.a libs/$(CONFIG)/libend2end_test_simple_request.a libs/$(CONFIG)/libend2end_test_thread_stress.a libs/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a libs/$(CONFIG)/libend2end_certs.a
 
-privatelibs_cxx:  libs/$(CONFIG)/libgrpc++_test_util.a
+privatelibs_cxx:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libtips_client_lib.a
 
 buildtests: buildtests_c buildtests_cxx
 
-buildtests_c: privatelibs_c bins/$(CONFIG)/grpc_byte_buffer_reader_test bins/$(CONFIG)/gpr_cancellable_test bins/$(CONFIG)/gpr_log_test bins/$(CONFIG)/gpr_useful_test bins/$(CONFIG)/gpr_cmdline_test bins/$(CONFIG)/gpr_histogram_test bins/$(CONFIG)/gpr_host_port_test bins/$(CONFIG)/gpr_slice_buffer_test bins/$(CONFIG)/gpr_slice_test bins/$(CONFIG)/gpr_string_test bins/$(CONFIG)/gpr_sync_test bins/$(CONFIG)/gpr_thd_test bins/$(CONFIG)/gpr_time_test bins/$(CONFIG)/murmur_hash_test bins/$(CONFIG)/grpc_stream_op_test bins/$(CONFIG)/alpn_test bins/$(CONFIG)/time_averaged_stats_test bins/$(CONFIG)/chttp2_stream_encoder_test bins/$(CONFIG)/hpack_table_test bins/$(CONFIG)/chttp2_stream_map_test bins/$(CONFIG)/hpack_parser_test bins/$(CONFIG)/transport_metadata_test bins/$(CONFIG)/chttp2_status_conversion_test bins/$(CONFIG)/chttp2_transport_end2end_test bins/$(CONFIG)/tcp_posix_test bins/$(CONFIG)/dualstack_socket_test bins/$(CONFIG)/no_server_test bins/$(CONFIG)/resolve_address_test bins/$(CONFIG)/sockaddr_utils_test bins/$(CONFIG)/tcp_server_posix_test bins/$(CONFIG)/tcp_client_posix_test bins/$(CONFIG)/grpc_channel_stack_test bins/$(CONFIG)/metadata_buffer_test bins/$(CONFIG)/grpc_completion_queue_test bins/$(CONFIG)/census_window_stats_test bins/$(CONFIG)/census_statistics_quick_test bins/$(CONFIG)/census_statistics_small_log_test bins/$(CONFIG)/census_statistics_performance_test bins/$(CONFIG)/census_statistics_multiple_writers_test bins/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test bins/$(CONFIG)/census_stub_test bins/$(CONFIG)/census_hash_table_test bins/$(CONFIG)/fling_server bins/$(CONFIG)/fling_client bins/$(CONFIG)/fling_test bins/$(CONFIG)/echo_server bins/$(CONFIG)/echo_client bins/$(CONFIG)/echo_test bins/$(CONFIG)/message_compress_test bins/$(CONFIG)/bin_encoder_test bins/$(CONFIG)/secure_endpoint_test bins/$(CONFIG)/httpcli_format_request_test bins/$(CONFIG)/httpcli_parser_test bins/$(CONFIG)/httpcli_test bins/$(CONFIG)/grpc_credentials_test bins/$(CONFIG)/grpc_base64_test bins/$(CONFIG)/grpc_json_token_test bins/$(CONFIG)/timeout_encoding_test bins/$(CONFIG)/fd_posix_test bins/$(CONFIG)/fling_stream_test bins/$(CONFIG)/lame_client_test bins/$(CONFIG)/alarm_test bins/$(CONFIG)/alarm_list_test bins/$(CONFIG)/alarm_heap_test bins/$(CONFIG)/time_test bins/$(CONFIG)/chttp2_fake_security_cancel_after_accept_test bins/$(CONFIG)/chttp2_fake_security_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_fake_security_cancel_after_invoke_test bins/$(CONFIG)/chttp2_fake_security_cancel_before_invoke_test bins/$(CONFIG)/chttp2_fake_security_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_fake_security_census_simple_request_test bins/$(CONFIG)/chttp2_fake_security_disappearing_server_test bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_fake_security_invoke_large_request_test bins/$(CONFIG)/chttp2_fake_security_max_concurrent_streams_test bins/$(CONFIG)/chttp2_fake_security_no_op_test bins/$(CONFIG)/chttp2_fake_security_ping_pong_streaming_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_payload_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_trailing_metadata_and_payload_test bins/$(CONFIG)/chttp2_fake_security_simple_delayed_request_test bins/$(CONFIG)/chttp2_fake_security_simple_request_test bins/$(CONFIG)/chttp2_fake_security_thread_stress_test bins/$(CONFIG)/chttp2_fake_security_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_fullstack_cancel_after_accept_test bins/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_fullstack_cancel_after_invoke_test bins/$(CONFIG)/chttp2_fullstack_cancel_before_invoke_test bins/$(CONFIG)/chttp2_fullstack_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_fullstack_census_simple_request_test bins/$(CONFIG)/chttp2_fullstack_disappearing_server_test bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_fullstack_invoke_large_request_test bins/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_test bins/$(CONFIG)/chttp2_fullstack_no_op_test bins/$(CONFIG)/chttp2_fullstack_ping_pong_streaming_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_payload_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_trailing_metadata_and_payload_test bins/$(CONFIG)/chttp2_fullstack_simple_delayed_request_test bins/$(CONFIG)/chttp2_fullstack_simple_request_test bins/$(CONFIG)/chttp2_fullstack_thread_stress_test bins/$(CONFIG)/chttp2_fullstack_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_accept_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_invoke_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_before_invoke_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_census_simple_request_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_disappearing_server_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_invoke_large_request_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_max_concurrent_streams_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_no_op_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_ping_pong_streaming_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_payload_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_trailing_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_simple_delayed_request_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_simple_request_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_thread_stress_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_invoke_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_before_invoke_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_census_simple_request_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_disappearing_server_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_max_concurrent_streams_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_no_op_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_ping_pong_streaming_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_payload_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_trailing_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_simple_delayed_request_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_simple_request_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_thread_stress_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_test bins/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_socket_pair_cancel_after_invoke_test bins/$(CONFIG)/chttp2_socket_pair_cancel_before_invoke_test bins/$(CONFIG)/chttp2_socket_pair_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_socket_pair_census_simple_request_test bins/$(CONFIG)/chttp2_socket_pair_disappearing_server_test bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_socket_pair_invoke_large_request_test bins/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_test bins/$(CONFIG)/chttp2_socket_pair_no_op_test bins/$(CONFIG)/chttp2_socket_pair_ping_pong_streaming_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_payload_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_trailing_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_simple_delayed_request_test bins/$(CONFIG)/chttp2_socket_pair_simple_request_test bins/$(CONFIG)/chttp2_socket_pair_thread_stress_test bins/$(CONFIG)/chttp2_socket_pair_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_census_simple_request_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_trailing_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_thread_stress_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_test
+buildtests_c: privatelibs_c bins/$(CONFIG)/alarm_heap_test bins/$(CONFIG)/alarm_list_test bins/$(CONFIG)/alarm_test bins/$(CONFIG)/alpn_test bins/$(CONFIG)/bin_encoder_test bins/$(CONFIG)/census_hash_table_test bins/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test bins/$(CONFIG)/census_statistics_multiple_writers_test bins/$(CONFIG)/census_statistics_performance_test bins/$(CONFIG)/census_statistics_quick_test bins/$(CONFIG)/census_statistics_small_log_test bins/$(CONFIG)/census_stub_test bins/$(CONFIG)/census_window_stats_test bins/$(CONFIG)/chttp2_status_conversion_test bins/$(CONFIG)/chttp2_stream_encoder_test bins/$(CONFIG)/chttp2_stream_map_test bins/$(CONFIG)/chttp2_transport_end2end_test bins/$(CONFIG)/dualstack_socket_test bins/$(CONFIG)/echo_client bins/$(CONFIG)/echo_server bins/$(CONFIG)/echo_test bins/$(CONFIG)/fd_posix_test bins/$(CONFIG)/fling_client bins/$(CONFIG)/fling_server bins/$(CONFIG)/fling_stream_test bins/$(CONFIG)/fling_test bins/$(CONFIG)/gpr_cancellable_test bins/$(CONFIG)/gpr_cmdline_test bins/$(CONFIG)/gpr_histogram_test bins/$(CONFIG)/gpr_host_port_test bins/$(CONFIG)/gpr_log_test bins/$(CONFIG)/gpr_slice_buffer_test bins/$(CONFIG)/gpr_slice_test bins/$(CONFIG)/gpr_string_test bins/$(CONFIG)/gpr_sync_test bins/$(CONFIG)/gpr_thd_test bins/$(CONFIG)/gpr_time_test bins/$(CONFIG)/gpr_useful_test bins/$(CONFIG)/grpc_base64_test bins/$(CONFIG)/grpc_byte_buffer_reader_test bins/$(CONFIG)/grpc_channel_stack_test bins/$(CONFIG)/grpc_completion_queue_test bins/$(CONFIG)/grpc_credentials_test bins/$(CONFIG)/grpc_json_token_test bins/$(CONFIG)/grpc_stream_op_test bins/$(CONFIG)/hpack_parser_test bins/$(CONFIG)/hpack_table_test bins/$(CONFIG)/httpcli_format_request_test bins/$(CONFIG)/httpcli_parser_test bins/$(CONFIG)/httpcli_test bins/$(CONFIG)/lame_client_test bins/$(CONFIG)/message_compress_test bins/$(CONFIG)/metadata_buffer_test bins/$(CONFIG)/murmur_hash_test bins/$(CONFIG)/no_server_test bins/$(CONFIG)/poll_kick_test bins/$(CONFIG)/resolve_address_test bins/$(CONFIG)/secure_endpoint_test bins/$(CONFIG)/sockaddr_utils_test bins/$(CONFIG)/tcp_client_posix_test bins/$(CONFIG)/tcp_posix_test bins/$(CONFIG)/tcp_server_posix_test bins/$(CONFIG)/time_averaged_stats_test bins/$(CONFIG)/time_test bins/$(CONFIG)/timeout_encoding_test bins/$(CONFIG)/transport_metadata_test bins/$(CONFIG)/chttp2_fake_security_cancel_after_accept_test bins/$(CONFIG)/chttp2_fake_security_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_fake_security_cancel_after_invoke_test bins/$(CONFIG)/chttp2_fake_security_cancel_before_invoke_test bins/$(CONFIG)/chttp2_fake_security_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_fake_security_census_simple_request_test bins/$(CONFIG)/chttp2_fake_security_disappearing_server_test bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_fake_security_graceful_server_shutdown_test bins/$(CONFIG)/chttp2_fake_security_invoke_large_request_test bins/$(CONFIG)/chttp2_fake_security_max_concurrent_streams_test bins/$(CONFIG)/chttp2_fake_security_no_op_test bins/$(CONFIG)/chttp2_fake_security_ping_pong_streaming_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_payload_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_trailing_metadata_and_payload_test bins/$(CONFIG)/chttp2_fake_security_simple_delayed_request_test bins/$(CONFIG)/chttp2_fake_security_simple_request_test bins/$(CONFIG)/chttp2_fake_security_thread_stress_test bins/$(CONFIG)/chttp2_fake_security_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_fullstack_cancel_after_accept_test bins/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_fullstack_cancel_after_invoke_test bins/$(CONFIG)/chttp2_fullstack_cancel_before_invoke_test bins/$(CONFIG)/chttp2_fullstack_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_fullstack_census_simple_request_test bins/$(CONFIG)/chttp2_fullstack_disappearing_server_test bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_test bins/$(CONFIG)/chttp2_fullstack_invoke_large_request_test bins/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_test bins/$(CONFIG)/chttp2_fullstack_no_op_test bins/$(CONFIG)/chttp2_fullstack_ping_pong_streaming_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_payload_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_trailing_metadata_and_payload_test bins/$(CONFIG)/chttp2_fullstack_simple_delayed_request_test bins/$(CONFIG)/chttp2_fullstack_simple_request_test bins/$(CONFIG)/chttp2_fullstack_thread_stress_test bins/$(CONFIG)/chttp2_fullstack_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_accept_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_invoke_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_before_invoke_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_census_simple_request_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_disappearing_server_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_graceful_server_shutdown_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_invoke_large_request_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_max_concurrent_streams_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_no_op_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_ping_pong_streaming_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_payload_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_trailing_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_simple_delayed_request_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_simple_request_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_thread_stress_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_invoke_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_before_invoke_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_census_simple_request_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_disappearing_server_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_max_concurrent_streams_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_no_op_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_ping_pong_streaming_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_payload_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_trailing_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_simple_delayed_request_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_simple_request_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_thread_stress_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_test bins/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_socket_pair_cancel_after_invoke_test bins/$(CONFIG)/chttp2_socket_pair_cancel_before_invoke_test bins/$(CONFIG)/chttp2_socket_pair_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_socket_pair_census_simple_request_test bins/$(CONFIG)/chttp2_socket_pair_disappearing_server_test bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_test bins/$(CONFIG)/chttp2_socket_pair_invoke_large_request_test bins/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_test bins/$(CONFIG)/chttp2_socket_pair_no_op_test bins/$(CONFIG)/chttp2_socket_pair_ping_pong_streaming_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_payload_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_trailing_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_simple_delayed_request_test bins/$(CONFIG)/chttp2_socket_pair_simple_request_test bins/$(CONFIG)/chttp2_socket_pair_thread_stress_test bins/$(CONFIG)/chttp2_socket_pair_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_census_simple_request_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_trailing_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_thread_stress_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_test
 
-buildtests_cxx: privatelibs_cxx bins/$(CONFIG)/thread_pool_test bins/$(CONFIG)/status_test bins/$(CONFIG)/sync_client_async_server_test bins/$(CONFIG)/qps_client bins/$(CONFIG)/qps_server bins/$(CONFIG)/interop_server bins/$(CONFIG)/interop_client bins/$(CONFIG)/end2end_test bins/$(CONFIG)/channel_arguments_test bins/$(CONFIG)/credentials_test
+buildtests_cxx: privatelibs_cxx bins/$(CONFIG)/channel_arguments_test bins/$(CONFIG)/credentials_test bins/$(CONFIG)/end2end_test bins/$(CONFIG)/interop_client bins/$(CONFIG)/interop_server bins/$(CONFIG)/tips_client bins/$(CONFIG)/tips_client_test bins/$(CONFIG)/qps_client bins/$(CONFIG)/qps_server bins/$(CONFIG)/status_test bins/$(CONFIG)/sync_client_async_server_test bins/$(CONFIG)/thread_pool_test
 
 test: test_c test_cxx
 
 test_c: buildtests_c
-	$(E) "[RUN]     Testing grpc_byte_buffer_reader_test"
-	$(Q) ./bins/$(CONFIG)/grpc_byte_buffer_reader_test || ( echo test grpc_byte_buffer_reader_test failed ; exit 1 )
+	$(E) "[RUN]     Testing alarm_heap_test"
+	$(Q) ./bins/$(CONFIG)/alarm_heap_test || ( echo test alarm_heap_test failed ; exit 1 )
+	$(E) "[RUN]     Testing alarm_list_test"
+	$(Q) ./bins/$(CONFIG)/alarm_list_test || ( echo test alarm_list_test failed ; exit 1 )
+	$(E) "[RUN]     Testing alarm_test"
+	$(Q) ./bins/$(CONFIG)/alarm_test || ( echo test alarm_test failed ; exit 1 )
+	$(E) "[RUN]     Testing alpn_test"
+	$(Q) ./bins/$(CONFIG)/alpn_test || ( echo test alpn_test failed ; exit 1 )
+	$(E) "[RUN]     Testing bin_encoder_test"
+	$(Q) ./bins/$(CONFIG)/bin_encoder_test || ( echo test bin_encoder_test failed ; exit 1 )
+	$(E) "[RUN]     Testing census_hash_table_test"
+	$(Q) ./bins/$(CONFIG)/census_hash_table_test || ( echo test census_hash_table_test failed ; exit 1 )
+	$(E) "[RUN]     Testing census_statistics_multiple_writers_circular_buffer_test"
+	$(Q) ./bins/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test || ( echo test census_statistics_multiple_writers_circular_buffer_test failed ; exit 1 )
+	$(E) "[RUN]     Testing census_statistics_multiple_writers_test"
+	$(Q) ./bins/$(CONFIG)/census_statistics_multiple_writers_test || ( echo test census_statistics_multiple_writers_test failed ; exit 1 )
+	$(E) "[RUN]     Testing census_statistics_performance_test"
+	$(Q) ./bins/$(CONFIG)/census_statistics_performance_test || ( echo test census_statistics_performance_test failed ; exit 1 )
+	$(E) "[RUN]     Testing census_statistics_quick_test"
+	$(Q) ./bins/$(CONFIG)/census_statistics_quick_test || ( echo test census_statistics_quick_test failed ; exit 1 )
+	$(E) "[RUN]     Testing census_statistics_small_log_test"
+	$(Q) ./bins/$(CONFIG)/census_statistics_small_log_test || ( echo test census_statistics_small_log_test failed ; exit 1 )
+	$(E) "[RUN]     Testing census_stub_test"
+	$(Q) ./bins/$(CONFIG)/census_stub_test || ( echo test census_stub_test failed ; exit 1 )
+	$(E) "[RUN]     Testing census_window_stats_test"
+	$(Q) ./bins/$(CONFIG)/census_window_stats_test || ( echo test census_window_stats_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_status_conversion_test"
+	$(Q) ./bins/$(CONFIG)/chttp2_status_conversion_test || ( echo test chttp2_status_conversion_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_stream_encoder_test"
+	$(Q) ./bins/$(CONFIG)/chttp2_stream_encoder_test || ( echo test chttp2_stream_encoder_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_stream_map_test"
+	$(Q) ./bins/$(CONFIG)/chttp2_stream_map_test || ( echo test chttp2_stream_map_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_transport_end2end_test"
+	$(Q) ./bins/$(CONFIG)/chttp2_transport_end2end_test || ( echo test chttp2_transport_end2end_test failed ; exit 1 )
+	$(E) "[RUN]     Testing dualstack_socket_test"
+	$(Q) ./bins/$(CONFIG)/dualstack_socket_test || ( echo test dualstack_socket_test failed ; exit 1 )
+	$(E) "[RUN]     Testing echo_test"
+	$(Q) ./bins/$(CONFIG)/echo_test || ( echo test echo_test failed ; exit 1 )
+	$(E) "[RUN]     Testing fd_posix_test"
+	$(Q) ./bins/$(CONFIG)/fd_posix_test || ( echo test fd_posix_test failed ; exit 1 )
+	$(E) "[RUN]     Testing fling_stream_test"
+	$(Q) ./bins/$(CONFIG)/fling_stream_test || ( echo test fling_stream_test failed ; exit 1 )
+	$(E) "[RUN]     Testing fling_test"
+	$(Q) ./bins/$(CONFIG)/fling_test || ( echo test fling_test failed ; exit 1 )
 	$(E) "[RUN]     Testing gpr_cancellable_test"
 	$(Q) ./bins/$(CONFIG)/gpr_cancellable_test || ( echo test gpr_cancellable_test failed ; exit 1 )
-	$(E) "[RUN]     Testing gpr_log_test"
-	$(Q) ./bins/$(CONFIG)/gpr_log_test || ( echo test gpr_log_test failed ; exit 1 )
-	$(E) "[RUN]     Testing gpr_useful_test"
-	$(Q) ./bins/$(CONFIG)/gpr_useful_test || ( echo test gpr_useful_test failed ; exit 1 )
 	$(E) "[RUN]     Testing gpr_cmdline_test"
 	$(Q) ./bins/$(CONFIG)/gpr_cmdline_test || ( echo test gpr_cmdline_test failed ; exit 1 )
 	$(E) "[RUN]     Testing gpr_histogram_test"
 	$(Q) ./bins/$(CONFIG)/gpr_histogram_test || ( echo test gpr_histogram_test failed ; exit 1 )
 	$(E) "[RUN]     Testing gpr_host_port_test"
 	$(Q) ./bins/$(CONFIG)/gpr_host_port_test || ( echo test gpr_host_port_test failed ; exit 1 )
+	$(E) "[RUN]     Testing gpr_log_test"
+	$(Q) ./bins/$(CONFIG)/gpr_log_test || ( echo test gpr_log_test failed ; exit 1 )
 	$(E) "[RUN]     Testing gpr_slice_buffer_test"
 	$(Q) ./bins/$(CONFIG)/gpr_slice_buffer_test || ( echo test gpr_slice_buffer_test failed ; exit 1 )
 	$(E) "[RUN]     Testing gpr_slice_test"
@@ -563,102 +638,64 @@ test_c: buildtests_c
 	$(Q) ./bins/$(CONFIG)/gpr_thd_test || ( echo test gpr_thd_test failed ; exit 1 )
 	$(E) "[RUN]     Testing gpr_time_test"
 	$(Q) ./bins/$(CONFIG)/gpr_time_test || ( echo test gpr_time_test failed ; exit 1 )
-	$(E) "[RUN]     Testing murmur_hash_test"
-	$(Q) ./bins/$(CONFIG)/murmur_hash_test || ( echo test murmur_hash_test failed ; exit 1 )
-	$(E) "[RUN]     Testing grpc_stream_op_test"
-	$(Q) ./bins/$(CONFIG)/grpc_stream_op_test || ( echo test grpc_stream_op_test failed ; exit 1 )
-	$(E) "[RUN]     Testing alpn_test"
-	$(Q) ./bins/$(CONFIG)/alpn_test || ( echo test alpn_test failed ; exit 1 )
-	$(E) "[RUN]     Testing time_averaged_stats_test"
-	$(Q) ./bins/$(CONFIG)/time_averaged_stats_test || ( echo test time_averaged_stats_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_stream_encoder_test"
-	$(Q) ./bins/$(CONFIG)/chttp2_stream_encoder_test || ( echo test chttp2_stream_encoder_test failed ; exit 1 )
-	$(E) "[RUN]     Testing hpack_table_test"
-	$(Q) ./bins/$(CONFIG)/hpack_table_test || ( echo test hpack_table_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_stream_map_test"
-	$(Q) ./bins/$(CONFIG)/chttp2_stream_map_test || ( echo test chttp2_stream_map_test failed ; exit 1 )
-	$(E) "[RUN]     Testing hpack_parser_test"
-	$(Q) ./bins/$(CONFIG)/hpack_parser_test || ( echo test hpack_parser_test failed ; exit 1 )
-	$(E) "[RUN]     Testing transport_metadata_test"
-	$(Q) ./bins/$(CONFIG)/transport_metadata_test || ( echo test transport_metadata_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_status_conversion_test"
-	$(Q) ./bins/$(CONFIG)/chttp2_status_conversion_test || ( echo test chttp2_status_conversion_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_transport_end2end_test"
-	$(Q) ./bins/$(CONFIG)/chttp2_transport_end2end_test || ( echo test chttp2_transport_end2end_test failed ; exit 1 )
-	$(E) "[RUN]     Testing tcp_posix_test"
-	$(Q) ./bins/$(CONFIG)/tcp_posix_test || ( echo test tcp_posix_test failed ; exit 1 )
-	$(E) "[RUN]     Testing dualstack_socket_test"
-	$(Q) ./bins/$(CONFIG)/dualstack_socket_test || ( echo test dualstack_socket_test failed ; exit 1 )
-	$(E) "[RUN]     Testing no_server_test"
-	$(Q) ./bins/$(CONFIG)/no_server_test || ( echo test no_server_test failed ; exit 1 )
-	$(E) "[RUN]     Testing resolve_address_test"
-	$(Q) ./bins/$(CONFIG)/resolve_address_test || ( echo test resolve_address_test failed ; exit 1 )
-	$(E) "[RUN]     Testing sockaddr_utils_test"
-	$(Q) ./bins/$(CONFIG)/sockaddr_utils_test || ( echo test sockaddr_utils_test failed ; exit 1 )
-	$(E) "[RUN]     Testing tcp_server_posix_test"
-	$(Q) ./bins/$(CONFIG)/tcp_server_posix_test || ( echo test tcp_server_posix_test failed ; exit 1 )
-	$(E) "[RUN]     Testing tcp_client_posix_test"
-	$(Q) ./bins/$(CONFIG)/tcp_client_posix_test || ( echo test tcp_client_posix_test failed ; exit 1 )
+	$(E) "[RUN]     Testing gpr_useful_test"
+	$(Q) ./bins/$(CONFIG)/gpr_useful_test || ( echo test gpr_useful_test failed ; exit 1 )
+	$(E) "[RUN]     Testing grpc_base64_test"
+	$(Q) ./bins/$(CONFIG)/grpc_base64_test || ( echo test grpc_base64_test failed ; exit 1 )
+	$(E) "[RUN]     Testing grpc_byte_buffer_reader_test"
+	$(Q) ./bins/$(CONFIG)/grpc_byte_buffer_reader_test || ( echo test grpc_byte_buffer_reader_test failed ; exit 1 )
 	$(E) "[RUN]     Testing grpc_channel_stack_test"
 	$(Q) ./bins/$(CONFIG)/grpc_channel_stack_test || ( echo test grpc_channel_stack_test failed ; exit 1 )
-	$(E) "[RUN]     Testing metadata_buffer_test"
-	$(Q) ./bins/$(CONFIG)/metadata_buffer_test || ( echo test metadata_buffer_test failed ; exit 1 )
 	$(E) "[RUN]     Testing grpc_completion_queue_test"
 	$(Q) ./bins/$(CONFIG)/grpc_completion_queue_test || ( echo test grpc_completion_queue_test failed ; exit 1 )
-	$(E) "[RUN]     Testing census_window_stats_test"
-	$(Q) ./bins/$(CONFIG)/census_window_stats_test || ( echo test census_window_stats_test failed ; exit 1 )
-	$(E) "[RUN]     Testing census_statistics_quick_test"
-	$(Q) ./bins/$(CONFIG)/census_statistics_quick_test || ( echo test census_statistics_quick_test failed ; exit 1 )
-	$(E) "[RUN]     Testing census_statistics_small_log_test"
-	$(Q) ./bins/$(CONFIG)/census_statistics_small_log_test || ( echo test census_statistics_small_log_test failed ; exit 1 )
-	$(E) "[RUN]     Testing census_statistics_performance_test"
-	$(Q) ./bins/$(CONFIG)/census_statistics_performance_test || ( echo test census_statistics_performance_test failed ; exit 1 )
-	$(E) "[RUN]     Testing census_statistics_multiple_writers_test"
-	$(Q) ./bins/$(CONFIG)/census_statistics_multiple_writers_test || ( echo test census_statistics_multiple_writers_test failed ; exit 1 )
-	$(E) "[RUN]     Testing census_statistics_multiple_writers_circular_buffer_test"
-	$(Q) ./bins/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test || ( echo test census_statistics_multiple_writers_circular_buffer_test failed ; exit 1 )
-	$(E) "[RUN]     Testing census_stub_test"
-	$(Q) ./bins/$(CONFIG)/census_stub_test || ( echo test census_stub_test failed ; exit 1 )
-	$(E) "[RUN]     Testing census_hash_table_test"
-	$(Q) ./bins/$(CONFIG)/census_hash_table_test || ( echo test census_hash_table_test failed ; exit 1 )
-	$(E) "[RUN]     Testing fling_test"
-	$(Q) ./bins/$(CONFIG)/fling_test || ( echo test fling_test failed ; exit 1 )
-	$(E) "[RUN]     Testing echo_test"
-	$(Q) ./bins/$(CONFIG)/echo_test || ( echo test echo_test failed ; exit 1 )
-	$(E) "[RUN]     Testing message_compress_test"
-	$(Q) ./bins/$(CONFIG)/message_compress_test || ( echo test message_compress_test failed ; exit 1 )
-	$(E) "[RUN]     Testing bin_encoder_test"
-	$(Q) ./bins/$(CONFIG)/bin_encoder_test || ( echo test bin_encoder_test failed ; exit 1 )
-	$(E) "[RUN]     Testing secure_endpoint_test"
-	$(Q) ./bins/$(CONFIG)/secure_endpoint_test || ( echo test secure_endpoint_test failed ; exit 1 )
+	$(E) "[RUN]     Testing grpc_credentials_test"
+	$(Q) ./bins/$(CONFIG)/grpc_credentials_test || ( echo test grpc_credentials_test failed ; exit 1 )
+	$(E) "[RUN]     Testing grpc_json_token_test"
+	$(Q) ./bins/$(CONFIG)/grpc_json_token_test || ( echo test grpc_json_token_test failed ; exit 1 )
+	$(E) "[RUN]     Testing grpc_stream_op_test"
+	$(Q) ./bins/$(CONFIG)/grpc_stream_op_test || ( echo test grpc_stream_op_test failed ; exit 1 )
+	$(E) "[RUN]     Testing hpack_parser_test"
+	$(Q) ./bins/$(CONFIG)/hpack_parser_test || ( echo test hpack_parser_test failed ; exit 1 )
+	$(E) "[RUN]     Testing hpack_table_test"
+	$(Q) ./bins/$(CONFIG)/hpack_table_test || ( echo test hpack_table_test failed ; exit 1 )
 	$(E) "[RUN]     Testing httpcli_format_request_test"
 	$(Q) ./bins/$(CONFIG)/httpcli_format_request_test || ( echo test httpcli_format_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing httpcli_parser_test"
 	$(Q) ./bins/$(CONFIG)/httpcli_parser_test || ( echo test httpcli_parser_test failed ; exit 1 )
 	$(E) "[RUN]     Testing httpcli_test"
 	$(Q) ./bins/$(CONFIG)/httpcli_test || ( echo test httpcli_test failed ; exit 1 )
-	$(E) "[RUN]     Testing grpc_credentials_test"
-	$(Q) ./bins/$(CONFIG)/grpc_credentials_test || ( echo test grpc_credentials_test failed ; exit 1 )
-	$(E) "[RUN]     Testing grpc_base64_test"
-	$(Q) ./bins/$(CONFIG)/grpc_base64_test || ( echo test grpc_base64_test failed ; exit 1 )
-	$(E) "[RUN]     Testing grpc_json_token_test"
-	$(Q) ./bins/$(CONFIG)/grpc_json_token_test || ( echo test grpc_json_token_test failed ; exit 1 )
-	$(E) "[RUN]     Testing timeout_encoding_test"
-	$(Q) ./bins/$(CONFIG)/timeout_encoding_test || ( echo test timeout_encoding_test failed ; exit 1 )
-	$(E) "[RUN]     Testing fd_posix_test"
-	$(Q) ./bins/$(CONFIG)/fd_posix_test || ( echo test fd_posix_test failed ; exit 1 )
-	$(E) "[RUN]     Testing fling_stream_test"
-	$(Q) ./bins/$(CONFIG)/fling_stream_test || ( echo test fling_stream_test failed ; exit 1 )
 	$(E) "[RUN]     Testing lame_client_test"
 	$(Q) ./bins/$(CONFIG)/lame_client_test || ( echo test lame_client_test failed ; exit 1 )
-	$(E) "[RUN]     Testing alarm_test"
-	$(Q) ./bins/$(CONFIG)/alarm_test || ( echo test alarm_test failed ; exit 1 )
-	$(E) "[RUN]     Testing alarm_list_test"
-	$(Q) ./bins/$(CONFIG)/alarm_list_test || ( echo test alarm_list_test failed ; exit 1 )
-	$(E) "[RUN]     Testing alarm_heap_test"
-	$(Q) ./bins/$(CONFIG)/alarm_heap_test || ( echo test alarm_heap_test failed ; exit 1 )
+	$(E) "[RUN]     Testing message_compress_test"
+	$(Q) ./bins/$(CONFIG)/message_compress_test || ( echo test message_compress_test failed ; exit 1 )
+	$(E) "[RUN]     Testing metadata_buffer_test"
+	$(Q) ./bins/$(CONFIG)/metadata_buffer_test || ( echo test metadata_buffer_test failed ; exit 1 )
+	$(E) "[RUN]     Testing murmur_hash_test"
+	$(Q) ./bins/$(CONFIG)/murmur_hash_test || ( echo test murmur_hash_test failed ; exit 1 )
+	$(E) "[RUN]     Testing no_server_test"
+	$(Q) ./bins/$(CONFIG)/no_server_test || ( echo test no_server_test failed ; exit 1 )
+	$(E) "[RUN]     Testing poll_kick_test"
+	$(Q) ./bins/$(CONFIG)/poll_kick_test || ( echo test poll_kick_test failed ; exit 1 )
+	$(E) "[RUN]     Testing resolve_address_test"
+	$(Q) ./bins/$(CONFIG)/resolve_address_test || ( echo test resolve_address_test failed ; exit 1 )
+	$(E) "[RUN]     Testing secure_endpoint_test"
+	$(Q) ./bins/$(CONFIG)/secure_endpoint_test || ( echo test secure_endpoint_test failed ; exit 1 )
+	$(E) "[RUN]     Testing sockaddr_utils_test"
+	$(Q) ./bins/$(CONFIG)/sockaddr_utils_test || ( echo test sockaddr_utils_test failed ; exit 1 )
+	$(E) "[RUN]     Testing tcp_client_posix_test"
+	$(Q) ./bins/$(CONFIG)/tcp_client_posix_test || ( echo test tcp_client_posix_test failed ; exit 1 )
+	$(E) "[RUN]     Testing tcp_posix_test"
+	$(Q) ./bins/$(CONFIG)/tcp_posix_test || ( echo test tcp_posix_test failed ; exit 1 )
+	$(E) "[RUN]     Testing tcp_server_posix_test"
+	$(Q) ./bins/$(CONFIG)/tcp_server_posix_test || ( echo test tcp_server_posix_test failed ; exit 1 )
+	$(E) "[RUN]     Testing time_averaged_stats_test"
+	$(Q) ./bins/$(CONFIG)/time_averaged_stats_test || ( echo test time_averaged_stats_test failed ; exit 1 )
 	$(E) "[RUN]     Testing time_test"
 	$(Q) ./bins/$(CONFIG)/time_test || ( echo test time_test failed ; exit 1 )
+	$(E) "[RUN]     Testing timeout_encoding_test"
+	$(Q) ./bins/$(CONFIG)/timeout_encoding_test || ( echo test timeout_encoding_test failed ; exit 1 )
+	$(E) "[RUN]     Testing transport_metadata_test"
+	$(Q) ./bins/$(CONFIG)/transport_metadata_test || ( echo test transport_metadata_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fake_security_cancel_after_accept_test"
 	$(Q) ./bins/$(CONFIG)/chttp2_fake_security_cancel_after_accept_test || ( echo test chttp2_fake_security_cancel_after_accept_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fake_security_cancel_after_accept_and_writes_closed_test"
@@ -677,6 +714,8 @@ test_c: buildtests_c
 	$(Q) ./bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_inflight_calls_test || ( echo test chttp2_fake_security_early_server_shutdown_finishes_inflight_calls_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fake_security_early_server_shutdown_finishes_tags_test"
 	$(Q) ./bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_tags_test || ( echo test chttp2_fake_security_early_server_shutdown_finishes_tags_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_fake_security_graceful_server_shutdown_test"
+	$(Q) ./bins/$(CONFIG)/chttp2_fake_security_graceful_server_shutdown_test || ( echo test chttp2_fake_security_graceful_server_shutdown_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fake_security_invoke_large_request_test"
 	$(Q) ./bins/$(CONFIG)/chttp2_fake_security_invoke_large_request_test || ( echo test chttp2_fake_security_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fake_security_max_concurrent_streams_test"
@@ -719,6 +758,8 @@ test_c: buildtests_c
 	$(Q) ./bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_test || ( echo test chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_early_server_shutdown_finishes_tags_test"
 	$(Q) ./bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_test || ( echo test chttp2_fullstack_early_server_shutdown_finishes_tags_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_fullstack_graceful_server_shutdown_test"
+	$(Q) ./bins/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_test || ( echo test chttp2_fullstack_graceful_server_shutdown_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_invoke_large_request_test"
 	$(Q) ./bins/$(CONFIG)/chttp2_fullstack_invoke_large_request_test || ( echo test chttp2_fullstack_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_max_concurrent_streams_test"
@@ -761,6 +802,8 @@ test_c: buildtests_c
 	$(Q) ./bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_inflight_calls_test || ( echo test chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_inflight_calls_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_tags_test"
 	$(Q) ./bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_tags_test || ( echo test chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_tags_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_graceful_server_shutdown_test"
+	$(Q) ./bins/$(CONFIG)/chttp2_simple_ssl_fullstack_graceful_server_shutdown_test || ( echo test chttp2_simple_ssl_fullstack_graceful_server_shutdown_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_invoke_large_request_test"
 	$(Q) ./bins/$(CONFIG)/chttp2_simple_ssl_fullstack_invoke_large_request_test || ( echo test chttp2_simple_ssl_fullstack_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_max_concurrent_streams_test"
@@ -803,6 +846,8 @@ test_c: buildtests_c
 	$(Q) ./bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_inflight_calls_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_inflight_calls_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_tags_test"
 	$(Q) ./bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_tags_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_tags_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test"
+	$(Q) ./bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test"
 	$(Q) ./bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_max_concurrent_streams_test"
@@ -845,6 +890,8 @@ test_c: buildtests_c
 	$(Q) ./bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_test || ( echo test chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_early_server_shutdown_finishes_tags_test"
 	$(Q) ./bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_test || ( echo test chttp2_socket_pair_early_server_shutdown_finishes_tags_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_socket_pair_graceful_server_shutdown_test"
+	$(Q) ./bins/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_test || ( echo test chttp2_socket_pair_graceful_server_shutdown_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_invoke_large_request_test"
 	$(Q) ./bins/$(CONFIG)/chttp2_socket_pair_invoke_large_request_test || ( echo test chttp2_socket_pair_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_max_concurrent_streams_test"
@@ -887,6 +934,8 @@ test_c: buildtests_c
 	$(Q) ./bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_test"
 	$(Q) ./bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test"
+	$(Q) ./bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test"
 	$(Q) ./bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_test"
@@ -914,22 +963,24 @@ test_c: buildtests_c
 
 
 test_cxx: buildtests_cxx
-	$(E) "[RUN]     Testing thread_pool_test"
-	$(Q) ./bins/$(CONFIG)/thread_pool_test || ( echo test thread_pool_test failed ; exit 1 )
-	$(E) "[RUN]     Testing status_test"
-	$(Q) ./bins/$(CONFIG)/status_test || ( echo test status_test failed ; exit 1 )
-	$(E) "[RUN]     Testing sync_client_async_server_test"
-	$(Q) ./bins/$(CONFIG)/sync_client_async_server_test || ( echo test sync_client_async_server_test failed ; exit 1 )
-	$(E) "[RUN]     Testing qps_client"
-	$(Q) ./bins/$(CONFIG)/qps_client || ( echo test qps_client failed ; exit 1 )
-	$(E) "[RUN]     Testing qps_server"
-	$(Q) ./bins/$(CONFIG)/qps_server || ( echo test qps_server failed ; exit 1 )
-	$(E) "[RUN]     Testing end2end_test"
-	$(Q) ./bins/$(CONFIG)/end2end_test || ( echo test end2end_test failed ; exit 1 )
 	$(E) "[RUN]     Testing channel_arguments_test"
 	$(Q) ./bins/$(CONFIG)/channel_arguments_test || ( echo test channel_arguments_test failed ; exit 1 )
 	$(E) "[RUN]     Testing credentials_test"
 	$(Q) ./bins/$(CONFIG)/credentials_test || ( echo test credentials_test failed ; exit 1 )
+	$(E) "[RUN]     Testing end2end_test"
+	$(Q) ./bins/$(CONFIG)/end2end_test || ( echo test end2end_test failed ; exit 1 )
+	$(E) "[RUN]     Testing tips_client_test"
+	$(Q) ./bins/$(CONFIG)/tips_client_test || ( echo test tips_client_test failed ; exit 1 )
+	$(E) "[RUN]     Testing qps_client"
+	$(Q) ./bins/$(CONFIG)/qps_client || ( echo test qps_client failed ; exit 1 )
+	$(E) "[RUN]     Testing qps_server"
+	$(Q) ./bins/$(CONFIG)/qps_server || ( echo test qps_server failed ; exit 1 )
+	$(E) "[RUN]     Testing status_test"
+	$(Q) ./bins/$(CONFIG)/status_test || ( echo test status_test failed ; exit 1 )
+	$(E) "[RUN]     Testing sync_client_async_server_test"
+	$(Q) ./bins/$(CONFIG)/sync_client_async_server_test || ( echo test sync_client_async_server_test failed ; exit 1 )
+	$(E) "[RUN]     Testing thread_pool_test"
+	$(Q) ./bins/$(CONFIG)/thread_pool_test || ( echo test thread_pool_test failed ; exit 1 )
 
 
 tools: privatelibs bins/$(CONFIG)/gen_hpack_tables bins/$(CONFIG)/grpc_fetch_oauth2
@@ -943,6 +994,11 @@ strip: strip-static strip-shared
 strip-static: strip-static_c strip-static_cxx
 
 strip-shared: strip-shared_c strip-shared_cxx
+
+
+# TODO(nnoble): the strip target is stripping in-place, instead
+# of copying files in a temporary folder.
+# This prevents proper debugging after running make install.
 
 strip-static_c: static_c
 	$(E) "[STRIP]   Stripping libgpr.a"
@@ -967,6 +1023,21 @@ strip-shared_c: shared_c
 strip-shared_cxx: shared_cxx
 	$(E) "[STRIP]   Stripping libgrpc++.so"
 	$(Q) $(STRIP) libs/$(CONFIG)/libgrpc++.$(SHARED_EXT)
+
+gens/examples/tips/empty.pb.cc: examples/tips/empty.proto $(PROTOC_PLUGINS)
+	$(E) "[PROTOC]  Generating protobuf CC file from $<"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(PROTOC) --cpp_out=gens --grpc_out=gens --plugin=protoc-gen-grpc=bins/$(CONFIG)/cpp_plugin $<
+
+gens/examples/tips/label.pb.cc: examples/tips/label.proto $(PROTOC_PLUGINS)
+	$(E) "[PROTOC]  Generating protobuf CC file from $<"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(PROTOC) --cpp_out=gens --grpc_out=gens --plugin=protoc-gen-grpc=bins/$(CONFIG)/cpp_plugin $<
+
+gens/examples/tips/pubsub.pb.cc: examples/tips/pubsub.proto $(PROTOC_PLUGINS)
+	$(E) "[PROTOC]  Generating protobuf CC file from $<"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(PROTOC) --cpp_out=gens --grpc_out=gens --plugin=protoc-gen-grpc=bins/$(CONFIG)/cpp_plugin $<
 
 gens/test/cpp/interop/empty.pb.cc: test/cpp/interop/empty.proto $(PROTOC_PLUGINS)
 	$(E) "[PROTOC]  Generating protobuf CC file from $<"
@@ -1128,14 +1199,14 @@ LIBGPR_SRC = \
     src/core/support/cpu_posix.c \
     src/core/support/histogram.c \
     src/core/support/host_port.c \
-    src/core/support/log_android.c \
     src/core/support/log.c \
+    src/core/support/log_android.c \
     src/core/support/log_linux.c \
     src/core/support/log_posix.c \
     src/core/support/log_win32.c \
     src/core/support/murmur_hash.c \
-    src/core/support/slice_buffer.c \
     src/core/support/slice.c \
+    src/core/support/slice_buffer.c \
     src/core/support/string.c \
     src/core/support/string_posix.c \
     src/core/support/string_win32.c \
@@ -1150,9 +1221,9 @@ LIBGPR_SRC = \
 
 PUBLIC_HEADERS_C += \
     include/grpc/support/alloc.h \
+    include/grpc/support/atm.h \
     include/grpc/support/atm_gcc_atomic.h \
     include/grpc/support/atm_gcc_sync.h \
-    include/grpc/support/atm.h \
     include/grpc/support/atm_win32.h \
     include/grpc/support/cancellable_platform.h \
     include/grpc/support/cmdline.h \
@@ -1160,11 +1231,11 @@ PUBLIC_HEADERS_C += \
     include/grpc/support/host_port.h \
     include/grpc/support/log.h \
     include/grpc/support/port_platform.h \
-    include/grpc/support/slice_buffer.h \
     include/grpc/support/slice.h \
+    include/grpc/support/slice_buffer.h \
     include/grpc/support/string.h \
-    include/grpc/support/sync_generic.h \
     include/grpc/support/sync.h \
+    include/grpc/support/sync_generic.h \
     include/grpc/support/sync_posix.h \
     include/grpc/support/sync_win32.h \
     include/grpc/support/thd.h \
@@ -1180,7 +1251,11 @@ LIBGPR_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGPR_S
 libs/$(CONFIG)/libgpr.a: $(ZLIB_DEP) $(LIBGPR_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libgpr.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libgpr.a $(LIBGPR_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libgpr.a 
+endif
 
 
 
@@ -1213,14 +1288,14 @@ objs/$(CONFIG)/src/core/support/cpu_linux.o:
 objs/$(CONFIG)/src/core/support/cpu_posix.o: 
 objs/$(CONFIG)/src/core/support/histogram.o: 
 objs/$(CONFIG)/src/core/support/host_port.o: 
-objs/$(CONFIG)/src/core/support/log_android.o: 
 objs/$(CONFIG)/src/core/support/log.o: 
+objs/$(CONFIG)/src/core/support/log_android.o: 
 objs/$(CONFIG)/src/core/support/log_linux.o: 
 objs/$(CONFIG)/src/core/support/log_posix.o: 
 objs/$(CONFIG)/src/core/support/log_win32.o: 
 objs/$(CONFIG)/src/core/support/murmur_hash.o: 
-objs/$(CONFIG)/src/core/support/slice_buffer.o: 
 objs/$(CONFIG)/src/core/support/slice.o: 
+objs/$(CONFIG)/src/core/support/slice_buffer.o: 
 objs/$(CONFIG)/src/core/support/string.o: 
 objs/$(CONFIG)/src/core/support/string_posix.o: 
 objs/$(CONFIG)/src/core/support/string_win32.o: 
@@ -1232,6 +1307,49 @@ objs/$(CONFIG)/src/core/support/thd_win32.o:
 objs/$(CONFIG)/src/core/support/time.o: 
 objs/$(CONFIG)/src/core/support/time_posix.o: 
 objs/$(CONFIG)/src/core/support/time_win32.o: 
+
+
+LIBGPR_TEST_UTIL_SRC = \
+    test/core/util/test_config.c \
+
+
+LIBGPR_TEST_UTIL_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGPR_TEST_UTIL_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure libraries if you don't have OpenSSL with ALPN.
+
+libs/$(CONFIG)/libgpr_test_util.a: openssl_dep_error
+
+
+else
+
+ifneq ($(OPENSSL_DEP),)
+test/core/util/test_config.c: $(OPENSSL_DEP)
+endif
+
+libs/$(CONFIG)/libgpr_test_util.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGPR_TEST_UTIL_OBJS)
+	$(E) "[AR]      Creating $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libgpr_test_util.a
+	$(Q) $(AR) rcs libs/$(CONFIG)/libgpr_test_util.a $(LIBGPR_TEST_UTIL_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libgpr_test_util.a 
+endif
+
+
+
+
+
+endif
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(LIBGPR_TEST_UTIL_OBJS:.o=.dep)
+endif
+endif
+
+objs/$(CONFIG)/test/core/util/test_config.o: 
 
 
 LIBGRPC_SRC = \
@@ -1274,8 +1392,10 @@ LIBGRPC_SRC = \
     src/core/iomgr/fd_posix.c \
     src/core/iomgr/iomgr.c \
     src/core/iomgr/iomgr_posix.c \
+    src/core/iomgr/pollset_kick_posix.c \
     src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_posix.c \
+    src/core/iomgr/pollset_windows.c \
     src/core/iomgr/resolve_address_posix.c \
     src/core/iomgr/sockaddr_utils.c \
     src/core/iomgr/socket_utils_common_posix.c \
@@ -1339,6 +1459,8 @@ LIBGRPC_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure libraries if you don't have OpenSSL with ALPN.
+
 libs/$(CONFIG)/libgrpc.a: openssl_dep_error
 
 ifeq ($(SYSTEM),MINGW32)
@@ -1389,8 +1511,10 @@ src/core/iomgr/endpoint_pair_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/fd_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/iomgr.c: $(OPENSSL_DEP)
 src/core/iomgr/iomgr_posix.c: $(OPENSSL_DEP)
+src/core/iomgr/pollset_kick_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_multipoller_with_poll_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_posix.c: $(OPENSSL_DEP)
+src/core/iomgr/pollset_windows.c: $(OPENSSL_DEP)
 src/core/iomgr/resolve_address_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/sockaddr_utils.c: $(OPENSSL_DEP)
 src/core/iomgr/socket_utils_common_posix.c: $(OPENSSL_DEP)
@@ -1447,6 +1571,7 @@ endif
 libs/$(CONFIG)/libgrpc.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libgrpc.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libgrpc.a $(LIBGRPC_OBJS)
 	$(Q) rm -rf tmp-merge
 	$(Q) mkdir tmp-merge
@@ -1455,6 +1580,9 @@ libs/$(CONFIG)/libgrpc.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC_OBJS)
 	$(Q) rm -f libs/$(CONFIG)/libgrpc.a tmp-merge/__.SYMDEF*
 	$(Q) ar rcs libs/$(CONFIG)/libgrpc.a tmp-merge/*
 	$(Q) rm -rf tmp-merge
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libgrpc.a 
+endif
 
 
 
@@ -1523,8 +1651,10 @@ objs/$(CONFIG)/src/core/iomgr/endpoint_pair_posix.o:
 objs/$(CONFIG)/src/core/iomgr/fd_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/iomgr.o: 
 objs/$(CONFIG)/src/core/iomgr/iomgr_posix.o: 
+objs/$(CONFIG)/src/core/iomgr/pollset_kick_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_posix.o: 
+objs/$(CONFIG)/src/core/iomgr/pollset_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/resolve_address_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/sockaddr_utils.o: 
 objs/$(CONFIG)/src/core/iomgr/socket_utils_common_posix.o: 
@@ -1578,6 +1708,82 @@ objs/$(CONFIG)/src/core/transport/transport.o:
 objs/$(CONFIG)/third_party/cJSON/cJSON.o: 
 
 
+LIBGRPC_TEST_UTIL_SRC = \
+    test/core/end2end/cq_verifier.c \
+    test/core/end2end/data/prod_roots_certs.c \
+    test/core/end2end/data/server1_cert.c \
+    test/core/end2end/data/server1_key.c \
+    test/core/end2end/data/test_root_cert.c \
+    test/core/iomgr/endpoint_tests.c \
+    test/core/statistics/census_log_tests.c \
+    test/core/transport/transport_end2end_tests.c \
+    test/core/util/grpc_profiler.c \
+    test/core/util/parse_hexstring.c \
+    test/core/util/port_posix.c \
+    test/core/util/slice_splitter.c \
+
+
+LIBGRPC_TEST_UTIL_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_TEST_UTIL_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure libraries if you don't have OpenSSL with ALPN.
+
+libs/$(CONFIG)/libgrpc_test_util.a: openssl_dep_error
+
+
+else
+
+ifneq ($(OPENSSL_DEP),)
+test/core/end2end/cq_verifier.c: $(OPENSSL_DEP)
+test/core/end2end/data/prod_roots_certs.c: $(OPENSSL_DEP)
+test/core/end2end/data/server1_cert.c: $(OPENSSL_DEP)
+test/core/end2end/data/server1_key.c: $(OPENSSL_DEP)
+test/core/end2end/data/test_root_cert.c: $(OPENSSL_DEP)
+test/core/iomgr/endpoint_tests.c: $(OPENSSL_DEP)
+test/core/statistics/census_log_tests.c: $(OPENSSL_DEP)
+test/core/transport/transport_end2end_tests.c: $(OPENSSL_DEP)
+test/core/util/grpc_profiler.c: $(OPENSSL_DEP)
+test/core/util/parse_hexstring.c: $(OPENSSL_DEP)
+test/core/util/port_posix.c: $(OPENSSL_DEP)
+test/core/util/slice_splitter.c: $(OPENSSL_DEP)
+endif
+
+libs/$(CONFIG)/libgrpc_test_util.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC_TEST_UTIL_OBJS)
+	$(E) "[AR]      Creating $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libgrpc_test_util.a
+	$(Q) $(AR) rcs libs/$(CONFIG)/libgrpc_test_util.a $(LIBGRPC_TEST_UTIL_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libgrpc_test_util.a 
+endif
+
+
+
+
+
+endif
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(LIBGRPC_TEST_UTIL_OBJS:.o=.dep)
+endif
+endif
+
+objs/$(CONFIG)/test/core/end2end/cq_verifier.o: 
+objs/$(CONFIG)/test/core/end2end/data/prod_roots_certs.o: 
+objs/$(CONFIG)/test/core/end2end/data/server1_cert.o: 
+objs/$(CONFIG)/test/core/end2end/data/server1_key.o: 
+objs/$(CONFIG)/test/core/end2end/data/test_root_cert.o: 
+objs/$(CONFIG)/test/core/iomgr/endpoint_tests.o: 
+objs/$(CONFIG)/test/core/statistics/census_log_tests.o: 
+objs/$(CONFIG)/test/core/transport/transport_end2end_tests.o: 
+objs/$(CONFIG)/test/core/util/grpc_profiler.o: 
+objs/$(CONFIG)/test/core/util/parse_hexstring.o: 
+objs/$(CONFIG)/test/core/util/port_posix.o: 
+objs/$(CONFIG)/test/core/util/slice_splitter.o: 
+
+
 LIBGRPC_UNSECURE_SRC = \
     src/core/channel/call_op_string.c \
     src/core/channel/census_filter.c \
@@ -1605,8 +1811,10 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/iomgr/fd_posix.c \
     src/core/iomgr/iomgr.c \
     src/core/iomgr/iomgr_posix.c \
+    src/core/iomgr/pollset_kick_posix.c \
     src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_posix.c \
+    src/core/iomgr/pollset_windows.c \
     src/core/iomgr/resolve_address_posix.c \
     src/core/iomgr/sockaddr_utils.c \
     src/core/iomgr/socket_utils_common_posix.c \
@@ -1670,7 +1878,11 @@ LIBGRPC_UNSECURE_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename 
 libs/$(CONFIG)/libgrpc_unsecure.a: $(ZLIB_DEP) $(LIBGRPC_UNSECURE_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libgrpc_unsecure.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libgrpc_unsecure.a $(LIBGRPC_UNSECURE_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libgrpc_unsecure.a 
+endif
 
 
 
@@ -1722,8 +1934,10 @@ objs/$(CONFIG)/src/core/iomgr/endpoint_pair_posix.o:
 objs/$(CONFIG)/src/core/iomgr/fd_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/iomgr.o: 
 objs/$(CONFIG)/src/core/iomgr/iomgr_posix.o: 
+objs/$(CONFIG)/src/core/iomgr/pollset_kick_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_posix.o: 
+objs/$(CONFIG)/src/core/iomgr/pollset_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/resolve_address_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/sockaddr_utils.o: 
 objs/$(CONFIG)/src/core/iomgr/socket_utils_common_posix.o: 
@@ -1777,113 +1991,6 @@ objs/$(CONFIG)/src/core/transport/transport.o:
 objs/$(CONFIG)/third_party/cJSON/cJSON.o: 
 
 
-LIBGPR_TEST_UTIL_SRC = \
-    test/core/util/test_config.c \
-
-
-LIBGPR_TEST_UTIL_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGPR_TEST_UTIL_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-libs/$(CONFIG)/libgpr_test_util.a: openssl_dep_error
-
-
-else
-
-ifneq ($(OPENSSL_DEP),)
-test/core/util/test_config.c: $(OPENSSL_DEP)
-endif
-
-libs/$(CONFIG)/libgpr_test_util.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGPR_TEST_UTIL_OBJS)
-	$(E) "[AR]      Creating $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(AR) rcs libs/$(CONFIG)/libgpr_test_util.a $(LIBGPR_TEST_UTIL_OBJS)
-
-
-
-
-
-endif
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(LIBGPR_TEST_UTIL_OBJS:.o=.dep)
-endif
-endif
-
-objs/$(CONFIG)/test/core/util/test_config.o: 
-
-
-LIBGRPC_TEST_UTIL_SRC = \
-    test/core/end2end/cq_verifier.c \
-    test/core/end2end/data/test_root_cert.c \
-    test/core/end2end/data/prod_roots_certs.c \
-    test/core/end2end/data/server1_cert.c \
-    test/core/end2end/data/server1_key.c \
-    test/core/iomgr/endpoint_tests.c \
-    test/core/statistics/census_log_tests.c \
-    test/core/transport/transport_end2end_tests.c \
-    test/core/util/grpc_profiler.c \
-    test/core/util/port_posix.c \
-    test/core/util/parse_hexstring.c \
-    test/core/util/slice_splitter.c \
-
-
-LIBGRPC_TEST_UTIL_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_TEST_UTIL_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-libs/$(CONFIG)/libgrpc_test_util.a: openssl_dep_error
-
-
-else
-
-ifneq ($(OPENSSL_DEP),)
-test/core/end2end/cq_verifier.c: $(OPENSSL_DEP)
-test/core/end2end/data/test_root_cert.c: $(OPENSSL_DEP)
-test/core/end2end/data/prod_roots_certs.c: $(OPENSSL_DEP)
-test/core/end2end/data/server1_cert.c: $(OPENSSL_DEP)
-test/core/end2end/data/server1_key.c: $(OPENSSL_DEP)
-test/core/iomgr/endpoint_tests.c: $(OPENSSL_DEP)
-test/core/statistics/census_log_tests.c: $(OPENSSL_DEP)
-test/core/transport/transport_end2end_tests.c: $(OPENSSL_DEP)
-test/core/util/grpc_profiler.c: $(OPENSSL_DEP)
-test/core/util/port_posix.c: $(OPENSSL_DEP)
-test/core/util/parse_hexstring.c: $(OPENSSL_DEP)
-test/core/util/slice_splitter.c: $(OPENSSL_DEP)
-endif
-
-libs/$(CONFIG)/libgrpc_test_util.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC_TEST_UTIL_OBJS)
-	$(E) "[AR]      Creating $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(AR) rcs libs/$(CONFIG)/libgrpc_test_util.a $(LIBGRPC_TEST_UTIL_OBJS)
-
-
-
-
-
-endif
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(LIBGRPC_TEST_UTIL_OBJS:.o=.dep)
-endif
-endif
-
-objs/$(CONFIG)/test/core/end2end/cq_verifier.o: 
-objs/$(CONFIG)/test/core/end2end/data/test_root_cert.o: 
-objs/$(CONFIG)/test/core/end2end/data/prod_roots_certs.o: 
-objs/$(CONFIG)/test/core/end2end/data/server1_cert.o: 
-objs/$(CONFIG)/test/core/end2end/data/server1_key.o: 
-objs/$(CONFIG)/test/core/iomgr/endpoint_tests.o: 
-objs/$(CONFIG)/test/core/statistics/census_log_tests.o: 
-objs/$(CONFIG)/test/core/transport/transport_end2end_tests.o: 
-objs/$(CONFIG)/test/core/util/grpc_profiler.o: 
-objs/$(CONFIG)/test/core/util/port_posix.o: 
-objs/$(CONFIG)/test/core/util/parse_hexstring.o: 
-objs/$(CONFIG)/test/core/util/slice_splitter.o: 
-
-
 LIBGRPC++_SRC = \
     src/cpp/client/channel.cc \
     src/cpp/client/channel_arguments.cc \
@@ -1891,24 +1998,24 @@ LIBGRPC++_SRC = \
     src/cpp/client/create_channel.cc \
     src/cpp/client/credentials.cc \
     src/cpp/client/internal_stub.cc \
-    src/cpp/proto/proto_utils.cc \
     src/cpp/common/rpc_method.cc \
+    src/cpp/proto/proto_utils.cc \
     src/cpp/server/async_server.cc \
     src/cpp/server/async_server_context.cc \
     src/cpp/server/completion_queue.cc \
+    src/cpp/server/server.cc \
     src/cpp/server/server_builder.cc \
     src/cpp/server/server_context_impl.cc \
-    src/cpp/server/server.cc \
-    src/cpp/server/server_rpc_handler.cc \
     src/cpp/server/server_credentials.cc \
+    src/cpp/server/server_rpc_handler.cc \
     src/cpp/server/thread_pool.cc \
     src/cpp/stream/stream_context.cc \
     src/cpp/util/status.cc \
     src/cpp/util/time.cc \
 
 PUBLIC_HEADERS_CXX += \
-    include/grpc++/async_server_context.h \
     include/grpc++/async_server.h \
+    include/grpc++/async_server_context.h \
     include/grpc++/channel_arguments.h \
     include/grpc++/channel_interface.h \
     include/grpc++/client_context.h \
@@ -1919,17 +2026,19 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/impl/internal_stub.h \
     include/grpc++/impl/rpc_method.h \
     include/grpc++/impl/rpc_service_method.h \
+    include/grpc++/server.h \
     include/grpc++/server_builder.h \
     include/grpc++/server_context.h \
     include/grpc++/server_credentials.h \
-    include/grpc++/server.h \
     include/grpc++/status.h \
-    include/grpc++/stream_context_interface.h \
     include/grpc++/stream.h \
+    include/grpc++/stream_context_interface.h \
 
 LIBGRPC++_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC++_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure libraries if you don't have OpenSSL with ALPN.
 
 libs/$(CONFIG)/libgrpc++.a: openssl_dep_error
 
@@ -1948,16 +2057,16 @@ src/cpp/client/client_context.cc: $(OPENSSL_DEP)
 src/cpp/client/create_channel.cc: $(OPENSSL_DEP)
 src/cpp/client/credentials.cc: $(OPENSSL_DEP)
 src/cpp/client/internal_stub.cc: $(OPENSSL_DEP)
-src/cpp/proto/proto_utils.cc: $(OPENSSL_DEP)
 src/cpp/common/rpc_method.cc: $(OPENSSL_DEP)
+src/cpp/proto/proto_utils.cc: $(OPENSSL_DEP)
 src/cpp/server/async_server.cc: $(OPENSSL_DEP)
 src/cpp/server/async_server_context.cc: $(OPENSSL_DEP)
 src/cpp/server/completion_queue.cc: $(OPENSSL_DEP)
+src/cpp/server/server.cc: $(OPENSSL_DEP)
 src/cpp/server/server_builder.cc: $(OPENSSL_DEP)
 src/cpp/server/server_context_impl.cc: $(OPENSSL_DEP)
-src/cpp/server/server.cc: $(OPENSSL_DEP)
-src/cpp/server/server_rpc_handler.cc: $(OPENSSL_DEP)
 src/cpp/server/server_credentials.cc: $(OPENSSL_DEP)
+src/cpp/server/server_rpc_handler.cc: $(OPENSSL_DEP)
 src/cpp/server/thread_pool.cc: $(OPENSSL_DEP)
 src/cpp/stream/stream_context.cc: $(OPENSSL_DEP)
 src/cpp/util/status.cc: $(OPENSSL_DEP)
@@ -1967,7 +2076,11 @@ endif
 libs/$(CONFIG)/libgrpc++.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC++_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libgrpc++.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libgrpc++.a $(LIBGRPC++_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libgrpc++.a 
+endif
 
 
 
@@ -2003,16 +2116,16 @@ objs/$(CONFIG)/src/cpp/client/client_context.o:
 objs/$(CONFIG)/src/cpp/client/create_channel.o: 
 objs/$(CONFIG)/src/cpp/client/credentials.o: 
 objs/$(CONFIG)/src/cpp/client/internal_stub.o: 
-objs/$(CONFIG)/src/cpp/proto/proto_utils.o: 
 objs/$(CONFIG)/src/cpp/common/rpc_method.o: 
+objs/$(CONFIG)/src/cpp/proto/proto_utils.o: 
 objs/$(CONFIG)/src/cpp/server/async_server.o: 
 objs/$(CONFIG)/src/cpp/server/async_server_context.o: 
 objs/$(CONFIG)/src/cpp/server/completion_queue.o: 
+objs/$(CONFIG)/src/cpp/server/server.o: 
 objs/$(CONFIG)/src/cpp/server/server_builder.o: 
 objs/$(CONFIG)/src/cpp/server/server_context_impl.o: 
-objs/$(CONFIG)/src/cpp/server/server.o: 
-objs/$(CONFIG)/src/cpp/server/server_rpc_handler.o: 
 objs/$(CONFIG)/src/cpp/server/server_credentials.o: 
+objs/$(CONFIG)/src/cpp/server/server_rpc_handler.o: 
 objs/$(CONFIG)/src/cpp/server/thread_pool.o: 
 objs/$(CONFIG)/src/cpp/stream/stream_context.o: 
 objs/$(CONFIG)/src/cpp/util/status.o: 
@@ -2020,16 +2133,18 @@ objs/$(CONFIG)/src/cpp/util/time.o:
 
 
 LIBGRPC++_TEST_UTIL_SRC = \
-    gens/test/cpp/util/messages.pb.cc \
     gens/test/cpp/util/echo.pb.cc \
     gens/test/cpp/util/echo_duplicate.pb.cc \
-    test/cpp/util/create_test_channel.cc \
+    gens/test/cpp/util/messages.pb.cc \
     test/cpp/end2end/async_test_server.cc \
+    test/cpp/util/create_test_channel.cc \
 
 
 LIBGRPC++_TEST_UTIL_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC++_TEST_UTIL_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure libraries if you don't have OpenSSL with ALPN.
 
 libs/$(CONFIG)/libgrpc++_test_util.a: openssl_dep_error
 
@@ -2037,17 +2152,21 @@ libs/$(CONFIG)/libgrpc++_test_util.a: openssl_dep_error
 else
 
 ifneq ($(OPENSSL_DEP),)
-test/cpp/util/messages.proto: $(OPENSSL_DEP)
 test/cpp/util/echo.proto: $(OPENSSL_DEP)
 test/cpp/util/echo_duplicate.proto: $(OPENSSL_DEP)
-test/cpp/util/create_test_channel.cc: $(OPENSSL_DEP)
+test/cpp/util/messages.proto: $(OPENSSL_DEP)
 test/cpp/end2end/async_test_server.cc: $(OPENSSL_DEP)
+test/cpp/util/create_test_channel.cc: $(OPENSSL_DEP)
 endif
 
 libs/$(CONFIG)/libgrpc++_test_util.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC++_TEST_UTIL_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libgrpc++_test_util.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libgrpc++_test_util.a $(LIBGRPC++_TEST_UTIL_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libgrpc++_test_util.a 
+endif
 
 
 
@@ -2064,8 +2183,60 @@ endif
 
 
 
-objs/$(CONFIG)/test/cpp/util/create_test_channel.o:     gens/test/cpp/util/messages.pb.cc    gens/test/cpp/util/echo.pb.cc    gens/test/cpp/util/echo_duplicate.pb.cc
-objs/$(CONFIG)/test/cpp/end2end/async_test_server.o:     gens/test/cpp/util/messages.pb.cc    gens/test/cpp/util/echo.pb.cc    gens/test/cpp/util/echo_duplicate.pb.cc
+objs/$(CONFIG)/test/cpp/end2end/async_test_server.o:     gens/test/cpp/util/echo.pb.cc    gens/test/cpp/util/echo_duplicate.pb.cc    gens/test/cpp/util/messages.pb.cc
+objs/$(CONFIG)/test/cpp/util/create_test_channel.o:     gens/test/cpp/util/echo.pb.cc    gens/test/cpp/util/echo_duplicate.pb.cc    gens/test/cpp/util/messages.pb.cc
+
+
+LIBTIPS_CLIENT_LIB_SRC = \
+    gens/examples/tips/label.pb.cc \
+    gens/examples/tips/empty.pb.cc \
+    gens/examples/tips/pubsub.pb.cc \
+    examples/tips/client.cc \
+
+
+LIBTIPS_CLIENT_LIB_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBTIPS_CLIENT_LIB_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure libraries if you don't have OpenSSL with ALPN.
+
+libs/$(CONFIG)/libtips_client_lib.a: openssl_dep_error
+
+
+else
+
+ifneq ($(OPENSSL_DEP),)
+examples/tips/label.proto: $(OPENSSL_DEP)
+examples/tips/empty.proto: $(OPENSSL_DEP)
+examples/tips/pubsub.proto: $(OPENSSL_DEP)
+examples/tips/client.cc: $(OPENSSL_DEP)
+endif
+
+libs/$(CONFIG)/libtips_client_lib.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBTIPS_CLIENT_LIB_OBJS)
+	$(E) "[AR]      Creating $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libtips_client_lib.a
+	$(Q) $(AR) rcs libs/$(CONFIG)/libtips_client_lib.a $(LIBTIPS_CLIENT_LIB_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libtips_client_lib.a 
+endif
+
+
+
+
+
+endif
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(LIBTIPS_CLIENT_LIB_OBJS:.o=.dep)
+endif
+endif
+
+
+
+
+objs/$(CONFIG)/examples/tips/client.o:     gens/examples/tips/label.pb.cc    gens/examples/tips/empty.pb.cc    gens/examples/tips/pubsub.pb.cc
 
 
 LIBEND2END_FIXTURE_CHTTP2_FAKE_SECURITY_SRC = \
@@ -2075,6 +2246,8 @@ LIBEND2END_FIXTURE_CHTTP2_FAKE_SECURITY_SRC = \
 LIBEND2END_FIXTURE_CHTTP2_FAKE_SECURITY_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBEND2END_FIXTURE_CHTTP2_FAKE_SECURITY_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure libraries if you don't have OpenSSL with ALPN.
 
 libs/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a: openssl_dep_error
 
@@ -2088,7 +2261,11 @@ endif
 libs/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBEND2END_FIXTURE_CHTTP2_FAKE_SECURITY_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a $(LIBEND2END_FIXTURE_CHTTP2_FAKE_SECURITY_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a 
+endif
 
 
 
@@ -2113,6 +2290,8 @@ LIBEND2END_FIXTURE_CHTTP2_FULLSTACK_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuf
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure libraries if you don't have OpenSSL with ALPN.
+
 libs/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a: openssl_dep_error
 
 
@@ -2125,7 +2304,11 @@ endif
 libs/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBEND2END_FIXTURE_CHTTP2_FULLSTACK_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBEND2END_FIXTURE_CHTTP2_FULLSTACK_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a 
+endif
 
 
 
@@ -2150,6 +2333,8 @@ LIBEND2END_FIXTURE_CHTTP2_SIMPLE_SSL_FULLSTACK_OBJS = $(addprefix objs/$(CONFIG)
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure libraries if you don't have OpenSSL with ALPN.
+
 libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a: openssl_dep_error
 
 
@@ -2162,7 +2347,11 @@ endif
 libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBEND2END_FIXTURE_CHTTP2_SIMPLE_SSL_FULLSTACK_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a $(LIBEND2END_FIXTURE_CHTTP2_SIMPLE_SSL_FULLSTACK_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a 
+endif
 
 
 
@@ -2187,6 +2376,8 @@ LIBEND2END_FIXTURE_CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_OBJS = $(addprefix ob
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure libraries if you don't have OpenSSL with ALPN.
+
 libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a: openssl_dep_error
 
 
@@ -2199,7 +2390,11 @@ endif
 libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBEND2END_FIXTURE_CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a $(LIBEND2END_FIXTURE_CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a 
+endif
 
 
 
@@ -2224,6 +2419,8 @@ LIBEND2END_FIXTURE_CHTTP2_SOCKET_PAIR_OBJS = $(addprefix objs/$(CONFIG)/, $(adds
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure libraries if you don't have OpenSSL with ALPN.
+
 libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a: openssl_dep_error
 
 
@@ -2236,7 +2433,11 @@ endif
 libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBEND2END_FIXTURE_CHTTP2_SOCKET_PAIR_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBEND2END_FIXTURE_CHTTP2_SOCKET_PAIR_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a 
+endif
 
 
 
@@ -2261,6 +2462,8 @@ LIBEND2END_FIXTURE_CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_OBJS = $(addprefix objs
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure libraries if you don't have OpenSSL with ALPN.
+
 libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a: openssl_dep_error
 
 
@@ -2273,7 +2476,11 @@ endif
 libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBEND2END_FIXTURE_CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBEND2END_FIXTURE_CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a 
+endif
 
 
 
@@ -2299,7 +2506,11 @@ LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuf
 libs/$(CONFIG)/libend2end_test_cancel_after_accept.a: $(ZLIB_DEP) $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_cancel_after_accept.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_cancel_after_accept.a 
+endif
 
 
 
@@ -2321,7 +2532,11 @@ LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_OBJS = $(addprefix objs/$(
 libs/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a: $(ZLIB_DEP) $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a 
+endif
 
 
 
@@ -2343,7 +2558,11 @@ LIBEND2END_TEST_CANCEL_AFTER_INVOKE_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuf
 libs/$(CONFIG)/libend2end_test_cancel_after_invoke.a: $(ZLIB_DEP) $(LIBEND2END_TEST_CANCEL_AFTER_INVOKE_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_cancel_after_invoke.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBEND2END_TEST_CANCEL_AFTER_INVOKE_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_cancel_after_invoke.a 
+endif
 
 
 
@@ -2365,7 +2584,11 @@ LIBEND2END_TEST_CANCEL_BEFORE_INVOKE_OBJS = $(addprefix objs/$(CONFIG)/, $(addsu
 libs/$(CONFIG)/libend2end_test_cancel_before_invoke.a: $(ZLIB_DEP) $(LIBEND2END_TEST_CANCEL_BEFORE_INVOKE_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_cancel_before_invoke.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBEND2END_TEST_CANCEL_BEFORE_INVOKE_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_cancel_before_invoke.a 
+endif
 
 
 
@@ -2387,7 +2610,11 @@ LIBEND2END_TEST_CANCEL_IN_A_VACUUM_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuff
 libs/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a: $(ZLIB_DEP) $(LIBEND2END_TEST_CANCEL_IN_A_VACUUM_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBEND2END_TEST_CANCEL_IN_A_VACUUM_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a 
+endif
 
 
 
@@ -2409,7 +2636,11 @@ LIBEND2END_TEST_CENSUS_SIMPLE_REQUEST_OBJS = $(addprefix objs/$(CONFIG)/, $(adds
 libs/$(CONFIG)/libend2end_test_census_simple_request.a: $(ZLIB_DEP) $(LIBEND2END_TEST_CENSUS_SIMPLE_REQUEST_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_census_simple_request.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBEND2END_TEST_CENSUS_SIMPLE_REQUEST_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_census_simple_request.a 
+endif
 
 
 
@@ -2431,7 +2662,11 @@ LIBEND2END_TEST_DISAPPEARING_SERVER_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuf
 libs/$(CONFIG)/libend2end_test_disappearing_server.a: $(ZLIB_DEP) $(LIBEND2END_TEST_DISAPPEARING_SERVER_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_disappearing_server.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBEND2END_TEST_DISAPPEARING_SERVER_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_disappearing_server.a 
+endif
 
 
 
@@ -2453,7 +2688,11 @@ LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_OBJS = $(addprefix
 libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a: $(ZLIB_DEP) $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a 
+endif
 
 
 
@@ -2475,7 +2714,11 @@ LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_OBJS = $(addprefix objs/$(CO
 libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a: $(ZLIB_DEP) $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a 
+endif
 
 
 
@@ -2488,6 +2731,32 @@ endif
 objs/$(CONFIG)/test/core/end2end/tests/early_server_shutdown_finishes_tags.o: 
 
 
+LIBEND2END_TEST_GRACEFUL_SERVER_SHUTDOWN_SRC = \
+    test/core/end2end/tests/graceful_server_shutdown.c \
+
+
+LIBEND2END_TEST_GRACEFUL_SERVER_SHUTDOWN_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBEND2END_TEST_GRACEFUL_SERVER_SHUTDOWN_SRC))))
+
+libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a: $(ZLIB_DEP) $(LIBEND2END_TEST_GRACEFUL_SERVER_SHUTDOWN_OBJS)
+	$(E) "[AR]      Creating $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a
+	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBEND2END_TEST_GRACEFUL_SERVER_SHUTDOWN_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a 
+endif
+
+
+
+
+
+ifneq ($(NO_DEPS),true)
+-include $(LIBEND2END_TEST_GRACEFUL_SERVER_SHUTDOWN_OBJS:.o=.dep)
+endif
+
+objs/$(CONFIG)/test/core/end2end/tests/graceful_server_shutdown.o: 
+
+
 LIBEND2END_TEST_INVOKE_LARGE_REQUEST_SRC = \
     test/core/end2end/tests/invoke_large_request.c \
 
@@ -2497,7 +2766,11 @@ LIBEND2END_TEST_INVOKE_LARGE_REQUEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsu
 libs/$(CONFIG)/libend2end_test_invoke_large_request.a: $(ZLIB_DEP) $(LIBEND2END_TEST_INVOKE_LARGE_REQUEST_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_invoke_large_request.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBEND2END_TEST_INVOKE_LARGE_REQUEST_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_invoke_large_request.a 
+endif
 
 
 
@@ -2519,7 +2792,11 @@ LIBEND2END_TEST_MAX_CONCURRENT_STREAMS_OBJS = $(addprefix objs/$(CONFIG)/, $(add
 libs/$(CONFIG)/libend2end_test_max_concurrent_streams.a: $(ZLIB_DEP) $(LIBEND2END_TEST_MAX_CONCURRENT_STREAMS_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_max_concurrent_streams.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBEND2END_TEST_MAX_CONCURRENT_STREAMS_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_max_concurrent_streams.a 
+endif
 
 
 
@@ -2541,7 +2818,11 @@ LIBEND2END_TEST_NO_OP_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(base
 libs/$(CONFIG)/libend2end_test_no_op.a: $(ZLIB_DEP) $(LIBEND2END_TEST_NO_OP_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_no_op.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_no_op.a $(LIBEND2END_TEST_NO_OP_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_no_op.a 
+endif
 
 
 
@@ -2563,7 +2844,11 @@ LIBEND2END_TEST_PING_PONG_STREAMING_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuf
 libs/$(CONFIG)/libend2end_test_ping_pong_streaming.a: $(ZLIB_DEP) $(LIBEND2END_TEST_PING_PONG_STREAMING_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_ping_pong_streaming.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBEND2END_TEST_PING_PONG_STREAMING_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_ping_pong_streaming.a 
+endif
 
 
 
@@ -2585,7 +2870,11 @@ LIBEND2END_TEST_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_OBJS = $(addpr
 libs/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a: $(ZLIB_DEP) $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a 
+endif
 
 
 
@@ -2607,7 +2896,11 @@ LIBEND2END_TEST_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_OBJS = $(addprefix ob
 libs/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a: $(ZLIB_DEP) $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a 
+endif
 
 
 
@@ -2629,7 +2922,11 @@ LIBEND2END_TEST_REQUEST_RESPONSE_WITH_PAYLOAD_OBJS = $(addprefix objs/$(CONFIG)/
 libs/$(CONFIG)/libend2end_test_request_response_with_payload.a: $(ZLIB_DEP) $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_PAYLOAD_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_request_response_with_payload.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_PAYLOAD_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_request_response_with_payload.a 
+endif
 
 
 
@@ -2651,7 +2948,11 @@ LIBEND2END_TEST_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_OBJS = $(add
 libs/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload.a: $(ZLIB_DEP) $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload.a $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload.a 
+endif
 
 
 
@@ -2673,7 +2974,11 @@ LIBEND2END_TEST_SIMPLE_DELAYED_REQUEST_OBJS = $(addprefix objs/$(CONFIG)/, $(add
 libs/$(CONFIG)/libend2end_test_simple_delayed_request.a: $(ZLIB_DEP) $(LIBEND2END_TEST_SIMPLE_DELAYED_REQUEST_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_simple_delayed_request.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBEND2END_TEST_SIMPLE_DELAYED_REQUEST_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_simple_delayed_request.a 
+endif
 
 
 
@@ -2695,7 +3000,11 @@ LIBEND2END_TEST_SIMPLE_REQUEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .
 libs/$(CONFIG)/libend2end_test_simple_request.a: $(ZLIB_DEP) $(LIBEND2END_TEST_SIMPLE_REQUEST_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_simple_request.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_simple_request.a $(LIBEND2END_TEST_SIMPLE_REQUEST_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_simple_request.a 
+endif
 
 
 
@@ -2717,7 +3026,11 @@ LIBEND2END_TEST_THREAD_STRESS_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o
 libs/$(CONFIG)/libend2end_test_thread_stress.a: $(ZLIB_DEP) $(LIBEND2END_TEST_THREAD_STRESS_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_thread_stress.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_thread_stress.a $(LIBEND2END_TEST_THREAD_STRESS_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_thread_stress.a 
+endif
 
 
 
@@ -2739,7 +3052,11 @@ LIBEND2END_TEST_WRITES_DONE_HANGS_WITH_PENDING_READ_OBJS = $(addprefix objs/$(CO
 libs/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a: $(ZLIB_DEP) $(LIBEND2END_TEST_WRITES_DONE_HANGS_WITH_PENDING_READ_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBEND2END_TEST_WRITES_DONE_HANGS_WITH_PENDING_READ_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a 
+endif
 
 
 
@@ -2763,6 +3080,8 @@ LIBEND2END_CERTS_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename 
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure libraries if you don't have OpenSSL with ALPN.
+
 libs/$(CONFIG)/libend2end_certs.a: openssl_dep_error
 
 
@@ -2778,7 +3097,11 @@ endif
 libs/$(CONFIG)/libend2end_certs.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBEND2END_CERTS_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f libs/$(CONFIG)/libend2end_certs.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/libend2end_certs.a $(LIBEND2END_CERTS_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib libs/$(CONFIG)/libend2end_certs.a 
+endif
 
 
 
@@ -2802,508 +3125,95 @@ objs/$(CONFIG)/test/core/end2end/data/server1_key.o:
 # All of the test targets, and protoc plugins
 
 
-GEN_HPACK_TABLES_SRC = \
-    src/core/transport/chttp2/gen_hpack_tables.c \
+ALARM_HEAP_TEST_SRC = \
+    test/core/iomgr/alarm_heap_test.c \
 
-GEN_HPACK_TABLES_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GEN_HPACK_TABLES_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/gen_hpack_tables: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/gen_hpack_tables: $(GEN_HPACK_TABLES_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgpr.a libs/$(CONFIG)/libgrpc.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GEN_HPACK_TABLES_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgpr.a libs/$(CONFIG)/libgrpc.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gen_hpack_tables
-
-endif
-
-objs/$(CONFIG)/src/core/transport/chttp2/gen_hpack_tables.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgpr.a libs/$(CONFIG)/libgrpc.a
-
-deps_gen_hpack_tables: $(GEN_HPACK_TABLES_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GEN_HPACK_TABLES_OBJS:.o=.dep)
-endif
-endif
-
-
-CPP_PLUGIN_SRC = \
-    src/compiler/cpp_plugin.cc \
-    src/compiler/cpp_generator.cc \
-
-CPP_PLUGIN_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CPP_PLUGIN_SRC))))
-
-bins/$(CONFIG)/cpp_plugin: $(CPP_PLUGIN_OBJS)
-	$(E) "[HOSTLD]  Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(HOST_LDXX) $(HOST_LDFLAGS) $(CPP_PLUGIN_OBJS) $(HOST_LDLIBSXX) $(HOST_LDLIBS) $(HOST_LDLIBS_PROTOC) -o bins/$(CONFIG)/cpp_plugin
-
-objs/$(CONFIG)/src/compiler/cpp_plugin.o: 
-objs/$(CONFIG)/src/compiler/cpp_generator.o: 
-
-deps_cpp_plugin: $(CPP_PLUGIN_OBJS:.o=.dep)
-
-ifneq ($(NO_DEPS),true)
--include $(CPP_PLUGIN_OBJS:.o=.dep)
-endif
-
-
-RUBY_PLUGIN_SRC = \
-    src/compiler/ruby_plugin.cc \
-    src/compiler/ruby_generator.cc \
-
-RUBY_PLUGIN_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(RUBY_PLUGIN_SRC))))
-
-bins/$(CONFIG)/ruby_plugin: $(RUBY_PLUGIN_OBJS)
-	$(E) "[HOSTLD]  Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(HOST_LDXX) $(HOST_LDFLAGS) $(RUBY_PLUGIN_OBJS) $(HOST_LDLIBSXX) $(HOST_LDLIBS) $(HOST_LDLIBS_PROTOC) -o bins/$(CONFIG)/ruby_plugin
-
-objs/$(CONFIG)/src/compiler/ruby_plugin.o: 
-objs/$(CONFIG)/src/compiler/ruby_generator.o: 
-
-deps_ruby_plugin: $(RUBY_PLUGIN_OBJS:.o=.dep)
-
-ifneq ($(NO_DEPS),true)
--include $(RUBY_PLUGIN_OBJS:.o=.dep)
-endif
-
-
-GRPC_BYTE_BUFFER_READER_TEST_SRC = \
-    test/core/surface/byte_buffer_reader_test.c \
-
-GRPC_BYTE_BUFFER_READER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_BYTE_BUFFER_READER_TEST_SRC))))
+ALARM_HEAP_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(ALARM_HEAP_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/grpc_byte_buffer_reader_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/alarm_heap_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/grpc_byte_buffer_reader_test: $(GRPC_BYTE_BUFFER_READER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/alarm_heap_test: $(ALARM_HEAP_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GRPC_BYTE_BUFFER_READER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/grpc_byte_buffer_reader_test
+	$(Q) $(LD) $(LDFLAGS) $(ALARM_HEAP_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/alarm_heap_test
 
 endif
 
-objs/$(CONFIG)/test/core/surface/byte_buffer_reader_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/iomgr/alarm_heap_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_grpc_byte_buffer_reader_test: $(GRPC_BYTE_BUFFER_READER_TEST_OBJS:.o=.dep)
+deps_alarm_heap_test: $(ALARM_HEAP_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(GRPC_BYTE_BUFFER_READER_TEST_OBJS:.o=.dep)
+-include $(ALARM_HEAP_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-GPR_CANCELLABLE_TEST_SRC = \
-    test/core/support/cancellable_test.c \
+ALARM_LIST_TEST_SRC = \
+    test/core/iomgr/alarm_list_test.c \
 
-GPR_CANCELLABLE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_CANCELLABLE_TEST_SRC))))
+ALARM_LIST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(ALARM_LIST_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/gpr_cancellable_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/alarm_list_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/gpr_cancellable_test: $(GPR_CANCELLABLE_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/alarm_list_test: $(ALARM_LIST_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GPR_CANCELLABLE_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_cancellable_test
+	$(Q) $(LD) $(LDFLAGS) $(ALARM_LIST_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/alarm_list_test
 
 endif
 
-objs/$(CONFIG)/test/core/support/cancellable_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/iomgr/alarm_list_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_gpr_cancellable_test: $(GPR_CANCELLABLE_TEST_OBJS:.o=.dep)
+deps_alarm_list_test: $(ALARM_LIST_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(GPR_CANCELLABLE_TEST_OBJS:.o=.dep)
+-include $(ALARM_LIST_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-GPR_LOG_TEST_SRC = \
-    test/core/support/log_test.c \
+ALARM_TEST_SRC = \
+    test/core/iomgr/alarm_test.c \
 
-GPR_LOG_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_LOG_TEST_SRC))))
+ALARM_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(ALARM_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/gpr_log_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/alarm_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/gpr_log_test: $(GPR_LOG_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/alarm_test: $(ALARM_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GPR_LOG_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_log_test
+	$(Q) $(LD) $(LDFLAGS) $(ALARM_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/alarm_test
 
 endif
 
-objs/$(CONFIG)/test/core/support/log_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/iomgr/alarm_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_gpr_log_test: $(GPR_LOG_TEST_OBJS:.o=.dep)
+deps_alarm_test: $(ALARM_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(GPR_LOG_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GPR_USEFUL_TEST_SRC = \
-    test/core/support/useful_test.c \
-
-GPR_USEFUL_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_USEFUL_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/gpr_useful_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/gpr_useful_test: $(GPR_USEFUL_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GPR_USEFUL_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_useful_test
-
-endif
-
-objs/$(CONFIG)/test/core/support/useful_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_gpr_useful_test: $(GPR_USEFUL_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GPR_USEFUL_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GPR_CMDLINE_TEST_SRC = \
-    test/core/support/cmdline_test.c \
-
-GPR_CMDLINE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_CMDLINE_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/gpr_cmdline_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/gpr_cmdline_test: $(GPR_CMDLINE_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GPR_CMDLINE_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_cmdline_test
-
-endif
-
-objs/$(CONFIG)/test/core/support/cmdline_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_gpr_cmdline_test: $(GPR_CMDLINE_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GPR_CMDLINE_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GPR_HISTOGRAM_TEST_SRC = \
-    test/core/support/histogram_test.c \
-
-GPR_HISTOGRAM_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_HISTOGRAM_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/gpr_histogram_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/gpr_histogram_test: $(GPR_HISTOGRAM_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GPR_HISTOGRAM_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_histogram_test
-
-endif
-
-objs/$(CONFIG)/test/core/support/histogram_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_gpr_histogram_test: $(GPR_HISTOGRAM_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GPR_HISTOGRAM_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GPR_HOST_PORT_TEST_SRC = \
-    test/core/support/host_port_test.c \
-
-GPR_HOST_PORT_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_HOST_PORT_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/gpr_host_port_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/gpr_host_port_test: $(GPR_HOST_PORT_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GPR_HOST_PORT_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_host_port_test
-
-endif
-
-objs/$(CONFIG)/test/core/support/host_port_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_gpr_host_port_test: $(GPR_HOST_PORT_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GPR_HOST_PORT_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GPR_SLICE_BUFFER_TEST_SRC = \
-    test/core/support/slice_buffer_test.c \
-
-GPR_SLICE_BUFFER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_SLICE_BUFFER_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/gpr_slice_buffer_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/gpr_slice_buffer_test: $(GPR_SLICE_BUFFER_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GPR_SLICE_BUFFER_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_slice_buffer_test
-
-endif
-
-objs/$(CONFIG)/test/core/support/slice_buffer_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_gpr_slice_buffer_test: $(GPR_SLICE_BUFFER_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GPR_SLICE_BUFFER_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GPR_SLICE_TEST_SRC = \
-    test/core/support/slice_test.c \
-
-GPR_SLICE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_SLICE_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/gpr_slice_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/gpr_slice_test: $(GPR_SLICE_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GPR_SLICE_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_slice_test
-
-endif
-
-objs/$(CONFIG)/test/core/support/slice_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_gpr_slice_test: $(GPR_SLICE_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GPR_SLICE_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GPR_STRING_TEST_SRC = \
-    test/core/support/string_test.c \
-
-GPR_STRING_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_STRING_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/gpr_string_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/gpr_string_test: $(GPR_STRING_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GPR_STRING_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_string_test
-
-endif
-
-objs/$(CONFIG)/test/core/support/string_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_gpr_string_test: $(GPR_STRING_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GPR_STRING_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GPR_SYNC_TEST_SRC = \
-    test/core/support/sync_test.c \
-
-GPR_SYNC_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_SYNC_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/gpr_sync_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/gpr_sync_test: $(GPR_SYNC_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GPR_SYNC_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_sync_test
-
-endif
-
-objs/$(CONFIG)/test/core/support/sync_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_gpr_sync_test: $(GPR_SYNC_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GPR_SYNC_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GPR_THD_TEST_SRC = \
-    test/core/support/thd_test.c \
-
-GPR_THD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_THD_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/gpr_thd_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/gpr_thd_test: $(GPR_THD_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GPR_THD_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_thd_test
-
-endif
-
-objs/$(CONFIG)/test/core/support/thd_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_gpr_thd_test: $(GPR_THD_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GPR_THD_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GPR_TIME_TEST_SRC = \
-    test/core/support/time_test.c \
-
-GPR_TIME_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_TIME_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/gpr_time_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/gpr_time_test: $(GPR_TIME_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GPR_TIME_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_time_test
-
-endif
-
-objs/$(CONFIG)/test/core/support/time_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_gpr_time_test: $(GPR_TIME_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GPR_TIME_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-MURMUR_HASH_TEST_SRC = \
-    test/core/support/murmur_hash_test.c \
-
-MURMUR_HASH_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(MURMUR_HASH_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/murmur_hash_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/murmur_hash_test: $(MURMUR_HASH_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(MURMUR_HASH_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/murmur_hash_test
-
-endif
-
-objs/$(CONFIG)/test/core/support/murmur_hash_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_murmur_hash_test: $(MURMUR_HASH_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(MURMUR_HASH_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GRPC_STREAM_OP_TEST_SRC = \
-    test/core/transport/stream_op_test.c \
-
-GRPC_STREAM_OP_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_STREAM_OP_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/grpc_stream_op_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/grpc_stream_op_test: $(GRPC_STREAM_OP_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GRPC_STREAM_OP_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/grpc_stream_op_test
-
-endif
-
-objs/$(CONFIG)/test/core/transport/stream_op_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_grpc_stream_op_test: $(GRPC_STREAM_OP_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GRPC_STREAM_OP_TEST_OBJS:.o=.dep)
+-include $(ALARM_TEST_OBJS:.o=.dep)
 endif
 endif
 
@@ -3314,6 +3224,8 @@ ALPN_TEST_SRC = \
 ALPN_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(ALPN_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/alpn_test: openssl_dep_error
 
@@ -3337,640 +3249,157 @@ endif
 endif
 
 
-TIME_AVERAGED_STATS_TEST_SRC = \
-    test/core/iomgr/time_averaged_stats_test.c \
+BIN_ENCODER_TEST_SRC = \
+    test/core/transport/chttp2/bin_encoder_test.c \
 
-TIME_AVERAGED_STATS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TIME_AVERAGED_STATS_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/time_averaged_stats_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/time_averaged_stats_test: $(TIME_AVERAGED_STATS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(TIME_AVERAGED_STATS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/time_averaged_stats_test
-
-endif
-
-objs/$(CONFIG)/test/core/iomgr/time_averaged_stats_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_time_averaged_stats_test: $(TIME_AVERAGED_STATS_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(TIME_AVERAGED_STATS_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-CHTTP2_STREAM_ENCODER_TEST_SRC = \
-    test/core/transport/chttp2/stream_encoder_test.c \
-
-CHTTP2_STREAM_ENCODER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_STREAM_ENCODER_TEST_SRC))))
+BIN_ENCODER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(BIN_ENCODER_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/chttp2_stream_encoder_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/bin_encoder_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/chttp2_stream_encoder_test: $(CHTTP2_STREAM_ENCODER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/bin_encoder_test: $(BIN_ENCODER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_STREAM_ENCODER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_stream_encoder_test
+	$(Q) $(LD) $(LDFLAGS) $(BIN_ENCODER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/bin_encoder_test
 
 endif
 
-objs/$(CONFIG)/test/core/transport/chttp2/stream_encoder_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/transport/chttp2/bin_encoder_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_chttp2_stream_encoder_test: $(CHTTP2_STREAM_ENCODER_TEST_OBJS:.o=.dep)
+deps_bin_encoder_test: $(BIN_ENCODER_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(CHTTP2_STREAM_ENCODER_TEST_OBJS:.o=.dep)
+-include $(BIN_ENCODER_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-HPACK_TABLE_TEST_SRC = \
-    test/core/transport/chttp2/hpack_table_test.c \
+CENSUS_HASH_TABLE_TEST_SRC = \
+    test/core/statistics/hash_table_test.c \
 
-HPACK_TABLE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(HPACK_TABLE_TEST_SRC))))
+CENSUS_HASH_TABLE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_HASH_TABLE_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/hpack_table_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/census_hash_table_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/hpack_table_test: $(HPACK_TABLE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/census_hash_table_test: $(CENSUS_HASH_TABLE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(HPACK_TABLE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/hpack_table_test
+	$(Q) $(LD) $(LDFLAGS) $(CENSUS_HASH_TABLE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_hash_table_test
 
 endif
 
-objs/$(CONFIG)/test/core/transport/chttp2/hpack_table_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/statistics/hash_table_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_hpack_table_test: $(HPACK_TABLE_TEST_OBJS:.o=.dep)
+deps_census_hash_table_test: $(CENSUS_HASH_TABLE_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(HPACK_TABLE_TEST_OBJS:.o=.dep)
+-include $(CENSUS_HASH_TABLE_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-CHTTP2_STREAM_MAP_TEST_SRC = \
-    test/core/transport/chttp2/stream_map_test.c \
+CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_SRC = \
+    test/core/statistics/multiple_writers_circular_buffer_test.c \
 
-CHTTP2_STREAM_MAP_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_STREAM_MAP_TEST_SRC))))
+CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/chttp2_stream_map_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/chttp2_stream_map_test: $(CHTTP2_STREAM_MAP_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test: $(CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_STREAM_MAP_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_stream_map_test
+	$(Q) $(LD) $(LDFLAGS) $(CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test
 
 endif
 
-objs/$(CONFIG)/test/core/transport/chttp2/stream_map_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/statistics/multiple_writers_circular_buffer_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_chttp2_stream_map_test: $(CHTTP2_STREAM_MAP_TEST_OBJS:.o=.dep)
+deps_census_statistics_multiple_writers_circular_buffer_test: $(CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(CHTTP2_STREAM_MAP_TEST_OBJS:.o=.dep)
+-include $(CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-HPACK_PARSER_TEST_SRC = \
-    test/core/transport/chttp2/hpack_parser_test.c \
+CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_SRC = \
+    test/core/statistics/multiple_writers_test.c \
 
-HPACK_PARSER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(HPACK_PARSER_TEST_SRC))))
+CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/hpack_parser_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/census_statistics_multiple_writers_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/hpack_parser_test: $(HPACK_PARSER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/census_statistics_multiple_writers_test: $(CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(HPACK_PARSER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/hpack_parser_test
+	$(Q) $(LD) $(LDFLAGS) $(CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_statistics_multiple_writers_test
 
 endif
 
-objs/$(CONFIG)/test/core/transport/chttp2/hpack_parser_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/statistics/multiple_writers_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_hpack_parser_test: $(HPACK_PARSER_TEST_OBJS:.o=.dep)
+deps_census_statistics_multiple_writers_test: $(CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(HPACK_PARSER_TEST_OBJS:.o=.dep)
+-include $(CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-TRANSPORT_METADATA_TEST_SRC = \
-    test/core/transport/metadata_test.c \
+CENSUS_STATISTICS_PERFORMANCE_TEST_SRC = \
+    test/core/statistics/performance_test.c \
 
-TRANSPORT_METADATA_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TRANSPORT_METADATA_TEST_SRC))))
+CENSUS_STATISTICS_PERFORMANCE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_STATISTICS_PERFORMANCE_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/transport_metadata_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/census_statistics_performance_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/transport_metadata_test: $(TRANSPORT_METADATA_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/census_statistics_performance_test: $(CENSUS_STATISTICS_PERFORMANCE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(TRANSPORT_METADATA_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/transport_metadata_test
+	$(Q) $(LD) $(LDFLAGS) $(CENSUS_STATISTICS_PERFORMANCE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_statistics_performance_test
 
 endif
 
-objs/$(CONFIG)/test/core/transport/metadata_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/statistics/performance_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_transport_metadata_test: $(TRANSPORT_METADATA_TEST_OBJS:.o=.dep)
+deps_census_statistics_performance_test: $(CENSUS_STATISTICS_PERFORMANCE_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(TRANSPORT_METADATA_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-CHTTP2_STATUS_CONVERSION_TEST_SRC = \
-    test/core/transport/chttp2/status_conversion_test.c \
-
-CHTTP2_STATUS_CONVERSION_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_STATUS_CONVERSION_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/chttp2_status_conversion_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/chttp2_status_conversion_test: $(CHTTP2_STATUS_CONVERSION_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_STATUS_CONVERSION_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_status_conversion_test
-
-endif
-
-objs/$(CONFIG)/test/core/transport/chttp2/status_conversion_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_chttp2_status_conversion_test: $(CHTTP2_STATUS_CONVERSION_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(CHTTP2_STATUS_CONVERSION_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-CHTTP2_TRANSPORT_END2END_TEST_SRC = \
-    test/core/transport/chttp2_transport_end2end_test.c \
-
-CHTTP2_TRANSPORT_END2END_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_TRANSPORT_END2END_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/chttp2_transport_end2end_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/chttp2_transport_end2end_test: $(CHTTP2_TRANSPORT_END2END_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_TRANSPORT_END2END_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_transport_end2end_test
-
-endif
-
-objs/$(CONFIG)/test/core/transport/chttp2_transport_end2end_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_chttp2_transport_end2end_test: $(CHTTP2_TRANSPORT_END2END_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(CHTTP2_TRANSPORT_END2END_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-TCP_POSIX_TEST_SRC = \
-    test/core/iomgr/tcp_posix_test.c \
-
-TCP_POSIX_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TCP_POSIX_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/tcp_posix_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/tcp_posix_test: $(TCP_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(TCP_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tcp_posix_test
-
-endif
-
-objs/$(CONFIG)/test/core/iomgr/tcp_posix_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_tcp_posix_test: $(TCP_POSIX_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(TCP_POSIX_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-DUALSTACK_SOCKET_TEST_SRC = \
-    test/core/end2end/dualstack_socket_test.c \
-
-DUALSTACK_SOCKET_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(DUALSTACK_SOCKET_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/dualstack_socket_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/dualstack_socket_test: $(DUALSTACK_SOCKET_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(DUALSTACK_SOCKET_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/dualstack_socket_test
-
-endif
-
-objs/$(CONFIG)/test/core/end2end/dualstack_socket_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_dualstack_socket_test: $(DUALSTACK_SOCKET_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(DUALSTACK_SOCKET_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-NO_SERVER_TEST_SRC = \
-    test/core/end2end/no_server_test.c \
-
-NO_SERVER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(NO_SERVER_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/no_server_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/no_server_test: $(NO_SERVER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(NO_SERVER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/no_server_test
-
-endif
-
-objs/$(CONFIG)/test/core/end2end/no_server_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_no_server_test: $(NO_SERVER_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(NO_SERVER_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-RESOLVE_ADDRESS_TEST_SRC = \
-    test/core/iomgr/resolve_address_test.c \
-
-RESOLVE_ADDRESS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(RESOLVE_ADDRESS_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/resolve_address_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/resolve_address_test: $(RESOLVE_ADDRESS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(RESOLVE_ADDRESS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/resolve_address_test
-
-endif
-
-objs/$(CONFIG)/test/core/iomgr/resolve_address_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_resolve_address_test: $(RESOLVE_ADDRESS_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(RESOLVE_ADDRESS_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-SOCKADDR_UTILS_TEST_SRC = \
-    test/core/iomgr/sockaddr_utils_test.c \
-
-SOCKADDR_UTILS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(SOCKADDR_UTILS_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/sockaddr_utils_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/sockaddr_utils_test: $(SOCKADDR_UTILS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(SOCKADDR_UTILS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/sockaddr_utils_test
-
-endif
-
-objs/$(CONFIG)/test/core/iomgr/sockaddr_utils_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_sockaddr_utils_test: $(SOCKADDR_UTILS_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(SOCKADDR_UTILS_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-TCP_SERVER_POSIX_TEST_SRC = \
-    test/core/iomgr/tcp_server_posix_test.c \
-
-TCP_SERVER_POSIX_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TCP_SERVER_POSIX_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/tcp_server_posix_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/tcp_server_posix_test: $(TCP_SERVER_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(TCP_SERVER_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tcp_server_posix_test
-
-endif
-
-objs/$(CONFIG)/test/core/iomgr/tcp_server_posix_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_tcp_server_posix_test: $(TCP_SERVER_POSIX_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(TCP_SERVER_POSIX_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-TCP_CLIENT_POSIX_TEST_SRC = \
-    test/core/iomgr/tcp_client_posix_test.c \
-
-TCP_CLIENT_POSIX_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TCP_CLIENT_POSIX_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/tcp_client_posix_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/tcp_client_posix_test: $(TCP_CLIENT_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(TCP_CLIENT_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tcp_client_posix_test
-
-endif
-
-objs/$(CONFIG)/test/core/iomgr/tcp_client_posix_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_tcp_client_posix_test: $(TCP_CLIENT_POSIX_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(TCP_CLIENT_POSIX_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GRPC_CHANNEL_STACK_TEST_SRC = \
-    test/core/channel/channel_stack_test.c \
-
-GRPC_CHANNEL_STACK_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_CHANNEL_STACK_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/grpc_channel_stack_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/grpc_channel_stack_test: $(GRPC_CHANNEL_STACK_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GRPC_CHANNEL_STACK_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/grpc_channel_stack_test
-
-endif
-
-objs/$(CONFIG)/test/core/channel/channel_stack_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_grpc_channel_stack_test: $(GRPC_CHANNEL_STACK_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GRPC_CHANNEL_STACK_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-METADATA_BUFFER_TEST_SRC = \
-    test/core/channel/metadata_buffer_test.c \
-
-METADATA_BUFFER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(METADATA_BUFFER_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/metadata_buffer_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/metadata_buffer_test: $(METADATA_BUFFER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(METADATA_BUFFER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/metadata_buffer_test
-
-endif
-
-objs/$(CONFIG)/test/core/channel/metadata_buffer_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_metadata_buffer_test: $(METADATA_BUFFER_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(METADATA_BUFFER_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GRPC_COMPLETION_QUEUE_TEST_SRC = \
-    test/core/surface/completion_queue_test.c \
-
-GRPC_COMPLETION_QUEUE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_COMPLETION_QUEUE_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/grpc_completion_queue_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/grpc_completion_queue_test: $(GRPC_COMPLETION_QUEUE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GRPC_COMPLETION_QUEUE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/grpc_completion_queue_test
-
-endif
-
-objs/$(CONFIG)/test/core/surface/completion_queue_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_grpc_completion_queue_test: $(GRPC_COMPLETION_QUEUE_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GRPC_COMPLETION_QUEUE_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-GRPC_COMPLETION_QUEUE_BENCHMARK_SRC = \
-    test/core/surface/completion_queue_benchmark.c \
-
-GRPC_COMPLETION_QUEUE_BENCHMARK_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_COMPLETION_QUEUE_BENCHMARK_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/grpc_completion_queue_benchmark: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/grpc_completion_queue_benchmark: $(GRPC_COMPLETION_QUEUE_BENCHMARK_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GRPC_COMPLETION_QUEUE_BENCHMARK_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/grpc_completion_queue_benchmark
-
-endif
-
-objs/$(CONFIG)/test/core/surface/completion_queue_benchmark.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_grpc_completion_queue_benchmark: $(GRPC_COMPLETION_QUEUE_BENCHMARK_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GRPC_COMPLETION_QUEUE_BENCHMARK_OBJS:.o=.dep)
-endif
-endif
-
-
-CENSUS_TRACE_STORE_TEST_SRC = \
-    test/core/statistics/trace_test.c \
-
-CENSUS_TRACE_STORE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_TRACE_STORE_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/census_trace_store_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/census_trace_store_test: $(CENSUS_TRACE_STORE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CENSUS_TRACE_STORE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_trace_store_test
-
-endif
-
-objs/$(CONFIG)/test/core/statistics/trace_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_census_trace_store_test: $(CENSUS_TRACE_STORE_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(CENSUS_TRACE_STORE_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-CENSUS_STATS_STORE_TEST_SRC = \
-    test/core/statistics/rpc_stats_test.c \
-
-CENSUS_STATS_STORE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_STATS_STORE_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/census_stats_store_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/census_stats_store_test: $(CENSUS_STATS_STORE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CENSUS_STATS_STORE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_stats_store_test
-
-endif
-
-objs/$(CONFIG)/test/core/statistics/rpc_stats_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_census_stats_store_test: $(CENSUS_STATS_STORE_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(CENSUS_STATS_STORE_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-CENSUS_WINDOW_STATS_TEST_SRC = \
-    test/core/statistics/window_stats_test.c \
-
-CENSUS_WINDOW_STATS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_WINDOW_STATS_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/census_window_stats_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/census_window_stats_test: $(CENSUS_WINDOW_STATS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CENSUS_WINDOW_STATS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_window_stats_test
-
-endif
-
-objs/$(CONFIG)/test/core/statistics/window_stats_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_census_window_stats_test: $(CENSUS_WINDOW_STATS_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(CENSUS_WINDOW_STATS_TEST_OBJS:.o=.dep)
+-include $(CENSUS_STATISTICS_PERFORMANCE_TEST_OBJS:.o=.dep)
 endif
 endif
 
@@ -3981,6 +3410,8 @@ CENSUS_STATISTICS_QUICK_TEST_SRC = \
 CENSUS_STATISTICS_QUICK_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_STATISTICS_QUICK_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/census_statistics_quick_test: openssl_dep_error
 
@@ -4011,6 +3442,8 @@ CENSUS_STATISTICS_SMALL_LOG_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/census_statistics_small_log_test: openssl_dep_error
 
 else
@@ -4033,89 +3466,33 @@ endif
 endif
 
 
-CENSUS_STATISTICS_PERFORMANCE_TEST_SRC = \
-    test/core/statistics/performance_test.c \
+CENSUS_STATS_STORE_TEST_SRC = \
+    test/core/statistics/rpc_stats_test.c \
 
-CENSUS_STATISTICS_PERFORMANCE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_STATISTICS_PERFORMANCE_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/census_statistics_performance_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/census_statistics_performance_test: $(CENSUS_STATISTICS_PERFORMANCE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CENSUS_STATISTICS_PERFORMANCE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_statistics_performance_test
-
-endif
-
-objs/$(CONFIG)/test/core/statistics/performance_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_census_statistics_performance_test: $(CENSUS_STATISTICS_PERFORMANCE_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(CENSUS_STATISTICS_PERFORMANCE_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_SRC = \
-    test/core/statistics/multiple_writers_test.c \
-
-CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_SRC))))
+CENSUS_STATS_STORE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_STATS_STORE_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/census_statistics_multiple_writers_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/census_stats_store_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/census_statistics_multiple_writers_test: $(CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/census_stats_store_test: $(CENSUS_STATS_STORE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_statistics_multiple_writers_test
+	$(Q) $(LD) $(LDFLAGS) $(CENSUS_STATS_STORE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_stats_store_test
 
 endif
 
-objs/$(CONFIG)/test/core/statistics/multiple_writers_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/statistics/rpc_stats_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_census_statistics_multiple_writers_test: $(CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_OBJS:.o=.dep)
+deps_census_stats_store_test: $(CENSUS_STATS_STORE_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(CENSUS_STATISTICS_MULTIPLE_WRITERS_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_SRC = \
-    test/core/statistics/multiple_writers_circular_buffer_test.c \
-
-CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test: $(CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test
-
-endif
-
-objs/$(CONFIG)/test/core/statistics/multiple_writers_circular_buffer_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_census_statistics_multiple_writers_circular_buffer_test: $(CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(CENSUS_STATISTICS_MULTIPLE_WRITERS_CIRCULAR_BUFFER_TEST_OBJS:.o=.dep)
+-include $(CENSUS_STATS_STORE_TEST_OBJS:.o=.dep)
 endif
 endif
 
@@ -4126,6 +3503,8 @@ CENSUS_STUB_TEST_SRC = \
 CENSUS_STUB_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_STUB_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/census_stub_test: openssl_dep_error
 
@@ -4149,147 +3528,219 @@ endif
 endif
 
 
-CENSUS_HASH_TABLE_TEST_SRC = \
-    test/core/statistics/hash_table_test.c \
+CENSUS_TRACE_STORE_TEST_SRC = \
+    test/core/statistics/trace_test.c \
 
-CENSUS_HASH_TABLE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_HASH_TABLE_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/census_hash_table_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/census_hash_table_test: $(CENSUS_HASH_TABLE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CENSUS_HASH_TABLE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_hash_table_test
-
-endif
-
-objs/$(CONFIG)/test/core/statistics/hash_table_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_census_hash_table_test: $(CENSUS_HASH_TABLE_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(CENSUS_HASH_TABLE_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-FLING_SERVER_SRC = \
-    test/core/fling/server.c \
-
-FLING_SERVER_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(FLING_SERVER_SRC))))
+CENSUS_TRACE_STORE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_TRACE_STORE_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/fling_server: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/census_trace_store_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/fling_server: $(FLING_SERVER_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/census_trace_store_test: $(CENSUS_TRACE_STORE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(FLING_SERVER_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/fling_server
+	$(Q) $(LD) $(LDFLAGS) $(CENSUS_TRACE_STORE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_trace_store_test
 
 endif
 
-objs/$(CONFIG)/test/core/fling/server.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/statistics/trace_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_fling_server: $(FLING_SERVER_OBJS:.o=.dep)
+deps_census_trace_store_test: $(CENSUS_TRACE_STORE_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(FLING_SERVER_OBJS:.o=.dep)
+-include $(CENSUS_TRACE_STORE_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-FLING_CLIENT_SRC = \
-    test/core/fling/client.c \
+CENSUS_WINDOW_STATS_TEST_SRC = \
+    test/core/statistics/window_stats_test.c \
 
-FLING_CLIENT_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(FLING_CLIENT_SRC))))
+CENSUS_WINDOW_STATS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_WINDOW_STATS_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/fling_client: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/census_window_stats_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/fling_client: $(FLING_CLIENT_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/census_window_stats_test: $(CENSUS_WINDOW_STATS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(FLING_CLIENT_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/fling_client
+	$(Q) $(LD) $(LDFLAGS) $(CENSUS_WINDOW_STATS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/census_window_stats_test
 
 endif
 
-objs/$(CONFIG)/test/core/fling/client.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/statistics/window_stats_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_fling_client: $(FLING_CLIENT_OBJS:.o=.dep)
+deps_census_window_stats_test: $(CENSUS_WINDOW_STATS_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(FLING_CLIENT_OBJS:.o=.dep)
+-include $(CENSUS_WINDOW_STATS_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-FLING_TEST_SRC = \
-    test/core/fling/fling_test.c \
+CHTTP2_STATUS_CONVERSION_TEST_SRC = \
+    test/core/transport/chttp2/status_conversion_test.c \
 
-FLING_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(FLING_TEST_SRC))))
+CHTTP2_STATUS_CONVERSION_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_STATUS_CONVERSION_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/fling_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/chttp2_status_conversion_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/fling_test: $(FLING_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/chttp2_status_conversion_test: $(CHTTP2_STATUS_CONVERSION_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(FLING_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/fling_test
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_STATUS_CONVERSION_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_status_conversion_test
 
 endif
 
-objs/$(CONFIG)/test/core/fling/fling_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/transport/chttp2/status_conversion_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_fling_test: $(FLING_TEST_OBJS:.o=.dep)
+deps_chttp2_status_conversion_test: $(CHTTP2_STATUS_CONVERSION_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(FLING_TEST_OBJS:.o=.dep)
+-include $(CHTTP2_STATUS_CONVERSION_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-ECHO_SERVER_SRC = \
-    test/core/echo/server.c \
+CHTTP2_STREAM_ENCODER_TEST_SRC = \
+    test/core/transport/chttp2/stream_encoder_test.c \
 
-ECHO_SERVER_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(ECHO_SERVER_SRC))))
+CHTTP2_STREAM_ENCODER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_STREAM_ENCODER_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/echo_server: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/chttp2_stream_encoder_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/echo_server: $(ECHO_SERVER_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/chttp2_stream_encoder_test: $(CHTTP2_STREAM_ENCODER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(ECHO_SERVER_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/echo_server
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_STREAM_ENCODER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_stream_encoder_test
 
 endif
 
-objs/$(CONFIG)/test/core/echo/server.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/transport/chttp2/stream_encoder_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_echo_server: $(ECHO_SERVER_OBJS:.o=.dep)
+deps_chttp2_stream_encoder_test: $(CHTTP2_STREAM_ENCODER_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(ECHO_SERVER_OBJS:.o=.dep)
+-include $(CHTTP2_STREAM_ENCODER_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+CHTTP2_STREAM_MAP_TEST_SRC = \
+    test/core/transport/chttp2/stream_map_test.c \
+
+CHTTP2_STREAM_MAP_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_STREAM_MAP_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/chttp2_stream_map_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/chttp2_stream_map_test: $(CHTTP2_STREAM_MAP_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_STREAM_MAP_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_stream_map_test
+
+endif
+
+objs/$(CONFIG)/test/core/transport/chttp2/stream_map_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_chttp2_stream_map_test: $(CHTTP2_STREAM_MAP_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(CHTTP2_STREAM_MAP_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+CHTTP2_TRANSPORT_END2END_TEST_SRC = \
+    test/core/transport/chttp2_transport_end2end_test.c \
+
+CHTTP2_TRANSPORT_END2END_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_TRANSPORT_END2END_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/chttp2_transport_end2end_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/chttp2_transport_end2end_test: $(CHTTP2_TRANSPORT_END2END_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_TRANSPORT_END2END_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_transport_end2end_test
+
+endif
+
+objs/$(CONFIG)/test/core/transport/chttp2_transport_end2end_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_chttp2_transport_end2end_test: $(CHTTP2_TRANSPORT_END2END_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(CHTTP2_TRANSPORT_END2END_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+DUALSTACK_SOCKET_TEST_SRC = \
+    test/core/end2end/dualstack_socket_test.c \
+
+DUALSTACK_SOCKET_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(DUALSTACK_SOCKET_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/dualstack_socket_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/dualstack_socket_test: $(DUALSTACK_SOCKET_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(DUALSTACK_SOCKET_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/dualstack_socket_test
+
+endif
+
+objs/$(CONFIG)/test/core/end2end/dualstack_socket_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_dualstack_socket_test: $(DUALSTACK_SOCKET_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(DUALSTACK_SOCKET_TEST_OBJS:.o=.dep)
 endif
 endif
 
@@ -4300,6 +3751,8 @@ ECHO_CLIENT_SRC = \
 ECHO_CLIENT_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(ECHO_CLIENT_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/echo_client: openssl_dep_error
 
@@ -4323,12 +3776,45 @@ endif
 endif
 
 
+ECHO_SERVER_SRC = \
+    test/core/echo/server.c \
+
+ECHO_SERVER_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(ECHO_SERVER_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/echo_server: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/echo_server: $(ECHO_SERVER_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(ECHO_SERVER_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/echo_server
+
+endif
+
+objs/$(CONFIG)/test/core/echo/server.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_echo_server: $(ECHO_SERVER_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(ECHO_SERVER_OBJS:.o=.dep)
+endif
+endif
+
+
 ECHO_TEST_SRC = \
     test/core/echo/echo_test.c \
 
 ECHO_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(ECHO_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/echo_test: openssl_dep_error
 
@@ -4352,205 +3838,715 @@ endif
 endif
 
 
-LOW_LEVEL_PING_PONG_BENCHMARK_SRC = \
-    test/core/network_benchmarks/low_level_ping_pong.c \
+FD_POSIX_TEST_SRC = \
+    test/core/iomgr/fd_posix_test.c \
 
-LOW_LEVEL_PING_PONG_BENCHMARK_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LOW_LEVEL_PING_PONG_BENCHMARK_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/low_level_ping_pong_benchmark: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/low_level_ping_pong_benchmark: $(LOW_LEVEL_PING_PONG_BENCHMARK_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(LOW_LEVEL_PING_PONG_BENCHMARK_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/low_level_ping_pong_benchmark
-
-endif
-
-objs/$(CONFIG)/test/core/network_benchmarks/low_level_ping_pong.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_low_level_ping_pong_benchmark: $(LOW_LEVEL_PING_PONG_BENCHMARK_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(LOW_LEVEL_PING_PONG_BENCHMARK_OBJS:.o=.dep)
-endif
-endif
-
-
-MESSAGE_COMPRESS_TEST_SRC = \
-    test/core/compression/message_compress_test.c \
-
-MESSAGE_COMPRESS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(MESSAGE_COMPRESS_TEST_SRC))))
+FD_POSIX_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(FD_POSIX_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/message_compress_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/fd_posix_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/message_compress_test: $(MESSAGE_COMPRESS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/fd_posix_test: $(FD_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(MESSAGE_COMPRESS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/message_compress_test
+	$(Q) $(LD) $(LDFLAGS) $(FD_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/fd_posix_test
 
 endif
 
-objs/$(CONFIG)/test/core/compression/message_compress_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/iomgr/fd_posix_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_message_compress_test: $(MESSAGE_COMPRESS_TEST_OBJS:.o=.dep)
+deps_fd_posix_test: $(FD_POSIX_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(MESSAGE_COMPRESS_TEST_OBJS:.o=.dep)
+-include $(FD_POSIX_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-BIN_ENCODER_TEST_SRC = \
-    test/core/transport/chttp2/bin_encoder_test.c \
+FLING_CLIENT_SRC = \
+    test/core/fling/client.c \
 
-BIN_ENCODER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(BIN_ENCODER_TEST_SRC))))
+FLING_CLIENT_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(FLING_CLIENT_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/bin_encoder_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/fling_client: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/bin_encoder_test: $(BIN_ENCODER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/fling_client: $(FLING_CLIENT_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(BIN_ENCODER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/bin_encoder_test
+	$(Q) $(LD) $(LDFLAGS) $(FLING_CLIENT_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/fling_client
 
 endif
 
-objs/$(CONFIG)/test/core/transport/chttp2/bin_encoder_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/fling/client.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_bin_encoder_test: $(BIN_ENCODER_TEST_OBJS:.o=.dep)
+deps_fling_client: $(FLING_CLIENT_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(BIN_ENCODER_TEST_OBJS:.o=.dep)
+-include $(FLING_CLIENT_OBJS:.o=.dep)
 endif
 endif
 
 
-SECURE_ENDPOINT_TEST_SRC = \
-    test/core/security/secure_endpoint_test.c \
+FLING_SERVER_SRC = \
+    test/core/fling/server.c \
 
-SECURE_ENDPOINT_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(SECURE_ENDPOINT_TEST_SRC))))
+FLING_SERVER_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(FLING_SERVER_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/secure_endpoint_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/fling_server: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/secure_endpoint_test: $(SECURE_ENDPOINT_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/fling_server: $(FLING_SERVER_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(SECURE_ENDPOINT_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/secure_endpoint_test
+	$(Q) $(LD) $(LDFLAGS) $(FLING_SERVER_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/fling_server
 
 endif
 
-objs/$(CONFIG)/test/core/security/secure_endpoint_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/fling/server.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_secure_endpoint_test: $(SECURE_ENDPOINT_TEST_OBJS:.o=.dep)
+deps_fling_server: $(FLING_SERVER_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(SECURE_ENDPOINT_TEST_OBJS:.o=.dep)
+-include $(FLING_SERVER_OBJS:.o=.dep)
 endif
 endif
 
 
-HTTPCLI_FORMAT_REQUEST_TEST_SRC = \
-    test/core/httpcli/format_request_test.c \
+FLING_STREAM_TEST_SRC = \
+    test/core/fling/fling_stream_test.c \
 
-HTTPCLI_FORMAT_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(HTTPCLI_FORMAT_REQUEST_TEST_SRC))))
+FLING_STREAM_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(FLING_STREAM_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/httpcli_format_request_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/fling_stream_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/httpcli_format_request_test: $(HTTPCLI_FORMAT_REQUEST_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/fling_stream_test: $(FLING_STREAM_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(HTTPCLI_FORMAT_REQUEST_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/httpcli_format_request_test
+	$(Q) $(LD) $(LDFLAGS) $(FLING_STREAM_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/fling_stream_test
 
 endif
 
-objs/$(CONFIG)/test/core/httpcli/format_request_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/fling/fling_stream_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_httpcli_format_request_test: $(HTTPCLI_FORMAT_REQUEST_TEST_OBJS:.o=.dep)
+deps_fling_stream_test: $(FLING_STREAM_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(HTTPCLI_FORMAT_REQUEST_TEST_OBJS:.o=.dep)
+-include $(FLING_STREAM_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-HTTPCLI_PARSER_TEST_SRC = \
-    test/core/httpcli/parser_test.c \
+FLING_TEST_SRC = \
+    test/core/fling/fling_test.c \
 
-HTTPCLI_PARSER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(HTTPCLI_PARSER_TEST_SRC))))
+FLING_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(FLING_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/httpcli_parser_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/fling_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/httpcli_parser_test: $(HTTPCLI_PARSER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/fling_test: $(FLING_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(HTTPCLI_PARSER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/httpcli_parser_test
+	$(Q) $(LD) $(LDFLAGS) $(FLING_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/fling_test
 
 endif
 
-objs/$(CONFIG)/test/core/httpcli/parser_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/fling/fling_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_httpcli_parser_test: $(HTTPCLI_PARSER_TEST_OBJS:.o=.dep)
+deps_fling_test: $(FLING_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(HTTPCLI_PARSER_TEST_OBJS:.o=.dep)
+-include $(FLING_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-HTTPCLI_TEST_SRC = \
-    test/core/httpcli/httpcli_test.c \
+GEN_HPACK_TABLES_SRC = \
+    src/core/transport/chttp2/gen_hpack_tables.c \
 
-HTTPCLI_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(HTTPCLI_TEST_SRC))))
+GEN_HPACK_TABLES_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GEN_HPACK_TABLES_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/httpcli_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/gen_hpack_tables: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/httpcli_test: $(HTTPCLI_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/gen_hpack_tables: $(GEN_HPACK_TABLES_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgpr.a libs/$(CONFIG)/libgrpc.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(HTTPCLI_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/httpcli_test
+	$(Q) $(LD) $(LDFLAGS) $(GEN_HPACK_TABLES_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgpr.a libs/$(CONFIG)/libgrpc.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gen_hpack_tables
 
 endif
 
-objs/$(CONFIG)/test/core/httpcli/httpcli_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/src/core/transport/chttp2/gen_hpack_tables.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgpr.a libs/$(CONFIG)/libgrpc.a
 
-deps_httpcli_test: $(HTTPCLI_TEST_OBJS:.o=.dep)
+deps_gen_hpack_tables: $(GEN_HPACK_TABLES_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(HTTPCLI_TEST_OBJS:.o=.dep)
+-include $(GEN_HPACK_TABLES_OBJS:.o=.dep)
+endif
+endif
+
+
+GPR_CANCELLABLE_TEST_SRC = \
+    test/core/support/cancellable_test.c \
+
+GPR_CANCELLABLE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_CANCELLABLE_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/gpr_cancellable_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/gpr_cancellable_test: $(GPR_CANCELLABLE_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GPR_CANCELLABLE_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_cancellable_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/cancellable_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_gpr_cancellable_test: $(GPR_CANCELLABLE_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GPR_CANCELLABLE_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GPR_CMDLINE_TEST_SRC = \
+    test/core/support/cmdline_test.c \
+
+GPR_CMDLINE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_CMDLINE_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/gpr_cmdline_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/gpr_cmdline_test: $(GPR_CMDLINE_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GPR_CMDLINE_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_cmdline_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/cmdline_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_gpr_cmdline_test: $(GPR_CMDLINE_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GPR_CMDLINE_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GPR_HISTOGRAM_TEST_SRC = \
+    test/core/support/histogram_test.c \
+
+GPR_HISTOGRAM_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_HISTOGRAM_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/gpr_histogram_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/gpr_histogram_test: $(GPR_HISTOGRAM_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GPR_HISTOGRAM_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_histogram_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/histogram_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_gpr_histogram_test: $(GPR_HISTOGRAM_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GPR_HISTOGRAM_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GPR_HOST_PORT_TEST_SRC = \
+    test/core/support/host_port_test.c \
+
+GPR_HOST_PORT_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_HOST_PORT_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/gpr_host_port_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/gpr_host_port_test: $(GPR_HOST_PORT_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GPR_HOST_PORT_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_host_port_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/host_port_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_gpr_host_port_test: $(GPR_HOST_PORT_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GPR_HOST_PORT_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GPR_LOG_TEST_SRC = \
+    test/core/support/log_test.c \
+
+GPR_LOG_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_LOG_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/gpr_log_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/gpr_log_test: $(GPR_LOG_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GPR_LOG_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_log_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/log_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_gpr_log_test: $(GPR_LOG_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GPR_LOG_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GPR_SLICE_BUFFER_TEST_SRC = \
+    test/core/support/slice_buffer_test.c \
+
+GPR_SLICE_BUFFER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_SLICE_BUFFER_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/gpr_slice_buffer_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/gpr_slice_buffer_test: $(GPR_SLICE_BUFFER_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GPR_SLICE_BUFFER_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_slice_buffer_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/slice_buffer_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_gpr_slice_buffer_test: $(GPR_SLICE_BUFFER_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GPR_SLICE_BUFFER_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GPR_SLICE_TEST_SRC = \
+    test/core/support/slice_test.c \
+
+GPR_SLICE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_SLICE_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/gpr_slice_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/gpr_slice_test: $(GPR_SLICE_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GPR_SLICE_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_slice_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/slice_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_gpr_slice_test: $(GPR_SLICE_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GPR_SLICE_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GPR_STRING_TEST_SRC = \
+    test/core/support/string_test.c \
+
+GPR_STRING_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_STRING_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/gpr_string_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/gpr_string_test: $(GPR_STRING_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GPR_STRING_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_string_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/string_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_gpr_string_test: $(GPR_STRING_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GPR_STRING_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GPR_SYNC_TEST_SRC = \
+    test/core/support/sync_test.c \
+
+GPR_SYNC_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_SYNC_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/gpr_sync_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/gpr_sync_test: $(GPR_SYNC_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GPR_SYNC_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_sync_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/sync_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_gpr_sync_test: $(GPR_SYNC_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GPR_SYNC_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GPR_THD_TEST_SRC = \
+    test/core/support/thd_test.c \
+
+GPR_THD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_THD_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/gpr_thd_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/gpr_thd_test: $(GPR_THD_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GPR_THD_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_thd_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/thd_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_gpr_thd_test: $(GPR_THD_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GPR_THD_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GPR_TIME_TEST_SRC = \
+    test/core/support/time_test.c \
+
+GPR_TIME_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_TIME_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/gpr_time_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/gpr_time_test: $(GPR_TIME_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GPR_TIME_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_time_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/time_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_gpr_time_test: $(GPR_TIME_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GPR_TIME_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GPR_USEFUL_TEST_SRC = \
+    test/core/support/useful_test.c \
+
+GPR_USEFUL_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_USEFUL_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/gpr_useful_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/gpr_useful_test: $(GPR_USEFUL_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GPR_USEFUL_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/gpr_useful_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/useful_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_gpr_useful_test: $(GPR_USEFUL_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GPR_USEFUL_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GRPC_BASE64_TEST_SRC = \
+    test/core/security/base64_test.c \
+
+GRPC_BASE64_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_BASE64_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/grpc_base64_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/grpc_base64_test: $(GRPC_BASE64_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GRPC_BASE64_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/grpc_base64_test
+
+endif
+
+objs/$(CONFIG)/test/core/security/base64_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_grpc_base64_test: $(GRPC_BASE64_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GRPC_BASE64_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GRPC_BYTE_BUFFER_READER_TEST_SRC = \
+    test/core/surface/byte_buffer_reader_test.c \
+
+GRPC_BYTE_BUFFER_READER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_BYTE_BUFFER_READER_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/grpc_byte_buffer_reader_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/grpc_byte_buffer_reader_test: $(GRPC_BYTE_BUFFER_READER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GRPC_BYTE_BUFFER_READER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/grpc_byte_buffer_reader_test
+
+endif
+
+objs/$(CONFIG)/test/core/surface/byte_buffer_reader_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_grpc_byte_buffer_reader_test: $(GRPC_BYTE_BUFFER_READER_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GRPC_BYTE_BUFFER_READER_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GRPC_CHANNEL_STACK_TEST_SRC = \
+    test/core/channel/channel_stack_test.c \
+
+GRPC_CHANNEL_STACK_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_CHANNEL_STACK_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/grpc_channel_stack_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/grpc_channel_stack_test: $(GRPC_CHANNEL_STACK_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GRPC_CHANNEL_STACK_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/grpc_channel_stack_test
+
+endif
+
+objs/$(CONFIG)/test/core/channel/channel_stack_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_grpc_channel_stack_test: $(GRPC_CHANNEL_STACK_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GRPC_CHANNEL_STACK_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GRPC_COMPLETION_QUEUE_BENCHMARK_SRC = \
+    test/core/surface/completion_queue_benchmark.c \
+
+GRPC_COMPLETION_QUEUE_BENCHMARK_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_COMPLETION_QUEUE_BENCHMARK_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/grpc_completion_queue_benchmark: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/grpc_completion_queue_benchmark: $(GRPC_COMPLETION_QUEUE_BENCHMARK_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GRPC_COMPLETION_QUEUE_BENCHMARK_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/grpc_completion_queue_benchmark
+
+endif
+
+objs/$(CONFIG)/test/core/surface/completion_queue_benchmark.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_grpc_completion_queue_benchmark: $(GRPC_COMPLETION_QUEUE_BENCHMARK_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GRPC_COMPLETION_QUEUE_BENCHMARK_OBJS:.o=.dep)
+endif
+endif
+
+
+GRPC_COMPLETION_QUEUE_TEST_SRC = \
+    test/core/surface/completion_queue_test.c \
+
+GRPC_COMPLETION_QUEUE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_COMPLETION_QUEUE_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/grpc_completion_queue_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/grpc_completion_queue_test: $(GRPC_COMPLETION_QUEUE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GRPC_COMPLETION_QUEUE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/grpc_completion_queue_test
+
+endif
+
+objs/$(CONFIG)/test/core/surface/completion_queue_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_grpc_completion_queue_test: $(GRPC_COMPLETION_QUEUE_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GRPC_COMPLETION_QUEUE_TEST_OBJS:.o=.dep)
 endif
 endif
 
@@ -4561,6 +4557,8 @@ GRPC_CREDENTIALS_TEST_SRC = \
 GRPC_CREDENTIALS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_CREDENTIALS_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/grpc_credentials_test: openssl_dep_error
 
@@ -4591,6 +4589,8 @@ GRPC_FETCH_OAUTH2_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/grpc_fetch_oauth2: openssl_dep_error
 
 else
@@ -4613,41 +4613,14 @@ endif
 endif
 
 
-GRPC_BASE64_TEST_SRC = \
-    test/core/security/base64_test.c \
-
-GRPC_BASE64_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_BASE64_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/grpc_base64_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/grpc_base64_test: $(GRPC_BASE64_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GRPC_BASE64_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/grpc_base64_test
-
-endif
-
-objs/$(CONFIG)/test/core/security/base64_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_grpc_base64_test: $(GRPC_BASE64_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GRPC_BASE64_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
 GRPC_JSON_TOKEN_TEST_SRC = \
     test/core/security/json_token_test.c \
 
 GRPC_JSON_TOKEN_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_JSON_TOKEN_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/grpc_json_token_test: openssl_dep_error
 
@@ -4671,89 +4644,188 @@ endif
 endif
 
 
-TIMEOUT_ENCODING_TEST_SRC = \
-    test/core/transport/chttp2/timeout_encoding_test.c \
+GRPC_STREAM_OP_TEST_SRC = \
+    test/core/transport/stream_op_test.c \
 
-TIMEOUT_ENCODING_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TIMEOUT_ENCODING_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/timeout_encoding_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/timeout_encoding_test: $(TIMEOUT_ENCODING_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(TIMEOUT_ENCODING_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/timeout_encoding_test
-
-endif
-
-objs/$(CONFIG)/test/core/transport/chttp2/timeout_encoding_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_timeout_encoding_test: $(TIMEOUT_ENCODING_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(TIMEOUT_ENCODING_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-FD_POSIX_TEST_SRC = \
-    test/core/iomgr/fd_posix_test.c \
-
-FD_POSIX_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(FD_POSIX_TEST_SRC))))
+GRPC_STREAM_OP_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_STREAM_OP_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/fd_posix_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/grpc_stream_op_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/fd_posix_test: $(FD_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/grpc_stream_op_test: $(GRPC_STREAM_OP_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(FD_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/fd_posix_test
+	$(Q) $(LD) $(LDFLAGS) $(GRPC_STREAM_OP_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/grpc_stream_op_test
 
 endif
 
-objs/$(CONFIG)/test/core/iomgr/fd_posix_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/transport/stream_op_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_fd_posix_test: $(FD_POSIX_TEST_OBJS:.o=.dep)
+deps_grpc_stream_op_test: $(GRPC_STREAM_OP_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(FD_POSIX_TEST_OBJS:.o=.dep)
+-include $(GRPC_STREAM_OP_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-FLING_STREAM_TEST_SRC = \
-    test/core/fling/fling_stream_test.c \
+HPACK_PARSER_TEST_SRC = \
+    test/core/transport/chttp2/hpack_parser_test.c \
 
-FLING_STREAM_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(FLING_STREAM_TEST_SRC))))
+HPACK_PARSER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(HPACK_PARSER_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/fling_stream_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/hpack_parser_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/fling_stream_test: $(FLING_STREAM_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/hpack_parser_test: $(HPACK_PARSER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(FLING_STREAM_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/fling_stream_test
+	$(Q) $(LD) $(LDFLAGS) $(HPACK_PARSER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/hpack_parser_test
 
 endif
 
-objs/$(CONFIG)/test/core/fling/fling_stream_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/transport/chttp2/hpack_parser_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_fling_stream_test: $(FLING_STREAM_TEST_OBJS:.o=.dep)
+deps_hpack_parser_test: $(HPACK_PARSER_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(FLING_STREAM_TEST_OBJS:.o=.dep)
+-include $(HPACK_PARSER_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+HPACK_TABLE_TEST_SRC = \
+    test/core/transport/chttp2/hpack_table_test.c \
+
+HPACK_TABLE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(HPACK_TABLE_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/hpack_table_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/hpack_table_test: $(HPACK_TABLE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(HPACK_TABLE_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/hpack_table_test
+
+endif
+
+objs/$(CONFIG)/test/core/transport/chttp2/hpack_table_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_hpack_table_test: $(HPACK_TABLE_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(HPACK_TABLE_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+HTTPCLI_FORMAT_REQUEST_TEST_SRC = \
+    test/core/httpcli/format_request_test.c \
+
+HTTPCLI_FORMAT_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(HTTPCLI_FORMAT_REQUEST_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/httpcli_format_request_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/httpcli_format_request_test: $(HTTPCLI_FORMAT_REQUEST_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(HTTPCLI_FORMAT_REQUEST_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/httpcli_format_request_test
+
+endif
+
+objs/$(CONFIG)/test/core/httpcli/format_request_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_httpcli_format_request_test: $(HTTPCLI_FORMAT_REQUEST_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(HTTPCLI_FORMAT_REQUEST_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+HTTPCLI_PARSER_TEST_SRC = \
+    test/core/httpcli/parser_test.c \
+
+HTTPCLI_PARSER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(HTTPCLI_PARSER_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/httpcli_parser_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/httpcli_parser_test: $(HTTPCLI_PARSER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(HTTPCLI_PARSER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/httpcli_parser_test
+
+endif
+
+objs/$(CONFIG)/test/core/httpcli/parser_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_httpcli_parser_test: $(HTTPCLI_PARSER_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(HTTPCLI_PARSER_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+HTTPCLI_TEST_SRC = \
+    test/core/httpcli/httpcli_test.c \
+
+HTTPCLI_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(HTTPCLI_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/httpcli_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/httpcli_test: $(HTTPCLI_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(HTTPCLI_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/httpcli_test
+
+endif
+
+objs/$(CONFIG)/test/core/httpcli/httpcli_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_httpcli_test: $(HTTPCLI_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(HTTPCLI_TEST_OBJS:.o=.dep)
 endif
 endif
 
@@ -4764,6 +4836,8 @@ LAME_CLIENT_TEST_SRC = \
 LAME_CLIENT_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LAME_CLIENT_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/lame_client_test: openssl_dep_error
 
@@ -4787,89 +4861,748 @@ endif
 endif
 
 
-THREAD_POOL_TEST_SRC = \
-    test/cpp/server/thread_pool_test.cc \
+LOW_LEVEL_PING_PONG_BENCHMARK_SRC = \
+    test/core/network_benchmarks/low_level_ping_pong.c \
 
-THREAD_POOL_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(THREAD_POOL_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/thread_pool_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/thread_pool_test: $(THREAD_POOL_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(THREAD_POOL_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/thread_pool_test
-
-endif
-
-objs/$(CONFIG)/test/cpp/server/thread_pool_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_thread_pool_test: $(THREAD_POOL_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(THREAD_POOL_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-STATUS_TEST_SRC = \
-    test/cpp/util/status_test.cc \
-
-STATUS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(STATUS_TEST_SRC))))
+LOW_LEVEL_PING_PONG_BENCHMARK_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(LOW_LEVEL_PING_PONG_BENCHMARK_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/status_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/low_level_ping_pong_benchmark: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/status_test: $(STATUS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/low_level_ping_pong_benchmark: $(LOW_LEVEL_PING_PONG_BENCHMARK_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(STATUS_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/status_test
+	$(Q) $(LD) $(LDFLAGS) $(LOW_LEVEL_PING_PONG_BENCHMARK_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/low_level_ping_pong_benchmark
 
 endif
 
-objs/$(CONFIG)/test/cpp/util/status_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/network_benchmarks/low_level_ping_pong.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_status_test: $(STATUS_TEST_OBJS:.o=.dep)
+deps_low_level_ping_pong_benchmark: $(LOW_LEVEL_PING_PONG_BENCHMARK_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(STATUS_TEST_OBJS:.o=.dep)
+-include $(LOW_LEVEL_PING_PONG_BENCHMARK_OBJS:.o=.dep)
 endif
 endif
 
 
-SYNC_CLIENT_ASYNC_SERVER_TEST_SRC = \
-    test/cpp/end2end/sync_client_async_server_test.cc \
+MESSAGE_COMPRESS_TEST_SRC = \
+    test/core/compression/message_compress_test.c \
 
-SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(SYNC_CLIENT_ASYNC_SERVER_TEST_SRC))))
+MESSAGE_COMPRESS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(MESSAGE_COMPRESS_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/sync_client_async_server_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/message_compress_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/sync_client_async_server_test: $(SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/message_compress_test: $(MESSAGE_COMPRESS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/sync_client_async_server_test
+	$(Q) $(LD) $(LDFLAGS) $(MESSAGE_COMPRESS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/message_compress_test
 
 endif
 
-objs/$(CONFIG)/test/cpp/end2end/sync_client_async_server_test.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/core/compression/message_compress_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_sync_client_async_server_test: $(SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS:.o=.dep)
+deps_message_compress_test: $(MESSAGE_COMPRESS_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS:.o=.dep)
+-include $(MESSAGE_COMPRESS_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+METADATA_BUFFER_TEST_SRC = \
+    test/core/channel/metadata_buffer_test.c \
+
+METADATA_BUFFER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(METADATA_BUFFER_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/metadata_buffer_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/metadata_buffer_test: $(METADATA_BUFFER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(METADATA_BUFFER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/metadata_buffer_test
+
+endif
+
+objs/$(CONFIG)/test/core/channel/metadata_buffer_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_metadata_buffer_test: $(METADATA_BUFFER_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(METADATA_BUFFER_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+MURMUR_HASH_TEST_SRC = \
+    test/core/support/murmur_hash_test.c \
+
+MURMUR_HASH_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(MURMUR_HASH_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/murmur_hash_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/murmur_hash_test: $(MURMUR_HASH_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(MURMUR_HASH_TEST_OBJS) libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/murmur_hash_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/murmur_hash_test.o:  libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_murmur_hash_test: $(MURMUR_HASH_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(MURMUR_HASH_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+NO_SERVER_TEST_SRC = \
+    test/core/end2end/no_server_test.c \
+
+NO_SERVER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(NO_SERVER_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/no_server_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/no_server_test: $(NO_SERVER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(NO_SERVER_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/no_server_test
+
+endif
+
+objs/$(CONFIG)/test/core/end2end/no_server_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_no_server_test: $(NO_SERVER_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(NO_SERVER_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+POLL_KICK_TEST_SRC = \
+    test/core/iomgr/poll_kick_test.c \
+
+POLL_KICK_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(POLL_KICK_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/poll_kick_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/poll_kick_test: $(POLL_KICK_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(POLL_KICK_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/poll_kick_test
+
+endif
+
+objs/$(CONFIG)/test/core/iomgr/poll_kick_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_poll_kick_test: $(POLL_KICK_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(POLL_KICK_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+RESOLVE_ADDRESS_TEST_SRC = \
+    test/core/iomgr/resolve_address_test.c \
+
+RESOLVE_ADDRESS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(RESOLVE_ADDRESS_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/resolve_address_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/resolve_address_test: $(RESOLVE_ADDRESS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(RESOLVE_ADDRESS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/resolve_address_test
+
+endif
+
+objs/$(CONFIG)/test/core/iomgr/resolve_address_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_resolve_address_test: $(RESOLVE_ADDRESS_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(RESOLVE_ADDRESS_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+SECURE_ENDPOINT_TEST_SRC = \
+    test/core/security/secure_endpoint_test.c \
+
+SECURE_ENDPOINT_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(SECURE_ENDPOINT_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/secure_endpoint_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/secure_endpoint_test: $(SECURE_ENDPOINT_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(SECURE_ENDPOINT_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/secure_endpoint_test
+
+endif
+
+objs/$(CONFIG)/test/core/security/secure_endpoint_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_secure_endpoint_test: $(SECURE_ENDPOINT_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(SECURE_ENDPOINT_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+SOCKADDR_UTILS_TEST_SRC = \
+    test/core/iomgr/sockaddr_utils_test.c \
+
+SOCKADDR_UTILS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(SOCKADDR_UTILS_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/sockaddr_utils_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/sockaddr_utils_test: $(SOCKADDR_UTILS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(SOCKADDR_UTILS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/sockaddr_utils_test
+
+endif
+
+objs/$(CONFIG)/test/core/iomgr/sockaddr_utils_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_sockaddr_utils_test: $(SOCKADDR_UTILS_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(SOCKADDR_UTILS_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+TCP_CLIENT_POSIX_TEST_SRC = \
+    test/core/iomgr/tcp_client_posix_test.c \
+
+TCP_CLIENT_POSIX_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TCP_CLIENT_POSIX_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/tcp_client_posix_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/tcp_client_posix_test: $(TCP_CLIENT_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(TCP_CLIENT_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tcp_client_posix_test
+
+endif
+
+objs/$(CONFIG)/test/core/iomgr/tcp_client_posix_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_tcp_client_posix_test: $(TCP_CLIENT_POSIX_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(TCP_CLIENT_POSIX_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+TCP_POSIX_TEST_SRC = \
+    test/core/iomgr/tcp_posix_test.c \
+
+TCP_POSIX_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TCP_POSIX_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/tcp_posix_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/tcp_posix_test: $(TCP_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(TCP_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tcp_posix_test
+
+endif
+
+objs/$(CONFIG)/test/core/iomgr/tcp_posix_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_tcp_posix_test: $(TCP_POSIX_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(TCP_POSIX_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+TCP_SERVER_POSIX_TEST_SRC = \
+    test/core/iomgr/tcp_server_posix_test.c \
+
+TCP_SERVER_POSIX_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TCP_SERVER_POSIX_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/tcp_server_posix_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/tcp_server_posix_test: $(TCP_SERVER_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(TCP_SERVER_POSIX_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tcp_server_posix_test
+
+endif
+
+objs/$(CONFIG)/test/core/iomgr/tcp_server_posix_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_tcp_server_posix_test: $(TCP_SERVER_POSIX_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(TCP_SERVER_POSIX_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+TIME_AVERAGED_STATS_TEST_SRC = \
+    test/core/iomgr/time_averaged_stats_test.c \
+
+TIME_AVERAGED_STATS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TIME_AVERAGED_STATS_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/time_averaged_stats_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/time_averaged_stats_test: $(TIME_AVERAGED_STATS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(TIME_AVERAGED_STATS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/time_averaged_stats_test
+
+endif
+
+objs/$(CONFIG)/test/core/iomgr/time_averaged_stats_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_time_averaged_stats_test: $(TIME_AVERAGED_STATS_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(TIME_AVERAGED_STATS_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+TIME_TEST_SRC = \
+    test/core/support/time_test.c \
+
+TIME_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TIME_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/time_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/time_test: $(TIME_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(TIME_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/time_test
+
+endif
+
+objs/$(CONFIG)/test/core/support/time_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_time_test: $(TIME_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(TIME_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+TIMEOUT_ENCODING_TEST_SRC = \
+    test/core/transport/chttp2/timeout_encoding_test.c \
+
+TIMEOUT_ENCODING_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TIMEOUT_ENCODING_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/timeout_encoding_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/timeout_encoding_test: $(TIMEOUT_ENCODING_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(TIMEOUT_ENCODING_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/timeout_encoding_test
+
+endif
+
+objs/$(CONFIG)/test/core/transport/chttp2/timeout_encoding_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_timeout_encoding_test: $(TIMEOUT_ENCODING_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(TIMEOUT_ENCODING_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+TRANSPORT_METADATA_TEST_SRC = \
+    test/core/transport/metadata_test.c \
+
+TRANSPORT_METADATA_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TRANSPORT_METADATA_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/transport_metadata_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/transport_metadata_test: $(TRANSPORT_METADATA_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(TRANSPORT_METADATA_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/transport_metadata_test
+
+endif
+
+objs/$(CONFIG)/test/core/transport/metadata_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_transport_metadata_test: $(TRANSPORT_METADATA_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(TRANSPORT_METADATA_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+CHANNEL_ARGUMENTS_TEST_SRC = \
+    test/cpp/client/channel_arguments_test.cc \
+
+CHANNEL_ARGUMENTS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHANNEL_ARGUMENTS_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/channel_arguments_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/channel_arguments_test: $(CHANNEL_ARGUMENTS_TEST_OBJS) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LDXX) $(LDFLAGS) $(CHANNEL_ARGUMENTS_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/channel_arguments_test
+
+endif
+
+objs/$(CONFIG)/test/cpp/client/channel_arguments_test.o:  libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a
+
+deps_channel_arguments_test: $(CHANNEL_ARGUMENTS_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(CHANNEL_ARGUMENTS_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+CPP_PLUGIN_SRC = \
+    src/compiler/cpp_generator.cc \
+    src/compiler/cpp_plugin.cc \
+
+CPP_PLUGIN_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CPP_PLUGIN_SRC))))
+
+bins/$(CONFIG)/cpp_plugin: $(CPP_PLUGIN_OBJS)
+	$(E) "[HOSTLD]  Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(HOST_LDXX) $(HOST_LDFLAGS) $(CPP_PLUGIN_OBJS) $(HOST_LDLIBSXX) $(HOST_LDLIBS) $(HOST_LDLIBS_PROTOC) -o bins/$(CONFIG)/cpp_plugin
+
+objs/$(CONFIG)/src/compiler/cpp_generator.o: 
+objs/$(CONFIG)/src/compiler/cpp_plugin.o: 
+
+deps_cpp_plugin: $(CPP_PLUGIN_OBJS:.o=.dep)
+
+ifneq ($(NO_DEPS),true)
+-include $(CPP_PLUGIN_OBJS:.o=.dep)
+endif
+
+
+CREDENTIALS_TEST_SRC = \
+    test/cpp/client/credentials_test.cc \
+
+CREDENTIALS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CREDENTIALS_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/credentials_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/credentials_test: $(CREDENTIALS_TEST_OBJS) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LDXX) $(LDFLAGS) $(CREDENTIALS_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/credentials_test
+
+endif
+
+objs/$(CONFIG)/test/cpp/client/credentials_test.o:  libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a
+
+deps_credentials_test: $(CREDENTIALS_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(CREDENTIALS_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+END2END_TEST_SRC = \
+    test/cpp/end2end/end2end_test.cc \
+
+END2END_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(END2END_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/end2end_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/end2end_test: $(END2END_TEST_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LDXX) $(LDFLAGS) $(END2END_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/end2end_test
+
+endif
+
+objs/$(CONFIG)/test/cpp/end2end/end2end_test.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_end2end_test: $(END2END_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(END2END_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+INTEROP_CLIENT_SRC = \
+    gens/test/cpp/interop/empty.pb.cc \
+    gens/test/cpp/interop/messages.pb.cc \
+    gens/test/cpp/interop/test.pb.cc \
+    test/cpp/interop/client.cc \
+
+INTEROP_CLIENT_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(INTEROP_CLIENT_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/interop_client: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/interop_client: $(INTEROP_CLIENT_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LDXX) $(LDFLAGS) $(INTEROP_CLIENT_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/interop_client
+
+endif
+
+objs/$(CONFIG)/test/cpp/interop/empty.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/cpp/interop/messages.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/cpp/interop/test.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/cpp/interop/client.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_interop_client: $(INTEROP_CLIENT_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(INTEROP_CLIENT_OBJS:.o=.dep)
+endif
+endif
+
+
+INTEROP_SERVER_SRC = \
+    gens/test/cpp/interop/empty.pb.cc \
+    gens/test/cpp/interop/messages.pb.cc \
+    gens/test/cpp/interop/test.pb.cc \
+    test/cpp/interop/server.cc \
+
+INTEROP_SERVER_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(INTEROP_SERVER_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/interop_server: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/interop_server: $(INTEROP_SERVER_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LDXX) $(LDFLAGS) $(INTEROP_SERVER_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/interop_server
+
+endif
+
+objs/$(CONFIG)/test/cpp/interop/empty.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/cpp/interop/messages.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/cpp/interop/test.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/cpp/interop/server.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_interop_server: $(INTEROP_SERVER_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(INTEROP_SERVER_OBJS:.o=.dep)
+endif
+endif
+
+
+TIPS_CLIENT_SRC = \
+    examples/tips/client_main.cc \
+
+TIPS_CLIENT_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TIPS_CLIENT_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/tips_client: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/tips_client: $(TIPS_CLIENT_OBJS) libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LDXX) $(LDFLAGS) $(TIPS_CLIENT_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tips_client
+
+endif
+
+objs/$(CONFIG)/examples/tips/client_main.o:  libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_tips_client: $(TIPS_CLIENT_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(TIPS_CLIENT_OBJS:.o=.dep)
+endif
+endif
+
+
+TIPS_CLIENT_TEST_SRC = \
+    examples/tips/client_test.cc \
+
+TIPS_CLIENT_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TIPS_CLIENT_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/tips_client_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/tips_client_test: $(TIPS_CLIENT_TEST_OBJS) libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LDXX) $(LDFLAGS) $(TIPS_CLIENT_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tips_client_test
+
+endif
+
+objs/$(CONFIG)/examples/tips/client_test.o:  libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_tips_client_test: $(TIPS_CLIENT_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(TIPS_CLIENT_TEST_OBJS:.o=.dep)
 endif
 endif
 
@@ -4881,6 +5614,8 @@ QPS_CLIENT_SRC = \
 QPS_CLIENT_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(QPS_CLIENT_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/qps_client: openssl_dep_error
 
@@ -4913,6 +5648,8 @@ QPS_SERVER_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(QPS_
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/qps_server: openssl_dep_error
 
 else
@@ -4936,275 +5673,116 @@ endif
 endif
 
 
-INTEROP_SERVER_SRC = \
-    gens/test/cpp/interop/empty.pb.cc \
-    gens/test/cpp/interop/messages.pb.cc \
-    gens/test/cpp/interop/test.pb.cc \
-    test/cpp/interop/server.cc \
+RUBY_PLUGIN_SRC = \
+    src/compiler/ruby_generator.cc \
+    src/compiler/ruby_plugin.cc \
 
-INTEROP_SERVER_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(INTEROP_SERVER_SRC))))
+RUBY_PLUGIN_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(RUBY_PLUGIN_SRC))))
+
+bins/$(CONFIG)/ruby_plugin: $(RUBY_PLUGIN_OBJS)
+	$(E) "[HOSTLD]  Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(HOST_LDXX) $(HOST_LDFLAGS) $(RUBY_PLUGIN_OBJS) $(HOST_LDLIBSXX) $(HOST_LDLIBS) $(HOST_LDLIBS_PROTOC) -o bins/$(CONFIG)/ruby_plugin
+
+objs/$(CONFIG)/src/compiler/ruby_generator.o: 
+objs/$(CONFIG)/src/compiler/ruby_plugin.o: 
+
+deps_ruby_plugin: $(RUBY_PLUGIN_OBJS:.o=.dep)
+
+ifneq ($(NO_DEPS),true)
+-include $(RUBY_PLUGIN_OBJS:.o=.dep)
+endif
+
+
+STATUS_TEST_SRC = \
+    test/cpp/util/status_test.cc \
+
+STATUS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(STATUS_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/interop_server: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/status_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/interop_server: $(INTEROP_SERVER_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/status_test: $(STATUS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(INTEROP_SERVER_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/interop_server
+	$(Q) $(LDXX) $(LDFLAGS) $(STATUS_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/status_test
 
 endif
 
-objs/$(CONFIG)/test/cpp/interop/empty.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-objs/$(CONFIG)/test/cpp/interop/messages.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-objs/$(CONFIG)/test/cpp/interop/test.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-objs/$(CONFIG)/test/cpp/interop/server.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/cpp/util/status_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_interop_server: $(INTEROP_SERVER_OBJS:.o=.dep)
+deps_status_test: $(STATUS_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(INTEROP_SERVER_OBJS:.o=.dep)
+-include $(STATUS_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-INTEROP_CLIENT_SRC = \
-    gens/test/cpp/interop/empty.pb.cc \
-    gens/test/cpp/interop/messages.pb.cc \
-    gens/test/cpp/interop/test.pb.cc \
-    test/cpp/interop/client.cc \
+SYNC_CLIENT_ASYNC_SERVER_TEST_SRC = \
+    test/cpp/end2end/sync_client_async_server_test.cc \
 
-INTEROP_CLIENT_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(INTEROP_CLIENT_SRC))))
+SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(SYNC_CLIENT_ASYNC_SERVER_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/interop_client: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/sync_client_async_server_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/interop_client: $(INTEROP_CLIENT_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/sync_client_async_server_test: $(SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(INTEROP_CLIENT_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/interop_client
+	$(Q) $(LDXX) $(LDFLAGS) $(SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/sync_client_async_server_test
 
 endif
 
-objs/$(CONFIG)/test/cpp/interop/empty.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-objs/$(CONFIG)/test/cpp/interop/messages.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-objs/$(CONFIG)/test/cpp/interop/test.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-objs/$(CONFIG)/test/cpp/interop/client.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/cpp/end2end/sync_client_async_server_test.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_interop_client: $(INTEROP_CLIENT_OBJS:.o=.dep)
+deps_sync_client_async_server_test: $(SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(INTEROP_CLIENT_OBJS:.o=.dep)
+-include $(SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS:.o=.dep)
 endif
 endif
 
 
-END2END_TEST_SRC = \
-    test/cpp/end2end/end2end_test.cc \
+THREAD_POOL_TEST_SRC = \
+    test/cpp/server/thread_pool_test.cc \
 
-END2END_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(END2END_TEST_SRC))))
+THREAD_POOL_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(THREAD_POOL_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
 
-bins/$(CONFIG)/end2end_test: openssl_dep_error
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/thread_pool_test: openssl_dep_error
 
 else
 
-bins/$(CONFIG)/end2end_test: $(END2END_TEST_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+bins/$(CONFIG)/thread_pool_test: $(THREAD_POOL_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(END2END_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/end2end_test
+	$(Q) $(LDXX) $(LDFLAGS) $(THREAD_POOL_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/thread_pool_test
 
 endif
 
-objs/$(CONFIG)/test/cpp/end2end/end2end_test.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+objs/$(CONFIG)/test/cpp/server/thread_pool_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 
-deps_end2end_test: $(END2END_TEST_OBJS:.o=.dep)
+deps_thread_pool_test: $(THREAD_POOL_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(END2END_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-CHANNEL_ARGUMENTS_TEST_SRC = \
-    test/cpp/client/channel_arguments_test.cc \
-
-CHANNEL_ARGUMENTS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHANNEL_ARGUMENTS_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/channel_arguments_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/channel_arguments_test: $(CHANNEL_ARGUMENTS_TEST_OBJS) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(CHANNEL_ARGUMENTS_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/channel_arguments_test
-
-endif
-
-objs/$(CONFIG)/test/cpp/client/channel_arguments_test.o:  libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a
-
-deps_channel_arguments_test: $(CHANNEL_ARGUMENTS_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(CHANNEL_ARGUMENTS_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-CREDENTIALS_TEST_SRC = \
-    test/cpp/client/credentials_test.cc \
-
-CREDENTIALS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CREDENTIALS_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/credentials_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/credentials_test: $(CREDENTIALS_TEST_OBJS) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(CREDENTIALS_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/credentials_test
-
-endif
-
-objs/$(CONFIG)/test/cpp/client/credentials_test.o:  libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a
-
-deps_credentials_test: $(CREDENTIALS_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(CREDENTIALS_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-ALARM_TEST_SRC = \
-    test/core/iomgr/alarm_test.c \
-
-ALARM_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(ALARM_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/alarm_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/alarm_test: $(ALARM_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(ALARM_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/alarm_test
-
-endif
-
-objs/$(CONFIG)/test/core/iomgr/alarm_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_alarm_test: $(ALARM_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(ALARM_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-ALARM_LIST_TEST_SRC = \
-    test/core/iomgr/alarm_list_test.c \
-
-ALARM_LIST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(ALARM_LIST_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/alarm_list_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/alarm_list_test: $(ALARM_LIST_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(ALARM_LIST_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/alarm_list_test
-
-endif
-
-objs/$(CONFIG)/test/core/iomgr/alarm_list_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_alarm_list_test: $(ALARM_LIST_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(ALARM_LIST_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-ALARM_HEAP_TEST_SRC = \
-    test/core/iomgr/alarm_heap_test.c \
-
-ALARM_HEAP_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(ALARM_HEAP_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/alarm_heap_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/alarm_heap_test: $(ALARM_HEAP_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(ALARM_HEAP_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/alarm_heap_test
-
-endif
-
-objs/$(CONFIG)/test/core/iomgr/alarm_heap_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_alarm_heap_test: $(ALARM_HEAP_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(ALARM_HEAP_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-TIME_TEST_SRC = \
-    test/core/support/time_test.c \
-
-TIME_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(TIME_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-bins/$(CONFIG)/time_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/time_test: $(TIME_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(TIME_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/time_test
-
-endif
-
-objs/$(CONFIG)/test/core/support/time_test.o:  libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_time_test: $(TIME_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(TIME_TEST_OBJS:.o=.dep)
+-include $(THREAD_POOL_TEST_OBJS:.o=.dep)
 endif
 endif
 
@@ -5214,6 +5792,8 @@ CHTTP2_FAKE_SECURITY_CANCEL_AFTER_ACCEPT_TEST_SRC = \
 CHTTP2_FAKE_SECURITY_CANCEL_AFTER_ACCEPT_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FAKE_SECURITY_CANCEL_AFTER_ACCEPT_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fake_security_cancel_after_accept_test: openssl_dep_error
 
@@ -5242,6 +5822,8 @@ CHTTP2_FAKE_SECURITY_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_TEST_OBJS = $(addpref
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fake_security_cancel_after_accept_and_writes_closed_test: openssl_dep_error
 
 else
@@ -5268,6 +5850,8 @@ CHTTP2_FAKE_SECURITY_CANCEL_AFTER_INVOKE_TEST_SRC = \
 CHTTP2_FAKE_SECURITY_CANCEL_AFTER_INVOKE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FAKE_SECURITY_CANCEL_AFTER_INVOKE_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fake_security_cancel_after_invoke_test: openssl_dep_error
 
@@ -5296,6 +5880,8 @@ CHTTP2_FAKE_SECURITY_CANCEL_BEFORE_INVOKE_TEST_OBJS = $(addprefix objs/$(CONFIG)
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fake_security_cancel_before_invoke_test: openssl_dep_error
 
 else
@@ -5322,6 +5908,8 @@ CHTTP2_FAKE_SECURITY_CANCEL_IN_A_VACUUM_TEST_SRC = \
 CHTTP2_FAKE_SECURITY_CANCEL_IN_A_VACUUM_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FAKE_SECURITY_CANCEL_IN_A_VACUUM_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fake_security_cancel_in_a_vacuum_test: openssl_dep_error
 
@@ -5350,6 +5938,8 @@ CHTTP2_FAKE_SECURITY_CENSUS_SIMPLE_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fake_security_census_simple_request_test: openssl_dep_error
 
 else
@@ -5376,6 +5966,8 @@ CHTTP2_FAKE_SECURITY_DISAPPEARING_SERVER_TEST_SRC = \
 CHTTP2_FAKE_SECURITY_DISAPPEARING_SERVER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FAKE_SECURITY_DISAPPEARING_SERVER_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fake_security_disappearing_server_test: openssl_dep_error
 
@@ -5404,6 +5996,8 @@ CHTTP2_FAKE_SECURITY_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_TEST_OBJS = $
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_inflight_calls_test: openssl_dep_error
 
 else
@@ -5431,6 +6025,8 @@ CHTTP2_FAKE_SECURITY_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_TEST_OBJS = $(addprefix
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_tags_test: openssl_dep_error
 
 else
@@ -5452,11 +6048,42 @@ endif
 endif
 
 
+CHTTP2_FAKE_SECURITY_GRACEFUL_SERVER_SHUTDOWN_TEST_SRC = \
+
+CHTTP2_FAKE_SECURITY_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FAKE_SECURITY_GRACEFUL_SERVER_SHUTDOWN_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/chttp2_fake_security_graceful_server_shutdown_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/chttp2_fake_security_graceful_server_shutdown_test: $(CHTTP2_FAKE_SECURITY_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS) libs/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a libs/$(CONFIG)/libend2end_certs.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FAKE_SECURITY_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS) libs/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a libs/$(CONFIG)/libend2end_certs.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_fake_security_graceful_server_shutdown_test
+
+endif
+
+
+deps_chttp2_fake_security_graceful_server_shutdown_test: $(CHTTP2_FAKE_SECURITY_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(CHTTP2_FAKE_SECURITY_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
 CHTTP2_FAKE_SECURITY_INVOKE_LARGE_REQUEST_TEST_SRC = \
 
 CHTTP2_FAKE_SECURITY_INVOKE_LARGE_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FAKE_SECURITY_INVOKE_LARGE_REQUEST_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fake_security_invoke_large_request_test: openssl_dep_error
 
@@ -5485,6 +6112,8 @@ CHTTP2_FAKE_SECURITY_MAX_CONCURRENT_STREAMS_TEST_OBJS = $(addprefix objs/$(CONFI
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fake_security_max_concurrent_streams_test: openssl_dep_error
 
 else
@@ -5511,6 +6140,8 @@ CHTTP2_FAKE_SECURITY_NO_OP_TEST_SRC = \
 CHTTP2_FAKE_SECURITY_NO_OP_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FAKE_SECURITY_NO_OP_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fake_security_no_op_test: openssl_dep_error
 
@@ -5539,6 +6170,8 @@ CHTTP2_FAKE_SECURITY_PING_PONG_STREAMING_TEST_OBJS = $(addprefix objs/$(CONFIG)/
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fake_security_ping_pong_streaming_test: openssl_dep_error
 
 else
@@ -5565,6 +6198,8 @@ CHTTP2_FAKE_SECURITY_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_SRC 
 CHTTP2_FAKE_SECURITY_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FAKE_SECURITY_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fake_security_request_response_with_binary_metadata_and_payload_test: openssl_dep_error
 
@@ -5593,6 +6228,8 @@ CHTTP2_FAKE_SECURITY_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_TEST_OBJS = $(ad
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fake_security_request_response_with_metadata_and_payload_test: openssl_dep_error
 
 else
@@ -5619,6 +6256,8 @@ CHTTP2_FAKE_SECURITY_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_SRC = \
 CHTTP2_FAKE_SECURITY_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FAKE_SECURITY_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fake_security_request_response_with_payload_test: openssl_dep_error
 
@@ -5647,6 +6286,8 @@ CHTTP2_FAKE_SECURITY_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_TEST_OB
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fake_security_request_response_with_trailing_metadata_and_payload_test: openssl_dep_error
 
 else
@@ -5673,6 +6314,8 @@ CHTTP2_FAKE_SECURITY_SIMPLE_DELAYED_REQUEST_TEST_SRC = \
 CHTTP2_FAKE_SECURITY_SIMPLE_DELAYED_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FAKE_SECURITY_SIMPLE_DELAYED_REQUEST_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fake_security_simple_delayed_request_test: openssl_dep_error
 
@@ -5701,6 +6344,8 @@ CHTTP2_FAKE_SECURITY_SIMPLE_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(a
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fake_security_simple_request_test: openssl_dep_error
 
 else
@@ -5727,6 +6372,8 @@ CHTTP2_FAKE_SECURITY_THREAD_STRESS_TEST_SRC = \
 CHTTP2_FAKE_SECURITY_THREAD_STRESS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FAKE_SECURITY_THREAD_STRESS_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fake_security_thread_stress_test: openssl_dep_error
 
@@ -5755,6 +6402,8 @@ CHTTP2_FAKE_SECURITY_WRITES_DONE_HANGS_WITH_PENDING_READ_TEST_OBJS = $(addprefix
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fake_security_writes_done_hangs_with_pending_read_test: openssl_dep_error
 
 else
@@ -5781,6 +6430,8 @@ CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_TEST_SRC = \
 CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fullstack_cancel_after_accept_test: openssl_dep_error
 
@@ -5809,6 +6460,8 @@ CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_TEST_OBJS = $(addprefix o
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_test: openssl_dep_error
 
 else
@@ -5835,6 +6488,8 @@ CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_TEST_SRC = \
 CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fullstack_cancel_after_invoke_test: openssl_dep_error
 
@@ -5863,6 +6518,8 @@ CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fullstack_cancel_before_invoke_test: openssl_dep_error
 
 else
@@ -5889,6 +6546,8 @@ CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_TEST_SRC = \
 CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fullstack_cancel_in_a_vacuum_test: openssl_dep_error
 
@@ -5917,6 +6576,8 @@ CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, 
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fullstack_census_simple_request_test: openssl_dep_error
 
 else
@@ -5943,6 +6604,8 @@ CHTTP2_FULLSTACK_DISAPPEARING_SERVER_TEST_SRC = \
 CHTTP2_FULLSTACK_DISAPPEARING_SERVER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_DISAPPEARING_SERVER_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fullstack_disappearing_server_test: openssl_dep_error
 
@@ -5971,6 +6634,8 @@ CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_TEST_OBJS = $(add
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_test: openssl_dep_error
 
 else
@@ -5998,6 +6663,8 @@ CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_TEST_OBJS = $(addprefix obj
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_test: openssl_dep_error
 
 else
@@ -6019,11 +6686,42 @@ endif
 endif
 
 
+CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_SRC = \
+
+CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_test: $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS) libs/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a libs/$(CONFIG)/libend2end_certs.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS) libs/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a libs/$(CONFIG)/libend2end_certs.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_test
+
+endif
+
+
+deps_chttp2_fullstack_graceful_server_shutdown_test: $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
 CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_TEST_SRC = \
 
 CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fullstack_invoke_large_request_test: openssl_dep_error
 
@@ -6052,6 +6750,8 @@ CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_TEST_OBJS = $(addprefix objs/$(CONFIG)/,
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_test: openssl_dep_error
 
 else
@@ -6078,6 +6778,8 @@ CHTTP2_FULLSTACK_NO_OP_TEST_SRC = \
 CHTTP2_FULLSTACK_NO_OP_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_NO_OP_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fullstack_no_op_test: openssl_dep_error
 
@@ -6106,6 +6808,8 @@ CHTTP2_FULLSTACK_PING_PONG_STREAMING_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fullstack_ping_pong_streaming_test: openssl_dep_error
 
 else
@@ -6132,6 +6836,8 @@ CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_SRC = \
 CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fullstack_request_response_with_binary_metadata_and_payload_test: openssl_dep_error
 
@@ -6160,6 +6866,8 @@ CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_TEST_OBJS = $(addpre
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fullstack_request_response_with_metadata_and_payload_test: openssl_dep_error
 
 else
@@ -6186,6 +6894,8 @@ CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_SRC = \
 CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fullstack_request_response_with_payload_test: openssl_dep_error
 
@@ -6214,6 +6924,8 @@ CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_TEST_OBJS =
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fullstack_request_response_with_trailing_metadata_and_payload_test: openssl_dep_error
 
 else
@@ -6240,6 +6952,8 @@ CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_TEST_SRC = \
 CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fullstack_simple_delayed_request_test: openssl_dep_error
 
@@ -6268,6 +6982,8 @@ CHTTP2_FULLSTACK_SIMPLE_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsu
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fullstack_simple_request_test: openssl_dep_error
 
 else
@@ -6294,6 +7010,8 @@ CHTTP2_FULLSTACK_THREAD_STRESS_TEST_SRC = \
 CHTTP2_FULLSTACK_THREAD_STRESS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_THREAD_STRESS_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_fullstack_thread_stress_test: openssl_dep_error
 
@@ -6322,6 +7040,8 @@ CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_TEST_OBJS = $(addprefix obj
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_fullstack_writes_done_hangs_with_pending_read_test: openssl_dep_error
 
 else
@@ -6348,6 +7068,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_CANCEL_AFTER_ACCEPT_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_FULLSTACK_CANCEL_AFTER_ACCEPT_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_FULLSTACK_CANCEL_AFTER_ACCEPT_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_accept_test: openssl_dep_error
 
@@ -6376,6 +7098,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_TEST_OBJS = $(
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_accept_and_writes_closed_test: openssl_dep_error
 
 else
@@ -6402,6 +7126,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_CANCEL_AFTER_INVOKE_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_FULLSTACK_CANCEL_AFTER_INVOKE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_FULLSTACK_CANCEL_AFTER_INVOKE_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_invoke_test: openssl_dep_error
 
@@ -6430,6 +7156,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_CANCEL_BEFORE_INVOKE_TEST_OBJS = $(addprefix objs/$(
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_before_invoke_test: openssl_dep_error
 
 else
@@ -6456,6 +7184,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_CANCEL_IN_A_VACUUM_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_FULLSTACK_CANCEL_IN_A_VACUUM_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_FULLSTACK_CANCEL_IN_A_VACUUM_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_in_a_vacuum_test: openssl_dep_error
 
@@ -6484,6 +7214,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_CENSUS_SIMPLE_REQUEST_TEST_OBJS = $(addprefix objs/$
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_census_simple_request_test: openssl_dep_error
 
 else
@@ -6510,6 +7242,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_DISAPPEARING_SERVER_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_FULLSTACK_DISAPPEARING_SERVER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_FULLSTACK_DISAPPEARING_SERVER_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_disappearing_server_test: openssl_dep_error
 
@@ -6538,6 +7272,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_TEST_O
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_inflight_calls_test: openssl_dep_error
 
 else
@@ -6565,6 +7301,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_TEST_OBJS = $(ad
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_tags_test: openssl_dep_error
 
 else
@@ -6586,11 +7324,42 @@ endif
 endif
 
 
+CHTTP2_SIMPLE_SSL_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_SRC = \
+
+CHTTP2_SIMPLE_SSL_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/chttp2_simple_ssl_fullstack_graceful_server_shutdown_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/chttp2_simple_ssl_fullstack_graceful_server_shutdown_test: $(CHTTP2_SIMPLE_SSL_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS) libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a libs/$(CONFIG)/libend2end_certs.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SIMPLE_SSL_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS) libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a libs/$(CONFIG)/libend2end_certs.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_simple_ssl_fullstack_graceful_server_shutdown_test
+
+endif
+
+
+deps_chttp2_simple_ssl_fullstack_graceful_server_shutdown_test: $(CHTTP2_SIMPLE_SSL_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(CHTTP2_SIMPLE_SSL_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
 CHTTP2_SIMPLE_SSL_FULLSTACK_INVOKE_LARGE_REQUEST_TEST_SRC = \
 
 CHTTP2_SIMPLE_SSL_FULLSTACK_INVOKE_LARGE_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_FULLSTACK_INVOKE_LARGE_REQUEST_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_invoke_large_request_test: openssl_dep_error
 
@@ -6619,6 +7388,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_MAX_CONCURRENT_STREAMS_TEST_OBJS = $(addprefix objs/
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_max_concurrent_streams_test: openssl_dep_error
 
 else
@@ -6645,6 +7416,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_NO_OP_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_FULLSTACK_NO_OP_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_FULLSTACK_NO_OP_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_no_op_test: openssl_dep_error
 
@@ -6673,6 +7446,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_PING_PONG_STREAMING_TEST_OBJS = $(addprefix objs/$(C
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_ping_pong_streaming_test: openssl_dep_error
 
 else
@@ -6699,6 +7474,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TE
 CHTTP2_SIMPLE_SSL_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_binary_metadata_and_payload_test: openssl_dep_error
 
@@ -6727,6 +7504,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_TEST_OBJS
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_metadata_and_payload_test: openssl_dep_error
 
 else
@@ -6753,6 +7532,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_payload_test: openssl_dep_error
 
@@ -6781,6 +7562,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_trailing_metadata_and_payload_test: openssl_dep_error
 
 else
@@ -6807,6 +7590,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_SIMPLE_DELAYED_REQUEST_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_FULLSTACK_SIMPLE_DELAYED_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_FULLSTACK_SIMPLE_DELAYED_REQUEST_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_simple_delayed_request_test: openssl_dep_error
 
@@ -6835,6 +7620,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_SIMPLE_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_simple_request_test: openssl_dep_error
 
 else
@@ -6861,6 +7648,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_THREAD_STRESS_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_FULLSTACK_THREAD_STRESS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_FULLSTACK_THREAD_STRESS_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_thread_stress_test: openssl_dep_error
 
@@ -6889,6 +7678,8 @@ CHTTP2_SIMPLE_SSL_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_TEST_OBJS = $(ad
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_fullstack_writes_done_hangs_with_pending_read_test: openssl_dep_error
 
 else
@@ -6915,6 +7706,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_CANCEL_AFTER_ACCEPT_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_CANCEL_AFTER_ACCEPT_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_CANCEL_AFTER_ACCEPT_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_test: openssl_dep_error
 
@@ -6943,6 +7736,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_TE
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_and_writes_closed_test: openssl_dep_error
 
 else
@@ -6969,6 +7764,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_CANCEL_AFTER_INVOKE_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_CANCEL_AFTER_INVOKE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_CANCEL_AFTER_INVOKE_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_invoke_test: openssl_dep_error
 
@@ -6997,6 +7794,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_CANCEL_BEFORE_INVOKE_TEST_OBJS = $(addpr
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_before_invoke_test: openssl_dep_error
 
 else
@@ -7023,6 +7822,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_CANCEL_IN_A_VACUUM_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_CANCEL_IN_A_VACUUM_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_CANCEL_IN_A_VACUUM_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_in_a_vacuum_test: openssl_dep_error
 
@@ -7051,6 +7852,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_CENSUS_SIMPLE_REQUEST_TEST_OBJS = $(addp
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_census_simple_request_test: openssl_dep_error
 
 else
@@ -7077,6 +7880,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_DISAPPEARING_SERVER_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_DISAPPEARING_SERVER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_DISAPPEARING_SERVER_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_disappearing_server_test: openssl_dep_error
 
@@ -7105,6 +7910,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_inflight_calls_test: openssl_dep_error
 
 else
@@ -7132,6 +7939,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_TEST
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_tags_test: openssl_dep_error
 
 else
@@ -7153,11 +7962,42 @@ endif
 endif
 
 
+CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_SRC = \
+
+CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test: $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS) libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a libs/$(CONFIG)/libend2end_certs.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS) libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a libs/$(CONFIG)/libend2end_certs.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test
+
+endif
+
+
+deps_chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test: $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
 CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_INVOKE_LARGE_REQUEST_TEST_SRC = \
 
 CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_INVOKE_LARGE_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_INVOKE_LARGE_REQUEST_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test: openssl_dep_error
 
@@ -7186,6 +8026,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_MAX_CONCURRENT_STREAMS_TEST_OBJS = $(add
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_max_concurrent_streams_test: openssl_dep_error
 
 else
@@ -7212,6 +8054,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_NO_OP_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_NO_OP_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_NO_OP_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_no_op_test: openssl_dep_error
 
@@ -7240,6 +8084,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_PING_PONG_STREAMING_TEST_OBJS = $(addpre
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_ping_pong_streaming_test: openssl_dep_error
 
 else
@@ -7266,6 +8112,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AN
 CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_binary_metadata_and_payload_test: openssl_dep_error
 
@@ -7294,6 +8142,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLO
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_metadata_and_payload_test: openssl_dep_error
 
 else
@@ -7320,6 +8170,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_SRC =
 CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_payload_test: openssl_dep_error
 
@@ -7348,6 +8200,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_REQUEST_RESPONSE_WITH_TRAILING_METADATA_
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_trailing_metadata_and_payload_test: openssl_dep_error
 
 else
@@ -7374,6 +8228,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_SIMPLE_DELAYED_REQUEST_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_SIMPLE_DELAYED_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_SIMPLE_DELAYED_REQUEST_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_simple_delayed_request_test: openssl_dep_error
 
@@ -7402,6 +8258,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_SIMPLE_REQUEST_TEST_OBJS = $(addprefix o
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_simple_request_test: openssl_dep_error
 
 else
@@ -7428,6 +8286,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_THREAD_STRESS_TEST_SRC = \
 CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_THREAD_STRESS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_THREAD_STRESS_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_thread_stress_test: openssl_dep_error
 
@@ -7456,6 +8316,8 @@ CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_TEST
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_writes_done_hangs_with_pending_read_test: openssl_dep_error
 
 else
@@ -7482,6 +8344,8 @@ CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_test: openssl_dep_error
 
@@ -7510,6 +8374,8 @@ CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_TEST_OBJS = $(addprefix
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_test: openssl_dep_error
 
 else
@@ -7536,6 +8402,8 @@ CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_cancel_after_invoke_test: openssl_dep_error
 
@@ -7564,6 +8432,8 @@ CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_TEST_OBJS = $(addprefix objs/$(CONFIG)/,
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_cancel_before_invoke_test: openssl_dep_error
 
 else
@@ -7590,6 +8460,8 @@ CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_cancel_in_a_vacuum_test: openssl_dep_error
 
@@ -7618,6 +8490,8 @@ CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_census_simple_request_test: openssl_dep_error
 
 else
@@ -7644,6 +8518,8 @@ CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_disappearing_server_test: openssl_dep_error
 
@@ -7672,6 +8548,8 @@ CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_TEST_OBJS = $(a
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_test: openssl_dep_error
 
 else
@@ -7699,6 +8577,8 @@ CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_TEST_OBJS = $(addprefix o
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_test: openssl_dep_error
 
 else
@@ -7720,11 +8600,42 @@ endif
 endif
 
 
+CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_TEST_SRC = \
+
+CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_test: $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS) libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a libs/$(CONFIG)/libend2end_certs.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS) libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a libs/$(CONFIG)/libend2end_certs.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_test
+
+endif
+
+
+deps_chttp2_socket_pair_graceful_server_shutdown_test: $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
 CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_invoke_large_request_test: openssl_dep_error
 
@@ -7753,6 +8664,8 @@ CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_TEST_OBJS = $(addprefix objs/$(CONFIG)
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_test: openssl_dep_error
 
 else
@@ -7779,6 +8692,8 @@ CHTTP2_SOCKET_PAIR_NO_OP_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_NO_OP_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_NO_OP_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_no_op_test: openssl_dep_error
 
@@ -7807,6 +8722,8 @@ CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_TEST_OBJS = $(addprefix objs/$(CONFIG)/, 
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_ping_pong_streaming_test: openssl_dep_error
 
 else
@@ -7833,6 +8750,8 @@ CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_SRC = 
 CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_request_response_with_binary_metadata_and_payload_test: openssl_dep_error
 
@@ -7861,6 +8780,8 @@ CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_TEST_OBJS = $(addp
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_request_response_with_metadata_and_payload_test: openssl_dep_error
 
 else
@@ -7887,6 +8808,8 @@ CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_request_response_with_payload_test: openssl_dep_error
 
@@ -7915,6 +8838,8 @@ CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_TEST_OBJS
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_request_response_with_trailing_metadata_and_payload_test: openssl_dep_error
 
 else
@@ -7941,6 +8866,8 @@ CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_simple_delayed_request_test: openssl_dep_error
 
@@ -7969,6 +8896,8 @@ CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(add
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_simple_request_test: openssl_dep_error
 
 else
@@ -7995,6 +8924,8 @@ CHTTP2_SOCKET_PAIR_THREAD_STRESS_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_THREAD_STRESS_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_THREAD_STRESS_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_thread_stress_test: openssl_dep_error
 
@@ -8023,6 +8954,8 @@ CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_TEST_OBJS = $(addprefix o
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_writes_done_hangs_with_pending_read_test: openssl_dep_error
 
 else
@@ -8049,6 +8982,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_test: openssl_dep_error
 
@@ -8077,6 +9012,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_TEST
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_test: openssl_dep_error
 
 else
@@ -8103,6 +9040,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_test: openssl_dep_error
 
@@ -8131,6 +9070,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_TEST_OBJS = $(addpref
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_test: openssl_dep_error
 
 else
@@ -8157,6 +9098,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_test: openssl_dep_error
 
@@ -8185,6 +9128,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_TEST_OBJS = $(addpre
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_census_simple_request_test: openssl_dep_error
 
 else
@@ -8211,6 +9156,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_test: openssl_dep_error
 
@@ -8239,6 +9186,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CA
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_test: openssl_dep_error
 
 else
@@ -8266,6 +9215,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_TEST_O
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_test: openssl_dep_error
 
 else
@@ -8287,11 +9238,42 @@ endif
 endif
 
 
+CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_TEST_SRC = \
+
+CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS) libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a libs/$(CONFIG)/libend2end_certs.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS) libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a libs/$(CONFIG)/libend2end_test_graceful_server_shutdown.a libs/$(CONFIG)/libend2end_certs.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test
+
+endif
+
+
+deps_chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test: openssl_dep_error
 
@@ -8320,6 +9302,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_TEST_OBJS = $(addpr
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_test: openssl_dep_error
 
 else
@@ -8346,6 +9330,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_test: openssl_dep_error
 
@@ -8374,6 +9360,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_TEST_OBJS = $(addprefi
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_test: openssl_dep_error
 
 else
@@ -8400,6 +9388,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_test: openssl_dep_error
 
@@ -8428,6 +9418,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_test: openssl_dep_error
 
 else
@@ -8454,6 +9446,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_test: openssl_dep_error
 
@@ -8482,6 +9476,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AN
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_trailing_metadata_and_payload_test: openssl_dep_error
 
 else
@@ -8508,6 +9504,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_TEST_SRC = \
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_test: openssl_dep_error
 
@@ -8536,6 +9534,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_TEST_OBJS = $(addprefix obj
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_test: openssl_dep_error
 
 else
@@ -8563,6 +9563,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_TEST_OBJS = $(addprefix objs
 
 ifeq ($(NO_SECURE),true)
 
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_thread_stress_test: openssl_dep_error
 
 else
@@ -8589,6 +9591,8 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_TEST_S
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_TEST_SRC))))
 
 ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_test: openssl_dep_error
 
