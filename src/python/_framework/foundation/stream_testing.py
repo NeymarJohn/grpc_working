@@ -27,38 +27,47 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Tests for _framework.foundation.logging_pool."""
+"""Utilities for testing stream-related code."""
 
-import unittest
-
-from _framework.foundation import logging_pool
-
-_POOL_SIZE = 16
+from _framework.foundation import stream
 
 
-class LoggingPoolTest(unittest.TestCase):
+class TestConsumer(stream.Consumer):
+  """A stream.Consumer instrumented for testing.
 
-  def testUpAndDown(self):
-    pool = logging_pool.pool(_POOL_SIZE)
-    pool.shutdown(wait=True)
+  Attributes:
+    calls: A sequence of value-termination pairs describing the history of calls
+      made on this object.
+  """
 
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      self.assertIsNotNone(pool)
+  def __init__(self):
+    self.calls = []
 
-  def testTaskExecuted(self):
-    test_list = []
+  def consume(self, value):
+    """See stream.Consumer.consume for specification."""
+    self.calls.append((value, False))
 
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      pool.submit(lambda: test_list.append(object())).result()
+  def terminate(self):
+    """See stream.Consumer.terminate for specification."""
+    self.calls.append((None, True))
 
-    self.assertTrue(test_list)
+  def consume_and_terminate(self, value):
+    """See stream.Consumer.consume_and_terminate for specification."""
+    self.calls.append((value, True))
 
-  def testException(self):
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      raised_exception = pool.submit(lambda: 1/0).exception()
+  def is_legal(self):
+    """Reports whether or not a legal sequence of calls has been made."""
+    terminated = False
+    for value, terminal in self.calls:
+      if terminated:
+        return False
+      elif terminal:
+        terminated = True
+      elif value is None:
+        return False
+    else:  # pylint: disable=useless-else-on-loop
+      return True
 
-    self.assertIsNotNone(raised_exception)
-
-
-if __name__ == '__main__':
-  unittest.main()
+  def values(self):
+    """Returns the sequence of values that have been passed to this Consumer."""
+    return [value for value, _ in self.calls if value]

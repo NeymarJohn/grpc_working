@@ -27,38 +27,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Tests for _framework.foundation.logging_pool."""
-
-import unittest
-
-from _framework.foundation import logging_pool
-
-_POOL_SIZE = 16
+"""Utilities for indicating abandonment of computation."""
 
 
-class LoggingPoolTest(unittest.TestCase):
+class Abandoned(Exception):
+  """Indicates that some computation is being abandoned.
 
-  def testUpAndDown(self):
-    pool = logging_pool.pool(_POOL_SIZE)
-    pool.shutdown(wait=True)
-
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      self.assertIsNotNone(pool)
-
-  def testTaskExecuted(self):
-    test_list = []
-
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      pool.submit(lambda: test_list.append(object())).result()
-
-    self.assertTrue(test_list)
-
-  def testException(self):
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      raised_exception = pool.submit(lambda: 1/0).exception()
-
-    self.assertIsNotNone(raised_exception)
-
-
-if __name__ == '__main__':
-  unittest.main()
+  Abandoning a computation is different than returning a value or raising
+  an exception indicating some operational or programming defect.
+  """
