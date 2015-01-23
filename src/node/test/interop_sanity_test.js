@@ -31,24 +31,41 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_POLLSET_WINDOWS_H_
-#define __GRPC_INTERNAL_IOMGR_POLLSET_WINDOWS_H_
+var interop_server = require('../interop/interop_server.js');
+var interop_client = require('../interop/interop_client.js');
 
-#include <grpc/support/sync.h>
+var server;
 
-#include "src/core/iomgr/pollset_kick.h"
+var port;
 
-/* forward declare only in this file to avoid leaking impl details via
-   pollset.h; real users of grpc_fd should always include 'fd_posix.h' and not
-   use the struct tag */
-struct grpc_fd;
+var name_override = 'foo.test.google.com';
 
-typedef struct grpc_pollset {
-	gpr_mu mu;
-	gpr_cv cv;
-} grpc_pollset;
-
-#define GRPC_POLLSET_MU(pollset) (&(pollset)->mu)
-#define GRPC_POLLSET_CV(pollset) (&(pollset)->cv)
-
-#endif /* __GRPC_INTERNAL_IOMGR_POLLSET_WINDOWS_H_ */
+describe('Interop tests', function() {
+  before(function(done) {
+    var server_obj = interop_server.getServer(0, true);
+    server = server_obj.server;
+    server.listen();
+    port = 'localhost:' + server_obj.port;
+    done();
+  });
+  // This depends on not using a binary stream
+  it('should pass empty_unary', function(done) {
+    interop_client.runTest(port, name_override, 'empty_unary', true, done);
+  });
+  it('should pass large_unary', function(done) {
+    interop_client.runTest(port, name_override, 'large_unary', true, done);
+  });
+  it('should pass client_streaming', function(done) {
+    interop_client.runTest(port, name_override, 'client_streaming', true, done);
+  });
+  it('should pass server_streaming', function(done) {
+    interop_client.runTest(port, name_override, 'server_streaming', true, done);
+  });
+  it('should pass ping_pong', function(done) {
+    interop_client.runTest(port, name_override, 'ping_pong', true, done);
+  });
+  // This depends on the new invoke API
+  it.skip('should pass empty_stream', function(done) {
+    interop_client.runTest(port, name_override, 'empty_stream', true, done);
+  });
+});

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,15 +31,43 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_POLLSET_KICK_WINDOWS_H_
-#define __GRPC_INTERNAL_IOMGR_POLLSET_KICK_WINDOWS_H_
+#include <grpc/grpc.h>
+#include <grpc/support/log.h>
+#include <google/gflags.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/create_channel.h>
+#include <grpc++/status.h>
 
-#include <grpc/support/sync.h>
+#include "examples/tips/client.h"
+#include "test/cpp/util/create_test_channel.h"
 
-struct grpc_kick_pipe_info;
+DEFINE_bool(enable_ssl, true, "Whether to use ssl/tls.");
+DEFINE_bool(use_prod_roots, true, "True to use SSL roots for production GFE");
+DEFINE_int32(server_port, 0, "Server port.");
+DEFINE_string(server_host, "127.0.0.1", "Server host to connect to");
+DEFINE_string(server_host_override, "foo.test.google.com",
+              "Override the server host which is sent in HTTP header");
 
-typedef struct grpc_pollset_kick_state {
-  int unused;
-} grpc_pollset_kick_state;
+int main(int argc, char** argv) {
+  grpc_init();
+  google::ParseCommandLineFlags(&argc, &argv, true);
+  gpr_log(GPR_INFO, "Start TIPS client");
 
-#endif /* __GRPC_INTERNAL_IOMGR_POLLSET_KICK_WINDOWS_H_ */
+  GPR_ASSERT(FLAGS_server_port);
+  const int host_port_buf_size = 1024;
+  char host_port[host_port_buf_size];
+  snprintf(host_port, host_port_buf_size, "%s:%d", FLAGS_server_host.c_str(),
+           FLAGS_server_port);
+
+  std::shared_ptr<grpc::ChannelInterface> channel(
+      grpc::CreateTestChannel(host_port, FLAGS_server_host_override,
+                              FLAGS_enable_ssl, FLAGS_use_prod_roots));
+
+  grpc::examples::tips::Client client(channel);
+  grpc::Status s = client.CreateTopic("test");
+  GPR_ASSERT(s.IsOk());
+
+  channel.reset();
+  grpc_shutdown();
+  return 0;
+}

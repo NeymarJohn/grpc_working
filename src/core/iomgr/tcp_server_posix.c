@@ -31,10 +31,6 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
-
-#ifdef GPR_POSIX_SOCKET
-
 #define _GNU_SOURCE
 #include "src/core/iomgr/tcp_server.h"
 
@@ -256,7 +252,7 @@ static int add_socket_to_server(grpc_tcp_server *s, int fd,
     if (s->nports == s->port_capacity) {
       s->port_capacity *= 2;
       s->ports =
-          gpr_realloc(s->ports, sizeof(server_port *) * s->port_capacity);
+          gpr_realloc(s->ports, sizeof(server_port) * s->port_capacity);
     }
     sp = &s->ports[s->nports++];
     sp->server = s;
@@ -269,7 +265,7 @@ static int add_socket_to_server(grpc_tcp_server *s, int fd,
   return port;
 }
 
-int grpc_tcp_server_add_port(grpc_tcp_server *s, const void *addr,
+int grpc_tcp_server_add_port(grpc_tcp_server *s, const struct sockaddr *addr,
                              int addr_len) {
   int allocated_port1 = -1;
   int allocated_port2 = -1;
@@ -368,5 +364,3 @@ void grpc_tcp_server_start(grpc_tcp_server *s, grpc_pollset *pollset,
   }
   gpr_mu_unlock(&s->mu);
 }
-
-#endif

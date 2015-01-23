@@ -31,22 +31,30 @@
  *
  */
 
-var net = require('net');
+#include <grpc++/client_context.h>
 
-/**
- * Finds a free port that a server can bind to, in the format
- * "address:port"
- * @param {function(string)} cb The callback that should execute when the port
- *     is available
- */
-function nextAvailablePort(cb) {
-  var server = net.createServer();
-  server.listen(function() {
-    var address = server.address();
-    server.close(function() {
-      cb(address.address + ':' + address.port.toString());
-    });
-  });
+#include "examples/tips/client.h"
+
+using tech::pubsub::Topic;
+using tech::pubsub::PublisherService;
+
+namespace grpc {
+namespace examples {
+namespace tips {
+
+Client::Client(std::shared_ptr<ChannelInterface> channel)
+    : stub_(PublisherService::NewStub(channel)) {
 }
 
-exports.nextAvailablePort = nextAvailablePort;
+Status Client::CreateTopic(grpc::string topic) {
+  Topic request;
+  Topic response;
+  request.set_name(topic);
+  ClientContext context;
+
+  return stub_->CreateTopic(&context, request, &response);
+}
+
+}  // namespace tips
+}  // namespace examples
+}  // namespace grpc

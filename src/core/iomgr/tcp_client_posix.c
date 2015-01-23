@@ -31,10 +31,6 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
-
-#ifdef GPR_POSIX_SOCKET
-
 #include "src/core/iomgr/tcp_client.h"
 
 #include <errno.h>
@@ -233,5 +229,3 @@ void grpc_tcp_client_connect(void (*cb)(void *arg, grpc_endpoint *ep),
   grpc_alarm_init(&ac->alarm, deadline, on_alarm, ac, gpr_now());
   grpc_fd_notify_on_write(ac->fd, on_writable, ac);
 }
-
-#endif
