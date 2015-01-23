@@ -60,6 +60,17 @@ char *gpr_hexdump(const char *buf, size_t len, gpr_uint32 flags);
 int gpr_parse_bytes_to_uint32(const char *data, size_t length,
                               gpr_uint32 *result);
 
+/* Minimum buffer size for calling ltoa */
+#define GPR_LTOA_MIN_BUFSIZE (3 * sizeof(long))
+
+/* Convert a long to a string in base 10; returns the length of the
+   output string (or 0 on failure).
+   output must be at least GPR_LTOA_MIN_BUFSIZE bytes long. */
+int gpr_ltoa(long value, char *output);
+
+/* Reverse a run of bytes */
+void gpr_reverse_bytes(char *str, int len);
+
 /* printf to a newly-allocated string.  The set of supported formats may vary
    between platforms.
 
@@ -69,6 +80,27 @@ int gpr_parse_bytes_to_uint32(const char *data, size_t length,
    On error, returns -1 and sets *strp to NULL. If the format string is bad,
    the result is undefined. */
 int gpr_asprintf(char **strp, const char *format, ...);
+
+/* Join a set of strings, returning the resulting string.
+   Total combined length (excluding null terminator) is returned in total_length
+   if it is non-null. */
+char *gpr_strjoin(const char **strs, size_t nstrs, size_t *total_length);
+
+/* A vector of strings... for building up a final string one piece at a time */
+typedef struct {
+  char **strs;
+  size_t count;
+  size_t capacity;
+} gpr_strvec;
+
+/* Initialize/destroy */
+void gpr_strvec_init(gpr_strvec *strs);
+void gpr_strvec_destroy(gpr_strvec *strs);
+/* Add a string to a strvec, takes ownership of the string */
+void gpr_strvec_add(gpr_strvec *strs, char *add);
+/* Return a joined string with all added substrings, optionally setting
+   total_length as per gpr_strjoin */
+char *gpr_strvec_flatten(gpr_strvec *strs, size_t *total_length);
 
 #ifdef __cplusplus
 }
