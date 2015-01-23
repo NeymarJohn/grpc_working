@@ -35,11 +35,11 @@
 #include "src/core/channel/channel_stack.h"
 #include "src/core/channel/metadata_buffer.h"
 #include "src/core/iomgr/alarm.h"
+#include "src/core/support/string.h"
 #include "src/core/surface/channel.h"
 #include "src/core/surface/completion_queue.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
-#include <grpc/support/string.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -823,7 +823,7 @@ grpc_call_error grpc_call_start_write_status(grpc_call *call,
   {
     grpc_mdelem *md;
     char buffer[32];
-    sprintf(buffer, "%d", status);
+    gpr_ltoa(status, buffer);
     md =
         grpc_mdelem_from_strings(call->metadata_context, "grpc-status", buffer);
 
