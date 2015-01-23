@@ -30,7 +30,9 @@
 require 'grpc'
 require 'grpc/generic/rpc_desc'
 
+
 describe GRPC::RpcDesc do
+
   RpcDesc = GRPC::RpcDesc
   Stream = RpcDesc::Stream
   OK = GRPC::Core::StatusCodes::OK
@@ -54,6 +56,7 @@ describe GRPC::RpcDesc do
   end
 
   describe '#run_server_method' do
+
     describe 'for request responses' do
       before(:each) do
         @call = double('active_call')
@@ -75,7 +78,7 @@ describe GRPC::RpcDesc do
 
       it 'absorbs EventError  with no further action' do
         expect(@call).to receive(:remote_read).once.and_raise(EventError)
-        blk = proc do
+        blk = Proc.new do
           @request_response.run_server_method(@call, method(:fake_reqresp))
         end
         expect(&blk).to_not raise_error
@@ -83,7 +86,7 @@ describe GRPC::RpcDesc do
 
       it 'absorbs CallError with no further action' do
         expect(@call).to receive(:remote_read).once.and_raise(CallError)
-        blk = proc do
+        blk = Proc.new do
           @request_response.run_server_method(@call, method(:fake_reqresp))
         end
         expect(&blk).to_not raise_error
@@ -97,6 +100,7 @@ describe GRPC::RpcDesc do
         expect(@call).to receive(:finished).once
         @request_response.run_server_method(@call, method(:fake_reqresp))
       end
+
     end
 
     describe 'for client streamers' do
@@ -118,7 +122,7 @@ describe GRPC::RpcDesc do
 
       it 'absorbs EventError  with no further action' do
         expect(@call).to receive(:remote_send).once.and_raise(EventError)
-        blk = proc do
+        blk = Proc.new do
           @client_streamer.run_server_method(@call, method(:fake_clstream))
         end
         expect(&blk).to_not raise_error
@@ -126,18 +130,20 @@ describe GRPC::RpcDesc do
 
       it 'absorbs CallError with no further action' do
         expect(@call).to receive(:remote_send).once.and_raise(CallError)
-        blk = proc do
+        blk = Proc.new do
           @client_streamer.run_server_method(@call, method(:fake_clstream))
         end
         expect(&blk).to_not raise_error
       end
 
       it 'sends a response and closes the stream if there no errors' do
+        req = Object.new
         expect(@call).to receive(:remote_send).once.with(@ok_response)
         expect(@call).to receive(:send_status).once.with(OK, 'OK')
         expect(@call).to receive(:finished).once
         @client_streamer.run_server_method(@call, method(:fake_clstream))
       end
+
     end
 
     describe 'for server streaming' do
@@ -161,7 +167,7 @@ describe GRPC::RpcDesc do
 
       it 'absorbs EventError  with no further action' do
         expect(@call).to receive(:remote_read).once.and_raise(EventError)
-        blk = proc do
+        blk = Proc.new do
           @server_streamer.run_server_method(@call, method(:fake_svstream))
         end
         expect(&blk).to_not raise_error
@@ -169,7 +175,7 @@ describe GRPC::RpcDesc do
 
       it 'absorbs CallError with no further action' do
         expect(@call).to receive(:remote_read).once.and_raise(CallError)
-        blk = proc do
+        blk = Proc.new do
           @server_streamer.run_server_method(@call, method(:fake_svstream))
         end
         expect(&blk).to_not raise_error
@@ -183,6 +189,7 @@ describe GRPC::RpcDesc do
         expect(@call).to receive(:finished).once
         @server_streamer.run_server_method(@call, method(:fake_svstream))
       end
+
     end
 
     describe 'for bidi streamers' do
@@ -208,27 +215,30 @@ describe GRPC::RpcDesc do
       end
 
       it 'closes the stream if there no errors' do
+        req = Object.new
         expect(@call).to receive(:run_server_bidi)
         expect(@call).to receive(:send_status).once.with(OK, 'OK')
         expect(@call).to receive(:finished).once
         @bidi_streamer.run_server_method(@call, method(:fake_bidistream))
       end
+
     end
+
   end
 
   describe '#assert_arity_matches' do
     def no_arg
     end
 
-    def fake_clstream(_arg)
+    def fake_clstream(arg)
     end
 
-    def fake_svstream(_arg1, _arg2)
+    def fake_svstream(arg1, arg2)
     end
 
     it 'raises when a request_response does not have 2 args' do
       [:fake_clstream, :no_arg].each do |mth|
-        blk = proc do
+        blk = Proc.new do
           @request_response.assert_arity_matches(method(mth))
         end
         expect(&blk).to raise_error
@@ -236,7 +246,7 @@ describe GRPC::RpcDesc do
     end
 
     it 'passes when a request_response has 2 args' do
-      blk = proc do
+      blk = Proc.new do
         @request_response.assert_arity_matches(method(:fake_svstream))
       end
       expect(&blk).to_not raise_error
@@ -244,7 +254,7 @@ describe GRPC::RpcDesc do
 
     it 'raises when a server_streamer does not have 2 args' do
       [:fake_clstream, :no_arg].each do |mth|
-        blk = proc do
+        blk = Proc.new do
           @server_streamer.assert_arity_matches(method(mth))
         end
         expect(&blk).to raise_error
@@ -252,7 +262,7 @@ describe GRPC::RpcDesc do
     end
 
     it 'passes when a server_streamer has 2 args' do
-      blk = proc do
+      blk = Proc.new do
         @server_streamer.assert_arity_matches(method(:fake_svstream))
       end
       expect(&blk).to_not raise_error
@@ -260,7 +270,7 @@ describe GRPC::RpcDesc do
 
     it 'raises when a client streamer does not have 1 arg' do
       [:fake_svstream, :no_arg].each do |mth|
-        blk = proc do
+        blk = Proc.new do
           @client_streamer.assert_arity_matches(method(mth))
         end
         expect(&blk).to raise_error
@@ -268,15 +278,16 @@ describe GRPC::RpcDesc do
     end
 
     it 'passes when a client_streamer has 1 arg' do
-      blk = proc do
+      blk = Proc.new do
         @client_streamer.assert_arity_matches(method(:fake_clstream))
       end
       expect(&blk).to_not raise_error
     end
 
+
     it 'raises when a bidi streamer does not have 1 arg' do
       [:fake_svstream, :no_arg].each do |mth|
-        blk = proc do
+        blk = Proc.new do
           @bidi_streamer.assert_arity_matches(method(mth))
         end
         expect(&blk).to raise_error
@@ -284,78 +295,88 @@ describe GRPC::RpcDesc do
     end
 
     it 'passes when a bidi streamer has 1 arg' do
-      blk = proc do
+      blk = Proc.new do
         @bidi_streamer.assert_arity_matches(method(:fake_clstream))
       end
       expect(&blk).to_not raise_error
     end
+
   end
 
-  describe '#request_response?' do
+  describe '#is_request_response?' do
+
     it 'is true only input and output are both not Streams' do
-      expect(@request_response.request_response?).to be(true)
-      expect(@client_streamer.request_response?).to be(false)
-      expect(@bidi_streamer.request_response?).to be(false)
-      expect(@server_streamer.request_response?).to be(false)
+      expect(@request_response.is_request_response?).to be(true)
+      expect(@client_streamer.is_request_response?).to be(false)
+      expect(@bidi_streamer.is_request_response?).to be(false)
+      expect(@server_streamer.is_request_response?).to be(false)
     end
+
   end
 
-  describe '#client_streamer?' do
+  describe '#is_client_streamer?' do
+
     it 'is true only when input is a Stream and output is not a Stream' do
-      expect(@client_streamer.client_streamer?).to be(true)
-      expect(@request_response.client_streamer?).to be(false)
-      expect(@server_streamer.client_streamer?).to be(false)
-      expect(@bidi_streamer.client_streamer?).to be(false)
+      expect(@client_streamer.is_client_streamer?).to be(true)
+      expect(@request_response.is_client_streamer?).to be(false)
+      expect(@server_streamer.is_client_streamer?).to be(false)
+      expect(@bidi_streamer.is_client_streamer?).to be(false)
     end
+
   end
 
-  describe '#server_streamer?' do
+  describe '#is_server_streamer?' do
+
     it 'is true only when output is a Stream and input is not a Stream' do
-      expect(@server_streamer.server_streamer?).to be(true)
-      expect(@client_streamer.server_streamer?).to be(false)
-      expect(@request_response.server_streamer?).to be(false)
-      expect(@bidi_streamer.server_streamer?).to be(false)
+      expect(@server_streamer.is_server_streamer?).to be(true)
+      expect(@client_streamer.is_server_streamer?).to be(false)
+      expect(@request_response.is_server_streamer?).to be(false)
+      expect(@bidi_streamer.is_server_streamer?).to be(false)
     end
+
   end
 
-  describe '#bidi_streamer?' do
+  describe '#is_bidi_streamer?' do
+
     it 'is true only when output is a Stream and input is a Stream' do
-      expect(@bidi_streamer.bidi_streamer?).to be(true)
-      expect(@server_streamer.bidi_streamer?).to be(false)
-      expect(@client_streamer.bidi_streamer?).to be(false)
-      expect(@request_response.bidi_streamer?).to be(false)
+      expect(@bidi_streamer.is_bidi_streamer?).to be(true)
+      expect(@server_streamer.is_bidi_streamer?).to be(false)
+      expect(@client_streamer.is_bidi_streamer?).to be(false)
+      expect(@request_response.is_bidi_streamer?).to be(false)
     end
+
   end
 
-  def fake_reqresp(_req, _call)
+  def fake_reqresp(req, call)
     @ok_response
   end
 
-  def fake_clstream(_call)
+  def fake_clstream(call)
     @ok_response
   end
 
-  def fake_svstream(_req, _call)
+  def fake_svstream(req, call)
     [@ok_response, @ok_response]
   end
 
   def fake_bidistream(an_array)
-    an_array
+    return an_array
   end
 
-  def bad_status(_req, _call)
-    fail GRPC::BadStatus.new(@bs_code, 'NOK')
+  def bad_status(req, call)
+    raise GRPC::BadStatus.new(@bs_code, 'NOK')
   end
 
-  def other_error(_req, _call)
-    fail(ArgumentError, 'other error')
+  def other_error(req, call)
+    raise ArgumentError.new('other error')
   end
 
-  def bad_status_alt(_call)
-    fail GRPC::BadStatus.new(@bs_code, 'NOK')
+  def bad_status_alt(call)
+    raise GRPC::BadStatus.new(@bs_code, 'NOK')
   end
 
-  def other_error_alt(_call)
-    fail(ArgumentError, 'other error')
+  def other_error_alt(call)
+    raise ArgumentError.new('other error')
   end
+
 end

@@ -56,8 +56,8 @@
 typedef struct metadata {
   size_t count;
   size_t cap;
-  char **keys;
-  char **values;
+  const char **keys;
+  const char **values;
 } metadata;
 
 /* details what we expect to find on a single event - and forms a linked
@@ -223,8 +223,6 @@ static void verify_matches(expectation *e, grpc_event *ev) {
         GPR_ASSERT(ev->data.read == NULL);
       }
       break;
-    case GRPC_SERVER_SHUTDOWN:
-      break;
     case GRPC_COMPLETION_DO_NOT_USE:
       gpr_log(GPR_ERROR, "not implemented");
       abort();
@@ -297,8 +295,6 @@ static size_t expectation_to_string(char *out, expectation *e) {
       len = sprintf(out, "GRPC_READ data=%s", str);
       gpr_free(str);
       return len;
-    case GRPC_SERVER_SHUTDOWN:
-      return sprintf(out, "GRPC_SERVER_SHUTDOWN");
     case GRPC_COMPLETION_DO_NOT_USE:
     case GRPC_QUEUE_SHUTDOWN:
       gpr_log(GPR_ERROR, "not implemented");
@@ -409,11 +405,11 @@ static metadata *metadata_from_args(va_list args) {
 
     if (md->cap == md->count) {
       md->cap = GPR_MAX(md->cap + 1, md->cap * 3 / 2);
-      md->keys = gpr_realloc(md->keys, sizeof(char *) * md->cap);
-      md->values = gpr_realloc(md->values, sizeof(char *) * md->cap);
+      md->keys = gpr_realloc(md->keys, sizeof(const char *) * md->cap);
+      md->values = gpr_realloc(md->values, sizeof(const char *) * md->cap);
     }
-    md->keys[md->count] = (char *)key;
-    md->values[md->count] = (char *)value;
+    md->keys[md->count] = key;
+    md->values[md->count] = value;
     md->count++;
   }
 }
@@ -490,8 +486,4 @@ void cq_expect_finished(cq_verifier *v, void *tag, ...) {
   va_start(args, tag);
   finished_internal(v, tag, GRPC_STATUS__DO_NOT_USE, NULL, args);
   va_end(args);
-}
-
-void cq_expect_server_shutdown(cq_verifier *v, void *tag) {
-  add(v, GRPC_SERVER_SHUTDOWN, tag);
 }

@@ -57,7 +57,7 @@ static void on_credentials_metadata(void *user_data, grpc_mdelem **md_elems,
   grpc_call_element *elem = (grpc_call_element *)user_data;
   size_t i;
   for (i = 0; i < num_md; i++) {
-    grpc_call_element_send_metadata(elem, grpc_mdelem_ref(md_elems[i]));
+    grpc_call_element_send_metadata(elem, md_elems[i]);
   }
   grpc_call_next_op(elem, &((call_data *)elem->call_data)->op);
 }
@@ -157,6 +157,5 @@ static void destroy_channel_elem(grpc_channel_element *elem) {
 }
 
 const grpc_channel_filter grpc_client_auth_filter = {
-    call_op,           channel_op,           sizeof(call_data),
-    init_call_elem,    destroy_call_elem,    sizeof(channel_data),
-    init_channel_elem, destroy_channel_elem, "auth"};
+    call_op, channel_op, sizeof(call_data), init_call_elem, destroy_call_elem,
+    sizeof(channel_data), init_channel_elem, destroy_channel_elem, "auth"};

@@ -54,7 +54,7 @@
 
 /* Given a size, round up to the next multiple of sizeof(void*) */
 #define ROUND_UP_TO_ALIGNMENT_SIZE(x) \
-  (((x)+GPR_MAX_ALIGNMENT - 1) & ~(GPR_MAX_ALIGNMENT - 1))
+  (((x) + GPR_MAX_ALIGNMENT - 1) & ~(GPR_MAX_ALIGNMENT - 1))
 
 size_t grpc_channel_stack_size(const grpc_channel_filter **filters,
                                size_t filter_count) {
@@ -190,28 +190,16 @@ void grpc_channel_next_op(grpc_channel_element *elem, grpc_channel_op *op) {
 
 grpc_channel_stack *grpc_channel_stack_from_top_element(
     grpc_channel_element *elem) {
-  return (grpc_channel_stack *)((char *)(elem) -
-                                ROUND_UP_TO_ALIGNMENT_SIZE(
-                                    sizeof(grpc_channel_stack)));
+  return (grpc_channel_stack *)((char *)(elem)-ROUND_UP_TO_ALIGNMENT_SIZE(
+      sizeof(grpc_channel_stack)));
 }
 
 grpc_call_stack *grpc_call_stack_from_top_element(grpc_call_element *elem) {
-  return (grpc_call_stack *)((char *)(elem) - ROUND_UP_TO_ALIGNMENT_SIZE(
-                                                  sizeof(grpc_call_stack)));
+  return (grpc_call_stack *)((char *)(elem)-ROUND_UP_TO_ALIGNMENT_SIZE(
+      sizeof(grpc_call_stack)));
 }
 
 static void do_nothing(void *user_data, grpc_op_error error) {}
-
-void grpc_call_element_recv_metadata(grpc_call_element *cur_elem,
-    grpc_mdelem *mdelem) {
-  grpc_call_op metadata_op;
-  metadata_op.type = GRPC_RECV_METADATA;
-  metadata_op.dir = GRPC_CALL_UP;
-  metadata_op.done_cb = do_nothing;
-  metadata_op.user_data = NULL;
-  metadata_op.data.metadata = mdelem;
-  grpc_call_next_op(cur_elem, &metadata_op);
-}
 
 void grpc_call_element_send_metadata(grpc_call_element *cur_elem,
                                      grpc_mdelem *mdelem) {
@@ -220,22 +208,13 @@ void grpc_call_element_send_metadata(grpc_call_element *cur_elem,
   metadata_op.dir = GRPC_CALL_DOWN;
   metadata_op.done_cb = do_nothing;
   metadata_op.user_data = NULL;
-  metadata_op.data.metadata = mdelem;
+  metadata_op.data.metadata = grpc_mdelem_ref(mdelem);
   grpc_call_next_op(cur_elem, &metadata_op);
 }
 
 void grpc_call_element_send_cancel(grpc_call_element *cur_elem) {
   grpc_call_op cancel_op;
   cancel_op.type = GRPC_CANCEL_OP;
-  cancel_op.dir = GRPC_CALL_DOWN;
-  cancel_op.done_cb = do_nothing;
-  cancel_op.user_data = NULL;
-  grpc_call_next_op(cur_elem, &cancel_op);
-}
-
-void grpc_call_element_send_finish(grpc_call_element *cur_elem) {
-  grpc_call_op cancel_op;
-  cancel_op.type = GRPC_SEND_FINISH;
   cancel_op.dir = GRPC_CALL_DOWN;
   cancel_op.done_cb = do_nothing;
   cancel_op.user_data = NULL;

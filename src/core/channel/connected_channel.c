@@ -69,7 +69,7 @@ typedef struct {
 /* We perform a small hack to locate transport data alongside the connected
    channel data in call allocations, to allow everything to be pulled in minimal
    cache line requests */
-#define TRANSPORT_STREAM_FROM_CALL_DATA(calld) ((grpc_stream *)((calld)+1))
+#define TRANSPORT_STREAM_FROM_CALL_DATA(calld) ((grpc_stream *)((calld) + 1))
 #define CALL_DATA_FROM_TRANSPORT_STREAM(transport_stream) \
   (((call_data *)(transport_stream)) - 1)
 
@@ -140,8 +140,6 @@ static void call_op(grpc_call_element *elem, grpc_call_element *from_elem,
       grpc_sopb_add_begin_message(&calld->outgoing_sopb,
                                   grpc_byte_buffer_length(op->data.message),
                                   op->flags);
-      /* fall-through */
-    case GRPC_SEND_PREFORMATTED_MESSAGE:
       copy_byte_buffer_to_stream_ops(op->data.message, &calld->outgoing_sopb);
       calld->outgoing_buffer_length_estimate +=
           (5 + grpc_byte_buffer_length(op->data.message));
@@ -259,9 +257,9 @@ static void destroy_channel_elem(grpc_channel_element *elem) {
 }
 
 const grpc_channel_filter grpc_connected_channel_filter = {
-    call_op,              channel_op,
+    call_op, channel_op,
 
-    sizeof(call_data),    init_call_elem,    destroy_call_elem,
+    sizeof(call_data), init_call_elem, destroy_call_elem,
 
     sizeof(channel_data), init_channel_elem, destroy_channel_elem,
 

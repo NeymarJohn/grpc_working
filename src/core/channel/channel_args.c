@@ -52,9 +52,7 @@ static grpc_arg copy_arg(const grpc_arg *src) {
       break;
     case GRPC_ARG_POINTER:
       dst.value.pointer = src->value.pointer;
-      dst.value.pointer.p = src->value.pointer.copy
-                                ? src->value.pointer.copy(src->value.pointer.p)
-                                : src->value.pointer.p;
+      dst.value.pointer.p = src->value.pointer.copy(src->value.pointer.p);
       break;
   }
   return dst;
@@ -93,9 +91,7 @@ void grpc_channel_args_destroy(grpc_channel_args *a) {
       case GRPC_ARG_INTEGER:
         break;
       case GRPC_ARG_POINTER:
-        if (a->args[i].value.pointer.destroy) {
-          a->args[i].value.pointer.destroy(a->args[i].value.pointer.p);
-        }
+        a->args[i].value.pointer.destroy(a->args[i].value.pointer.p);
         break;
     }
     gpr_free(a->args[i].key);

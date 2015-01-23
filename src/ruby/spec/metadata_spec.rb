@@ -30,6 +30,7 @@
 require 'grpc'
 
 describe GRPC::Core::Metadata do
+
   describe '#new' do
     it 'should create instances' do
       expect { GRPC::Core::Metadata.new('a key', 'a value') }.to_not raise_error
@@ -61,4 +62,5 @@ describe GRPC::Core::Metadata do
       expect(md.dup.value).to eq('a value')
     end
   end
+
 end

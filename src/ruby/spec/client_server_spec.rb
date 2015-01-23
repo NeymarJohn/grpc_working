@@ -41,6 +41,7 @@ def load_test_certs
 end
 
 shared_context 'setup: tags' do
+
   before(:example) do
     @server_finished_tag = Object.new
     @client_finished_tag = Object.new
@@ -70,7 +71,7 @@ shared_context 'setup: tags' do
     expect(ev).not_to be_nil
     expect(ev.type).to be(SERVER_RPC_NEW)
     ev.call.server_accept(@server_queue, @server_finished_tag)
-    ev.call.server_end_initial_metadata
+    ev.call.server_end_initial_metadata()
     ev.call.start_read(@server_tag)
     ev = @server_queue.pluck(@server_tag, TimeConsts::INFINITE_FUTURE)
     expect(ev.type).to be(READ)
@@ -78,10 +79,10 @@ shared_context 'setup: tags' do
     ev = @server_queue.pluck(@server_tag, TimeConsts::INFINITE_FUTURE)
     expect(ev).not_to be_nil
     expect(ev.type).to be(WRITE_ACCEPTED)
-    ev.call
+    return ev.call
   end
 
-  def client_sends(call, sent = 'a message')
+  def client_sends(call, sent='a message')
     req = ByteBuffer.new(sent)
     call.start_invoke(@client_queue, @tag, @tag, @client_finished_tag)
     ev = @client_queue.pluck(@tag, TimeConsts::INFINITE_FUTURE)
@@ -91,15 +92,17 @@ shared_context 'setup: tags' do
     ev = @client_queue.pluck(@tag, TimeConsts::INFINITE_FUTURE)
     expect(ev).not_to be_nil
     expect(ev.type).to be(WRITE_ACCEPTED)
-    sent
+    return sent
   end
 
   def new_client_call
     @ch.create_call('/method', 'localhost', deadline)
   end
+
 end
 
 shared_examples 'basic GRPC message delivery is OK' do
+
   include_context 'setup: tags'
 
   it 'servers receive requests from clients and start responding' do
@@ -123,7 +126,7 @@ shared_examples 'basic GRPC message delivery is OK' do
 
     #  the server response
     server_call.start_write(reply, @server_tag)
-    expect_next_event_on(@server_queue, WRITE_ACCEPTED, @server_tag)
+    ev = expect_next_event_on(@server_queue, WRITE_ACCEPTED, @server_tag)
   end
 
   it 'responses written by servers are received by the client' do
@@ -132,14 +135,15 @@ shared_examples 'basic GRPC message delivery is OK' do
     server_receives_and_responds_with('server_response')
 
     call.start_read(@tag)
-    expect_next_event_on(@client_queue, CLIENT_METADATA_READ, @tag)
+    ev = expect_next_event_on(@client_queue, CLIENT_METADATA_READ, @tag)
     ev = expect_next_event_on(@client_queue, READ, @tag)
     expect(ev.result.to_s).to eq('server_response')
   end
 
   it 'servers can ignore a client write and send a status' do
+    reply = ByteBuffer.new('the server payload')
     call = new_client_call
-    client_sends(call)
+    msg = client_sends(call)
 
     # check the server rpc new was received
     @server.request_call(@server_tag)
@@ -149,20 +153,20 @@ shared_examples 'basic GRPC message delivery is OK' do
     # accept the call - need to do this to sent status.
     server_call = ev.call
     server_call.server_accept(@server_queue, @server_finished_tag)
-    server_call.server_end_initial_metadata
+    server_call.server_end_initial_metadata()
     server_call.start_write_status(StatusCodes::NOT_FOUND, 'not found',
                                    @server_tag)
 
     # client gets an empty response for the read, preceeded by some metadata.
     call.start_read(@tag)
-    expect_next_event_on(@client_queue, CLIENT_METADATA_READ, @tag)
+    ev = expect_next_event_on(@client_queue, CLIENT_METADATA_READ, @tag)
     ev = expect_next_event_on(@client_queue, READ, @tag)
     expect(ev.tag).to be(@tag)
     expect(ev.result.to_s).to eq('')
 
     # finally, after client sends writes_done, they get the finished.
     call.writes_done(@tag)
-    expect_next_event_on(@client_queue, FINISH_ACCEPTED, @tag)
+    ev = expect_next_event_on(@client_queue, FINISH_ACCEPTED, @tag)
     ev = expect_next_event_on(@client_queue, FINISHED, @client_finished_tag)
     expect(ev.result.code).to eq(StatusCodes::NOT_FOUND)
   end
@@ -171,12 +175,12 @@ shared_examples 'basic GRPC message delivery is OK' do
     call = new_client_call
     client_sends(call)
     server_call = server_receives_and_responds_with('server_response')
-    server_call.start_write_status(10_101, 'status code is 10101', @server_tag)
+    server_call.start_write_status(10101, 'status code is 10101', @server_tag)
 
     # first the client says writes are done
     call.start_read(@tag)
-    expect_next_event_on(@client_queue, CLIENT_METADATA_READ, @tag)
-    expect_next_event_on(@client_queue, READ, @tag)
+    ev = expect_next_event_on(@client_queue, CLIENT_METADATA_READ, @tag)
+    ev = expect_next_event_on(@client_queue, READ, @tag)
     call.writes_done(@tag)
 
     # but nothing happens until the server sends a status
@@ -188,23 +192,24 @@ shared_examples 'basic GRPC message delivery is OK' do
     expect_next_event_on(@client_queue, FINISH_ACCEPTED, @tag)
     ev = expect_next_event_on(@client_queue, FINISHED, @client_finished_tag)
     expect(ev.result.details).to eq('status code is 10101')
-    expect(ev.result.code).to eq(10_101)
+    expect(ev.result.code).to eq(10101)
   end
+
 end
 
+
 shared_examples 'GRPC metadata delivery works OK' do
+
   include_context 'setup: tags'
 
   describe 'from client => server' do
+
     before(:example) do
       n = 7  # arbitrary number of metadata
-      diff_keys_fn = proc { |i| [sprintf('k%d', i), sprintf('v%d', i)] }
-      diff_keys = Hash[n.times.collect { |x| diff_keys_fn.call x }]
-      null_vals_fn = proc { |i| [sprintf('k%d', i), sprintf('v\0%d', i)] }
-      null_vals = Hash[n.times.collect { |x| null_vals_fn.call x }]
-      same_keys_fn = proc { |i| [sprintf('k%d', i), [sprintf('v%d', i)] * n] }
-      same_keys = Hash[n.times.collect { |x| same_keys_fn.call x }]
-      symbol_key = { a_key: 'a val' }
+      diff_keys = Hash[n.times.collect { |i| ['k%d' % i, 'v%d' % i] }]
+      null_vals = Hash[n.times.collect { |i| ['k%d' % i, 'v\0%d' % i] }]
+      same_keys = Hash[n.times.collect { |i| ['k%d' % i, ['v%d' % i] * n] }]
+      symbol_key = {:a_key => 'a val'}
       @valid_metadata = [diff_keys, same_keys, null_vals, symbol_key]
       @bad_keys = []
       @bad_keys << { Object.new => 'a value' }
@@ -234,29 +239,28 @@ shared_examples 'GRPC metadata delivery works OK' do
 
         # Client begins a call OK
         call.start_invoke(@client_queue, @tag, @tag, @client_finished_tag)
-        expect_next_event_on(@client_queue, INVOKE_ACCEPTED, @tag)
+        ev = expect_next_event_on(@client_queue, INVOKE_ACCEPTED, @tag)
 
         # ... server has all metadata available even though the client did not
         # send a write
         @server.request_call(@server_tag)
         ev = expect_next_event_on(@server_queue, SERVER_RPC_NEW, @server_tag)
-        replace_symbols = Hash[md.each_pair.collect { |x, y| [x.to_s, y] }]
+        replace_symbols = Hash[md.each_pair.collect { |x,y| [x.to_s, y] }]
         result = ev.result.metadata
         expect(result.merge(replace_symbols)).to eq(result)
       end
     end
+
   end
 
   describe 'from server => client' do
+
     before(:example) do
       n = 7  # arbitrary number of metadata
-      diff_keys_fn = proc { |i| [sprintf('k%d', i), sprintf('v%d', i)] }
-      diff_keys = Hash[n.times.collect { |x| diff_keys_fn.call x }]
-      null_vals_fn = proc { |i| [sprintf('k%d', i), sprintf('v\0%d', i)] }
-      null_vals = Hash[n.times.collect { |x| null_vals_fn.call x }]
-      same_keys_fn = proc { |i| [sprintf('k%d', i), [sprintf('v%d', i)] * n] }
-      same_keys = Hash[n.times.collect { |x| same_keys_fn.call x }]
-      symbol_key = { a_key: 'a val' }
+      diff_keys = Hash[n.times.collect { |i| ['k%d' % i, 'v%d' % i] }]
+      null_vals = Hash[n.times.collect { |i| ['k%d' % i, 'v\0%d' % i] }]
+      same_keys = Hash[n.times.collect { |i| ['k%d' % i, ['v%d' % i] * n] }]
+      symbol_key = {:a_key => 'a val'}
       @valid_metadata = [diff_keys, same_keys, null_vals, symbol_key]
       @bad_keys = []
       @bad_keys << { Object.new => 'a value' }
@@ -286,7 +290,7 @@ shared_examples 'GRPC metadata delivery works OK' do
 
       # ... server accepts the call without adding metadata
       server_call.server_accept(@server_queue, @server_finished_tag)
-      server_call.server_end_initial_metadata
+      server_call.server_end_initial_metadata()
 
       # ... these server sends some data, allowing the metadata read
       server_call.start_write(ByteBuffer.new('reply with metadata'),
@@ -294,9 +298,9 @@ shared_examples 'GRPC metadata delivery works OK' do
       expect_next_event_on(@server_queue, WRITE_ACCEPTED, @server_tag)
 
       # there is the HTTP status metadata, though there should not be any
-      # TODO: update this with the bug number to be resolved
+      # TODO(temiola): update this with the bug number to be resolved
       ev = expect_next_event_on(@client_queue, CLIENT_METADATA_READ, @tag)
-      expect(ev.result).to eq(':status' => '200')
+      expect(ev.result).to eq({':status' => '200'})
     end
 
     it 'sends all the pairs and status:200 when keys and values are valid' do
@@ -312,19 +316,24 @@ shared_examples 'GRPC metadata delivery works OK' do
         # ... server adds metadata and accepts the call
         server_call.add_metadata(md)
         server_call.server_accept(@server_queue, @server_finished_tag)
-        server_call.server_end_initial_metadata
+        server_call.server_end_initial_metadata()
 
         # Now the client can read the metadata
         ev = expect_next_event_on(@client_queue, CLIENT_METADATA_READ, @tag)
-        replace_symbols = Hash[md.each_pair.collect { |x, y| [x.to_s, y] }]
+        replace_symbols = Hash[md.each_pair.collect { |x,y| [x.to_s, y] }]
         replace_symbols[':status'] = '200'
         expect(ev.result).to eq(replace_symbols)
       end
+
     end
+
   end
+
 end
 
+
 describe 'the http client/server' do
+
   before(:example) do
     port = find_unused_tcp_port
     host = "localhost:#{port}"
@@ -345,9 +354,11 @@ describe 'the http client/server' do
 
   it_behaves_like 'GRPC metadata delivery works OK' do
   end
+
 end
 
 describe 'the secure http client/server' do
+
   before(:example) do
     certs = load_test_certs
     port = find_unused_tcp_port
@@ -358,7 +369,7 @@ describe 'the secure http client/server' do
     @server = GRPC::Core::Server.new(@server_queue, nil, server_creds)
     @server.add_http2_port(host, true)
     @server.start
-    args = { Channel::SSL_TARGET => 'foo.test.google.com' }
+    args = {Channel::SSL_TARGET => 'foo.test.google.com'}
     @ch = Channel.new(host, args,
                       GRPC::Core::Credentials.new(certs[0], nil, nil))
   end
@@ -372,4 +383,5 @@ describe 'the secure http client/server' do
 
   it_behaves_like 'GRPC metadata delivery works OK' do
   end
+
 end
