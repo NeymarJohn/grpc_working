@@ -40,9 +40,9 @@
 #include "src/core/channel/connected_channel.h"
 #include "src/core/channel/metadata_buffer.h"
 #include "src/core/iomgr/iomgr.h"
+#include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
-#include <grpc/support/string.h>
 #include <grpc/support/sync.h>
 #include <grpc/support/useful.h>
 
@@ -425,7 +425,7 @@ static void init_channel_elem(grpc_channel_element *elem,
   chand->transport_setup_initiated = 0;
   chand->args = grpc_channel_args_copy(args);
 
-  sprintf(temp, "%d", GRPC_STATUS_CANCELLED);
+  gpr_ltoa(GRPC_STATUS_CANCELLED, temp);
   chand->cancel_status =
       grpc_mdelem_from_strings(metadata_context, "grpc-status", temp);
 }
