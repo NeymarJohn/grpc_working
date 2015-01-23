@@ -31,24 +31,8 @@
  *
  */
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+#include <grpc/support/port_platform.h>
 
-#include "examples/tips/pubsub.pb.h"
+#ifdef GPR_WIN32
 
-namespace grpc {
-namespace examples {
-namespace tips {
-
-class Client {
- public:
-  Client(std::shared_ptr<grpc::ChannelInterface> channel);
-  Status CreateTopic(grpc::string topic);
-
- private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
-};
-
-}  // namespace tips
-}  // namespace examples
-}  // namespace grpc
+#endif /* GPR_WIN32 */
