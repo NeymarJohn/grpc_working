@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,40 +31,37 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_POLLSET_KICK_H_
-#define __GRPC_INTERNAL_IOMGR_POLLSET_KICK_H_
+#ifndef __GRPC_GRPC_HTTP_H__
+#define __GRPC_GRPC_HTTP_H__
 
-#include <grpc/support/port_platform.h>
-
-/* This is an abstraction around the typical pipe mechanism for waking up a
-   thread sitting in a poll() style call. */
-
-#ifdef GPR_POSIX_SOCKET
-#include "src/core/iomgr/pollset_kick_posix.h"
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#ifdef GPR_WIN32
-#include "src/core/iomgr/pollset_kick_windows.h"
+/* HTTP GET support.
+
+   HTTP2 servers can publish statically generated text content served
+   via HTTP2 GET queries by publishing one or more grpc_http_server_page
+   elements via repeated GRPC_ARG_SERVE_OVER_HTTP elements in the servers
+   channel_args.
+
+   This is not:
+    - a general purpose web server
+    - particularly fast
+
+   It's useful for being able to serve up some static content (maybe some
+   javascript to be able to interact with your GRPC server?) */
+
+typedef struct {
+  const char *path;
+  const char *content_type;
+  const char *content;
+} grpc_http_server_page;
+
+#define GRPC_ARG_SERVE_OVER_HTTP "grpc.serve_over_http"
+
+#ifdef __cplusplus
+}
 #endif
 
-void grpc_pollset_kick_global_init(void);
-void grpc_pollset_kick_global_destroy(void);
-
-void grpc_pollset_kick_init(grpc_pollset_kick_state *kick_state);
-void grpc_pollset_kick_destroy(grpc_pollset_kick_state *kick_state);
-
-/* Must be called before entering poll(). If return value is -1, this consumed
-   an existing kick. Otherwise the return value is an FD to add to the poll set.
- */
-int grpc_pollset_kick_pre_poll(grpc_pollset_kick_state *kick_state);
-
-/* Consume an existing kick. Must be called after poll returns that the fd was
-   readable, and before calling kick_post_poll. */
-void grpc_pollset_kick_consume(grpc_pollset_kick_state *kick_state);
-
-/* Must be called after pre_poll, and after consume if applicable */
-void grpc_pollset_kick_post_poll(grpc_pollset_kick_state *kick_state);
-
-void grpc_pollset_kick_kick(grpc_pollset_kick_state *kick_state);
-
-#endif /* __GRPC_INTERNAL_IOMGR_POLLSET_KICK_H_ */
+#endif /* __GRPC_GRPC_HTTP_H__ */
