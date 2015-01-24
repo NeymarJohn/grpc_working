@@ -78,8 +78,8 @@ void Call::Init(Handle<Object> exports) {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NanSetPrototypeTemplate(tpl, "addMetadata",
                           FunctionTemplate::New(AddMetadata)->GetFunction());
-  NanSetPrototypeTemplate(tpl, "invoke",
-                          FunctionTemplate::New(Invoke)->GetFunction());
+  NanSetPrototypeTemplate(tpl, "startInvoke",
+                          FunctionTemplate::New(StartInvoke)->GetFunction());
   NanSetPrototypeTemplate(tpl, "serverAccept",
                           FunctionTemplate::New(ServerAccept)->GetFunction());
   NanSetPrototypeTemplate(
@@ -203,30 +203,37 @@ NAN_METHOD(Call::AddMetadata) {
   NanReturnUndefined();
 }
 
-NAN_METHOD(Call::Invoke) {
+NAN_METHOD(Call::StartInvoke) {
   NanScope();
   if (!HasInstance(args.This())) {
-    return NanThrowTypeError("invoke can only be called on Call objects");
+    return NanThrowTypeError("startInvoke can only be called on Call objects");
   }
   if (!args[0]->IsFunction()) {
-    return NanThrowTypeError("invoke's first argument must be a function");
+    return NanThrowTypeError("StartInvoke's first argument must be a function");
   }
   if (!args[1]->IsFunction()) {
-    return NanThrowTypeError("invoke's second argument must be a function");
+    return NanThrowTypeError(
+        "StartInvoke's second argument must be a function");
   }
-  if (!args[2]->IsUint32()) {
-    return NanThrowTypeError("invoke's third argument must be integer flags");
+  if (!args[2]->IsFunction()) {
+    return NanThrowTypeError("StartInvoke's third argument must be a function");
+  }
+  if (!args[3]->IsUint32()) {
+    return NanThrowTypeError(
+        "StartInvoke's fourth argument must be integer flags");
   }
   Call *call = ObjectWrap::Unwrap<Call>(args.This());
   unsigned int flags = args[3]->Uint32Value();
-  grpc_call_error error = grpc_call_invoke(
+  grpc_call_error error = grpc_call_start_invoke(
       call->wrapped_call, CompletionQueueAsyncWorker::GetQueue(),
-      CreateTag(args[0], args.This()), CreateTag(args[1], args.This()), flags);
+      CreateTag(args[0], args.This()), CreateTag(args[1], args.This()),
+      CreateTag(args[2], args.This()), flags);
   if (error == GRPC_CALL_OK) {
     CompletionQueueAsyncWorker::Next();
     CompletionQueueAsyncWorker::Next();
+    CompletionQueueAsyncWorker::Next();
   } else {
-    return NanThrowError("invoke failed", error);
+    return NanThrowError("startInvoke failed", error);
   }
   NanReturnUndefined();
 }
@@ -274,7 +281,7 @@ NAN_METHOD(Call::ServerEndInitialMetadata) {
 NAN_METHOD(Call::Cancel) {
   NanScope();
   if (!HasInstance(args.This())) {
-    return NanThrowTypeError("cancel can only be called on Call objects");
+    return NanThrowTypeError("startInvoke can only be called on Call objects");
   }
   Call *call = ObjectWrap::Unwrap<Call>(args.This());
   grpc_call_error error = grpc_call_cancel(call->wrapped_call);
