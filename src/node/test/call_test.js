@@ -118,11 +118,12 @@ describe('call', function() {
         call.addMetadata(5);
       }, TypeError);
     });
-    it('should fail if invoke was already called', function(done) {
+    it('should fail if startInvoke was already called', function(done) {
       var call = new grpc.Call(channel, 'method', getDeadline(1));
-      call.invoke(function() {},
-                  function() {done();},
-                  0);
+      call.startInvoke(function() {},
+                       function() {},
+                       function() {done();},
+                       0);
       assert.throws(function() {
         call.addMetadata({'key' : 'key', 'value' : new Buffer('value') });
       }, function(err) {
@@ -132,26 +133,32 @@ describe('call', function() {
       call.cancel();
     });
   });
-  describe('invoke', function() {
-    it('should fail with fewer than 3 arguments', function() {
+  describe('startInvoke', function() {
+    it('should fail with fewer than 4 arguments', function() {
       var call = new grpc.Call(channel, 'method', getDeadline(1));
       assert.throws(function() {
-        call.invoke();
+        call.startInvoke();
       }, TypeError);
       assert.throws(function() {
-        call.invoke(function() {});
+        call.startInvoke(function() {});
       }, TypeError);
       assert.throws(function() {
-        call.invoke(function() {},
-                    function() {});
+        call.startInvoke(function() {},
+                         function() {});
+      }, TypeError);
+      assert.throws(function() {
+        call.startInvoke(function() {},
+                         function() {},
+                         function() {});
       }, TypeError);
     });
-    it('should work with 2 args and an int', function(done) {
+    it('should work with 3 args and an int', function(done) {
       assert.doesNotThrow(function() {
         var call = new grpc.Call(channel, 'method', getDeadline(1));
-        call.invoke(function() {},
-                    function() {done();},
-                    0);
+        call.startInvoke(function() {},
+                         function() {},
+                         function() {done();},
+                         0);
         // Cancel to speed up the test
         call.cancel();
       });
@@ -159,11 +166,12 @@ describe('call', function() {
     it('should reject incorrectly typed arguments', function() {
       var call = new grpc.Call(channel, 'method', getDeadline(1));
       assert.throws(function() {
-        call.invoke(0, 0, 0);
+        call.startInvoke(0, 0, 0, 0);
       }, TypeError);
       assert.throws(function() {
-        call.invoke(function() {},
-                    function() {}, 'test');
+        call.startInvoke(function() {},
+                         function() {},
+                         function() {}, 'test');
       });
     });
   });

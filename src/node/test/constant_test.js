@@ -94,6 +94,7 @@ var opErrorNames = [
 var completionTypeNames = [
   'QUEUE_SHUTDOWN',
   'READ',
+  'INVOKE_ACCEPTED',
   'WRITE_ACCEPTED',
   'FINISH_ACCEPTED',
   'CLIENT_METADATA_READ',

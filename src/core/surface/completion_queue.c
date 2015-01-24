@@ -37,13 +37,13 @@
 #include <string.h>
 
 #include "src/core/iomgr/pollset.h"
-#include "src/core/support/string.h"
 #include "src/core/surface/call.h"
 #include "src/core/surface/event_string.h"
 #include "src/core/surface/surface_trace.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/atm.h>
 #include <grpc/support/log.h>
+#include <grpc/support/string.h>
 
 #define NUM_TAG_BUCKETS 31
 
@@ -396,13 +396,12 @@ void grpc_event_finish(grpc_event *base) {
 
 void grpc_cq_dump_pending_ops(grpc_completion_queue *cc) {
 #ifndef NDEBUG
-  char tmp[GRPC_COMPLETION_DO_NOT_USE * (1 + GPR_LTOA_MIN_BUFSIZE)];
+  char tmp[256];
   char *p = tmp;
   int i;
 
   for (i = 0; i < GRPC_COMPLETION_DO_NOT_USE; i++) {
-    *p++ = ' ';
-    p += gpr_ltoa(cc->pending_op_count[i], p);
+    p += sprintf(p, " %d", (int)cc->pending_op_count[i]);
   }
 
   gpr_log(GPR_INFO, "pending ops:%s", tmp);

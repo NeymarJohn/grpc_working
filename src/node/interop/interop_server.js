@@ -194,8 +194,7 @@ if (require.main === module) {
     string: ['port', 'use_tls']
   });
   var server_obj = getServer(argv.port, argv.use_tls === 'true');
-  console.log('Server attaching to port ' + argv.port);
-  server_obj.server.listen();
+  server_obj.server.start();
 }
 
 /**
