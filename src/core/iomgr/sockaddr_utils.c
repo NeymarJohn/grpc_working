@@ -33,6 +33,7 @@
 
 #include "src/core/iomgr/sockaddr_utils.h"
 
+#include <arpa/inet.h>
 #include <errno.h>
 #include <string.h>
 

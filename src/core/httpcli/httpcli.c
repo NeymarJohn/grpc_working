@@ -31,7 +31,6 @@
  *
  */
 
-#include "src/core/iomgr/sockaddr.h"
 #include "src/core/httpcli/httpcli.h"
 
 #include <string.h>
