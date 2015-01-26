@@ -75,21 +75,6 @@ class PhpLanguage(object):
     return [['tools/run_tests/build_php.sh']]
 
 
-class PythonLanguage(object):
-
-  def __init__(self):
-    self.allow_hashing = False
-
-  def test_binaries(self, config):
-    return ['tools/run_tests/run_python.sh']
-
-  def make_targets(self):
-    return[]
-
-  def build_steps(self):
-    return [['tools/run_tests/build_python.sh']]
-
-
 # different configurations we can run under
 _CONFIGS = {
     'dbg': SimpleConfig('dbg'),
@@ -107,8 +92,7 @@ _DEFAULT = ['dbg', 'opt']
 _LANGUAGES = {
     'c++': CLanguage('cxx', 'c++'),
     'c': CLanguage('c', 'c'),
-    'php': PhpLanguage(),
-    'python': PythonLanguage(),
+    'php': PhpLanguage()
 }
 
 # parse command line
