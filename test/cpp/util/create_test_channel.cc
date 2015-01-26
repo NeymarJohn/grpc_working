@@ -44,26 +44,22 @@ namespace grpc {
 // create channel. Otherwise, connect to server and override hostname if
 // override_hostname is provided.
 // When ssl is not enabled, override_hostname is ignored.
-// Set use_prod_root to true to use the SSL root for connecting google.
-// Otherwise, root for test SSL cert will be used.
-// creds will be used to create a channel when enable_ssl is true.
+// Set use_prod_root to true to use the SSL root for production GFE. Otherwise,
+// root for test SSL cert will be used.
 // Use examples:
-//   CreateTestChannel(
-//       "1.1.1.1:12345", "override.hostname.com", true, false, creds);
-//   CreateTestChannel("test.google.com:443", "", true, true, creds);
-//   same as above
-//   CreateTestChannel("", "test.google.com:443", true, true, creds);
+//   CreateTestChannel("1.1.1.1:12345", "override.hostname.com", true, false);
+//   CreateTestChannel("test.google.com:443", "", true, true);
+//   CreateTestChannel("", "test.google.com:443", true, true);  // same as above
 std::shared_ptr<ChannelInterface> CreateTestChannel(
     const grpc::string& server, const grpc::string& override_hostname,
-    bool enable_ssl, bool use_prod_roots,
-    const std::unique_ptr<Credentials>& creds) {
+    bool enable_ssl, bool use_prod_roots) {
   ChannelArguments channel_args;
   if (enable_ssl) {
     const char* roots_certs =
         use_prod_roots ? prod_roots_certs : test_root_cert;
     SslCredentialsOptions ssl_opts = {roots_certs, "", ""};
 
-    std::unique_ptr<Credentials> channel_creds =
+    std::unique_ptr<Credentials> creds =
         CredentialsFactory::SslCredentials(ssl_opts);
 
     if (!server.empty() && !override_hostname.empty()) {
@@ -71,21 +67,10 @@ std::shared_ptr<ChannelInterface> CreateTestChannel(
     }
     const grpc::string& connect_to =
         server.empty() ? override_hostname : server;
-    if (creds.get()) {
-      channel_creds =
-          CredentialsFactory::ComposeCredentials(creds, channel_creds);
-    }
-    return CreateChannel(connect_to, channel_creds, channel_args);
+    return CreateChannel(connect_to, creds, channel_args);
   } else {
     return CreateChannel(server, channel_args);
   }
-}
-
-std::shared_ptr<ChannelInterface> CreateTestChannel(
-    const grpc::string& server, const grpc::string& override_hostname,
-    bool enable_ssl, bool use_prod_roots) {
-  return CreateTestChannel(server, override_hostname, enable_ssl,
-                           use_prod_roots, std::unique_ptr<Credentials>());
 }
 
 // Shortcut for end2end and interop tests.
