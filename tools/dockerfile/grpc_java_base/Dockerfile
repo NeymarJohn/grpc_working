@@ -20,23 +20,10 @@ ENV M2_HOME /var/local/apache-maven-3.2.1
 ENV PATH $PATH:$JAVA_HOME/bin:$M2_HOME/bin
 ENV LD_LIBRARY_PATH /usr/local/lib
 
-# Install a GitHub SSH service credential that gives access to the GitHub repo while it's private
-# TODO: remove this once the repo is public
-ADD .ssh .ssh
-RUN chmod 600 .ssh/github.rsa
-RUN mkdir -p $HOME/.ssh && echo 'Host github.com' > $HOME/.ssh/config
-RUN echo "    IdentityFile /.ssh/github.rsa" >> $HOME/.ssh/config
-RUN echo 'StrictHostKeyChecking no' >> $HOME/.ssh/config
+# Start the daemon that allows access to the protected git-on-borg repos
+RUN /var/local/git/gcompute-tools/git-cookie-authdaemon
 
-# Get the protobuf source from GitHub and install it
-RUN git clone --recursive git@github.com:google/protobuf.git /var/local/git/protobuf
-RUN cd /var/local/git/protobuf && \
-  ./autogen.sh && \
-  ./configure --prefix=/usr && \
-  make -j12 && make check && make install && make clean
-
-# Get the source from GitHub
-RUN git clone --recursive git@github.com:google/grpc-java.git /var/local/git/grpc-java
+RUN git clone --recursive https://team.googlesource.com/one-platform-grpc-team/grpc-java /var/local/git/grpc-java
 
 RUN cd /var/local/git/grpc-java/lib/okhttp && \
   mvn -pl okhttp -am validate
