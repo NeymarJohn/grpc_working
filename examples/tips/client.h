@@ -31,9 +31,6 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
-#define __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
-
 #include <grpc++/channel_interface.h>
 #include <grpc++/status.h>
 
@@ -55,5 +52,3 @@ class Client {
 }  // namespace tips
 }  // namespace examples
 }  // namespace grpc
-
-#endif  // __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
