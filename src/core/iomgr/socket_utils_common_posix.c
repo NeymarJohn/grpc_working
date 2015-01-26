@@ -31,10 +31,6 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
-
-#ifdef GPR_POSIX_SOCKET
-
 #include "src/core/iomgr/socket_utils_posix.h"
 
 #include <arpa/inet.h>
@@ -50,8 +46,8 @@
 #include <errno.h>
 
 #include "src/core/iomgr/sockaddr_utils.h"
-#include "src/core/support/string.h"
 #include <grpc/support/host_port.h>
+#include <grpc/support/string.h>
 #include <grpc/support/log.h>
 #include <grpc/support/port_platform.h>
 #include <grpc/support/sync.h>
@@ -103,7 +99,7 @@ int grpc_set_socket_reuse_addr(int fd, int reuse) {
   socklen_t intlen = sizeof(newval);
   return 0 == setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val)) &&
          0 == getsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &newval, &intlen) &&
-         (newval != 0) == val;
+         newval == val;
 }
 
 /* disable nagle */
@@ -113,7 +109,7 @@ int grpc_set_socket_low_latency(int fd, int low_latency) {
   socklen_t intlen = sizeof(newval);
   return 0 == setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &val, sizeof(val)) &&
          0 == getsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &newval, &intlen) &&
-         (newval != 0) == val;
+         newval == val;
 }
 
 static gpr_once g_probe_ipv6_once = GPR_ONCE_INIT;
@@ -191,5 +187,3 @@ int grpc_create_dualstack_socket(const struct sockaddr *addr, int type,
   *dsmode = family == AF_INET ? GRPC_DSMODE_IPV4 : GRPC_DSMODE_NONE;
   return socket(family, type, protocol);
 }
-
-#endif

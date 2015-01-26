@@ -31,10 +31,6 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
-
-#ifdef GPR_POSIX_SOCKET
-
 #include "src/core/iomgr/endpoint_pair.h"
 
 #include <errno.h>
@@ -63,5 +59,3 @@ grpc_endpoint_pair grpc_iomgr_create_endpoint_pair(size_t read_slice_size) {
   p.server = grpc_tcp_create(grpc_fd_create(sv[0]), read_slice_size);
   return p;
 }
-
-#endif

@@ -5,11 +5,11 @@ require 'grpc/version'
 Gem::Specification.new do |s|
   s.name          = 'grpc'
   s.version       = Google::RPC::VERSION
-  s.authors       = ['gRPC Authors']
-  s.email         = 'tbetbetbe@gmail.com'
-  s.homepage      = 'https://github.com/google/grpc/tree/master/src/ruby'
+  s.authors       = ['One Platform Team']
+  s.email         = 'stubby-team@google.com'
+  s.homepage      = 'http://go/grpc'
   s.summary       = 'Google RPC system in Ruby'
-  s.description   = 'Send RPCs from Ruby using Google\'s RPC system'
+  s.description   = 'Send RPCs from Ruby'
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- spec/*`.split("\n")

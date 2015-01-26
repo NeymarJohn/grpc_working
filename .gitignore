@@ -4,9 +4,6 @@ gens
 libs
 objs
 
-# Python virtual environment (pre-3.4 only)
-python2.7_virtual_environment
-
 # gcov coverage data
 coverage
 *.gcno
