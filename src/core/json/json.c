@@ -31,37 +31,34 @@
  *
  */
 
-#ifndef __GRPC_GRPC_HTTP_H__
-#define __GRPC_GRPC_HTTP_H__
+#include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <grpc/support/alloc.h>
 
-/* HTTP GET support.
+#include "src/core/json/json.h"
 
-   HTTP2 servers can publish statically generated text content served
-   via HTTP2 GET queries by publishing one or more grpc_http_server_page
-   elements via repeated GRPC_ARG_SERVE_OVER_HTTP elements in the servers
-   channel_args.
+grpc_json *grpc_json_create(grpc_json_type type) {
+  grpc_json *json = gpr_malloc(sizeof(grpc_json));
+  memset(json, 0, sizeof(grpc_json));
+  json->type = type;
 
-   This is not:
-    - a general purpose web server
-    - particularly fast
-
-   It's useful for being able to serve up some static content (maybe some
-   javascript to be able to interact with your GRPC server?) */
-
-typedef struct {
-  const char *path;
-  const char *content_type;
-  const char *content;
-} grpc_http_server_page;
-
-#define GRPC_ARG_SERVE_OVER_HTTP "grpc.serve_over_http"
-
-#ifdef __cplusplus
+  return json;
 }
-#endif
 
-#endif /* __GRPC_GRPC_HTTP_H__ */
+void grpc_json_destroy(grpc_json *json) {
+  while (json->child) {
+    grpc_json_destroy(json->child);
+  }
+
+  if (json->next) {
+    json->next->prev = json->prev;
+  }
+
+  if (json->prev) {
+    json->prev->next = json->next;
+  } else if (json->parent) {
+    json->parent->child = json->next;
+  }
+
+  gpr_free(json);
+}

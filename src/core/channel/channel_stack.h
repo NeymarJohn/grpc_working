@@ -69,8 +69,6 @@ typedef enum {
   GRPC_SEND_START,
   /* send a message to the channels peer */
   GRPC_SEND_MESSAGE,
-  /* send a pre-formatted message to the channels peer */
-  GRPC_SEND_PREFORMATTED_MESSAGE,
   /* send half-close to the channels peer */
   GRPC_SEND_FINISH,
   /* request that more data be allowed through flow control */
@@ -246,9 +244,7 @@ typedef struct {
 
 /* A call stack tracks a set of related filters for one call, and guarantees
    they live within a single malloc() allocation */
-typedef struct {
-  size_t count;
-} grpc_call_stack;
+typedef struct { size_t count; } grpc_call_stack;
 
 /* Get a channel element given a channel stack and its index */
 grpc_channel_element *grpc_channel_stack_element(grpc_channel_stack *stack,
@@ -296,10 +292,7 @@ void grpc_call_log_op(char *file, int line, gpr_log_severity severity,
 
 void grpc_call_element_send_metadata(grpc_call_element *cur_elem,
                                      grpc_mdelem *elem);
-void grpc_call_element_recv_metadata(grpc_call_element *cur_elem,
-                                     grpc_mdelem *elem);
 void grpc_call_element_send_cancel(grpc_call_element *cur_elem);
-void grpc_call_element_send_finish(grpc_call_element *cur_elem);
 
 #ifdef GRPC_CHANNEL_STACK_TRACE
 #define GRPC_CALL_LOG_OP(sev, elem, op) grpc_call_log_op(sev, elem, op)
