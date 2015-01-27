@@ -37,7 +37,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "src/core/support/string.h"
 #include <grpc/byte_buffer.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
@@ -114,7 +113,9 @@ static void simple_request_body(grpc_end2end_test_fixture f) {
   GPR_ASSERT(c);
 
   GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_call_invoke(c, f.client_cq, tag(2), tag(3), 0));
+             grpc_call_start_invoke(c, f.client_cq, tag(1), tag(2), tag(3), 0));
+  cq_expect_invoke_accepted(v_client, tag(1), GRPC_OP_OK);
+  cq_verify(v_client);
 
   GPR_ASSERT(GRPC_CALL_OK == grpc_call_writes_done(c, tag(4)));
   cq_expect_finish_accepted(v_client, tag(4), GRPC_OP_OK);
@@ -160,7 +161,9 @@ static void simple_request_body2(grpc_end2end_test_fixture f) {
   GPR_ASSERT(c);
 
   GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_call_invoke(c, f.client_cq, tag(2), tag(3), 0));
+             grpc_call_start_invoke(c, f.client_cq, tag(1), tag(2), tag(3), 0));
+  cq_expect_invoke_accepted(v_client, tag(1), GRPC_OP_OK);
+  cq_verify(v_client);
 
   GPR_ASSERT(GRPC_CALL_OK == grpc_call_writes_done(c, tag(4)));
   cq_expect_finish_accepted(v_client, tag(4), GRPC_OP_OK);
@@ -199,16 +202,15 @@ static void simple_request_body2(grpc_end2end_test_fixture f) {
 static void test_invoke_simple_request(
     grpc_end2end_test_config config, const char *name,
     void (*body)(grpc_end2end_test_fixture f)) {
-  char *fullname;
+  char fullname[64];
   grpc_end2end_test_fixture f;
 
-  gpr_asprintf(&fullname, "%s/%s", __FUNCTION__, name);
+  sprintf(fullname, "%s/%s", __FUNCTION__, name);
 
   f = begin_test(config, fullname, NULL, NULL);
   body(f);
   end_test(&f);
   config.tear_down_data(&f);
-  gpr_free(fullname);
 }
 
 static void test_invoke_10_simple_requests(grpc_end2end_test_config config) {

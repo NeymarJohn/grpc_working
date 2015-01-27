@@ -31,19 +31,37 @@
  *
  */
 
-#include <grpc/support/host_port.h>
+#ifndef __GRPC_GRPC_HTTP_H__
+#define __GRPC_GRPC_HTTP_H__
 
-#include <string.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include <grpc/support/log.h>
-#include <grpc/support/string.h>
+/* HTTP GET support.
 
-int gpr_join_host_port(char **out, const char *host, int port) {
-  if (host[0] != '[' && strchr(host, ':') != NULL) {
-    /* IPv6 literals must be enclosed in brackets. */
-    return gpr_asprintf(out, "[%s]:%d", host, port);
-  } else {
-    /* Ordinary non-bracketed host:port. */
-    return gpr_asprintf(out, "%s:%d", host, port);
-  }
+   HTTP2 servers can publish statically generated text content served
+   via HTTP2 GET queries by publishing one or more grpc_http_server_page
+   elements via repeated GRPC_ARG_SERVE_OVER_HTTP elements in the servers
+   channel_args.
+
+   This is not:
+    - a general purpose web server
+    - particularly fast
+
+   It's useful for being able to serve up some static content (maybe some
+   javascript to be able to interact with your GRPC server?) */
+
+typedef struct {
+  const char *path;
+  const char *content_type;
+  const char *content;
+} grpc_http_server_page;
+
+#define GRPC_ARG_SERVE_OVER_HTTP "grpc.serve_over_http"
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* __GRPC_GRPC_HTTP_H__ */

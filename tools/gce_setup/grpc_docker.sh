@@ -640,11 +640,10 @@ grpc_interop_gen_ruby_cmd() {
 #   flags= .... # generic flags to include the command
 #   cmd=$($grpc_gen_test_cmd $flags)
 grpc_interop_gen_go_cmd() {
-  local cmd_prefix="sudo docker run grpc/go /bin/bash -c"
-  local test_script="cd /go/src/github.com/google/grpc-go/rpc/interop/client"
-  local test_script+=" && go run client.go --use_tls=true"
-  local the_cmd="$cmd_prefix '$test_script $@'"
-  echo $the_cmd
+  local cmd_prefix="sudo docker run grpc/go bin/bash -c";
+  local test_script="cd /go/src/github.com/google/grpc-go/interop/client";
+  local test_script+=" && go run client.go --use_tls=true";
+  local the_cmd="$cmd_prefix '$test_script $@ 1>&2'";
 }
 
 # constructs the full dockerized java interop test cmd.
@@ -655,7 +654,7 @@ grpc_interop_gen_go_cmd() {
 grpc_interop_gen_java_cmd() {
     local cmd_prefix="sudo docker run grpc/java";
     local test_script="/var/local/git/grpc-java/run-test-client.sh";
-    local test_script+=" --server_host_override=foo.test.google.com --use_test_ca=true --use_tls=true"
+    local test_script+=" --transport=NETTY_TLS --grpc_version=2"
     local the_cmd="$cmd_prefix $test_script $@";
     echo $the_cmd
 }
@@ -676,17 +675,5 @@ grpc_interop_gen_php_cmd() {
     echo $the_cmd
 }
 
-# constructs the full dockerized cpp interop test cmd.
-#
-#
-# call-seq:
-#   flags= .... # generic flags to include the command
-#   cmd=$($grpc_gen_test_cmd $flags)
-grpc_interop_gen_cxx_cmd() {
-    local cmd_prefix="sudo docker run grpc/cxx";
-    local test_script="/var/local/git/grpc/bins/opt/interop_client --enable_ssl";
-    local the_cmd="$cmd_prefix $test_script $@";
-    echo $the_cmd
-}
 
 # TODO(grpc-team): add grpc_interop_gen_xxx_cmd for python|cxx|nodejs
