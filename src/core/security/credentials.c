@@ -42,7 +42,7 @@
 #include <grpc/support/sync.h>
 #include <grpc/support/time.h>
 
-#include "src/core/json/json.h"
+#include "third_party/cJSON/cJSON.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -336,7 +336,7 @@ grpc_oauth2_token_fetcher_credentials_parse_server_response(
   char *null_terminated_body = NULL;
   char *new_access_token = NULL;
   grpc_credentials_status status = GRPC_CREDENTIALS_OK;
-  grpc_json *json = NULL;
+  cJSON *json = NULL;
 
   if (response->body_length > 0) {
     null_terminated_body = gpr_malloc(response->body_length + 1);
@@ -351,48 +351,41 @@ grpc_oauth2_token_fetcher_credentials_parse_server_response(
     status = GRPC_CREDENTIALS_ERROR;
     goto end;
   } else {
-    grpc_json *access_token = NULL;
-    grpc_json *token_type = NULL;
-    grpc_json *expires_in = NULL;
-    grpc_json *ptr;
-    json = grpc_json_parse_string(null_terminated_body);
+    cJSON *access_token = NULL;
+    cJSON *token_type = NULL;
+    cJSON *expires_in = NULL;
+    json = cJSON_Parse(null_terminated_body);
     if (json == NULL) {
       gpr_log(GPR_ERROR, "Could not parse JSON from %s", null_terminated_body);
       status = GRPC_CREDENTIALS_ERROR;
       goto end;
     }
-    if (json->type != GRPC_JSON_OBJECT) {
+    if (json->type != cJSON_Object) {
       gpr_log(GPR_ERROR, "Response should be a JSON object");
       status = GRPC_CREDENTIALS_ERROR;
       goto end;
     }
-    for (ptr = json->child; ptr; ptr = ptr->next) {
-      if (strcmp(ptr->key, "access_token") == 0) {
-        access_token = ptr;
-      } else if (strcmp(ptr->key, "token_type") == 0) {
-        token_type = ptr;
-      } else if (strcmp(ptr->key, "expires_in") == 0) {
-        expires_in = ptr;
-      }
-    }
-    if (access_token == NULL || access_token->type != GRPC_JSON_STRING) {
+    access_token = cJSON_GetObjectItem(json, "access_token");
+    if (access_token == NULL || access_token->type != cJSON_String) {
       gpr_log(GPR_ERROR, "Missing or invalid access_token in JSON.");
       status = GRPC_CREDENTIALS_ERROR;
       goto end;
     }
-    if (token_type == NULL || token_type->type != GRPC_JSON_STRING) {
+    token_type = cJSON_GetObjectItem(json, "token_type");
+    if (token_type == NULL || token_type->type != cJSON_String) {
       gpr_log(GPR_ERROR, "Missing or invalid token_type in JSON.");
       status = GRPC_CREDENTIALS_ERROR;
       goto end;
     }
-    if (expires_in == NULL || expires_in->type != GRPC_JSON_NUMBER) {
+    expires_in = cJSON_GetObjectItem(json, "expires_in");
+    if (expires_in == NULL || expires_in->type != cJSON_Number) {
       gpr_log(GPR_ERROR, "Missing or invalid expires_in in JSON.");
       status = GRPC_CREDENTIALS_ERROR;
       goto end;
     }
-    gpr_asprintf(&new_access_token, "%s %s", token_type->value,
-                 access_token->value);
-    token_lifetime->tv_sec = strtol(expires_in->value, NULL, 10);
+    gpr_asprintf(&new_access_token, "%s %s", token_type->valuestring,
+                 access_token->valuestring);
+    token_lifetime->tv_sec = expires_in->valueint;
     token_lifetime->tv_nsec = 0;
     if (*token_elem != NULL) grpc_mdelem_unref(*token_elem);
     *token_elem = grpc_mdelem_from_strings(ctx, GRPC_AUTHORIZATION_METADATA_KEY,
@@ -407,7 +400,7 @@ end:
   }
   if (null_terminated_body != NULL) gpr_free(null_terminated_body);
   if (new_access_token != NULL) gpr_free(new_access_token);
-  if (json != NULL) grpc_json_delete(json);
+  if (json != NULL) cJSON_Delete(json);
   return status;
 }
 
