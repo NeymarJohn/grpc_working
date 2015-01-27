@@ -69,19 +69,14 @@ def test_creds
 end
 
 # creates a test stub that accesses host:port securely.
-def create_stub(host, port, is_secure, host_override)
+def create_stub(host, port)
   address = "#{host}:#{port}"
-  if is_secure
-    stub_opts = {
-      :creds => test_creds,
-      GRPC::Core::Channel::SSL_TARGET => host_override
-    }
-    logger.info("... connecting securely to #{address}")
-    Grpc::Testing::TestService::Stub.new(address, **stub_opts)
-  else
-    logger.info("... connecting insecurely to #{address}")
-    Grpc::Testing::TestService::Stub.new(address)
-  end
+  stub_opts = {
+    :creds => test_creds,
+    GRPC::Core::Channel::SSL_TARGET => 'foo.test.google.com'
+  }
+  logger.info("... connecting securely to #{address}")
+  Grpc::Testing::TestService::Stub.new(address, **stub_opts)
 end
 
 # produces a string of null chars (\0) of length l.
@@ -138,12 +133,20 @@ class NamedTests
     @stub = stub
   end
 
+  # TESTING
+  # PASSED
+  # FAIL
+  #   ruby server: fails protobuf-ruby can't pass an empty message
   def empty_unary
     resp = @stub.empty_call(Empty.new)
     assert resp.is_a?(Empty), 'empty_unary: invalid response'
     p 'OK: empty_unary'
   end
 
+  # TESTING
+  # PASSED
+  #   ruby server
+  # FAILED
   def large_unary
     req_size, wanted_response_size = 271_828, 314_159
     payload = Payload.new(type: :COMPRESSABLE, body: nulls(req_size))
@@ -160,6 +163,10 @@ class NamedTests
     p 'OK: large_unary'
   end
 
+  # TESTING:
+  # PASSED
+  #   ruby server
+  # FAILED
   def client_streaming
     msg_sizes = [27_182, 8, 1828, 45_904]
     wanted_aggregate_size = 74_922
@@ -173,6 +180,10 @@ class NamedTests
     p 'OK: client_streaming'
   end
 
+  # TESTING:
+  # PASSED
+  #   ruby server
+  # FAILED
   def server_streaming
     msg_sizes = [31_415, 9, 2653, 58_979]
     response_spec = msg_sizes.map { |s| ResponseParameters.new(size: s) }
@@ -189,6 +200,10 @@ class NamedTests
     p 'OK: server_streaming'
   end
 
+  # TESTING:
+  # PASSED
+  #   ruby server
+  # FAILED
   def ping_pong
     msg_sizes = [[27_182, 31_415], [8, 9], [1828, 2653], [45_904, 58_979]]
     ppp = PingPongPlayer.new(msg_sizes)
@@ -196,23 +211,12 @@ class NamedTests
     resps.each { |r| ppp.queue.push(r) }
     p 'OK: ping_pong'
   end
-
-  def all
-    all_methods = NamedTests.instance_methods(false).map(&:to_s)
-    all_methods.each do |m|
-      next if m == 'all' or m.start_with?('assert')
-      p "TESTCASE: #{m}"
-      self.method(m).call
-    end
-  end
 end
 
 # validates the the command line options, returning them as a Hash.
 def parse_options
   options = {
-    'secure' => false,
     'server_host' => nil,
-    'server_host_override' => nil,
     'server_port' => nil,
     'test_case' => nil
   }
@@ -220,10 +224,6 @@ def parse_options
     opts.banner = 'Usage: --server_host <server_host> --server_port server_port'
     opts.on('--server_host SERVER_HOST', 'server hostname') do |v|
       options['server_host'] = v
-    end
-    opts.on('--server_host_override HOST_OVERRIDE',
-            'override host via a HTTP header') do |v|
-      options['server_host_override'] = v
     end
     opts.on('--server_port SERVER_PORT', 'server port') do |v|
       options['server_port'] = v
@@ -235,9 +235,6 @@ def parse_options
             "  (#{test_case_list})") do |v|
       options['test_case'] = v
     end
-    opts.on('-u', '--use_tls', 'access using test creds') do |v|
-      options['secure'] = v
-    end
   end.parse!
 
   %w(server_host server_port test_case).each do |arg|
@@ -245,16 +242,12 @@ def parse_options
       fail(OptionParser::MissingArgument, "please specify --#{arg}")
     end
   end
-  if options['server_host_override'].nil?
-    options['server_host_override'] = options['server_host']
-  end
   options
 end
 
 def main
   opts = parse_options
-  stub = create_stub(opts['server_host'], opts['server_port'], opts['secure'],
-                     opts['server_host_override'])
+  stub = create_stub(opts['server_host'], opts['server_port'])
   NamedTests.new(stub).method(opts['test_case']).call
 end
 
