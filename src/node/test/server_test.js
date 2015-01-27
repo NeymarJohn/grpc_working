@@ -33,7 +33,7 @@
 
 var assert = require('assert');
 var grpc = require('bindings')('grpc.node');
-var Server = require('../src/server');
+var Server = require('../server');
 
 /**
  * This is used for testing functions with multiple asynchronous calls that
@@ -65,22 +65,17 @@ function echoHandler(stream) {
 }
 
 describe('echo server', function() {
-  var server;
-  var channel;
-  before(function() {
-    server = new Server();
+  it('should echo inputs as responses', function(done) {
+    done = multiDone(done, 4);
+    var server = new Server();
     var port_num = server.bind('[::]:0');
     server.register('echo', echoHandler);
     server.start();
 
-    channel = new grpc.Channel('localhost:' + port_num);
-  });
-  it('should echo inputs as responses', function(done) {
-    done = multiDone(done, 4);
-
     var req_text = 'echo test string';
     var status_text = 'OK';
 
+    var channel = new grpc.Channel('localhost:' + port_num);
     var deadline = new Date();
     deadline.setSeconds(deadline.getSeconds() + 3);
     var call = new grpc.Call(channel,
