@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,52 +31,34 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#include <grpc/support/alloc.h>
 
-#ifdef GPR_LINUX_EVENTFD
+#include "src/core/json/json.h"
 
-#include <errno.h>
-#include <sys/eventfd.h>
-#include <unistd.h>
+grpc_json *grpc_json_new(grpc_json_type type) {
+  grpc_json *json = gpr_malloc(sizeof(grpc_json));
+  json->parent = json->child = json->next = json->prev = NULL;
+  json->type = type;
 
-#include "src/core/iomgr/wakeup_fd_posix.h"
-#include <grpc/support/log.h>
+  json->value = json->key = NULL;
 
-static void eventfd_create(grpc_wakeup_fd_info *fd_info) {
-  int efd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-  /* TODO(klempner): Handle failure more gracefully */
-  GPR_ASSERT(efd >= 0);
-  fd_info->read_fd = efd;
-  fd_info->write_fd = -1;
+  return json;
 }
 
-static void eventfd_consume(grpc_wakeup_fd_info *fd_info) {
-  eventfd_t value;
-  int err;
-  do {
-    err = eventfd_read(fd_info->read_fd, &value);
-  } while (err < 0 && errno == EINTR);
+void grpc_json_delete(grpc_json *json) {
+  while (json->child) {
+    grpc_json_delete(json->child);
+  }
+
+  if (json->next) {
+    json->next->prev = json->prev;
+  }
+
+  if (json->prev) {
+    json->prev->next = json->next;
+  } else if (json->parent) {
+    json->parent->child = json->next;
+  }
+
+  gpr_free(json);
 }
-
-static void eventfd_wakeup(grpc_wakeup_fd_info *fd_info) {
-  int err;
-  do {
-    err = eventfd_write(fd_info->read_fd, 1);
-  } while (err < 0 && errno == EINTR);
-}
-
-static void eventfd_destroy(grpc_wakeup_fd_info *fd_info) {
-  close(fd_info->read_fd);
-}
-
-static int eventfd_check_availability(void) {
-  /* TODO(klempner): Actually check if eventfd is available */
-  return 1;
-}
-
-const grpc_wakeup_fd_vtable specialized_wakeup_fd_vtable = {
-  eventfd_create, eventfd_consume, eventfd_wakeup, eventfd_destroy,
-  eventfd_check_availability
-};
-
-#endif /* GPR_LINUX_EVENTFD */

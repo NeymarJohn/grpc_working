@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,23 +31,19 @@
  *
  */
 
-/*
- * This is a dummy file to provide an invalid specialized_wakeup_fd_vtable on
- * systems without anything better than pipe.
- */
+#ifndef __GRPC_SRC_CORE_JSON_JSON_COMMON_H__
+#define __GRPC_SRC_CORE_JSON_JSON_COMMON_H__
 
-#include <grpc/support/port_platform.h>
+/* The various json types. */
+typedef enum {
+  GRPC_JSON_OBJECT,
+  GRPC_JSON_ARRAY,
+  GRPC_JSON_STRING,
+  GRPC_JSON_NUMBER,
+  GRPC_JSON_TRUE,
+  GRPC_JSON_FALSE,
+  GRPC_JSON_NULL,
+  GRPC_JSON_TOP_LEVEL
+} grpc_json_type;
 
-#ifndef GPR_POSIX_HAS_SPECIAL_WAKEUP_FD
-
-#include "src/core/iomgr/wakeup_fd.h"
-
-static int check_availability_invalid(void) {
-  return 0;
-}
-
-const grpc_wakeup_fd_vtable specialized_wakeup_fd_vtable = {
-  NULL, NULL, NULL, NULL, check_availability_invalid
-};
-
-#endif /* GPR_POSIX_HAS_SPECIAL_WAKEUP */
+#endif /* __GRPC_SRC_CORE_JSON_JSON_COMMON_H__ */
