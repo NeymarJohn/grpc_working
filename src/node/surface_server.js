@@ -63,9 +63,6 @@ function ServerReadableObjectStream(stream) {
     get: function() { return stream.cancelled; }
   });
   var self = this;
-  this._stream.on('cancelled', function() {
-    self.emit('cancelled');
-  });
   this._stream.on('data', function forwardData(chunk) {
     if (!self.push(chunk)) {
       self._stream.pause();
@@ -103,9 +100,6 @@ function ServerWritableObjectStream(stream) {
   var options = {objectMode: true};
   Writable.call(this, options);
   this._stream = stream;
-  this._stream.on('cancelled', function() {
-    self.emit('cancelled');
-  });
   this.on('finish', function() {
     this._stream.end();
   });
@@ -143,9 +137,6 @@ function makeUnaryHandler(handler) {
       var call = {request: value};
       Object.defineProperty(call, 'cancelled', {
         get: function() { return stream.cancelled;}
-      });
-      stream.on('cancelled', function() {
-        call.emit('cancelled');
       });
       handler(call, function sendUnaryData(err, value) {
         if (err) {
