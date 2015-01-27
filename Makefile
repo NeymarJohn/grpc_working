@@ -1405,10 +1405,6 @@ LIBGRPC_SRC = \
     src/core/iomgr/tcp_posix.c \
     src/core/iomgr/tcp_server_posix.c \
     src/core/iomgr/time_averaged_stats.c \
-    src/core/json/json.c \
-    src/core/json/json_reader.c \
-    src/core/json/json_string.c \
-    src/core/json/json_writer.c \
     src/core/statistics/census_init.c \
     src/core/statistics/census_log.c \
     src/core/statistics/census_rpc_stats.c \
@@ -1450,6 +1446,7 @@ LIBGRPC_SRC = \
     src/core/transport/metadata.c \
     src/core/transport/stream_op.c \
     src/core/transport/transport.c \
+    third_party/cJSON/cJSON.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/grpc_security.h \
@@ -1527,10 +1524,6 @@ src/core/iomgr/tcp_client_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/tcp_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/tcp_server_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/time_averaged_stats.c: $(OPENSSL_DEP)
-src/core/json/json.c: $(OPENSSL_DEP)
-src/core/json/json_reader.c: $(OPENSSL_DEP)
-src/core/json/json_string.c: $(OPENSSL_DEP)
-src/core/json/json_writer.c: $(OPENSSL_DEP)
 src/core/statistics/census_init.c: $(OPENSSL_DEP)
 src/core/statistics/census_log.c: $(OPENSSL_DEP)
 src/core/statistics/census_rpc_stats.c: $(OPENSSL_DEP)
@@ -1572,6 +1565,7 @@ src/core/transport/chttp2_transport.c: $(OPENSSL_DEP)
 src/core/transport/metadata.c: $(OPENSSL_DEP)
 src/core/transport/stream_op.c: $(OPENSSL_DEP)
 src/core/transport/transport.c: $(OPENSSL_DEP)
+third_party/cJSON/cJSON.c: $(OPENSSL_DEP)
 endif
 
 libs/$(CONFIG)/libgrpc.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC_OBJS)
@@ -1670,10 +1664,6 @@ objs/$(CONFIG)/src/core/iomgr/tcp_client_posix.o:
 objs/$(CONFIG)/src/core/iomgr/tcp_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/tcp_server_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/time_averaged_stats.o: 
-objs/$(CONFIG)/src/core/json/json.o: 
-objs/$(CONFIG)/src/core/json/json_reader.o: 
-objs/$(CONFIG)/src/core/json/json_string.o: 
-objs/$(CONFIG)/src/core/json/json_writer.o: 
 objs/$(CONFIG)/src/core/statistics/census_init.o: 
 objs/$(CONFIG)/src/core/statistics/census_log.o: 
 objs/$(CONFIG)/src/core/statistics/census_rpc_stats.o: 
@@ -1715,6 +1705,7 @@ objs/$(CONFIG)/src/core/transport/chttp2_transport.o:
 objs/$(CONFIG)/src/core/transport/metadata.o: 
 objs/$(CONFIG)/src/core/transport/stream_op.o: 
 objs/$(CONFIG)/src/core/transport/transport.o: 
+objs/$(CONFIG)/third_party/cJSON/cJSON.o: 
 
 
 LIBGRPC_TEST_UTIL_SRC = \
@@ -1833,10 +1824,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/iomgr/tcp_posix.c \
     src/core/iomgr/tcp_server_posix.c \
     src/core/iomgr/time_averaged_stats.c \
-    src/core/json/json.c \
-    src/core/json/json_reader.c \
-    src/core/json/json_string.c \
-    src/core/json/json_writer.c \
     src/core/statistics/census_init.c \
     src/core/statistics/census_log.c \
     src/core/statistics/census_rpc_stats.c \
@@ -1878,6 +1865,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/transport/metadata.c \
     src/core/transport/stream_op.c \
     src/core/transport/transport.c \
+    third_party/cJSON/cJSON.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer.h \
@@ -1959,10 +1947,6 @@ objs/$(CONFIG)/src/core/iomgr/tcp_client_posix.o:
 objs/$(CONFIG)/src/core/iomgr/tcp_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/tcp_server_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/time_averaged_stats.o: 
-objs/$(CONFIG)/src/core/json/json.o: 
-objs/$(CONFIG)/src/core/json/json_reader.o: 
-objs/$(CONFIG)/src/core/json/json_string.o: 
-objs/$(CONFIG)/src/core/json/json_writer.o: 
 objs/$(CONFIG)/src/core/statistics/census_init.o: 
 objs/$(CONFIG)/src/core/statistics/census_log.o: 
 objs/$(CONFIG)/src/core/statistics/census_rpc_stats.o: 
@@ -2004,6 +1988,7 @@ objs/$(CONFIG)/src/core/transport/chttp2_transport.o:
 objs/$(CONFIG)/src/core/transport/metadata.o: 
 objs/$(CONFIG)/src/core/transport/stream_op.o: 
 objs/$(CONFIG)/src/core/transport/transport.o: 
+objs/$(CONFIG)/third_party/cJSON/cJSON.o: 
 
 
 LIBGRPC++_SRC = \
