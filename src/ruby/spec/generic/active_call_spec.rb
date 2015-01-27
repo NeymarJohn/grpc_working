@@ -28,6 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'grpc'
+require_relative '../port_picker'
 
 include GRPC::Core::StatusCodes
 
@@ -44,11 +45,12 @@ describe GRPC::ActiveCall do
 
     @client_queue = GRPC::Core::CompletionQueue.new
     @server_queue = GRPC::Core::CompletionQueue.new
-    host = '0.0.0.0:0'
+    port = find_unused_tcp_port
+    host = "localhost:#{port}"
     @server = GRPC::Core::Server.new(@server_queue, nil)
-    server_port = @server.add_http2_port(host)
+    @server.add_http2_port(host)
     @server.start
-    @ch = GRPC::Core::Channel.new("localhost:#{server_port}", nil)
+    @ch = GRPC::Core::Channel.new(host, nil)
   end
 
   after(:each) do
@@ -204,7 +206,7 @@ describe GRPC::ActiveCall do
     it 'get a nil msg before a status when an OK status is sent' do
       call = make_test_call
       done_tag, meta_tag = ActiveCall.client_invoke(call, @client_queue,
-                                                    deadline)
+                                                          deadline)
       client_call = ActiveCall.new(call, @client_queue, @pass_through,
                                    @pass_through, deadline,
                                    finished_tag: done_tag,
