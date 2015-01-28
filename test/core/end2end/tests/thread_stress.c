@@ -108,7 +108,7 @@ static void drain_cq(int client, grpc_completion_queue *cq) {
 static void start_request(void) {
   gpr_slice slice = gpr_slice_malloc(100);
   grpc_byte_buffer *buf;
-  grpc_call *call = grpc_channel_create_call(
+  grpc_call *call = grpc_channel_create_call_old(
       g_fixture.client, "/Foo", "test.google.com", g_test_end_time);
 
   memset(GPR_SLICE_START_PTR(slice), 1, GPR_SLICE_LENGTH(slice));
@@ -179,7 +179,7 @@ static void client_thread(void *p) {
 static void request_server_call(void) {
   gpr_refcount *rc = gpr_malloc(sizeof(gpr_refcount));
   gpr_ref_init(rc, 2);
-  grpc_server_request_call(g_fixture.server, rc);
+  grpc_server_request_call_old(g_fixture.server, rc);
 }
 
 static void maybe_end_server_call(grpc_call *call, gpr_refcount *rc) {
@@ -278,11 +278,11 @@ static void run_test(grpc_end2end_test_config config, int requests_in_flight) {
   /* kick off threads */
   for (i = 0; i < CLIENT_THREADS; i++) {
     gpr_event_init(&g_client_done[i]);
-    gpr_thd_new(&thd_id, client_thread, (void *)(gpr_intptr) i, NULL);
+    gpr_thd_new(&thd_id, client_thread, (void *)(gpr_intptr)i, NULL);
   }
   for (i = 0; i < SERVER_THREADS; i++) {
     gpr_event_init(&g_server_done[i]);
-    gpr_thd_new(&thd_id, server_thread, (void *)(gpr_intptr) i, NULL);
+    gpr_thd_new(&thd_id, server_thread, (void *)(gpr_intptr)i, NULL);
   }
 
   /* start requests */

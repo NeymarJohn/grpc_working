@@ -42,11 +42,13 @@
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 
-typedef struct { void *unused; } call_data;
+typedef struct {
+  void *unused;
+} call_data;
 
-typedef struct { grpc_mdelem *message; } channel_data;
-
-static void do_nothing(void *data, grpc_op_error error) {}
+typedef struct {
+  grpc_mdelem *message;
+} channel_data;
 
 static void call_op(grpc_call_element *elem, grpc_call_element *from_elem,
                     grpc_call_op *op) {
@@ -54,18 +56,10 @@ static void call_op(grpc_call_element *elem, grpc_call_element *from_elem,
   GRPC_CALL_LOG_OP(GPR_INFO, elem, op);
 
   switch (op->type) {
-    case GRPC_SEND_START: {
-      grpc_call_op set_status_op;
-      grpc_mdelem_ref(channeld->message);
-      memset(&set_status_op, 0, sizeof(grpc_call_op));
-      set_status_op.dir = GRPC_CALL_UP;
-      set_status_op.type = GRPC_RECV_METADATA;
-      set_status_op.done_cb = do_nothing;
-      set_status_op.data.metadata = channeld->message;
-      grpc_call_recv_metadata(elem, &set_status_op);
-      grpc_call_recv_finish(elem, 1);
+    case GRPC_SEND_START:
+      grpc_call_recv_metadata(elem, grpc_mdelem_ref(channeld->message));
+      grpc_call_stream_closed(elem);
       break;
-    }
     case GRPC_SEND_METADATA:
       grpc_mdelem_unref(op->data.metadata);
       break;
@@ -111,14 +105,9 @@ static void destroy_channel_elem(grpc_channel_element *elem) {
 }
 
 static const grpc_channel_filter lame_filter = {
-    call_op,              channel_op,
-
-    sizeof(call_data),    init_call_elem,    destroy_call_elem,
-
-    sizeof(channel_data), init_channel_elem, destroy_channel_elem,
-
-    "lame-client",
-};
+    call_op,           channel_op,           sizeof(call_data),
+    init_call_elem,    destroy_call_elem,    sizeof(channel_data),
+    init_channel_elem, destroy_channel_elem, "lame-client", };
 
 grpc_channel *grpc_lame_client_channel_create(void) {
   static const grpc_channel_filter *filters[] = {&lame_filter};

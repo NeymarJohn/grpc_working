@@ -53,7 +53,7 @@ static grpc_call *call;
 static void init_ping_pong_request(void) {}
 
 static void step_ping_pong_request(void) {
-  call = grpc_channel_create_call(channel, "/Reflector/reflectUnary",
+  call = grpc_channel_create_call_old(channel, "/Reflector/reflectUnary",
                                   "localhost", gpr_inf_future);
   GPR_ASSERT(grpc_call_invoke(call, cq, (void *)1, (void *)1,
                               GRPC_WRITE_BUFFER_HINT) == GRPC_CALL_OK);
@@ -70,7 +70,7 @@ static void step_ping_pong_request(void) {
 }
 
 static void init_ping_pong_stream(void) {
-  call = grpc_channel_create_call(channel, "/Reflector/reflectStream",
+  call = grpc_channel_create_call_old(channel, "/Reflector/reflectStream",
                                   "localhost", gpr_inf_future);
   GPR_ASSERT(grpc_call_invoke(call, cq, (void *)1, (void *)1, 0) ==
              GRPC_CALL_OK);
@@ -98,8 +98,7 @@ typedef struct {
 
 static const scenario scenarios[] = {
     {"ping-pong-request", init_ping_pong_request, step_ping_pong_request},
-    {"ping-pong-stream", init_ping_pong_stream, step_ping_pong_stream},
-};
+    {"ping-pong-stream", init_ping_pong_stream, step_ping_pong_stream}, };
 
 int main(int argc, char **argv) {
   gpr_slice slice = gpr_slice_from_copied_string("x");

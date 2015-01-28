@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,23 +31,37 @@
  *
  */
 
-/*
- * This is a dummy file to provide an invalid specialized_wakeup_fd_vtable on
- * systems without anything better than pipe.
- */
+#ifndef __GRPC_GRPC_HTTP_H__
+#define __GRPC_GRPC_HTTP_H__
 
-#include <grpc/support/port_platform.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#ifndef GPR_POSIX_HAS_SPECIAL_WAKEUP_FD
+/* HTTP GET support.
 
-#include "src/core/iomgr/wakeup_fd.h"
+   HTTP2 servers can publish statically generated text content served
+   via HTTP2 GET queries by publishing one or more grpc_http_server_page
+   elements via repeated GRPC_ARG_SERVE_OVER_HTTP elements in the servers
+   channel_args.
 
-static int check_availability_invalid(void) {
-  return 0;
+   This is not:
+    - a general purpose web server
+    - particularly fast
+
+   It's useful for being able to serve up some static content (maybe some
+   javascript to be able to interact with your GRPC server?) */
+
+typedef struct {
+  const char *path;
+  const char *content_type;
+  const char *content;
+} grpc_http_server_page;
+
+#define GRPC_ARG_SERVE_OVER_HTTP "grpc.serve_over_http"
+
+#ifdef __cplusplus
 }
+#endif
 
-const grpc_wakeup_fd_vtable specialized_wakeup_fd_vtable = {
-  NULL, NULL, NULL, NULL, check_availability_invalid
-};
-
-#endif /* GPR_POSIX_HAS_SPECIAL_WAKEUP */
+#endif /* __GRPC_GRPC_HTTP_H__ */

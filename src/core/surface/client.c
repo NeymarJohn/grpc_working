@@ -38,9 +38,13 @@
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 
-typedef struct { void *unused; } call_data;
+typedef struct {
+  void *unused;
+} call_data;
 
-typedef struct { void *unused; } channel_data;
+typedef struct {
+  void *unused;
+} channel_data;
 
 static void call_op(grpc_call_element *elem, grpc_call_element *from_elem,
                     grpc_call_op *op) {
@@ -52,20 +56,20 @@ static void call_op(grpc_call_element *elem, grpc_call_element *from_elem,
       grpc_call_next_op(elem, op);
       break;
     case GRPC_RECV_METADATA:
-      grpc_call_recv_metadata(elem, op);
+      grpc_call_recv_metadata(elem, op->data.metadata);
       break;
     case GRPC_RECV_DEADLINE:
       gpr_log(GPR_ERROR, "Deadline received by client (ignored)");
       break;
     case GRPC_RECV_MESSAGE:
-      grpc_call_recv_message(elem, op->data.message, op->done_cb,
-                             op->user_data);
+      grpc_call_recv_message(elem, op->data.message);
+      op->done_cb(op->user_data, GRPC_OP_OK);
       break;
     case GRPC_RECV_HALF_CLOSE:
-      grpc_call_recv_finish(elem, 0);
+      grpc_call_read_closed(elem);
       break;
     case GRPC_RECV_FINISH:
-      grpc_call_recv_finish(elem, 1);
+      grpc_call_stream_closed(elem);
       break;
     case GRPC_RECV_END_OF_INITIAL_METADATA:
       grpc_call_client_initial_metadata_complete(elem);
@@ -109,11 +113,6 @@ static void init_channel_elem(grpc_channel_element *elem,
 static void destroy_channel_elem(grpc_channel_element *elem) {}
 
 const grpc_channel_filter grpc_client_surface_filter = {
-    call_op,              channel_op,
-
-    sizeof(call_data),    init_call_elem,    destroy_call_elem,
-
-    sizeof(channel_data), init_channel_elem, destroy_channel_elem,
-
-    "client",
-};
+    call_op,           channel_op,           sizeof(call_data),
+    init_call_elem,    destroy_call_elem,    sizeof(channel_data),
+    init_channel_elem, destroy_channel_elem, "client", };
