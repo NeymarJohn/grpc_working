@@ -207,7 +207,7 @@
   }, 
   {
     "language": "c", 
-    "name": "poll_kick_posix_test"
+    "name": "poll_kick_test"
   }, 
   {
     "language": "c", 
@@ -248,6 +248,10 @@
   {
     "language": "c", 
     "name": "transport_metadata_test"
+  }, 
+  {
+    "language": "c", 
+    "name": "json_test"
   }, 
   {
     "language": "c++", 

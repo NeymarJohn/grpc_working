@@ -36,7 +36,6 @@
 #include <google/gflags.h>
 #include <grpc++/channel_interface.h>
 #include <grpc++/create_channel.h>
-#include <grpc++/credentials.h>
 #include <grpc++/status.h>
 
 #include "examples/tips/client.h"
@@ -56,15 +55,11 @@ int main(int argc, char** argv) {
   snprintf(host_port, host_port_buf_size, "%s:%d", FLAGS_server_host.c_str(),
            FLAGS_server_port);
 
-  std::unique_ptr<grpc::Credentials> creds =
-      grpc::CredentialsFactory::ComputeEngineCredentials();
   std::shared_ptr<grpc::ChannelInterface> channel(
-      grpc::CreateTestChannel(
-          host_port,
-          FLAGS_server_host,
-          true,                // enable SSL
-          true,                // use prod roots
-          creds));
+      grpc::CreateTestChannel(host_port,
+                              FLAGS_server_host,
+                              true,     // enable SSL
+                              true));   // use prod roots
 
   grpc::examples::tips::Client client(channel);
   grpc::Status s = client.CreateTopic("test");

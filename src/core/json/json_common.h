@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,52 +31,19 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef __GRPC_SRC_CORE_JSON_JSON_COMMON_H__
+#define __GRPC_SRC_CORE_JSON_JSON_COMMON_H__
 
-#ifdef GPR_LINUX_EVENTFD
+/* The various json types. */
+typedef enum {
+  GRPC_JSON_OBJECT,
+  GRPC_JSON_ARRAY,
+  GRPC_JSON_STRING,
+  GRPC_JSON_NUMBER,
+  GRPC_JSON_TRUE,
+  GRPC_JSON_FALSE,
+  GRPC_JSON_NULL,
+  GRPC_JSON_TOP_LEVEL
+} grpc_json_type;
 
-#include <errno.h>
-#include <sys/eventfd.h>
-#include <unistd.h>
-
-#include "src/core/iomgr/wakeup_fd_posix.h"
-#include <grpc/support/log.h>
-
-static void eventfd_create(grpc_wakeup_fd_info *fd_info) {
-  int efd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-  /* TODO(klempner): Handle failure more gracefully */
-  GPR_ASSERT(efd >= 0);
-  fd_info->read_fd = efd;
-  fd_info->write_fd = -1;
-}
-
-static void eventfd_consume(grpc_wakeup_fd_info *fd_info) {
-  eventfd_t value;
-  int err;
-  do {
-    err = eventfd_read(fd_info->read_fd, &value);
-  } while (err < 0 && errno == EINTR);
-}
-
-static void eventfd_wakeup(grpc_wakeup_fd_info *fd_info) {
-  int err;
-  do {
-    err = eventfd_write(fd_info->read_fd, 1);
-  } while (err < 0 && errno == EINTR);
-}
-
-static void eventfd_destroy(grpc_wakeup_fd_info *fd_info) {
-  close(fd_info->read_fd);
-}
-
-static int eventfd_check_availability(void) {
-  /* TODO(klempner): Actually check if eventfd is available */
-  return 1;
-}
-
-const grpc_wakeup_fd_vtable specialized_wakeup_fd_vtable = {
-  eventfd_create, eventfd_consume, eventfd_wakeup, eventfd_destroy,
-  eventfd_check_availability
-};
-
-#endif /* GPR_LINUX_EVENTFD */
+#endif /* __GRPC_SRC_CORE_JSON_JSON_COMMON_H__ */
