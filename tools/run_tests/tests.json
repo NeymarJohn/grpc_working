@@ -250,10 +250,6 @@
     "name": "transport_metadata_test"
   }, 
   {
-    "language": "c", 
-    "name": "json_test"
-  }, 
-  {
     "language": "c++", 
     "name": "channel_arguments_test"
   }, 
