@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,34 +31,23 @@
  *
  */
 
-#include <string.h>
+/*
+ * This is a dummy file to provide an invalid specialized_wakeup_fd_vtable on
+ * systems without anything better than pipe.
+ */
 
-#include <grpc/support/alloc.h>
+#include <grpc/support/port_platform.h>
 
-#include "src/core/json/json.h"
+#ifndef GPR_POSIX_HAS_SPECIAL_WAKEUP_FD
 
-grpc_json *grpc_json_create(grpc_json_type type) {
-  grpc_json *json = gpr_malloc(sizeof(grpc_json));
-  memset(json, 0, sizeof(grpc_json));
-  json->type = type;
+#include "src/core/iomgr/wakeup_fd.h"
 
-  return json;
+static int check_availability_invalid(void) {
+  return 0;
 }
 
-void grpc_json_destroy(grpc_json *json) {
-  while (json->child) {
-    grpc_json_destroy(json->child);
-  }
+const grpc_wakeup_fd_vtable specialized_wakeup_fd_vtable = {
+  NULL, NULL, NULL, NULL, check_availability_invalid
+};
 
-  if (json->next) {
-    json->next->prev = json->prev;
-  }
-
-  if (json->prev) {
-    json->prev->next = json->next;
-  } else if (json->parent) {
-    json->parent->child = json->next;
-  }
-
-  gpr_free(json);
-}
+#endif /* GPR_POSIX_HAS_SPECIAL_WAKEUP */
