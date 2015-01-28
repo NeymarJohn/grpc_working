@@ -35,9 +35,7 @@
 #include <string.h>
 #include <grpc/support/log.h>
 
-typedef struct call_data {
-  int sent_headers;
-} call_data;
+typedef struct call_data { int sent_headers; } call_data;
 
 typedef struct channel_data {
   grpc_mdelem *te_trailers;
@@ -180,6 +178,10 @@ static void destroy_channel_elem(grpc_channel_element *elem) {
 }
 
 const grpc_channel_filter grpc_http_client_filter = {
-    call_op,           channel_op,           sizeof(call_data),
-    init_call_elem,    destroy_call_elem,    sizeof(channel_data),
-    init_channel_elem, destroy_channel_elem, "http-client"};
+    call_op,              channel_op,
+
+    sizeof(call_data),    init_call_elem,    destroy_call_elem,
+
+    sizeof(channel_data), init_channel_elem, destroy_channel_elem,
+
+    "http-client"};

@@ -69,7 +69,7 @@ typedef struct {
 /* We perform a small hack to locate transport data alongside the connected
    channel data in call allocations, to allow everything to be pulled in minimal
    cache line requests */
-#define TRANSPORT_STREAM_FROM_CALL_DATA(calld) ((grpc_stream *)((calld) + 1))
+#define TRANSPORT_STREAM_FROM_CALL_DATA(calld) ((grpc_stream *)((calld)+1))
 #define CALL_DATA_FROM_TRANSPORT_STREAM(transport_stream) \
   (((call_data *)(transport_stream)) - 1)
 
@@ -259,9 +259,14 @@ static void destroy_channel_elem(grpc_channel_element *elem) {
 }
 
 const grpc_channel_filter grpc_connected_channel_filter = {
-    call_op,           channel_op,           sizeof(call_data),
-    init_call_elem,    destroy_call_elem,    sizeof(channel_data),
-    init_channel_elem, destroy_channel_elem, "connected", };
+    call_op,              channel_op,
+
+    sizeof(call_data),    init_call_elem,    destroy_call_elem,
+
+    sizeof(channel_data), init_channel_elem, destroy_channel_elem,
+
+    "connected",
+};
 
 static gpr_slice alloc_recv_buffer(void *user_data, grpc_transport *transport,
                                    grpc_stream *stream, size_t size_hint) {
@@ -298,6 +303,10 @@ static void recv_error(channel_data *chand, call_data *calld, int line,
 
 static void do_nothing(void *calldata, grpc_op_error error) {}
 
+static void done_message(void *user_data, grpc_op_error error) {
+  grpc_byte_buffer_destroy(user_data);
+}
+
 static void finish_message(channel_data *chand, call_data *calld) {
   grpc_call_element *elem = calld->elem;
   grpc_call_op call_op;
@@ -305,9 +314,9 @@ static void finish_message(channel_data *chand, call_data *calld) {
   call_op.flags = 0;
   /* if we got all the bytes for this message, call up the stack */
   call_op.type = GRPC_RECV_MESSAGE;
-  call_op.done_cb = do_nothing;
+  call_op.done_cb = done_message;
   /* TODO(ctiller): this could be a lot faster if coded directly */
-  call_op.data.message = grpc_byte_buffer_create(
+  call_op.user_data = call_op.data.message = grpc_byte_buffer_create(
       calld->incoming_message.slices, calld->incoming_message.count);
   gpr_slice_buffer_reset_and_unref(&calld->incoming_message);
 
@@ -501,7 +510,8 @@ static void transport_closed(void *user_data, grpc_transport *transport) {
 
 const grpc_transport_callbacks connected_channel_transport_callbacks = {
     alloc_recv_buffer, accept_stream,    recv_batch,
-    transport_goaway,  transport_closed, };
+    transport_goaway,  transport_closed,
+};
 
 grpc_transport_setup_result grpc_connected_channel_bind_transport(
     grpc_channel_stack *channel_stack, grpc_transport *transport) {

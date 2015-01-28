@@ -43,7 +43,7 @@
 #include "src/core/transport/chttp2/timeout_encoding.h"
 #include "src/core/transport/chttp2/varint.h"
 
-#define HASH_FRAGMENT_1(x) ((x) & 255)
+#define HASH_FRAGMENT_1(x) ((x)&255)
 #define HASH_FRAGMENT_2(x) ((x >> 8) & 255)
 #define HASH_FRAGMENT_3(x) ((x >> 16) & 255)
 #define HASH_FRAGMENT_4(x) ((x >> 24) & 255)
@@ -432,7 +432,7 @@ static void hpack_enc(grpc_chttp2_hpack_compressor *c, grpc_mdelem *elem,
 
 static void deadline_enc(grpc_chttp2_hpack_compressor *c, gpr_timespec deadline,
                          framer_state *st) {
-  char timeout_str[GRPC_CHTTP2_TIMEOUT_ENCODE_MIN_BUFSIZE];
+  char timeout_str[32];
   grpc_chttp2_encode_timeout(gpr_time_sub(deadline, gpr_now()), timeout_str);
   hpack_enc(c, grpc_mdelem_from_metadata_strings(
                    c->mdctx, grpc_mdstr_ref(c->timeout_key_str),
