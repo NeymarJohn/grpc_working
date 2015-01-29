@@ -119,7 +119,7 @@ static void test_cancel_after_accept(grpc_end2end_test_config config,
   GPR_ASSERT(GRPC_CALL_OK ==
              grpc_call_invoke(c, f.client_cq, tag(2), tag(3), 0));
 
-  GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call_old(f.server, tag(100)));
+  GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, tag(100)));
   cq_expect_server_rpc_new(v_server, &s, tag(100), "/foo", "test.google.com",
                            deadline, NULL);
   cq_verify(v_server);
@@ -149,7 +149,7 @@ static void test_cancel_after_accept(grpc_end2end_test_config config,
 }
 
 void grpc_end2end_tests(grpc_end2end_test_config config) {
-  unsigned i;
+  int i;
 
   for (i = 0; i < GPR_ARRAY_SIZE(cancellation_modes); i++) {
     test_cancel_after_accept(config, cancellation_modes[i]);

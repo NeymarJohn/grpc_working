@@ -173,9 +173,7 @@ static void ssl_server_destroy(grpc_server_credentials *creds) {
   gpr_free(creds);
 }
 
-static int ssl_has_request_metadata(const grpc_credentials *creds) {
-  return 0;
-}
+static int ssl_has_request_metadata(const grpc_credentials *creds) { return 0; }
 
 static int ssl_has_request_metadata_only(const grpc_credentials *creds) {
   return 0;
@@ -905,9 +903,7 @@ static void iam_destroy(grpc_credentials *creds) {
   gpr_free(c);
 }
 
-static int iam_has_request_metadata(const grpc_credentials *creds) {
-  return 1;
-}
+static int iam_has_request_metadata(const grpc_credentials *creds) { return 1; }
 
 static int iam_has_request_metadata_only(const grpc_credentials *creds) {
   return 1;

@@ -187,14 +187,6 @@
   }, 
   {
     "language": "c", 
-    "name": "json_rewrite_test"
-  }, 
-  {
-    "language": "c", 
-    "name": "json_test"
-  }, 
-  {
-    "language": "c", 
     "name": "lame_client_test"
   }, 
   {
@@ -258,6 +250,14 @@
     "name": "transport_metadata_test"
   }, 
   {
+    "language": "c", 
+    "name": "json_test"
+  }, 
+  {
+    "language": "c", 
+    "name": "json_rewrite_test"
+  }, 
+  {
     "language": "c++", 
     "name": "channel_arguments_test"
   }, 
@@ -271,6 +271,10 @@
   }, 
   {
     "language": "c++", 
+    "name": "tips_client_test"
+  }, 
+  {
+    "language": "c++", 
     "name": "status_test"
   }, 
   {
@@ -280,10 +284,6 @@
   {
     "language": "c++", 
     "name": "thread_pool_test"
-  }, 
-  {
-    "language": "c++", 
-    "name": "tips_client_test"
   }, 
   {
     "language": "c", 

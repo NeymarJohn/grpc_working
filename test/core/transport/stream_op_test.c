@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
   gpr_slice test_slice_3 = gpr_slice_malloc(3);
   gpr_slice test_slice_4 = gpr_slice_malloc(4);
   char x;
-  unsigned i;
+  int i;
 
   grpc_stream_op_buffer buf;
   grpc_stream_op_buffer buf2;
