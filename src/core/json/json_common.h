@@ -31,51 +31,19 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
-#include "test/core/end2end/cq_verifier.h"
-#include "test/core/util/test_config.h"
+#ifndef __GRPC_SRC_CORE_JSON_JSON_COMMON_H__
+#define __GRPC_SRC_CORE_JSON_JSON_COMMON_H__
 
-static void *tag(gpr_intptr i) { return (void *)i; }
+/* The various json types. */
+typedef enum {
+  GRPC_JSON_OBJECT,
+  GRPC_JSON_ARRAY,
+  GRPC_JSON_STRING,
+  GRPC_JSON_NUMBER,
+  GRPC_JSON_TRUE,
+  GRPC_JSON_FALSE,
+  GRPC_JSON_NULL,
+  GRPC_JSON_TOP_LEVEL
+} grpc_json_type;
 
-int main(int argc, char **argv) {
-  grpc_channel *chan;
-  grpc_call *call;
-  gpr_timespec timeout = gpr_time_from_seconds(4);
-  gpr_timespec deadline = gpr_time_add(gpr_now(), timeout);
-  grpc_completion_queue *cq;
-  cq_verifier *cqv;
-  grpc_event *ev;
-  int done;
-
-  grpc_test_init(argc, argv);
-  grpc_init();
-
-  cq = grpc_completion_queue_create();
-  cqv = cq_verifier_create(cq);
-
-  /* create a call, channel to a non existant server */
-  chan = grpc_channel_create("nonexistant:54321", NULL);
-  call = grpc_channel_create_call(chan, "/foo", "nonexistant", deadline);
-  GPR_ASSERT(grpc_call_invoke(call, cq, tag(2), tag(3), 0) == GRPC_CALL_OK);
-  /* verify that all tags get completed */
-  cq_expect_client_metadata_read(cqv, tag(2), NULL);
-  cq_expect_finished_with_status(cqv, tag(3), GRPC_STATUS_DEADLINE_EXCEEDED,
-                                 "Deadline Exceeded", NULL);
-  cq_verify(cqv);
-
-  grpc_completion_queue_shutdown(cq);
-  for (done = 0; !done;) {
-    ev = grpc_completion_queue_next(cq, gpr_inf_future);
-    done = ev->type == GRPC_QUEUE_SHUTDOWN;
-    grpc_event_finish(ev);
-  }
-  grpc_completion_queue_destroy(cq);
-  grpc_call_destroy(call);
-  grpc_channel_destroy(chan);
-  cq_verifier_destroy(cqv);
-
-  grpc_shutdown();
-
-  return 0;
-}
+#endif /* __GRPC_SRC_CORE_JSON_JSON_COMMON_H__ */
