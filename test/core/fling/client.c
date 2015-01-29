@@ -103,7 +103,7 @@ static const scenario scenarios[] = {
 int main(int argc, char **argv) {
   gpr_slice slice = gpr_slice_from_copied_string("x");
   double start, stop;
-  unsigned i;
+  int i;
 
   char *fake_argv[1];
 
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
   char *target = "localhost:443";
   gpr_cmdline *cl;
   char *scenario_name = "ping-pong-request";
-  scenario sc = {NULL, NULL, NULL};
+  scenario sc = {NULL};
 
   GPR_ASSERT(argc >= 1);
   fake_argv[0] = argv[0];

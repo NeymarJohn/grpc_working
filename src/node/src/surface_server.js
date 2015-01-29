@@ -129,18 +129,16 @@ ServerWritableObjectStream.prototype._write = _write;
 
 /**
  * Creates a binary stream handler function from a unary handler function
- * @param {function(Object, function(Error, *), metadata=)} handler Unary call
- *     handler
- * @return {function(stream, metadata=)} Binary stream handler
+ * @param {function(Object, function(Error, *))} handler Unary call handler
+ * @return {function(stream)} Binary stream handler
  */
 function makeUnaryHandler(handler) {
   /**
    * Handles a stream by reading a single data value, passing it to the handler,
    * and writing the response back to the stream.
    * @param {stream} stream Binary data stream
-   * @param {metadata=} metadata Incoming metadata array
    */
-  return function handleUnaryCall(stream, metadata) {
+  return function handleUnaryCall(stream) {
     stream.on('data', function handleUnaryData(value) {
       var call = {request: value};
       Object.defineProperty(call, 'cancelled', {
@@ -156,7 +154,7 @@ function makeUnaryHandler(handler) {
           stream.write(value);
           stream.end();
         }
-      }, metadata);
+      });
     });
   };
 }
@@ -164,18 +162,17 @@ function makeUnaryHandler(handler) {
 /**
  * Creates a binary stream handler function from a client stream handler
  * function
- * @param {function(Readable, function(Error, *), metadata=)} handler Client
- *     stream call handler
- * @return {function(stream, metadata=)} Binary stream handler
+ * @param {function(Readable, function(Error, *))} handler Client stream call
+ *     handler
+ * @return {function(stream)} Binary stream handler
  */
 function makeClientStreamHandler(handler) {
   /**
    * Handles a stream by passing a deserializing stream to the handler and
    * writing the response back to the stream.
    * @param {stream} stream Binary data stream
-   * @param {metadata=} metadata Incoming metadata array
    */
-  return function handleClientStreamCall(stream, metadata) {
+  return function handleClientStreamCall(stream) {
     var object_stream = new ServerReadableObjectStream(stream);
     handler(object_stream, function sendClientStreamData(err, value) {
         if (err) {
@@ -184,36 +181,35 @@ function makeClientStreamHandler(handler) {
           stream.write(value);
           stream.end();
         }
-    }, metadata);
+    });
   };
 }
 
 /**
  * Creates a binary stream handler function from a server stream handler
  * function
- * @param {function(Writable, metadata=)} handler Server stream call handler
- * @return {function(stream, metadata=)} Binary stream handler
+ * @param {function(Writable)} handler Server stream call handler
+ * @return {function(stream)} Binary stream handler
  */
 function makeServerStreamHandler(handler) {
   /**
    * Handles a stream by attaching it to a serializing stream, and passing it to
    * the handler.
    * @param {stream} stream Binary data stream
-   * @param {metadata=} metadata Incoming metadata array
    */
-  return function handleServerStreamCall(stream, metadata) {
+  return function handleServerStreamCall(stream) {
     stream.on('data', function handleClientData(value) {
       var object_stream = new ServerWritableObjectStream(stream);
       object_stream.request = value;
-      handler(object_stream, metadata);
+      handler(object_stream);
     });
   };
 }
 
 /**
  * Creates a binary stream handler function from a bidi stream handler function
- * @param {function(Duplex, metadata=)} handler Unary call handler
- * @return {function(stream, metadata=)} Binary stream handler
+ * @param {function(Duplex)} handler Unary call handler
+ * @return {function(stream)} Binary stream handler
  */
 function makeBidiStreamHandler(handler) {
   return handler;
@@ -256,13 +252,10 @@ function makeServerConstructor(services) {
    * @constructor
    * @param {Object} service_handlers Map from service names to map from method
    *     names to handlers
-   * @param {function(string, Object<string, Array<Buffer>>):
-             Object<string, Array<Buffer|string>>=} getMetadata Callback that
-   *     gets metatada for a given method
-   * @param {Object=} options Options to pass to the underlying server
+   * @param {Object} options Options to pass to the underlying server
    */
-  function SurfaceServer(service_handlers, getMetadata, options) {
-    var server = new Server(getMetadata, options);
+  function SurfaceServer(service_handlers, options) {
+    var server = new Server(options);
     this.inner_server = server;
     _.each(services, function(service) {
       var service_name = common.fullyQualifiedName(service);
