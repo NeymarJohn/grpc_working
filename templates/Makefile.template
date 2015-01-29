@@ -481,7 +481,6 @@ strip-shared: strip-shared_c strip-shared_cxx
 # This prevents proper debugging after running make install.
 
 strip-static_c: static_c
-ifeq ($(CONFIG),opt)
 % for lib in libs:
 % if lib.language == "c":
 % if lib.build == "all":
@@ -490,10 +489,8 @@ ifeq ($(CONFIG),opt)
 % endif
 % endif
 % endfor
-endif
 
 strip-static_cxx: static_cxx
-ifeq ($(CONFIG),opt)
 % for lib in libs:
 % if lib.language == "c++":
 % if lib.build == "all":
@@ -502,10 +499,8 @@ ifeq ($(CONFIG),opt)
 % endif
 % endif
 % endfor
-endif
 
 strip-shared_c: shared_c
-ifeq ($(CONFIG),opt)
 % for lib in libs:
 % if lib.language == "c":
 % if lib.build == "all":
@@ -514,10 +509,8 @@ ifeq ($(CONFIG),opt)
 % endif
 % endif
 % endfor
-endif
 
 strip-shared_cxx: shared_cxx
-ifeq ($(CONFIG),opt)
 % for lib in libs:
 % if lib.language == "c++":
 % if lib.build == "all":
@@ -526,7 +519,6 @@ ifeq ($(CONFIG),opt)
 % endif
 % endif
 % endfor
-endif
 
 % for p in protos:
 gens/${p}.pb.cc: ${p}.proto $(PROTOC_PLUGINS)
