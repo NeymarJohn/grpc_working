@@ -139,7 +139,7 @@ LDFLAGS += $(LDFLAGS_$(CONFIG))
 
 CFLAGS += -std=c89 -pedantic
 CXXFLAGS += -std=c++11
-CPPFLAGS += -g -fPIC -Wall -Wextra -Wno-long-long
+CPPFLAGS += -g -fPIC -Wall -Werror -Wno-long-long
 LDFLAGS += -g -fPIC
 
 INCLUDES = . include gens
@@ -481,7 +481,6 @@ strip-shared: strip-shared_c strip-shared_cxx
 # This prevents proper debugging after running make install.
 
 strip-static_c: static_c
-ifeq ($(CONFIG),opt)
 % for lib in libs:
 % if lib.language == "c":
 % if lib.build == "all":
@@ -490,10 +489,8 @@ ifeq ($(CONFIG),opt)
 % endif
 % endif
 % endfor
-endif
 
 strip-static_cxx: static_cxx
-ifeq ($(CONFIG),opt)
 % for lib in libs:
 % if lib.language == "c++":
 % if lib.build == "all":
@@ -502,10 +499,8 @@ ifeq ($(CONFIG),opt)
 % endif
 % endif
 % endfor
-endif
 
 strip-shared_c: shared_c
-ifeq ($(CONFIG),opt)
 % for lib in libs:
 % if lib.language == "c":
 % if lib.build == "all":
@@ -514,10 +509,8 @@ ifeq ($(CONFIG),opt)
 % endif
 % endif
 % endfor
-endif
 
 strip-shared_cxx: shared_cxx
-ifeq ($(CONFIG),opt)
 % for lib in libs:
 % if lib.language == "c++":
 % if lib.build == "all":
@@ -526,7 +519,6 @@ ifeq ($(CONFIG),opt)
 % endif
 % endif
 % endfor
-endif
 
 % for p in protos:
 gens/${p}.pb.cc: ${p}.proto $(PROTOC_PLUGINS)
@@ -773,7 +765,6 @@ ifeq ($(SYSTEM),Darwin)
 	$(Q) ${ld} $(LDFLAGS) -Llibs/$(CONFIG) -dynamiclib -o ${out_libbase}.$(SHARED_EXT) ${common}${libs}
 else
 	$(Q) ${ld} $(LDFLAGS) -Llibs/$(CONFIG) -shared -Wl,-soname,lib${lib.name}.so.${settings.version.major} -o ${out_libbase}.$(SHARED_EXT) ${common}${libs}
-	$(Q) ln -sf lib${lib.name}.$(SHARED_EXT) ${out_libbase}.so.${settings.version.major}
 	$(Q) ln -sf lib${lib.name}.$(SHARED_EXT) ${out_libbase}.so
 endif
 endif
