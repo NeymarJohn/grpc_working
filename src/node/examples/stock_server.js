@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,51 +31,53 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
-#include "test/core/end2end/cq_verifier.h"
-#include "test/core/util/test_config.h"
+var _ = require('underscore');
+var grpc = require('..');
+var examples = grpc.load(__dirname + '/stock.proto').examples;
 
-static void *tag(gpr_intptr i) { return (void *)i; }
+var StockServer = grpc.makeServerConstructor([examples.Stock.service]);
 
-int main(int argc, char **argv) {
-  grpc_channel *chan;
-  grpc_call *call;
-  gpr_timespec timeout = gpr_time_from_seconds(4);
-  gpr_timespec deadline = gpr_time_add(gpr_now(), timeout);
-  grpc_completion_queue *cq;
-  cq_verifier *cqv;
-  grpc_event *ev;
-  int done;
-
-  grpc_test_init(argc, argv);
-  grpc_init();
-
-  cq = grpc_completion_queue_create();
-  cqv = cq_verifier_create(cq);
-
-  /* create a call, channel to a non existant server */
-  chan = grpc_channel_create("nonexistant:54321", NULL);
-  call = grpc_channel_create_call(chan, "/foo", "nonexistant", deadline);
-  GPR_ASSERT(grpc_call_invoke(call, cq, tag(2), tag(3), 0) == GRPC_CALL_OK);
-  /* verify that all tags get completed */
-  cq_expect_client_metadata_read(cqv, tag(2), NULL);
-  cq_expect_finished_with_status(cqv, tag(3), GRPC_STATUS_DEADLINE_EXCEEDED,
-                                 "Deadline Exceeded", NULL);
-  cq_verify(cqv);
-
-  grpc_completion_queue_shutdown(cq);
-  for (done = 0; !done;) {
-    ev = grpc_completion_queue_next(cq, gpr_inf_future);
-    done = ev->type == GRPC_QUEUE_SHUTDOWN;
-    grpc_event_finish(ev);
-  }
-  grpc_completion_queue_destroy(cq);
-  grpc_call_destroy(call);
-  grpc_channel_destroy(chan);
-  cq_verifier_destroy(cqv);
-
-  grpc_shutdown();
-
-  return 0;
+function getLastTradePrice(call, callback) {
+  callback(null, {price: 88});
 }
+
+function watchFutureTrades(call) {
+  for (var i = 0; i < call.request.num_trades_to_watch; i++) {
+    call.write({price: 88.00 + i * 10.00});
+  }
+  call.end();
+}
+
+function getHighestTradePrice(call, callback) {
+  var trades = [];
+  call.on('data', function(data) {
+    trades.push({symbol: data.symbol, price: _.random(0, 100)});
+  });
+  call.on('end', function() {
+    if(_.isEmpty(trades)) {
+      callback(null, {});
+    } else {
+      callback(null, _.max(trades, function(trade){return trade.price;}));
+    }
+  });
+}
+
+function getLastTradePriceMultiple(call) {
+  call.on('data', function(data) {
+    call.write({price: 88});
+  });
+  call.on('end', function() {
+    call.end();
+  });
+}
+
+var stockServer = new StockServer({
+  'examples.Stock' : {
+    getLastTradePrice: getLastTradePrice,
+    getLastTradePriceMultiple: getLastTradePriceMultiple,
+    watchFutureTrades: watchFutureTrades,
+    getHighestTradePrice: getHighestTradePrice
+  }
+});
+
+exports.module = stockServer;
