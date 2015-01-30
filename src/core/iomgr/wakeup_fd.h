@@ -31,13 +31,29 @@
  *
  */
 
-var grpc = require('..');
-var examples = grpc.load(__dirname + '/stock.proto').examples;
+#ifndef __GRPC_INTERNAL_IOMGR_WAKEUP_FD_H_
+#define __GRPC_INTERNAL_IOMGR_WAKEUP_FD_H_
 
-/**
- * This exports a client constructor for the Stock service. The usage looks like
- *
- * var StockClient = require('stock_client.js');
- * var stockClient = new StockClient(server_address);
- */
-module.exports = examples.Stock;
+typedef struct grpc_wakeup_fd_info grpc_wakeup_fd_info;
+
+typedef struct grpc_wakeup_fd_vtable {
+  void (*create)(grpc_wakeup_fd_info *fd_info);
+  void (*consume)(grpc_wakeup_fd_info *fd_info);
+  void (*wakeup)(grpc_wakeup_fd_info *fd_info);
+  void (*destroy)(grpc_wakeup_fd_info *fd_info);
+  /* Must be called before calling any other functions */
+  int (*check_availability)(void);
+} grpc_wakeup_fd_vtable;
+
+/* Private structures; don't access their fields directly outside of wakeup fd
+ * code. */
+struct grpc_wakeup_fd_info {
+  int read_fd;
+  int write_fd;
+};
+
+/* Defined in some specialized implementation's .c file, or by
+ * wakeup_fd_nospecial.c if no such implementation exists. */
+extern const grpc_wakeup_fd_vtable specialized_wakeup_fd_vtable;
+
+#endif /* __GRPC_INTERNAL_IOMGR_WAKEUP_FD_POSIX_H_ */
