@@ -31,40 +31,81 @@
  *
  */
 
+#include <chrono>
+#include <fstream>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <thread>
+
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
 #include <google/gflags.h>
 #include <grpc++/channel_interface.h>
 #include <grpc++/create_channel.h>
+#include <grpc++/credentials.h>
 #include <grpc++/status.h>
 
 #include "examples/tips/client.h"
 #include "test/cpp/util/create_test_channel.h"
 
-DEFINE_bool(enable_ssl, true, "Whether to use ssl/tls.");
-DEFINE_bool(use_prod_roots, true, "True to use SSL roots for production GFE");
-DEFINE_int32(server_port, 0, "Server port.");
-DEFINE_string(server_host, "127.0.0.1", "Server host to connect to");
-DEFINE_string(server_host_override, "foo.test.google.com",
-              "Override the server host which is sent in HTTP header");
+DEFINE_int32(server_port, 443, "Server port.");
+DEFINE_string(server_host,
+              "pubsub-staging.googleapis.com", "Server host to connect to");
+DEFINE_string(service_account_key_file, "",
+              "Path to service account json key file.");
+DEFINE_string(oauth_scope, "", "Scope for OAuth tokens.");
+
+grpc::string GetServiceAccountJsonKey() {
+  static grpc::string json_key;
+  if (json_key.empty()) {
+    std::ifstream json_key_file(FLAGS_service_account_key_file);
+    std::stringstream key_stream;
+    key_stream << json_key_file.rdbuf();
+    json_key = key_stream.str();
+  }
+  return json_key;
+}
 
 int main(int argc, char** argv) {
   grpc_init();
   google::ParseCommandLineFlags(&argc, &argv, true);
   gpr_log(GPR_INFO, "Start TIPS client");
 
-  GPR_ASSERT(FLAGS_server_port);
   const int host_port_buf_size = 1024;
   char host_port[host_port_buf_size];
   snprintf(host_port, host_port_buf_size, "%s:%d", FLAGS_server_host.c_str(),
            FLAGS_server_port);
 
+  std::unique_ptr<grpc::Credentials> creds;
+  if (FLAGS_service_account_key_file != "") {
+    grpc::string json_key = GetServiceAccountJsonKey();
+    creds = grpc::CredentialsFactory::ServiceAccountCredentials(
+        json_key, FLAGS_oauth_scope, std::chrono::hours(1));
+  } else {
+    creds = grpc::CredentialsFactory::ComputeEngineCredentials();
+  }
+
   std::shared_ptr<grpc::ChannelInterface> channel(
-      grpc::CreateTestChannel(host_port, FLAGS_server_host_override,
-                              FLAGS_enable_ssl, FLAGS_use_prod_roots));
+      grpc::CreateTestChannel(
+          host_port,
+          FLAGS_server_host,
+          true,                // enable SSL
+          true,                // use prod roots
+          creds));
 
   grpc::examples::tips::Client client(channel);
-  grpc::Status s = client.CreateTopic("test");
+
+  grpc::Status s = client.CreateTopic("/topics/stoked-keyword-656/testtopics");
+  gpr_log(GPR_INFO, "return code %d, %s", s.code(), s.details().c_str());
+  GPR_ASSERT(s.IsOk());
+
+  s = client.GetTopic("/topics/stoked-keyword-656/testtopics");
+  gpr_log(GPR_INFO, "return code %d, %s", s.code(), s.details().c_str());
+  GPR_ASSERT(s.IsOk());
+
+  s = client.DeleteTopic("/topics/stoked-keyword-656/testtopics");
+  gpr_log(GPR_INFO, "return code %d, %s", s.code(), s.details().c_str());
   GPR_ASSERT(s.IsOk());
 
   channel.reset();

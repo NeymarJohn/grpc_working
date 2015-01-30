@@ -56,21 +56,26 @@ function multiDone(done, count) {
 }
 
 describe('end-to-end', function() {
-  it('should start and end a request without error', function(complete) {
-    var server = new grpc.Server();
-    var done = multiDone(function() {
-      complete();
-      server.shutdown();
-    }, 2);
+  var server;
+  var channel;
+  before(function() {
+    server = new grpc.Server();
     var port_num = server.addHttp2Port('0.0.0.0:0');
-    var channel = new grpc.Channel('localhost:' + port_num);
+    server.start();
+    channel = new grpc.Channel('localhost:' + port_num);
+  });
+  after(function() {
+    server.shutdown();
+  });
+  it('should start and end a request without error', function(complete) {
+    var done = multiDone(complete, 2);
     var deadline = new Date();
     deadline.setSeconds(deadline.getSeconds() + 3);
     var status_text = 'xyz';
     var call = new grpc.Call(channel,
                              'dummy_method',
                              deadline);
-      call.invoke(function(event) {
+    call.invoke(function(event) {
       assert.strictEqual(event.type,
                          grpc.completionType.CLIENT_METADATA_READ);
     },function(event) {
@@ -81,7 +86,6 @@ describe('end-to-end', function() {
       done();
     }, 0);
 
-    server.start();
     server.requestCall(function(event) {
       assert.strictEqual(event.type, grpc.completionType.SERVER_RPC_NEW);
       var server_call = event.call;
@@ -106,16 +110,58 @@ describe('end-to-end', function() {
       assert.strictEqual(event.data, grpc.opError.OK);
     });
   });
+  it('should successfully send and receive metadata', function(complete) {
+    var done = multiDone(complete, 2);
+    var deadline = new Date();
+    deadline.setSeconds(deadline.getSeconds() + 3);
+    var status_text = 'xyz';
+    var call = new grpc.Call(channel,
+                             'dummy_method',
+                             deadline);
+    call.addMetadata({'client_key': ['client_value']});
+    call.invoke(function(event) {
+      assert.strictEqual(event.type,
+                         grpc.completionType.CLIENT_METADATA_READ);
+      assert.strictEqual(event.data.server_key[0].toString(), 'server_value');
+    },function(event) {
+      assert.strictEqual(event.type, grpc.completionType.FINISHED);
+      var status = event.data;
+      assert.strictEqual(status.code, grpc.status.OK);
+      assert.strictEqual(status.details, status_text);
+      done();
+    }, 0);
+
+    server.requestCall(function(event) {
+      assert.strictEqual(event.type, grpc.completionType.SERVER_RPC_NEW);
+      assert.strictEqual(event.data.metadata.client_key[0].toString(),
+                         'client_value');
+      var server_call = event.call;
+      assert.notEqual(server_call, null);
+      server_call.serverAccept(function(event) {
+        assert.strictEqual(event.type, grpc.completionType.FINISHED);
+      }, 0);
+      server_call.addMetadata({'server_key': ['server_value']});
+      server_call.serverEndInitialMetadata(0);
+      server_call.startWriteStatus(
+          grpc.status.OK,
+          status_text,
+          function(event) {
+            assert.strictEqual(event.type,
+                               grpc.completionType.FINISH_ACCEPTED);
+            assert.strictEqual(event.data, grpc.opError.OK);
+            done();
+          });
+    });
+    call.writesDone(function(event) {
+      assert.strictEqual(event.type,
+                         grpc.completionType.FINISH_ACCEPTED);
+      assert.strictEqual(event.data, grpc.opError.OK);
+    });
+  });
   it('should send and receive data without error', function(complete) {
     var req_text = 'client_request';
     var reply_text = 'server_response';
-    var server = new grpc.Server();
-    var done = multiDone(function() {
-      complete();
-      server.shutdown();
-    }, 6);
-    var port_num = server.addHttp2Port('0.0.0.0:0');
-    var channel = new grpc.Channel('localhost:' + port_num);
+    var done = multiDone(complete, 6);
     var deadline = new Date();
     deadline.setSeconds(deadline.getSeconds() + 3);
     var status_text = 'success';
@@ -151,8 +197,6 @@ describe('end-to-end', function() {
       assert.strictEqual(event.data.toString(), reply_text);
       done();
     });
-
-    server.start();
     server.requestCall(function(event) {
       assert.strictEqual(event.type, grpc.completionType.SERVER_RPC_NEW);
       var server_call = event.call;

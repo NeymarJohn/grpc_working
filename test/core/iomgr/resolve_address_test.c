@@ -83,10 +83,9 @@ static void test_ipv6_with_port(void) {
 }
 
 static void test_ipv6_without_port(void) {
-  const char* const kCases[] = {
-      "2001:db8::1", "2001:db8::1.2.3.4", "[2001:db8::1]",
-  };
-  int i;
+  const char* const kCases[] = {"2001:db8::1", "2001:db8::1.2.3.4",
+                                "[2001:db8::1]", };
+  unsigned i;
   for (i = 0; i < sizeof(kCases) / sizeof(*kCases); i++) {
     gpr_event ev;
     gpr_event_init(&ev);
@@ -96,10 +95,8 @@ static void test_ipv6_without_port(void) {
 }
 
 static void test_invalid_ip_addresses(void) {
-  const char* const kCases[] = {
-      "293.283.1238.3:1", "[2001:db8::11111]:1",
-  };
-  int i;
+  const char* const kCases[] = {"293.283.1238.3:1", "[2001:db8::11111]:1", };
+  unsigned i;
   for (i = 0; i < sizeof(kCases) / sizeof(*kCases); i++) {
     gpr_event ev;
     gpr_event_init(&ev);
@@ -109,10 +106,9 @@ static void test_invalid_ip_addresses(void) {
 }
 
 static void test_unparseable_hostports(void) {
-  const char* const kCases[] = {
-      "[", "[::1", "[::1]bad", "[1.2.3.4]", "[localhost]", "[localhost]:1",
-  };
-  int i;
+  const char* const kCases[] = {"[",         "[::1",        "[::1]bad",
+                                "[1.2.3.4]", "[localhost]", "[localhost]:1", };
+  unsigned i;
   for (i = 0; i < sizeof(kCases) / sizeof(*kCases); i++) {
     gpr_event ev;
     gpr_event_init(&ev);

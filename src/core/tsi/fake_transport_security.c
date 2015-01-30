@@ -38,6 +38,7 @@
 
 #include <grpc/support/log.h>
 #include <grpc/support/port_platform.h>
+#include <grpc/support/useful.h>
 #include "src/core/tsi/transport_security.h"
 
 /* --- Constants. ---*/
@@ -369,8 +370,7 @@ static void fake_protector_destroy(tsi_frame_protector* self) {
 
 static const tsi_frame_protector_vtable frame_protector_vtable = {
     fake_protector_protect, fake_protector_protect_flush,
-    fake_protector_unprotect, fake_protector_destroy,
-};
+    fake_protector_unprotect, fake_protector_destroy, };
 
 /* --- tsi_handshaker methods implementation. ---*/
 
@@ -413,7 +413,7 @@ static tsi_result fake_handshaker_process_bytes_from_peer(
     tsi_handshaker* self, const unsigned char* bytes, size_t* bytes_size) {
   tsi_result result = TSI_OK;
   tsi_fake_handshaker* impl = (tsi_fake_handshaker*)self;
-  int expected_msg = impl->next_message_to_send - 1;
+  tsi_fake_handshake_message expected_msg = impl->next_message_to_send - 1;
   tsi_fake_handshake_message received_msg;
 
   if (!impl->needs_incoming_message || impl->result == TSI_OK) {
@@ -485,8 +485,7 @@ static const tsi_handshaker_vtable handshaker_vtable = {
     fake_handshaker_get_result,
     fake_handshaker_extract_peer,
     fake_handshaker_create_frame_protector,
-    fake_handshaker_destroy,
-};
+    fake_handshaker_destroy, };
 
 tsi_handshaker* tsi_create_fake_handshaker(int is_client) {
   tsi_fake_handshaker* impl = calloc(1, sizeof(tsi_fake_handshaker));

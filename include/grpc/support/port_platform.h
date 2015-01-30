@@ -68,6 +68,8 @@
 #define GPR_GCC_ATOMIC 1
 #define GPR_LINUX 1
 #define GPR_POSIX_MULTIPOLL_WITH_POLL 1
+#define GPR_POSIX_HAS_SPECIAL_WAKEUP_FD 1
+#define GPR_LINUX_EVENTFD 1
 #define GPR_POSIX_SOCKET 1
 #define GPR_POSIX_SOCKETADDR 1
 #define GPR_POSIX_STRING 1
@@ -153,7 +155,7 @@ typedef uintmax_t gpr_uintmax;
 typedef uintptr_t gpr_uintptr;
 
 /* INT64_MAX is unavailable on some platforms. */
-#define GPR_INT64_MAX (~(gpr_uint64)0 >> 1)
+#define GPR_INT64_MAX (gpr_int64)(~(gpr_uint64)0 >> 1)
 
 /* maximum alignment needed for any type on this platform, rounded up to a
    power of two */

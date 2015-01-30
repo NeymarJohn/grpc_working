@@ -367,7 +367,7 @@ grpc_docker_launch_registry() {
 grpc_docker_pull_known() {
   local addr=$1
   [[ -n $addr ]] || addr="0.0.0.0:5000"
-  local known="base cxx php_base php ruby_base ruby java_base java go"
+  local known="base cxx php_base php ruby_base ruby java_base java go node_base node"
   echo "... pulling docker images for '$known'"
   for i in $known
   do
@@ -405,14 +405,21 @@ grpc_dockerfile_install() {
 
   # For specific base images, sync the ssh key into the .ssh dir in the dockerfile context
   [[ $image_label == "grpc/base" ]] && {
-    grpc_docker_sync_github_key $dockerfile_dir/.ssh 'base_ssh_key'|| return 1;
+    grpc_docker_sync_github_key $dockerfile_dir/.ssh 'base_ssh_key' || return 1;
   }
   [[ $image_label == "grpc/go" ]] && {
-    grpc_docker_sync_github_key $dockerfile_dir/.ssh 'go_ssh_key'|| return 1;
+    grpc_docker_sync_github_key $dockerfile_dir/.ssh 'go_ssh_key' || return 1;
   }
   [[ $image_label == "grpc/java_base" ]] && {
-    grpc_docker_sync_github_key $dockerfile_dir/.ssh 'java_base_ssh_key'|| return 1;
+    grpc_docker_sync_github_key $dockerfile_dir/.ssh 'java_base_ssh_key' || return 1;
   }
+  [[ $image_label == "grpc/ruby" ]] && {
+    grpc_docker_sync_roots_pem $dockerfile_dir/cacerts || return 1;
+  }
+  [[ $image_label == "grpc/cxx" ]] && {
+    grpc_docker_sync_service_account $dockerfile_dir/service_account || return 1;
+  }
+
 
   # TODO(temiola): maybe make cache/no-cache a func option?
   sudo docker build $cache_opt -t $image_label $dockerfile_dir || {
@@ -470,4 +477,60 @@ grpc_docker_sync_github_key() {
     return 1
   }
   gsutil cp $src $gcs_key_path $local_key_path
+}
+
+# grpc_docker_sync_roots_pem.
+#
+# Copies the root pems from GCS to the target dir
+#
+# call-seq:
+#   grpc_docker_sync_roots_pem <target_dir>
+grpc_docker_sync_roots_pem() {
+  local target_dir=$1
+  [[ -n $target_dir ]] || { echo "$FUNCNAME: missing arg: target_dir" >&2; return 1; }
+
+  # determine the admin root; the parent of the dockerfile root,
+  local gs_dockerfile_root=$(load_metadata "attributes/gs_dockerfile_root")
+  [[ -n $gs_dockerfile_root ]] || {
+    echo "$FUNCNAME: missing metadata: gs_dockerfile_root" >&2
+    return 1
+  }
+  local gcs_admin_root=$(dirname $gs_dockerfile_root)
+
+  # cp the file from gsutil to a known local area
+  local gcs_certs_path=$gcs_admin_root/cacerts/roots.pem
+  local local_certs_path=$target_dir/roots.pem
+  mkdir -p $target_dir || {
+    echo "$FUNCNAME: could not create dir: $target_dir" 1>&2
+    return 1
+  }
+  gsutil cp $src $gcs_certs_path $local_certs_path
+}
+
+# grpc_docker_sync_service_account.
+#
+# Copies the service account from GCS to the target dir
+#
+# call-seq:
+#   grpc_docker_sync_service_account <target_dir>
+grpc_docker_sync_service_account() {
+  local target_dir=$1
+  [[ -n $target_dir ]] || { echo "$FUNCNAME: missing arg: target_dir" >&2; return 1; }
+
+  # determine the admin root; the parent of the dockerfile root,
+  local gs_dockerfile_root=$(load_metadata "attributes/gs_dockerfile_root")
+  [[ -n $gs_dockerfile_root ]] || {
+    echo "$FUNCNAME: missing metadata: gs_dockerfile_root" >&2
+    return 1
+  }
+  local gcs_admin_root=$(dirname $gs_dockerfile_root)
+
+  # cp the file from gsutil to a known local area
+  local gcs_acct_path=$gcs_admin_root/service_account/stubbyCloudTestingTest-7dd63462c60c.json
+  local local_acct_path=$target_dir/stubbyCloudTestingTest-7dd63462c60c.json
+  mkdir -p $target_dir || {
+    echo "$FUNCNAME: could not create dir: $target_dir" 1>&2
+    return 1
+  }
+  gsutil cp $src $gcs_acct_path $local_acct_path
 }

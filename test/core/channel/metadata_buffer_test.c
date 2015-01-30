@@ -32,6 +32,7 @@
  */
 
 #include "src/core/channel/metadata_buffer.h"
+#include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include "test/core/util/test_config.h"
@@ -42,12 +43,12 @@
 /* construct a buffer with some prefix followed by an integer converted to
    a string */
 static gpr_slice construct_buffer(size_t prefix_length, size_t index) {
-  gpr_slice buffer = gpr_slice_malloc(prefix_length + 32);
+  gpr_slice buffer = gpr_slice_malloc(prefix_length + GPR_LTOA_MIN_BUFSIZE);
   memset(GPR_SLICE_START_PTR(buffer), 'a', prefix_length);
   GPR_SLICE_SET_LENGTH(
-      buffer, prefix_length +
-                  sprintf((char *)GPR_SLICE_START_PTR(buffer) + prefix_length,
-                          "%d", (int)index));
+      buffer,
+      prefix_length +
+          gpr_ltoa(index, (char *)GPR_SLICE_START_PTR(buffer) + prefix_length));
   return buffer;
 }
 
@@ -111,12 +112,12 @@ static void destroy_channel_elem(grpc_channel_element *elem) {}
 static const grpc_channel_filter top_filter = {
     fail_call_op,      fail_channel_op,     sizeof(size_t),
     init_call_elem,    destroy_call_elem,   sizeof(channel_data),
-    init_channel_elem, destroy_channel_elem};
+    init_channel_elem, destroy_channel_elem, "top_filter" };
 
 static const grpc_channel_filter bottom_filter = {
     expect_call_op,    fail_channel_op,     sizeof(size_t),
     init_call_elem,    destroy_call_elem,   sizeof(channel_data),
-    init_channel_elem, destroy_channel_elem};
+    init_channel_elem, destroy_channel_elem, "bottom_filter" };
 
 static const grpc_channel_filter *filters[2] = {&top_filter, &bottom_filter};
 
@@ -148,7 +149,7 @@ static void test_case(size_t key_prefix_len, size_t value_prefix_len,
     op.flags = i;
     op.data.metadata = grpc_mdelem_from_slices(mdctx, key, value);
     op.done_cb = do_nothing;
-    op.user_data = (void *)(gpr_uintptr) i;
+    op.user_data = (void *)(gpr_uintptr)i;
 
     grpc_metadata_buffer_queue(&buffer, &op);
   }
