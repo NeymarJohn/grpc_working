@@ -99,30 +99,24 @@ describe('call', function() {
     });
   });
   describe('addMetadata', function() {
-    it('should succeed with a map from strings to string arrays', function() {
+    it('should succeed with objects containing keys and values', function() {
       var call = new grpc.Call(channel, 'method', getDeadline(1));
       assert.doesNotThrow(function() {
-        call.addMetadata({'key': ['value']});
+        call.addMetadata();
       });
       assert.doesNotThrow(function() {
-        call.addMetadata({'key1': ['value1'], 'key2': ['value2']});
-      });
-    });
-    it('should succeed with a map from strings to buffer arrays', function() {
-      var call = new grpc.Call(channel, 'method', getDeadline(1));
-      assert.doesNotThrow(function() {
-        call.addMetadata({'key': [new Buffer('value')]});
+        call.addMetadata({'key' : 'key',
+                          'value' : new Buffer('value')});
       });
       assert.doesNotThrow(function() {
-        call.addMetadata({'key1': [new Buffer('value1')],
-                          'key2': [new Buffer('value2')]});
+        call.addMetadata({'key' : 'key1',
+                          'value' : new Buffer('value1')},
+                         {'key' : 'key2',
+                          'value' : new Buffer('value2')});
       });
     });
     it('should fail with other parameter types', function() {
       var call = new grpc.Call(channel, 'method', getDeadline(1));
-      assert.throws(function() {
-        call.addMetadata();
-      });
       assert.throws(function() {
         call.addMetadata(null);
       }, TypeError);
@@ -139,7 +133,7 @@ describe('call', function() {
                   function() {done();},
                   0);
       assert.throws(function() {
-        call.addMetadata({'key': ['value']});
+        call.addMetadata({'key' : 'key', 'value' : new Buffer('value') });
       }, function(err) {
         return err.code === grpc.callError.ALREADY_INVOKED;
       });
