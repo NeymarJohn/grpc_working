@@ -53,7 +53,7 @@ static grpc_call *call;
 static void init_ping_pong_request(void) {}
 
 static void step_ping_pong_request(void) {
-  call = grpc_channel_create_call(channel, "/Reflector/reflectUnary",
+  call = grpc_channel_create_call_old(channel, "/Reflector/reflectUnary",
                                   "localhost", gpr_inf_future);
   GPR_ASSERT(grpc_call_invoke(call, cq, (void *)1, (void *)1,
                               GRPC_WRITE_BUFFER_HINT) == GRPC_CALL_OK);
@@ -65,12 +65,13 @@ static void step_ping_pong_request(void) {
   grpc_event_finish(grpc_completion_queue_next(cq, gpr_inf_future));
   grpc_event_finish(grpc_completion_queue_next(cq, gpr_inf_future));
   grpc_event_finish(grpc_completion_queue_next(cq, gpr_inf_future));
+  grpc_event_finish(grpc_completion_queue_next(cq, gpr_inf_future));
   grpc_call_destroy(call);
   call = NULL;
 }
 
 static void init_ping_pong_stream(void) {
-  call = grpc_channel_create_call(channel, "/Reflector/reflectStream",
+  call = grpc_channel_create_call_old(channel, "/Reflector/reflectStream",
                                   "localhost", gpr_inf_future);
   GPR_ASSERT(grpc_call_invoke(call, cq, (void *)1, (void *)1, 0) ==
              GRPC_CALL_OK);
