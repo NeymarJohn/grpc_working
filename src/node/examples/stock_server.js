@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,49 +31,53 @@
  *
  */
 
-#include <string.h>
-#include <malloc.h>
+var _ = require('underscore');
+var grpc = require('..');
+var examples = grpc.load(__dirname + '/stock.proto').examples;
 
-#include <node.h>
-#include <nan.h>
-#include "grpc/grpc.h"
-#include "grpc/support/slice.h"
+var StockServer = grpc.makeServerConstructor([examples.Stock.service]);
 
-namespace grpc {
-namespace node {
-
-#include "byte_buffer.h"
-
-using ::node::Buffer;
-using v8::Handle;
-using v8::Value;
-
-grpc_byte_buffer *BufferToByteBuffer(Handle<Value> buffer) {
-  NanScope();
-  int length = Buffer::Length(buffer);
-  char *data = Buffer::Data(buffer);
-  gpr_slice slice = gpr_slice_malloc(length);
-  memcpy(GPR_SLICE_START_PTR(slice), data, length);
-  grpc_byte_buffer *byte_buffer(grpc_byte_buffer_create(&slice, 1));
-  gpr_slice_unref(slice);
-  return byte_buffer;
+function getLastTradePrice(call, callback) {
+  callback(null, {price: 88});
 }
 
-Handle<Value> ByteBufferToBuffer(grpc_byte_buffer *buffer) {
-  NanEscapableScope();
-  if (buffer == NULL) {
-    NanReturnNull();
+function watchFutureTrades(call) {
+  for (var i = 0; i < call.request.num_trades_to_watch; i++) {
+    call.write({price: 88.00 + i * 10.00});
   }
-  size_t length = grpc_byte_buffer_length(buffer);
-  char *result = reinterpret_cast<char *>(calloc(length, sizeof(char)));
-  size_t offset = 0;
-  grpc_byte_buffer_reader *reader = grpc_byte_buffer_reader_create(buffer);
-  gpr_slice next;
-  while (grpc_byte_buffer_reader_next(reader, &next) != 0) {
-    memcpy(result + offset, GPR_SLICE_START_PTR(next), GPR_SLICE_LENGTH(next));
-    offset += GPR_SLICE_LENGTH(next);
-  }
-  return NanEscapeScope(NanNewBufferHandle(result, length));
+  call.end();
 }
-}  // namespace node
-}  // namespace grpc
+
+function getHighestTradePrice(call, callback) {
+  var trades = [];
+  call.on('data', function(data) {
+    trades.push({symbol: data.symbol, price: _.random(0, 100)});
+  });
+  call.on('end', function() {
+    if(_.isEmpty(trades)) {
+      callback(null, {});
+    } else {
+      callback(null, _.max(trades, function(trade){return trade.price;}));
+    }
+  });
+}
+
+function getLastTradePriceMultiple(call) {
+  call.on('data', function(data) {
+    call.write({price: 88});
+  });
+  call.on('end', function() {
+    call.end();
+  });
+}
+
+var stockServer = new StockServer({
+  'examples.Stock' : {
+    getLastTradePrice: getLastTradePrice,
+    getLastTradePriceMultiple: getLastTradePriceMultiple,
+    watchFutureTrades: watchFutureTrades,
+    getHighestTradePrice: getHighestTradePrice
+  }
+});
+
+exports.module = stockServer;
