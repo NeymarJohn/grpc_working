@@ -31,9 +31,6 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
-#define __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
-
 #include <grpc++/channel_interface.h>
 #include <grpc++/status.h>
 
@@ -47,9 +44,6 @@ class Client {
  public:
   Client(std::shared_ptr<grpc::ChannelInterface> channel);
   Status CreateTopic(grpc::string topic);
-  Status GetTopic(grpc::string topic);
-  Status DeleteTopic(grpc::string topic);
-  Status ListTopics();
 
  private:
   std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
@@ -58,5 +52,3 @@ class Client {
 }  // namespace tips
 }  // namespace examples
 }  // namespace grpc
-
-#endif  // __GRPCPP_EXAMPLES_TIPS_CLIENT_H_

@@ -19,7 +19,7 @@ class SimpleConfig(object):
 
   def __init__(self, config):
     self.build_config = config
-    self.maxjobs = 2 * multiprocessing.cpu_count()
+    self.maxjobs = 32 * multiprocessing.cpu_count()
     self.allow_hashing = (config != 'gcov')
 
   def run_command(self, binary):
@@ -32,7 +32,7 @@ class ValgrindConfig(object):
   def __init__(self, config, tool):
     self.build_config = config
     self.tool = tool
-    self.maxjobs = 2 * multiprocessing.cpu_count()
+    self.maxjobs = 4 * multiprocessing.cpu_count()
     self.allow_hashing = False
 
   def run_command(self, binary):
@@ -46,8 +46,8 @@ class CLanguage(object):
     self.make_target = make_target
     with open('tools/run_tests/tests.json') as f:
       js = json.load(f)
-      self.binaries = [tgt['name']
-                       for tgt in js
+      self.binaries = [tgt['name'] 
+                       for tgt in js 
                        if tgt['language'] == test_lang]
 
   def test_binaries(self, config):
@@ -59,19 +59,6 @@ class CLanguage(object):
   def build_steps(self):
     return []
 
-class NodeLanguage(object):
-
-  def __init__(self):
-    self.allow_hashing = False
-
-  def test_binaries(self, config):
-    return ['tools/run_tests/run_node.sh']
-
-  def make_targets(self):
-    return ['static_c']
-
-  def build_steps(self):
-    return [['tools/run_tests/build_node.sh']]
 
 class PhpLanguage(object):
 
@@ -82,7 +69,7 @@ class PhpLanguage(object):
     return ['src/php/bin/run_tests.sh']
 
   def make_targets(self):
-    return ['static_c']
+    return []
 
   def build_steps(self):
     return [['tools/run_tests/build_php.sh']]
@@ -120,7 +107,6 @@ _DEFAULT = ['dbg', 'opt']
 _LANGUAGES = {
     'c++': CLanguage('cxx', 'c++'),
     'c': CLanguage('c', 'c'),
-    'node': NodeLanguage(),
     'php': PhpLanguage(),
     'python': PythonLanguage(),
 }
@@ -204,8 +190,8 @@ class TestCache(object):
 
 def _build_and_run(check_cancelled, newline_on_success, cache):
   """Do one pass of building & running tests."""
-  # build latest sequentially
-  if not jobset.run(build_steps, maxjobs=1):
+  # build latest, sharing cpu between the various makes
+  if not jobset.run(build_steps):
     return 1
 
   # run all the tests
