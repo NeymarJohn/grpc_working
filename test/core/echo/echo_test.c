@@ -99,13 +99,12 @@ int main(int argc, char **argv) {
   svr = fork();
   if (svr == 0) {
     gpr_asprintf(&args[0], "%s/echo_server", root);
-    args[1] = "-bind";
-    gpr_join_host_port(&args[2], "::", port);
-    args[3] = 0;
+    gpr_join_host_port(&args[1], "::", port);
+    args[2] = 0;
     execv(args[0], args);
 
     gpr_free(args[0]);
-    gpr_free(args[2]);
+    gpr_free(args[1]);
     return 1;
   }
   /* wait a little */
