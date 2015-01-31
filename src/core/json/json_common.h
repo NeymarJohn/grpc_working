@@ -31,36 +31,19 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_
-#define __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_
+#ifndef __GRPC_SRC_CORE_JSON_JSON_COMMON_H__
+#define __GRPC_SRC_CORE_JSON_JSON_COMMON_H__
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+/* The various json types. */
+typedef enum {
+  GRPC_JSON_OBJECT,
+  GRPC_JSON_ARRAY,
+  GRPC_JSON_STRING,
+  GRPC_JSON_NUMBER,
+  GRPC_JSON_TRUE,
+  GRPC_JSON_FALSE,
+  GRPC_JSON_NULL,
+  GRPC_JSON_TOP_LEVEL
+} grpc_json_type;
 
-#include "examples/tips/pubsub.pb.h"
-
-namespace grpc {
-namespace examples {
-namespace tips {
-
-class Publisher {
- public:
-  Publisher(std::shared_ptr<grpc::ChannelInterface> channel);
-  void Shutdown();
-
-  Status CreateTopic(grpc::string topic);
-  Status GetTopic(grpc::string topic);
-  Status DeleteTopic(grpc::string topic);
-  Status ListTopics();
-
-  Status Publish(const grpc::string& topic, const grpc::string& data);
-
- private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
-};
-
-}  // namespace tips
-}  // namespace examples
-}  // namespace grpc
-
-#endif  // __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_
+#endif /* __GRPC_SRC_CORE_JSON_JSON_COMMON_H__ */

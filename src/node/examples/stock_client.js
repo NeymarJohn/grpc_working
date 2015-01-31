@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,34 +31,13 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
-#define __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+var grpc = require('..');
+var examples = grpc.load(__dirname + '/stock.proto').examples;
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
-
-#include "examples/tips/pubsub.pb.h"
-
-namespace grpc {
-namespace examples {
-namespace tips {
-
-class Subscriber {
- public:
-  Subscriber(std::shared_ptr<grpc::ChannelInterface> channel);
-  void Shutdown();
-
-  Status CreateSubscription(const grpc::string& topic,
-                            const grpc::string& name);
-
-  Status GetSubscription(const grpc::string& name, grpc::string* topic);
-
- private:
-  std::unique_ptr<tech::pubsub::SubscriberService::Stub> stub_;
-};
-
-}  // namespace tips
-}  // namespace examples
-}  // namespace grpc
-
-#endif  // __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+/**
+ * This exports a client constructor for the Stock service. The usage looks like
+ *
+ * var StockClient = require('stock_client.js');
+ * var stockClient = new StockClient(server_address);
+ */
+module.exports = examples.Stock;
