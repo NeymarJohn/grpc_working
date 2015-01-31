@@ -179,7 +179,7 @@ static void client_thread(void *p) {
 static void request_server_call(void) {
   gpr_refcount *rc = gpr_malloc(sizeof(gpr_refcount));
   gpr_ref_init(rc, 2);
-  grpc_server_request_call_old(g_fixture.server, rc);
+  grpc_server_request_call(g_fixture.server, rc);
 }
 
 static void maybe_end_server_call(grpc_call *call, gpr_refcount *rc) {

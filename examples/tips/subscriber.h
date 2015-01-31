@@ -31,49 +31,34 @@
  *
  */
 
-#include "src/core/surface/byte_buffer_queue.h"
-#include <grpc/support/alloc.h>
+#ifndef __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#define __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
 
-static void bba_destroy(grpc_bbq_array *array) {
-  gpr_free(array->data);
-}
+#include <grpc++/channel_interface.h>
+#include <grpc++/status.h>
 
-/* Append an operation to an array, expanding as needed */
-static void bba_push(grpc_bbq_array *a, grpc_byte_buffer *buffer) {
-  if (a->count == a->capacity) {
-    a->capacity *= 2;
-    a->data = gpr_realloc(a->data, sizeof(grpc_byte_buffer*) * a->capacity);
-  }
-  a->data[a->count++] = buffer;
-}
+#include "examples/tips/pubsub.pb.h"
 
-void grpc_bbq_destroy(grpc_byte_buffer_queue *q) {
-  bba_destroy(&q->filling);
-  bba_destroy(&q->draining);
-}
+namespace grpc {
+namespace examples {
+namespace tips {
 
-int grpc_bbq_empty(grpc_byte_buffer_queue *q) {
-  return (q->drain_pos == q->draining.count && q->filling.count == 0);
-}
+class Subscriber {
+ public:
+  Subscriber(std::shared_ptr<grpc::ChannelInterface> channel);
+  void Shutdown();
 
-void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *buffer) {
-  bba_push(&q->filling, buffer);
-}
+  Status CreateSubscription(const grpc::string& topic,
+                            const grpc::string& name);
 
-grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q) {
-  grpc_bbq_array temp_array;
+  Status GetSubscription(const grpc::string& name, grpc::string* topic);
 
-  if (q->drain_pos == q->draining.count) {
-    if (q->filling.count == 0) {
-      return NULL;
-    }
-    q->draining.count = 0;
-    q->drain_pos = 0;
-    /* swap arrays */
-    temp_array = q->filling;
-    q->filling = q->draining;
-    q->draining = temp_array;
-  }
+ private:
+  std::unique_ptr<tech::pubsub::SubscriberService::Stub> stub_;
+};
 
-  return q->draining.data[q->drain_pos++];
-}
+}  // namespace tips
+}  // namespace examples
+}  // namespace grpc
+
+#endif  // __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_

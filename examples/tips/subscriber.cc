@@ -31,34 +31,56 @@
  *
  */
 
-#include <string.h>
+#include <grpc++/client_context.h>
 
-#include <grpc/support/alloc.h>
+#include "examples/tips/subscriber.h"
 
-#include "src/core/json/json.h"
+using tech::pubsub::Topic;
+using tech::pubsub::DeleteTopicRequest;
+using tech::pubsub::GetTopicRequest;
+using tech::pubsub::SubscriberService;
+using tech::pubsub::ListTopicsRequest;
+using tech::pubsub::ListTopicsResponse;
+using tech::pubsub::PublishRequest;
+using tech::pubsub::PubsubMessage;
 
-grpc_json *grpc_json_create(grpc_json_type type) {
-  grpc_json *json = gpr_malloc(sizeof(grpc_json));
-  memset(json, 0, sizeof(grpc_json));
-  json->type = type;
+namespace grpc {
+namespace examples {
+namespace tips {
 
-  return json;
+Subscriber::Subscriber(std::shared_ptr<ChannelInterface> channel)
+    : stub_(SubscriberService::NewStub(channel)) {
 }
 
-void grpc_json_destroy(grpc_json *json) {
-  while (json->child) {
-    grpc_json_destroy(json->child);
-  }
-
-  if (json->next) {
-    json->next->prev = json->prev;
-  }
-
-  if (json->prev) {
-    json->prev->next = json->next;
-  } else if (json->parent) {
-    json->parent->child = json->next;
-  }
-
-  gpr_free(json);
+void Subscriber::Shutdown() {
+  stub_.reset();
 }
+
+Status Subscriber::CreateSubscription(const grpc::string& topic,
+                          const grpc::string& name) {
+  tech::pubsub::Subscription request;
+  tech::pubsub::Subscription response;
+  ClientContext context;
+
+  request.set_topic(topic);
+  request.set_name(name);
+
+  return stub_->CreateSubscription(&context, request, &response);
+}
+
+Status Subscriber::GetSubscription(const grpc::string& name,
+                                   grpc::string* topic) {
+  tech::pubsub::GetSubscriptionRequest request;
+  tech::pubsub::Subscription response;
+  ClientContext context;
+
+  request.set_subscription(name);
+
+  Status s = stub_->GetSubscription(&context, request, &response);
+  *topic = response.topic();
+  return s;
+}
+
+}  // namespace tips
+}  // namespace examples
+}  // namespace grpc
