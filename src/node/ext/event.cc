@@ -80,8 +80,7 @@ Handle<Value> ParseMetadata(grpc_metadata *metadata_elements, size_t length) {
       metadata_object->Set(key_string, array);
     }
     array->Set(index_map[elem->key],
-               MakeFastBuffer(
-                   NanNewBufferHandle(elem->value, elem->value_length)));
+               NanNewBufferHandle(elem->value, elem->value_length));
     index_map[elem->key] += 1;
   }
   return NanEscapeScope(metadata_object);

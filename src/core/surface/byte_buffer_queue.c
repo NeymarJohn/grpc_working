@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,53 +31,49 @@
  *
  */
 
-var _ = require('underscore');
-var grpc = require('..');
-var examples = grpc.load(__dirname + '/stock.proto').examples;
+#include "src/core/surface/byte_buffer_queue.h"
+#include <grpc/support/alloc.h>
 
-var StockServer = grpc.makeServerConstructor([examples.Stock.service]);
-
-function getLastTradePrice(call, callback) {
-  callback(null, {price: 88});
+static void bba_destroy(grpc_bbq_array *array) {
+  gpr_free(array->data);
 }
 
-function watchFutureTrades(call) {
-  for (var i = 0; i < call.request.num_trades_to_watch; i++) {
-    call.write({price: 88.00 + i * 10.00});
+/* Append an operation to an array, expanding as needed */
+static void bba_push(grpc_bbq_array *a, grpc_byte_buffer *buffer) {
+  if (a->count == a->capacity) {
+    a->capacity *= 2;
+    a->data = gpr_realloc(a->data, sizeof(grpc_byte_buffer*) * a->capacity);
   }
-  call.end();
+  a->data[a->count++] = buffer;
 }
 
-function getHighestTradePrice(call, callback) {
-  var trades = [];
-  call.on('data', function(data) {
-    trades.push({symbol: data.symbol, price: _.random(0, 100)});
-  });
-  call.on('end', function() {
-    if(_.isEmpty(trades)) {
-      callback(null, {});
-    } else {
-      callback(null, _.max(trades, function(trade){return trade.price;}));
+void grpc_bbq_destroy(grpc_byte_buffer_queue *q) {
+  bba_destroy(&q->filling);
+  bba_destroy(&q->draining);
+}
+
+int grpc_bbq_empty(grpc_byte_buffer_queue *q) {
+  return (q->drain_pos == q->draining.count && q->filling.count == 0);
+}
+
+void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *buffer) {
+  bba_push(&q->filling, buffer);
+}
+
+grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q) {
+  grpc_bbq_array temp_array;
+
+  if (q->drain_pos == q->draining.count) {
+    if (q->filling.count == 0) {
+      return NULL;
     }
-  });
-}
-
-function getLastTradePriceMultiple(call) {
-  call.on('data', function(data) {
-    call.write({price: 88});
-  });
-  call.on('end', function() {
-    call.end();
-  });
-}
-
-var stockServer = new StockServer({
-  'examples.Stock' : {
-    getLastTradePrice: getLastTradePrice,
-    getLastTradePriceMultiple: getLastTradePriceMultiple,
-    watchFutureTrades: watchFutureTrades,
-    getHighestTradePrice: getHighestTradePrice
+    q->draining.count = 0;
+    q->drain_pos = 0;
+    /* swap arrays */
+    temp_array = q->filling;
+    q->filling = q->draining;
+    q->draining = temp_array;
   }
-});
 
-exports.module = stockServer;
+  return q->draining.data[q->drain_pos++];
+}

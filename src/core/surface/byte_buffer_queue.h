@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,29 @@
  *
  */
 
-var grpc = require('..');
-var examples = grpc.load(__dirname + '/stock.proto').examples;
+#ifndef __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
+#define __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
 
-/**
- * This exports a client constructor for the Stock service. The usage looks like
- *
- * var StockClient = require('stock_client.js');
- * var stockClient = new StockClient(server_address);
- */
-module.exports = examples.Stock;
+#include <grpc/byte_buffer.h>
+
+/* TODO(ctiller): inline an element or two into this struct to avoid per-call
+                  allocations */
+typedef struct {
+  grpc_byte_buffer **data;
+  size_t count;
+  size_t capacity;
+} grpc_bbq_array;
+
+/* should be initialized by zeroing memory */
+typedef struct {
+  size_t drain_pos;
+  grpc_bbq_array filling;
+  grpc_bbq_array draining;
+} grpc_byte_buffer_queue;
+
+void grpc_bbq_destroy(grpc_byte_buffer_queue *q);
+grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q);
+int grpc_bbq_empty(grpc_byte_buffer_queue *q);
+void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *bb);
+
+#endif  /* __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__ */
