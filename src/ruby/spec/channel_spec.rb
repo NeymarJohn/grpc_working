@@ -29,6 +29,8 @@
 
 require 'grpc'
 
+FAKE_HOST='localhost:0'
+
 def load_test_certs
   test_root = File.join(File.dirname(__FILE__), 'testdata')
   files = ['ca.pem', 'server1.key', 'server1.pem']
@@ -36,8 +38,6 @@ def load_test_certs
 end
 
 describe GRPC::Core::Channel do
-  FAKE_HOST = 'localhost:0'
-
   def create_test_cert
     GRPC::Core::Credentials.new(load_test_certs[0])
   end

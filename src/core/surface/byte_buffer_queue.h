@@ -31,62 +31,29 @@
  *
  */
 
-/* Posix code for gpr snprintf support. */
+#ifndef __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
+#define __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
 
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200112L
-#endif
+#include <grpc/byte_buffer.h>
 
-#include <grpc/support/port_platform.h>
+/* TODO(ctiller): inline an element or two into this struct to avoid per-call
+                  allocations */
+typedef struct {
+  grpc_byte_buffer **data;
+  size_t count;
+  size_t capacity;
+} grpc_bbq_array;
 
-#ifdef GPR_POSIX_STRING
+/* should be initialized by zeroing memory */
+typedef struct {
+  size_t drain_pos;
+  grpc_bbq_array filling;
+  grpc_bbq_array draining;
+} grpc_byte_buffer_queue;
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
+void grpc_bbq_destroy(grpc_byte_buffer_queue *q);
+grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q);
+int grpc_bbq_empty(grpc_byte_buffer_queue *q);
+void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *bb);
 
-#include <grpc/support/alloc.h>
-
-int gpr_asprintf(char **strp, const char *format, ...) {
-  va_list args;
-  int ret;
-  char buf[64];
-  size_t strp_buflen;
-
-  /* Use a constant-sized buffer to determine the length. */
-  va_start(args, format);
-  ret = vsnprintf(buf, sizeof(buf), format, args);
-  va_end(args);
-  if (!(0 <= ret)) {
-    *strp = NULL;
-    return -1;
-  }
-
-  /* Allocate a new buffer, with space for the NUL terminator. */
-  strp_buflen = (size_t)ret + 1;
-  if ((*strp = gpr_malloc(strp_buflen)) == NULL) {
-    /* This shouldn't happen, because gpr_malloc() calls abort(). */
-    return -1;
-  }
-
-  /* Return early if we have all the bytes. */
-  if (strp_buflen <= sizeof(buf)) {
-    memcpy(*strp, buf, strp_buflen);
-    return ret;
-  }
-
-  /* Try again using the larger buffer. */
-  va_start(args, format);
-  ret = vsnprintf(*strp, strp_buflen, format, args);
-  va_end(args);
-  if ((size_t)ret == strp_buflen - 1) {
-    return ret;
-  }
-
-  /* This should never happen. */
-  gpr_free(*strp);
-  *strp = NULL;
-  return -1;
-}
-
-#endif /* GPR_POSIX_STRING */
+#endif  /* __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__ */

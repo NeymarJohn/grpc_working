@@ -120,7 +120,7 @@ static void test_early_server_shutdown_finishes_inflight_calls(
   cq_expect_finish_accepted(v_client, tag(4), GRPC_OP_OK);
   cq_verify(v_client);
 
-  GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, tag(100)));
+  GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call_old(f.server, tag(100)));
   cq_expect_server_rpc_new(v_server, &s, tag(100), "/foo", "test.google.com",
                            deadline, NULL);
   cq_verify(v_server);
