@@ -37,7 +37,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "src/core/support/string.h"
 #include "src/core/transport/chttp2/frame_data.h"
 #include "src/core/transport/chttp2/frame_goaway.h"
 #include "src/core/transport/chttp2/frame_ping.h"
@@ -54,6 +53,7 @@
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/slice_buffer.h>
+#include <grpc/support/string.h>
 #include <grpc/support/useful.h>
 
 #define DEFAULT_WINDOW 65535
@@ -1002,7 +1002,7 @@ static void cancel_stream_inner(transport *t, stream *s, gpr_uint32 id,
                                 grpc_chttp2_error_code error_code,
                                 int send_rst) {
   int had_outgoing;
-  char buffer[GPR_LTOA_MIN_BUFSIZE];
+  char buffer[32];
 
   if (s) {
     /* clear out any unreported input & output: nobody cares anymore */
@@ -1015,7 +1015,7 @@ static void cancel_stream_inner(transport *t, stream *s, gpr_uint32 id,
       s->cancelled = 1;
       stream_list_join(t, s, CANCELLED);
 
-      gpr_ltoa(local_status, buffer);
+      sprintf(buffer, "%d", local_status);
       grpc_sopb_add_metadata(
           &s->parser.incoming_sopb,
           grpc_mdelem_from_strings(t->metadata_context, "grpc-status", buffer));
@@ -1505,7 +1505,6 @@ static int process_read(transport *t, gpr_slice slice) {
                   CLIENT_CONNECT_STRING[t->deframe_state],
                   (int)(gpr_uint8)CLIENT_CONNECT_STRING[t->deframe_state], *cur,
                   (int)*cur, t->deframe_state);
-          drop_connection(t);
           return 0;
         }
         ++cur;
@@ -1518,7 +1517,7 @@ static int process_read(transport *t, gpr_slice slice) {
     dts_fh_0:
     case DTS_FH_0:
       GPR_ASSERT(cur < end);
-      t->incoming_frame_size = ((gpr_uint32) * cur) << 16;
+      t->incoming_frame_size = ((gpr_uint32)*cur) << 16;
       if (++cur == end) {
         t->deframe_state = DTS_FH_1;
         return 1;
@@ -1526,7 +1525,7 @@ static int process_read(transport *t, gpr_slice slice) {
     /* fallthrough */
     case DTS_FH_1:
       GPR_ASSERT(cur < end);
-      t->incoming_frame_size |= ((gpr_uint32) * cur) << 8;
+      t->incoming_frame_size |= ((gpr_uint32)*cur) << 8;
       if (++cur == end) {
         t->deframe_state = DTS_FH_2;
         return 1;
@@ -1558,7 +1557,7 @@ static int process_read(transport *t, gpr_slice slice) {
     /* fallthrough */
     case DTS_FH_5:
       GPR_ASSERT(cur < end);
-      t->incoming_stream_id = (((gpr_uint32) * cur) << 24) & 0x7f;
+      t->incoming_stream_id = (((gpr_uint32)*cur) << 24) & 0x7f;
       if (++cur == end) {
         t->deframe_state = DTS_FH_6;
         return 1;
@@ -1566,7 +1565,7 @@ static int process_read(transport *t, gpr_slice slice) {
     /* fallthrough */
     case DTS_FH_6:
       GPR_ASSERT(cur < end);
-      t->incoming_stream_id |= ((gpr_uint32) * cur) << 16;
+      t->incoming_stream_id |= ((gpr_uint32)*cur) << 16;
       if (++cur == end) {
         t->deframe_state = DTS_FH_7;
         return 1;
@@ -1574,7 +1573,7 @@ static int process_read(transport *t, gpr_slice slice) {
     /* fallthrough */
     case DTS_FH_7:
       GPR_ASSERT(cur < end);
-      t->incoming_stream_id |= ((gpr_uint32) * cur) << 8;
+      t->incoming_stream_id |= ((gpr_uint32)*cur) << 8;
       if (++cur == end) {
         t->deframe_state = DTS_FH_8;
         return 1;
@@ -1582,7 +1581,7 @@ static int process_read(transport *t, gpr_slice slice) {
     /* fallthrough */
     case DTS_FH_8:
       GPR_ASSERT(cur < end);
-      t->incoming_stream_id |= ((gpr_uint32) * cur);
+      t->incoming_stream_id |= ((gpr_uint32)*cur);
       t->deframe_state = DTS_FRAME;
       if (!init_frame_parser(t)) {
         return 0;
@@ -1611,7 +1610,7 @@ static int process_read(transport *t, gpr_slice slice) {
         }
         t->deframe_state = DTS_FH_0;
         return 1;
-      } else if ((gpr_uint32)(end - cur) > t->incoming_frame_size) {
+      } else if (end - cur > t->incoming_frame_size) {
         if (!parse_frame_slice(
                 t, gpr_slice_sub_no_ref(slice, cur - beg,
                                         cur + t->incoming_frame_size - beg),
@@ -1738,9 +1737,9 @@ static void add_to_pollset(grpc_transport *gt, grpc_pollset *pollset) {
  */
 
 static const grpc_transport_vtable vtable = {
-    sizeof(stream),  init_stream,    send_batch,       set_allow_window_updates,
-    add_to_pollset,  destroy_stream, abort_stream,     goaway,
-    close_transport, send_ping,      destroy_transport};
+    sizeof(stream), init_stream, send_batch, set_allow_window_updates,
+    add_to_pollset, destroy_stream, abort_stream, goaway, close_transport,
+    send_ping, destroy_transport};
 
 void grpc_create_chttp2_transport(grpc_transport_setup_callback setup,
                                   void *arg,

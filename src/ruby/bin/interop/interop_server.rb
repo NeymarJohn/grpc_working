@@ -104,7 +104,7 @@ class TestTarget < Grpc::Testing::TestService::Service
 
   def unary_call(simple_req, _call)
     req_size = simple_req.response_size
-    SimpleResponse.new(payload: Payload.new(type: :COMPRESSABLE,
+    SimpleResponse.new(payload: Payload.new(type: COMPRESSABLE,
                                             body: nulls(req_size)))
   end
 
@@ -145,8 +145,8 @@ class TestTarget < Grpc::Testing::TestService::Service
   end
 
   def half_duplex_call(reqs)
-    # TODO: update with unique behaviour of the half_duplex_call if that's
-    # ever required by any of the tests.
+    # TODO(temiola): clarify the behaviour of the half_duplex_call, it's not
+    # currently used in any tests
     full_duplex_call(reqs)
   end
 end
@@ -154,16 +154,12 @@ end
 # validates the the command line options, returning them as a Hash.
 def parse_options
   options = {
-    'port' => nil,
-    'secure' => false
+    'port' => nil
   }
   OptionParser.new do |opts|
     opts.banner = 'Usage: --port port'
     opts.on('--port PORT', 'server port') do |v|
       options['port'] = v
-    end
-    opts.on('-s', '--use_tls', 'require a secure connection?') do |v|
-      options['secure'] = v
     end
   end.parse!
 
@@ -176,15 +172,10 @@ end
 def main
   opts = parse_options
   host = "0.0.0.0:#{opts['port']}"
-  if opts['secure']
-    s = GRPC::RpcServer.new(creds: test_server_creds)
-    s.add_http2_port(host, true)
-    logger.info("... running securely on #{host}")
-  else
-    s = GRPC::RpcServer.new
-    s.add_http2_port(host)
-    logger.info("... running insecurely on #{host}")
-  end
+  s = GRPC::RpcServer.new(creds: test_server_creds)
+  s.add_http2_port(host, true)
+  logger.info("... running securely on #{host}")
+
   s.handle(TestTarget)
   s.run
 end

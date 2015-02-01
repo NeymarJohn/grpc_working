@@ -192,7 +192,7 @@ class TestServiceImpl : public TestService::Service {
 
 void RunServer() {
   std::ostringstream server_address;
-  server_address << "0.0.0.0:" << FLAGS_port;
+  server_address << "localhost:" << FLAGS_port;
   TestServiceImpl service;
 
   SimpleRequest request;
@@ -203,7 +203,11 @@ void RunServer() {
   builder.RegisterService(service.service());
   if (FLAGS_enable_ssl) {
     SslServerCredentialsOptions ssl_opts = {
-        "", {{test_server1_key, test_server1_cert}}};
+        "",
+        {reinterpret_cast<const char*>(test_server1_key),
+         test_server1_key_size},
+        {reinterpret_cast<const char*>(test_server1_cert),
+         test_server1_cert_size}};
     std::shared_ptr<ServerCredentials> creds =
         ServerCredentialsFactory::SslCredentials(ssl_opts);
     builder.SetCredentials(creds);

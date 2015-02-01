@@ -4,9 +4,6 @@ gens
 libs
 objs
 
-# Python virtual environment (pre-3.4 only)
-python2.7_virtual_environment
-
 # gcov coverage data
 coverage
 *.gcno
@@ -19,10 +16,4 @@ coverage
 
 # cache for run_tests.py
 .run_tests_cache
-
-# emacs temp files
-*~
-
-# vim temp files
-.*.swp
 

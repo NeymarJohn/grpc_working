@@ -32,7 +32,6 @@
  */
 
 #include "src/core/channel/metadata_buffer.h"
-#include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include "test/core/util/test_config.h"
@@ -43,12 +42,12 @@
 /* construct a buffer with some prefix followed by an integer converted to
    a string */
 static gpr_slice construct_buffer(size_t prefix_length, size_t index) {
-  gpr_slice buffer = gpr_slice_malloc(prefix_length + GPR_LTOA_MIN_BUFSIZE);
+  gpr_slice buffer = gpr_slice_malloc(prefix_length + 32);
   memset(GPR_SLICE_START_PTR(buffer), 'a', prefix_length);
   GPR_SLICE_SET_LENGTH(
-      buffer,
-      prefix_length +
-          gpr_ltoa(index, (char *)GPR_SLICE_START_PTR(buffer) + prefix_length));
+      buffer, prefix_length +
+                  sprintf((char *)GPR_SLICE_START_PTR(buffer) + prefix_length,
+                          "%d", (int)index));
   return buffer;
 }
 
@@ -79,7 +78,7 @@ static void expect_call_op(grpc_call_element *elem,
   GPR_ASSERT(op->dir == GRPC_CALL_DOWN);
   GPR_ASSERT(op->flags == *n);
   GPR_ASSERT(op->done_cb == do_nothing);
-  GPR_ASSERT(op->user_data == (void *)(gpr_uintptr) * n);
+  GPR_ASSERT(op->user_data == (void *)(gpr_uintptr)*n);
   GPR_ASSERT(0 == gpr_slice_cmp(op->data.metadata->key->slice, key));
   GPR_ASSERT(0 == gpr_slice_cmp(op->data.metadata->value->slice, value));
 
@@ -112,12 +111,12 @@ static void destroy_channel_elem(grpc_channel_element *elem) {}
 static const grpc_channel_filter top_filter = {
     fail_call_op,      fail_channel_op,     sizeof(size_t),
     init_call_elem,    destroy_call_elem,   sizeof(channel_data),
-    init_channel_elem, destroy_channel_elem, "top_filter" };
+    init_channel_elem, destroy_channel_elem};
 
 static const grpc_channel_filter bottom_filter = {
     expect_call_op,    fail_channel_op,     sizeof(size_t),
     init_call_elem,    destroy_call_elem,   sizeof(channel_data),
-    init_channel_elem, destroy_channel_elem, "bottom_filter" };
+    init_channel_elem, destroy_channel_elem};
 
 static const grpc_channel_filter *filters[2] = {&top_filter, &bottom_filter};
 

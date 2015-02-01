@@ -37,9 +37,9 @@
 
 #include "src/core/httpcli/httpcli.h"
 #include "src/core/security/json_token.h"
-#include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
+#include <grpc/support/string.h>
 #include <grpc/support/time.h>
 #include "test/core/util/test_config.h"
 #include <openssl/rsa.h>
@@ -48,30 +48,30 @@ static const char test_iam_authorization_token[] = "blahblahblhahb";
 static const char test_iam_authority_selector[] = "respectmyauthoritah";
 static const char test_oauth2_bearer_token[] =
     "Bearer blaaslkdjfaslkdfasdsfasf";
-static const char test_root_cert[] = "I am the root!";
+static const unsigned char test_root_cert[] = {0xDE, 0xAD, 0xBE, 0xEF};
 
 /* This JSON key was generated with the GCE console and revoked immediately.
    The identifiers have been changed as well.
    Maximum size for a string literal is 509 chars in C89, yay!  */
 static const char test_json_key_str_part1[] =
     "{ \"private_key\": \"-----BEGIN PRIVATE KEY-----"
-    "\\nMIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAOEvJsnoHnyHkXcp\\n7mJEqg"
-    "WGjiw71NfXByguekSKho65FxaGbsnSM9SMQAqVk7Q2rG+I0OpsT0LrWQtZ\\nyjSeg/"
+    "\nMIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAOEvJsnoHnyHkXcp\n7mJEqg"
+    "WGjiw71NfXByguekSKho65FxaGbsnSM9SMQAqVk7Q2rG+I0OpsT0LrWQtZ\nyjSeg/"
     "rWBQvS4hle4LfijkP3J5BG+"
-    "IXDMP8RfziNRQsenAXDNPkY4kJCvKux2xdD\\nOnVF6N7dL3nTYZg+"
-    "uQrNsMTz9UxVAgMBAAECgYEAzbLewe1xe9vy+2GoSsfib+28\\nDZgSE6Bu/"
-    "zuFoPrRc6qL9p2SsnV7txrunTyJkkOnPLND9ABAXybRTlcVKP/sGgza\\n/"
+    "IXDMP8RfziNRQsenAXDNPkY4kJCvKux2xdD\nOnVF6N7dL3nTYZg+"
+    "uQrNsMTz9UxVAgMBAAECgYEAzbLewe1xe9vy+2GoSsfib+28\nDZgSE6Bu/"
+    "zuFoPrRc6qL9p2SsnV7txrunTyJkkOnPLND9ABAXybRTlcVKP/sGgza\n/"
     "8HpCqFYM9V8f34SBWfD4fRFT+n/"
-    "73cfRUtGXdXpseva2lh8RilIQfPhNZAncenU\\ngqXjDvpkypEusgXAykECQQD+";
+    "73cfRUtGXdXpseva2lh8RilIQfPhNZAncenU\ngqXjDvpkypEusgXAykECQQD+";
 static const char test_json_key_str_part2[] =
-    "53XxNVnxBHsYb+AYEfklR96yVi8HywjVHP34+OQZ\\nCslxoHQM8s+"
-    "dBnjfScLu22JqkPv04xyxmt0QAKm9+vTdAkEA4ib7YvEAn2jXzcCI\\nEkoy2L/"
-    "XydR1GCHoacdfdAwiL2npOdnbvi4ZmdYRPY1LSTO058tQHKVXV7NLeCa3\\nAARh2QJBAMKeDAG"
-    "W303SQv2cZTdbeaLKJbB5drz3eo3j7dDKjrTD9JupixFbzcGw\\n8FZi5c8idxiwC36kbAL6HzA"
-    "ZoX+ofI0CQE6KCzPJTtYNqyShgKAZdJ8hwOcvCZtf\\n6z8RJm0+"
+    "53XxNVnxBHsYb+AYEfklR96yVi8HywjVHP34+OQZ\nCslxoHQM8s+"
+    "dBnjfScLu22JqkPv04xyxmt0QAKm9+vTdAkEA4ib7YvEAn2jXzcCI\nEkoy2L/"
+    "XydR1GCHoacdfdAwiL2npOdnbvi4ZmdYRPY1LSTO058tQHKVXV7NLeCa3\nAARh2QJBAMKeDAG"
+    "W303SQv2cZTdbeaLKJbB5drz3eo3j7dDKjrTD9JupixFbzcGw\n8FZi5c8idxiwC36kbAL6HzA"
+    "ZoX+ofI0CQE6KCzPJTtYNqyShgKAZdJ8hwOcvCZtf\n6z8RJm0+"
     "6YBd38lfh5j8mZd7aHFf6I17j5AQY7oPEc47TjJj/"
-    "5nZ68ECQQDvYuI3\\nLyK5fS8g0SYbmPOL9TlcHDOqwG0mrX9qpg5DC2fniXNSrrZ64GTDKdzZY"
-    "Ap6LI9W\\nIqv4vr6y38N79TTC\\n-----END PRIVATE KEY-----\\n\", ";
+    "5nZ68ECQQDvYuI3\nLyK5fS8g0SYbmPOL9TlcHDOqwG0mrX9qpg5DC2fniXNSrrZ64GTDKdzZY"
+    "Ap6LI9W\nIqv4vr6y38N79TTC\n-----END PRIVATE KEY-----\n\", ";
 static const char test_json_key_str_part3[] =
     "\"private_key_id\": \"e6b5137873db8d2ef81e06a47289e6434ec8a165\", "
     "\"client_email\": "
@@ -275,8 +275,8 @@ static void check_ssl_oauth2_composite_metadata(
 }
 
 static void test_ssl_oauth2_composite_creds(void) {
-  grpc_credentials *ssl_creds =
-      grpc_ssl_credentials_create(test_root_cert, NULL);
+  grpc_credentials *ssl_creds = grpc_ssl_credentials_create(
+      test_root_cert, sizeof(test_root_cert), NULL, 0, NULL, 0);
   const grpc_credentials_array *creds_array;
   grpc_credentials *oauth2_creds =
       grpc_fake_oauth2_credentials_create(test_oauth2_bearer_token, 0);
@@ -312,8 +312,8 @@ static void check_ssl_oauth2_iam_composite_metadata(
 }
 
 static void test_ssl_oauth2_iam_composite_creds(void) {
-  grpc_credentials *ssl_creds =
-      grpc_ssl_credentials_create(test_root_cert, NULL);
+  grpc_credentials *ssl_creds = grpc_ssl_credentials_create(
+      test_root_cert, sizeof(test_root_cert), NULL, 0, NULL, 0);
   const grpc_credentials_array *creds_array;
   grpc_credentials *oauth2_creds =
       grpc_fake_oauth2_credentials_create(test_oauth2_bearer_token, 0);
@@ -498,8 +498,10 @@ static void validate_service_account_http_request(
   char *expected_body = NULL;
   GPR_ASSERT(body != NULL);
   GPR_ASSERT(body_size != 0);
-  gpr_asprintf(&expected_body, "%s%s",
-               expected_service_account_http_body_prefix, test_signed_jwt);
+  expected_body = gpr_malloc(strlen(expected_service_account_http_body_prefix) +
+                             strlen(test_signed_jwt) + 1);
+  sprintf(expected_body, "%s%s", expected_service_account_http_body_prefix,
+          test_signed_jwt);
   GPR_ASSERT(strlen(expected_body) == body_size);
   GPR_ASSERT(!memcmp(expected_body, body, body_size));
   gpr_free(expected_body);

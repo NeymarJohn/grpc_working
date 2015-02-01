@@ -33,9 +33,9 @@
 
 #include <grpc/grpc.h>
 #include "src/core/channel/channel_args.h"
-#include "src/core/support/string.h"
 
 #include <grpc/support/alloc.h>
+#include <grpc/support/string.h>
 
 #include <string.h>
 
@@ -52,9 +52,7 @@ static grpc_arg copy_arg(const grpc_arg *src) {
       break;
     case GRPC_ARG_POINTER:
       dst.value.pointer = src->value.pointer;
-      dst.value.pointer.p = src->value.pointer.copy
-                                ? src->value.pointer.copy(src->value.pointer.p)
-                                : src->value.pointer.p;
+      dst.value.pointer.p = src->value.pointer.copy(src->value.pointer.p);
       break;
   }
   return dst;
@@ -93,9 +91,7 @@ void grpc_channel_args_destroy(grpc_channel_args *a) {
       case GRPC_ARG_INTEGER:
         break;
       case GRPC_ARG_POINTER:
-        if (a->args[i].value.pointer.destroy) {
-          a->args[i].value.pointer.destroy(a->args[i].value.pointer.p);
-        }
+        a->args[i].value.pointer.destroy(a->args[i].value.pointer.p);
         break;
     }
     gpr_free(a->args[i].key);
@@ -105,7 +101,7 @@ void grpc_channel_args_destroy(grpc_channel_args *a) {
 }
 
 int grpc_channel_args_is_census_enabled(const grpc_channel_args *a) {
-  unsigned i;
+  int i;
   if (a == NULL) return 0;
   for (i = 0; i < a->num_args; i++) {
     if (0 == strcmp(a->args[i].key, GRPC_ARG_ENABLE_CENSUS)) {

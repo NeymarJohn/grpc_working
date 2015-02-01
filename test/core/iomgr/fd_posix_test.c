@@ -37,7 +37,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <netinet/in.h>
-#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -80,7 +79,7 @@ static void create_test_socket(int port, int *socket_fd,
 
   /* Use local address for test */
   sin->sin_family = AF_INET;
-  sin->sin_addr.s_addr = htonl(0x7f000001);
+  sin->sin_addr.s_addr = 0;
   sin->sin_port = htons(port);
 }
 
@@ -165,7 +164,7 @@ static void session_read_cb(void *arg, /*session*/
       grpc_fd_notify_on_read(se->em_fd, session_read_cb, se);
     } else {
       gpr_log(GPR_ERROR, "Unhandled read error %s", strerror(errno));
-      abort();
+      GPR_ASSERT(0);
     }
   }
 }
@@ -317,7 +316,7 @@ static void client_session_write(void *arg, /*client*/
     gpr_mu_unlock(&cl->mu);
   } else {
     gpr_log(GPR_ERROR, "unknown errno %s", strerror(errno));
-    abort();
+    GPR_ASSERT(0);
   }
 }
 
@@ -326,20 +325,10 @@ static void client_start(client *cl, int port) {
   int fd;
   struct sockaddr_in sin;
   create_test_socket(port, &fd, &sin);
-  if (connect(fd, (struct sockaddr *)&sin, sizeof(sin)) == -1) {
-    if (errno == EINPROGRESS) {
-      struct pollfd pfd;
-      pfd.fd = fd;
-      pfd.events = POLLOUT;
-      pfd.revents = 0;
-      if (poll(&pfd, 1, -1) == -1) {
-        gpr_log(GPR_ERROR, "poll() failed during connect; errno=%d", errno);
-        abort();
-      }
-    } else {
-      gpr_log(GPR_ERROR, "Failed to connect to the server (errno=%d)", errno);
-      abort();
-    }
+  if (connect(fd, (struct sockaddr *)&sin, sizeof(sin)) == -1 &&
+      errno != EINPROGRESS) {
+    gpr_log(GPR_ERROR, "Failed to connect to the server");
+    GPR_ASSERT(0);
   }
 
   cl->em_fd = grpc_fd_create(fd);

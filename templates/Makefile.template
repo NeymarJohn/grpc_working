@@ -19,14 +19,6 @@
     return 'gens/' + m.group(1) + '.pb.cc'
 %>
 
-
-# Basic platform detection
-HOST_SYSTEM = $(shell uname | cut -f 1 -d_)
-ifeq ($(SYSTEM),)
-SYSTEM = $(HOST_SYSTEM)
-endif
-
-
 # Configurations
 
 VALID_CONFIG_opt = 1
@@ -139,16 +131,11 @@ LDFLAGS += $(LDFLAGS_$(CONFIG))
 
 CFLAGS += -std=c89 -pedantic
 CXXFLAGS += -std=c++11
-CPPFLAGS += -g -fPIC -Wall -Wextra -Werror -Wno-long-long -Wno-unused-parameter
-LDFLAGS += -g -fPIC
+CPPFLAGS += -g -fPIC -Wall -Werror -Wno-long-long
+LDFLAGS += -g -pthread -fPIC
 
 INCLUDES = . include gens
-ifeq ($(SYSTEM),Darwin)
-LIBS = m z
-else
 LIBS = rt m z pthread
-LDFLAGS += -pthread
-endif
 LIBSXX = protobuf
 LIBS_PROTOC = protoc protobuf
 
@@ -185,6 +172,11 @@ HOST_LDLIBS = $(LDLIBS)
 
 # These are automatically computed variables.
 # There shouldn't be any need to change anything from now on.
+
+HOST_SYSTEM = $(shell uname | cut -f 1 -d_)
+ifeq ($(SYSTEM),)
+SYSTEM = $(HOST_SYSTEM)
+endif
 
 ifeq ($(SYSTEM),MINGW32)
 SHARED_EXT = dll
@@ -348,12 +340,8 @@ libs/$(CONFIG)/zlib/libz.a:
 	$(Q)cp third_party/zlib/libz.a libs/$(CONFIG)/zlib
 
 libs/$(CONFIG)/openssl/libssl.a:
-	$(E) "[MAKE]    Building openssl for $(SYSTEM)"
-ifeq ($(SYSTEM),Darwin)
-	$(Q)(cd third_party/openssl ; CC="$(CC) -fPIC -fvisibility=hidden $(CPPFLAGS_$(CONFIG)) $(OPENSSL_CFLAGS_$(CONFIG))" ./Configure darwin64-x86_64-cc $(OPENSSL_CONFIG_$(CONFIG)))
-else
+	$(E) "[MAKE]    Building openssl"
 	$(Q)(cd third_party/openssl ; CC="$(CC) -fPIC -fvisibility=hidden $(CPPFLAGS_$(CONFIG)) $(OPENSSL_CFLAGS_$(CONFIG))" ./config $(OPENSSL_CONFIG_$(CONFIG)))
-endif
 	$(Q)$(MAKE) -C third_party/openssl clean
 	$(Q)$(MAKE) -C third_party/openssl build_crypto build_ssl
 	$(Q)mkdir -p libs/$(CONFIG)/openssl
@@ -363,7 +351,7 @@ static: static_c static_cxx
 
 static_c: \
 % for lib in libs:
-% if lib.build == 'all' and lib.language == 'c':
+% if lib.build == 'all' and not lib.get('c++', False):
  libs/$(CONFIG)/lib${lib.name}.a\
 % endif
 % endfor
@@ -371,7 +359,7 @@ static_c: \
 
 static_cxx: \
 % for lib in libs:
-% if lib.build == 'all' and lib.language == 'c++':
+% if lib.build == 'all' and lib.get('c++', False):
  libs/$(CONFIG)/lib${lib.name}.a\
 % endif
 % endfor
@@ -381,7 +369,7 @@ shared: shared_c shared_cxx
 
 shared_c: \
 % for lib in libs:
-% if lib.build == 'all' and lib.language == 'c':
+% if lib.build == 'all' and not lib.get('c++', False):
  libs/$(CONFIG)/lib${lib.name}.$(SHARED_EXT)\
 % endif
 % endfor
@@ -389,7 +377,7 @@ shared_c: \
 
 shared_cxx: \
 % for lib in libs:
-% if lib.build == 'all' and lib.language == 'c++':
+% if lib.build == 'all' and lib.get('c++', False):
  libs/$(CONFIG)/lib${lib.name}.$(SHARED_EXT)\
 % endif
 % endfor
@@ -399,7 +387,7 @@ privatelibs: privatelibs_c privatelibs_cxx
 
 privatelibs_c: \
 % for lib in libs:
-% if lib.build == 'private' and lib.language == 'c':
+% if lib.build == 'private' and not lib.get('c++', False):
  libs/$(CONFIG)/lib${lib.name}.a\
 % endif
 % endfor
@@ -407,7 +395,7 @@ privatelibs_c: \
 
 privatelibs_cxx: \
 % for lib in libs:
-% if lib.build == 'private' and lib.language == 'c++':
+% if lib.build == 'private' and lib.get('c++', False):
  libs/$(CONFIG)/lib${lib.name}.a\
 % endif
 % endfor
@@ -417,7 +405,7 @@ buildtests: buildtests_c buildtests_cxx
 
 buildtests_c: privatelibs_c\
 % for tgt in targets:
-% if tgt.build == 'test' and not tgt.language == 'c++':
+% if tgt.build == 'test' and not tgt.get('c++', False):
  bins/$(CONFIG)/${tgt.name}\
 % endif
 % endfor
@@ -425,7 +413,7 @@ buildtests_c: privatelibs_c\
 
 buildtests_cxx: privatelibs_cxx\
 % for tgt in targets:
-% if tgt.build == 'test' and tgt.language == 'c++':
+% if tgt.build == 'test' and tgt.get('c++', False):
  bins/$(CONFIG)/${tgt.name}\
 % endif
 % endfor
@@ -435,7 +423,7 @@ test: test_c test_cxx
 
 test_c: buildtests_c
 % for tgt in targets:
-% if tgt.build == 'test' and tgt.get('run', True) and not tgt.language == 'c++':
+% if tgt.build == 'test' and tgt.get('run', True) and not tgt.get('c++', False):
 	$(E) "[RUN]     Testing ${tgt.name}"
 	$(Q) ./bins/$(CONFIG)/${tgt.name} || ( echo test ${tgt.name} failed ; exit 1 )
 % endif
@@ -444,7 +432,7 @@ test_c: buildtests_c
 
 test_cxx: buildtests_cxx
 % for tgt in targets:
-% if tgt.build == 'test' and tgt.get('run', True) and tgt.language == 'c++':
+% if tgt.build == 'test' and tgt.get('run', True) and tgt.get('c++', False):
 	$(E) "[RUN]     Testing ${tgt.name}"
 	$(Q) ./bins/$(CONFIG)/${tgt.name} || ( echo test ${tgt.name} failed ; exit 1 )
 % endif
@@ -481,52 +469,44 @@ strip-shared: strip-shared_c strip-shared_cxx
 # This prevents proper debugging after running make install.
 
 strip-static_c: static_c
-ifeq ($(CONFIG),opt)
 % for lib in libs:
-% if lib.language == "c":
+% if not lib.get("c++", False):
 % if lib.build == "all":
 	$(E) "[STRIP]   Stripping lib${lib.name}.a"
 	$(Q) $(STRIP) libs/$(CONFIG)/lib${lib.name}.a
 % endif
 % endif
 % endfor
-endif
 
 strip-static_cxx: static_cxx
-ifeq ($(CONFIG),opt)
 % for lib in libs:
-% if lib.language == "c++":
+% if lib.get("c++", False):
 % if lib.build == "all":
 	$(E) "[STRIP]   Stripping lib${lib.name}.a"
 	$(Q) $(STRIP) libs/$(CONFIG)/lib${lib.name}.a
 % endif
 % endif
 % endfor
-endif
 
 strip-shared_c: shared_c
-ifeq ($(CONFIG),opt)
 % for lib in libs:
-% if lib.language == "c":
+% if not lib.get("c++", False):
 % if lib.build == "all":
 	$(E) "[STRIP]   Stripping lib${lib.name}.so"
 	$(Q) $(STRIP) libs/$(CONFIG)/lib${lib.name}.$(SHARED_EXT)
 % endif
 % endif
 % endfor
-endif
 
 strip-shared_cxx: shared_cxx
-ifeq ($(CONFIG),opt)
 % for lib in libs:
-% if lib.language == "c++":
+% if lib.get("c++", False):
 % if lib.build == "all":
 	$(E) "[STRIP]   Stripping lib${lib.name}.so"
 	$(Q) $(STRIP) libs/$(CONFIG)/lib${lib.name}.$(SHARED_EXT)
 % endif
 % endif
 % endfor
-endif
 
 % for p in protos:
 gens/${p}.pb.cc: ${p}.proto $(PROTOC_PLUGINS)
@@ -577,7 +557,7 @@ install-static: install-static_c install-static_cxx
 
 install-static_c: static_c strip-static_c
 % for lib in libs:
-% if lib.language == "c":
+% if not lib.get("c++", False):
 % if lib.build == "all":
 	$(E) "[INSTALL] Installing lib${lib.name}.a"
 	$(Q) $(INSTALL) libs/$(CONFIG)/lib${lib.name}.a $(prefix)/lib/lib${lib.name}.a
@@ -587,7 +567,7 @@ install-static_c: static_c strip-static_c
 
 install-static_cxx: static_cxx strip-static_cxx
 % for lib in libs:
-% if lib.language == "c++":
+% if lib.get("c++", False):
 % if lib.build == "all":
 	$(E) "[INSTALL] Installing lib${lib.name}.a"
 	$(Q) $(INSTALL) libs/$(CONFIG)/lib${lib.name}.a $(prefix)/lib/lib${lib.name}.a
@@ -597,7 +577,7 @@ install-static_cxx: static_cxx strip-static_cxx
 
 install-shared_c: shared_c strip-shared_c
 % for lib in libs:
-% if lib.language == "c":
+% if not lib.get("c++", False):
 % if lib.build == "all":
 ifeq ($(SYSTEM),MINGW32)
 	$(E) "[INSTALL] Installing ${lib.name}.$(SHARED_EXT)"
@@ -621,7 +601,7 @@ endif
 
 install-shared_cxx: shared_cxx strip-shared_cxx
 % for lib in libs:
-% if lib.language == "c++":
+% if lib.get("c++", False):
 % if lib.build == "all":
 ifeq ($(SYSTEM),MINGW32)
 	$(E) "[INSTALL] Installing ${lib.name}.$(SHARED_EXT)"
@@ -669,7 +649,7 @@ LIB${lib.name.upper()}_SRC = \\
 % endfor
 
 % if "public_headers" in lib:
-% if lib.language == "c++":
+% if lib.get("c++", False):
 PUBLIC_HEADERS_CXX += \\
 
 % else:
@@ -715,7 +695,6 @@ libs/$(CONFIG)/lib${lib.name}.a: $(ZLIB_DEP) $(LIB${lib.name.upper()}_OBJS)
 % endif
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) rm -f libs/$(CONFIG)/lib${lib.name}.a
 	$(Q) $(AR) rcs libs/$(CONFIG)/lib${lib.name}.a $(LIB${lib.name.upper()}_OBJS)
 % if lib.get('baselib', False):
 % if lib.get('secure', True):
@@ -728,12 +707,9 @@ libs/$(CONFIG)/lib${lib.name}.a: $(ZLIB_DEP) $(LIB${lib.name.upper()}_OBJS)
 	$(Q) rm -rf tmp-merge
 % endif
 % endif
-ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib libs/$(CONFIG)/lib${lib.name}.a 
-endif
 
 <%
-  if lib.language == 'c++':
+  if lib.get('c++', False):
     ld = '$(LDXX)'
   else:
     ld = '$(LD)'
@@ -773,7 +749,6 @@ ifeq ($(SYSTEM),Darwin)
 	$(Q) ${ld} $(LDFLAGS) -Llibs/$(CONFIG) -dynamiclib -o ${out_libbase}.$(SHARED_EXT) ${common}${libs}
 else
 	$(Q) ${ld} $(LDFLAGS) -Llibs/$(CONFIG) -shared -Wl,-soname,lib${lib.name}.so.${settings.version.major} -o ${out_libbase}.$(SHARED_EXT) ${common}${libs}
-	$(Q) ln -sf lib${lib.name}.$(SHARED_EXT) ${out_libbase}.so.${settings.version.major}
 	$(Q) ln -sf lib${lib.name}.$(SHARED_EXT) ${out_libbase}.so
 endif
 endif
@@ -843,7 +818,7 @@ bins/$(CONFIG)/${tgt.name}: $(${tgt.name.upper()}_OBJS)\
  libs/$(CONFIG)/lib${dep}.a\
 % endfor
 
-% if tgt.language == "c++":
+% if tgt.get("c++", False):
 ## C++ targets specificies.
 % if tgt.build == 'protoc':
 	$(E) "[HOSTLD]  Linking $@"
@@ -866,7 +841,7 @@ bins/$(CONFIG)/${tgt.name}: $(${tgt.name.upper()}_OBJS)\
 % for dep in tgt.deps:
  libs/$(CONFIG)/lib${dep}.a\
 % endfor
-% if tgt.language == "c++":
+% if tgt.get("c++", False):
 % if tgt.build == 'protoc':
  $(HOST_LDLIBSXX)\
 % else:

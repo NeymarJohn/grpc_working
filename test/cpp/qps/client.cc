@@ -44,6 +44,7 @@
 #include <google/gflags.h>
 #include <grpc++/client_context.h>
 #include <grpc++/status.h>
+#include "test/core/util/grpc_profiler.h"
 #include "test/cpp/util/create_test_channel.h"
 #include "test/cpp/qps/qpstest.pb.h"
 
@@ -129,42 +130,40 @@ void RunTest(const int client_threads, const int client_channels,
   grpc::Status status_beg = stub_stats->CollectServerStats(
       &context_stats_begin, stats_request, &server_stats_begin);
 
+  grpc_profiler_start("qps_client.prof");
+
   for (int i = 0; i < client_threads; i++) {
     gpr_histogram *hist = gpr_histogram_create(0.01, 60e9);
     GPR_ASSERT(hist != NULL);
     thread_stats[i] = hist;
 
-    threads.push_back(
-        std::thread([hist, client_threads, client_channels, num_rpcs,
-                     payload_size, &channels](int channel_num) {
-                      SimpleRequest request;
-                      SimpleResponse response;
-                      request.set_response_type(
-                          grpc::testing::PayloadType::COMPRESSABLE);
-                      request.set_response_size(payload_size);
+    threads.push_back(std::thread(
+        [hist, client_threads, client_channels, num_rpcs, payload_size,
+         &channels](int channel_num) {
+          SimpleRequest request;
+          SimpleResponse response;
+          request.set_response_type(grpc::testing::PayloadType::COMPRESSABLE);
+          request.set_response_size(payload_size);
 
-                      for (int j = 0; j < num_rpcs; j++) {
-                        TestService::Stub *stub =
-                            channels[channel_num].get_stub();
-                        double start = now();
-                        grpc::ClientContext context;
-                        grpc::Status s =
-                            stub->UnaryCall(&context, request, &response);
-                        gpr_histogram_add(hist, now() - start);
+          for (int j = 0; j < num_rpcs; j++) {
+            TestService::Stub *stub = channels[channel_num].get_stub();
+            double start = now();
+            grpc::ClientContext context;
+            grpc::Status s = stub->UnaryCall(&context, request, &response);
+            gpr_histogram_add(hist, now() - start);
 
-                        GPR_ASSERT((s.code() == grpc::StatusCode::OK) &&
-                                   (response.payload().type() ==
-                                    grpc::testing::PayloadType::COMPRESSABLE) &&
-                                   (response.payload().body().length() ==
-                                    static_cast<size_t>(payload_size)));
+            GPR_ASSERT((s.code() == grpc::StatusCode::OK) &&
+                       (response.payload().type() ==
+                        grpc::testing::PayloadType::COMPRESSABLE) &&
+                       (response.payload().body().length() ==
+                        static_cast<size_t>(payload_size)));
 
-                        // Now do runtime round-robin assignment of the next
-                        // channel number
-                        channel_num += client_threads;
-                        channel_num %= client_channels;
-                      }
-                    },
-                    i % client_channels));
+            // Now do runtime round-robin assignment of the next channel number
+            channel_num += client_threads;
+            channel_num %= client_channels;
+          }
+        },
+        i % client_channels));
   }
 
   gpr_histogram *hist = gpr_histogram_create(0.01, 60e9);
@@ -172,6 +171,9 @@ void RunTest(const int client_threads, const int client_channels,
   for (auto &t : threads) {
     t.join();
   }
+
+  grpc_profiler_stop();
+
   for (int i = 0; i < client_threads; i++) {
     gpr_histogram *h = thread_stats[i];
     gpr_log(GPR_INFO, "latency at thread %d (50/90/95/99/99.9): %f/%f/%f/%f/%f",

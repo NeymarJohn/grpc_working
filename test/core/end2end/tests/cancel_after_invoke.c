@@ -115,7 +115,9 @@ static void test_cancel_after_invoke(grpc_end2end_test_config config,
   GPR_ASSERT(c);
 
   GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_call_invoke(c, f.client_cq, tag(2), tag(3), 0));
+             grpc_call_start_invoke(c, f.client_cq, tag(1), tag(2), tag(3), 0));
+  cq_expect_invoke_accepted(v_client, tag(1), GRPC_OP_OK);
+  cq_verify(v_client);
 
   GPR_ASSERT(GRPC_CALL_OK == mode.initiate_cancel(c));
 
@@ -132,7 +134,7 @@ static void test_cancel_after_invoke(grpc_end2end_test_config config,
 }
 
 void grpc_end2end_tests(grpc_end2end_test_config config) {
-  unsigned i;
+  int i;
 
   for (i = 0; i < GPR_ARRAY_SIZE(cancellation_modes); i++) {
     test_cancel_after_invoke(config, cancellation_modes[i]);

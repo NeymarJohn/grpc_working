@@ -29,6 +29,7 @@
 
 require 'grpc'
 require 'xray/thread_dump_signal_handler'
+require_relative '../port_picker'
 
 def load_test_certs
   test_root = File.join(File.dirname(File.dirname(__FILE__)), 'testdata')
@@ -103,10 +104,10 @@ describe GRPC::RpcServer do
     @noop = proc { |x| x }
 
     @server_queue = GRPC::Core::CompletionQueue.new
-    server_host = '0.0.0.0:0'
+    port = find_unused_tcp_port
+    @host = "localhost:#{port}"
     @server = GRPC::Core::Server.new(@server_queue, nil)
-    server_port = @server.add_http2_port(server_host)
-    @host = "localhost:#{server_port}"
+    @server.add_http2_port(@host)
     @ch = GRPC::Core::Channel.new(@host, nil)
   end
 
@@ -323,7 +324,7 @@ describe GRPC::RpcServer do
     end
 
     describe 'when running' do
-      it 'should return NOT_FOUND status on unknown methods', server: true do
+      it 'should return NOT_FOUND status for requests on unknown methods' do
         @srv.handle(EchoService)
         t = Thread.new { @srv.run }
         @srv.wait_till_running
@@ -338,7 +339,7 @@ describe GRPC::RpcServer do
         t.join
       end
 
-      it 'should handle multiple sequential requests', server: true do
+      it 'should obtain responses for multiple sequential requests' do
         @srv.handle(EchoService)
         t = Thread.new { @srv.run }
         @srv.wait_till_running
@@ -350,7 +351,7 @@ describe GRPC::RpcServer do
         t.join
       end
 
-      it 'should handle multiple parallel requests', server: true do
+      it 'should obtain responses for multiple parallel requests' do
         @srv.handle(EchoService)
         Thread.new { @srv.run }
         @srv.wait_till_running
@@ -368,7 +369,7 @@ describe GRPC::RpcServer do
         threads.each(&:join)
       end
 
-      it 'should return UNAVAILABLE on too many jobs', server: true do
+      it 'should return UNAVAILABLE status if there too many jobs' do
         opts = {
           a_channel_arg: 'an_arg',
           server_override: @server,

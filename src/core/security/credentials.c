@@ -36,13 +36,13 @@
 #include "src/core/httpcli/httpcli.h"
 #include "src/core/iomgr/iomgr.h"
 #include "src/core/security/json_token.h"
-#include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
+#include <grpc/support/string.h>
 #include <grpc/support/sync.h>
 #include <grpc/support/time.h>
 
-#include "src/core/json/json.h"
+#include "third_party/cJSON/cJSON.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -139,7 +139,7 @@ typedef struct {
 
 typedef struct {
   grpc_server_credentials base;
-  grpc_ssl_server_config config;
+  grpc_ssl_config config;
 } grpc_ssl_server_credentials;
 
 static void ssl_destroy(grpc_credentials *creds) {
@@ -152,30 +152,13 @@ static void ssl_destroy(grpc_credentials *creds) {
 
 static void ssl_server_destroy(grpc_server_credentials *creds) {
   grpc_ssl_server_credentials *c = (grpc_ssl_server_credentials *)creds;
-  size_t i;
-  for (i = 0; i < c->config.num_key_cert_pairs; i++) {
-    if (c->config.pem_private_keys[i] != NULL) {
-      gpr_free(c->config.pem_private_keys[i]);
-    }
-    if (c->config.pem_cert_chains[i] != NULL) {
-      gpr_free(c->config.pem_cert_chains[i]);
-    }
-  }
-  if (c->config.pem_private_keys != NULL) gpr_free(c->config.pem_private_keys);
-  if (c->config.pem_private_keys_sizes != NULL) {
-    gpr_free(c->config.pem_private_keys_sizes);
-  }
-  if (c->config.pem_cert_chains != NULL) gpr_free(c->config.pem_cert_chains);
-  if (c->config.pem_cert_chains_sizes != NULL) {
-    gpr_free(c->config.pem_cert_chains_sizes);
-  }
   if (c->config.pem_root_certs != NULL) gpr_free(c->config.pem_root_certs);
+  if (c->config.pem_private_key != NULL) gpr_free(c->config.pem_private_key);
+  if (c->config.pem_cert_chain != NULL) gpr_free(c->config.pem_cert_chain);
   gpr_free(creds);
 }
 
-static int ssl_has_request_metadata(const grpc_credentials *creds) {
-  return 0;
-}
+static int ssl_has_request_metadata(const grpc_credentials *creds) { return 0; }
 
 static int ssl_has_request_metadata_only(const grpc_credentials *creds) {
   return 0;
@@ -196,7 +179,7 @@ const grpc_ssl_config *grpc_ssl_credentials_get_config(
   }
 }
 
-const grpc_ssl_server_config *grpc_ssl_server_credentials_get_config(
+const grpc_ssl_config *grpc_ssl_server_credentials_get_config(
     const grpc_server_credentials *creds) {
   if (creds == NULL || strcmp(creds->type, GRPC_CREDENTIALS_TYPE_SSL)) {
     return NULL;
@@ -206,89 +189,57 @@ const grpc_ssl_server_config *grpc_ssl_server_credentials_get_config(
   }
 }
 
-static void ssl_copy_key_material(const char *input, unsigned char **output,
-                                  size_t *output_size) {
-  *output_size = strlen(input);
-  *output = gpr_malloc(*output_size);
-  memcpy(*output, input, *output_size);
-}
-
-static void ssl_build_config(const char *pem_root_certs,
-                             grpc_ssl_pem_key_cert_pair *pem_key_cert_pair,
+static void ssl_build_config(const unsigned char *pem_root_certs,
+                             size_t pem_root_certs_size,
+                             const unsigned char *pem_private_key,
+                             size_t pem_private_key_size,
+                             const unsigned char *pem_cert_chain,
+                             size_t pem_cert_chain_size,
                              grpc_ssl_config *config) {
-  if (pem_root_certs == NULL) {
-    /* TODO(jboeuf): Get them from the environment. */
-    gpr_log(GPR_ERROR, "Default SSL roots not yet implemented.");
-  } else {
-    ssl_copy_key_material(pem_root_certs, &config->pem_root_certs,
-                          &config->pem_root_certs_size);
-  }
-
-  if (pem_key_cert_pair != NULL) {
-    GPR_ASSERT(pem_key_cert_pair->private_key != NULL);
-    GPR_ASSERT(pem_key_cert_pair->cert_chain != NULL);
-    ssl_copy_key_material(pem_key_cert_pair->private_key,
-                          &config->pem_private_key,
-                          &config->pem_private_key_size);
-    ssl_copy_key_material(pem_key_cert_pair->cert_chain,
-                          &config->pem_cert_chain,
-                          &config->pem_cert_chain_size);
-  }
-}
-
-static void ssl_build_server_config(
-    const char *pem_root_certs, grpc_ssl_pem_key_cert_pair *pem_key_cert_pairs,
-    size_t num_key_cert_pairs, grpc_ssl_server_config *config) {
-  size_t i;
   if (pem_root_certs != NULL) {
-    ssl_copy_key_material(pem_root_certs, &config->pem_root_certs,
-                          &config->pem_root_certs_size);
+    config->pem_root_certs = gpr_malloc(pem_root_certs_size);
+    memcpy(config->pem_root_certs, pem_root_certs, pem_root_certs_size);
+    config->pem_root_certs_size = pem_root_certs_size;
   }
-  if (num_key_cert_pairs > 0) {
-    GPR_ASSERT(pem_key_cert_pairs != NULL);
-    config->pem_private_keys =
-        gpr_malloc(num_key_cert_pairs * sizeof(unsigned char *));
-    config->pem_cert_chains =
-        gpr_malloc(num_key_cert_pairs * sizeof(unsigned char *));
-    config->pem_private_keys_sizes =
-        gpr_malloc(num_key_cert_pairs * sizeof(size_t));
-    config->pem_cert_chains_sizes =
-        gpr_malloc(num_key_cert_pairs * sizeof(size_t));
+  if (pem_private_key != NULL) {
+    config->pem_private_key = gpr_malloc(pem_private_key_size);
+    memcpy(config->pem_private_key, pem_private_key, pem_private_key_size);
+    config->pem_private_key_size = pem_private_key_size;
   }
-  config->num_key_cert_pairs = num_key_cert_pairs;
-  for (i = 0; i < num_key_cert_pairs; i++) {
-    GPR_ASSERT(pem_key_cert_pairs[i].private_key != NULL);
-    GPR_ASSERT(pem_key_cert_pairs[i].cert_chain != NULL);
-    ssl_copy_key_material(pem_key_cert_pairs[i].private_key,
-                          &config->pem_private_keys[i],
-                          &config->pem_private_keys_sizes[i]);
-    ssl_copy_key_material(pem_key_cert_pairs[i].cert_chain,
-                          &config->pem_cert_chains[i],
-                          &config->pem_cert_chains_sizes[i]);
+  if (pem_cert_chain != NULL) {
+    config->pem_cert_chain = gpr_malloc(pem_cert_chain_size);
+    memcpy(config->pem_cert_chain, pem_cert_chain, pem_cert_chain_size);
+    config->pem_cert_chain_size = pem_cert_chain_size;
   }
 }
 
 grpc_credentials *grpc_ssl_credentials_create(
-    const char *pem_root_certs, grpc_ssl_pem_key_cert_pair *pem_key_cert_pair) {
+    const unsigned char *pem_root_certs, size_t pem_root_certs_size,
+    const unsigned char *pem_private_key, size_t pem_private_key_size,
+    const unsigned char *pem_cert_chain, size_t pem_cert_chain_size) {
   grpc_ssl_credentials *c = gpr_malloc(sizeof(grpc_ssl_credentials));
   memset(c, 0, sizeof(grpc_ssl_credentials));
   c->base.type = GRPC_CREDENTIALS_TYPE_SSL;
   c->base.vtable = &ssl_vtable;
   gpr_ref_init(&c->base.refcount, 1);
-  ssl_build_config(pem_root_certs, pem_key_cert_pair, &c->config);
+  ssl_build_config(pem_root_certs, pem_root_certs_size, pem_private_key,
+                   pem_private_key_size, pem_cert_chain, pem_cert_chain_size,
+                   &c->config);
   return &c->base;
 }
 
 grpc_server_credentials *grpc_ssl_server_credentials_create(
-    const char *pem_root_certs, grpc_ssl_pem_key_cert_pair *pem_key_cert_pairs,
-    size_t num_key_cert_pairs) {
+    const unsigned char *pem_root_certs, size_t pem_root_certs_size,
+    const unsigned char *pem_private_key, size_t pem_private_key_size,
+    const unsigned char *pem_cert_chain, size_t pem_cert_chain_size) {
   grpc_ssl_server_credentials *c =
       gpr_malloc(sizeof(grpc_ssl_server_credentials));
   memset(c, 0, sizeof(grpc_ssl_server_credentials));
   c->base.type = GRPC_CREDENTIALS_TYPE_SSL;
   c->base.vtable = &ssl_server_vtable;
-  ssl_build_server_config(pem_root_certs, pem_key_cert_pairs,
-                          num_key_cert_pairs, &c->config);
+  ssl_build_config(pem_root_certs, pem_root_certs_size, pem_private_key,
+                   pem_private_key_size, pem_cert_chain, pem_cert_chain_size,
+                   &c->config);
   return &c->base;
 }
 
@@ -338,7 +289,7 @@ grpc_oauth2_token_fetcher_credentials_parse_server_response(
   char *null_terminated_body = NULL;
   char *new_access_token = NULL;
   grpc_credentials_status status = GRPC_CREDENTIALS_OK;
-  grpc_json *json = NULL;
+  cJSON *json = NULL;
 
   if (response->body_length > 0) {
     null_terminated_body = gpr_malloc(response->body_length + 1);
@@ -353,48 +304,46 @@ grpc_oauth2_token_fetcher_credentials_parse_server_response(
     status = GRPC_CREDENTIALS_ERROR;
     goto end;
   } else {
-    grpc_json *access_token = NULL;
-    grpc_json *token_type = NULL;
-    grpc_json *expires_in = NULL;
-    grpc_json *ptr;
-    json = grpc_json_parse_string(null_terminated_body);
+    cJSON *access_token = NULL;
+    cJSON *token_type = NULL;
+    cJSON *expires_in = NULL;
+    size_t new_access_token_size = 0;
+    json = cJSON_Parse(null_terminated_body);
     if (json == NULL) {
       gpr_log(GPR_ERROR, "Could not parse JSON from %s", null_terminated_body);
       status = GRPC_CREDENTIALS_ERROR;
       goto end;
     }
-    if (json->type != GRPC_JSON_OBJECT) {
+    if (json->type != cJSON_Object) {
       gpr_log(GPR_ERROR, "Response should be a JSON object");
       status = GRPC_CREDENTIALS_ERROR;
       goto end;
     }
-    for (ptr = json->child; ptr; ptr = ptr->next) {
-      if (strcmp(ptr->key, "access_token") == 0) {
-        access_token = ptr;
-      } else if (strcmp(ptr->key, "token_type") == 0) {
-        token_type = ptr;
-      } else if (strcmp(ptr->key, "expires_in") == 0) {
-        expires_in = ptr;
-      }
-    }
-    if (access_token == NULL || access_token->type != GRPC_JSON_STRING) {
+    access_token = cJSON_GetObjectItem(json, "access_token");
+    if (access_token == NULL || access_token->type != cJSON_String) {
       gpr_log(GPR_ERROR, "Missing or invalid access_token in JSON.");
       status = GRPC_CREDENTIALS_ERROR;
       goto end;
     }
-    if (token_type == NULL || token_type->type != GRPC_JSON_STRING) {
+    token_type = cJSON_GetObjectItem(json, "token_type");
+    if (token_type == NULL || token_type->type != cJSON_String) {
       gpr_log(GPR_ERROR, "Missing or invalid token_type in JSON.");
       status = GRPC_CREDENTIALS_ERROR;
       goto end;
     }
-    if (expires_in == NULL || expires_in->type != GRPC_JSON_NUMBER) {
+    expires_in = cJSON_GetObjectItem(json, "expires_in");
+    if (expires_in == NULL || expires_in->type != cJSON_Number) {
       gpr_log(GPR_ERROR, "Missing or invalid expires_in in JSON.");
       status = GRPC_CREDENTIALS_ERROR;
       goto end;
     }
-    gpr_asprintf(&new_access_token, "%s %s", token_type->value,
-                 access_token->value);
-    token_lifetime->tv_sec = strtol(expires_in->value, NULL, 10);
+    new_access_token_size = strlen(token_type->valuestring) + 1 +
+                            strlen(access_token->valuestring) + 1;
+    new_access_token = gpr_malloc(new_access_token_size);
+    /* C89 does not have snprintf :(. */
+    sprintf(new_access_token, "%s %s", token_type->valuestring,
+            access_token->valuestring);
+    token_lifetime->tv_sec = expires_in->valueint;
     token_lifetime->tv_nsec = 0;
     if (*token_elem != NULL) grpc_mdelem_unref(*token_elem);
     *token_elem = grpc_mdelem_from_strings(ctx, GRPC_AUTHORIZATION_METADATA_KEY,
@@ -409,7 +358,7 @@ end:
   }
   if (null_terminated_body != NULL) gpr_free(null_terminated_body);
   if (new_access_token != NULL) gpr_free(new_access_token);
-  if (json != NULL) grpc_json_destroy(json);
+  if (json != NULL) cJSON_Delete(json);
   return status;
 }
 
@@ -543,7 +492,9 @@ static void service_account_fetch_oauth2(
     response_cb(metadata_req, &response);
     return;
   }
-  gpr_asprintf(&body, "%s%s", GRPC_SERVICE_ACCOUNT_POST_BODY_PREFIX, jwt);
+  body = gpr_malloc(strlen(GRPC_SERVICE_ACCOUNT_POST_BODY_PREFIX) +
+                    strlen(jwt) + 1);
+  sprintf(body, "%s%s", GRPC_SERVICE_ACCOUNT_POST_BODY_PREFIX, jwt);
   memset(&request, 0, sizeof(grpc_httpcli_request));
   request.host = GRPC_SERVICE_ACCOUNT_HOST;
   request.path = GRPC_SERVICE_ACCOUNT_TOKEN_PATH;
@@ -905,9 +856,7 @@ static void iam_destroy(grpc_credentials *creds) {
   gpr_free(c);
 }
 
-static int iam_has_request_metadata(const grpc_credentials *creds) {
-  return 1;
-}
+static int iam_has_request_metadata(const grpc_credentials *creds) { return 1; }
 
 static int iam_has_request_metadata_only(const grpc_credentials *creds) {
   return 1;

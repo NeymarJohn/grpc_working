@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
   grpc_completion_queue *cq = NULL;
   int bytes_written = 0;
   int bytes_read = 0;
-  unsigned i = 0;
+  int i = 0;
   int waiting_finishes;
   gpr_slice read_slice;
 
@@ -78,11 +78,12 @@ int main(int argc, char **argv) {
 
   GPR_ASSERT(argc == 2);
   channel = grpc_channel_create(argv[1], NULL);
-  call = grpc_channel_create_call(channel, "/foo", "localhost",
-                                  gpr_time_add(gpr_time_from_seconds(5),
-                                               gpr_now()));
-  GPR_ASSERT(grpc_call_invoke(call, cq, (void *)1, (void *)1, 0) ==
-             GRPC_CALL_OK);
+  call = grpc_channel_create_call(channel, "/foo", "localhost", gpr_inf_future);
+  GPR_ASSERT(grpc_call_start_invoke(call, cq, (void *)1, (void *)1, (void *)1,
+                                    0) == GRPC_CALL_OK);
+  ev = grpc_completion_queue_next(cq, gpr_inf_future);
+  GPR_ASSERT(ev->data.invoke_accepted == GRPC_OP_OK);
+  grpc_event_finish(ev);
 
   start_write_next_slice(call, bytes_written, WRITE_SLICE_LENGTH);
   bytes_written += WRITE_SLICE_LENGTH;

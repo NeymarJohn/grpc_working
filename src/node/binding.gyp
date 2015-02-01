@@ -1,13 +1,8 @@
 {
-  "variables" : {
-    'no_install': "<!(echo $GRPC_NO_INSTALL)",
-    'grpc_root': "<!(echo $GRPC_ROOT)",
-    'grpc_lib_subdir': "<!(echo $GRPC_LIB_SUBDIR)"
-    },
   "targets" : [
     {
       'include_dirs': [
-        "<!(nodejs -e \"require('nan')\")"
+        "<!(node -e \"require('nan')\")"
       ],
       'cxxflags': [
         '-Wall',
@@ -16,50 +11,35 @@
         '-g',
         '-zdefs'
         '-Werror',
-        ],
+      ],
       'ldflags': [
-        '-g'
+        '-g',
+        '-L/usr/local/google/home/mlumish/grpc_dev/lib'
       ],
       'link_settings': {
         'libraries': [
+          '-lgrpc',
+          '-levent',
+          '-levent_pthreads',
+          '-levent_core',
           '-lrt',
+          '-lgpr',
           '-lpthread'
         ],
       },
       "target_name": "grpc",
       "sources": [
-        "ext/byte_buffer.cc",
-        "ext/call.cc",
-        "ext/channel.cc",
-        "ext/completion_queue_async_worker.cc",
-        "ext/credentials.cc",
-        "ext/event.cc",
-        "ext/node_grpc.cc",
-        "ext/server.cc",
-        "ext/server_credentials.cc",
-        "ext/tag.cc",
-        "ext/timeval.cc"
-      ],
-      'conditions' : [
-        ['no_install=="yes"', {
-          'include_dirs': [
-            "<(grpc_root)/include"
-          ],
-          'link_settings': {
-            'libraries': [
-              '<(grpc_root)/<(grpc_lib_subdir)/libgrpc.a',
-              '<(grpc_root)/<(grpc_lib_subdir)/libgpr.a'
-            ]
-          }
-        }],
-        ['no_install!="yes"', {
-            'link_settings': {
-              'libraries': [
-                '-lgrpc',
-                '-lgpr'
-              ]
-            }
-          }]
+        "byte_buffer.cc",
+        "call.cc",
+        "channel.cc",
+        "completion_queue_async_worker.cc",
+        "credentials.cc",
+        "event.cc",
+        "node_grpc.cc",
+        "server.cc",
+        "server_credentials.cc",
+        "tag.cc",
+        "timeval.cc"
       ]
     }
   ]

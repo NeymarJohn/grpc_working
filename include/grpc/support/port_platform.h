@@ -68,8 +68,6 @@
 #define GPR_GCC_ATOMIC 1
 #define GPR_LINUX 1
 #define GPR_POSIX_MULTIPOLL_WITH_POLL 1
-#define GPR_POSIX_HAS_SPECIAL_WAKEUP_FD 1
-#define GPR_LINUX_EVENTFD 1
 #define GPR_POSIX_SOCKET 1
 #define GPR_POSIX_SOCKETADDR 1
 #define GPR_POSIX_STRING 1
@@ -134,14 +132,6 @@
 #error Must define exactly one of GPR_CPU_LINUX, GPR_CPU_POSIX, GPR_WIN32
 #endif
 
-#if defined(GPR_POSIX_MULTIPOLL_WITH_POLL) && !defined(GPR_POSIX_SOCKET)
-#error Must define GPR_POSIX_SOCKET to use GPR_POSIX_MULTIPOLL_WITH_POLL
-#endif
-
-#if defined(GPR_POSIX_SOCKET) + defined(GPR_WIN32) != 1
-#error Must define exactly one of GPR_POSIX_POLLSET, GPR_WIN32
-#endif
-
 typedef int16_t gpr_int16;
 typedef int32_t gpr_int32;
 typedef int64_t gpr_int64;
@@ -155,7 +145,7 @@ typedef uintmax_t gpr_uintmax;
 typedef uintptr_t gpr_uintptr;
 
 /* INT64_MAX is unavailable on some platforms. */
-#define GPR_INT64_MAX (gpr_int64)(~(gpr_uint64)0 >> 1)
+#define GPR_INT64_MAX (~(gpr_uint64)0 >> 1)
 
 /* maximum alignment needed for any type on this platform, rounded up to a
    power of two */

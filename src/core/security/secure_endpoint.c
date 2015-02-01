@@ -32,11 +32,11 @@
  */
 
 #include "src/core/security/secure_endpoint.h"
-#include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/slice_buffer.h>
 #include <grpc/support/slice.h>
+#include <grpc/support/string.h>
 #include <grpc/support/sync.h>
 #include "src/core/tsi/transport_security_interface.h"
 
@@ -111,7 +111,7 @@ static void call_read_cb(secure_endpoint *ep, gpr_slice *slices, size_t nslices,
 
 static void on_read(void *user_data, gpr_slice *slices, size_t nslices,
                     grpc_endpoint_cb_status error) {
-  unsigned i;
+  int i = 0;
   gpr_uint8 keep_looping = 0;
   int input_buffer_count = 0;
   tsi_result result = TSI_OK;
@@ -221,7 +221,7 @@ static grpc_endpoint_write_status endpoint_write(grpc_endpoint *secure_ep,
                                                  size_t nslices,
                                                  grpc_endpoint_write_cb cb,
                                                  void *user_data) {
-  unsigned i;
+  int i = 0;
   int output_buffer_count = 0;
   tsi_result result = TSI_OK;
   secure_endpoint *ep = (secure_endpoint *)secure_ep;

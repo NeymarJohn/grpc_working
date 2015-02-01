@@ -35,9 +35,11 @@ var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 var grpc = require('bindings')('grpc.node');
-var Server = require('../src/server');
-var client = require('../src/client');
-var common = require('../src/common');
+var Server = require('../server');
+var client = require('../client');
+var port_picker = require('../port_picker');
+var common = require('../common');
+var _ = require('highland');
 
 var ca_path = path.join(__dirname, 'data/ca.pem');
 
@@ -76,172 +78,106 @@ function errorHandler(stream) {
   };
 }
 
-/**
- * Wait for a cancellation instead of responding
- * @param {Stream} stream
- */
-function cancelHandler(stream) {
-  // do nothing
-}
-
-function metadataHandler(stream, metadata) {
-  stream.end();
-}
-
-/**
- * Serialize a string to a Buffer
- * @param {string} value The string to serialize
- * @return {Buffer} The serialized value
- */
-function stringSerialize(value) {
-  return new Buffer(value);
-}
-
-/**
- * Deserialize a Buffer to a string
- * @param {Buffer} buffer The buffer to deserialize
- * @return {string} The string value of the buffer
- */
-function stringDeserialize(buffer) {
-  return buffer.toString();
-}
-
 describe('echo client', function() {
-  var server;
-  var channel;
-  before(function() {
-    server = new Server(function getMetadata(method, metadata) {
-      return {method: [method]};
-    });
-    var port_num = server.bind('0.0.0.0:0');
-    server.register('echo', echoHandler);
-    server.register('error', errorHandler);
-    server.register('cancellation', cancelHandler);
-    server.register('metadata', metadataHandler);
-    server.start();
-
-    channel = new grpc.Channel('localhost:' + port_num);
-  });
-  after(function() {
-    server.shutdown();
-  });
   it('should receive echo responses', function(done) {
-    var messages = ['echo1', 'echo2', 'echo3', 'echo4'];
-    var stream = client.makeRequest(
-        channel,
-        'echo',
-        stringSerialize,
-        stringDeserialize);
-    for (var i = 0; i < messages.length; i++) {
-      stream.write(messages[i]);
-    }
-    stream.end();
-    var index = 0;
-    stream.on('data', function(chunk) {
-      assert.equal(messages[index], chunk);
-      index += 1;
+    port_picker.nextAvailablePort(function(port) {
+      var server = new Server();
+      server.bind(port);
+      server.register('echo', echoHandler);
+      server.start();
+
+      var messages = ['echo1', 'echo2', 'echo3', 'echo4'];
+      var channel = new grpc.Channel(port);
+      var stream = client.makeRequest(
+          channel,
+          'echo');
+      _(messages).map(function(val) {
+        return new Buffer(val);
+      }).pipe(stream);
+      var index = 0;
+      stream.on('data', function(chunk) {
+        assert.equal(messages[index], chunk.toString());
+        index += 1;
+      });
+      stream.on('end', function() {
+        server.shutdown();
+        done();
+      });
     });
-    stream.on('status', function(status) {
-      assert.equal(status.code, client.status.OK);
-    });
-    stream.on('end', function() {
-      assert.equal(index, messages.length);
-      done();
-    });
-  });
-  it('should recieve metadata set by the server', function(done) {
-    var stream = client.makeRequest(channel, 'metadata');
-    stream.on('metadata', function(metadata) {
-      assert.strictEqual(metadata.method[0].toString(), 'metadata');
-    });
-    stream.on('status', function(status) {
-      assert.equal(status.code, client.status.OK);
-      done();
-    });
-    stream.end();
   });
   it('should get an error status that the server throws', function(done) {
-    var stream = client.makeRequest(channel, 'error');
+    port_picker.nextAvailablePort(function(port) {
+      var server = new Server();
+      server.bind(port);
+      server.register('error', errorHandler);
+      server.start();
 
-    stream.on('data', function() {});
-    stream.write(new Buffer('test'));
-    stream.end();
-    stream.on('status', function(status) {
-      assert.equal(status.code, grpc.status.UNIMPLEMENTED);
-      assert.equal(status.details, 'error details');
-      done();
-    });
-  });
-  it('should be able to cancel a call', function(done) {
-    var stream = client.makeRequest(
-        channel,
-        'cancellation',
-        null,
-        getDeadline(1));
+      var channel = new grpc.Channel(port);
+      var stream = client.makeRequest(
+          channel,
+          'error',
+          null,
+          getDeadline(1));
 
-    stream.cancel();
-    stream.on('status', function(status) {
-      assert.equal(status.code, grpc.status.CANCELLED);
-      done();
+      stream.on('data', function() {});
+      stream.write(new Buffer('test'));
+      stream.end();
+      stream.on('status', function(status) {
+        assert.equal(status.code, grpc.status.UNIMPLEMENTED);
+        assert.equal(status.details, 'error details');
+        server.shutdown();
+        done();
+      });
+
     });
   });
 });
 /* TODO(mlumish): explore options for reducing duplication between this test
  * and the insecure echo client test */
 describe('secure echo client', function() {
-  var server;
-  var channel;
-  before(function(done) {
-    fs.readFile(ca_path, function(err, ca_data) {
-      assert.ifError(err);
-      fs.readFile(key_path, function(err, key_data) {
+  it('should recieve echo responses', function(done) {
+    port_picker.nextAvailablePort(function(port) {
+      fs.readFile(ca_path, function(err, ca_data) {
         assert.ifError(err);
-        fs.readFile(pem_path, function(err, pem_data) {
+        fs.readFile(key_path, function(err, key_data) {
           assert.ifError(err);
-          var creds = grpc.Credentials.createSsl(ca_data);
-          var server_creds = grpc.ServerCredentials.createSsl(null,
-                                                              key_data,
-                                                              pem_data);
+          fs.readFile(pem_path, function(err, pem_data) {
+            assert.ifError(err);
+            var creds = grpc.Credentials.createSsl(ca_data);
+            var server_creds = grpc.ServerCredentials.createSsl(null,
+                                                                key_data,
+                                                                pem_data);
 
-          server = new Server(null, {'credentials' : server_creds});
-          var port_num = server.bind('0.0.0.0:0', true);
-          server.register('echo', echoHandler);
-          server.start();
+            var server = new Server({'credentials' : server_creds});
+            server.bind(port, true);
+            server.register('echo', echoHandler);
+            server.start();
 
-          channel = new grpc.Channel('localhost:' + port_num, {
-            'grpc.ssl_target_name_override' : 'foo.test.google.com',
-            'credentials' : creds
+            var messages = ['echo1', 'echo2', 'echo3', 'echo4'];
+            var channel = new grpc.Channel(port, {
+              'grpc.ssl_target_name_override' : 'foo.test.google.com',
+              'credentials' : creds
+            });
+            var stream = client.makeRequest(
+                channel,
+                'echo');
+
+            _(messages).map(function(val) {
+              return new Buffer(val);
+            }).pipe(stream);
+            var index = 0;
+            stream.on('data', function(chunk) {
+              assert.equal(messages[index], chunk.toString());
+              index += 1;
+            });
+            stream.on('end', function() {
+              server.shutdown();
+              done();
+            });
           });
-          done();
+
         });
       });
-    });
-  });
-  after(function() {
-    server.shutdown();
-  });
-  it('should recieve echo responses', function(done) {
-    var messages = ['echo1', 'echo2', 'echo3', 'echo4'];
-    var stream = client.makeRequest(
-        channel,
-        'echo',
-        stringSerialize,
-        stringDeserialize);
-    for (var i = 0; i < messages.length; i++) {
-      stream.write(messages[i]);
-    }
-    stream.end();
-    var index = 0;
-    stream.on('data', function(chunk) {
-      assert.equal(messages[index], chunk);
-      index += 1;
-    });
-    stream.on('status', function(status) {
-      assert.equal(status.code, client.status.OK);
-    });
-    stream.on('end', function() {
-      assert.equal(index, messages.length);
-      done();
     });
   });
 });

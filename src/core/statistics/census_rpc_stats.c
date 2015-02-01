@@ -39,9 +39,9 @@
 #include "src/core/statistics/census_tracing.h"
 #include "src/core/statistics/window_stats.h"
 #include "src/core/support/murmur_hash.h"
-#include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
+#include <grpc/support/string.h>
 #include <grpc/support/sync.h>
 
 #define NUM_INTERVALS 3
@@ -85,9 +85,8 @@ static void delete_key(void* key) { gpr_free(key); }
 
 static const census_ht_option ht_opt = {
     CENSUS_HT_POINTER /* key type */, 1999 /* n_of_buckets */,
-    simple_hash /* hash function */, cmp_str_keys /* key comparator */,
-    delete_stats /* data deleter */, delete_key /* key deleter */
-};
+    simple_hash /* hash function */,  cmp_str_keys /* key comparator */,
+    delete_stats /* data deleter */,  delete_key /* key deleter */};
 
 static void init_rpc_stats(void* stats) {
   memset(stats, 0, sizeof(census_rpc_stats));
@@ -184,7 +183,7 @@ static void get_stats(census_ht* store, census_aggregated_rpc_stats* data) {
   gpr_mu_lock(&g_mu);
   if (store != NULL) {
     size_t n;
-    unsigned i, j;
+    int i, j;
     gpr_timespec now = gpr_now();
     census_ht_kv* kv = census_ht_get_all_elements(store, &n);
     if (kv != NULL) {
