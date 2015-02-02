@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,52 +31,49 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#include "src/core/surface/byte_buffer_queue.h"
+#include <grpc/support/alloc.h>
 
-#ifdef GPR_LINUX_EVENTFD
-
-#include <errno.h>
-#include <sys/eventfd.h>
-#include <unistd.h>
-
-#include "src/core/iomgr/wakeup_fd_posix.h"
-#include <grpc/support/log.h>
-
-static void eventfd_create(grpc_wakeup_fd_info *fd_info) {
-  int efd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-  /* TODO(klempner): Handle failure more gracefully */
-  GPR_ASSERT(efd >= 0);
-  fd_info->read_fd = efd;
-  fd_info->write_fd = -1;
+static void bba_destroy(grpc_bbq_array *array) {
+  gpr_free(array->data);
 }
 
-static void eventfd_consume(grpc_wakeup_fd_info *fd_info) {
-  eventfd_t value;
-  int err;
-  do {
-    err = eventfd_read(fd_info->read_fd, &value);
-  } while (err < 0 && errno == EINTR);
+/* Append an operation to an array, expanding as needed */
+static void bba_push(grpc_bbq_array *a, grpc_byte_buffer *buffer) {
+  if (a->count == a->capacity) {
+    a->capacity *= 2;
+    a->data = gpr_realloc(a->data, sizeof(grpc_byte_buffer*) * a->capacity);
+  }
+  a->data[a->count++] = buffer;
 }
 
-static void eventfd_wakeup(grpc_wakeup_fd_info *fd_info) {
-  int err;
-  do {
-    err = eventfd_write(fd_info->read_fd, 1);
-  } while (err < 0 && errno == EINTR);
+void grpc_bbq_destroy(grpc_byte_buffer_queue *q) {
+  bba_destroy(&q->filling);
+  bba_destroy(&q->draining);
 }
 
-static void eventfd_destroy(grpc_wakeup_fd_info *fd_info) {
-  close(fd_info->read_fd);
+int grpc_bbq_empty(grpc_byte_buffer_queue *q) {
+  return (q->drain_pos == q->draining.count && q->filling.count == 0);
 }
 
-static int eventfd_check_availability(void) {
-  /* TODO(klempner): Actually check if eventfd is available */
-  return 1;
+void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *buffer) {
+  bba_push(&q->filling, buffer);
 }
 
-const grpc_wakeup_fd_vtable grpc_specialized_wakeup_fd_vtable = {
-  eventfd_create, eventfd_consume, eventfd_wakeup, eventfd_destroy,
-  eventfd_check_availability
-};
+grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q) {
+  grpc_bbq_array temp_array;
 
-#endif /* GPR_LINUX_EVENTFD */
+  if (q->drain_pos == q->draining.count) {
+    if (q->filling.count == 0) {
+      return NULL;
+    }
+    q->draining.count = 0;
+    q->drain_pos = 0;
+    /* swap arrays */
+    temp_array = q->filling;
+    q->filling = q->draining;
+    q->draining = temp_array;
+  }
+
+  return q->draining.data[q->drain_pos++];
+}

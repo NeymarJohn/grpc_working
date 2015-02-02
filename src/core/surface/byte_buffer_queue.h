@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,52 +31,29 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
+#define __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
 
-#ifdef GPR_LINUX_EVENTFD
+#include <grpc/byte_buffer.h>
 
-#include <errno.h>
-#include <sys/eventfd.h>
-#include <unistd.h>
+/* TODO(ctiller): inline an element or two into this struct to avoid per-call
+                  allocations */
+typedef struct {
+  grpc_byte_buffer **data;
+  size_t count;
+  size_t capacity;
+} grpc_bbq_array;
 
-#include "src/core/iomgr/wakeup_fd_posix.h"
-#include <grpc/support/log.h>
+/* should be initialized by zeroing memory */
+typedef struct {
+  size_t drain_pos;
+  grpc_bbq_array filling;
+  grpc_bbq_array draining;
+} grpc_byte_buffer_queue;
 
-static void eventfd_create(grpc_wakeup_fd_info *fd_info) {
-  int efd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-  /* TODO(klempner): Handle failure more gracefully */
-  GPR_ASSERT(efd >= 0);
-  fd_info->read_fd = efd;
-  fd_info->write_fd = -1;
-}
+void grpc_bbq_destroy(grpc_byte_buffer_queue *q);
+grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q);
+int grpc_bbq_empty(grpc_byte_buffer_queue *q);
+void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *bb);
 
-static void eventfd_consume(grpc_wakeup_fd_info *fd_info) {
-  eventfd_t value;
-  int err;
-  do {
-    err = eventfd_read(fd_info->read_fd, &value);
-  } while (err < 0 && errno == EINTR);
-}
-
-static void eventfd_wakeup(grpc_wakeup_fd_info *fd_info) {
-  int err;
-  do {
-    err = eventfd_write(fd_info->read_fd, 1);
-  } while (err < 0 && errno == EINTR);
-}
-
-static void eventfd_destroy(grpc_wakeup_fd_info *fd_info) {
-  close(fd_info->read_fd);
-}
-
-static int eventfd_check_availability(void) {
-  /* TODO(klempner): Actually check if eventfd is available */
-  return 1;
-}
-
-const grpc_wakeup_fd_vtable grpc_specialized_wakeup_fd_vtable = {
-  eventfd_create, eventfd_consume, eventfd_wakeup, eventfd_destroy,
-  eventfd_check_availability
-};
-
-#endif /* GPR_LINUX_EVENTFD */
+#endif  /* __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__ */
