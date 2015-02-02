@@ -36,14 +36,13 @@ from _framework.base import interfaces
 
 
 class _ServicedSubscription(
-    collections.namedtuple('_ServicedSubscription', ['kind', 'ingestor']),
+    collections.namedtuple('_ServicedSubscription', ['category', 'ingestor']),
     interfaces.ServicedSubscription):
   """See interfaces.ServicedSubscription for specification."""
 
-_NONE_SUBSCRIPTION = _ServicedSubscription(
-    interfaces.ServicedSubscription.Kind.NONE, None)
+_NONE_SUBSCRIPTION = _ServicedSubscription(interfaces.NONE, None)
 _TERMINATION_ONLY_SUBSCRIPTION = _ServicedSubscription(
-    interfaces.ServicedSubscription.Kind.TERMINATION_ONLY, None)
+    interfaces.TERMINATION_ONLY, None)
 
 
 def none_serviced_subscription():
@@ -73,14 +72,12 @@ def full_serviced_subscription(ingestor):
   """Creates a "full" interfaces.ServicedSubscription object.
 
   Args:
-    ingestor: An interfaces.ServicedIngestor.
+    ingestor: A ServicedIngestor.
 
   Returns:
-    An interfaces.ServicedSubscription object indicating a full
-      subscription.
+    A ServicedSubscription object indicating a full subscription.
   """
-  return _ServicedSubscription(
-      interfaces.ServicedSubscription.Kind.FULL, ingestor)
+  return _ServicedSubscription(interfaces.FULL, ingestor)
 
 
 def wait_for_idle(end):

@@ -71,9 +71,10 @@ class FrontToBackPacket(
       Kind.RECEPTION_FAILURE, or Kind.TRANSMISSION_FAILURE.
     name: The name of an operation. Must be present if kind is Kind.COMMENCEMENT
       or Kind.ENTIRE. Must be None for any other kind.
-    subscription: An interfaces.ServicedSubscription.Kind value describing the
-      interest the front has in packets sent from the back. Must be present if
-      kind is Kind.COMMENCEMENT or Kind.ENTIRE. Must be None for any other kind.
+    subscription: One of interfaces.FULL, interfaces.TERMINATION_ONLY, or
+      interfaces.NONE describing the interest the front has in packets sent from
+      the back. Must be present if kind is Kind.COMMENCEMENT or Kind.ENTIRE.
+      Must be None for any other kind.
     trace_id: A uuid.UUID identifying a set of related operations to which this
       operation belongs. May be None.
     payload: A customer payload object. Must be present if kind is
