@@ -31,36 +31,34 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
-#define __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#include <string.h>
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+#include <grpc/support/alloc.h>
 
-#include "examples/tips/pubsub.pb.h"
+#include "src/core/json/json.h"
 
-namespace grpc {
-namespace examples {
-namespace tips {
+grpc_json *grpc_json_create(grpc_json_type type) {
+  grpc_json *json = gpr_malloc(sizeof(grpc_json));
+  memset(json, 0, sizeof(grpc_json));
+  json->type = type;
 
-class Subscriber {
- public:
-  Subscriber(std::shared_ptr<grpc::ChannelInterface> channel);
-  void Shutdown();
+  return json;
+}
 
-  Status CreateSubscription(const grpc::string& topic,
-                            const grpc::string& name);
+void grpc_json_destroy(grpc_json *json) {
+  while (json->child) {
+    grpc_json_destroy(json->child);
+  }
 
-  Status GetSubscription(const grpc::string& name, grpc::string* topic);
+  if (json->next) {
+    json->next->prev = json->prev;
+  }
 
-  Status Pull(const grpc::string& name, grpc::string* data);
+  if (json->prev) {
+    json->prev->next = json->next;
+  } else if (json->parent) {
+    json->parent->child = json->next;
+  }
 
- private:
-  std::unique_ptr<tech::pubsub::SubscriberService::Stub> stub_;
-};
-
-}  // namespace tips
-}  // namespace examples
-}  // namespace grpc
-
-#endif  // __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+  gpr_free(json);
+}
