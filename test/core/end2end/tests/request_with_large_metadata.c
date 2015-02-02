@@ -113,7 +113,7 @@ static void test_request_with_large_metadata(grpc_end2end_test_config config) {
   cq_verifier *v_server = cq_verifier_create(f.server_cq);
   const int large_size = 64 * 1024;
 
-  GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call_old(f.server, tag(100)));
+  GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, tag(100)));
 
   meta.key = "key";
   meta.value = gpr_malloc(large_size + 1);

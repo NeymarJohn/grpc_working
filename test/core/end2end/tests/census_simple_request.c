@@ -116,7 +116,7 @@ static void test_body(grpc_end2end_test_fixture f) {
   cq_expect_finish_accepted(v_client, tag(4), GRPC_OP_OK);
   cq_verify(v_client);
 
-  GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call_old(f.server, tag(100)));
+  GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, tag(100)));
   cq_expect_server_rpc_new(v_server, &s, tag(100), "/foo", "test.google.com",
                            deadline, NULL);
   cq_verify(v_server);
@@ -133,6 +133,7 @@ static void test_body(grpc_end2end_test_fixture f) {
   cq_verify(v_client);
 
   cq_expect_finish_accepted(v_server, tag(5), GRPC_OP_OK);
+  cq_verify(v_server);
   cq_expect_finished(v_server, tag(102), NULL);
   cq_verify(v_server);
   grpc_call_destroy(c);
