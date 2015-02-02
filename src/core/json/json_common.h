@@ -31,38 +31,19 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
-#define __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#ifndef __GRPC_SRC_CORE_JSON_JSON_COMMON_H__
+#define __GRPC_SRC_CORE_JSON_JSON_COMMON_H__
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+/* The various json types. */
+typedef enum {
+  GRPC_JSON_OBJECT,
+  GRPC_JSON_ARRAY,
+  GRPC_JSON_STRING,
+  GRPC_JSON_NUMBER,
+  GRPC_JSON_TRUE,
+  GRPC_JSON_FALSE,
+  GRPC_JSON_NULL,
+  GRPC_JSON_TOP_LEVEL
+} grpc_json_type;
 
-#include "examples/tips/pubsub.pb.h"
-
-namespace grpc {
-namespace examples {
-namespace tips {
-
-class Subscriber {
- public:
-  Subscriber(std::shared_ptr<ChannelInterface> channel);
-  void Shutdown();
-
-  Status CreateSubscription(const string& topic,
-                            const string& name);
-
-  Status GetSubscription(const string& name, string* topic);
-
-  Status DeleteSubscription(const string& name);
-
-  Status Pull(const string& name, string* data);
-
- private:
-  std::unique_ptr<tech::pubsub::SubscriberService::Stub> stub_;
-};
-
-}  // namespace tips
-}  // namespace examples
-}  // namespace grpc
-
-#endif  // __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#endif /* __GRPC_SRC_CORE_JSON_JSON_COMMON_H__ */

@@ -41,7 +41,7 @@
 #include <grpc++/status.h>
 #include <gtest/gtest.h>
 
-#include "examples/tips/publisher.h"
+#include "examples/tips/client.h"
 #include "test/core/util/port.h"
 #include "test/core/util/test_config.h"
 
@@ -52,9 +52,8 @@ namespace testing {
 namespace {
 
 const char kTopic[] = "test topic";
-const char kMessageData[] = "test message data";
 
-class PublisherServiceImpl : public tech::pubsub::PublisherService::Service {
+class PublishServiceImpl : public tech::pubsub::PublisherService::Service {
  public:
   Status CreateTopic(::grpc::ServerContext* context,
                      const ::tech::pubsub::Topic* request,
@@ -62,71 +61,34 @@ class PublisherServiceImpl : public tech::pubsub::PublisherService::Service {
     EXPECT_EQ(request->name(), kTopic);
     return Status::OK;
   }
-
-  Status Publish(ServerContext* context,
-                 const ::tech::pubsub::PublishRequest* request,
-                 ::proto2::Empty* response) override {
-    EXPECT_EQ(request->message().data(), kMessageData);
-    return Status::OK;
-  }
-
-  Status GetTopic(ServerContext* context,
-                  const ::tech::pubsub::GetTopicRequest* request,
-                  ::tech::pubsub::Topic* response) override {
-    EXPECT_EQ(request->topic(), kTopic);
-    return Status::OK;
-  }
-
- Status ListTopics(ServerContext* context,
-                   const ::tech::pubsub::ListTopicsRequest* request,
-                   ::tech::pubsub::ListTopicsResponse* response) override {
-    return Status::OK;
- }
-
- Status DeleteTopic(ServerContext* context,
-                    const ::tech::pubsub::DeleteTopicRequest* request,
-                    ::proto2::Empty* response) override {
-    EXPECT_EQ(request->topic(), kTopic);
-    return Status::OK;
- }
-
 };
 
-class PublisherTest : public ::testing::Test {
+class End2endTest : public ::testing::Test {
  protected:
-  // Setup a server and a client for PublisherService.
   void SetUp() override {
     int port = grpc_pick_unused_port_or_die();
     server_address_ << "localhost:" << port;
+    // Setup server
     ServerBuilder builder;
     builder.AddPort(server_address_.str());
     builder.RegisterService(service_.service());
     server_ = builder.BuildAndStart();
 
     channel_ = CreateChannel(server_address_.str(), ChannelArguments());
-
-    publisher_.reset(new grpc::examples::tips::Publisher(channel_));
   }
 
-  void TearDown() override {
-    server_->Shutdown();
-    publisher_->Shutdown();
-  }
+  void TearDown() override { server_->Shutdown(); }
 
-  std::ostringstream server_address_;
   std::unique_ptr<Server> server_;
-  PublisherServiceImpl service_;
+  std::ostringstream server_address_;
+  PublishServiceImpl service_;
 
   std::shared_ptr<ChannelInterface> channel_;
-
-  std::unique_ptr<grpc::examples::tips::Publisher> publisher_;
 };
 
-TEST_F(PublisherTest, TestPublisher) {
-  EXPECT_TRUE(publisher_->CreateTopic(kTopic).IsOk());
-  EXPECT_TRUE(publisher_->Publish(kTopic, kMessageData).IsOk());
-  EXPECT_TRUE(publisher_->GetTopic(kTopic).IsOk());
-  EXPECT_TRUE(publisher_->ListTopics().IsOk());
+TEST_F(End2endTest, CreateTopic) {
+  grpc::examples::tips::Client client(channel_);
+  client.CreateTopic(kTopic);
 }
 
 }  // namespace

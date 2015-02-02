@@ -46,27 +46,15 @@
 #include <grpc++/credentials.h>
 #include <grpc++/status.h>
 
-#include "examples/tips/publisher.h"
-#include "examples/tips/subscriber.h"
+#include "examples/tips/client.h"
 #include "test/cpp/util/create_test_channel.h"
 
 DEFINE_int32(server_port, 443, "Server port.");
 DEFINE_string(server_host,
               "pubsub-staging.googleapis.com", "Server host to connect to");
-DEFINE_string(project_id, "", "GCE project id such as stoked-keyword-656");
 DEFINE_string(service_account_key_file, "",
               "Path to service account json key file.");
-DEFINE_string(oauth_scope,
-              "https://www.googleapis.com/auth/cloud-platform",
-              "Scope for OAuth tokens.");
-
-namespace {
-
-const char kTopic[] = "testtopics";
-const char kSubscriptionName[] = "testsubscription";
-const char kMessageData[] = "Test Data";
-
-}  // namespace
+DEFINE_string(oauth_scope, "", "Scope for OAuth tokens.");
 
 grpc::string GetServiceAccountJsonKey() {
   static grpc::string json_key;
@@ -84,7 +72,10 @@ int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
   gpr_log(GPR_INFO, "Start TIPS client");
 
-  std::ostringstream ss;
+  const int host_port_buf_size = 1024;
+  char host_port[host_port_buf_size];
+  snprintf(host_port, host_port_buf_size, "%s:%d", FLAGS_server_host.c_str(),
+           FLAGS_server_port);
 
   std::unique_ptr<grpc::Credentials> creds;
   if (FLAGS_service_account_key_file != "") {
@@ -95,71 +86,28 @@ int main(int argc, char** argv) {
     creds = grpc::CredentialsFactory::ComputeEngineCredentials();
   }
 
-  ss << FLAGS_server_host << ":" << FLAGS_server_port;
   std::shared_ptr<grpc::ChannelInterface> channel(
       grpc::CreateTestChannel(
-          ss.str(),
+          host_port,
           FLAGS_server_host,
           true,                // enable SSL
           true,                // use prod roots
           creds));
 
-  grpc::examples::tips::Publisher publisher(channel);
-  grpc::examples::tips::Subscriber subscriber(channel);
+  grpc::examples::tips::Client client(channel);
 
-  GPR_ASSERT(FLAGS_project_id != "");
-  ss.str("");
-  ss << "/topics/" << FLAGS_project_id << "/" << kTopic;
-  grpc::string topic = ss.str();
-
-  ss.str("");
-  ss << FLAGS_project_id << "/"  << kSubscriptionName;
-  grpc::string subscription_name = ss.str();
-
-  // Clean up test topic and subcription.
-  grpc::string subscription_topic;
-  if (subscriber.GetSubscription(
-      subscription_name, &subscription_topic).IsOk()) {
-    subscriber.DeleteSubscription(subscription_name);
-  }
-  if (publisher.GetTopic(topic).IsOk()) publisher.DeleteTopic(topic);
-
-  grpc::Status s = publisher.CreateTopic(topic);
-  gpr_log(GPR_INFO, "Create topic returns code %d, %s",
-          s.code(), s.details().c_str());
+  grpc::Status s = client.CreateTopic("/topics/stoked-keyword-656/testtopics");
+  gpr_log(GPR_INFO, "return code %d, %s", s.code(), s.details().c_str());
   GPR_ASSERT(s.IsOk());
 
-  s = publisher.GetTopic(topic);
-  gpr_log(GPR_INFO, "Get topic returns code %d, %s",
-          s.code(), s.details().c_str());
+  s = client.GetTopic("/topics/stoked-keyword-656/testtopics");
+  gpr_log(GPR_INFO, "return code %d, %s", s.code(), s.details().c_str());
   GPR_ASSERT(s.IsOk());
 
-  s = subscriber.CreateSubscription(topic, subscription_name);
-  gpr_log(GPR_INFO, "create subscrption returns code %d, %s",
-          s.code(), s.details().c_str());
+  s = client.DeleteTopic("/topics/stoked-keyword-656/testtopics");
+  gpr_log(GPR_INFO, "return code %d, %s", s.code(), s.details().c_str());
   GPR_ASSERT(s.IsOk());
 
-  s = publisher.Publish(topic, kMessageData);
-  gpr_log(GPR_INFO, "Publish %s returns code %d, %s",
-          kMessageData, s.code(), s.details().c_str());
-  GPR_ASSERT(s.IsOk());
-
-  grpc::string data;
-  s = subscriber.Pull(subscription_name, &data);
-  gpr_log(GPR_INFO, "Pull %s", data.c_str());
-
-  s =  subscriber.DeleteSubscription(subscription_name);
-  gpr_log(GPR_INFO, "Delete subscription returns code %d, %s",
-          s.code(), s.details().c_str());
-  GPR_ASSERT(s.IsOk());
-
-  s = publisher.DeleteTopic(topic);
-  gpr_log(GPR_INFO, "Delete topic returns code %d, %s",
-          s.code(), s.details().c_str());
-  GPR_ASSERT(s.IsOk());
-
-  subscriber.Shutdown();
-  publisher.Shutdown();
   channel.reset();
   grpc_shutdown();
   return 0;
