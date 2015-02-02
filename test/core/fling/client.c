@@ -65,6 +65,7 @@ static void step_ping_pong_request(void) {
   grpc_event_finish(grpc_completion_queue_next(cq, gpr_inf_future));
   grpc_event_finish(grpc_completion_queue_next(cq, gpr_inf_future));
   grpc_event_finish(grpc_completion_queue_next(cq, gpr_inf_future));
+  grpc_event_finish(grpc_completion_queue_next(cq, gpr_inf_future));
   grpc_call_destroy(call);
   call = NULL;
 }
@@ -103,7 +104,7 @@ static const scenario scenarios[] = {
 int main(int argc, char **argv) {
   gpr_slice slice = gpr_slice_from_copied_string("x");
   double start, stop;
-  int i;
+  unsigned i;
 
   char *fake_argv[1];
 
@@ -113,7 +114,7 @@ int main(int argc, char **argv) {
   char *target = "localhost:443";
   gpr_cmdline *cl;
   char *scenario_name = "ping-pong-request";
-  scenario sc = {NULL};
+  scenario sc = {NULL, NULL, NULL};
 
   GPR_ASSERT(argc >= 1);
   fake_argv[0] = argv[0];
