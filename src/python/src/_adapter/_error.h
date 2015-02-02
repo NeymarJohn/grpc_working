@@ -31,23 +31,12 @@
  *
  */
 
-/*
- * This is a dummy file to provide an invalid specialized_wakeup_fd_vtable on
- * systems without anything better than pipe.
- */
+#ifndef _ADAPTER__ERROR_H_
+#define _ADAPTER__ERROR_H_
 
-#include <grpc/support/port_platform.h>
+#include <Python.h>
+#include <grpc/grpc.h>
 
-#ifndef GPR_POSIX_HAS_SPECIAL_WAKEUP_FD
+const PyObject *pygrpc_translate_call_error(grpc_call_error call_error);
 
-#include "src/core/iomgr/wakeup_fd.h"
-
-static int check_availability_invalid(void) {
-  return 0;
-}
-
-const grpc_wakeup_fd_vtable specialized_wakeup_fd_vtable = {
-  NULL, NULL, NULL, NULL, check_availability_invalid
-};
-
-#endif /* GPR_POSIX_HAS_SPECIAL_WAKEUP */
+#endif /* _ADAPTER__ERROR_H_ */

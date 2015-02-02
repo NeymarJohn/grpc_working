@@ -31,23 +31,53 @@
  *
  */
 
-/*
- * This is a dummy file to provide an invalid specialized_wakeup_fd_vtable on
- * systems without anything better than pipe.
- */
+var _ = require('underscore');
+var grpc = require('..');
+var examples = grpc.load(__dirname + '/stock.proto').examples;
 
-#include <grpc/support/port_platform.h>
+var StockServer = grpc.makeServerConstructor([examples.Stock.service]);
 
-#ifndef GPR_POSIX_HAS_SPECIAL_WAKEUP_FD
-
-#include "src/core/iomgr/wakeup_fd.h"
-
-static int check_availability_invalid(void) {
-  return 0;
+function getLastTradePrice(call, callback) {
+  callback(null, {price: 88});
 }
 
-const grpc_wakeup_fd_vtable specialized_wakeup_fd_vtable = {
-  NULL, NULL, NULL, NULL, check_availability_invalid
-};
+function watchFutureTrades(call) {
+  for (var i = 0; i < call.request.num_trades_to_watch; i++) {
+    call.write({price: 88.00 + i * 10.00});
+  }
+  call.end();
+}
 
-#endif /* GPR_POSIX_HAS_SPECIAL_WAKEUP */
+function getHighestTradePrice(call, callback) {
+  var trades = [];
+  call.on('data', function(data) {
+    trades.push({symbol: data.symbol, price: _.random(0, 100)});
+  });
+  call.on('end', function() {
+    if(_.isEmpty(trades)) {
+      callback(null, {});
+    } else {
+      callback(null, _.max(trades, function(trade){return trade.price;}));
+    }
+  });
+}
+
+function getLastTradePriceMultiple(call) {
+  call.on('data', function(data) {
+    call.write({price: 88});
+  });
+  call.on('end', function() {
+    call.end();
+  });
+}
+
+var stockServer = new StockServer({
+  'examples.Stock' : {
+    getLastTradePrice: getLastTradePrice,
+    getLastTradePriceMultiple: getLastTradePriceMultiple,
+    watchFutureTrades: watchFutureTrades,
+    getHighestTradePrice: getHighestTradePrice
+  }
+});
+
+exports.module = stockServer;

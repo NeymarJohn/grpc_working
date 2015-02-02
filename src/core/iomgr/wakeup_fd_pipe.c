@@ -31,10 +31,7 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
-
-#ifdef GPR_POSIX_WAKEUP_FD
-
+/* TODO(klempner): Allow this code to be disabled. */
 #include "src/core/iomgr/wakeup_fd_posix.h"
 
 #include <errno.h>
@@ -90,8 +87,7 @@ static int pipe_check_availability(void) {
   return 1;
 }
 
-const grpc_wakeup_fd_vtable grpc_pipe_wakeup_fd_vtable = {
+const grpc_wakeup_fd_vtable pipe_wakeup_fd_vtable = {
   pipe_create, pipe_consume, pipe_wakeup, pipe_destroy, pipe_check_availability
 };
 
-#endif  /* GPR_POSIX_WAKUP_FD */

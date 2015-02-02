@@ -31,23 +31,47 @@
  *
  */
 
-/*
- * This is a dummy file to provide an invalid specialized_wakeup_fd_vtable on
- * systems without anything better than pipe.
- */
+#include <Python.h>
+#include <grpc/grpc.h>
 
-#include <grpc/support/port_platform.h>
+#include "_adapter/_completion_queue.h"
+#include "_adapter/_channel.h"
+#include "_adapter/_call.h"
+#include "_adapter/_server.h"
 
-#ifndef GPR_POSIX_HAS_SPECIAL_WAKEUP_FD
-
-#include "src/core/iomgr/wakeup_fd.h"
-
-static int check_availability_invalid(void) {
-  return 0;
+static PyObject *init(PyObject *self, PyObject *args) {
+  grpc_init();
+  Py_RETURN_NONE;
 }
 
-const grpc_wakeup_fd_vtable specialized_wakeup_fd_vtable = {
-  NULL, NULL, NULL, NULL, check_availability_invalid
+static PyObject *shutdown(PyObject *self, PyObject *args) {
+  grpc_shutdown();
+  Py_RETURN_NONE;
+}
+
+static PyMethodDef _c_methods[] = {
+    {"init", init, METH_VARARGS, "Initialize the module's static state."},
+    {"shut_down", shutdown, METH_VARARGS,
+     "Shut down the module's static state."},
+    {NULL},
 };
 
-#endif /* GPR_POSIX_HAS_SPECIAL_WAKEUP */
+PyMODINIT_FUNC init_c(void) {
+  PyObject *module;
+
+  module = Py_InitModule3("_c", _c_methods,
+                          "Wrappings of C structures and functions.");
+
+  if (pygrpc_add_completion_queue(module) == -1) {
+    return;
+  }
+  if (pygrpc_add_channel(module) == -1) {
+    return;
+  }
+  if (pygrpc_add_call(module) == -1) {
+    return;
+  }
+  if (pygrpc_add_server(module) == -1) {
+    return;
+  }
+}

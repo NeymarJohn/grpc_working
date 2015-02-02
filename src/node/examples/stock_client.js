@@ -31,23 +31,13 @@
  *
  */
 
-/*
- * This is a dummy file to provide an invalid specialized_wakeup_fd_vtable on
- * systems without anything better than pipe.
+var grpc = require('..');
+var examples = grpc.load(__dirname + '/stock.proto').examples;
+
+/**
+ * This exports a client constructor for the Stock service. The usage looks like
+ *
+ * var StockClient = require('stock_client.js');
+ * var stockClient = new StockClient(server_address);
  */
-
-#include <grpc/support/port_platform.h>
-
-#ifndef GPR_POSIX_HAS_SPECIAL_WAKEUP_FD
-
-#include "src/core/iomgr/wakeup_fd.h"
-
-static int check_availability_invalid(void) {
-  return 0;
-}
-
-const grpc_wakeup_fd_vtable specialized_wakeup_fd_vtable = {
-  NULL, NULL, NULL, NULL, check_availability_invalid
-};
-
-#endif /* GPR_POSIX_HAS_SPECIAL_WAKEUP */
+module.exports = examples.Stock;
