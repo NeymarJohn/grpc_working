@@ -41,13 +41,10 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     optional :response_type, :enum, 1, "grpc.testing.PayloadType"
     optional :response_size, :int32, 2
     optional :payload, :message, 3, "grpc.testing.Payload"
-    optional :fill_username, :bool, 4
-    optional :fill_oauth_scope, :bool, 5
   end
   add_message "grpc.testing.SimpleResponse" do
     optional :payload, :message, 1, "grpc.testing.Payload"
-    optional :username, :string, 2
-    optional :oauth_scope, :string, 3
+    optional :effective_gaia_user_id, :int64, 2
   end
   add_message "grpc.testing.StreamingInputCallRequest" do
     optional :payload, :message, 1, "grpc.testing.Payload"

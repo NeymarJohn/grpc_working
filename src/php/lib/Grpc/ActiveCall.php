@@ -28,9 +28,9 @@ class ActiveCall {
     $this->flags = $flags;
 
     // Invoke the call.
-    $this->call->invoke($this->completion_queue,
-                        CLIENT_METADATA_READ,
-                        FINISHED, 0);
+    $this->call->start_invoke($this->completion_queue,
+                              CLIENT_METADATA_READ,
+                              FINISHED, 0);
     $metadata_event = $this->completion_queue->pluck(CLIENT_METADATA_READ,
                                                      Timeval::inf_future());
     $this->metadata = $metadata_event->data;
@@ -66,7 +66,12 @@ class ActiveCall {
    * @param ByteBuffer $data The data to write
    */
   public function write($data) {
-    $this->call->start_write($data, WRITE_ACCEPTED, $this->flags);
+    if($this->call->start_write($data,
+                                WRITE_ACCEPTED,
+                                $this->flags) != OP_OK) {
+      // TODO(mlumish): more useful error
+      throw new \Exception("Cannot call write after writesDone");
+    }
     $this->completion_queue->pluck(WRITE_ACCEPTED, Timeval::inf_future());
   }
 
