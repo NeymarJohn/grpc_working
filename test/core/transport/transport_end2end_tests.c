@@ -37,10 +37,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "src/core/support/string.h"
 #include "src/core/transport/transport.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
-#include <grpc/support/string.h>
 #include <grpc/support/thd.h>
 #include <grpc/support/useful.h>
 
@@ -63,7 +63,9 @@ static int g_pending_ops;
 typedef struct test_fixture test_fixture;
 
 /* User data passed to the transport and handed to each callback */
-typedef struct test_user_data { test_fixture *fixture; } test_user_data;
+typedef struct test_user_data {
+  test_fixture *fixture;
+} test_user_data;
 
 /* A message we expect to receive (forms a singly linked list with next) */
 typedef struct expected_message {
@@ -129,7 +131,8 @@ static void expect_metadata(test_stream *s, int from_client, const char *key,
 /* Convert some number of seconds into a gpr_timespec that many seconds in the
    future */
 static gpr_timespec deadline_from_seconds(double deadline_seconds) {
-  return gpr_time_add(gpr_now(), gpr_time_from_micros(deadline_seconds * 1e6));
+  return gpr_time_add(gpr_now(),
+                      gpr_time_from_micros((long)(deadline_seconds * 1e6)));
 }
 
 /* Init a test_user_data instance */
@@ -573,7 +576,7 @@ static grpc_transport_setup_result setup_client_transport(
      name   - the name of this test */
 static void begin_test(test_fixture *f, grpc_transport_test_config *config,
                        const char *name) {
-  gpr_timespec timeout = gpr_time_add(gpr_now(), gpr_time_from_micros(100e6));
+  gpr_timespec timeout = gpr_time_add(gpr_now(), gpr_time_from_seconds(100));
 
   gpr_log(GPR_INFO, "BEGIN: %s/%s", name, config->name);
 
@@ -588,10 +591,9 @@ static void begin_test(test_fixture *f, grpc_transport_test_config *config,
   f->client_transport = NULL;
   f->server_transport = NULL;
 
-  GPR_ASSERT(0 ==
-             config->create_transport(setup_client_transport, f,
-                                      setup_server_transport, f,
-                                      g_metadata_context));
+  GPR_ASSERT(0 == config->create_transport(setup_client_transport, f,
+                                           setup_server_transport, f,
+                                           g_metadata_context));
 
   gpr_mu_lock(&f->mu);
   while (!f->client_transport || !f->server_transport) {
@@ -907,9 +909,8 @@ static void test_ping(grpc_transport_test_config *config) {
  * Test driver
  */
 
-static const size_t interesting_message_lengths[] = {
-    1, 100, 10000, 100000, 1000000,
-};
+static const size_t interesting_message_lengths[] = {1,      100,     10000,
+                                                     100000, 1000000, };
 
 void grpc_transport_end2end_tests(grpc_transport_test_config *config) {
   int i;

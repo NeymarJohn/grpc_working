@@ -118,9 +118,9 @@ grpc_credentials *grpc_credentials_contains_type(
 
 /* Exposed for testing only. */
 grpc_credentials_status
-grpc_oauth2_token_fetcher_credentials_parse_server_response(
-    const struct grpc_httpcli_response *response, grpc_mdctx *ctx,
-    grpc_mdelem **token_elem, gpr_timespec *token_lifetime);
+    grpc_oauth2_token_fetcher_credentials_parse_server_response(
+        const struct grpc_httpcli_response *response, grpc_mdctx *ctx,
+        grpc_mdelem **token_elem, gpr_timespec *token_lifetime);
 
 /* Simulates an oauth2 token fetch with the specified value for testing. */
 grpc_credentials *grpc_fake_oauth2_credentials_create(
@@ -137,10 +137,17 @@ struct grpc_server_credentials {
   const char *type;
 };
 
-/* TODO(jboeuf): Have an ssl_server_config that can contain multiple key/cert
-   pairs. */
+typedef struct {
+  unsigned char **pem_private_keys;
+  size_t *pem_private_keys_sizes;
+  unsigned char **pem_cert_chains;
+  size_t *pem_cert_chains_sizes;
+  size_t num_key_cert_pairs;
+  unsigned char *pem_root_certs;
+  size_t pem_root_certs_size;
+} grpc_ssl_server_config;
 
-const grpc_ssl_config *grpc_ssl_server_credentials_get_config(
+const grpc_ssl_server_config *grpc_ssl_server_credentials_get_config(
     const grpc_server_credentials *ssl_creds);
 
 #endif /* __GRPC_INTERNAL_SECURITY_CREDENTIALS_H__ */
