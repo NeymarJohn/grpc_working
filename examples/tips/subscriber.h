@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
-#define __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
+#ifndef __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#define __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
 
 #include <grpc++/channel_interface.h>
 #include <grpc++/status.h>
@@ -43,20 +43,26 @@ namespace grpc {
 namespace examples {
 namespace tips {
 
-class Client {
+class Subscriber {
  public:
-  Client(std::shared_ptr<grpc::ChannelInterface> channel);
-  Status CreateTopic(grpc::string topic);
-  Status GetTopic(grpc::string topic);
-  Status DeleteTopic(grpc::string topic);
-  Status ListTopics();
+  Subscriber(std::shared_ptr<ChannelInterface> channel);
+  void Shutdown();
+
+  Status CreateSubscription(const grpc::string& topic,
+                            const grpc::string& name);
+
+  Status GetSubscription(const grpc::string& name, grpc::string* topic);
+
+  Status DeleteSubscription(const grpc::string& name);
+
+  Status Pull(const grpc::string& name, grpc::string* data);
 
  private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
+  std::unique_ptr<tech::pubsub::SubscriberService::Stub> stub_;
 };
 
 }  // namespace tips
 }  // namespace examples
 }  // namespace grpc
 
-#endif  // __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
+#endif  // __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
