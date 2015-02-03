@@ -31,32 +31,14 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
-#define __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
+#ifndef __GRPC_SUPPORT_THD_WIN32_H__
+#define __GRPC_SUPPORT_THD_WIN32_H__
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+/* Win32 variant of gpr_thd_platform.h */
 
-#include "examples/tips/pubsub.pb.h"
+#include <windows.h>
+#include <grpc/support/atm.h>
 
-namespace grpc {
-namespace examples {
-namespace tips {
+typedef int gpr_thd_id;
 
-class Client {
- public:
-  Client(std::shared_ptr<grpc::ChannelInterface> channel);
-  Status CreateTopic(grpc::string topic);
-  Status GetTopic(grpc::string topic);
-  Status DeleteTopic(grpc::string topic);
-  Status ListTopics();
-
- private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
-};
-
-}  // namespace tips
-}  // namespace examples
-}  // namespace grpc
-
-#endif  // __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
+#endif /* __GRPC_SUPPORT_THD_WIN32_H__ */

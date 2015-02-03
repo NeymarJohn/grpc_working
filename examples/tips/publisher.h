@@ -31,50 +31,37 @@
  *
  */
 
-/* Posix implementation for gpr threads. */
+#ifndef __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_
+#define __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_
 
-#include <grpc/support/port_platform.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/status.h>
 
-#ifdef GPR_WIN32
+#include "examples/tips/pubsub.pb.h"
 
-#include <windows.h>
-#include <string.h>
-#include <grpc/support/alloc.h>
-#include <grpc/support/thd.h>
+namespace grpc {
+namespace examples {
+namespace tips {
 
-struct thd_arg {
-  void (*body)(void *arg); /* body of a thread */
-  void *arg;               /* argument to a thread */
+class Publisher {
+ public:
+  Publisher(std::shared_ptr<ChannelInterface> channel);
+  void Shutdown();
+
+  Status CreateTopic(const grpc::string& topic);
+  Status GetTopic(const grpc::string& topic);
+  Status DeleteTopic(const grpc::string& topic);
+  Status ListTopics(const grpc::string& project_id,
+                    std::vector<grpc::string>* topics);
+
+  Status Publish(const grpc::string& topic, const grpc::string& data);
+
+ private:
+  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
 };
 
-/* Body of every thread started via gpr_thd_new. */
-static DWORD WINAPI thread_body(void *v) {
-  struct thd_arg a = *(struct thd_arg *)v;
-  gpr_free(v);
-  (*a.body)(a.arg);
-  return 0;
-}
+}  // namespace tips
+}  // namespace examples
+}  // namespace grpc
 
-int gpr_thd_new(gpr_thd_id *t, void (*thd_body)(void *arg), void *arg,
-                const gpr_thd_options *options) {
-  HANDLE handle;
-  struct thd_arg *a = gpr_malloc(sizeof(*a));
-  a->body = thd_body;
-  a->arg = arg;
-  *t = 0;
-  handle = CreateThread(NULL, 64 * 1024, thread_body, a, 0, NULL);
-  if (handle == NULL) {
-    gpr_free(a);
-  } else {
-    CloseHandle(handle); /* threads are "detached" */
-  }
-  return handle != NULL;
-}
-
-gpr_thd_options gpr_thd_options_default(void) {
-  gpr_thd_options options;
-  memset(&options, 0, sizeof(options));
-  return options;
-}
-
-#endif /* GPR_WIN32 */
+#endif  // __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_
