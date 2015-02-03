@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python
 """Run tests in parallel."""
 
 import argparse
