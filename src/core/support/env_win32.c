@@ -33,68 +33,28 @@
 
 #include <grpc/support/port_platform.h>
 
-#ifdef GPR_CPU_LINUX
+#ifdef GPR_WIN32
 
-#include "src/core/support/cpu.h"
+#include "src/core/support/env.h"
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#define GRPC_GNU_SOURCE
-#endif
-
-#ifndef __USE_GNU
-#define __USE_GNU
-#define GRPC_USE_GNU
-#endif
-
-#ifndef __USE_MISC
-#define __USE_MISC
-#define GRPC_USE_MISC
-#endif
-
-#include <sched.h>
-
-#ifdef GRPC_GNU_SOURCE
-#undef _GNU_SOURCE
-#undef GRPC_GNU_SOURCE
-#endif
-
-#ifdef GRPC_USE_GNU
-#undef __USE_GNU
-#undef GRPC_USE_GNU
-#endif
-
-#ifdef GRPC_USE_MISC
-#undef __USE_MISC
-#undef GRPC_USE_MISC
-#endif
-
-#include <errno.h>
-#include <unistd.h>
-#include <string.h>
+#include <stdlib.h>
 
 #include <grpc/support/log.h>
 
-unsigned gpr_cpu_num_cores(void) {
-  static int ncpus = 0;
-  /* FIXME: !threadsafe */
-  if (ncpus == 0) {
-    ncpus = sysconf(_SC_NPROCESSORS_ONLN);
-    if (ncpus < 1) {
-      gpr_log(GPR_ERROR, "Cannot determine number of CPUs: assuming 1");
-      ncpus = 1;
-    }
-  }
-  return ncpus;
+char *gpr_getenv(const char *name) {
+  size_t required_size;
+  char *result = NULL;
+
+  getenv_s(&required_size, NULL, 0, name);
+  if (required_size == 0) return NULL;
+  result = gpr_malloc(required_size);
+  getenv_s(&required_size, result, required_size, name);
+  return result;
 }
 
-unsigned gpr_cpu_current_cpu(void) {
-  int cpu = sched_getcpu();
-  if (cpu < 0) {
-    gpr_log(GPR_ERROR, "Error determining current CPU: %s\n", strerror(errno));
-    return 0;
-  }
-  return cpu;
+void gpr_setenv(const char *name, const char *value) {
+  errno_t res = _putenv_s(name, value);
+  GPR_ASSERT(res == 0);
 }
 
-#endif /* GPR_CPU_LINUX */
+#endif /* GPR_WIN32 */

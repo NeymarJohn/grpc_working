@@ -31,29 +31,34 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
-#define __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
+#include <stdio.h>
+#include <string.h>
 
-#include <grpc/byte_buffer.h>
+#include <grpc/support/alloc.h>
+#include <grpc/support/log.h>
 
-/* TODO(ctiller): inline an element or two into this struct to avoid per-call
-                  allocations */
-typedef struct {
-  grpc_byte_buffer **data;
-  size_t count;
-  size_t capacity;
-} grpc_bbq_array;
+#include "src/core/support/env.h"
+#include "src/core/support/string.h"
+#include "test/core/util/test_config.h"
 
-/* should be initialized by zeroing memory */
-typedef struct {
-  size_t drain_pos;
-  grpc_bbq_array filling;
-  grpc_bbq_array draining;
-} grpc_byte_buffer_queue;
+#define LOG_TEST_NAME() gpr_log(GPR_INFO, "%s", __FUNCTION__)
 
-void grpc_bbq_destroy(grpc_byte_buffer_queue *q);
-grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q);
-int grpc_bbq_empty(grpc_byte_buffer_queue *q);
-void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *bb);
+static void test_setenv_getenv(void) {
+  const char *name = "FOO";
+  const char *value = "BAR";
+  char *retrieved_value;
 
-#endif  /* __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__ */
+  LOG_TEST_NAME();
+
+  gpr_setenv(name, value);
+  retrieved_value = gpr_getenv(name);
+  GPR_ASSERT(retrieved_value != NULL);
+  GPR_ASSERT(!strcmp(value, retrieved_value));
+  gpr_free(retrieved_value);
+}
+
+int main(int argc, char **argv) {
+  grpc_test_init(argc, argv);
+  test_setenv_getenv();
+  return 0;
+}

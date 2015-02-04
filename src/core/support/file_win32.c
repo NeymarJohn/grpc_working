@@ -33,68 +33,46 @@
 
 #include <grpc/support/port_platform.h>
 
-#ifdef GPR_CPU_LINUX
+#ifdef GPR_WIN32
 
-#include "src/core/support/cpu.h"
+#include "src/core/support/file.h"
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#define GRPC_GNU_SOURCE
-#endif
-
-#ifndef __USE_GNU
-#define __USE_GNU
-#define GRPC_USE_GNU
-#endif
-
-#ifndef __USE_MISC
-#define __USE_MISC
-#define GRPC_USE_MISC
-#endif
-
-#include <sched.h>
-
-#ifdef GRPC_GNU_SOURCE
-#undef _GNU_SOURCE
-#undef GRPC_GNU_SOURCE
-#endif
-
-#ifdef GRPC_USE_GNU
-#undef __USE_GNU
-#undef GRPC_USE_GNU
-#endif
-
-#ifdef GRPC_USE_MISC
-#undef __USE_MISC
-#undef GRPC_USE_MISC
-#endif
-
-#include <errno.h>
-#include <unistd.h>
+#include <io.h>
+#include <stdio.h>
 #include <string.h>
 
+#include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 
-unsigned gpr_cpu_num_cores(void) {
-  static int ncpus = 0;
-  /* FIXME: !threadsafe */
-  if (ncpus == 0) {
-    ncpus = sysconf(_SC_NPROCESSORS_ONLN);
-    if (ncpus < 1) {
-      gpr_log(GPR_ERROR, "Cannot determine number of CPUs: assuming 1");
-      ncpus = 1;
-    }
+FILE *gpr_tmpfile(const char *prefix, char **tmp_filename) {
+  FILE *result = NULL;
+  char *template;
+
+  if (tmp_filename != NULL) *tmp_filename = NULL;
+
+  gpr_asprintf(&template, "%s_XXXXXX", prefix);
+  GPR_ASSERT(template != NULL);
+
+  /* _mktemp_s can only create a maximum of 26 file names for any combination of
+     base and template values which is kind of sad... We may revisit this
+     function later to have something better... */
+  if (_mktemp_s(template, strlen(template) + 1) != 0) {
+    gpr_log(LOG_ERROR, "Could not create tmp file.");
+    goto end;
   }
-  return ncpus;
+  if (fopen_s(&result, template, "wb+") != 0) {
+    gpr_log(GPR_ERROR, "Could not open file %s", template);
+    result = NULL;
+    goto end;
+  }
+
+end:
+  if (result != NULL && tmp_filename != NULL) {
+    *tmp_filename = template;
+  } else {
+    gpr_free(template);
+  }
+  return result;
 }
 
-unsigned gpr_cpu_current_cpu(void) {
-  int cpu = sched_getcpu();
-  if (cpu < 0) {
-    gpr_log(GPR_ERROR, "Error determining current CPU: %s\n", strerror(errno));
-    return 0;
-  }
-  return cpu;
-}
-
-#endif /* GPR_CPU_LINUX */
+#endif /* GPR_WIN32 */

@@ -31,70 +31,66 @@
  *
  */
 
+/* Posix code for gpr fdopen and mkstemp support. */
+
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200112L
+#endif
+
+/* Don't know why I have to do this for mkstemp, looks like _POSIX_C_SOURCE
+   should be enough... */
+#ifndef _BSD_SOURCE
+#define _BSD_SOURCE
+#endif
+
 #include <grpc/support/port_platform.h>
 
-#ifdef GPR_CPU_LINUX
+#ifdef GPR_POSIX_FILE
 
-#include "src/core/support/cpu.h"
-
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#define GRPC_GNU_SOURCE
-#endif
-
-#ifndef __USE_GNU
-#define __USE_GNU
-#define GRPC_USE_GNU
-#endif
-
-#ifndef __USE_MISC
-#define __USE_MISC
-#define GRPC_USE_MISC
-#endif
-
-#include <sched.h>
-
-#ifdef GRPC_GNU_SOURCE
-#undef _GNU_SOURCE
-#undef GRPC_GNU_SOURCE
-#endif
-
-#ifdef GRPC_USE_GNU
-#undef __USE_GNU
-#undef GRPC_USE_GNU
-#endif
-
-#ifdef GRPC_USE_MISC
-#undef __USE_MISC
-#undef GRPC_USE_MISC
-#endif
+#include "src/core/support/file.h"
 
 #include <errno.h>
-#include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
+#include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 
-unsigned gpr_cpu_num_cores(void) {
-  static int ncpus = 0;
-  /* FIXME: !threadsafe */
-  if (ncpus == 0) {
-    ncpus = sysconf(_SC_NPROCESSORS_ONLN);
-    if (ncpus < 1) {
-      gpr_log(GPR_ERROR, "Cannot determine number of CPUs: assuming 1");
-      ncpus = 1;
-    }
+#include "src/core/support/string.h"
+
+FILE *gpr_tmpfile(const char *prefix, char **tmp_filename) {
+  FILE *result = NULL;
+  char *template;
+  int fd;
+
+  if (tmp_filename != NULL) *tmp_filename = NULL;
+
+  gpr_asprintf(&template, "%s_XXXXXX", prefix);
+  GPR_ASSERT(template != NULL);
+
+  fd = mkstemp(template);
+  if (fd == -1) {
+    gpr_log(GPR_ERROR, "mkstemp failed for template %s with error %s.",
+            template, strerror(errno));
+    goto end;
   }
-  return ncpus;
+  result = fdopen(fd, "w+");
+  if (result == NULL) {
+    gpr_log(GPR_ERROR, "Could not open file %s from fd %d (error = %s).",
+            template, fd, strerror(errno));
+    unlink(template);
+    close(fd);
+    goto end;
+  }
+
+end:
+  if (result != NULL && tmp_filename != NULL) {
+    *tmp_filename = template;
+  } else {
+    gpr_free(template);
+  }
+  return result;
 }
 
-unsigned gpr_cpu_current_cpu(void) {
-  int cpu = sched_getcpu();
-  if (cpu < 0) {
-    gpr_log(GPR_ERROR, "Error determining current CPU: %s\n", strerror(errno));
-    return 0;
-  }
-  return cpu;
-}
-
-#endif /* GPR_CPU_LINUX */
+#endif /* GPR_POSIX_FILE */

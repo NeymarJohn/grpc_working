@@ -31,38 +31,30 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
-#define __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#ifndef __GRPC_SUPPORT_ENV_H__
+#define __GRPC_SUPPORT_ENV_H__
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+#include <stdio.h>
 
-#include "examples/tips/pubsub.pb.h"
+#include <grpc/support/slice.h>
 
-namespace grpc {
-namespace examples {
-namespace tips {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-class Subscriber {
- public:
-  Subscriber(std::shared_ptr<ChannelInterface> channel);
-  void Shutdown();
+/* Env utility functions */
 
-  Status CreateSubscription(const grpc::string& topic,
-                            const grpc::string& name);
+/* Gets the environment variable value with the specified name.
+   Returns a newly allocated string. It is the responsability of the caller to
+   gpr_free the return value if not NULL (which means that the environment
+   variable exists). */
+char *gpr_getenv(const char *name);
 
-  Status GetSubscription(const grpc::string& name, grpc::string* topic);
+/* Sets the the environment with the specified name to the specified value. */
+void gpr_setenv(const char *name, const char *value);
 
-  Status DeleteSubscription(const grpc::string& name);
+#ifdef __cplusplus
+}
+#endif
 
-  Status Pull(const grpc::string& name, grpc::string* data);
-
- private:
-  std::unique_ptr<tech::pubsub::SubscriberService::Stub> stub_;
-};
-
-}  // namespace tips
-}  // namespace examples
-}  // namespace grpc
-
-#endif  // __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#endif /* __GRPC_SUPPORT_ENV_H__ */

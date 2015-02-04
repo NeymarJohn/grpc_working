@@ -31,70 +31,31 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef __GRPC_SUPPORT_FILE_H__
+#define __GRPC_SUPPORT_FILE_H__
 
-#ifdef GPR_CPU_LINUX
+#include <stdio.h>
 
-#include "src/core/support/cpu.h"
+#include <grpc/support/slice.h>
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#define GRPC_GNU_SOURCE
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#ifndef __USE_GNU
-#define __USE_GNU
-#define GRPC_USE_GNU
-#endif
+/* File utility functions */
 
-#ifndef __USE_MISC
-#define __USE_MISC
-#define GRPC_USE_MISC
-#endif
+/* Loads the content of a file into a slice. The success parameter, if not NULL,
+   will be set to 1 in case of success and 0 in case of failure. */
+gpr_slice gpr_load_file(const char *filename, int *success);
 
-#include <sched.h>
+/* Creates a temporary file from a prefix.
+   If tmp_filename is not NULL, *tmp_filename is assigned the name of the
+   created file and it is the responsibility of the caller to gpr_free it
+   unless an error occurs in which case it will be set to NULL. */
+FILE *gpr_tmpfile(const char *prefix, char **tmp_filename);
 
-#ifdef GRPC_GNU_SOURCE
-#undef _GNU_SOURCE
-#undef GRPC_GNU_SOURCE
-#endif
-
-#ifdef GRPC_USE_GNU
-#undef __USE_GNU
-#undef GRPC_USE_GNU
-#endif
-
-#ifdef GRPC_USE_MISC
-#undef __USE_MISC
-#undef GRPC_USE_MISC
-#endif
-
-#include <errno.h>
-#include <unistd.h>
-#include <string.h>
-
-#include <grpc/support/log.h>
-
-unsigned gpr_cpu_num_cores(void) {
-  static int ncpus = 0;
-  /* FIXME: !threadsafe */
-  if (ncpus == 0) {
-    ncpus = sysconf(_SC_NPROCESSORS_ONLN);
-    if (ncpus < 1) {
-      gpr_log(GPR_ERROR, "Cannot determine number of CPUs: assuming 1");
-      ncpus = 1;
-    }
-  }
-  return ncpus;
+#ifdef __cplusplus
 }
+#endif
 
-unsigned gpr_cpu_current_cpu(void) {
-  int cpu = sched_getcpu();
-  if (cpu < 0) {
-    gpr_log(GPR_ERROR, "Error determining current CPU: %s\n", strerror(errno));
-    return 0;
-  }
-  return cpu;
-}
-
-#endif /* GPR_CPU_LINUX */
+#endif /* __GRPC_SUPPORT_FILE_H__ */
