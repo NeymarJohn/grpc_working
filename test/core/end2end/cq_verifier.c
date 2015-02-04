@@ -70,6 +70,7 @@ typedef struct expectation {
   union {
     grpc_op_error finish_accepted;
     grpc_op_error write_accepted;
+    grpc_op_error op_complete;
     struct {
       const char *method;
       const char *host;
@@ -180,9 +181,6 @@ static void verify_matches(expectation *e, grpc_event *ev) {
     case GRPC_WRITE_ACCEPTED:
       GPR_ASSERT(e->data.write_accepted == ev->data.write_accepted);
       break;
-    case GRPC_INVOKE_ACCEPTED:
-      abort();
-      break;
     case GRPC_SERVER_RPC_NEW:
       GPR_ASSERT(string_equivalent(e->data.server_rpc_new.method,
                                    ev->data.server_rpc_new.method));
@@ -222,6 +220,9 @@ static void verify_matches(expectation *e, grpc_event *ev) {
         GPR_ASSERT(ev->data.read == NULL);
       }
       break;
+    case GRPC_OP_COMPLETE:
+      GPR_ASSERT(e->data.op_complete == ev->data.op_complete);
+      break;
     case GRPC_SERVER_SHUTDOWN:
       break;
     case GRPC_COMPLETION_DO_NOT_USE:
@@ -242,7 +243,9 @@ static void metadata_expectation(gpr_strvec *buf, metadata *md) {
       gpr_asprintf(&tmp, "%c%s:%s", i ? ',' : '{', md->keys[i], md->values[i]);
       gpr_strvec_add(buf, tmp);
     }
-    gpr_strvec_add(buf, gpr_strdup("}"));
+    if (md->count) {
+      gpr_strvec_add(buf, gpr_strdup("}"));
+    }
   }
 }
 
@@ -253,22 +256,23 @@ static void expectation_to_strvec(gpr_strvec *buf, expectation *e) {
   switch (e->type) {
     case GRPC_FINISH_ACCEPTED:
       gpr_asprintf(&tmp, "GRPC_FINISH_ACCEPTED result=%d",
-                     e->data.finish_accepted);
+                   e->data.finish_accepted);
       gpr_strvec_add(buf, tmp);
       break;
     case GRPC_WRITE_ACCEPTED:
       gpr_asprintf(&tmp, "GRPC_WRITE_ACCEPTED result=%d",
-                     e->data.write_accepted);
+                   e->data.write_accepted);
       gpr_strvec_add(buf, tmp);
       break;
-    case GRPC_INVOKE_ACCEPTED:
-      gpr_strvec_add(buf, gpr_strdup("GRPC_INVOKE_ACCEPTED"));
+    case GRPC_OP_COMPLETE:
+      gpr_asprintf(&tmp, "GRPC_OP_COMPLETE result=%d", e->data.op_complete);
+      gpr_strvec_add(buf, tmp);
       break;
     case GRPC_SERVER_RPC_NEW:
       timeout = gpr_time_sub(e->data.server_rpc_new.deadline, gpr_now());
       gpr_asprintf(&tmp, "GRPC_SERVER_RPC_NEW method=%s host=%s timeout=%fsec",
-                     e->data.server_rpc_new.method, e->data.server_rpc_new.host,
-                     timeout.tv_sec + 1e-9 * timeout.tv_nsec);
+                   e->data.server_rpc_new.method, e->data.server_rpc_new.host,
+                   timeout.tv_sec + 1e-9 * timeout.tv_nsec);
       gpr_strvec_add(buf, tmp);
       break;
     case GRPC_CLIENT_METADATA_READ:
@@ -277,14 +281,16 @@ static void expectation_to_strvec(gpr_strvec *buf, expectation *e) {
       break;
     case GRPC_FINISHED:
       gpr_asprintf(&tmp, "GRPC_FINISHED status=%d details=%s ",
-                    e->data.finished.status, e->data.finished.details);
+                   e->data.finished.status, e->data.finished.details);
       gpr_strvec_add(buf, tmp);
       metadata_expectation(buf, e->data.finished.metadata);
       break;
     case GRPC_READ:
       gpr_strvec_add(buf, gpr_strdup("GRPC_READ data="));
-      gpr_strvec_add(buf, gpr_hexdump((char *)GPR_SLICE_START_PTR(*e->data.read),
-                        GPR_SLICE_LENGTH(*e->data.read), GPR_HEXDUMP_PLAINTEXT));
+      gpr_strvec_add(
+          buf,
+          gpr_hexdump((char *)GPR_SLICE_START_PTR(*e->data.read),
+                      GPR_SLICE_LENGTH(*e->data.read), GPR_HEXDUMP_PLAINTEXT));
       break;
     case GRPC_SERVER_SHUTDOWN:
       gpr_strvec_add(buf, gpr_strdup("GRPC_SERVER_SHUTDOWN"));
@@ -416,6 +422,10 @@ static metadata *metadata_from_args(va_list args) {
 
 void cq_expect_write_accepted(cq_verifier *v, void *tag, grpc_op_error result) {
   add(v, GRPC_WRITE_ACCEPTED, tag)->data.write_accepted = result;
+}
+
+void cq_expect_completion(cq_verifier *v, void *tag, grpc_op_error result) {
+  add(v, GRPC_OP_COMPLETE, tag)->data.op_complete = result;
 }
 
 void cq_expect_finish_accepted(cq_verifier *v, void *tag,
