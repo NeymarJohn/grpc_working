@@ -35,6 +35,7 @@
 
 #ifdef GPR_POSIX_SOCKETUTILS
 
+#define _BSD_SOURCE
 #include "src/core/iomgr/socket_utils_posix.h"
 
 #include <fcntl.h>
