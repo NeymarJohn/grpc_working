@@ -31,50 +31,29 @@
  *
  */
 
-/* Posix implementation for gpr threads. */
+#ifndef __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
+#define __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
 
-#include <grpc/support/port_platform.h>
+#include <grpc/byte_buffer.h>
 
-#ifdef GPR_WIN32
+/* TODO(ctiller): inline an element or two into this struct to avoid per-call
+                  allocations */
+typedef struct {
+  grpc_byte_buffer **data;
+  size_t count;
+  size_t capacity;
+} grpc_bbq_array;
 
-#include <windows.h>
-#include <string.h>
-#include <grpc/support/alloc.h>
-#include <grpc/support/thd.h>
+/* should be initialized by zeroing memory */
+typedef struct {
+  size_t drain_pos;
+  grpc_bbq_array filling;
+  grpc_bbq_array draining;
+} grpc_byte_buffer_queue;
 
-struct thd_arg {
-  void (*body)(void *arg); /* body of a thread */
-  void *arg;               /* argument to a thread */
-};
+void grpc_bbq_destroy(grpc_byte_buffer_queue *q);
+grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q);
+int grpc_bbq_empty(grpc_byte_buffer_queue *q);
+void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *bb);
 
-/* Body of every thread started via gpr_thd_new. */
-static DWORD WINAPI thread_body(void *v) {
-  struct thd_arg a = *(struct thd_arg *)v;
-  gpr_free(v);
-  (*a.body)(a.arg);
-  return 0;
-}
-
-int gpr_thd_new(gpr_thd_id *t, void (*thd_body)(void *arg), void *arg,
-                const gpr_thd_options *options) {
-  HANDLE handle;
-  struct thd_arg *a = gpr_malloc(sizeof(*a));
-  a->body = thd_body;
-  a->arg = arg;
-  *t = 0;
-  handle = CreateThread(NULL, 64 * 1024, thread_body, a, 0, NULL);
-  if (handle == NULL) {
-    gpr_free(a);
-  } else {
-    CloseHandle(handle); /* threads are "detached" */
-  }
-  return handle != NULL;
-}
-
-gpr_thd_options gpr_thd_options_default(void) {
-  gpr_thd_options options;
-  memset(&options, 0, sizeof(options));
-  return options;
-}
-
-#endif /* GPR_WIN32 */
+#endif  /* __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__ */

@@ -31,50 +31,48 @@
  *
  */
 
-/* Posix implementation for gpr threads. */
-
-#include <grpc/support/port_platform.h>
-
-#ifdef GPR_WIN32
-
-#include <windows.h>
-#include <string.h>
+#include "src/core/surface/byte_buffer_queue.h"
 #include <grpc/support/alloc.h>
-#include <grpc/support/thd.h>
+#include <grpc/support/useful.h>
 
-struct thd_arg {
-  void (*body)(void *arg); /* body of a thread */
-  void *arg;               /* argument to a thread */
-};
+static void bba_destroy(grpc_bbq_array *array) { gpr_free(array->data); }
 
-/* Body of every thread started via gpr_thd_new. */
-static DWORD WINAPI thread_body(void *v) {
-  struct thd_arg a = *(struct thd_arg *)v;
-  gpr_free(v);
-  (*a.body)(a.arg);
-  return 0;
-}
-
-int gpr_thd_new(gpr_thd_id *t, void (*thd_body)(void *arg), void *arg,
-                const gpr_thd_options *options) {
-  HANDLE handle;
-  struct thd_arg *a = gpr_malloc(sizeof(*a));
-  a->body = thd_body;
-  a->arg = arg;
-  *t = 0;
-  handle = CreateThread(NULL, 64 * 1024, thread_body, a, 0, NULL);
-  if (handle == NULL) {
-    gpr_free(a);
-  } else {
-    CloseHandle(handle); /* threads are "detached" */
+/* Append an operation to an array, expanding as needed */
+static void bba_push(grpc_bbq_array *a, grpc_byte_buffer *buffer) {
+  if (a->count == a->capacity) {
+    a->capacity = GPR_MAX(a->capacity * 2, 8);
+    a->data = gpr_realloc(a->data, sizeof(grpc_byte_buffer *) * a->capacity);
   }
-  return handle != NULL;
+  a->data[a->count++] = buffer;
 }
 
-gpr_thd_options gpr_thd_options_default(void) {
-  gpr_thd_options options;
-  memset(&options, 0, sizeof(options));
-  return options;
+void grpc_bbq_destroy(grpc_byte_buffer_queue *q) {
+  bba_destroy(&q->filling);
+  bba_destroy(&q->draining);
 }
 
-#endif /* GPR_WIN32 */
+int grpc_bbq_empty(grpc_byte_buffer_queue *q) {
+  return (q->drain_pos == q->draining.count && q->filling.count == 0);
+}
+
+void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *buffer) {
+  bba_push(&q->filling, buffer);
+}
+
+grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q) {
+  grpc_bbq_array temp_array;
+
+  if (q->drain_pos == q->draining.count) {
+    if (q->filling.count == 0) {
+      return NULL;
+    }
+    q->draining.count = 0;
+    q->drain_pos = 0;
+    /* swap arrays */
+    temp_array = q->filling;
+    q->filling = q->draining;
+    q->draining = temp_array;
+  }
+
+  return q->draining.data[q->drain_pos++];
+}
