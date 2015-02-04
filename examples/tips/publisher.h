@@ -31,34 +31,37 @@
  *
  */
 
-#include <stdio.h>
-#include <string.h>
+#ifndef __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_
+#define __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_
 
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/status.h>
 
-#include "src/core/support/env.h"
-#include "src/core/support/string.h"
-#include "test/core/util/test_config.h"
+#include "examples/tips/pubsub.pb.h"
 
-#define LOG_TEST_NAME() gpr_log(GPR_INFO, "%s", __FUNCTION__)
+namespace grpc {
+namespace examples {
+namespace tips {
 
-static void test_setenv_getenv(void) {
-  const char *name = "FOO";
-  const char *value = "BAR";
-  char *retrieved_value;
+class Publisher {
+ public:
+  Publisher(std::shared_ptr<ChannelInterface> channel);
+  void Shutdown();
 
-  LOG_TEST_NAME();
+  Status CreateTopic(const grpc::string& topic);
+  Status GetTopic(const grpc::string& topic);
+  Status DeleteTopic(const grpc::string& topic);
+  Status ListTopics(const grpc::string& project_id,
+                    std::vector<grpc::string>* topics);
 
-  gpr_setenv(name, value);
-  retrieved_value = gpr_getenv(name);
-  GPR_ASSERT(retrieved_value != NULL);
-  GPR_ASSERT(!strcmp(value, retrieved_value));
-  gpr_free(retrieved_value);
-}
+  Status Publish(const grpc::string& topic, const grpc::string& data);
 
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  test_setenv_getenv();
-  return 0;
-}
+ private:
+  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
+};
+
+}  // namespace tips
+}  // namespace examples
+}  // namespace grpc
+
+#endif  // __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_
