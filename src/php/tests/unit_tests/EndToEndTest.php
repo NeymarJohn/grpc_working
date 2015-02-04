@@ -1,11 +1,13 @@
 <?php
+require __DIR__ . '/../util/port_picker.php';
 class EndToEndTest extends PHPUnit_Framework_TestCase{
   public function setUp() {
     $this->client_queue = new Grpc\CompletionQueue();
     $this->server_queue = new Grpc\CompletionQueue();
     $this->server = new Grpc\Server($this->server_queue, []);
-    $port = $this->server->add_http2_port('0.0.0.0:0');
-    $this->channel = new Grpc\Channel('localhost:' . $port, []);
+    $address = '127.0.0.1:' . getNewPort();
+    $this->server->add_http2_port($address);
+    $this->channel = new Grpc\Channel($address, []);
   }
 
   public function tearDown() {
