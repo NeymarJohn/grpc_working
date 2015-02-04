@@ -31,38 +31,14 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
-#define __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#ifndef __GRPC_SUPPORT_THD_WIN32_H__
+#define __GRPC_SUPPORT_THD_WIN32_H__
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+/* Win32 variant of gpr_thd_platform.h */
 
-#include "examples/tips/pubsub.pb.h"
+#include <windows.h>
+#include <grpc/support/atm.h>
 
-namespace grpc {
-namespace examples {
-namespace tips {
+typedef int gpr_thd_id;
 
-class Subscriber {
- public:
-  Subscriber(std::shared_ptr<ChannelInterface> channel);
-  void Shutdown();
-
-  Status CreateSubscription(const grpc::string& topic,
-                            const grpc::string& name);
-
-  Status GetSubscription(const grpc::string& name, grpc::string* topic);
-
-  Status DeleteSubscription(const grpc::string& name);
-
-  Status Pull(const grpc::string& name, grpc::string* data);
-
- private:
-  std::unique_ptr<tech::pubsub::SubscriberService::Stub> stub_;
-};
-
-}  // namespace tips
-}  // namespace examples
-}  // namespace grpc
-
-#endif  // __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#endif /* __GRPC_SUPPORT_THD_WIN32_H__ */
