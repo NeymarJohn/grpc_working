@@ -83,7 +83,6 @@
     <ClInclude Include="..\..\include\grpc\support\histogram.h" />
     <ClInclude Include="..\..\include\grpc\support\host_port.h" />
     <ClInclude Include="..\..\include\grpc\support\log.h" />
-    <ClInclude Include="..\..\include\grpc\support\log_win32.h" />
     <ClInclude Include="..\..\include\grpc\support\port_platform.h" />
     <ClInclude Include="..\..\include\grpc\support\slice.h" />
     <ClInclude Include="..\..\include\grpc\support\slice_buffer.h" />
@@ -92,11 +91,7 @@
     <ClInclude Include="..\..\include\grpc\support\sync_posix.h" />
     <ClInclude Include="..\..\include\grpc\support\sync_win32.h" />
     <ClInclude Include="..\..\include\grpc\support\thd.h" />
-    <ClInclude Include="..\..\include\grpc\support\thd_posix.h" />
-    <ClInclude Include="..\..\include\grpc\support\thd_win32.h" />
     <ClInclude Include="..\..\include\grpc\support\time.h" />
-    <ClInclude Include="..\..\include\grpc\support\time_posix.h" />
-    <ClInclude Include="..\..\include\grpc\support\time_win32.h" />
     <ClInclude Include="..\..\include\grpc\support\useful.h" />
   </ItemGroup>
   <ItemGroup>
