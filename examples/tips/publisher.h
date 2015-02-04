@@ -31,35 +31,37 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_POLLSET_WINDOWS_H_
-#define __GRPC_INTERNAL_IOMGR_POLLSET_WINDOWS_H_
+#ifndef __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_
+#define __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_
 
-#include <windows.h>
-#include <grpc/support/sync.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/status.h>
 
-#include "src/core/iomgr/pollset_kick.h"
-#include "src/core/iomgr/socket_windows.h"
+#include "examples/tips/pubsub.pb.h"
 
-/* forward declare only in this file to avoid leaking impl details via
-   pollset.h; real users of grpc_fd should always include 'fd_posix.h' and not
-   use the struct tag */
-struct grpc_fd;
+namespace grpc {
+namespace examples {
+namespace tips {
 
-typedef struct grpc_pollset {
-  HANDLE iocp;
-} grpc_pollset;
+class Publisher {
+ public:
+  Publisher(std::shared_ptr<ChannelInterface> channel);
+  void Shutdown();
 
-#define GRPC_POLLSET_MU(pollset) (NULL)
-#define GRPC_POLLSET_CV(pollset) (NULL)
+  Status CreateTopic(const grpc::string& topic);
+  Status GetTopic(const grpc::string& topic);
+  Status DeleteTopic(const grpc::string& topic);
+  Status ListTopics(const grpc::string& project_id,
+                    std::vector<grpc::string>* topics);
 
-void grpc_pollset_add_handle(grpc_pollset *, grpc_winsocket *);
+  Status Publish(const grpc::string& topic, const grpc::string& data);
 
-grpc_pollset *grpc_global_pollset(void);
+ private:
+  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
+};
 
-void grpc_handle_notify_on_write(grpc_winsocket *, void(*cb)(void *, int success),
-                                 void *opaque);
+}  // namespace tips
+}  // namespace examples
+}  // namespace grpc
 
-void grpc_handle_notify_on_read(grpc_winsocket *, void(*cb)(void *, int success),
-                                void *opaque);
-
-#endif /* __GRPC_INTERNAL_IOMGR_POLLSET_WINDOWS_H_ */
+#endif  // __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_

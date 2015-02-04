@@ -31,35 +31,38 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_POLLSET_WINDOWS_H_
-#define __GRPC_INTERNAL_IOMGR_POLLSET_WINDOWS_H_
+#ifndef __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#define __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
 
-#include <windows.h>
-#include <grpc/support/sync.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/status.h>
 
-#include "src/core/iomgr/pollset_kick.h"
-#include "src/core/iomgr/socket_windows.h"
+#include "examples/tips/pubsub.pb.h"
 
-/* forward declare only in this file to avoid leaking impl details via
-   pollset.h; real users of grpc_fd should always include 'fd_posix.h' and not
-   use the struct tag */
-struct grpc_fd;
+namespace grpc {
+namespace examples {
+namespace tips {
 
-typedef struct grpc_pollset {
-  HANDLE iocp;
-} grpc_pollset;
+class Subscriber {
+ public:
+  Subscriber(std::shared_ptr<ChannelInterface> channel);
+  void Shutdown();
 
-#define GRPC_POLLSET_MU(pollset) (NULL)
-#define GRPC_POLLSET_CV(pollset) (NULL)
+  Status CreateSubscription(const grpc::string& topic,
+                            const grpc::string& name);
 
-void grpc_pollset_add_handle(grpc_pollset *, grpc_winsocket *);
+  Status GetSubscription(const grpc::string& name, grpc::string* topic);
 
-grpc_pollset *grpc_global_pollset(void);
+  Status DeleteSubscription(const grpc::string& name);
 
-void grpc_handle_notify_on_write(grpc_winsocket *, void(*cb)(void *, int success),
-                                 void *opaque);
+  Status Pull(const grpc::string& name, grpc::string* data);
 
-void grpc_handle_notify_on_read(grpc_winsocket *, void(*cb)(void *, int success),
-                                void *opaque);
+ private:
+  std::unique_ptr<tech::pubsub::SubscriberService::Stub> stub_;
+};
 
-#endif /* __GRPC_INTERNAL_IOMGR_POLLSET_WINDOWS_H_ */
+}  // namespace tips
+}  // namespace examples
+}  // namespace grpc
+
+#endif  // __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_

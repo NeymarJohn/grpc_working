@@ -31,48 +31,46 @@
  *
  */
 
-#include "src/core/surface/byte_buffer_queue.h"
+#include <grpc/support/port_platform.h>
 #include <grpc/support/alloc.h>
-#include <grpc/support/useful.h>
+#include <grpc/support/log.h>
 
-static void bba_destroy(grpc_bbq_array *array) { gpr_free(array->data); }
+#ifdef GPR_WINSOCK_SOCKET
 
-/* Append an operation to an array, expanding as needed */
-static void bba_push(grpc_bbq_array *a, grpc_byte_buffer *buffer) {
-  if (a->count == a->capacity) {
-    a->capacity = GPR_MAX(a->capacity * 2, 8);
-    a->data = gpr_realloc(a->data, sizeof(grpc_byte_buffer *) * a->capacity);
-  }
-  a->data[a->count++] = buffer;
+#include "src/core/iomgr/iomgr.h"
+#include "src/core/iomgr/iomgr_internal.h"
+#include "src/core/iomgr/socket_windows.h"
+#include "src/core/iomgr/pollset.h"
+#include "src/core/iomgr/pollset_windows.h"
+
+grpc_winsocket *grpc_winsocket_create(SOCKET socket) {
+  grpc_winsocket *r = gpr_malloc(sizeof(grpc_winsocket));
+  gpr_log(GPR_DEBUG, "grpc_winsocket_create");
+  memset(r, 0, sizeof(grpc_winsocket));
+  r->socket = socket;
+  gpr_mu_init(&r->state_mu);
+  grpc_iomgr_ref();
+  grpc_pollset_add_handle(grpc_global_pollset(), r);
+  return r;
 }
 
-void grpc_bbq_destroy(grpc_byte_buffer_queue *q) {
-  bba_destroy(&q->filling);
-  bba_destroy(&q->draining);
+void shutdown_op(grpc_winsocket_callback_info *info) {
+  if (!info->cb) return;
+  info->cb(info->opaque, 0);
 }
 
-int grpc_bbq_empty(grpc_byte_buffer_queue *q) {
-  return (q->drain_pos == q->draining.count && q->filling.count == 0);
+void grpc_winsocket_shutdown(grpc_winsocket *socket) {
+  gpr_log(GPR_DEBUG, "grpc_winsocket_shutdown");
+  shutdown_op(&socket->read_info);
+  shutdown_op(&socket->write_info);
 }
 
-void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *buffer) {
-  bba_push(&q->filling, buffer);
+void grpc_winsocket_orphan(grpc_winsocket *socket) {
+  gpr_log(GPR_DEBUG, "grpc_winsocket_orphan");
+  grpc_iomgr_unref();
+  closesocket(socket->socket);
+  gpr_mu_destroy(&socket->state_mu);
+  gpr_free(socket);
 }
 
-grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q) {
-  grpc_bbq_array temp_array;
-
-  if (q->drain_pos == q->draining.count) {
-    if (q->filling.count == 0) {
-      return NULL;
-    }
-    q->draining.count = 0;
-    q->drain_pos = 0;
-    /* swap arrays */
-    temp_array = q->filling;
-    q->filling = q->draining;
-    q->draining = temp_array;
-  }
-
-  return q->draining.data[q->drain_pos++];
-}
+#endif

@@ -31,32 +31,23 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
-#define __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
+#ifndef __GRPC_SUPPORT_LOG_WIN32_H__
+#define __GRPC_SUPPORT_LOG_WIN32_H__
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+#include <windows.h>
 
-#include "examples/tips/pubsub.pb.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-namespace grpc {
-namespace examples {
-namespace tips {
+/* Returns a string allocated with gpr_malloc that contains a UTF-8
+ * formatted error message, corresponding to the error messageid.
+ * Use in cunjunction with GetLastError() et al.
+ */
+char *gpr_format_message(DWORD messageid);
 
-class Client {
- public:
-  Client(std::shared_ptr<grpc::ChannelInterface> channel);
-  Status CreateTopic(grpc::string topic);
-  Status GetTopic(grpc::string topic);
-  Status DeleteTopic(grpc::string topic);
-  Status ListTopics();
+#ifdef __cplusplus
+}
+#endif
 
- private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
-};
-
-}  // namespace tips
-}  // namespace examples
-}  // namespace grpc
-
-#endif  // __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
+#endif /* __GRPC_SUPPORT_LOG_H__ */

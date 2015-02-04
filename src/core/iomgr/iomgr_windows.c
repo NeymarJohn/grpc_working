@@ -31,62 +31,37 @@
  *
  */
 
-#include <grpc++/client_context.h>
+#include <grpc/support/port_platform.h>
 
-#include "examples/tips/client.h"
+#ifdef GPR_WINSOCK_SOCKET
 
-using tech::pubsub::Topic;
-using tech::pubsub::DeleteTopicRequest;
-using tech::pubsub::GetTopicRequest;
-using tech::pubsub::PublisherService;
-using tech::pubsub::ListTopicsRequest;
-using tech::pubsub::ListTopicsResponse;
+#include "src/core/iomgr/sockaddr_win32.h"
 
-namespace grpc {
-namespace examples {
-namespace tips {
+#include <grpc/support/log.h>
 
-Client::Client(std::shared_ptr<ChannelInterface> channel)
-    : stub_(PublisherService::NewStub(channel)) {
+#include "src/core/iomgr/socket_windows.h"
+#include "src/core/iomgr/iomgr.h"
+#include "src/core/iomgr/iomgr_windows.h"
+
+static void winsock_init(void) {
+  WSADATA wsaData;
+  int status = WSAStartup(MAKEWORD(2, 0), &wsaData);
+  GPR_ASSERT(status == 0);
 }
 
-Status Client::CreateTopic(grpc::string topic) {
-  Topic request;
-  Topic response;
-  request.set_name(topic);
-  ClientContext context;
-
-  return stub_->CreateTopic(&context, request, &response);
+static void winsock_shutdown(void) {
+  int status = WSACleanup();
+  GPR_ASSERT(status == 0);
 }
 
-Status Client::ListTopics() {
-  ListTopicsRequest request;
-  ListTopicsResponse response;
-  ClientContext context;
-
-  return stub_->ListTopics(&context, request, &response);
+void grpc_iomgr_platform_init(void) {
+  winsock_init();
+  grpc_pollset_global_init();
 }
 
-Status Client::GetTopic(grpc::string topic) {
-  GetTopicRequest request;
-  Topic response;
-  ClientContext context;
-
-  request.set_topic(topic);
-
-  return stub_->GetTopic(&context, request, &response);
+void grpc_iomgr_platform_shutdown(void) {
+  grpc_pollset_global_shutdown();
+  winsock_shutdown();
 }
 
-Status Client::DeleteTopic(grpc::string topic) {
-  DeleteTopicRequest request;
-  proto2::Empty response;
-  ClientContext context;
-
-  request.set_topic(topic);
-
-  return stub_->DeleteTopic(&context, request, &response);
-}
-
-}  // namespace tips
-}  // namespace examples
-}  // namespace grpc
+#endif  /* GRPC_IOMGRP_POSIX */
