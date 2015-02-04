@@ -31,11 +31,16 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
-#define __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
+#ifndef __GRPC_SUPPORT_TIME_WIN32_H__
+#define __GRPC_SUPPORT_TIME_WIN32_H__
+/* Win32 variant of gpr_time_platform.h */
 
-#include <ws2tcpip.h>
-#include <winsock2.h>
-#include <mswsock.h>
+#include <winsock.h>
+#include <time.h>
 
-#endif  /* __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_ */
+typedef struct gpr_timespec {
+  time_t tv_sec;
+  long tv_nsec;
+} gpr_timespec;
+
+#endif /* __GRPC_SUPPORT_TIME_WIN32_H__ */

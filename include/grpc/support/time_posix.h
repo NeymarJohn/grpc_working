@@ -31,11 +31,13 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
-#define __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
+#ifndef __GRPC_SUPPORT_TIME_POSIX_H__
+#define __GRPC_SUPPORT_TIME_POSIX_H__
+/* Posix variant of gpr_time_platform.h */
 
-#include <ws2tcpip.h>
-#include <winsock2.h>
-#include <mswsock.h>
+#include <sys/time.h>
+#include <time.h>
 
-#endif  /* __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_ */
+typedef struct timespec gpr_timespec;
+
+#endif /* __GRPC_SUPPORT_TIME_POSIX_H__ */

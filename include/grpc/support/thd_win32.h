@@ -31,11 +31,14 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
-#define __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
+#ifndef __GRPC_SUPPORT_THD_WIN32_H__
+#define __GRPC_SUPPORT_THD_WIN32_H__
 
-#include <ws2tcpip.h>
-#include <winsock2.h>
-#include <mswsock.h>
+/* Win32 variant of gpr_thd_platform.h */
 
-#endif  /* __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_ */
+#include <windows.h>
+#include <grpc/support/atm.h>
+
+typedef int gpr_thd_id;
+
+#endif /* __GRPC_SUPPORT_THD_WIN32_H__ */

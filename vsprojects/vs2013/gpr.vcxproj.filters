@@ -111,6 +111,9 @@
     <ClInclude Include="..\..\include\grpc\support\log.h">
       <Filter>include\grpc\support</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\grpc\support\log_win32.h">
+      <Filter>include\grpc\support</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\grpc\support\port_platform.h">
       <Filter>include\grpc\support</Filter>
     </ClInclude>
@@ -135,7 +138,19 @@
     <ClInclude Include="..\..\include\grpc\support\thd.h">
       <Filter>include\grpc\support</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\grpc\support\thd_posix.h">
+      <Filter>include\grpc\support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\grpc\support\thd_win32.h">
+      <Filter>include\grpc\support</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\grpc\support\time.h">
+      <Filter>include\grpc\support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\grpc\support\time_posix.h">
+      <Filter>include\grpc\support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\grpc\support\time_win32.h">
       <Filter>include\grpc\support</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\grpc\support\useful.h">
