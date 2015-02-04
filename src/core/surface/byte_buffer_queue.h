@@ -31,32 +31,29 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
-#define __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
+#ifndef __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
+#define __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+#include <grpc/byte_buffer.h>
 
-#include "examples/tips/pubsub.pb.h"
+/* TODO(ctiller): inline an element or two into this struct to avoid per-call
+                  allocations */
+typedef struct {
+  grpc_byte_buffer **data;
+  size_t count;
+  size_t capacity;
+} grpc_bbq_array;
 
-namespace grpc {
-namespace examples {
-namespace tips {
+/* should be initialized by zeroing memory */
+typedef struct {
+  size_t drain_pos;
+  grpc_bbq_array filling;
+  grpc_bbq_array draining;
+} grpc_byte_buffer_queue;
 
-class Client {
- public:
-  Client(std::shared_ptr<grpc::ChannelInterface> channel);
-  Status CreateTopic(grpc::string topic);
-  Status GetTopic(grpc::string topic);
-  Status DeleteTopic(grpc::string topic);
-  Status ListTopics();
+void grpc_bbq_destroy(grpc_byte_buffer_queue *q);
+grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q);
+int grpc_bbq_empty(grpc_byte_buffer_queue *q);
+void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *bb);
 
- private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
-};
-
-}  // namespace tips
-}  // namespace examples
-}  // namespace grpc
-
-#endif  // __GRPCPP_EXAMPLES_TIPS_CLIENT_H_
+#endif  /* __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__ */
