@@ -56,23 +56,23 @@ static void call_op(grpc_call_element *elem, grpc_call_element *from_elem,
       grpc_call_next_op(elem, op);
       break;
     case GRPC_RECV_METADATA:
-      grpc_call_recv_metadata(elem, op->data.metadata);
+      grpc_call_recv_metadata(elem, op);
       break;
     case GRPC_RECV_DEADLINE:
       gpr_log(GPR_ERROR, "Deadline received by client (ignored)");
       break;
     case GRPC_RECV_MESSAGE:
-      grpc_call_recv_message(elem, op->data.message);
-      op->done_cb(op->user_data, GRPC_OP_OK);
+      grpc_call_recv_message(elem, op->data.message, op->done_cb,
+                             op->user_data);
       break;
     case GRPC_RECV_HALF_CLOSE:
-      grpc_call_read_closed(elem);
+      grpc_call_recv_finish(elem, 0);
       break;
     case GRPC_RECV_FINISH:
-      grpc_call_stream_closed(elem);
+      grpc_call_recv_finish(elem, 1);
       break;
     case GRPC_RECV_END_OF_INITIAL_METADATA:
-      grpc_call_initial_metadata_complete(elem);
+      grpc_call_client_initial_metadata_complete(elem);
       break;
     default:
       GPR_ASSERT(op->dir == GRPC_CALL_DOWN);
