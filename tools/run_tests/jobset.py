@@ -86,49 +86,19 @@ def which(filename):
   raise Exception('%s not found' % filename)
 
 
-class JobSpec(object):
-  """Specifies what to run for a job."""
-
-  def __init__(self, cmdline, shortname=None, environ={}, hash_targets=[]):
-    """
-    Arguments:
-      cmdline: a list of arguments to pass as the command line
-      environ: a dictionary of environment variables to set in the child process
-      hash_targets: which files to include in the hash representing the jobs version
-                    (or empty, indicating the job should not be hashed)
-    """
-    self.cmdline = cmdline
-    self.environ = environ
-    self.shortname = cmdline[0] if shortname is None else shortname
-    self.hash_targets = hash_targets or []
-
-  def identity(self):
-    return '%r %r %r' % (self.cmdline, self.environ, self.hash_targets)
-
-  def __hash__(self):
-    return hash(self.identity())
-
-  def __cmp__(self, other):
-    return self.identity() == other.identity()
-
-
 class Job(object):
   """Manages one job."""
 
-  def __init__(self, spec, bin_hash, newline_on_success):
-    self._spec = spec
+  def __init__(self, cmdline, bin_hash, newline_on_success):
+    self._cmdline = cmdline
     self._bin_hash = bin_hash
     self._tempfile = tempfile.TemporaryFile()
-    env = os.environ.copy()
-    for k, v in spec.environ.iteritems():
-      env[k] = v
-    self._process = subprocess.Popen(args=spec.cmdline,
+    self._process = subprocess.Popen(args=cmdline,
                                      stderr=subprocess.STDOUT,
-                                     stdout=self._tempfile,
-                                     env=env)
+                                     stdout=self._tempfile)
     self._state = _RUNNING
     self._newline_on_success = newline_on_success
-    message('START', spec.shortname)
+    message('START', ' '.join(self._cmdline))
 
   def state(self, update_cache):
     """Poll current state of the job. Prints messages at completion."""
@@ -138,13 +108,12 @@ class Job(object):
         self._tempfile.seek(0)
         stdout = self._tempfile.read()
         message('FAILED', '%s [ret=%d]' % (
-            self._spec.shortname, self._process.returncode), stdout)
+            ' '.join(self._cmdline), self._process.returncode), stdout)
       else:
         self._state = _SUCCESS
-        message('PASSED', self._spec.shortname,
+        message('PASSED', '%s' % ' '.join(self._cmdline),
                 do_newline=self._newline_on_success)
-        if self._bin_hash:
-          update_cache.finished(self._spec.identity(), self._bin_hash)
+        update_cache.finished(self._cmdline, self._bin_hash)
     return self._state
 
   def kill(self):
@@ -166,26 +135,16 @@ class Jobset(object):
     self._newline_on_success = newline_on_success
     self._cache = cache
 
-  def start(self, spec):
+  def start(self, cmdline):
     """Start a job. Return True on success, False on failure."""
     while len(self._running) >= self._maxjobs:
       if self.cancelled(): return False
       self.reap()
     if self.cancelled(): return False
-    if spec.hash_targets:
-      bin_hash = hashlib.sha1()
-      for fn in spec.hash_targets:
-        with open(which(fn)) as f:
-          bin_hash.update(f.read())
-      bin_hash = bin_hash.hexdigest()
-      should_run = self._cache.should_run(spec.identity(), bin_hash)
-    else:
-      bin_hash = None
-      should_run = True
-    if should_run:
-      self._running.add(Job(spec,
-                            bin_hash,
-                            self._newline_on_success))
+    with open(which(cmdline[0])) as f:
+      bin_hash = hashlib.sha1(f.read()).hexdigest()
+    if self._cache.should_run(cmdline, bin_hash):
+      self._running.add(Job(cmdline, bin_hash, self._newline_on_success))
     return True
 
   def reap(self):
