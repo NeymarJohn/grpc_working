@@ -87,10 +87,10 @@ char *grpc_event_string(grpc_event *ev) {
         gpr_strvec_add(&buf, gpr_strdup(" end-of-stream"));
       }
       break;
-    case GRPC_OP_COMPLETE:
-      gpr_strvec_add(&buf, gpr_strdup("OP_COMPLETE: "));
+    case GRPC_IOREQ:
+      gpr_strvec_add(&buf, gpr_strdup("IOREQ: "));
       addhdr(&buf, ev);
-      adderr(&buf, ev->data.op_complete);
+      adderr(&buf, ev->data.ioreq);
       break;
     case GRPC_WRITE_ACCEPTED:
       gpr_strvec_add(&buf, gpr_strdup("WRITE_ACCEPTED: "));
