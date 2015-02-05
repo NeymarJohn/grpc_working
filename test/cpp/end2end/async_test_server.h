@@ -31,59 +31,45 @@
  *
  */
 
-#include <include/grpc++/impl/call.h>
-#include <include/grpc++/channel_interface.h>
+#ifndef __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+#define __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+
+#include <condition_variable>
+#include <mutex>
+#include <string>
+
+#include <grpc++/async_server.h>
+#include <grpc++/completion_queue.h>
 
 namespace grpc {
 
-void CallOpBuffer::Reset(void* next_return_tag) {
-  return_tag_ = next_return_tag;
-  metadata_ = nullptr;
-  send_message_ = nullptr;
-  recv_message_ = nullptr;
-  client_send_close_ = false;
-  status_ = false;
-}
+namespace testing {
 
-void CallOpBuffer::AddSendInitialMetadata(
-    std::multimap<igrpc::string, grpc::string>* metadata) {
-  metadata_ = metadata;
-}
+class AsyncTestServer {
+ public:
+  AsyncTestServer();
+  virtual ~AsyncTestServer();
 
-void CallOpBuffer::AddSendMessage(const google::protobuf::Message& message) {
-  send_message_ = &message;
-}
+  void AddPort(const grpc::string& addr);
+  void Start();
+  void RequestOneRpc();
+  virtual void MainLoop();
+  void Shutdown();
 
-void CallOpBuffer::AddRecvMessage(google::protobuf::Message *message) {
-  recv_message_ = message;
-}
+  CompletionQueue* completion_queue() { return &cq_; }
 
-void CallOpBuffer::AddClientSendClose() {
-  client_sent_close_ = true;
-}
+ protected:
+  void HandleQueueClosed();
 
-void CallOpBuffer::AddClientRecvStatus(Status *status) {
-  status_ = status;
-}
+ private:
+  CompletionQueue cq_;
+  AsyncServer server_;
+  bool cq_drained_;
+  std::mutex cq_drained_mu_;
+  std::condition_variable cq_drained_cv_;
+};
 
-void CallOpBuffer::FillOps(grpc_op *ops, size_t *nops) {
-
-
-}
-
-void CallOpBuffer::FinalizeResult(void *tag, bool *status) {
-
-}
-
-void CCallDeleter::operator()(grpc_call* c) {
-  grpc_call_destroy(c);
-}
-
-Call::Call(grpc_call* call, ChannelInterface* channel, CompletionQueue* cq)
-    : channel_(channel), cq_(cq), call_(call) {}
-
-void Call::PerformOps(CallOpBuffer* buffer) {
-  channel_->PerformOpsOnCall(buffer, this);
-}
-
+}  // namespace testing
 }  // namespace grpc
+
+#endif  // __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
