@@ -31,31 +31,38 @@
  *
  */
 
-#ifndef __GRPC_SUPPORT_FILE_H__
-#define __GRPC_SUPPORT_FILE_H__
+#ifndef __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#define __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
 
-#include <stdio.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/status.h>
 
-#include <grpc/support/slice.h>
+#include "examples/tips/pubsub.pb.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace grpc {
+namespace examples {
+namespace tips {
 
-/* File utility functions */
+class Subscriber {
+ public:
+  Subscriber(std::shared_ptr<ChannelInterface> channel);
+  void Shutdown();
 
-/* Loads the content of a file into a slice. The success parameter, if not NULL,
-   will be set to 1 in case of success and 0 in case of failure. */
-gpr_slice gpr_load_file(const char *filename, int *success);
+  Status CreateSubscription(const grpc::string& topic,
+                            const grpc::string& name);
 
-/* Creates a temporary file from a prefix.
-   If tmp_filename is not NULL, *tmp_filename is assigned the name of the
-   created file and it is the responsibility of the caller to gpr_free it
-   unless an error occurs in which case it will be set to NULL. */
-FILE *gpr_tmpfile(const char *prefix, char **tmp_filename);
+  Status GetSubscription(const grpc::string& name, grpc::string* topic);
 
-#ifdef __cplusplus
-}
-#endif
+  Status DeleteSubscription(const grpc::string& name);
 
-#endif /* __GRPC_SUPPORT_FILE_H__ */
+  Status Pull(const grpc::string& name, grpc::string* data);
+
+ private:
+  std::unique_ptr<tech::pubsub::SubscriberService::Stub> stub_;
+};
+
+}  // namespace tips
+}  // namespace examples
+}  // namespace grpc
+
+#endif  // __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
