@@ -31,29 +31,23 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
-#define __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__
+#ifndef __GRPC_SUPPORT_LOG_WIN32_H__
+#define __GRPC_SUPPORT_LOG_WIN32_H__
 
-#include <grpc/byte_buffer.h>
+#include <windows.h>
 
-/* TODO(ctiller): inline an element or two into this struct to avoid per-call
-                  allocations */
-typedef struct {
-  grpc_byte_buffer **data;
-  size_t count;
-  size_t capacity;
-} grpc_bbq_array;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/* should be initialized by zeroing memory */
-typedef struct {
-  size_t drain_pos;
-  grpc_bbq_array filling;
-  grpc_bbq_array draining;
-} grpc_byte_buffer_queue;
+/* Returns a string allocated with gpr_malloc that contains a UTF-8
+ * formatted error message, corresponding to the error messageid.
+ * Use in conjunction with GetLastError() et al.
+ */
+char *gpr_format_message(DWORD messageid);
 
-void grpc_bbq_destroy(grpc_byte_buffer_queue *q);
-grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q);
-int grpc_bbq_empty(grpc_byte_buffer_queue *q);
-void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *bb);
+#ifdef __cplusplus
+}
+#endif
 
-#endif  /* __GRPC_INTERNAL_SURFACE_BYTE_BUFFER_QUEUE_H__ */
+#endif /* __GRPC_SUPPORT_LOG_H__ */

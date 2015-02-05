@@ -31,41 +31,12 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef __GRPC_INTERNAL_IOMGR_IOMGR_WINDOWS_H_
+#define __GRPC_INTERNAL_IOMGR_IOMGR_WINDOWS_H_
 
-#ifdef GPR_POSIX_SOCKETUTILS
+#include "src/core/iomgr/socket_windows.h"
 
-#define _BSD_SOURCE
-#include "src/core/iomgr/socket_utils_posix.h"
+void grpc_pollset_global_init(void);
+void grpc_pollset_global_shutdown(void);
 
-#include <fcntl.h>
-#include <sys/socket.h>
-#include <unistd.h>
-
-#include <grpc/support/log.h>
-
-int grpc_accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen,
-                 int nonblock, int cloexec) {
-  int fd, flags;
-
-  fd = accept(sockfd, addr, addrlen);
-  if (fd >= 0) {
-    if (nonblock) {
-      flags = fcntl(fd, F_GETFL, 0);
-      if (flags < 0) goto close_and_error;
-      if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) != 0) goto close_and_error;
-    }
-    if (cloexec) {
-      flags = fcntl(fd, F_GETFD, 0);
-      if (flags < 0) goto close_and_error;
-      if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) != 0) goto close_and_error;
-    }
-  }
-  return fd;
-
-close_and_error:
-  close(fd);
-  return -1;
-}
-
-#endif /* GPR_POSIX_SOCKETUTILS */
+#endif /* __GRPC_INTERNAL_IOMGR_IOMGR_WINDOWS_H_ */

@@ -31,41 +31,27 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef __GRPC_INTERNAL_IOMGR_TCP_WINDOWS_H__
+#define __GRPC_INTERNAL_IOMGR_TCP_WINDOWS_H__
+/*
+   Low level TCP "bottom half" implementation, for use by transports built on
+   top of a TCP connection.
 
-#ifdef GPR_POSIX_SOCKETUTILS
+   Note that this file does not (yet) include APIs for creating the socket in
+   the first place.
 
-#define _BSD_SOURCE
-#include "src/core/iomgr/socket_utils_posix.h"
+   All calls passing slice transfer ownership of a slice refcount unless
+   otherwise specified.
+*/
 
-#include <fcntl.h>
-#include <sys/socket.h>
-#include <unistd.h>
+#include "src/core/iomgr/endpoint.h"
+#include "src/core/iomgr/socket_windows.h"
 
-#include <grpc/support/log.h>
+/* Create a tcp endpoint given a winsock handle.
+ * Takes ownership of the handle.
+ */
+grpc_endpoint *grpc_tcp_create(grpc_winsocket *socket);
 
-int grpc_accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen,
-                 int nonblock, int cloexec) {
-  int fd, flags;
+int grpc_tcp_prepare_socket(SOCKET sock);
 
-  fd = accept(sockfd, addr, addrlen);
-  if (fd >= 0) {
-    if (nonblock) {
-      flags = fcntl(fd, F_GETFL, 0);
-      if (flags < 0) goto close_and_error;
-      if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) != 0) goto close_and_error;
-    }
-    if (cloexec) {
-      flags = fcntl(fd, F_GETFD, 0);
-      if (flags < 0) goto close_and_error;
-      if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) != 0) goto close_and_error;
-    }
-  }
-  return fd;
-
-close_and_error:
-  close(fd);
-  return -1;
-}
-
-#endif /* GPR_POSIX_SOCKETUTILS */
+#endif /* __GRPC_INTERNAL_IOMGR_TCP_WINDOWS_H__ */

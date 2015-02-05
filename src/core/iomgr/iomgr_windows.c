@@ -33,39 +33,35 @@
 
 #include <grpc/support/port_platform.h>
 
-#ifdef GPR_POSIX_SOCKETUTILS
+#ifdef GPR_WINSOCK_SOCKET
 
-#define _BSD_SOURCE
-#include "src/core/iomgr/socket_utils_posix.h"
-
-#include <fcntl.h>
-#include <sys/socket.h>
-#include <unistd.h>
+#include "src/core/iomgr/sockaddr_win32.h"
 
 #include <grpc/support/log.h>
 
-int grpc_accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen,
-                 int nonblock, int cloexec) {
-  int fd, flags;
+#include "src/core/iomgr/socket_windows.h"
+#include "src/core/iomgr/iomgr.h"
+#include "src/core/iomgr/iomgr_windows.h"
 
-  fd = accept(sockfd, addr, addrlen);
-  if (fd >= 0) {
-    if (nonblock) {
-      flags = fcntl(fd, F_GETFL, 0);
-      if (flags < 0) goto close_and_error;
-      if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) != 0) goto close_and_error;
-    }
-    if (cloexec) {
-      flags = fcntl(fd, F_GETFD, 0);
-      if (flags < 0) goto close_and_error;
-      if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) != 0) goto close_and_error;
-    }
-  }
-  return fd;
-
-close_and_error:
-  close(fd);
-  return -1;
+static void winsock_init(void) {
+  WSADATA wsaData;
+  int status = WSAStartup(MAKEWORD(2, 0), &wsaData);
+  GPR_ASSERT(status == 0);
 }
 
-#endif /* GPR_POSIX_SOCKETUTILS */
+static void winsock_shutdown(void) {
+  int status = WSACleanup();
+  GPR_ASSERT(status == 0);
+}
+
+void grpc_iomgr_platform_init(void) {
+  winsock_init();
+  grpc_pollset_global_init();
+}
+
+void grpc_iomgr_platform_shutdown(void) {
+  grpc_pollset_global_shutdown();
+  winsock_shutdown();
+}
+
+#endif  /* GRPC_WINSOCK_SOCKET */
