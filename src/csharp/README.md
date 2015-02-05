@@ -19,8 +19,4 @@ CONTENTS
 
 - ext:
   The extension library that wraps C API to be more digestible by C#.
-- GrpcCore:
-  The main gRPC C# library.
-- GrpcApi:
-  API examples for math.proto.
 
