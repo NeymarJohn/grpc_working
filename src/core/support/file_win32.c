@@ -31,50 +31,48 @@
  *
  */
 
-/* Posix implementation for gpr threads. */
-
 #include <grpc/support/port_platform.h>
 
 #ifdef GPR_WIN32
 
-#include <windows.h>
+#include "src/core/support/file.h"
+
+#include <io.h>
+#include <stdio.h>
 #include <string.h>
+
 #include <grpc/support/alloc.h>
-#include <grpc/support/thd.h>
+#include <grpc/support/log.h>
 
-struct thd_arg {
-  void (*body)(void *arg); /* body of a thread */
-  void *arg;               /* argument to a thread */
-};
+FILE *gpr_tmpfile(const char *prefix, char **tmp_filename) {
+  FILE *result = NULL;
+  char *template;
 
-/* Body of every thread started via gpr_thd_new. */
-static DWORD WINAPI thread_body(void *v) {
-  struct thd_arg a = *(struct thd_arg *)v;
-  gpr_free(v);
-  (*a.body)(a.arg);
-  return 0;
-}
+  if (tmp_filename != NULL) *tmp_filename = NULL;
 
-int gpr_thd_new(gpr_thd_id *t, void (*thd_body)(void *arg), void *arg,
-                const gpr_thd_options *options) {
-  HANDLE handle;
-  struct thd_arg *a = gpr_malloc(sizeof(*a));
-  a->body = thd_body;
-  a->arg = arg;
-  *t = 0;
-  handle = CreateThread(NULL, 64 * 1024, thread_body, a, 0, NULL);
-  if (handle == NULL) {
-    gpr_free(a);
-  } else {
-    CloseHandle(handle); /* threads are "detached" */
+  gpr_asprintf(&template, "%s_XXXXXX", prefix);
+  GPR_ASSERT(template != NULL);
+
+  /* _mktemp_s can only create a maximum of 26 file names for any combination of
+     base and template values which is kind of sad... We may revisit this
+     function later to have something better... */
+  if (_mktemp_s(template, strlen(template) + 1) != 0) {
+    gpr_log(LOG_ERROR, "Could not create tmp file.");
+    goto end;
   }
-  return handle != NULL;
-}
+  if (fopen_s(&result, template, "wb+") != 0) {
+    gpr_log(GPR_ERROR, "Could not open file %s", template);
+    result = NULL;
+    goto end;
+  }
 
-gpr_thd_options gpr_thd_options_default(void) {
-  gpr_thd_options options;
-  memset(&options, 0, sizeof(options));
-  return options;
+end:
+  if (result != NULL && tmp_filename != NULL) {
+    *tmp_filename = template;
+  } else {
+    gpr_free(template);
+  }
+  return result;
 }
 
 #endif /* GPR_WIN32 */

@@ -31,50 +31,66 @@
  *
  */
 
-/* Posix implementation for gpr threads. */
+/* Posix code for gpr fdopen and mkstemp support. */
+
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200112L
+#endif
+
+/* Don't know why I have to do this for mkstemp, looks like _POSIX_C_SOURCE
+   should be enough... */
+#ifndef _BSD_SOURCE
+#define _BSD_SOURCE
+#endif
 
 #include <grpc/support/port_platform.h>
 
-#ifdef GPR_WIN32
+#ifdef GPR_POSIX_FILE
 
-#include <windows.h>
+#include "src/core/support/file.h"
+
+#include <errno.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
 #include <grpc/support/alloc.h>
-#include <grpc/support/thd.h>
+#include <grpc/support/log.h>
 
-struct thd_arg {
-  void (*body)(void *arg); /* body of a thread */
-  void *arg;               /* argument to a thread */
-};
+#include "src/core/support/string.h"
 
-/* Body of every thread started via gpr_thd_new. */
-static DWORD WINAPI thread_body(void *v) {
-  struct thd_arg a = *(struct thd_arg *)v;
-  gpr_free(v);
-  (*a.body)(a.arg);
-  return 0;
-}
+FILE *gpr_tmpfile(const char *prefix, char **tmp_filename) {
+  FILE *result = NULL;
+  char *template;
+  int fd;
 
-int gpr_thd_new(gpr_thd_id *t, void (*thd_body)(void *arg), void *arg,
-                const gpr_thd_options *options) {
-  HANDLE handle;
-  struct thd_arg *a = gpr_malloc(sizeof(*a));
-  a->body = thd_body;
-  a->arg = arg;
-  *t = 0;
-  handle = CreateThread(NULL, 64 * 1024, thread_body, a, 0, NULL);
-  if (handle == NULL) {
-    gpr_free(a);
-  } else {
-    CloseHandle(handle); /* threads are "detached" */
+  if (tmp_filename != NULL) *tmp_filename = NULL;
+
+  gpr_asprintf(&template, "%s_XXXXXX", prefix);
+  GPR_ASSERT(template != NULL);
+
+  fd = mkstemp(template);
+  if (fd == -1) {
+    gpr_log(GPR_ERROR, "mkstemp failed for template %s with error %s.",
+            template, strerror(errno));
+    goto end;
   }
-  return handle != NULL;
+  result = fdopen(fd, "w+");
+  if (result == NULL) {
+    gpr_log(GPR_ERROR, "Could not open file %s from fd %d (error = %s).",
+            template, fd, strerror(errno));
+    unlink(template);
+    close(fd);
+    goto end;
+  }
+
+end:
+  if (result != NULL && tmp_filename != NULL) {
+    *tmp_filename = template;
+  } else {
+    gpr_free(template);
+  }
+  return result;
 }
 
-gpr_thd_options gpr_thd_options_default(void) {
-  gpr_thd_options options;
-  memset(&options, 0, sizeof(options));
-  return options;
-}
-
-#endif /* GPR_WIN32 */
+#endif /* GPR_POSIX_FILE */

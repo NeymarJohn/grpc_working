@@ -31,50 +31,30 @@
  *
  */
 
-/* Posix implementation for gpr threads. */
+#ifndef __GRPC_SUPPORT_ENV_H__
+#define __GRPC_SUPPORT_ENV_H__
 
-#include <grpc/support/port_platform.h>
+#include <stdio.h>
 
-#ifdef GPR_WIN32
+#include <grpc/support/slice.h>
 
-#include <windows.h>
-#include <string.h>
-#include <grpc/support/alloc.h>
-#include <grpc/support/thd.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct thd_arg {
-  void (*body)(void *arg); /* body of a thread */
-  void *arg;               /* argument to a thread */
-};
+/* Env utility functions */
 
-/* Body of every thread started via gpr_thd_new. */
-static DWORD WINAPI thread_body(void *v) {
-  struct thd_arg a = *(struct thd_arg *)v;
-  gpr_free(v);
-  (*a.body)(a.arg);
-  return 0;
+/* Gets the environment variable value with the specified name.
+   Returns a newly allocated string. It is the responsability of the caller to
+   gpr_free the return value if not NULL (which means that the environment
+   variable exists). */
+char *gpr_getenv(const char *name);
+
+/* Sets the the environment with the specified name to the specified value. */
+void gpr_setenv(const char *name, const char *value);
+
+#ifdef __cplusplus
 }
+#endif
 
-int gpr_thd_new(gpr_thd_id *t, void (*thd_body)(void *arg), void *arg,
-                const gpr_thd_options *options) {
-  HANDLE handle;
-  struct thd_arg *a = gpr_malloc(sizeof(*a));
-  a->body = thd_body;
-  a->arg = arg;
-  *t = 0;
-  handle = CreateThread(NULL, 64 * 1024, thread_body, a, 0, NULL);
-  if (handle == NULL) {
-    gpr_free(a);
-  } else {
-    CloseHandle(handle); /* threads are "detached" */
-  }
-  return handle != NULL;
-}
-
-gpr_thd_options gpr_thd_options_default(void) {
-  gpr_thd_options options;
-  memset(&options, 0, sizeof(options));
-  return options;
-}
-
-#endif /* GPR_WIN32 */
+#endif /* __GRPC_SUPPORT_ENV_H__ */

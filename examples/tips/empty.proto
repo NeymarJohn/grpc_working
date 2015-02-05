@@ -1,5 +1,3 @@
-// This file will be moved to a new location.
-
 syntax = "proto2";
 
 package proto2;

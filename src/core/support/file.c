@@ -31,50 +31,59 @@
  *
  */
 
-/* Posix implementation for gpr threads. */
+#include "src/core/support/file.h"
 
-#include <grpc/support/port_platform.h>
-
-#ifdef GPR_WIN32
-
-#include <windows.h>
+#include <errno.h>
 #include <string.h>
+
 #include <grpc/support/alloc.h>
-#include <grpc/support/thd.h>
+#include <grpc/support/log.h>
 
-struct thd_arg {
-  void (*body)(void *arg); /* body of a thread */
-  void *arg;               /* argument to a thread */
-};
+#include "src/core/support/string.h"
 
-/* Body of every thread started via gpr_thd_new. */
-static DWORD WINAPI thread_body(void *v) {
-  struct thd_arg a = *(struct thd_arg *)v;
-  gpr_free(v);
-  (*a.body)(a.arg);
-  return 0;
-}
+gpr_slice gpr_load_file(const char *filename, int *success) {
+  unsigned char *contents = NULL;
+  size_t contents_size = 0;
+  unsigned char buf[4096];
+  char *error_msg = NULL;
+  gpr_slice result = gpr_empty_slice();
+  FILE *file = fopen(filename, "rb");
 
-int gpr_thd_new(gpr_thd_id *t, void (*thd_body)(void *arg), void *arg,
-                const gpr_thd_options *options) {
-  HANDLE handle;
-  struct thd_arg *a = gpr_malloc(sizeof(*a));
-  a->body = thd_body;
-  a->arg = arg;
-  *t = 0;
-  handle = CreateThread(NULL, 64 * 1024, thread_body, a, 0, NULL);
-  if (handle == NULL) {
-    gpr_free(a);
-  } else {
-    CloseHandle(handle); /* threads are "detached" */
+  if (file == NULL) {
+    gpr_asprintf(&error_msg, "Could not open file %s (error = %s).", filename,
+                 strerror(errno));
+    GPR_ASSERT(error_msg != NULL);
+    goto end;
   }
-  return handle != NULL;
-}
 
-gpr_thd_options gpr_thd_options_default(void) {
-  gpr_thd_options options;
-  memset(&options, 0, sizeof(options));
-  return options;
-}
+  while (1) {
+    size_t bytes_read = fread(buf, 1, sizeof(buf), file);
+    if (bytes_read > 0) {
+      contents = gpr_realloc(contents, contents_size + bytes_read);
+      memcpy(contents + contents_size, buf, bytes_read);
+      contents_size += bytes_read;
+    }
+    if (bytes_read < sizeof(buf)) {
+      if (ferror(file)) {
+        gpr_asprintf(&error_msg, "Error %s occured while reading file %s.",
+                     strerror(errno), filename);
+        GPR_ASSERT(error_msg != NULL);
+        goto end;
+      } else {
+        GPR_ASSERT(feof(file));
+        break;
+      }
+    }
+  }
+  if (success != NULL) *success = 1;
+  result = gpr_slice_new(contents, contents_size, gpr_free);
 
-#endif /* GPR_WIN32 */
+end:
+  if (error_msg != NULL) {
+    gpr_log(GPR_ERROR, "%s", error_msg);
+    gpr_free(error_msg);
+    if (success != NULL) *success = 0;
+  }
+  if (file != NULL) fclose(file);
+  return result;
+}

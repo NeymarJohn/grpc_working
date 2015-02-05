@@ -220,11 +220,17 @@
         "include/grpc/support/sync_posix.h",
         "include/grpc/support/sync_win32.h",
         "include/grpc/support/thd.h",
+        "include/grpc/support/thd_posix.h",
+        "include/grpc/support/thd_win32.h",
         "include/grpc/support/time.h",
+        "include/grpc/support/time_posix.h",
+        "include/grpc/support/time_win32.h",
         "include/grpc/support/useful.h"
       ],
       "headers": [
         "src/core/support/cpu.h",
+        "src/core/support/env.h",
+        "src/core/support/file.h",
         "src/core/support/murmur_hash.h",
         "src/core/support/string.h",
         "src/core/support/thd_internal.h"
@@ -235,6 +241,12 @@
         "src/core/support/cmdline.c",
         "src/core/support/cpu_linux.c",
         "src/core/support/cpu_posix.c",
+        "src/core/support/env_linux.c",
+        "src/core/support/env_posix.c",
+        "src/core/support/env_win32.c",
+        "src/core/support/file.c",
+        "src/core/support/file_posix.c",
+        "src/core/support/file_win32.c",
         "src/core/support/histogram.c",
         "src/core/support/host_port.c",
         "src/core/support/log.c",
@@ -429,25 +441,12 @@
         "examples/tips/label.proto",
         "examples/tips/empty.proto",
         "examples/tips/pubsub.proto",
-        "examples/tips/publisher.cc",
-        "examples/tips/subscriber.cc"
+        "examples/tips/client.cc"
       ],
       "deps": [
         "grpc++",
         "grpc",
         "gpr"
-      ]
-    },
-    {
-      "name": "grpc_csharp_ext",
-      "build": "all",
-      "language": "c",
-      "deps": [
-        "gpr",
-        "grpc"
-      ],
-      "src": [
-        "src/csharp/ext/grpc_csharp_ext.c"
       ]
     }
   ],
@@ -915,6 +914,30 @@
       "language": "c",
       "src": [
         "test/core/support/log_test.c"
+      ],
+      "deps": [
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "gpr_file_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/support/file_test.c"
+      ],
+      "deps": [
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "gpr_env_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/support/env_test.c"
       ],
       "deps": [
         "gpr_test_util",
@@ -1577,58 +1600,6 @@
       "run": false
     },
     {
-      "name": "tips_client",
-      "build": "test",
-      "language": "c++",
-      "src": [
-        "examples/tips/main.cc"
-      ],
-      "deps": [
-        "tips_client_lib",
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ],
-      "run": false
-    },
-    {
-      "name": "tips_publisher_test",
-      "build": "test",
-      "language": "c++",
-      "src": [
-        "examples/tips/publisher_test.cc"
-      ],
-      "deps": [
-        "tips_client_lib",
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "tips_subscriber_test",
-      "build": "test",
-      "language": "c++",
-      "src": [
-        "examples/tips/subscriber_test.cc"
-      ],
-      "deps": [
-        "tips_client_lib",
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
       "name": "qps_client",
       "build": "test",
       "language": "c++",
@@ -1718,6 +1689,41 @@
         "test/cpp/server/thread_pool_test.cc"
       ],
       "deps": [
+        "grpc_test_util",
+        "grpc++",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "tips_client",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "examples/tips/client_main.cc"
+      ],
+      "deps": [
+        "tips_client_lib",
+        "grpc++_test_util",
+        "grpc_test_util",
+        "grpc++",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ],
+      "run": false
+    },
+    {
+      "name": "tips_client_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "examples/tips/client_test.cc"
+      ],
+      "deps": [
+        "tips_client_lib",
+        "grpc++_test_util",
         "grpc_test_util",
         "grpc++",
         "grpc",

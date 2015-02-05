@@ -31,50 +31,26 @@
  *
  */
 
-/* Posix implementation for gpr threads. */
-
 #include <grpc/support/port_platform.h>
 
-#ifdef GPR_WIN32
+#ifdef GPR_POSIX_ENV
 
-#include <windows.h>
-#include <string.h>
-#include <grpc/support/alloc.h>
-#include <grpc/support/thd.h>
+#include "src/core/support/env.h"
 
-struct thd_arg {
-  void (*body)(void *arg); /* body of a thread */
-  void *arg;               /* argument to a thread */
-};
+#include <stdlib.h>
 
-/* Body of every thread started via gpr_thd_new. */
-static DWORD WINAPI thread_body(void *v) {
-  struct thd_arg a = *(struct thd_arg *)v;
-  gpr_free(v);
-  (*a.body)(a.arg);
-  return 0;
+#include <grpc/support/log.h>
+
+#include "src/core/support/string.h"
+
+char *gpr_getenv(const char *name) {
+  char *result = getenv(name);
+  return result == NULL ? result : gpr_strdup(result);
 }
 
-int gpr_thd_new(gpr_thd_id *t, void (*thd_body)(void *arg), void *arg,
-                const gpr_thd_options *options) {
-  HANDLE handle;
-  struct thd_arg *a = gpr_malloc(sizeof(*a));
-  a->body = thd_body;
-  a->arg = arg;
-  *t = 0;
-  handle = CreateThread(NULL, 64 * 1024, thread_body, a, 0, NULL);
-  if (handle == NULL) {
-    gpr_free(a);
-  } else {
-    CloseHandle(handle); /* threads are "detached" */
-  }
-  return handle != NULL;
+void gpr_setenv(const char *name, const char *value) {
+  int res = setenv(name, value, 1);
+  GPR_ASSERT(res == 0);
 }
 
-gpr_thd_options gpr_thd_options_default(void) {
-  gpr_thd_options options;
-  memset(&options, 0, sizeof(options));
-  return options;
-}
-
-#endif /* GPR_WIN32 */
+#endif /* GPR_POSIX_ENV */
