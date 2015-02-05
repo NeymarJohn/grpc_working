@@ -762,16 +762,7 @@ grpc_interop_test() {
   echo "  $ssh_cmd"
   echo "on $host"
   [[ $dry_run == 1 ]] && return 0  # don't run the command on a dry run
-  gcloud compute $project_opt ssh $zone_opt $host --command "$cmd" & 
-  PID=$!
-  sleep 10
-  echo "pid is $PID"
-  if ps -p $PID
-  then
-    kill $PID
-    return 1
-  fi
-
+  gcloud compute $project_opt ssh $zone_opt $host --command "$cmd"
 }
 
 # Runs a test command on a docker instance.
@@ -817,16 +808,7 @@ grpc_cloud_prod_test() {
   echo "  $ssh_cmd"
   echo "on $host"
   [[ $dry_run == 1 ]] && return 0  # don't run the command on a dry run
-  gcloud compute $project_opt ssh $zone_opt $host --command "$cmd" & 
-  PID=$!
-  sleep 10
-  echo "pid is $PID"
-  if ps -p $PID
-  then
-    kill $PID
-    return 1
-  fi
-
+  gcloud compute $project_opt ssh $zone_opt $host --command "$cmd"
 }
 
 # Runs a test command on a docker instance.
