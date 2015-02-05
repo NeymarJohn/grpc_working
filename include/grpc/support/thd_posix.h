@@ -31,41 +31,12 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef __GRPC_SUPPORT_THD_POSIX_H__
+#define __GRPC_SUPPORT_THD_POSIX_H__
+/* Posix variant of gpr_thd_platform.h. */
 
-#ifdef GPR_POSIX_SOCKETUTILS
+#include <pthread.h>
 
-#define _BSD_SOURCE
-#include "src/core/iomgr/socket_utils_posix.h"
+typedef pthread_t gpr_thd_id;
 
-#include <fcntl.h>
-#include <sys/socket.h>
-#include <unistd.h>
-
-#include <grpc/support/log.h>
-
-int grpc_accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen,
-                 int nonblock, int cloexec) {
-  int fd, flags;
-
-  fd = accept(sockfd, addr, addrlen);
-  if (fd >= 0) {
-    if (nonblock) {
-      flags = fcntl(fd, F_GETFL, 0);
-      if (flags < 0) goto close_and_error;
-      if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) != 0) goto close_and_error;
-    }
-    if (cloexec) {
-      flags = fcntl(fd, F_GETFD, 0);
-      if (flags < 0) goto close_and_error;
-      if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) != 0) goto close_and_error;
-    }
-  }
-  return fd;
-
-close_and_error:
-  close(fd);
-  return -1;
-}
-
-#endif /* GPR_POSIX_SOCKETUTILS */
+#endif /* __GRPC_SUPPORT_THD_POSIX_H__ */

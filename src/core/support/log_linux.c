@@ -31,14 +31,8 @@
  *
  */
 
-#ifndef _POSIX_SOURCE
 #define _POSIX_SOURCE
-#endif
-
-#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
-#endif
-
 #include <grpc/support/port_platform.h>
 
 #ifdef GPR_LINUX
