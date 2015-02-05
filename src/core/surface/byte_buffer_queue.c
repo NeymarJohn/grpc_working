@@ -31,45 +31,54 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_HANDLE_WINDOWS_H__
-#define __GRPC_INTERNAL_IOMGR_HANDLE_WINDOWS_H__
+#include "src/core/surface/byte_buffer_queue.h"
+#include <grpc/support/alloc.h>
+#include <grpc/support/useful.h>
 
-#include <windows.h>
+static void bba_destroy(grpc_bbq_array *array, size_t start_pos) {
+  size_t i;
+  for (i = start_pos; i < array->count; i++) {
+    grpc_byte_buffer_destroy(array->data[i]);
+  }
+  gpr_free(array->data);
+}
 
-#include <grpc/support/sync.h>
-#include <grpc/support/atm.h>
+/* Append an operation to an array, expanding as needed */
+static void bba_push(grpc_bbq_array *a, grpc_byte_buffer *buffer) {
+  if (a->count == a->capacity) {
+    a->capacity = GPR_MAX(a->capacity * 2, 8);
+    a->data = gpr_realloc(a->data, sizeof(grpc_byte_buffer *) * a->capacity);
+  }
+  a->data[a->count++] = buffer;
+}
 
-typedef struct grpc_winsocket_callback_info {
-  /* I hate Microsoft so much. This is supposed to be a WSAOVERLAPPED,
-   * but in order to get that definition, we need to include ws2tcpip.h,
-   * which needs to be included from the top, otherwise it'll clash with
-   * a previous inclusion of windows.h that in turns includes winsock.h.
-   * If anyone knows a way to do it properly, feel free to send a patch.
-   */
-  OVERLAPPED overlapped;
-  void(*cb)(void *opaque, int success);
-  void *opaque;
-  int has_pending_iocp;
-  DWORD bytes_transfered;
-  int wsa_error;
-} grpc_winsocket_callback_info;
+void grpc_bbq_destroy(grpc_byte_buffer_queue *q) {
+  bba_destroy(&q->filling, 0);
+  bba_destroy(&q->draining, q->drain_pos);
+}
 
-typedef struct grpc_winsocket {
-  SOCKET socket;
+int grpc_bbq_empty(grpc_byte_buffer_queue *q) {
+  return (q->drain_pos == q->draining.count && q->filling.count == 0);
+}
 
-  int added_to_iocp;
+void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *buffer) {
+  bba_push(&q->filling, buffer);
+}
 
-  grpc_winsocket_callback_info write_info;
-  grpc_winsocket_callback_info read_info;
+grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q) {
+  grpc_bbq_array temp_array;
 
-  gpr_mu state_mu;
-} grpc_winsocket;
+  if (q->drain_pos == q->draining.count) {
+    if (q->filling.count == 0) {
+      return NULL;
+    }
+    q->draining.count = 0;
+    q->drain_pos = 0;
+    /* swap arrays */
+    temp_array = q->filling;
+    q->filling = q->draining;
+    q->draining = temp_array;
+  }
 
-/* Create a wrapped windows handle.
-This takes ownership of closing it. */
-grpc_winsocket *grpc_winsocket_create(SOCKET socket);
-
-void grpc_winsocket_shutdown(grpc_winsocket *socket);
-void grpc_winsocket_orphan(grpc_winsocket *socket);
-
-#endif /* __GRPC_INTERNAL_IOMGR_HANDLE_WINDOWS_H__ */
+  return q->draining.data[q->drain_pos++];
+}
