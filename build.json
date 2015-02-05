@@ -61,8 +61,8 @@
         "src/core/iomgr/tcp_posix.h",
         "src/core/iomgr/tcp_server.h",
         "src/core/iomgr/time_averaged_stats.h",
-        "src/core/iomgr/wakeup_fd_posix.h",
         "src/core/iomgr/wakeup_fd_pipe.h",
+        "src/core/iomgr/wakeup_fd_posix.h",
         "src/core/json/json.h",
         "src/core/json/json_common.h",
         "src/core/json/json_reader.h",
@@ -73,6 +73,7 @@
         "src/core/statistics/census_tracing.h",
         "src/core/statistics/hash_table.h",
         "src/core/statistics/window_stats.h",
+        "src/core/surface/byte_buffer_queue.h",
         "src/core/surface/call.h",
         "src/core/surface/channel.h",
         "src/core/surface/client.h",
@@ -159,8 +160,10 @@
         "src/core/statistics/hash_table.c",
         "src/core/statistics/window_stats.c",
         "src/core/surface/byte_buffer.c",
+        "src/core/surface/byte_buffer_queue.c",
         "src/core/surface/byte_buffer_reader.c",
         "src/core/surface/call.c",
+        "src/core/surface/call_details.c",
         "src/core/surface/channel.c",
         "src/core/surface/channel_create.c",
         "src/core/surface/client.c",
@@ -168,6 +171,7 @@
         "src/core/surface/event_string.c",
         "src/core/surface/init.c",
         "src/core/surface/lame_client.c",
+        "src/core/surface/metadata_array.c",
         "src/core/surface/secure_channel_create.c",
         "src/core/surface/secure_server_create.c",
         "src/core/surface/server.c",
@@ -220,11 +224,7 @@
         "include/grpc/support/sync_posix.h",
         "include/grpc/support/sync_win32.h",
         "include/grpc/support/thd.h",
-        "include/grpc/support/thd_posix.h",
-        "include/grpc/support/thd_win32.h",
         "include/grpc/support/time.h",
-        "include/grpc/support/time_posix.h",
-        "include/grpc/support/time_win32.h",
         "include/grpc/support/useful.h"
       ],
       "headers": [
@@ -433,12 +433,25 @@
         "examples/tips/label.proto",
         "examples/tips/empty.proto",
         "examples/tips/pubsub.proto",
-        "examples/tips/client.cc"
+        "examples/tips/publisher.cc",
+        "examples/tips/subscriber.cc"
       ],
       "deps": [
         "grpc++",
         "grpc",
         "gpr"
+      ]
+    },
+    {
+      "name": "grpc_csharp_ext",
+      "build": "all",
+      "language": "c",
+      "deps": [
+        "gpr",
+        "grpc"
+      ],
+      "src": [
+        "src/csharp/ext/grpc_csharp_ext.c"
       ]
     }
   ],
@@ -1193,6 +1206,48 @@
       ]
     },
     {
+      "name": "json_rewrite",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/json/json_rewrite.c"
+      ],
+      "deps": [
+        "grpc",
+        "gpr"
+      ],
+      "run": false
+    },
+    {
+      "name": "json_rewrite_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/json/json_rewrite_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ],
+      "run": false
+    },
+    {
+      "name": "json_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/json/json_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
       "name": "lame_client_test",
       "build": "test",
       "language": "c",
@@ -1429,48 +1484,6 @@
       ]
     },
     {
-      "name": "json_test",
-      "build": "test",
-      "language": "c",
-      "src": [
-        "test/core/json/json_test.c"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "json_rewrite",
-      "build": "test",
-      "language": "c",
-      "src": [
-        "test/core/json/json_rewrite.c"
-      ],
-      "deps": [
-        "grpc",
-        "gpr"
-      ],
-      "run": false
-    },
-    {
-      "name": "json_rewrite_test",
-      "build": "test",
-      "language": "c",
-      "src": [
-        "test/core/json/json_rewrite_test.c"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ],
-      "run": false
-    },
-    {
       "name": "channel_arguments_test",
       "build": "test",
       "language": "c++",
@@ -1570,10 +1583,27 @@
     {
       "name": "tips_client",
       "build": "test",
-      "run": false,
       "language": "c++",
       "src": [
-        "examples/tips/client_main.cc"
+        "examples/tips/main.cc"
+      ],
+      "deps": [
+        "tips_client_lib",
+        "grpc++_test_util",
+        "grpc_test_util",
+        "grpc++",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ],
+      "run": false
+    },
+    {
+      "name": "tips_publisher_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "examples/tips/publisher_test.cc"
       ],
       "deps": [
         "tips_client_lib",
@@ -1586,11 +1616,11 @@
       ]
     },
     {
-      "name": "tips_client_test",
+      "name": "tips_subscriber_test",
       "build": "test",
       "language": "c++",
       "src": [
-        "examples/tips/client_test.cc"
+        "examples/tips/subscriber_test.cc"
       ],
       "deps": [
         "tips_client_lib",
