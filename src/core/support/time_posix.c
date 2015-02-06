@@ -34,8 +34,7 @@
 /* Posix code for gpr time support. */
 
 /* So we get nanosleep and clock_* */
-#if !defined _POSIX_C_SOURCE || _POSIX_C_SOURCE < 199309L
-#undef _POSIX_C_SOURCE
+#ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 199309L
 #endif
 
@@ -48,25 +47,11 @@
 #include <unistd.h>
 #include <grpc/support/time.h>
 
-static struct timespec timespec_from_gpr(gpr_timespec gts) {
-  struct timespec rv;
-  rv.tv_sec = gts.tv_sec;
-  rv.tv_nsec = gts.tv_nsec;
-  return rv;
-}
-
 #if _POSIX_TIMERS > 0
-static gpr_timespec gpr_from_timespec(struct timespec ts) {
-  gpr_timespec rv;
-  rv.tv_sec = ts.tv_sec;
-  rv.tv_nsec = ts.tv_nsec;
-  return rv;
-}
-
 gpr_timespec gpr_now(void) {
-  struct timespec now;
+  gpr_timespec now;
   clock_gettime(CLOCK_REALTIME, &now);
-  return gpr_from_timespec(now);
+  return now;
 }
 #else
 /* For some reason Apple's OSes haven't implemented clock_gettime. */
@@ -84,7 +69,6 @@ gpr_timespec gpr_now(void) {
 void gpr_sleep_until(gpr_timespec until) {
   gpr_timespec now;
   gpr_timespec delta;
-  struct timespec delta_ts;
 
   for (;;) {
     /* We could simplify by using clock_nanosleep instead, but it might be
@@ -95,8 +79,7 @@ void gpr_sleep_until(gpr_timespec until) {
     }
 
     delta = gpr_time_sub(until, now);
-    delta_ts = timespec_from_gpr(delta);
-    if (nanosleep(&delta_ts, NULL) == 0) {
+    if (nanosleep(&delta, NULL) == 0) {
       break;
     }
   }

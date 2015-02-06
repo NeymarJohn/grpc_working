@@ -243,24 +243,15 @@ function Server(getMetadata, options) {
       var handler = undefined;
       var deadline = data.absolute_deadline;
       var cancelled = false;
+      if (handlers.hasOwnProperty(data.method)) {
+        handler = handlers[data.method];
+      }
       call.serverAccept(function(event) {
         if (event.data.code === grpc.status.CANCELLED) {
           cancelled = true;
-          if (stream) {
-            stream.emit('cancelled');
-          }
+          stream.emit('cancelled');
         }
       }, 0);
-      if (handlers.hasOwnProperty(data.method)) {
-        handler = handlers[data.method];
-      } else {
-        call.serverEndInitialMetadata(0);
-        call.startWriteStatus(
-            grpc.status.UNIMPLEMENTED,
-            "This method is not available on this server.",
-            function() {});
-        return;
-      }
       if (getMetadata) {
         call.addMetadata(getMetadata(data.method, data.metadata));
       }
