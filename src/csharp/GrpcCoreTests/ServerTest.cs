@@ -12,7 +12,7 @@ namespace Google.GRPC.Core.Tests
             Server server = new Server();
             server.AddPort("localhost:" + Utils.PickUnusedPort());
             server.Start();
-            server.ShutdownAsync().Wait();
+            server.Shutdown();
 
             GrpcEnvironment.Shutdown();
         }

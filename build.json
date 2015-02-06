@@ -163,7 +163,6 @@
         "src/core/surface/byte_buffer_queue.c",
         "src/core/surface/byte_buffer_reader.c",
         "src/core/surface/call.c",
-        "src/core/surface/call_details.c",
         "src/core/surface/channel.c",
         "src/core/surface/channel_create.c",
         "src/core/surface/client.c",
@@ -171,7 +170,6 @@
         "src/core/surface/event_string.c",
         "src/core/surface/init.c",
         "src/core/surface/lame_client.c",
-        "src/core/surface/metadata_array.c",
         "src/core/surface/secure_channel_create.c",
         "src/core/surface/secure_server_create.c",
         "src/core/surface/server.c",
@@ -229,8 +227,6 @@
       ],
       "headers": [
         "src/core/support/cpu.h",
-        "src/core/support/env.h",
-        "src/core/support/file.h",
         "src/core/support/murmur_hash.h",
         "src/core/support/string.h",
         "src/core/support/thd_internal.h"
@@ -241,12 +237,6 @@
         "src/core/support/cmdline.c",
         "src/core/support/cpu_linux.c",
         "src/core/support/cpu_posix.c",
-        "src/core/support/env_linux.c",
-        "src/core/support/env_posix.c",
-        "src/core/support/env_win32.c",
-        "src/core/support/file.c",
-        "src/core/support/file_posix.c",
-        "src/core/support/file_win32.c",
         "src/core/support/histogram.c",
         "src/core/support/host_port.c",
         "src/core/support/log.c",
@@ -927,30 +917,6 @@
       "language": "c",
       "src": [
         "test/core/support/log_test.c"
-      ],
-      "deps": [
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "gpr_file_test",
-      "build": "test",
-      "language": "c",
-      "src": [
-        "test/core/support/file_test.c"
-      ],
-      "deps": [
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "gpr_env_test",
-      "build": "test",
-      "language": "c",
-      "src": [
-        "test/core/support/env_test.c"
       ],
       "deps": [
         "gpr_test_util",

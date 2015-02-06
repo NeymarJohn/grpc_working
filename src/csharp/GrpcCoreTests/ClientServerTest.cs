@@ -8,48 +8,41 @@ namespace Google.GRPC.Core.Tests
 {
     public class ClientServerTest
     {
+        string request = "REQUEST";
         string serverAddr = "localhost:" + Utils.PickUnusedPort();
-
-        private Method<string, string> unaryEchoStringMethod = new Method<string, string>(
-            MethodType.Unary,
-            "/tests.Test/UnaryEchoString",
-            new StringMarshaller(),
-            new StringMarshaller());
 
         [Test]
         public void EmptyCall()
         {
             Server server = new Server();
-
-            server.AddCallHandler(unaryEchoStringMethod.Name, 
-                                  ServerCalls.UnaryRequestCall(unaryEchoStringMethod, HandleUnaryEchoString));
-
             server.AddPort(serverAddr);
             server.Start();
 
+            Task.Factory.StartNew(
+                () => {
+                    server.RunRpc();
+                }
+            );
+
             using (Channel channel = new Channel(serverAddr))
             {
-                var call = CreateUnaryEchoStringCall(channel);
-
-                Assert.AreEqual("ABC", Calls.BlockingUnaryCall(call, "ABC", default(CancellationToken)));
-                Assert.AreEqual("abcdef", Calls.BlockingUnaryCall(call, "abcdef", default(CancellationToken)));
+                CreateCall(channel);
+                string response = Calls.BlockingUnaryCall(CreateCall(channel), request, default(CancellationToken));
+                Console.WriteLine("Received response: " + response);
             }
          
-            server.ShutdownAsync().Wait();
+            server.Shutdown();
 
             GrpcEnvironment.Shutdown();
         }
 
-        private Call<string, string> CreateUnaryEchoStringCall(Channel channel)
+        private Call<string, string> CreateCall(Channel channel)
         {
-            return new Call<string, string>(unaryEchoStringMethod, channel);
+            return new Call<string, string>("/tests.Test/EmptyCall",
+                                        (s) => System.Text.Encoding.ASCII.GetBytes(s), 
+                                        (b) => System.Text.Encoding.ASCII.GetString(b),
+                                        Timeout.InfiniteTimeSpan, channel);
         }
-
-        private void HandleUnaryEchoString(string request, IObserver<string> responseObserver) {
-            responseObserver.OnNext(request);
-            responseObserver.OnCompleted();
-        }
-
     }
 }
 

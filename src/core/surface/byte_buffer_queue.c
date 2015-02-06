@@ -35,13 +35,7 @@
 #include <grpc/support/alloc.h>
 #include <grpc/support/useful.h>
 
-static void bba_destroy(grpc_bbq_array *array, size_t start_pos) {
-  size_t i;
-  for (i = start_pos; i < array->count; i++) {
-    grpc_byte_buffer_destroy(array->data[i]);
-  }
-  gpr_free(array->data);
-}
+static void bba_destroy(grpc_bbq_array *array) { gpr_free(array->data); }
 
 /* Append an operation to an array, expanding as needed */
 static void bba_push(grpc_bbq_array *a, grpc_byte_buffer *buffer) {
@@ -53,8 +47,8 @@ static void bba_push(grpc_bbq_array *a, grpc_byte_buffer *buffer) {
 }
 
 void grpc_bbq_destroy(grpc_byte_buffer_queue *q) {
-  bba_destroy(&q->filling, 0);
-  bba_destroy(&q->draining, q->drain_pos);
+  bba_destroy(&q->filling);
+  bba_destroy(&q->draining);
 }
 
 int grpc_bbq_empty(grpc_byte_buffer_queue *q) {
@@ -63,13 +57,6 @@ int grpc_bbq_empty(grpc_byte_buffer_queue *q) {
 
 void grpc_bbq_push(grpc_byte_buffer_queue *q, grpc_byte_buffer *buffer) {
   bba_push(&q->filling, buffer);
-}
-
-void grpc_bbq_flush(grpc_byte_buffer_queue *q) {
-  grpc_byte_buffer *bb;
-  while ((bb = grpc_bbq_pop(q))) {
-    grpc_byte_buffer_destroy(bb);
-  }
 }
 
 grpc_byte_buffer *grpc_bbq_pop(grpc_byte_buffer_queue *q) {
