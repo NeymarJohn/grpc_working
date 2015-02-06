@@ -48,9 +48,11 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Examples.cs" />
+    <Compile Include="IMathServiceClient.cs" />
     <Compile Include="Math.cs" />
-    <Compile Include="MathGrpc.cs" />
-    <Compile Include="MathServiceImpl.cs" />
+    <Compile Include="DummyMathServiceClient.cs" />
+    <Compile Include="MathServiceClientStub.cs" />
+    <Compile Include="RecordingObserver.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

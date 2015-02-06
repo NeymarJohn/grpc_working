@@ -38,14 +38,10 @@ namespace Google.GRPC.Core
             this.serverShutdownHandler = HandleServerShutdown;
         }
 
-        // only call this before Start()
-        public void AddServiceDefinition(ServerServiceDefinition serviceDefinition) {
-            foreach(var entry in serviceDefinition.CallHandlers)
-            {
-                callHandlers.Add(entry.Key, entry.Value);
-            }
+        // only call before Start(), this will be in server builder in the future.
+        internal void AddCallHandler(string methodName, IServerCallHandler handler) {
+            callHandlers.Add(methodName, handler);
         }
-
         // only call before Start()
         public int AddPort(string addr) {
             return handle.AddPort(addr);
@@ -117,12 +113,7 @@ namespace Google.GRPC.Core
             try
             {
                 var ev = new EventSafeHandleNotOwned(eventPtr);
-                var rpcInfo = new NewRpcInfo(ev.GetCall(), ev.GetServerRpcNewMethod());
-
-                // after server shutdown, the callback returns with null call
-                if (!rpcInfo.Call.IsInvalid) {
-                    newRpcQueue.Add(rpcInfo);
-                }
+                newRpcQueue.Add(new NewRpcInfo(ev.GetCall(), ev.GetServerRpcNewMethod()));
             }
             catch (Exception e)
             {

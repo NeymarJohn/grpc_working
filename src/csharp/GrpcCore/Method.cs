@@ -17,10 +17,10 @@ namespace Google.GRPC.Core
     {
         readonly MethodType type;
         readonly string name;
-        readonly Marshaller<TRequest> requestMarshaller;
-        readonly Marshaller<TResponse> responseMarshaller;
+        readonly IMarshaller<TRequest> requestMarshaller;
+        readonly IMarshaller<TResponse> responseMarshaller;
 
-        public Method(MethodType type, string name, Marshaller<TRequest> requestMarshaller, Marshaller<TResponse> responseMarshaller)
+        public Method(MethodType type, string name, IMarshaller<TRequest> requestMarshaller, IMarshaller<TResponse> responseMarshaller)
         {
             this.type = type;
             this.name = name;
@@ -44,7 +44,7 @@ namespace Google.GRPC.Core
             }
         }
 
-        public Marshaller<TRequest> RequestMarshaller
+        public IMarshaller<TRequest> RequestMarshaller
         {
             get
             {
@@ -52,7 +52,7 @@ namespace Google.GRPC.Core
             }
         }
 
-        public Marshaller<TResponse> ResponseMarshaller
+        public IMarshaller<TResponse> ResponseMarshaller
         {
             get
             {
