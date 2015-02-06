@@ -39,7 +39,6 @@
 
 #include <stdlib.h>
 
-#include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 
 char *gpr_getenv(const char *name) {
