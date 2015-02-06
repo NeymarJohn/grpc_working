@@ -33,8 +33,7 @@
 
 /* Posix code for gpr snprintf support. */
 
-#if !defined _POSIX_C_SOURCE || _POSIX_C_SOURCE < 200112L
-#undef _POSIX_C_SOURCE
+#ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200112L
 #endif
 
