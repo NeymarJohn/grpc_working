@@ -37,6 +37,7 @@
 #include "grpc/grpc.h"
 #include "grpc/support/time.h"
 #include "completion_queue_async_worker.h"
+#include "event.h"
 #include "tag.h"
 
 namespace grpc {
@@ -57,9 +58,6 @@ CompletionQueueAsyncWorker::~CompletionQueueAsyncWorker() {}
 
 void CompletionQueueAsyncWorker::Execute() {
   result = grpc_completion_queue_next(queue, gpr_inf_future);
-  if (result->data.op_complete != GRPC_OP_OK) {
-    SetErrorMessage("The batch encountered an error");
-  }
 }
 
 grpc_completion_queue *CompletionQueueAsyncWorker::GetQueue() { return queue; }
@@ -77,26 +75,14 @@ void CompletionQueueAsyncWorker::Init(Handle<Object> exports) {
 
 void CompletionQueueAsyncWorker::HandleOKCallback() {
   NanScope();
-  NanCallback callback = GetTagCallback(result->tag);
-  Handle<Value> argv[] = {NanNull(), GetNodeValue(result->tag)};
+  NanCallback event_callback(GetTagHandle(result->tag).As<Function>());
+  Handle<Value> argv[] = {CreateEventObject(result)};
 
   DestroyTag(result->tag);
   grpc_event_finish(result);
   result = NULL;
 
-  callback.Call(2, argv);
-}
-
-void CompletionQueueAsyncWorker::HandleErrorCallback() {
-  NanScope();
-  NanCallback callback = GetTagCallback(result->tag);
-  Handle<Value> argv[] = {NanError(ErrorMessage())};
-
-  DestroyTag(result->tag);
-  grpc_event_finish(result);
-  result = NULL;
-
-  callback.Call(1, argv);
+  event_callback.Call(1, argv);
 }
 
 }  // namespace node

@@ -9,15 +9,14 @@
       'include_dirs': [
         "<!(nodejs -e \"require('nan')\")"
       ],
-      'cflags': [
-        '-std=c++11',
+      'cxxflags': [
         '-Wall',
         '-pthread',
         '-pedantic',
         '-g',
         '-zdefs'
-        '-Werror'
-      ],
+        '-Werror',
+        ],
       'ldflags': [
         '-g'
       ],
