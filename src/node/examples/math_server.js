@@ -128,8 +128,7 @@ var server = new Server({
 });
 
 if (require.main === module) {
-  server.bind('0.0.0.0:7070');
-  server.listen();
+  server.bind('localhost:7070').listen();
 }
 
 /**

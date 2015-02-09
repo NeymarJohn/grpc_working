@@ -41,23 +41,22 @@
 
 namespace grpc {
 
-class 
-class ServerContext;
+class AsyncServerContext;
 class RpcServiceMethod;
 
 class ServerRpcHandler {
  public:
-  ServerRpcHandler(Call *call,
-  				   ServerContext *server_context,
+  // Takes ownership of async_server_context.
+  ServerRpcHandler(AsyncServerContext *async_server_context,
                    RpcServiceMethod *method);
 
   void StartRpc();
 
  private:
+  CompletionQueue::CompletionType WaitForNextEvent();
   void FinishRpc(const Status &status);
 
-  Call *call_;
-  ServerContext* server_context_;
+  std::unique_ptr<AsyncServerContext> async_server_context_;
   RpcServiceMethod *method_;
   CompletionQueue cq_;
 };

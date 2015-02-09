@@ -31,21 +31,65 @@
  *
  */
 
-#ifndef __GRPCPP_SERVER_CONTEXT_H_
-#define __GRPCPP_SERVER_CONTEXT_H_
+#ifndef __GRPCPP_ASYNC_SERVER_CONTEXT_H__
+#define __GRPCPP_ASYNC_SERVER_CONTEXT_H__
 
 #include <chrono>
 
+#include <grpc++/config.h>
+
+struct grpc_byte_buffer;
+struct grpc_call;
+struct grpc_completion_queue;
+
+namespace google {
+namespace protobuf {
+class Message;
+}
+}
+
+using std::chrono::system_clock;
+
 namespace grpc {
+class Status;
 
-// Interface of server side rpc context.
-class ServerContext {
+// TODO(rocking): wrap grpc c structures.
+class AsyncServerContext {
  public:
-  virtual ~ServerContext() {}
+  AsyncServerContext(grpc_call* call, const grpc::string& method,
+                     const grpc::string& host,
+                     system_clock::time_point absolute_deadline);
+  ~AsyncServerContext();
 
-  virtual std::chrono::system_clock::time_point absolute_deadline() const = 0;
+  // Accept this rpc, bind it to a completion queue.
+  void Accept(grpc_completion_queue* cq);
+
+  // Read and write calls, all async. Return true for success.
+  bool StartRead(google::protobuf::Message* request);
+  bool StartWrite(const google::protobuf::Message& response, int flags);
+  bool StartWriteStatus(const Status& status);
+
+  bool ParseRead(grpc_byte_buffer* read_buffer);
+
+  grpc::string method() const { return method_; }
+  grpc::string host() const { return host_; }
+  system_clock::time_point absolute_deadline() { return absolute_deadline_; }
+
+  grpc_call* call() { return call_; }
+
+ private:
+  AsyncServerContext(const AsyncServerContext&);
+  AsyncServerContext& operator=(const AsyncServerContext&);
+
+  // These properties may be moved to a ServerContext class.
+  const grpc::string method_;
+  const grpc::string host_;
+  system_clock::time_point absolute_deadline_;
+
+  google::protobuf::Message* request_;  // not owned
+  grpc_call* call_;                     // owned
 };
 
 }  // namespace grpc
 
-#endif  // __GRPCPP_SERVER_CONTEXT_H_
+#endif  // __GRPCPP_ASYNC_SERVER_CONTEXT_H__

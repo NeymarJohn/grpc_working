@@ -31,66 +31,45 @@
  *
  */
 
-#ifndef __GRPCPP_CALL_H__
-#define __GRPCPP_CALL_H__
+#ifndef __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+#define __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
 
-#include <grpc++/status.h>
+#include <condition_variable>
+#include <mutex>
+#include <string>
+
+#include <grpc++/async_server.h>
 #include <grpc++/completion_queue.h>
-
-#include <memory>
-#include <vector>
-
-namespace google {
-namespace protobuf {
-class Message;
-}  // namespace protobuf
-}  // namespace google
-
-struct grpc_call;
-struct grpc_op;
 
 namespace grpc {
 
-class ChannelInterface;
+namespace testing {
 
-class CallOpBuffer final : public CompletionQueueTag {
+class AsyncTestServer {
  public:
-  void AddSendInitialMetadata(std::vector<std::pair<grpc::string, grpc::string> > *metadata);
-  void AddSendMessage(const google::protobuf::Message &message);
-  void AddRecvMessage(google::protobuf::Message *message);
-  void AddClientSendClose();
-  void AddClientRecvStatus(Status *status);
+  AsyncTestServer();
+  virtual ~AsyncTestServer();
 
-  // INTERNAL API:
+  void AddPort(const grpc::string& addr);
+  void Start();
+  void RequestOneRpc();
+  virtual void MainLoop();
+  void Shutdown();
 
-  // Convert to an array of grpc_op elements
-  void FillOps(grpc_op *ops, size_t *nops);
+  CompletionQueue* completion_queue() { return &cq_; }
 
-  // Called by completion queue just prior to returning from Next() or Pluck()
-  FinalizeResultOutput FinalizeResult(bool status) override;
-};
-
-class CCallDeleter {
- public:
-  void operator()(grpc_call *c);
-};
-
-// Straightforward wrapping of the C call object
-class Call final {
- public:
-  Call(grpc_call *call, ChannelInterface *channel, CompletionQueue *cq);
-
-  void PerformOps(CallOpBuffer *buffer, void *tag);
-
-  grpc_call *call() { return call_.get(); }
-  CompletionQueue *cq() { return cq_; }
+ protected:
+  void HandleQueueClosed();
 
  private:
-  ChannelInterface *channel_;
-  CompletionQueue *cq_;
-  std::unique_ptr<grpc_call, CCallDeleter> call_;
+  CompletionQueue cq_;
+  AsyncServer server_;
+  bool cq_drained_;
+  std::mutex cq_drained_mu_;
+  std::condition_variable cq_drained_cv_;
 };
 
+}  // namespace testing
 }  // namespace grpc
 
-#endif  // __GRPCPP_CALL_INTERFACE_H__
+#endif  // __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
