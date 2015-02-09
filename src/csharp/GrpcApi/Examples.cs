@@ -6,7 +6,7 @@ using Google.GRPC.Core.Utils;
 
 namespace math
 {
-	public static class MathExamples
+	public class Examples
 	{
 		public static void DivExample(MathGrpc.IMathServiceClient stub)
 		{
