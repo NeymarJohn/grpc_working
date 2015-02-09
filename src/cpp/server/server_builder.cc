@@ -34,19 +34,14 @@
 #include <grpc++/server_builder.h>
 
 #include <grpc/support/log.h>
-#include <grpc++/impl/service_type.h>
 #include <grpc++/server.h>
 
 namespace grpc {
 
 ServerBuilder::ServerBuilder() : thread_pool_(nullptr) {}
 
-void ServerBuilder::RegisterService(SynchronousService *service) {
-  services_.push_back(service->service());
-}
-
-void ServerBuilder::RegisterAsyncService(AsynchronousService *service) {
-  async_services_.push_back(service);
+void ServerBuilder::RegisterService(RpcService *service) {
+  services_.push_back(service);
 }
 
 void ServerBuilder::AddPort(const grpc::string &addr) {
