@@ -31,15 +31,24 @@
  *
  */
 
-#ifndef __GRPCPP_CONFIG_H__
-#define __GRPCPP_CONFIG_H__
-
-#include <string>
+#ifndef __GRPCPP_IMPL_SERVICE_TYPE_H__
+#define __GRPCPP_IMPL_SERVICE_TYPE_H__
 
 namespace grpc {
 
-typedef std::string string;
+class RpcService;
 
-} // namespace grpc
+class SynchronousService {
+ public:
+  virtual ~SynchronousService() {}
+  virtual RpcService *service() = 0;
+};
 
-#endif  // __GRPCPP_CONFIG_H__
+class AsynchronousService {
+ public:
+  virtual ~AsynchronousService() {}
+};
+
+}  // namespace grpc
+
+#endif // __GRPCPP_IMPL_SERVICE_TYPE_H__
