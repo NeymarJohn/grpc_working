@@ -31,56 +31,24 @@
  *
  */
 
-#ifndef __GRPCPP_SERVER_BUILDER_H__
-#define __GRPCPP_SERVER_BUILDER_H__
-
-#include <memory>
-#include <vector>
-
-#include <grpc++/config.h>
+#ifndef __GRPCPP_IMPL_SERVICE_TYPE_H__
+#define __GRPCPP_IMPL_SERVICE_TYPE_H__
 
 namespace grpc {
 
-class AsynchronousService;
 class RpcService;
-class Server;
-class ServerCredentials;
-class SynchronousService;
-class ThreadPoolInterface;
 
-class ServerBuilder {
+class SynchronousService {
  public:
-  ServerBuilder();
+  virtual ~SynchronousService() {}
+  virtual RpcService *service() = 0;
+};
 
-  // Register a service. This call does not take ownership of the service.
-  // The service must exist for the lifetime of the Server instance returned by
-  // BuildAndStart().
-  void RegisterService(SynchronousService* service);
-
-  void RegisterAsyncService(AsynchronousService *service);
-
-  // Add a listening port. Can be called multiple times.
-  void AddPort(const grpc::string& addr);
-
-  // Set a ServerCredentials. Can only be called once.
-  // TODO(yangg) move this to be part of AddPort
-  void SetCredentials(const std::shared_ptr<ServerCredentials>& creds);
-
-  // Set the thread pool used for running appliation rpc handlers.
-  // Does not take ownership.
-  void SetThreadPool(ThreadPoolInterface* thread_pool);
-
-  // Return a running server which is ready for processing rpcs.
-  std::unique_ptr<Server> BuildAndStart();
-
- private:
-  std::vector<RpcService*> services_;
-  std::vector<AsynchronousService*> async_services_;
-  std::vector<grpc::string> ports_;
-  std::shared_ptr<ServerCredentials> creds_;
-  ThreadPoolInterface* thread_pool_ = nullptr;
+class AsynchronousService {
+ public:
+  virtual ~AsynchronousService() {}
 };
 
 }  // namespace grpc
 
-#endif  // __GRPCPP_SERVER_BUILDER_H__
+#endif // __GRPCPP_IMPL_SERVICE_TYPE_H__
