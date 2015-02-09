@@ -70,15 +70,15 @@ class Server {
   friend class ServerBuilder;
 
   // ServerBuilder use only
-  Server(ThreadPoolInterface* thread_pool, bool thread_pool_owned, ServerCredentials* creds);
+  Server(ThreadPoolInterface* thread_pool, ServerCredentials* creds);
   Server();
   // Register a service. This call does not take ownership of the service.
   // The service must exist for the lifetime of the Server instance.
-  bool RegisterService(RpcService* service);
+  void RegisterService(RpcService* service);
   // Add a listening port. Can be called multiple times.
-  int AddPort(const grpc::string& addr);
+  void AddPort(const grpc::string& addr);
   // Start the server.
-  bool Start();
+  void Start();
 
   void AllowOneRpc();
   void HandleQueueClosed();

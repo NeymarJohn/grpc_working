@@ -38,20 +38,24 @@
 #include <grpc/grpc_security.h>
 #include <grpc/support/log.h>
 #include "src/cpp/server/server_rpc_handler.h"
+#include "src/cpp/server/thread_pool.h"
 #include <grpc++/async_server_context.h>
 #include <grpc++/completion_queue.h>
 #include <grpc++/impl/rpc_service_method.h>
 #include <grpc++/server_credentials.h>
-#include <grpc++/thread_pool_interface.h>
 
 namespace grpc {
 
-Server::Server(ThreadPoolInterface *thread_pool, bool thread_pool_owned, ServerCredentials *creds)
+// TODO(rocking): consider a better default value like num of cores.
+static const int kNumThreads = 4;
+
+Server::Server(ThreadPoolInterface *thread_pool, ServerCredentials *creds)
     : started_(false),
       shutdown_(false),
       num_running_cb_(0),
-      thread_pool_(thread_pool),
-      thread_pool_owned_(thread_pool_owned),
+      thread_pool_(thread_pool == nullptr ? new ThreadPool(kNumThreads)
+                                          : thread_pool),
+      thread_pool_owned_(thread_pool == nullptr),
       secure_(creds != nullptr) {
   if (creds) {
     server_ =
@@ -78,38 +82,31 @@ Server::~Server() {
   }
 }
 
-bool Server::RegisterService(RpcService *service) {
+void Server::RegisterService(RpcService *service) {
   for (int i = 0; i < service->GetMethodCount(); ++i) {
     RpcServiceMethod *method = service->GetMethod(i);
-    if (method_map_.find(method->name()) != method_map_.end()) {
-      gpr_log(GPR_DEBUG, "Attempt to register %s multiple times", method->name());
-      return false;
-    }
     method_map_.insert(std::make_pair(method->name(), method));
   }
-  return true;
 }
 
-int Server::AddPort(const grpc::string &addr) {
+void Server::AddPort(const grpc::string &addr) {
   GPR_ASSERT(!started_);
+  int success;
   if (secure_) {
-    return grpc_server_add_secure_http2_port(server_, addr.c_str());
+    success = grpc_server_add_secure_http2_port(server_, addr.c_str());
   } else {
-    return grpc_server_add_http2_port(server_, addr.c_str());
+    success = grpc_server_add_http2_port(server_, addr.c_str());
   }
+  GPR_ASSERT(success);
 }
 
-bool Server::Start() {
+void Server::Start() {
   GPR_ASSERT(!started_);
   started_ = true;
   grpc_server_start(server_);
 
   // Start processing rpcs.
-  if (thread_pool_) {
-    ScheduleCallback();
-  }
-
-  return true;
+  ScheduleCallback();
 }
 
 void Server::AllowOneRpc() {
@@ -135,8 +132,8 @@ void Server::Shutdown() {
   // Shutdown the completion queue.
   cq_.Shutdown();
   void *tag = nullptr;
-  bool ok = false;
-  GPR_ASSERT(false == cq_.Next(&tag, &ok));
+  CompletionQueue::CompletionType t = cq_.Next(&tag);
+  GPR_ASSERT(t == CompletionQueue::QUEUE_CLOSED);
 }
 
 void Server::ScheduleCallback() {
@@ -144,30 +141,30 @@ void Server::ScheduleCallback() {
     std::unique_lock<std::mutex> lock(mu_);
     num_running_cb_++;
   }
-  thread_pool_->ScheduleCallback(std::bind(&Server::RunRpc, this));
+  std::function<void()> callback = std::bind(&Server::RunRpc, this);
+  thread_pool_->ScheduleCallback(callback);
 }
 
 void Server::RunRpc() {
   // Wait for one more incoming rpc.
   void *tag = nullptr;
   AllowOneRpc();
-  bool ok = false;
-  GPR_ASSERT(cq_.Next(&tag, &ok));
-  if (ok) {
-    AsyncServerContext *server_context = static_cast<AsyncServerContext *>(tag);
-    // server_context could be nullptr during server shutdown.
-    if (server_context != nullptr) {
-      // Schedule a new callback to handle more rpcs.
-      ScheduleCallback();
+  CompletionQueue::CompletionType t = cq_.Next(&tag);
+  GPR_ASSERT(t == CompletionQueue::SERVER_RPC_NEW);
 
-      RpcServiceMethod *method = nullptr;
-      auto iter = method_map_.find(server_context->method());
-      if (iter != method_map_.end()) {
-        method = iter->second;
-      }
-      ServerRpcHandler rpc_handler(server_context, method);
-      rpc_handler.StartRpc();
+  AsyncServerContext *server_context = static_cast<AsyncServerContext *>(tag);
+  // server_context could be nullptr during server shutdown.
+  if (server_context != nullptr) {
+    // Schedule a new callback to handle more rpcs.
+    ScheduleCallback();
+
+    RpcServiceMethod *method = nullptr;
+    auto iter = method_map_.find(server_context->method());
+    if (iter != method_map_.end()) {
+      method = iter->second;
     }
+    ServerRpcHandler rpc_handler(server_context, method);
+    rpc_handler.StartRpc();
   }
 
   {
