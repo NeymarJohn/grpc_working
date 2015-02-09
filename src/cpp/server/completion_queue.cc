@@ -31,9 +31,8 @@
  *
  */
 
+// TODO(yangg) maybe move to internal/common
 #include <grpc++/completion_queue.h>
-
-#include <memory>
 
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
@@ -49,24 +48,66 @@ CompletionQueue::~CompletionQueue() { grpc_completion_queue_destroy(cq_); }
 
 void CompletionQueue::Shutdown() { grpc_completion_queue_shutdown(cq_); }
 
-// Helper class so we can declare a unique_ptr with grpc_event
-class EventDeleter {
- public:
-  void operator()(grpc_event *ev) { if (ev) grpc_event_finish(ev); }
-};
+CompletionQueue::CompletionType CompletionQueue::Next(void **tag) {
+  grpc_event *ev;
+  CompletionType return_type;
+  bool success;
 
-bool CompletionQueue::Next(void **tag, bool *ok) {
-  std::unique_ptr<grpc_event, EventDeleter> ev;
-
-  ev.reset(grpc_completion_queue_next(cq_, gpr_inf_future));
-  if (ev->type == GRPC_QUEUE_SHUTDOWN) {
-    return false;
+  ev = grpc_completion_queue_next(cq_, gpr_inf_future);
+  if (!ev) {
+    gpr_log(GPR_ERROR, "no next event in queue");
+    abort();
   }
-  auto cq_tag = static_cast<CompletionQueueTag *>(ev->tag);
-  cq_tag->FinalizeResult();
-  *tag = cq_tag->user_tag_;
-  *ok = ev->status.op_complete == GRPC_OP_OK;
-  return true;
+  switch (ev->type) {
+    case GRPC_QUEUE_SHUTDOWN:
+      return_type = QUEUE_CLOSED;
+      break;
+    case GRPC_READ:
+      *tag = ev->tag;
+      if (ev->data.read) {
+        success = static_cast<AsyncServerContext *>(ev->tag)
+                      ->ParseRead(ev->data.read);
+        return_type = success ? SERVER_READ_OK : SERVER_READ_ERROR;
+      } else {
+        return_type = SERVER_READ_ERROR;
+      }
+      break;
+    case GRPC_WRITE_ACCEPTED:
+      *tag = ev->tag;
+      if (ev->data.write_accepted != GRPC_OP_ERROR) {
+        return_type = SERVER_WRITE_OK;
+      } else {
+        return_type = SERVER_WRITE_ERROR;
+      }
+      break;
+    case GRPC_SERVER_RPC_NEW:
+      GPR_ASSERT(!ev->tag);
+      // Finishing the pending new rpcs after the server has been shutdown.
+      if (!ev->call) {
+        *tag = nullptr;
+      } else {
+        *tag = new AsyncServerContext(
+            ev->call, ev->data.server_rpc_new.method,
+            ev->data.server_rpc_new.host,
+            Timespec2Timepoint(ev->data.server_rpc_new.deadline));
+      }
+      return_type = SERVER_RPC_NEW;
+      break;
+    case GRPC_FINISHED:
+      *tag = ev->tag;
+      return_type = RPC_END;
+      break;
+    case GRPC_FINISH_ACCEPTED:
+      *tag = ev->tag;
+      return_type = HALFCLOSE_OK;
+      break;
+    default:
+      // We do not handle client side messages now
+      gpr_log(GPR_ERROR, "client-side messages aren't supported yet");
+      abort();
+  }
+  grpc_event_finish(ev);
+  return return_type;
 }
 
 }  // namespace grpc

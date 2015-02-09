@@ -268,7 +268,7 @@ void PrintSourceClientMethod(google::protobuf::io::Printer *printer,
                    "::grpc::ClientContext* context, "
                    "const $Request$& request, $Response$* response) {\n");
     printer->Print(*vars,
-                   "return ::grpc::BlockingUnaryCall(channel(),"
+                   "  return channel()->StartBlockingRpc("
                    "::grpc::RpcMethod(\"/$Package$$Service$/$Method$\"), "
                    "context, request, response);\n"
                    "}\n\n");
@@ -279,10 +279,10 @@ void PrintSourceClientMethod(google::protobuf::io::Printer *printer,
         "::grpc::ClientContext* context, $Response$* response) {\n");
     printer->Print(*vars,
                    "  return new ::grpc::ClientWriter< $Request$>("
-                   "channel(),"
+                   "channel()->CreateStream("
                    "::grpc::RpcMethod(\"/$Package$$Service$/$Method$\", "
                    "::grpc::RpcMethod::RpcType::CLIENT_STREAMING), "
-                   "context, response);\n"
+                   "context, nullptr, response));\n"
                    "}\n\n");
   } else if (ServerOnlyStreaming(method)) {
     printer->Print(
@@ -291,10 +291,10 @@ void PrintSourceClientMethod(google::protobuf::io::Printer *printer,
         "::grpc::ClientContext* context, const $Request$* request) {\n");
     printer->Print(*vars,
                    "  return new ::grpc::ClientReader< $Response$>("
-                   "channel(),"
+                   "channel()->CreateStream("
                    "::grpc::RpcMethod(\"/$Package$$Service$/$Method$\", "
                    "::grpc::RpcMethod::RpcType::SERVER_STREAMING), "
-                   "context, *request);\n"
+                   "context, request, nullptr));\n"
                    "}\n\n");
   } else if (BidiStreaming(method)) {
     printer->Print(
@@ -304,10 +304,10 @@ void PrintSourceClientMethod(google::protobuf::io::Printer *printer,
     printer->Print(
         *vars,
         "  return new ::grpc::ClientReaderWriter< $Request$, $Response$>("
-        "channel(),"
+        "channel()->CreateStream("
         "::grpc::RpcMethod(\"/$Package$$Service$/$Method$\", "
         "::grpc::RpcMethod::RpcType::BIDI_STREAMING), "
-        "context);\n"
+        "context, nullptr, nullptr));\n"
         "}\n\n");
   }
 }

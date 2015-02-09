@@ -39,41 +39,29 @@
 namespace google {
 namespace protobuf {
 class Message;
-}  // namespace protobuf
-}  // namespace google
-
-struct grpc_call;
+}
+}
 
 namespace grpc {
-class Call;
-class CallOpBuffer;
+
 class ClientContext;
-class CompletionQueue;
 class RpcMethod;
 class StreamContextInterface;
-class CallInterface;
 
 class ChannelInterface {
  public:
   virtual ~ChannelInterface() {}
 
-  virtual Call CreateCall(const RpcMethod &method, ClientContext *context,
-                          CompletionQueue *cq) = 0;
-  virtual void PerformOpsOnCall(CallOpBuffer *ops, void *tag, Call *call) = 0;
+  virtual Status StartBlockingRpc(const RpcMethod& method,
+                                  ClientContext* context,
+                                  const google::protobuf::Message& request,
+                                  google::protobuf::Message* result) = 0;
+
+  virtual StreamContextInterface* CreateStream(
+      const RpcMethod& method, ClientContext* context,
+      const google::protobuf::Message* request,
+      google::protobuf::Message* result) = 0;
 };
-
-// Wrapper that begins an asynchronous unary call
-void AsyncUnaryCall(ChannelInterface *channel, const RpcMethod &method,
-                    ClientContext *context,
-                    const google::protobuf::Message &request,
-                    google::protobuf::Message *result, Status *status,
-                    CompletionQueue *cq, void *tag);
-
-// Wrapper that performs a blocking unary call
-Status BlockingUnaryCall(ChannelInterface *channel, const RpcMethod &method,
-                         ClientContext *context,
-                         const google::protobuf::Message &request,
-                         google::protobuf::Message *result);
 
 }  // namespace grpc
 

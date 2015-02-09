@@ -2,33 +2,32 @@ using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Reactive.Linq;
-using Google.GRPC.Core.Utils;
 
 namespace math
 {
 	public class Examples
 	{
-		public static void DivExample(MathGrpc.IMathServiceClient stub)
+		public static void DivExample(IMathServiceClient stub)
 		{
 			DivReply result = stub.Div(new DivArgs.Builder { Dividend = 10, Divisor = 3 }.Build());
 			Console.WriteLine("Div Result: " + result);
 		}
 
-		public static void DivAsyncExample(MathGrpc.IMathServiceClient stub)
+		public static void DivAsyncExample(IMathServiceClient stub)
 		{
 			Task<DivReply> call = stub.DivAsync(new DivArgs.Builder { Dividend = 4, Divisor = 5 }.Build());
 			DivReply result = call.Result;
 			Console.WriteLine(result);
 		}
 
-		public static void DivAsyncWithCancellationExample(MathGrpc.IMathServiceClient stub)
+		public static void DivAsyncWithCancellationExample(IMathServiceClient stub)
 		{
 			Task<DivReply> call = stub.DivAsync(new DivArgs.Builder { Dividend = 4, Divisor = 5 }.Build());
 			DivReply result = call.Result;
 			Console.WriteLine(result);
 		}
 
-		public static void FibExample(MathGrpc.IMathServiceClient stub)
+		public static void FibExample(IMathServiceClient stub)
 		{
             var recorder = new RecordingObserver<Num>();
             stub.Fib(new FibArgs.Builder { Limit = 5 }.Build(), recorder);
@@ -37,7 +36,7 @@ namespace math
             Console.WriteLine("Fib Result: " + string.Join("|", recorder.ToList().Result));
 		}
 
-		public static void SumExample(MathGrpc.IMathServiceClient stub)
+		public static void SumExample(IMathServiceClient stub)
 		{
 			List<Num> numbers = new List<Num>{new Num.Builder { Num_ = 1 }.Build(), 
 				new Num.Builder { Num_ = 2 }.Build(),
@@ -52,7 +51,7 @@ namespace math
 			Console.WriteLine("Sum Result: " + res.Task.Result);
 		}
 
-		public static void DivManyExample(MathGrpc.IMathServiceClient stub)
+		public static void DivManyExample(IMathServiceClient stub)
 		{
 			List<DivArgs> divArgsList = new List<DivArgs>{
 				new DivArgs.Builder { Dividend = 10, Divisor = 3 }.Build(),
@@ -72,7 +71,7 @@ namespace math
 			Console.WriteLine("DivMany Result: " + string.Join("|", recorder.ToList().Result));
 		}
 
-		public static void DependendRequestsExample(MathGrpc.IMathServiceClient stub)
+		public static void DependendRequestsExample(IMathServiceClient stub)
 		{
 			var numberList = new List<Num>
 			{ new Num.Builder{ Num_ = 1 }.Build(), 

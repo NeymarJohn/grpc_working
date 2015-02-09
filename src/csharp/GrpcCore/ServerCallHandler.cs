@@ -22,8 +22,8 @@ namespace Google.GRPC.Core
         public void StartCall(string methodName, CallSafeHandle call, CompletionQueueSafeHandle cq)
         {
             var asyncCall = new AsyncCall<TResponse, TRequest>(
-                method.ResponseMarshaller.Serializer,
-                method.RequestMarshaller.Deserializer);
+                (msg) => method.ResponseMarshaller.Serialize(msg),
+                (payload) => method.RequestMarshaller.Deserialize(payload));
 
             asyncCall.InitializeServer(call);
             asyncCall.Accept(cq);
@@ -34,6 +34,9 @@ namespace Google.GRPC.Core
             handler(request, responseObserver);
 
             asyncCall.Halfclosed.Wait();
+            // TODO: wait until writing is finished
+
+            asyncCall.WriteStatusAsync(new Status(StatusCode.GRPC_STATUS_OK, "")).Wait();
             asyncCall.Finished.Wait();
         }
     }
@@ -52,8 +55,8 @@ namespace Google.GRPC.Core
         public void StartCall(string methodName, CallSafeHandle call, CompletionQueueSafeHandle cq)
         {
             var asyncCall = new AsyncCall<TResponse, TRequest>(
-                method.ResponseMarshaller.Serializer,
-                method.RequestMarshaller.Deserializer);
+                (msg) => method.ResponseMarshaller.Serialize(msg),
+                (payload) => method.RequestMarshaller.Deserialize(payload));
 
             asyncCall.InitializeServer(call);
             asyncCall.Accept(cq);
@@ -65,6 +68,8 @@ namespace Google.GRPC.Core
             asyncCall.StartReadingToStream(requestObserver);
 
             asyncCall.Halfclosed.Wait();
+
+            asyncCall.WriteStatusAsync(new Status(StatusCode.GRPC_STATUS_OK, "")).Wait();
             asyncCall.Finished.Wait();
         }
     }

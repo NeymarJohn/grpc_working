@@ -24,8 +24,8 @@ namespace Google.GRPC.Core
         public Call(Method<TRequest, TResponse> method, Channel channel)
         {
             this.methodName = method.Name;
-            this.requestSerializer = method.RequestMarshaller.Serializer;
-            this.responseDeserializer = method.ResponseMarshaller.Deserializer;
+            this.requestSerializer = method.RequestMarshaller.Serialize;
+            this.responseDeserializer = method.ResponseMarshaller.Deserialize;
             this.channel = channel;
         }
 

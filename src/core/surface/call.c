@@ -54,9 +54,7 @@ typedef enum { REQ_INITIAL = 0, REQ_READY, REQ_DONE } req_state;
 typedef enum {
   SEND_NOTHING,
   SEND_INITIAL_METADATA,
-  SEND_BUFFERED_INITIAL_METADATA,
   SEND_MESSAGE,
-  SEND_BUFFERED_MESSAGE,
   SEND_TRAILING_METADATA_AND_FINISH,
   SEND_FINISH
 } send_action;
@@ -536,29 +534,19 @@ static send_action choose_send_action(grpc_call *call) {
     case WRITE_STATE_INITIAL:
       if (is_op_live(call, GRPC_IOREQ_SEND_INITIAL_METADATA)) {
         call->write_state = WRITE_STATE_STARTED;
-        if (is_op_live(call, GRPC_IOREQ_SEND_MESSAGE) || is_op_live(call, GRPC_IOREQ_SEND_CLOSE)) {
-          return SEND_BUFFERED_INITIAL_METADATA;
-        } else {
-          return SEND_INITIAL_METADATA;
-        }
+        return SEND_INITIAL_METADATA;
       }
       return SEND_NOTHING;
     case WRITE_STATE_STARTED:
       if (is_op_live(call, GRPC_IOREQ_SEND_MESSAGE)) {
-        if (is_op_live(call, GRPC_IOREQ_SEND_CLOSE)) {
-          return SEND_BUFFERED_MESSAGE;
-        } else {
-          return SEND_MESSAGE;
-        }
-      } else if (is_op_live(call, GRPC_IOREQ_SEND_CLOSE)) {
+        return SEND_MESSAGE;
+      }
+      if (is_op_live(call, GRPC_IOREQ_SEND_CLOSE)) {
         call->write_state = WRITE_STATE_WRITE_CLOSED;
         finish_ioreq_op(call, GRPC_IOREQ_SEND_TRAILING_METADATA, GRPC_OP_OK);
         finish_ioreq_op(call, GRPC_IOREQ_SEND_STATUS, GRPC_OP_OK);
-        if (call->is_client) {
-          return SEND_FINISH;
-        } else {
-          return SEND_TRAILING_METADATA_AND_FINISH;
-        }
+        return call->is_client ? SEND_FINISH
+                               : SEND_TRAILING_METADATA_AND_FINISH;
       }
       return SEND_NOTHING;
     case WRITE_STATE_WRITE_CLOSED:
@@ -573,7 +561,7 @@ static void send_metadata(grpc_call *call, grpc_mdelem *elem) {
   grpc_call_op op;
   op.type = GRPC_SEND_METADATA;
   op.dir = GRPC_CALL_DOWN;
-  op.flags = GRPC_WRITE_BUFFER_HINT;
+  op.flags = 0;
   op.data.metadata = elem;
   op.done_cb = do_nothing;
   op.user_data = NULL;
@@ -584,16 +572,12 @@ static void enact_send_action(grpc_call *call, send_action sa) {
   grpc_ioreq_data data;
   grpc_call_op op;
   size_t i;
-  gpr_uint32 flags = 0;
   char status_str[GPR_LTOA_MIN_BUFSIZE];
 
   switch (sa) {
     case SEND_NOTHING:
       abort();
       break;
-    case SEND_BUFFERED_INITIAL_METADATA:
-      flags |= GRPC_WRITE_BUFFER_HINT;
-    /* fallthrough */
     case SEND_INITIAL_METADATA:
       data = call->request_data[GRPC_IOREQ_SEND_INITIAL_METADATA];
       for (i = 0; i < data.send_metadata.count; i++) {
@@ -605,20 +589,17 @@ static void enact_send_action(grpc_call *call, send_action sa) {
       }
       op.type = GRPC_SEND_START;
       op.dir = GRPC_CALL_DOWN;
-      op.flags = flags;
+      op.flags = 0;
       op.data.start.pollset = grpc_cq_pollset(call->cq);
       op.done_cb = finish_start_step;
       op.user_data = call;
       grpc_call_execute_op(call, &op);
       break;
-    case SEND_BUFFERED_MESSAGE:
-      flags |= GRPC_WRITE_BUFFER_HINT;
-    /* fallthrough */
     case SEND_MESSAGE:
       data = call->request_data[GRPC_IOREQ_SEND_MESSAGE];
       op.type = GRPC_SEND_MESSAGE;
       op.dir = GRPC_CALL_DOWN;
-      op.flags = flags;
+      op.flags = 0;
       op.data.message = data.send_message;
       op.done_cb = finish_write_step;
       op.user_data = call;
