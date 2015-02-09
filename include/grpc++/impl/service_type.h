@@ -31,34 +31,24 @@
  *
  */
 
-#ifndef __GRPCPP_INTERNAL_SERVER_THREAD_POOL_H__
-#define __GRPCPP_INTERNAL_SERVER_THREAD_POOL_H__
-
-#include <grpc++/thread_pool_interface.h>
-
-#include <condition_variable>
-#include <thread>
-#include <mutex>
-#include <queue>
-#include <vector>
+#ifndef __GRPCPP_IMPL_SERVICE_TYPE_H__
+#define __GRPCPP_IMPL_SERVICE_TYPE_H__
 
 namespace grpc {
 
-class ThreadPool final : public ThreadPoolInterface {
+class RpcService;
+
+class SynchronousService {
  public:
-  explicit ThreadPool(int num_threads);
-  ~ThreadPool();
+  virtual ~SynchronousService() {}
+  virtual RpcService *service() = 0;
+};
 
-  void ScheduleCallback(const std::function<void()> &callback) override;
-
- private:
-  std::mutex mu_;
-  std::condition_variable cv_;
-  bool shutdown_ = false;
-  std::queue<std::function<void()>> callbacks_;
-  std::vector<std::thread> threads_;
+class AsynchronousService {
+ public:
+  virtual ~AsynchronousService() {}
 };
 
 }  // namespace grpc
 
-#endif  // __GRPCPP_INTERNAL_SERVER_THREAD_POOL_H__
+#endif // __GRPCPP_IMPL_SERVICE_TYPE_H__
