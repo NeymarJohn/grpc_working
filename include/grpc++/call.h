@@ -31,52 +31,64 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_CALL_H_
-#define NET_GRPC_NODE_CALL_H_
+#ifndef __GRPCPP_CALL_H__
+#define __GRPCPP_CALL_H__
 
-#include <node.h>
-#include <nan.h>
-#include "grpc/grpc.h"
+#include <grpc++/status.h>
+#include <grpc++/completion_queue.h>
 
-#include "channel.h"
+#include <memory>
+
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
+
+struct grpc_call;
+struct grpc_op;
 
 namespace grpc {
-namespace node {
 
-/* Wrapper class for grpc_call structs. */
-class Call : public ::node::ObjectWrap {
+class ChannelInterface;
+
+class CallOpBuffer final : public CompletionQueueTag {
  public:
-  static void Init(v8::Handle<v8::Object> exports);
-  static bool HasInstance(v8::Handle<v8::Value> val);
-  /* Wrap a grpc_call struct in a javascript object */
-  static v8::Handle<v8::Value> WrapStruct(grpc_call *call);
+  void AddSendMessage(const google::protobuf::Message &message);
+  void AddRecvMessage(google::protobuf::Message *message);
+  void AddClientSendClose();
+  void AddClientRecvStatus(Status *status);
 
- private:
-  explicit Call(grpc_call *call);
-  ~Call();
+  // INTERNAL API:
 
-  // Prevent copying
-  Call(const Call &);
-  Call &operator=(const Call &);
+  // Convert to an array of grpc_op elements
+  void FillOps(grpc_op *ops, size_t *nops);
 
-  static NAN_METHOD(New);
-  static NAN_METHOD(AddMetadata);
-  static NAN_METHOD(Invoke);
-  static NAN_METHOD(ServerAccept);
-  static NAN_METHOD(ServerEndInitialMetadata);
-  static NAN_METHOD(Cancel);
-  static NAN_METHOD(StartWrite);
-  static NAN_METHOD(StartWriteStatus);
-  static NAN_METHOD(WritesDone);
-  static NAN_METHOD(StartRead);
-  static v8::Persistent<v8::Function> constructor;
-  // Used for typechecking instances of this javascript class
-  static v8::Persistent<v8::FunctionTemplate> fun_tpl;
-
-  grpc_call *wrapped_call;
+  // Called by completion queue just prior to returning from Next() or Pluck()
+  void FinalizeResult() override;
 };
 
-}  // namespace node
+class CCallDeleter {
+ public:
+  void operator()(grpc_call *c);
+};
+
+// Straightforward wrapping of the C call object
+class Call final {
+ public:
+  Call(grpc_call *call, ChannelInterface *channel, CompletionQueue *cq);
+
+  void PerformOps(CallOpBuffer *buffer, void *tag);
+
+  grpc_call *call() { return call_.get(); }
+  CompletionQueue *cq() { return cq_; }
+
+ private:
+  ChannelInterface *channel_;
+  CompletionQueue *cq_;
+  std::unique_ptr<grpc_call, CCallDeleter> call_;
+};
+
 }  // namespace grpc
 
-#endif  // NET_GRPC_NODE_CALL_H_
+#endif  // __GRPCPP_CALL_INTERFACE_H__
