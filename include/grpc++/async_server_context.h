@@ -31,73 +31,65 @@
  *
  */
 
-#ifndef __GRPCPP_CALL_H__
-#define __GRPCPP_CALL_H__
+#ifndef __GRPCPP_ASYNC_SERVER_CONTEXT_H__
+#define __GRPCPP_ASYNC_SERVER_CONTEXT_H__
 
-#include <grpc++/status.h>
-#include <grpc++/completion_queue.h>
+#include <chrono>
 
-#include <memory>
-#include <vector>
+#include <grpc++/config.h>
+
+struct grpc_byte_buffer;
+struct grpc_call;
+struct grpc_completion_queue;
 
 namespace google {
 namespace protobuf {
 class Message;
-}  // namespace protobuf
-}  // namespace google
+}
+}
 
-struct grpc_call;
-struct grpc_op;
+using std::chrono::system_clock;
 
 namespace grpc {
+class Status;
 
-class ChannelInterface;
-
-class CallOpBuffer final : public CompletionQueueTag {
+// TODO(rocking): wrap grpc c structures.
+class AsyncServerContext {
  public:
-  CallOpBuffer() : return_tag_(this) {}
+  AsyncServerContext(grpc_call* call, const grpc::string& method,
+                     const grpc::string& host,
+                     system_clock::time_point absolute_deadline);
+  ~AsyncServerContext();
 
-  void Reset(void *next_return_tag);
+  // Accept this rpc, bind it to a completion queue.
+  void Accept(grpc_completion_queue* cq);
 
-  void AddSendInitialMetadata(std::vector<std::pair<grpc::string, grpc::string> > *metadata);
-  void AddSendMessage(const google::protobuf::Message &message);
-  void AddRecvMessage(google::protobuf::Message *message);
-  void AddClientSendClose();
-  void AddClientRecvStatus(Status *status);
+  // Read and write calls, all async. Return true for success.
+  bool StartRead(google::protobuf::Message* request);
+  bool StartWrite(const google::protobuf::Message& response, int flags);
+  bool StartWriteStatus(const Status& status);
 
-  // INTERNAL API:
+  bool ParseRead(grpc_byte_buffer* read_buffer);
 
-  // Convert to an array of grpc_op elements
-  void FillOps(grpc_op *ops, size_t *nops);
+  grpc::string method() const { return method_; }
+  grpc::string host() const { return host_; }
+  system_clock::time_point absolute_deadline() { return absolute_deadline_; }
 
-  // Called by completion queue just prior to returning from Next() or Pluck()
-  void FinalizeResult(void *tag, bool *status) override;
+  grpc_call* call() { return call_; }
 
  private:
-  void *return_tag_;
-};
+  AsyncServerContext(const AsyncServerContext&);
+  AsyncServerContext& operator=(const AsyncServerContext&);
 
-class CCallDeleter {
- public:
-  void operator()(grpc_call *c);
-};
+  // These properties may be moved to a ServerContext class.
+  const grpc::string method_;
+  const grpc::string host_;
+  system_clock::time_point absolute_deadline_;
 
-// Straightforward wrapping of the C call object
-class Call final {
- public:
-  Call(grpc_call *call, ChannelInterface *channel, CompletionQueue *cq);
-
-  void PerformOps(CallOpBuffer *buffer);
-
-  grpc_call *call() { return call_.get(); }
-  CompletionQueue *cq() { return cq_; }
-
- private:
-  ChannelInterface *channel_;
-  CompletionQueue *cq_;
-  std::unique_ptr<grpc_call, CCallDeleter> call_;
+  google::protobuf::Message* request_;  // not owned
+  grpc_call* call_;                     // owned
 };
 
 }  // namespace grpc
 
-#endif  // __GRPCPP_CALL_INTERFACE_H__
+#endif  // __GRPCPP_ASYNC_SERVER_CONTEXT_H__
