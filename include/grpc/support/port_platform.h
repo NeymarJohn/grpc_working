@@ -46,12 +46,10 @@
 #define GPR_WIN32 1
 #define GPR_ARCH_64 1
 #define GPR_GETPID_IN_PROCESS_H 1
-#define GPR_WINSOCK_SOCKET 1
 #elif defined(_WIN32) || defined(WIN32)
 #define GPR_ARCH_32 1
 #define GPR_WIN32 1
 #define GPR_GETPID_IN_PROCESS_H 1
-#define GPR_WINSOCK_SOCKET 1
 #elif defined(ANDROID) || defined(__ANDROID__)
 #define GPR_ANDROID 1
 #define GPR_ARCH_32 1
@@ -63,6 +61,8 @@
 #define GPR_POSIX_SOCKET 1
 #define GPR_POSIX_SOCKETADDR 1
 #define GPR_POSIX_SOCKETUTILS 1
+#define GPR_POSIX_ENV 1
+#define GPR_POSIX_FILE 1
 #define GPR_POSIX_STRING 1
 #define GPR_POSIX_SYNC 1
 #define GPR_POSIX_TIME 1
@@ -76,6 +76,8 @@
 #define GPR_LINUX_EVENTFD 1
 #define GPR_POSIX_SOCKET 1
 #define GPR_POSIX_SOCKETADDR 1
+#define GPR_LINUX_ENV 1
+#define GPR_POSIX_FILE 1
 #define GPR_POSIX_STRING 1
 #define GPR_POSIX_SYNC 1
 #define GPR_POSIX_TIME 1
@@ -95,6 +97,8 @@
 #define GPR_POSIX_SOCKET 1
 #define GPR_POSIX_SOCKETADDR 1
 #define GPR_POSIX_SOCKETUTILS 1
+#define GPR_POSIX_ENV 1
+#define GPR_POSIX_FILE 1
 #define GPR_POSIX_STRING 1
 #define GPR_POSIX_SYNC 1
 #define GPR_POSIX_TIME 1

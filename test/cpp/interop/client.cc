@@ -191,10 +191,10 @@ void DoComputeEngineCreds() {
   gpr_log(GPR_INFO, "Got username %s", response.username().c_str());
   gpr_log(GPR_INFO, "Got oauth_scope %s", response.oauth_scope().c_str());
   GPR_ASSERT(!response.username().empty());
-  GPR_ASSERT(response.username() == FLAGS_default_service_account);
+  GPR_ASSERT(response.username().c_str() == FLAGS_default_service_account);
   GPR_ASSERT(!response.oauth_scope().empty());
-  GPR_ASSERT(
-      FLAGS_oauth_scope.find(response.oauth_scope()) != grpc::string::npos);
+  const char *oauth_scope_str = response.oauth_scope().c_str();
+  GPR_ASSERT(FLAGS_oauth_scope.find(oauth_scope_str) != grpc::string::npos);
   gpr_log(GPR_INFO, "Large unary with compute engine creds done.");
 }
 
@@ -212,8 +212,8 @@ void DoServiceAccountCreds() {
   GPR_ASSERT(!response.oauth_scope().empty());
   grpc::string json_key = GetServiceAccountJsonKey();
   GPR_ASSERT(json_key.find(response.username()) != grpc::string::npos);
-  GPR_ASSERT(FLAGS_oauth_scope.find(response.oauth_scope()) !=
-             grpc::string::npos);
+  const char *oauth_scope_str = response.oauth_scope().c_str();
+  GPR_ASSERT(FLAGS_oauth_scope.find(oauth_scope_str) != grpc::string::npos);
   gpr_log(GPR_INFO, "Large unary with service account creds done.");
 }
 
@@ -248,7 +248,7 @@ void DoRequestStreaming() {
     aggregated_payload_size += request_stream_sizes[i];
   }
   stream->WritesDone();
-  grpc::Status s = stream->Wait();
+  grpc::Status s = stream->Finish();
 
   GPR_ASSERT(response.aggregated_payload_size() == aggregated_payload_size);
   GPR_ASSERT(s.IsOk());
@@ -278,7 +278,7 @@ void DoResponseStreaming() {
     ++i;
   }
   GPR_ASSERT(response_stream_sizes.size() == i);
-  grpc::Status s = stream->Wait();
+  grpc::Status s = stream->Finish();
 
   GPR_ASSERT(s.IsOk());
   gpr_log(GPR_INFO, "Response streaming done.");
@@ -311,7 +311,7 @@ void DoResponseStreamingWithSlowConsumer() {
     ++i;
   }
   GPR_ASSERT(kNumResponseMessages == i);
-  grpc::Status s = stream->Wait();
+  grpc::Status s = stream->Finish();
 
   GPR_ASSERT(s.IsOk());
   gpr_log(GPR_INFO, "Response streaming done.");
@@ -345,7 +345,7 @@ void DoHalfDuplex() {
     ++i;
   }
   GPR_ASSERT(response_stream_sizes.size() == i);
-  grpc::Status s = stream->Wait();
+  grpc::Status s = stream->Finish();
   GPR_ASSERT(s.IsOk());
   gpr_log(GPR_INFO, "Half-duplex streaming rpc done.");
 }
@@ -378,7 +378,7 @@ void DoPingPong() {
 
   stream->WritesDone();
   GPR_ASSERT(!stream->Read(&response));
-  grpc::Status s = stream->Wait();
+  grpc::Status s = stream->Finish();
   GPR_ASSERT(s.IsOk());
   gpr_log(GPR_INFO, "Ping pong streaming done.");
 }

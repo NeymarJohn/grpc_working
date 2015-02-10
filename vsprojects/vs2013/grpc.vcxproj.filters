@@ -112,16 +112,10 @@
     <ClCompile Include="..\..\src\core\iomgr\fd_posix.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\iomgr\iocp_windows.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\core\iomgr\iomgr.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\iomgr\iomgr_posix.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\iomgr\iomgr_windows.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\iomgr\pollset_kick.c">
@@ -151,25 +145,13 @@
     <ClCompile Include="..\..\src\core\iomgr\socket_utils_posix.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\iomgr\socket_windows.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\core\iomgr\tcp_client_posix.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\iomgr\tcp_client_windows.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\iomgr\tcp_posix.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\iomgr\tcp_server_posix.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\iomgr\tcp_server_windows.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\iomgr\tcp_windows.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\iomgr\time_averaged_stats.c">
@@ -220,10 +202,16 @@
     <ClCompile Include="..\..\src\core\surface\byte_buffer.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\core\surface\byte_buffer_queue.c">
+      <Filter>src\core\surface</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\core\surface\byte_buffer_reader.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\surface\call.c">
+      <Filter>src\core\surface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\surface\call_details.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\surface\channel.c">
@@ -245,6 +233,9 @@
       <Filter>src\core\surface</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\surface\lame_client.c">
+      <Filter>src\core\surface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\surface\metadata_array.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\surface\secure_channel_create.c">
@@ -446,9 +437,6 @@
     <ClInclude Include="..\..\src\core\iomgr\fd_posix.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\core\iomgr\iocp_windows.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\core\iomgr\iomgr.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
@@ -494,9 +482,6 @@
     <ClInclude Include="..\..\src\core\iomgr\socket_utils_posix.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\core\iomgr\socket_windows.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\core\iomgr\tcp_client.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
@@ -504,9 +489,6 @@
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\iomgr\tcp_server.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\iomgr\tcp_windows.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\iomgr\time_averaged_stats.h">
@@ -547,6 +529,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\core\statistics\window_stats.h">
       <Filter>src\core\statistics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\core\surface\byte_buffer_queue.h">
+      <Filter>src\core\surface</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\surface\call.h">
       <Filter>src\core\surface</Filter>
