@@ -44,12 +44,12 @@
 
 namespace grpc {
 
-class ThreadPool final : public ThreadPoolInterface {
+class ThreadPool : public ThreadPoolInterface {
  public:
   explicit ThreadPool(int num_threads);
   ~ThreadPool();
 
-  void ScheduleCallback(const std::function<void()> &callback) override;
+  void ScheduleCallback(const std::function<void()> &callback) final;
 
  private:
   std::mutex mu_;
