@@ -1727,7 +1727,6 @@ PUBLIC_HEADERS_C += \
     include/grpc/support/histogram.h \
     include/grpc/support/host_port.h \
     include/grpc/support/log.h \
-    include/grpc/support/log_win32.h \
     include/grpc/support/port_platform.h \
     include/grpc/support/slice.h \
     include/grpc/support/slice_buffer.h \
@@ -1890,10 +1889,8 @@ LIBGRPC_SRC = \
     src/core/iomgr/endpoint.c \
     src/core/iomgr/endpoint_pair_posix.c \
     src/core/iomgr/fd_posix.c \
-    src/core/iomgr/iocp_windows.c \
     src/core/iomgr/iomgr.c \
     src/core/iomgr/iomgr_posix.c \
-    src/core/iomgr/iomgr_windows.c \
     src/core/iomgr/pollset_kick.c \
     src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_posix.c \
@@ -1903,13 +1900,9 @@ LIBGRPC_SRC = \
     src/core/iomgr/socket_utils_common_posix.c \
     src/core/iomgr/socket_utils_linux.c \
     src/core/iomgr/socket_utils_posix.c \
-    src/core/iomgr/socket_windows.c \
     src/core/iomgr/tcp_client_posix.c \
-    src/core/iomgr/tcp_client_windows.c \
     src/core/iomgr/tcp_posix.c \
     src/core/iomgr/tcp_server_posix.c \
-    src/core/iomgr/tcp_server_windows.c \
-    src/core/iomgr/tcp_windows.c \
     src/core/iomgr/time_averaged_stats.c \
     src/core/iomgr/wakeup_fd_eventfd.c \
     src/core/iomgr/wakeup_fd_nospecial.c \
@@ -2025,10 +2018,8 @@ src/core/iomgr/alarm_heap.c: $(OPENSSL_DEP)
 src/core/iomgr/endpoint.c: $(OPENSSL_DEP)
 src/core/iomgr/endpoint_pair_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/fd_posix.c: $(OPENSSL_DEP)
-src/core/iomgr/iocp_windows.c: $(OPENSSL_DEP)
 src/core/iomgr/iomgr.c: $(OPENSSL_DEP)
 src/core/iomgr/iomgr_posix.c: $(OPENSSL_DEP)
-src/core/iomgr/iomgr_windows.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_kick.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_multipoller_with_poll_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_posix.c: $(OPENSSL_DEP)
@@ -2038,13 +2029,9 @@ src/core/iomgr/sockaddr_utils.c: $(OPENSSL_DEP)
 src/core/iomgr/socket_utils_common_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/socket_utils_linux.c: $(OPENSSL_DEP)
 src/core/iomgr/socket_utils_posix.c: $(OPENSSL_DEP)
-src/core/iomgr/socket_windows.c: $(OPENSSL_DEP)
 src/core/iomgr/tcp_client_posix.c: $(OPENSSL_DEP)
-src/core/iomgr/tcp_client_windows.c: $(OPENSSL_DEP)
 src/core/iomgr/tcp_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/tcp_server_posix.c: $(OPENSSL_DEP)
-src/core/iomgr/tcp_server_windows.c: $(OPENSSL_DEP)
-src/core/iomgr/tcp_windows.c: $(OPENSSL_DEP)
 src/core/iomgr/time_averaged_stats.c: $(OPENSSL_DEP)
 src/core/iomgr/wakeup_fd_eventfd.c: $(OPENSSL_DEP)
 src/core/iomgr/wakeup_fd_nospecial.c: $(OPENSSL_DEP)
@@ -2182,10 +2169,8 @@ objs/$(CONFIG)/src/core/iomgr/alarm_heap.o:
 objs/$(CONFIG)/src/core/iomgr/endpoint.o: 
 objs/$(CONFIG)/src/core/iomgr/endpoint_pair_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/fd_posix.o: 
-objs/$(CONFIG)/src/core/iomgr/iocp_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/iomgr.o: 
 objs/$(CONFIG)/src/core/iomgr/iomgr_posix.o: 
-objs/$(CONFIG)/src/core/iomgr/iomgr_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_kick.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_posix.o: 
@@ -2195,13 +2180,9 @@ objs/$(CONFIG)/src/core/iomgr/sockaddr_utils.o:
 objs/$(CONFIG)/src/core/iomgr/socket_utils_common_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/socket_utils_linux.o: 
 objs/$(CONFIG)/src/core/iomgr/socket_utils_posix.o: 
-objs/$(CONFIG)/src/core/iomgr/socket_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/tcp_client_posix.o: 
-objs/$(CONFIG)/src/core/iomgr/tcp_client_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/tcp_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/tcp_server_posix.o: 
-objs/$(CONFIG)/src/core/iomgr/tcp_server_windows.o: 
-objs/$(CONFIG)/src/core/iomgr/tcp_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/time_averaged_stats.o: 
 objs/$(CONFIG)/src/core/iomgr/wakeup_fd_eventfd.o: 
 objs/$(CONFIG)/src/core/iomgr/wakeup_fd_nospecial.o: 
@@ -2423,10 +2404,8 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/iomgr/endpoint.c \
     src/core/iomgr/endpoint_pair_posix.c \
     src/core/iomgr/fd_posix.c \
-    src/core/iomgr/iocp_windows.c \
     src/core/iomgr/iomgr.c \
     src/core/iomgr/iomgr_posix.c \
-    src/core/iomgr/iomgr_windows.c \
     src/core/iomgr/pollset_kick.c \
     src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_posix.c \
@@ -2436,13 +2415,9 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/iomgr/socket_utils_common_posix.c \
     src/core/iomgr/socket_utils_linux.c \
     src/core/iomgr/socket_utils_posix.c \
-    src/core/iomgr/socket_windows.c \
     src/core/iomgr/tcp_client_posix.c \
-    src/core/iomgr/tcp_client_windows.c \
     src/core/iomgr/tcp_posix.c \
     src/core/iomgr/tcp_server_posix.c \
-    src/core/iomgr/tcp_server_windows.c \
-    src/core/iomgr/tcp_windows.c \
     src/core/iomgr/time_averaged_stats.c \
     src/core/iomgr/wakeup_fd_eventfd.c \
     src/core/iomgr/wakeup_fd_nospecial.c \
@@ -2563,10 +2538,8 @@ objs/$(CONFIG)/src/core/iomgr/alarm_heap.o:
 objs/$(CONFIG)/src/core/iomgr/endpoint.o: 
 objs/$(CONFIG)/src/core/iomgr/endpoint_pair_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/fd_posix.o: 
-objs/$(CONFIG)/src/core/iomgr/iocp_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/iomgr.o: 
 objs/$(CONFIG)/src/core/iomgr/iomgr_posix.o: 
-objs/$(CONFIG)/src/core/iomgr/iomgr_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_kick.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_posix.o: 
@@ -2576,13 +2549,9 @@ objs/$(CONFIG)/src/core/iomgr/sockaddr_utils.o:
 objs/$(CONFIG)/src/core/iomgr/socket_utils_common_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/socket_utils_linux.o: 
 objs/$(CONFIG)/src/core/iomgr/socket_utils_posix.o: 
-objs/$(CONFIG)/src/core/iomgr/socket_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/tcp_client_posix.o: 
-objs/$(CONFIG)/src/core/iomgr/tcp_client_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/tcp_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/tcp_server_posix.o: 
-objs/$(CONFIG)/src/core/iomgr/tcp_server_windows.o: 
-objs/$(CONFIG)/src/core/iomgr/tcp_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/time_averaged_stats.o: 
 objs/$(CONFIG)/src/core/iomgr/wakeup_fd_eventfd.o: 
 objs/$(CONFIG)/src/core/iomgr/wakeup_fd_nospecial.o: 
