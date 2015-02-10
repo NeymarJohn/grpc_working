@@ -31,45 +31,66 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_HANDLE_WINDOWS_H__
-#define __GRPC_INTERNAL_IOMGR_HANDLE_WINDOWS_H__
+#ifndef __GRPCPP_CALL_H__
+#define __GRPCPP_CALL_H__
 
-#include <windows.h>
+#include <grpc++/status.h>
+#include <grpc++/completion_queue.h>
 
-#include <grpc/support/sync.h>
-#include <grpc/support/atm.h>
+#include <memory>
+#include <vector>
 
-typedef struct grpc_winsocket_callback_info {
-  /* I hate Microsoft so much. This is supposed to be a WSAOVERLAPPED,
-   * but in order to get that definition, we need to include ws2tcpip.h,
-   * which needs to be included from the top, otherwise it'll clash with
-   * a previous inclusion of windows.h that in turns includes winsock.h.
-   * If anyone knows a way to do it properly, feel free to send a patch.
-   */
-  OVERLAPPED overlapped;
-  void(*cb)(void *opaque, int success);
-  void *opaque;
-  int has_pending_iocp;
-  DWORD bytes_transfered;
-  int wsa_error;
-} grpc_winsocket_callback_info;
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
 
-typedef struct grpc_winsocket {
-  SOCKET socket;
+struct grpc_call;
+struct grpc_op;
 
-  int added_to_iocp;
+namespace grpc {
 
-  grpc_winsocket_callback_info write_info;
-  grpc_winsocket_callback_info read_info;
+class ChannelInterface;
 
-  gpr_mu state_mu;
-} grpc_winsocket;
+class CallOpBuffer final : public CompletionQueueTag {
+ public:
+  void AddSendInitialMetadata(std::vector<std::pair<grpc::string, grpc::string> > *metadata);
+  void AddSendMessage(const google::protobuf::Message &message);
+  void AddRecvMessage(google::protobuf::Message *message);
+  void AddClientSendClose();
+  void AddClientRecvStatus(Status *status);
 
-/* Create a wrapped windows handle.
-This takes ownership of closing it. */
-grpc_winsocket *grpc_winsocket_create(SOCKET socket);
+  // INTERNAL API:
 
-void grpc_winsocket_shutdown(grpc_winsocket *socket);
-void grpc_winsocket_orphan(grpc_winsocket *socket);
+  // Convert to an array of grpc_op elements
+  void FillOps(grpc_op *ops, size_t *nops);
 
-#endif /* __GRPC_INTERNAL_IOMGR_HANDLE_WINDOWS_H__ */
+  // Called by completion queue just prior to returning from Next() or Pluck()
+  FinalizeResultOutput FinalizeResult(bool status) override;
+};
+
+class CCallDeleter {
+ public:
+  void operator()(grpc_call *c);
+};
+
+// Straightforward wrapping of the C call object
+class Call final {
+ public:
+  Call(grpc_call *call, ChannelInterface *channel, CompletionQueue *cq);
+
+  void PerformOps(CallOpBuffer *buffer, void *tag);
+
+  grpc_call *call() { return call_.get(); }
+  CompletionQueue *cq() { return cq_; }
+
+ private:
+  ChannelInterface *channel_;
+  CompletionQueue *cq_;
+  std::unique_ptr<grpc_call, CCallDeleter> call_;
+};
+
+}  // namespace grpc
+
+#endif  // __GRPCPP_CALL_INTERFACE_H__

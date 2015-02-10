@@ -31,47 +31,27 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
+#ifndef __GRPC_INTERNAL_SUPPORT_CPU_H__
+#define __GRPC_INTERNAL_SUPPORT_CPU_H__
 
-#ifdef GPR_WINSOCK_SOCKET
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "src/core/iomgr/iocp_windows.h"
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/iomgr/iomgr_internal.h"
-#include "src/core/iomgr/socket_windows.h"
-#include "src/core/iomgr/pollset.h"
-#include "src/core/iomgr/pollset_windows.h"
+/* Interface providing CPU information for currently running system */
 
-grpc_winsocket *grpc_winsocket_create(SOCKET socket) {
-  grpc_winsocket *r = gpr_malloc(sizeof(grpc_winsocket));
-  gpr_log(GPR_DEBUG, "grpc_winsocket_create");
-  memset(r, 0, sizeof(grpc_winsocket));
-  r->socket = socket;
-  gpr_mu_init(&r->state_mu);
-  grpc_iomgr_ref();
-  grpc_iocp_add_socket(r);
-  return r;
-}
+/* Return the number of CPU cores on the current system. Will return 0 if
+   if information is not available. */
+unsigned gpr_cpu_num_cores(void);
 
-void shutdown_op(grpc_winsocket_callback_info *info) {
-  if (!info->cb) return;
-  grpc_iomgr_add_delayed_callback(info->cb, info->opaque, 0);
-}
+/* Return the CPU on which the current thread is executing; N.B. This should
+   be considered advisory only - it is possible that the thread is switched
+   to a different CPU at any time. Returns a value in range
+   [0, gpr_cpu_num_cores() - 1] */
+unsigned gpr_cpu_current_cpu(void);
 
-void grpc_winsocket_shutdown(grpc_winsocket *socket) {
-  gpr_log(GPR_DEBUG, "grpc_winsocket_shutdown");
-  shutdown_op(&socket->read_info);
-  shutdown_op(&socket->write_info);
-}
+#ifdef __cplusplus
+}  // extern "C"
+#endif
 
-void grpc_winsocket_orphan(grpc_winsocket *socket) {
-  gpr_log(GPR_DEBUG, "grpc_winsocket_orphan");
-  grpc_iomgr_unref();
-  closesocket(socket->socket);
-  gpr_mu_destroy(&socket->state_mu);
-  gpr_free(socket);
-}
-
-#endif  /* GPR_WINSOCK_SOCKET */
+#endif /* __GRPC_INTERNAL_SUPPORT_CPU_H__ */

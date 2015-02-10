@@ -31,23 +31,25 @@
  *
  */
 
-#ifndef __GRPC_SUPPORT_LOG_WIN32_H__
-#define __GRPC_SUPPORT_LOG_WIN32_H__
+#ifndef __GRPCPP_IMPL_SERVICE_TYPE_H__
+#define __GRPCPP_IMPL_SERVICE_TYPE_H__
 
-#include <windows.h>
+namespace grpc {
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+class RpcService;
 
-/* Returns a string allocated with gpr_malloc that contains a UTF-8
- * formatted error message, corresponding to the error messageid.
- * Use in conjunction with GetLastError() et al.
- */
-char *gpr_format_message(DWORD messageid);
+class SynchronousService {
+ public:
+  virtual ~SynchronousService() {}
+  virtual RpcService *service() = 0;
+};
 
-#ifdef __cplusplus
-}
-#endif
+class AsynchronousService {
+ public:
+  virtual ~AsynchronousService() {}
+  virtual RpcService *service() = 0;
+};
 
-#endif /* __GRPC_SUPPORT_LOG_H__ */
+}  // namespace grpc
+
+#endif // __GRPCPP_IMPL_SERVICE_TYPE_H__
