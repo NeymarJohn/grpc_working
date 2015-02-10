@@ -31,73 +31,34 @@
  *
  */
 
-#ifndef __GRPCPP_CALL_H__
-#define __GRPCPP_CALL_H__
-
-#include <grpc++/status.h>
-#include <grpc++/completion_queue.h>
-
-#include <memory>
-#include <vector>
+#ifndef __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
+#define __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
 
 namespace google {
 namespace protobuf {
 class Message;
-}  // namespace protobuf
-}  // namespace google
-
-struct grpc_call;
-struct grpc_op;
+}
+}
 
 namespace grpc {
+class Status;
 
-class ChannelInterface;
-
-class CallOpBuffer final : public CompletionQueueTag {
+// An interface to avoid dependency on internal implementation.
+class StreamContextInterface {
  public:
-  CallOpBuffer() : return_tag_(this) {}
+  virtual ~StreamContextInterface() {}
 
-  void Reset(void *next_return_tag);
+  virtual void Start(bool buffered) = 0;
 
-  void AddSendInitialMetadata(std::vector<std::pair<grpc::string, grpc::string> > *metadata);
-  void AddSendMessage(const google::protobuf::Message &message);
-  void AddRecvMessage(google::protobuf::Message *message);
-  void AddClientSendClose();
-  void AddClientRecvStatus(Status *status);
+  virtual bool Read(google::protobuf::Message* msg) = 0;
+  virtual bool Write(const google::protobuf::Message* msg, bool is_last) = 0;
+  virtual const Status& Wait() = 0;
+  virtual void Cancel() = 0;
 
-  // INTERNAL API:
-
-  // Convert to an array of grpc_op elements
-  void FillOps(grpc_op *ops, size_t *nops);
-
-  // Called by completion queue just prior to returning from Next() or Pluck()
-  void FinalizeResult(void *tag, bool *status) override;
-
- private:
-  void *return_tag_;
-};
-
-class CCallDeleter {
- public:
-  void operator()(grpc_call *c);
-};
-
-// Straightforward wrapping of the C call object
-class Call final {
- public:
-  Call(grpc_call *call, ChannelInterface *channel, CompletionQueue *cq);
-
-  void PerformOps(CallOpBuffer *buffer);
-
-  grpc_call *call() { return call_.get(); }
-  CompletionQueue *cq() { return cq_; }
-
- private:
-  ChannelInterface *channel_;
-  CompletionQueue *cq_;
-  std::unique_ptr<grpc_call, CCallDeleter> call_;
+  virtual google::protobuf::Message* request() = 0;
+  virtual google::protobuf::Message* response() = 0;
 };
 
 }  // namespace grpc
 
-#endif  // __GRPCPP_CALL_INTERFACE_H__
+#endif  // __GRPCPP_STREAM_CONTEXT_INTERFACE_H__

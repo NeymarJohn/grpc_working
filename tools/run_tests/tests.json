@@ -283,6 +283,10 @@
   }, 
   {
     "language": "c++", 
+    "name": "sync_client_async_server_test"
+  }, 
+  {
+    "language": "c++", 
     "name": "thread_pool_test"
   }, 
   {

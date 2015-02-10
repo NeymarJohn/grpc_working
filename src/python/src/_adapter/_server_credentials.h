@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,18 @@
  *
  */
 
-#include <include/grpc++/impl/call.h>
-#include <include/grpc++/channel_interface.h>
+#ifndef _ADAPTER__SERVER_CREDENTIALS_H_
+#define _ADAPTER__SERVER_CREDENTIALS_H_
 
-namespace grpc {
+#include <Python.h>
+#include <grpc/grpc_security.h>
 
-void Call::PerformOps(CallOpBuffer* buffer) {
-  channel_->PerformOpsOnCall(buffer, this);
-}
+typedef struct {
+  PyObject_HEAD grpc_server_credentials *c_server_credentials;
+} ServerCredentials;
 
-}  // namespace grpc
+PyTypeObject pygrpc_ServerCredentialsType;
+
+int pygrpc_add_server_credentials(PyObject *module);
+
+#endif /* _ADAPTER__SERVER_CREDENTIALS_H_ */
