@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,58 +31,13 @@
  *
  */
 
-var _ = require('underscore');
-var grpc = require('..');
-var examples = grpc.load(__dirname + '/stock.proto').examples;
+#include <include/grpc++/call.h>
+#include <include/grpc++/channel_interface.h>
 
-var StockServer = grpc.buildServer([examples.Stock.service]);
+namespace grpc {
 
-function getLastTradePrice(call, callback) {
-  callback(null, {price: 88});
+void Call::PerformOps(CallOpBuffer* buffer, void* tag) {
+  channel_->PerformOpsOnCall(buffer, tag, this);
 }
 
-function watchFutureTrades(call) {
-  for (var i = 0; i < call.request.num_trades_to_watch; i++) {
-    call.write({price: 88.00 + i * 10.00});
-  }
-  call.end();
-}
-
-function getHighestTradePrice(call, callback) {
-  var trades = [];
-  call.on('data', function(data) {
-    trades.push({symbol: data.symbol, price: _.random(0, 100)});
-  });
-  call.on('end', function() {
-    if(_.isEmpty(trades)) {
-      callback(null, {});
-    } else {
-      callback(null, _.max(trades, function(trade){return trade.price;}));
-    }
-  });
-}
-
-function getLastTradePriceMultiple(call) {
-  call.on('data', function(data) {
-    call.write({price: 88});
-  });
-  call.on('end', function() {
-    call.end();
-  });
-}
-
-var stockServer = new StockServer({
-  'examples.Stock' : {
-    getLastTradePrice: getLastTradePrice,
-    getLastTradePriceMultiple: getLastTradePriceMultiple,
-    watchFutureTrades: watchFutureTrades,
-    getHighestTradePrice: getHighestTradePrice
-  }
-});
-
-if (require.main === module) {
-  stockServer.bind('0.0.0.0:8080');
-  stockServer.listen();
-}
-
-exports.module = stockServer;
+}  // namespace grpc

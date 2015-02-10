@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,58 +31,66 @@
  *
  */
 
-var _ = require('underscore');
-var grpc = require('..');
-var examples = grpc.load(__dirname + '/stock.proto').examples;
+#ifndef __GRPCPP_CALL_H__
+#define __GRPCPP_CALL_H__
 
-var StockServer = grpc.buildServer([examples.Stock.service]);
+#include <grpc++/status.h>
+#include <grpc++/completion_queue.h>
 
-function getLastTradePrice(call, callback) {
-  callback(null, {price: 88});
-}
+#include <memory>
+#include <vector>
 
-function watchFutureTrades(call) {
-  for (var i = 0; i < call.request.num_trades_to_watch; i++) {
-    call.write({price: 88.00 + i * 10.00});
-  }
-  call.end();
-}
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
 
-function getHighestTradePrice(call, callback) {
-  var trades = [];
-  call.on('data', function(data) {
-    trades.push({symbol: data.symbol, price: _.random(0, 100)});
-  });
-  call.on('end', function() {
-    if(_.isEmpty(trades)) {
-      callback(null, {});
-    } else {
-      callback(null, _.max(trades, function(trade){return trade.price;}));
-    }
-  });
-}
+struct grpc_call;
+struct grpc_op;
 
-function getLastTradePriceMultiple(call) {
-  call.on('data', function(data) {
-    call.write({price: 88});
-  });
-  call.on('end', function() {
-    call.end();
-  });
-}
+namespace grpc {
 
-var stockServer = new StockServer({
-  'examples.Stock' : {
-    getLastTradePrice: getLastTradePrice,
-    getLastTradePriceMultiple: getLastTradePriceMultiple,
-    watchFutureTrades: watchFutureTrades,
-    getHighestTradePrice: getHighestTradePrice
-  }
-});
+class ChannelInterface;
 
-if (require.main === module) {
-  stockServer.bind('0.0.0.0:8080');
-  stockServer.listen();
-}
+class CallOpBuffer final : public CompletionQueueTag {
+ public:
+  void AddSendInitialMetadata(std::vector<std::pair<grpc::string, grpc::string> > *metadata);
+  void AddSendMessage(const google::protobuf::Message &message);
+  void AddRecvMessage(google::protobuf::Message *message);
+  void AddClientSendClose();
+  void AddClientRecvStatus(Status *status);
 
-exports.module = stockServer;
+  // INTERNAL API:
+
+  // Convert to an array of grpc_op elements
+  void FillOps(grpc_op *ops, size_t *nops);
+
+  // Called by completion queue just prior to returning from Next() or Pluck()
+  void FinalizeResult() override;
+};
+
+class CCallDeleter {
+ public:
+  void operator()(grpc_call *c);
+};
+
+// Straightforward wrapping of the C call object
+class Call final {
+ public:
+  Call(grpc_call *call, ChannelInterface *channel, CompletionQueue *cq);
+
+  void PerformOps(CallOpBuffer *buffer, void *tag);
+
+  grpc_call *call() { return call_.get(); }
+  CompletionQueue *cq() { return cq_; }
+
+ private:
+  ChannelInterface *channel_;
+  CompletionQueue *cq_;
+  std::unique_ptr<grpc_call, CCallDeleter> call_;
+};
+
+}  // namespace grpc
+
+#endif  // __GRPCPP_CALL_INTERFACE_H__
