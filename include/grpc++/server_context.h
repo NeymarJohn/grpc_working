@@ -35,9 +35,6 @@
 #define __GRPCPP_SERVER_CONTEXT_H_
 
 #include <chrono>
-#include <vector>
-
-#include "config.h"
 
 namespace grpc {
 
@@ -46,10 +43,7 @@ class ServerContext {
  public:
   virtual ~ServerContext() {}
 
-  std::chrono::system_clock::time_point absolute_deadline();
-
- private:
-  std::vector<std::pair<grpc::string, grpc::string> > metadata_;
+  virtual std::chrono::system_clock::time_point absolute_deadline() const = 0;
 };
 
 }  // namespace grpc

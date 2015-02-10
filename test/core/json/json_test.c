@@ -151,7 +151,7 @@ static void test_pairs() {
       GPR_ASSERT(!json);
     }
 
-    gpr_free(scratchpad);
+    free(scratchpad);
   }
 }
 
@@ -166,7 +166,6 @@ static void test_atypical() {
   grpc_json_destroy(json->child);
   json->child = brother;
   grpc_json_destroy(json);
-  gpr_free(scratchpad);
 }
 
 int main(int argc, char **argv) {
