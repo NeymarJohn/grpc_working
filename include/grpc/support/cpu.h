@@ -31,34 +31,27 @@
  *
  */
 
-#ifndef __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
-#define __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
+#ifndef __GRPC_INTERNAL_SUPPORT_CPU_H__
+#define __GRPC_INTERNAL_SUPPORT_CPU_H__
 
-namespace google {
-namespace protobuf {
-class Message;
-}
-}
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-namespace grpc {
-class Status;
+/* Interface providing CPU information for currently running system */
 
-// An interface to avoid dependency on internal implementation.
-class StreamContextInterface {
- public:
-  virtual ~StreamContextInterface() {}
+/* Return the number of CPU cores on the current system. Will return 0 if
+   if information is not available. */
+unsigned gpr_cpu_num_cores(void);
 
-  virtual void Start(bool buffered) = 0;
+/* Return the CPU on which the current thread is executing; N.B. This should
+   be considered advisory only - it is possible that the thread is switched
+   to a different CPU at any time. Returns a value in range
+   [0, gpr_cpu_num_cores() - 1] */
+unsigned gpr_cpu_current_cpu(void);
 
-  virtual bool Read(google::protobuf::Message* msg) = 0;
-  virtual bool Write(const google::protobuf::Message* msg, bool is_last) = 0;
-  virtual const Status& Wait() = 0;
-  virtual void Cancel() = 0;
+#ifdef __cplusplus
+}  // extern "C"
+#endif
 
-  virtual google::protobuf::Message* request() = 0;
-  virtual google::protobuf::Message* response() = 0;
-};
-
-}  // namespace grpc
-
-#endif  // __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
+#endif /* __GRPC_INTERNAL_SUPPORT_CPU_H__ */
