@@ -31,59 +31,59 @@
  *
  */
 
-#include <grpc++/async_server.h>
-
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
-#include <grpc++/completion_queue.h>
+#include <include/grpc++/impl/call.h>
+#include <include/grpc++/channel_interface.h>
 
 namespace grpc {
 
-AsyncServer::AsyncServer(CompletionQueue *cc)
-    : started_(false), shutdown_(false) {
-  server_ = grpc_server_create(cc->cq(), nullptr);
+void CallOpBuffer::Reset(void* next_return_tag) {
+  return_tag_ = next_return_tag;
+  metadata_ = nullptr;
+  send_message_ = nullptr;
+  recv_message_ = nullptr;
+  client_send_close_ = false;
+  status_ = false;
 }
 
-AsyncServer::~AsyncServer() {
-  std::unique_lock<std::mutex> lock(shutdown_mu_);
-  if (started_ && !shutdown_) {
-    lock.unlock();
-    Shutdown();
-  }
-  grpc_server_destroy(server_);
+void CallOpBuffer::AddSendInitialMetadata(
+    std::multimap<igrpc::string, grpc::string>* metadata) {
+  metadata_ = metadata;
 }
 
-void AsyncServer::AddPort(const grpc::string &addr) {
-  GPR_ASSERT(!started_);
-  int success = grpc_server_add_http2_port(server_, addr.c_str());
-  GPR_ASSERT(success);
+void CallOpBuffer::AddSendMessage(const google::protobuf::Message& message) {
+  send_message_ = &message;
 }
 
-void AsyncServer::Start() {
-  GPR_ASSERT(!started_);
-  started_ = true;
-  grpc_server_start(server_);
+void CallOpBuffer::AddRecvMessage(google::protobuf::Message *message) {
+  recv_message_ = message;
 }
 
-void AsyncServer::RequestOneRpc() {
-  GPR_ASSERT(started_);
-  std::unique_lock<std::mutex> lock(shutdown_mu_);
-  if (shutdown_) {
-    return;
-  }
-  lock.unlock();
-  grpc_call_error err = grpc_server_request_call_old(server_, nullptr);
-  GPR_ASSERT(err == GRPC_CALL_OK);
+void CallOpBuffer::AddClientSendClose() {
+  client_sent_close_ = true;
 }
 
-void AsyncServer::Shutdown() {
-  std::unique_lock<std::mutex> lock(shutdown_mu_);
-  if (started_ && !shutdown_) {
-    shutdown_ = true;
-    lock.unlock();
-    // TODO(yangg) should we shutdown without start?
-    grpc_server_shutdown(server_);
-  }
+void CallOpBuffer::AddClientRecvStatus(Status *status) {
+  status_ = status;
+}
+
+void CallOpBuffer::FillOps(grpc_op *ops, size_t *nops) {
+
+
+}
+
+void CallOpBuffer::FinalizeResult(void *tag, bool *status) {
+
+}
+
+void CCallDeleter::operator()(grpc_call* c) {
+  grpc_call_destroy(c);
+}
+
+Call::Call(grpc_call* call, ChannelInterface* channel, CompletionQueue* cq)
+    : channel_(channel), cq_(cq), call_(call) {}
+
+void Call::PerformOps(CallOpBuffer* buffer) {
+  channel_->PerformOpsOnCall(buffer, this);
 }
 
 }  // namespace grpc
