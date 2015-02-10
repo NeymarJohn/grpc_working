@@ -1,4 +1,4 @@
-[gRPC - An RPC library and framework](http://github.com/grpc/grpc)
+[gRPC - An RPC library and framework](http://github.com/google/grpc)
 ===================================
 
 Copyright 2015 Google Inc.
