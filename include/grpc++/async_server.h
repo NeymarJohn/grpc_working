@@ -31,11 +31,40 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
-#define __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
+#ifndef __GRPCPP_ASYNC_SERVER_H__
+#define __GRPCPP_ASYNC_SERVER_H__
 
-#include <ws2tcpip.h>
-#include <winsock2.h>
-#include <mswsock.h>
+#include <mutex>
 
-#endif  /* __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_ */
+#include <grpc++/config.h>
+
+struct grpc_server;
+
+namespace grpc {
+class CompletionQueue;
+
+class AsyncServer {
+ public:
+  explicit AsyncServer(CompletionQueue* cc);
+  ~AsyncServer();
+
+  void AddPort(const grpc::string& addr);
+
+  void Start();
+
+  // The user has to call this to get one new rpc on the completion
+  // queue.
+  void RequestOneRpc();
+
+  void Shutdown();
+
+ private:
+  bool started_;
+  std::mutex shutdown_mu_;
+  bool shutdown_;
+  grpc_server* server_;
+};
+
+}  // namespace grpc
+
+#endif  // __GRPCPP_ASYNC_SERVER_H__

@@ -31,11 +31,36 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
-#define __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
+#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
+#define __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
 
-#include <ws2tcpip.h>
-#include <winsock2.h>
-#include <mswsock.h>
+#include <memory>
 
-#endif  /* __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_ */
+#include <grpc++/completion_queue.h>
+#include <grpc++/status.h>
+
+namespace grpc {
+
+class AsyncServerContext;
+class RpcServiceMethod;
+
+class ServerRpcHandler {
+ public:
+  // Takes ownership of async_server_context.
+  ServerRpcHandler(AsyncServerContext *async_server_context,
+                   RpcServiceMethod *method);
+
+  void StartRpc();
+
+ private:
+  CompletionQueue::CompletionType WaitForNextEvent();
+  void FinishRpc(const Status &status);
+
+  std::unique_ptr<AsyncServerContext> async_server_context_;
+  RpcServiceMethod *method_;
+  CompletionQueue cq_;
+};
+
+}  // namespace grpc
+
+#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__

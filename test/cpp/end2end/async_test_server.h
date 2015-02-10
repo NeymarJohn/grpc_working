@@ -31,11 +31,45 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
-#define __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
+#ifndef __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+#define __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
 
-#include <ws2tcpip.h>
-#include <winsock2.h>
-#include <mswsock.h>
+#include <condition_variable>
+#include <mutex>
+#include <string>
 
-#endif  /* __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_ */
+#include <grpc++/async_server.h>
+#include <grpc++/completion_queue.h>
+
+namespace grpc {
+
+namespace testing {
+
+class AsyncTestServer {
+ public:
+  AsyncTestServer();
+  virtual ~AsyncTestServer();
+
+  void AddPort(const grpc::string& addr);
+  void Start();
+  void RequestOneRpc();
+  virtual void MainLoop();
+  void Shutdown();
+
+  CompletionQueue* completion_queue() { return &cq_; }
+
+ protected:
+  void HandleQueueClosed();
+
+ private:
+  CompletionQueue cq_;
+  AsyncServer server_;
+  bool cq_drained_;
+  std::mutex cq_drained_mu_;
+  std::condition_variable cq_drained_cv_;
+};
+
+}  // namespace testing
+}  // namespace grpc
+
+#endif  // __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__

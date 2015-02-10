@@ -31,11 +31,34 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
-#define __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_
+#ifndef __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
+#define __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
 
-#include <ws2tcpip.h>
-#include <winsock2.h>
-#include <mswsock.h>
+namespace google {
+namespace protobuf {
+class Message;
+}
+}
 
-#endif  /* __GRPC_INTERNAL_IOMGR_SOCKADDR_WIN32_H_ */
+namespace grpc {
+class Status;
+
+// An interface to avoid dependency on internal implementation.
+class StreamContextInterface {
+ public:
+  virtual ~StreamContextInterface() {}
+
+  virtual void Start(bool buffered) = 0;
+
+  virtual bool Read(google::protobuf::Message* msg) = 0;
+  virtual bool Write(const google::protobuf::Message* msg, bool is_last) = 0;
+  virtual const Status& Wait() = 0;
+  virtual void Cancel() = 0;
+
+  virtual google::protobuf::Message* request() = 0;
+  virtual google::protobuf::Message* response() = 0;
+};
+
+}  // namespace grpc
+
+#endif  // __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
