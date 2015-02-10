@@ -37,11 +37,42 @@
 #include <grpc++/call.h>
 #include <grpc++/channel_interface.h>
 #include <grpc++/completion_queue.h>
-#include <grpc++/stream_context_interface.h>
 #include <grpc++/status.h>
 #include <grpc/support/log.h>
 
 namespace grpc {
+
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+// DELETE DELETE DELETE
+  class StreamContextInterface {
+    public:
+      template <class T> bool Write(T, bool);
+      template <class T> void Start(T);
+      template <class T> bool Read(T);
+      google::protobuf::Message *request();
+  };
 
 // Common interface for all client side streaming.
 class ClientStreamingInterface {
@@ -146,7 +177,6 @@ class ClientWriter final : public ClientStreamingInterface,
   virtual Status Finish() override {
     CallOpBuffer buf;
     Status status;
-    buf.AddRecvMessage(response_);
     buf.AddClientRecvStatus(&status);
     call_.PerformOps(&buf, (void *)4);
     GPR_ASSERT(cq_.Pluck((void *)4));
@@ -222,241 +252,110 @@ class ServerReader final : public ReaderInterface<R> {
 };
 
 template <class W>
-class ServerWriter final : public WriterInterface<W> {
+class ServerWriter : public WriterInterface<W> {
  public:
-  explicit ServerWriter(Call* call) : call_(call) {}
+  explicit ServerWriter(StreamContextInterface* context) : context_(context) {
+    GPR_ASSERT(context_);
+    context_->Start(true);
+    context_->Read(context_->request());
+  }
 
-  virtual bool Write(const W& msg) override {
-    CallOpBuffer buf;
-    buf.AddSendMessage(msg);
-    call_->PerformOps(&buf, (void *)2);
-    return call_->cq()->Pluck((void *)2);
+  virtual bool Write(const W& msg) {
+    return context_->Write(const_cast<W*>(&msg), false);
   }
 
  private:
-  Call* call_;
+  StreamContextInterface* const context_;  // not owned
 };
 
 // Server-side interface for bi-directional streaming.
 template <class W, class R>
-class ServerReaderWriter final : public WriterInterface<W>,
+class ServerReaderWriter : public WriterInterface<W>,
                            public ReaderInterface<R> {
  public:
-  explicit ServerReaderWriter(Call* call) : call_(call) {}
-
-  virtual bool Read(R* msg) override {
-    CallOpBuffer buf;
-    buf.AddRecvMessage(msg);
-    call_->PerformOps(&buf, (void *)2);
-    return call_->cq()->Pluck((void *)2);
+  explicit ServerReaderWriter(StreamContextInterface* context)
+      : context_(context) {
+    GPR_ASSERT(context_);
+    context_->Start(true);
   }
 
-  virtual bool Write(const W& msg) override {
-    CallOpBuffer buf;
-    buf.AddSendMessage(msg);
-    call_->PerformOps(&buf, (void *)3);
-    return call_->cq()->Pluck((void *)3);
+  virtual bool Read(R* msg) { return context_->Read(msg); }
+
+  virtual bool Write(const W& msg) {
+    return context_->Write(const_cast<W*>(&msg), false);
   }
 
  private:
-  CompletionQueue* cq_;
-  Call* call_;
+  StreamContextInterface* const context_;  // not owned
 };
 
-// Async interfaces
-// Common interface for all client side streaming.
-class ClientAsyncStreamingInterface {
- public:
-  virtual ~ClientAsyncStreamingInterface() {}
-
-  virtual void Finish(Status* status, void* tag) = 0;
-};
-
-// An interface that yields a sequence of R messages.
-template <class R>
-class AsyncReaderInterface {
- public:
-  virtual ~AsyncReaderInterface() {}
-
-  virtual void Read(R* msg, void* tag) = 0;
-};
-
-// An interface that can be fed a sequence of W messages.
 template <class W>
-class AsyncWriterInterface {
+class ServerAsyncResponseWriter {
  public:
-  virtual ~Async WriterInterface() {}
+  explicit ServerAsyncResponseWriter(StreamContextInterface* context) : context_(context) {
+    GPR_ASSERT(context_);
+    context_->Start(true);
+    context_->Read(context_->request());
+  }
 
-  virtual void Write(const W& msg, void* tag) = 0;
+  virtual bool Write(const W& msg) {
+    return context_->Write(const_cast<W*>(&msg), false);
+  }
+
+ private:
+  StreamContextInterface* const context_;  // not owned
 };
 
 template <class R>
-class ClientAsyncReader final : public ClientAsyncStreamingInterface,
-                           public AsyncReaderInterface<R> {
+class ServerAsyncReader : public ReaderInterface<R> {
  public:
-  // Blocking create a stream and write the first request out.
-  ClientAsyncReader(ChannelInterface *channel, const RpcMethod &method,
-               ClientContext *context,
-               const google::protobuf::Message &request, void* tag)
-      : call_(channel->CreateCall(method, context, &cq_)) {
-    CallOpBuffer buf;
-    buf.AddSendMessage(request);
-    buf.AddClientSendClose();
-    call_.PerformOps(&buf, tag);
+  explicit ServerAsyncReader(StreamContextInterface* context) : context_(context) {
+    GPR_ASSERT(context_);
+    context_->Start(true);
   }
 
-  virtual void Read(R *msg, void* tag) override {
-    CallOpBuffer buf;
-    buf.AddRecvMessage(msg);
-    call_.PerformOps(&buf, tag);
-  }
-
-  virtual void Finish(Status* status, void* tag) override {
-    CallOpBuffer buf;
-    buf.AddClientRecvStatus(status);
-    call_.PerformOps(&buf, tag);
-  }
+  virtual bool Read(R* msg) { return context_->Read(msg); }
 
  private:
-  CompletionQueue cq_;
-  Call call_;
+  StreamContextInterface* const context_;  // not owned
 };
 
 template <class W>
-class ClientWriter final : public ClientAsyncStreamingInterface,
-                           public WriterInterface<W> {
+class ServerAsyncWriter : public WriterInterface<W> {
  public:
-  // Blocking create a stream.
-  ClientAsyncWriter(ChannelInterface *channel, const RpcMethod &method,
-               ClientContext *context,
-               google::protobuf::Message *response)
-      : response_(response),
-        call_(channel->CreateCall(method, context, &cq_)) {}
-
-  virtual void Write(const W& msg, void* tag) override {
-    CallOpBuffer buf;
-    buf.AddSendMessage(msg);
-    call_.PerformOps(&buf, tag);
+  explicit ServerAsyncWriter(StreamContextInterface* context) : context_(context) {
+    GPR_ASSERT(context_);
+    context_->Start(true);
+    context_->Read(context_->request());
   }
 
-  virtual void WritesDone(void* tag) {
-    CallOpBuffer buf;
-    buf.AddClientSendClose();
-    call_.PerformOps(&buf, tag);
-  }
-
-  virtual void Finish(Status* status, void* tag) override {
-    CallOpBuffer buf;
-    buf.AddRecvMessage(response_);
-    buf.AddClientRecvStatus(status);
-    call_.PerformOps(&buf, tag);
+  virtual bool Write(const W& msg) {
+    return context_->Write(const_cast<W*>(&msg), false);
   }
 
  private:
-  google::protobuf::Message *const response_;
-  CompletionQueue cq_;
-  Call call_;
-};
-
-// Client-side interface for bi-directional streaming.
-template <class W, class R>
-class ClientAsyncReaderWriter final : public ClientAsyncStreamingInterface,
-                                 public AsyncWriterInterface<W>,
-                                 public AsyncReaderInterface<R> {
- public:
-  ClientAsyncReaderWriter(ChannelInterface *channel,
-                     const RpcMethod &method, ClientContext *context)
-      : call_(channel->CreateCall(method, context, &cq_)) {}
-
-  virtual void Read(R *msg, void* tag) override {
-    CallOpBuffer buf;
-    buf.AddRecvMessage(msg);
-    call_.PerformOps(&buf, tag);
-  }
-
-  virtual void Write(const W& msg, void* tag) override {
-    CallOpBuffer buf;
-    buf.AddSendMessage(msg);
-    call_.PerformOps(&buf, tag);
-  }
-
-  virtual bool WritesDone(void* tag) {
-    CallOpBuffer buf;
-    buf.AddClientSendClose();
-    call_.PerformOps(&buf, tag);
-  }
-
-  virtual void Finish(Status* status, void* tag) override {
-    CallOpBuffer buf;
-    Status status;
-    buf.AddClientRecvStatus(status);
-    call_.PerformOps(&buf, tag);
-  }
-
- private:
-  CompletionQueue cq_;
-  Call call_;
-};
-
-// TODO(yangg) Move out of stream.h
-template <class W>
-class ServerAsyncResponseWriter final {
- public:
-  explicit ServerAsyncResponseWriter(Call* call) : call_(call) {}
-
-  virtual void Write(const W& msg, void* tag) override {
-    CallOpBuffer buf;
-    buf.AddSendMessage(msg);
-    call_->PerformOps(&buf, tag);
-  }
-
- private:
-  Call* call_;
-};
-
-template <class R>
-class ServerAsyncReader : public AsyncReaderInterface<R> {
- public:
-  explicit ServerAsyncReader(Call* call) : call_(call) {}
-
-  virtual void Read(R* msg, void* tag) {
-    // TODO
-  }
-
- private:
-  Call* call_;
-};
-
-template <class W>
-class ServerAsyncWriter : public AsyncWriterInterface<W> {
- public:
-  explicit ServerAsyncWriter(Call* call) : call_(call) {}
-
-  virtual void Write(const W& msg, void* tag) {
-    // TODO
-  }
-
- private:
-  Call* call_;
+  StreamContextInterface* const context_;  // not owned
 };
 
 // Server-side interface for bi-directional streaming.
 template <class W, class R>
-class ServerAsyncReaderWriter : public AsyncWriterInterface<W>,
-                           public AsyncReaderInterface<R> {
+class ServerAsyncReaderWriter : public WriterInterface<W>,
+                           public ReaderInterface<R> {
  public:
-  explicit ServerAsyncReaderWriter(Call* call) : call_(call) {}
-
-  virtual void Read(R* msg, void* tag) {
-    // TODO
+  explicit ServerAsyncReaderWriter(StreamContextInterface* context)
+      : context_(context) {
+    GPR_ASSERT(context_);
+    context_->Start(true);
   }
 
-  virtual void Write(const W& msg, void* tag) {
-    // TODO
+  virtual bool Read(R* msg) { return context_->Read(msg); }
+
+  virtual bool Write(const W& msg) {
+    return context_->Write(const_cast<W*>(&msg), false);
   }
 
  private:
-  Call* call_;
+  StreamContextInterface* const context_;  // not owned
 };
 
 }  // namespace grpc

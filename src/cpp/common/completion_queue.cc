@@ -38,7 +38,6 @@
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
 #include "src/cpp/util/time.h"
-#include <grpc++/async_server_context.h>
 
 namespace grpc {
 
@@ -57,15 +56,19 @@ class EventDeleter {
 bool CompletionQueue::Next(void **tag, bool *ok) {
   std::unique_ptr<grpc_event, EventDeleter> ev;
 
-  ev.reset(grpc_completion_queue_next(cq_, gpr_inf_future));
-  if (ev->type == GRPC_QUEUE_SHUTDOWN) {
-    return false;
+  while (true) {
+    ev.reset(grpc_completion_queue_next(cq_, gpr_inf_future));
+    if (ev->type == GRPC_QUEUE_SHUTDOWN) {
+      return false;
+    }
+    auto cq_tag = static_cast<CompletionQueueTag *>(ev->tag);
+    switch (cq_tag->FinalizeResult(ev->data.op_complete == GRPC_OP_OK)) {
+      case CompletionQueueTag::SUCCEED: *ok = true; break;
+      case CompletionQueueTag::FAIL: *ok = false; break;
+      case CompletionQueueTag::SWALLOW: continue;
+    }
+    return true;
   }
-  auto cq_tag = static_cast<CompletionQueueTag *>(ev->tag);
-  cq_tag->FinalizeResult();
-  *tag = cq_tag->user_tag_;
-  *ok = ev->data.op_complete == GRPC_OP_OK;
-  return true;
 }
 
 }  // namespace grpc
