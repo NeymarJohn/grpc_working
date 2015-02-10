@@ -31,71 +31,36 @@
  *
  */
 
-#ifndef __GRPCPP_CALL_H__
-#define __GRPCPP_CALL_H__
-
-#include <grpc++/status.h>
-#include <grpc++/completion_queue.h>
+#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
+#define __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
 
 #include <memory>
-#include <vector>
 
-namespace google {
-namespace protobuf {
-class Message;
-}  // namespace protobuf
-}  // namespace google
-
-struct grpc_call;
-struct grpc_op;
+#include <grpc++/completion_queue.h>
+#include <grpc++/status.h>
 
 namespace grpc {
 
-class ChannelInterface;
+class AsyncServerContext;
+class RpcServiceMethod;
 
-class CallOpBuffer final : public CompletionQueueTag {
+class ServerRpcHandler {
  public:
-  CallOpBuffer() : return_tag_(this) {}
+  // Takes ownership of async_server_context.
+  ServerRpcHandler(AsyncServerContext *async_server_context,
+                   RpcServiceMethod *method);
 
-  void AddSendInitialMetadata(std::vector<std::pair<grpc::string, grpc::string> > *metadata);
-  void AddSendMessage(const google::protobuf::Message &message);
-  void AddRecvMessage(google::protobuf::Message *message);
-  void AddClientSendClose();
-  void AddClientRecvStatus(Status *status);
-
-  // INTERNAL API:
-
-  // Convert to an array of grpc_op elements
-  void FillOps(grpc_op *ops, size_t *nops);
-
-  // Called by completion queue just prior to returning from Next() or Pluck()
-  void FinalizeResult(void *tag, bool *status) override;
+  void StartRpc();
 
  private:
-  void *return_tag_;
-};
+  CompletionQueue::CompletionType WaitForNextEvent();
+  void FinishRpc(const Status &status);
 
-class CCallDeleter {
- public:
-  void operator()(grpc_call *c);
-};
-
-// Straightforward wrapping of the C call object
-class Call final {
- public:
-  Call(grpc_call *call, ChannelInterface *channel, CompletionQueue *cq);
-
-  void PerformOps(CallOpBuffer *buffer);
-
-  grpc_call *call() { return call_.get(); }
-  CompletionQueue *cq() { return cq_; }
-
- private:
-  ChannelInterface *channel_;
-  CompletionQueue *cq_;
-  std::unique_ptr<grpc_call, CCallDeleter> call_;
+  std::unique_ptr<AsyncServerContext> async_server_context_;
+  RpcServiceMethod *method_;
+  CompletionQueue cq_;
 };
 
 }  // namespace grpc
 
-#endif  // __GRPCPP_CALL_INTERFACE_H__
+#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
