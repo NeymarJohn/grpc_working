@@ -31,21 +31,19 @@
  *
  */
 
-#ifndef __GRPCPP_SERVER_CONTEXT_H_
-#define __GRPCPP_SERVER_CONTEXT_H_
+#ifndef __GRPC_INTERNAL_SUPPORT_CPU_H__
+#define __GRPC_INTERNAL_SUPPORT_CPU_H__
 
-#include <chrono>
+/* Interface providing CPU information for currently running system */
 
-namespace grpc {
+/* Return the number of CPU cores on the current system. Will return 0 if
+   if information is not available. */
+unsigned gpr_cpu_num_cores(void);
 
-// Interface of server side rpc context.
-class ServerContext {
- public:
-  virtual ~ServerContext() {}
+/* Return the CPU on which the current thread is executing; N.B. This should
+   be considered advisory only - it is possible that the thread is switched
+   to a different CPU at any time. Returns a value in range
+   [0, gpr_cpu_num_cores() - 1] */
+unsigned gpr_cpu_current_cpu(void);
 
-  virtual std::chrono::system_clock::time_point absolute_deadline() const = 0;
-};
-
-}  // namespace grpc
-
-#endif  // __GRPCPP_SERVER_CONTEXT_H_
+#endif /* __GRPC_INTERNAL_SUPPORT_CPU_H__ */
