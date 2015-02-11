@@ -31,34 +31,30 @@
  *
  */
 
-#ifndef __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
-#define __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
-
-namespace google {
-namespace protobuf {
-class Message;
-}
-}
+#include <grpc++/impl/client_unary_call.h>
+#include <grpc++/impl/call.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/completion_queue.h>
+#include <grpc++/status.h>
 
 namespace grpc {
-class Status;
 
-// An interface to avoid dependency on internal implementation.
-class StreamContextInterface {
- public:
-  virtual ~StreamContextInterface() {}
-
-  virtual void Start(bool buffered) = 0;
-
-  virtual bool Read(google::protobuf::Message* msg) = 0;
-  virtual bool Write(const google::protobuf::Message* msg, bool is_last) = 0;
-  virtual const Status& Wait() = 0;
-  virtual void Cancel() = 0;
-
-  virtual google::protobuf::Message* request() = 0;
-  virtual google::protobuf::Message* response() = 0;
-};
+// Wrapper that performs a blocking unary call
+Status BlockingUnaryCall(ChannelInterface *channel, const RpcMethod &method,
+                         ClientContext *context,
+                         const google::protobuf::Message &request,
+                         google::protobuf::Message *result) {
+  CompletionQueue cq;
+  Call call(channel->CreateCall(method, context, &cq));
+  CallOpBuffer buf;
+  Status status;
+  buf.AddSendMessage(request);
+  buf.AddRecvMessage(result);
+  buf.AddClientSendClose();
+  buf.AddClientRecvStatus(&status);
+  call.PerformOps(&buf);
+  cq.Pluck(&buf);
+  return status;
+}
 
 }  // namespace grpc
-
-#endif  // __GRPCPP_STREAM_CONTEXT_INTERFACE_H__

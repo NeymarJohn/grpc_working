@@ -31,45 +31,25 @@
  *
  */
 
-#ifndef __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
-#define __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
-
-#include <condition_variable>
-#include <mutex>
-#include <string>
-
-#include <grpc++/async_server.h>
-#include <grpc++/completion_queue.h>
+#ifndef __GRPCPP_IMPL_SERVICE_TYPE_H__
+#define __GRPCPP_IMPL_SERVICE_TYPE_H__
 
 namespace grpc {
 
-namespace testing {
+class RpcService;
 
-class AsyncTestServer {
+class SynchronousService {
  public:
-  AsyncTestServer();
-  virtual ~AsyncTestServer();
-
-  void AddPort(const grpc::string& addr);
-  void Start();
-  void RequestOneRpc();
-  virtual void MainLoop();
-  void Shutdown();
-
-  CompletionQueue* completion_queue() { return &cq_; }
-
- protected:
-  void HandleQueueClosed();
-
- private:
-  CompletionQueue cq_;
-  AsyncServer server_;
-  bool cq_drained_;
-  std::mutex cq_drained_mu_;
-  std::condition_variable cq_drained_cv_;
+  virtual ~SynchronousService() {}
+  virtual RpcService *service() = 0;
 };
 
-}  // namespace testing
+class AsynchronousService {
+ public:
+  virtual ~AsynchronousService() {}
+  virtual RpcService *service() = 0;
+};
+
 }  // namespace grpc
 
-#endif  // __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+#endif // __GRPCPP_IMPL_SERVICE_TYPE_H__

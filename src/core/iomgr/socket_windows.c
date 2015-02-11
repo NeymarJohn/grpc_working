@@ -31,36 +31,47 @@
  *
  */
 
-#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
-#define __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
+#include <grpc/support/port_platform.h>
+#include <grpc/support/alloc.h>
+#include <grpc/support/log.h>
 
-#include <memory>
+#ifdef GPR_WINSOCK_SOCKET
 
-#include <grpc++/completion_queue.h>
-#include <grpc++/status.h>
+#include "src/core/iomgr/iocp_windows.h"
+#include "src/core/iomgr/iomgr.h"
+#include "src/core/iomgr/iomgr_internal.h"
+#include "src/core/iomgr/socket_windows.h"
+#include "src/core/iomgr/pollset.h"
+#include "src/core/iomgr/pollset_windows.h"
 
-namespace grpc {
+grpc_winsocket *grpc_winsocket_create(SOCKET socket) {
+  grpc_winsocket *r = gpr_malloc(sizeof(grpc_winsocket));
+  gpr_log(GPR_DEBUG, "grpc_winsocket_create");
+  memset(r, 0, sizeof(grpc_winsocket));
+  r->socket = socket;
+  gpr_mu_init(&r->state_mu);
+  grpc_iomgr_ref();
+  grpc_iocp_add_socket(r);
+  return r;
+}
 
-class AsyncServerContext;
-class RpcServiceMethod;
+void shutdown_op(grpc_winsocket_callback_info *info) {
+  if (!info->cb) return;
+  grpc_iomgr_add_delayed_callback(info->cb, info->opaque, 0);
+}
 
-class ServerRpcHandler {
- public:
-  // Takes ownership of async_server_context.
-  ServerRpcHandler(AsyncServerContext *async_server_context,
-                   RpcServiceMethod *method);
+void grpc_winsocket_shutdown(grpc_winsocket *socket) {
+  gpr_log(GPR_DEBUG, "grpc_winsocket_shutdown");
+  shutdown_op(&socket->read_info);
+  shutdown_op(&socket->write_info);
+}
 
-  void StartRpc();
+void grpc_winsocket_orphan(grpc_winsocket *socket) {
+  gpr_log(GPR_DEBUG, "grpc_winsocket_orphan");
+  grpc_iomgr_unref();
+  closesocket(socket->socket);
+  gpr_mu_destroy(&socket->state_mu);
+  gpr_free(socket);
+}
 
- private:
-  CompletionQueue::CompletionType WaitForNextEvent();
-  void FinishRpc(const Status &status);
-
-  std::unique_ptr<AsyncServerContext> async_server_context_;
-  RpcServiceMethod *method_;
-  CompletionQueue cq_;
-};
-
-}  // namespace grpc
-
-#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
+#endif  /* GPR_WINSOCK_SOCKET */
