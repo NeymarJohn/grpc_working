@@ -99,7 +99,7 @@ typedef struct {
 struct registered_method {
   char *method;
   char *host;
-  call_data *pending;
+  call_link pending;
   requested_call_array requested;
   registered_method *next;
 };
@@ -118,9 +118,6 @@ struct channel_data {
   /* linked list of all channels on a server */
   channel_data *next;
   channel_data *prev;
-  channel_registered_method *registered_methods;
-  gpr_uint32 registered_method_slots;
-  gpr_uint32 registered_method_max_probes;
 };
 
 struct grpc_server {
@@ -170,7 +167,7 @@ struct call_data {
 
   legacy_data *legacy;
 
-  call_data **root[CALL_LIST_COUNT];
+  gpr_uint8 included[CALL_LIST_COUNT];
   call_link links[CALL_LIST_COUNT];
 };
 
@@ -183,30 +180,30 @@ static void begin_call(grpc_server *server, call_data *calld,
                        requested_call *rc);
 static void fail_call(grpc_server *server, requested_call *rc);
 
-static int call_list_join(call_data **root, call_data *call,
+static int call_list_join(grpc_server *server, call_data *call,
                           call_list list) {
-  GPR_ASSERT(!call->root[list]);
-  call->root[list] = root;
-  if (!*root) {
-    *root = call;
+  if (call->included[list]) return 0;
+  call->included[list] = 1;
+  if (!server->lists[list]) {
+    server->lists[list] = call;
     call->links[list].next = call->links[list].prev = call;
   } else {
-    call->links[list].next = *root;
-    call->links[list].prev = (*root)->links[list].prev;
+    call->links[list].next = server->lists[list];
+    call->links[list].prev = server->lists[list]->links[list].prev;
     call->links[list].next->links[list].prev =
         call->links[list].prev->links[list].next = call;
   }
   return 1;
 }
 
-static call_data *call_list_remove_head(call_data **root, call_list list) {
-  call_data *out = *root;
+static call_data *call_list_remove_head(grpc_server *server, call_list list) {
+  call_data *out = server->lists[list];
   if (out) {
-    out->root[list] = NULL;
+    out->included[list] = 0;
     if (out->links[list].next == out) {
-      *root = NULL;
+      server->lists[list] = NULL;
     } else {
-      *root = out->links[list].next;
+      server->lists[list] = out->links[list].next;
       out->links[list].next->links[list].prev = out->links[list].prev;
       out->links[list].prev->links[list].next = out->links[list].next;
     }
@@ -214,18 +211,18 @@ static call_data *call_list_remove_head(call_data **root, call_list list) {
   return out;
 }
 
-static int call_list_remove(call_data *call, call_list list) {
-  call_data **root = call->root[list];
-  if (root == NULL) return 0;
-  call->root[list] = NULL;
-  if (*root == call) {
-    *root = call->links[list].next;
-    if (*root == call) {
-      *root = NULL;
+static int call_list_remove(grpc_server *server, call_data *call,
+                            call_list list) {
+  if (!call->included[list]) return 0;
+  call->included[list] = 0;
+  if (server->lists[list] == call) {
+    server->lists[list] = call->links[list].next;
+    if (server->lists[list] == call) {
+      server->lists[list] = NULL;
       return 1;
     }
   }
-  GPR_ASSERT(*root != call);
+  GPR_ASSERT(server->lists[list] != call);
   call->links[list].next->links[list].prev = call->links[list].prev;
   call->links[list].prev->links[list].next = call->links[list].next;
   return 1;
@@ -286,53 +283,23 @@ static void destroy_channel(channel_data *chand) {
   grpc_iomgr_add_callback(finish_destroy_channel, chand);
 }
 
-static void finish_start_new_rpc_and_unlock(grpc_server *server, grpc_call_element *elem, call_data **pending_root, requested_call_array *array) {
-  requested_call rc;
-  call_data *calld = elem->call_data;
-  if (array->count == 0) {
-    calld->state = PENDING;
-    call_list_join(pending_root, calld, PENDING_START);
-    gpr_mu_unlock(&server->mu);
-  } else {
-    rc = server->requested_calls.calls[--server->requested_calls.count];
-    calld->state = ACTIVATED;
-    gpr_mu_unlock(&server->mu);
-    begin_call(server, calld, &rc);
-  }
-}
-
 static void start_new_rpc(grpc_call_element *elem) {
   channel_data *chand = elem->channel_data;
   call_data *calld = elem->call_data;
   grpc_server *server = chand->server;
-  gpr_uint32 i;
-  gpr_uint32 hash;
-  channel_registered_method *rm;
 
   gpr_mu_lock(&server->mu);
-  if (chand->registered_methods && calld->path && calld->host) {
-    /* check for an exact match with host */
-    hash = GRPC_MDSTR_KV_HASH(calld->host->hash, calld->path->hash);
-    for (i = 0; i < chand->registered_method_max_probes; i++) {
-      rm = &chand->registered_methods[(hash + i) % chand->registered_method_slots];
-      if (!rm) break;
-      if (rm->host != calld->host) continue;
-      if (rm->method != calld->path) continue;
-      finish_start_new_rpc_and_unlock(server, elem, &rm->server_registered_method->pending, &rm->server_registered_method->requested);
-      return;
-    }
-    /* check for a wildcard method definition (no host set) */
-    hash = GRPC_MDSTR_KV_HASH(0, calld->path->hash);
-    for (i = 0; i < chand->registered_method_max_probes; i++) {
-      rm = &chand->registered_methods[(hash + i) % chand->registered_method_slots];
-      if (!rm) break;
-      if (rm->host != NULL) continue;
-      if (rm->method != calld->path) continue;
-      finish_start_new_rpc_and_unlock(server, elem, &rm->server_registered_method->pending, &rm->server_registered_method->requested);
-      return;
-    }
+  if (server->requested_calls.count > 0) {
+    requested_call rc =
+        server->requested_calls.calls[--server->requested_calls.count];
+    calld->state = ACTIVATED;
+    gpr_mu_unlock(&server->mu);
+    begin_call(server, calld, &rc);
+  } else {
+    calld->state = PENDING;
+    call_list_join(server, calld, PENDING_START);
+    gpr_mu_unlock(&server->mu);
   }
-  finish_start_new_rpc_and_unlock(server, elem, &server->lists[PENDING_START], &server->requested_calls);
 }
 
 static void kill_zombie(void *elem, int success) {
@@ -347,7 +314,7 @@ static void stream_closed(grpc_call_element *elem) {
     case ACTIVATED:
       break;
     case PENDING:
-      call_list_remove(calld, PENDING_START);
+      call_list_remove(chand->server, calld, PENDING_START);
     /* fallthrough intended */
     case NOT_STARTED:
       calld->state = ZOMBIED;
@@ -478,7 +445,7 @@ static void init_call_elem(grpc_call_element *elem,
   calld->call = grpc_call_from_top_element(elem);
 
   gpr_mu_lock(&chand->server->mu);
-  call_list_join(&chand->server->lists[ALL_CALLS], calld, ALL_CALLS);
+  call_list_join(chand->server, calld, ALL_CALLS);
   gpr_mu_unlock(&chand->server->mu);
 
   server_ref(chand->server);
@@ -491,7 +458,7 @@ static void destroy_call_elem(grpc_call_element *elem) {
 
   gpr_mu_lock(&chand->server->mu);
   for (i = 0; i < CALL_LIST_COUNT; i++) {
-    call_list_remove(elem->call_data, i);
+    call_list_remove(chand->server, elem->call_data, i);
   }
   if (chand->server->shutdown && chand->server->have_shutdown_tag &&
       chand->server->lists[ALL_CALLS] == NULL) {
@@ -526,7 +493,6 @@ static void init_channel_elem(grpc_channel_element *elem,
   chand->path_key = grpc_mdstr_from_string(metadata_context, ":path");
   chand->authority_key = grpc_mdstr_from_string(metadata_context, ":authority");
   chand->next = chand->prev = chand;
-  chand->registered_methods = NULL;
 }
 
 static void destroy_channel_elem(grpc_channel_element *elem) {
@@ -634,18 +600,8 @@ grpc_transport_setup_result grpc_server_setup_transport(
   grpc_channel_filter const **filters =
       gpr_malloc(sizeof(grpc_channel_filter *) * num_filters);
   size_t i;
-  size_t num_registered_methods;
-  size_t alloc;
-  registered_method *rm;
-  channel_registered_method *crm;
   grpc_channel *channel;
   channel_data *chand;
-  grpc_mdstr *host;
-  grpc_mdstr *method;
-  gpr_uint32 hash;
-  gpr_uint32 slots;
-  gpr_uint32 probes;
-  gpr_uint32 max_probes = 0;
 
   for (i = 0; i < s->channel_filter_count; i++) {
     filters[i] = s->channel_filters[i];
@@ -664,32 +620,6 @@ grpc_transport_setup_result grpc_server_setup_transport(
   chand->server = s;
   server_ref(s);
   chand->channel = channel;
-
-  num_registered_methods = 0;
-  for (rm = s->registered_methods; rm; rm = rm->next) {
-    num_registered_methods++;
-  }
-  /* build a lookup table phrased in terms of mdstr's in this channels context
-     to quickly find registered methods */
-  if (num_registered_methods > 0) {
-    slots = 2 * num_registered_methods;
-    alloc = sizeof(channel_registered_method) * slots;
-    chand->registered_methods = gpr_malloc(alloc);
-    memset(chand->registered_methods, 0, alloc);
-    for (rm = s->registered_methods; rm; rm = rm->next) {
-      host = rm->host ? grpc_mdstr_from_string(mdctx, rm->host) : NULL;
-      method = grpc_mdstr_from_string(mdctx, rm->host);
-      hash = GRPC_MDSTR_KV_HASH(host ? host->hash : 0, method->hash);
-      for (probes = 0; chand->registered_methods[(hash + probes) % slots].server_registered_method != NULL; probes++);
-      if (probes > max_probes) max_probes = probes;
-      crm = &chand->registered_methods[(hash + probes) % slots];
-      crm->server_registered_method = rm;
-      crm->host = host;
-      crm->method = method;
-    }
-    chand->registered_method_slots = slots;
-    chand->registered_method_max_probes = max_probes;
-  }
 
   gpr_mu_lock(&s->mu);
   chand->next = &s->root_channel_data;
@@ -822,15 +752,7 @@ static grpc_call_error queue_call_request(grpc_server *server,
     fail_call(server, rc);
     return GRPC_CALL_OK;
   }
-  switch (rc->type) {
-    case LEGACY_CALL:
-    case BATCH_CALL:
-      calld = call_list_remove_head(&server->lists[PENDING_START], PENDING_START);
-      break;
-    case REGISTERED_CALL:
-      calld = call_list_remove_head(&rc->data.registered.registered_method->pending, PENDING_START);
-      break;
-  }
+  calld = call_list_remove_head(server, PENDING_START);
   if (calld) {
     GPR_ASSERT(calld->state == PENDING);
     calld->state = ACTIVATED;
@@ -849,7 +771,7 @@ grpc_call_error grpc_server_request_call(grpc_server *server, grpc_call **call,
                                          grpc_metadata_array *initial_metadata,
                                          grpc_completion_queue *cq, void *tag) {
   requested_call rc;
-  grpc_cq_begin_op(cq, NULL, GRPC_OP_COMPLETE);
+  grpc_cq_begin_op(server->cq, NULL, GRPC_OP_COMPLETE);
   rc.type = BATCH_CALL;
   rc.tag = tag;
   rc.data.batch.cq = cq;
@@ -864,7 +786,7 @@ grpc_call_error grpc_server_request_registered_call(
     gpr_timespec *deadline, grpc_metadata_array *initial_metadata,
     grpc_byte_buffer **optional_payload, grpc_completion_queue *cq, void *tag) {
   requested_call rc;
-  grpc_cq_begin_op(cq, NULL, GRPC_OP_COMPLETE);
+  grpc_cq_begin_op(server->cq, NULL, GRPC_OP_COMPLETE);
   rc.type = REGISTERED_CALL;
   rc.tag = tag;
   rc.data.registered.cq = cq;
@@ -996,8 +918,11 @@ static void publish_legacy(grpc_call *call, grpc_op_error status, void *tag) {
 
 static void publish_registered_or_batch(grpc_call *call, grpc_op_error status,
                                         void *tag) {
-  grpc_cq_end_op_complete(grpc_call_get_completion_queue(call), tag, call,
-                          do_nothing, NULL, status);
+  grpc_call_element *elem =
+      grpc_call_stack_element(grpc_call_get_call_stack(call), 0);
+  channel_data *chand = elem->channel_data;
+  grpc_server *server = chand->server;
+  grpc_cq_end_op_complete(server->cq, tag, call, do_nothing, NULL, status);
 }
 
 const grpc_channel_args *grpc_server_get_channel_args(grpc_server *server) {
