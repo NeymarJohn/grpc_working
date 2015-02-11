@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,36 +31,18 @@
  *
  */
 
-#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
-#define __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
+#ifndef _ADAPTER__SERVER_CREDENTIALS_H_
+#define _ADAPTER__SERVER_CREDENTIALS_H_
 
-#include <memory>
+#include <Python.h>
+#include <grpc/grpc_security.h>
 
-#include <grpc++/completion_queue.h>
-#include <grpc++/status.h>
+typedef struct {
+  PyObject_HEAD grpc_server_credentials *c_server_credentials;
+} ServerCredentials;
 
-namespace grpc {
+PyTypeObject pygrpc_ServerCredentialsType;
 
-class AsyncServerContext;
-class RpcServiceMethod;
+int pygrpc_add_server_credentials(PyObject *module);
 
-class ServerRpcHandler {
- public:
-  // Takes ownership of async_server_context.
-  ServerRpcHandler(AsyncServerContext *async_server_context,
-                   RpcServiceMethod *method);
-
-  void StartRpc();
-
- private:
-  CompletionQueue::CompletionType WaitForNextEvent();
-  void FinishRpc(const Status &status);
-
-  std::unique_ptr<AsyncServerContext> async_server_context_;
-  RpcServiceMethod *method_;
-  CompletionQueue cq_;
-};
-
-}  // namespace grpc
-
-#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
+#endif /* _ADAPTER__SERVER_CREDENTIALS_H_ */

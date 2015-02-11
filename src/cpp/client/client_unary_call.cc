@@ -31,31 +31,30 @@
  *
  */
 
-#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_CONTEXT_IMPL_H_
-#define __GRPCPP_INTERNAL_SERVER_SERVER_CONTEXT_IMPL_H_
-
-#include <grpc++/server_context.h>
-
-#include <chrono>
-
-#include <grpc/support/time.h>
+#include <grpc++/impl/client_unary_call.h>
+#include <grpc++/impl/call.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/completion_queue.h>
+#include <grpc++/status.h>
 
 namespace grpc {
 
-class ServerContextImpl : public ServerContext {
- public:
-  explicit ServerContextImpl(std::chrono::system_clock::time_point deadline)
-      : absolute_deadline_(deadline) {}
-  ~ServerContextImpl() {}
-
-  std::chrono::system_clock::time_point absolute_deadline() const {
-    return absolute_deadline_;
-  }
-
- private:
-  std::chrono::system_clock::time_point absolute_deadline_;
-};
+// Wrapper that performs a blocking unary call
+Status BlockingUnaryCall(ChannelInterface *channel, const RpcMethod &method,
+                         ClientContext *context,
+                         const google::protobuf::Message &request,
+                         google::protobuf::Message *result) {
+  CompletionQueue cq;
+  Call call(channel->CreateCall(method, context, &cq));
+  CallOpBuffer buf;
+  Status status;
+  buf.AddSendMessage(request);
+  buf.AddRecvMessage(result);
+  buf.AddClientSendClose();
+  buf.AddClientRecvStatus(&status);
+  call.PerformOps(&buf);
+  cq.Pluck(&buf);
+  return status;
+}
 
 }  // namespace grpc
-
-#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_CONTEXT_IMPL_H_

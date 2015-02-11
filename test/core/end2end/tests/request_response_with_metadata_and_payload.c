@@ -168,7 +168,8 @@ static void test_request_response_with_metadata_and_payload(
   GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, &s,
                                                       &call_details,
                                                       &request_metadata_recv,
-                                                      f.server_cq, tag(101)));
+                                                      f.server_cq, f.server_cq,
+                                                      tag(101)));
   cq_expect_completion(v_server, tag(101), GRPC_OP_OK);
   cq_verify(v_server);
 
@@ -203,7 +204,7 @@ static void test_request_response_with_metadata_and_payload(
   GPR_ASSERT(0 == strcmp(details, "xyz"));
   GPR_ASSERT(0 == strcmp(call_details.method, "/foo"));
   GPR_ASSERT(0 == strcmp(call_details.host, "test.google.com"));
-  GPR_ASSERT(was_cancelled == 1);
+  GPR_ASSERT(was_cancelled == 0);
   GPR_ASSERT(byte_buffer_eq_string(request_payload_recv, "hello world"));
   GPR_ASSERT(byte_buffer_eq_string(response_payload_recv, "hello you"));
   GPR_ASSERT(contains_metadata(&request_metadata_recv, "key1", "val1"));

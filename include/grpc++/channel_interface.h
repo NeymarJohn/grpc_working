@@ -39,28 +39,26 @@
 namespace google {
 namespace protobuf {
 class Message;
-}
-}
+}  // namespace protobuf
+}  // namespace google
+
+struct grpc_call;
 
 namespace grpc {
-
+class Call;
+class CallOpBuffer;
 class ClientContext;
+class CompletionQueue;
 class RpcMethod;
-class StreamContextInterface;
+class CallInterface;
 
 class ChannelInterface {
  public:
   virtual ~ChannelInterface() {}
 
-  virtual Status StartBlockingRpc(const RpcMethod& method,
-                                  ClientContext* context,
-                                  const google::protobuf::Message& request,
-                                  google::protobuf::Message* result) = 0;
-
-  virtual StreamContextInterface* CreateStream(
-      const RpcMethod& method, ClientContext* context,
-      const google::protobuf::Message* request,
-      google::protobuf::Message* result) = 0;
+  virtual Call CreateCall(const RpcMethod &method, ClientContext *context,
+                          CompletionQueue *cq) = 0;
+  virtual void PerformOpsOnCall(CallOpBuffer *ops, Call *call) = 0;
 };
 
 }  // namespace grpc

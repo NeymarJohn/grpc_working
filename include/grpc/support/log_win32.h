@@ -31,6 +31,23 @@
  *
  */
 
-#include "src/cpp/server/server_context_impl.h"
+#ifndef __GRPC_SUPPORT_LOG_WIN32_H__
+#define __GRPC_SUPPORT_LOG_WIN32_H__
 
-namespace grpc {}  // namespace grpc
+#include <windows.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Returns a string allocated with gpr_malloc that contains a UTF-8
+ * formatted error message, corresponding to the error messageid.
+ * Use in conjunction with GetLastError() et al.
+ */
+char *gpr_format_message(DWORD messageid);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __GRPC_SUPPORT_LOG_H__ */

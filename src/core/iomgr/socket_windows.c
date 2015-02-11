@@ -31,34 +31,47 @@
  *
  */
 
-#ifndef __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
-#define __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
+#include <grpc/support/port_platform.h>
+#include <grpc/support/alloc.h>
+#include <grpc/support/log.h>
 
-namespace google {
-namespace protobuf {
-class Message;
+#ifdef GPR_WINSOCK_SOCKET
+
+#include "src/core/iomgr/iocp_windows.h"
+#include "src/core/iomgr/iomgr.h"
+#include "src/core/iomgr/iomgr_internal.h"
+#include "src/core/iomgr/socket_windows.h"
+#include "src/core/iomgr/pollset.h"
+#include "src/core/iomgr/pollset_windows.h"
+
+grpc_winsocket *grpc_winsocket_create(SOCKET socket) {
+  grpc_winsocket *r = gpr_malloc(sizeof(grpc_winsocket));
+  gpr_log(GPR_DEBUG, "grpc_winsocket_create");
+  memset(r, 0, sizeof(grpc_winsocket));
+  r->socket = socket;
+  gpr_mu_init(&r->state_mu);
+  grpc_iomgr_ref();
+  grpc_iocp_add_socket(r);
+  return r;
 }
+
+void shutdown_op(grpc_winsocket_callback_info *info) {
+  if (!info->cb) return;
+  grpc_iomgr_add_delayed_callback(info->cb, info->opaque, 0);
 }
 
-namespace grpc {
-class Status;
+void grpc_winsocket_shutdown(grpc_winsocket *socket) {
+  gpr_log(GPR_DEBUG, "grpc_winsocket_shutdown");
+  shutdown_op(&socket->read_info);
+  shutdown_op(&socket->write_info);
+}
 
-// An interface to avoid dependency on internal implementation.
-class StreamContextInterface {
- public:
-  virtual ~StreamContextInterface() {}
+void grpc_winsocket_orphan(grpc_winsocket *socket) {
+  gpr_log(GPR_DEBUG, "grpc_winsocket_orphan");
+  grpc_iomgr_unref();
+  closesocket(socket->socket);
+  gpr_mu_destroy(&socket->state_mu);
+  gpr_free(socket);
+}
 
-  virtual void Start(bool buffered) = 0;
-
-  virtual bool Read(google::protobuf::Message* msg) = 0;
-  virtual bool Write(const google::protobuf::Message* msg, bool is_last) = 0;
-  virtual const Status& Wait() = 0;
-  virtual void Cancel() = 0;
-
-  virtual google::protobuf::Message* request() = 0;
-  virtual google::protobuf::Message* response() = 0;
-};
-
-}  // namespace grpc
-
-#endif  // __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
+#endif  /* GPR_WINSOCK_SOCKET */
