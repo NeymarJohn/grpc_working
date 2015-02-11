@@ -76,11 +76,15 @@ static void backup_poller(void *p) {
 
 void grpc_pollset_kick(grpc_pollset *p) {
   if (p->counter) {
-    grpc_pollset_kick_kick(&p->kick_state);
+    p->vtable->kick(p);
   }
 }
 
 void grpc_pollset_force_kick(grpc_pollset *p) {
+  grpc_pollset_kick_kick(&p->kick_state);
+}
+
+static void kick_using_pollset_kick(grpc_pollset *p) {
   grpc_pollset_kick_kick(&p->kick_state);
 }
 
@@ -186,7 +190,7 @@ static void empty_pollset_destroy(grpc_pollset *pollset) {}
 
 static const grpc_pollset_vtable empty_pollset = {
     empty_pollset_add_fd, empty_pollset_del_fd, empty_pollset_maybe_work,
-    empty_pollset_destroy};
+    kick_using_pollset_kick, empty_pollset_destroy};
 
 static void become_empty_pollset(grpc_pollset *pollset) {
   pollset->vtable = &empty_pollset;
@@ -202,15 +206,8 @@ static void unary_poll_pollset_add_fd(grpc_pollset *pollset, grpc_fd *fd) {
   if (fd == pollset->data.ptr) return;
   fds[0] = pollset->data.ptr;
   fds[1] = fd;
-  if (!grpc_fd_is_orphaned(fds[0])) {
-    grpc_platform_become_multipoller(pollset, fds, GPR_ARRAY_SIZE(fds));
-    grpc_fd_unref(fds[0]);
-  } else {
-    /* old fd is orphaned and we haven't cleaned it up until now, so remain a
-     * unary poller */
-    grpc_fd_unref(fds[0]);
-    pollset->data.ptr = fd;
-  }
+  grpc_platform_become_multipoller(pollset, fds, GPR_ARRAY_SIZE(fds));
+  grpc_fd_unref(fds[0]);
 }
 
 static void unary_poll_pollset_del_fd(grpc_pollset *pollset, grpc_fd *fd) {
@@ -296,7 +293,8 @@ static void unary_poll_pollset_destroy(grpc_pollset *pollset) {
 
 static const grpc_pollset_vtable unary_poll_pollset = {
     unary_poll_pollset_add_fd, unary_poll_pollset_del_fd,
-    unary_poll_pollset_maybe_work, unary_poll_pollset_destroy};
+    unary_poll_pollset_maybe_work, kick_using_pollset_kick,
+    unary_poll_pollset_destroy};
 
 static void become_unary_pollset(grpc_pollset *pollset, grpc_fd *fd) {
   pollset->vtable = &unary_poll_pollset;
