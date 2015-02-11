@@ -31,18 +31,45 @@
  *
  */
 
-#include <grpc++/server_context.h>
-#include <grpc/grpc.h>
-#include "src/cpp/util/time.h"
+#ifndef __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+#define __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+
+#include <condition_variable>
+#include <mutex>
+#include <string>
+
+#include <grpc++/async_server.h>
+#include <grpc++/completion_queue.h>
 
 namespace grpc {
 
-ServerContext::ServerContext(gpr_timespec deadline, grpc_metadata *metadata, size_t metadata_count)
-	: deadline_(Timespec2Timepoint(deadline)) {
-  for (size_t i = 0; i < metadata_count; i++) {
-  	metadata_.insert(std::make_pair(grpc::string(metadata[i].key),
-  		grpc::string(metadata[i].value, metadata[i].value + metadata[i].value_length)));
-  }
-}
+namespace testing {
 
+class AsyncTestServer {
+ public:
+  AsyncTestServer();
+  virtual ~AsyncTestServer();
+
+  void AddPort(const grpc::string& addr);
+  void Start();
+  void RequestOneRpc();
+  virtual void MainLoop();
+  void Shutdown();
+
+  CompletionQueue* completion_queue() { return &cq_; }
+
+ protected:
+  void HandleQueueClosed();
+
+ private:
+  CompletionQueue cq_;
+  AsyncServer server_;
+  bool cq_drained_;
+  std::mutex cq_drained_mu_;
+  std::condition_variable cq_drained_cv_;
+};
+
+}  // namespace testing
 }  // namespace grpc
+
+#endif  // __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
