@@ -31,45 +31,40 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_IOMGR_HANDLE_WINDOWS_H__
-#define __GRPC_INTERNAL_IOMGR_HANDLE_WINDOWS_H__
+#ifndef __GRPCPP_ASYNC_SERVER_H__
+#define __GRPCPP_ASYNC_SERVER_H__
 
-#include <windows.h>
+#include <mutex>
 
-#include <grpc/support/sync.h>
-#include <grpc/support/atm.h>
+#include <grpc++/config.h>
 
-typedef struct grpc_winsocket_callback_info {
-  /* This is supposed to be a WSAOVERLAPPED, but in order to get that
-   * definition, we need to include ws2tcpip.h, which needs to be included
-   * from the top, otherwise it'll clash with a previous inclusion of
-   * windows.h that in turns includes winsock.h. If anyone knows a way
-   * to do it properly, feel free to send a patch.
-   */
-  OVERLAPPED overlapped;
-  void(*cb)(void *opaque, int success);
-  void *opaque;
-  int has_pending_iocp;
-  DWORD bytes_transfered;
-  int wsa_error;
-} grpc_winsocket_callback_info;
+struct grpc_server;
 
-typedef struct grpc_winsocket {
-  SOCKET socket;
+namespace grpc {
+class CompletionQueue;
 
-  int added_to_iocp;
+class AsyncServer {
+ public:
+  explicit AsyncServer(CompletionQueue* cc);
+  ~AsyncServer();
 
-  grpc_winsocket_callback_info write_info;
-  grpc_winsocket_callback_info read_info;
+  void AddPort(const grpc::string& addr);
 
-  gpr_mu state_mu;
-} grpc_winsocket;
+  void Start();
 
-/* Create a wrapped windows handle.
-This takes ownership of closing it. */
-grpc_winsocket *grpc_winsocket_create(SOCKET socket);
+  // The user has to call this to get one new rpc on the completion
+  // queue.
+  void RequestOneRpc();
 
-void grpc_winsocket_shutdown(grpc_winsocket *socket);
-void grpc_winsocket_orphan(grpc_winsocket *socket);
+  void Shutdown();
 
-#endif /* __GRPC_INTERNAL_IOMGR_HANDLE_WINDOWS_H__ */
+ private:
+  bool started_;
+  std::mutex shutdown_mu_;
+  bool shutdown_;
+  grpc_server* server_;
+};
+
+}  // namespace grpc
+
+#endif  // __GRPCPP_ASYNC_SERVER_H__
