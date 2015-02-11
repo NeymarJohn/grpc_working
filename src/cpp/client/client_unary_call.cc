@@ -31,45 +31,30 @@
  *
  */
 
-#ifndef __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
-#define __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
-
-#include <condition_variable>
-#include <mutex>
-#include <string>
-
-#include <grpc++/async_server.h>
+#include <grpc++/impl/client_unary_call.h>
+#include <grpc++/impl/call.h>
+#include <grpc++/channel_interface.h>
 #include <grpc++/completion_queue.h>
+#include <grpc++/status.h>
 
 namespace grpc {
 
-namespace testing {
+// Wrapper that performs a blocking unary call
+Status BlockingUnaryCall(ChannelInterface *channel, const RpcMethod &method,
+                         ClientContext *context,
+                         const google::protobuf::Message &request,
+                         google::protobuf::Message *result) {
+  CompletionQueue cq;
+  Call call(channel->CreateCall(method, context, &cq));
+  CallOpBuffer buf;
+  Status status;
+  buf.AddSendMessage(request);
+  buf.AddRecvMessage(result);
+  buf.AddClientSendClose();
+  buf.AddClientRecvStatus(&status);
+  call.PerformOps(&buf);
+  cq.Pluck(&buf);
+  return status;
+}
 
-class AsyncTestServer {
- public:
-  AsyncTestServer();
-  virtual ~AsyncTestServer();
-
-  void AddPort(const grpc::string& addr);
-  void Start();
-  void RequestOneRpc();
-  virtual void MainLoop();
-  void Shutdown();
-
-  CompletionQueue* completion_queue() { return &cq_; }
-
- protected:
-  void HandleQueueClosed();
-
- private:
-  CompletionQueue cq_;
-  AsyncServer server_;
-  bool cq_drained_;
-  std::mutex cq_drained_mu_;
-  std::condition_variable cq_drained_cv_;
-};
-
-}  // namespace testing
 }  // namespace grpc
-
-#endif  // __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
