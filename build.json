@@ -378,8 +378,6 @@
       "build": "all",
       "language": "c++",
       "public_headers": [
-        "include/grpc++/async_server.h",
-        "include/grpc++/async_server_context.h",
         "include/grpc++/channel_arguments.h",
         "include/grpc++/channel_interface.h",
         "include/grpc++/client_context.h",
@@ -387,6 +385,8 @@
         "include/grpc++/config.h",
         "include/grpc++/create_channel.h",
         "include/grpc++/credentials.h",
+        "include/grpc++/impl/call.h",
+        "include/grpc++/impl/client_unary_call.h",
         "include/grpc++/impl/internal_stub.h",
         "include/grpc++/impl/rpc_method.h",
         "include/grpc++/impl/rpc_service_method.h",
@@ -401,30 +401,26 @@
       "headers": [
         "src/cpp/client/channel.h",
         "src/cpp/proto/proto_utils.h",
-        "src/cpp/server/server_rpc_handler.h",
         "src/cpp/server/thread_pool.h",
-        "src/cpp/stream/stream_context.h",
         "src/cpp/util/time.h"
       ],
       "src": [
         "src/cpp/client/channel.cc",
         "src/cpp/client/channel_arguments.cc",
         "src/cpp/client/client_context.cc",
+        "src/cpp/client/client_unary_call.cc",
         "src/cpp/client/create_channel.cc",
         "src/cpp/client/credentials.cc",
         "src/cpp/client/internal_stub.cc",
+        "src/cpp/common/call.cc",
         "src/cpp/common/completion_queue.cc",
         "src/cpp/common/rpc_method.cc",
         "src/cpp/proto/proto_utils.cc",
-        "src/cpp/server/async_server.cc",
-        "src/cpp/server/async_server_context.cc",
         "src/cpp/server/server.cc",
         "src/cpp/server/server_builder.cc",
         "src/cpp/server/server_context_impl.cc",
         "src/cpp/server/server_credentials.cc",
-        "src/cpp/server/server_rpc_handler.cc",
         "src/cpp/server/thread_pool.cc",
-        "src/cpp/stream/stream_context.cc",
         "src/cpp/util/status.cc",
         "src/cpp/util/time.cc"
       ],
@@ -442,7 +438,6 @@
         "test/cpp/util/messages.proto",
         "test/cpp/util/echo.proto",
         "test/cpp/util/echo_duplicate.proto",
-        "test/cpp/end2end/async_test_server.cc",
         "test/cpp/util/create_test_channel.cc"
       ]
     },
@@ -1616,7 +1611,6 @@
     {
       "name": "qps_client",
       "build": "test",
-      "run": false,
       "language": "c++",
       "src": [
         "test/cpp/qps/qpstest.proto",
@@ -1634,7 +1628,6 @@
     {
       "name": "qps_server",
       "build": "test",
-      "run": false,
       "language": "c++",
       "src": [
         "test/cpp/qps/qpstest.proto",
@@ -1674,22 +1667,6 @@
         "test/cpp/util/status_test.cc"
       ],
       "deps": [
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "sync_client_async_server_test",
-      "build": "test",
-      "language": "c++",
-      "src": [
-        "test/cpp/end2end/sync_client_async_server_test.cc"
-      ],
-      "deps": [
-        "grpc++_test_util",
         "grpc_test_util",
         "grpc++",
         "grpc",
