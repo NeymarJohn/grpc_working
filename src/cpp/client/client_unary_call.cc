@@ -31,36 +31,30 @@
  *
  */
 
-#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
-#define __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
-
-#include <memory>
-
+#include <grpc++/impl/client_unary_call.h>
+#include <grpc++/impl/call.h>
+#include <grpc++/channel_interface.h>
 #include <grpc++/completion_queue.h>
 #include <grpc++/status.h>
 
 namespace grpc {
 
-class AsyncServerContext;
-class RpcServiceMethod;
-
-class ServerRpcHandler {
- public:
-  // Takes ownership of async_server_context.
-  ServerRpcHandler(AsyncServerContext *async_server_context,
-                   RpcServiceMethod *method);
-
-  void StartRpc();
-
- private:
-  CompletionQueue::CompletionType WaitForNextEvent();
-  void FinishRpc(const Status &status);
-
-  std::unique_ptr<AsyncServerContext> async_server_context_;
-  RpcServiceMethod *method_;
-  CompletionQueue cq_;
-};
+// Wrapper that performs a blocking unary call
+Status BlockingUnaryCall(ChannelInterface *channel, const RpcMethod &method,
+                         ClientContext *context,
+                         const google::protobuf::Message &request,
+                         google::protobuf::Message *result) {
+  CompletionQueue cq;
+  Call call(channel->CreateCall(method, context, &cq));
+  CallOpBuffer buf;
+  Status status;
+  buf.AddSendMessage(request);
+  buf.AddRecvMessage(result);
+  buf.AddClientSendClose();
+  buf.AddClientRecvStatus(&status);
+  call.PerformOps(&buf);
+  cq.Pluck(&buf);
+  return status;
+}
 
 }  // namespace grpc
-
-#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__

@@ -37,25 +37,20 @@
 #include <grpc/grpc.h>
 #include <grpc/grpc_security.h>
 #include <grpc/support/log.h>
-#include "src/cpp/server/server_rpc_handler.h"
-#include "src/cpp/server/thread_pool.h"
-#include <grpc++/async_server_context.h>
 #include <grpc++/completion_queue.h>
 #include <grpc++/impl/rpc_service_method.h>
+#include <grpc++/server_context.h>
 #include <grpc++/server_credentials.h>
+#include <grpc++/thread_pool_interface.h>
 
 namespace grpc {
 
-// TODO(rocking): consider a better default value like num of cores.
-static const int kNumThreads = 4;
-
-Server::Server(ThreadPoolInterface *thread_pool, ServerCredentials *creds)
+Server::Server(ThreadPoolInterface *thread_pool, bool thread_pool_owned, ServerCredentials *creds)
     : started_(false),
       shutdown_(false),
       num_running_cb_(0),
-      thread_pool_(thread_pool == nullptr ? new ThreadPool(kNumThreads)
-                                          : thread_pool),
-      thread_pool_owned_(thread_pool == nullptr),
+      thread_pool_(thread_pool),
+      thread_pool_owned_(thread_pool_owned),
       secure_(creds != nullptr) {
   if (creds) {
     server_ =
@@ -75,6 +70,8 @@ Server::~Server() {
   if (started_ && !shutdown_) {
     lock.unlock();
     Shutdown();
+  } else {
+    lock.unlock();
   }
   grpc_server_destroy(server_);
   if (thread_pool_owned_) {
@@ -82,37 +79,38 @@ Server::~Server() {
   }
 }
 
-void Server::RegisterService(RpcService *service) {
+bool Server::RegisterService(RpcService *service) {
   for (int i = 0; i < service->GetMethodCount(); ++i) {
     RpcServiceMethod *method = service->GetMethod(i);
+    if (method_map_.find(method->name()) != method_map_.end()) {
+      gpr_log(GPR_DEBUG, "Attempt to register %s multiple times", method->name());
+      return false;
+    }
     method_map_.insert(std::make_pair(method->name(), method));
   }
+  return true;
 }
 
-void Server::AddPort(const grpc::string &addr) {
+int Server::AddPort(const grpc::string &addr) {
   GPR_ASSERT(!started_);
-  int success;
   if (secure_) {
-    success = grpc_server_add_secure_http2_port(server_, addr.c_str());
+    return grpc_server_add_secure_http2_port(server_, addr.c_str());
   } else {
-    success = grpc_server_add_http2_port(server_, addr.c_str());
+    return grpc_server_add_http2_port(server_, addr.c_str());
   }
-  GPR_ASSERT(success);
 }
 
-void Server::Start() {
+bool Server::Start() {
   GPR_ASSERT(!started_);
   started_ = true;
   grpc_server_start(server_);
 
   // Start processing rpcs.
-  ScheduleCallback();
-}
+  if (thread_pool_) {
+    ScheduleCallback();
+  }
 
-void Server::AllowOneRpc() {
-  GPR_ASSERT(started_);
-  grpc_call_error err = grpc_server_request_call_old(server_, nullptr);
-  GPR_ASSERT(err == GRPC_CALL_OK);
+  return true;
 }
 
 void Server::Shutdown() {
@@ -132,8 +130,8 @@ void Server::Shutdown() {
   // Shutdown the completion queue.
   cq_.Shutdown();
   void *tag = nullptr;
-  CompletionQueue::CompletionType t = cq_.Next(&tag);
-  GPR_ASSERT(t == CompletionQueue::QUEUE_CLOSED);
+  bool ok = false;
+  GPR_ASSERT(false == cq_.Next(&tag, &ok));
 }
 
 void Server::ScheduleCallback() {
@@ -141,31 +139,40 @@ void Server::ScheduleCallback() {
     std::unique_lock<std::mutex> lock(mu_);
     num_running_cb_++;
   }
-  std::function<void()> callback = std::bind(&Server::RunRpc, this);
-  thread_pool_->ScheduleCallback(callback);
+  thread_pool_->ScheduleCallback(std::bind(&Server::RunRpc, this));
 }
 
 void Server::RunRpc() {
   // Wait for one more incoming rpc.
   void *tag = nullptr;
-  AllowOneRpc();
-  CompletionQueue::CompletionType t = cq_.Next(&tag);
-  GPR_ASSERT(t == CompletionQueue::SERVER_RPC_NEW);
-
-  AsyncServerContext *server_context = static_cast<AsyncServerContext *>(tag);
-  // server_context could be nullptr during server shutdown.
-  if (server_context != nullptr) {
-    // Schedule a new callback to handle more rpcs.
+  GPR_ASSERT(started_);
+  grpc_call *c_call = NULL;
+  grpc_call_details call_details;
+  grpc_call_details_init(&call_details);
+  grpc_metadata_array initial_metadata;
+  grpc_metadata_array_init(&initial_metadata);
+  CompletionQueue cq;
+  grpc_call_error err = grpc_server_request_call(server_, &c_call, &call_details, &initial_metadata, cq.cq(), nullptr);
+  GPR_ASSERT(err == GRPC_CALL_OK);
+  bool ok = false;
+  GPR_ASSERT(cq_.Next(&tag, &ok));
+  if (ok) {
+    ServerContext context;
+    Call call(c_call, nullptr, &cq);
     ScheduleCallback();
-
     RpcServiceMethod *method = nullptr;
-    auto iter = method_map_.find(server_context->method());
+    auto iter = method_map_.find(call_details.method);
     if (iter != method_map_.end()) {
       method = iter->second;
     }
-    ServerRpcHandler rpc_handler(server_context, method);
-    rpc_handler.StartRpc();
+    // TODO(ctiller): allocate only if necessary
+    std::unique_ptr<google::protobuf::Message> request(method->AllocateRequestProto());
+    std::unique_ptr<google::protobuf::Message> response(method->AllocateResponseProto());
+    method->handler()->RunHandler(MethodHandler::HandlerParameter(
+      &call, &context, request.get(), response.get()));
   }
+  grpc_call_details_destroy(&call_details);
+  grpc_metadata_array_destroy(&initial_metadata);
 
   {
     std::unique_lock<std::mutex> lock(mu_);
