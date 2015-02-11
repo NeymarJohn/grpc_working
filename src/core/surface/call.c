@@ -258,10 +258,6 @@ void grpc_call_set_completion_queue(grpc_call *call,
   call->cq = cq;
 }
 
-grpc_completion_queue *grpc_call_get_completion_queue(grpc_call *call) {
-  return call->cq;
-}
-
 void grpc_call_internal_ref(grpc_call *c) { gpr_ref(&c->internal_refcount); }
 
 static void destroy_call(void *call, int ignored_success) {
@@ -1264,7 +1260,10 @@ grpc_call_error grpc_call_server_accept_old(grpc_call *call,
   ls = get_legacy_state(call);
 
   err = bind_cq(call, cq);
-  if (err != GRPC_CALL_OK) return err;
+  if (err != GRPC_CALL_OK) {
+    unlock(call);
+    return err;
+  }
 
   ls->finished_tag = finished_tag;
 

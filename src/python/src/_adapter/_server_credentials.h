@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,25 +31,18 @@
  *
  */
 
-#ifndef __GRPCPP_IMPL_SERVICE_TYPE_H__
-#define __GRPCPP_IMPL_SERVICE_TYPE_H__
+#ifndef _ADAPTER__SERVER_CREDENTIALS_H_
+#define _ADAPTER__SERVER_CREDENTIALS_H_
 
-namespace grpc {
+#include <Python.h>
+#include <grpc/grpc_security.h>
 
-class RpcService;
+typedef struct {
+  PyObject_HEAD grpc_server_credentials *c_server_credentials;
+} ServerCredentials;
 
-class SynchronousService {
- public:
-  virtual ~SynchronousService() {}
-  virtual RpcService *service() = 0;
-};
+PyTypeObject pygrpc_ServerCredentialsType;
 
-class AsynchronousService {
- public:
-  virtual ~AsynchronousService() {}
-  virtual RpcService *service() = 0;
-};
+int pygrpc_add_server_credentials(PyObject *module);
 
-}  // namespace grpc
-
-#endif // __GRPCPP_IMPL_SERVICE_TYPE_H__
+#endif /* _ADAPTER__SERVER_CREDENTIALS_H_ */

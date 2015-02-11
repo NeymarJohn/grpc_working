@@ -31,21 +31,34 @@
  *
  */
 
-#ifndef __GRPCPP_SERVER_CONTEXT_H_
-#define __GRPCPP_SERVER_CONTEXT_H_
+#ifndef __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
+#define __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
 
-#include <chrono>
+namespace google {
+namespace protobuf {
+class Message;
+}
+}
 
 namespace grpc {
+class Status;
 
-// Interface of server side rpc context.
-class ServerContext {
+// An interface to avoid dependency on internal implementation.
+class StreamContextInterface {
  public:
-  virtual ~ServerContext() {}
+  virtual ~StreamContextInterface() {}
 
-  virtual std::chrono::system_clock::time_point absolute_deadline() const = 0;
+  virtual void Start(bool buffered) = 0;
+
+  virtual bool Read(google::protobuf::Message* msg) = 0;
+  virtual bool Write(const google::protobuf::Message* msg, bool is_last) = 0;
+  virtual const Status& Wait() = 0;
+  virtual void Cancel() = 0;
+
+  virtual google::protobuf::Message* request() = 0;
+  virtual google::protobuf::Message* response() = 0;
 };
 
 }  // namespace grpc
 
-#endif  // __GRPCPP_SERVER_CONTEXT_H_
+#endif  // __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
