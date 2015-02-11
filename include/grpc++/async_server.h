@@ -31,21 +31,40 @@
  *
  */
 
-#ifndef __GRPCPP_SERVER_CONTEXT_H_
-#define __GRPCPP_SERVER_CONTEXT_H_
+#ifndef __GRPCPP_ASYNC_SERVER_H__
+#define __GRPCPP_ASYNC_SERVER_H__
 
-#include <chrono>
+#include <mutex>
+
+#include <grpc++/config.h>
+
+struct grpc_server;
 
 namespace grpc {
+class CompletionQueue;
 
-// Interface of server side rpc context.
-class ServerContext {
+class AsyncServer {
  public:
-  virtual ~ServerContext() {}
+  explicit AsyncServer(CompletionQueue* cc);
+  ~AsyncServer();
 
-  virtual std::chrono::system_clock::time_point absolute_deadline() const = 0;
+  void AddPort(const grpc::string& addr);
+
+  void Start();
+
+  // The user has to call this to get one new rpc on the completion
+  // queue.
+  void RequestOneRpc();
+
+  void Shutdown();
+
+ private:
+  bool started_;
+  std::mutex shutdown_mu_;
+  bool shutdown_;
+  grpc_server* server_;
 };
 
 }  // namespace grpc
 
-#endif  // __GRPCPP_SERVER_CONTEXT_H_
+#endif  // __GRPCPP_ASYNC_SERVER_H__

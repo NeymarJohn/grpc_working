@@ -147,8 +147,8 @@ class End2endTest : public ::testing::Test {
     // Setup server
     ServerBuilder builder;
     builder.AddPort(server_address_.str());
-    builder.RegisterService(&service_);
-    builder.RegisterService(&dup_pkg_service_);
+    builder.RegisterService(service_.service());
+    builder.RegisterService(dup_pkg_service_.service());
     server_ = builder.BuildAndStart();
   }
 
@@ -290,7 +290,7 @@ TEST_F(End2endTest, RequestStreamOneRequest) {
   request.set_message("hello");
   EXPECT_TRUE(stream->Write(request));
   stream->WritesDone();
-  Status s = stream->Finish();
+  Status s = stream->Wait();
   EXPECT_EQ(response.message(), request.message());
   EXPECT_TRUE(s.IsOk());
 
@@ -308,7 +308,7 @@ TEST_F(End2endTest, RequestStreamTwoRequests) {
   EXPECT_TRUE(stream->Write(request));
   EXPECT_TRUE(stream->Write(request));
   stream->WritesDone();
-  Status s = stream->Finish();
+  Status s = stream->Wait();
   EXPECT_EQ(response.message(), "hellohello");
   EXPECT_TRUE(s.IsOk());
 
@@ -332,7 +332,7 @@ TEST_F(End2endTest, ResponseStream) {
   EXPECT_EQ(response.message(), request.message() + "2");
   EXPECT_FALSE(stream->Read(&response));
 
-  Status s = stream->Finish();
+  Status s = stream->Wait();
   EXPECT_TRUE(s.IsOk());
 
   delete stream;
@@ -366,7 +366,7 @@ TEST_F(End2endTest, BidiStream) {
   stream->WritesDone();
   EXPECT_FALSE(stream->Read(&response));
 
-  Status s = stream->Finish();
+  Status s = stream->Wait();
   EXPECT_TRUE(s.IsOk());
 
   delete stream;
@@ -422,7 +422,7 @@ TEST_F(End2endTest, BadCredentials) {
   ClientContext context2;
   ClientReaderWriter<EchoRequest, EchoResponse>* stream =
       stub->BidiStream(&context2);
-  s = stream->Finish();
+  s = stream->Wait();
   EXPECT_FALSE(s.IsOk());
   EXPECT_EQ(StatusCode::UNKNOWN, s.code());
   EXPECT_EQ("Rpc sent on a lame channel.", s.details());
