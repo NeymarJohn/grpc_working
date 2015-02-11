@@ -31,21 +31,31 @@
  *
  */
 
-#ifndef __GRPCPP_SERVER_CONTEXT_H_
-#define __GRPCPP_SERVER_CONTEXT_H_
+#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_CONTEXT_IMPL_H_
+#define __GRPCPP_INTERNAL_SERVER_SERVER_CONTEXT_IMPL_H_
+
+#include <grpc++/server_context.h>
 
 #include <chrono>
 
+#include <grpc/support/time.h>
+
 namespace grpc {
 
-// Interface of server side rpc context.
-class ServerContext {
+class ServerContextImpl : public ServerContext {
  public:
-  virtual ~ServerContext() {}
+  explicit ServerContextImpl(std::chrono::system_clock::time_point deadline)
+      : absolute_deadline_(deadline) {}
+  ~ServerContextImpl() {}
 
-  virtual std::chrono::system_clock::time_point absolute_deadline() const = 0;
+  std::chrono::system_clock::time_point absolute_deadline() const {
+    return absolute_deadline_;
+  }
+
+ private:
+  std::chrono::system_clock::time_point absolute_deadline_;
 };
 
 }  // namespace grpc
 
-#endif  // __GRPCPP_SERVER_CONTEXT_H_
+#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_CONTEXT_IMPL_H_
