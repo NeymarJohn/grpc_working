@@ -31,36 +31,27 @@
  *
  */
 
-#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
-#define __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
+#ifndef __GRPC_INTERNAL_SUPPORT_CPU_H__
+#define __GRPC_INTERNAL_SUPPORT_CPU_H__
 
-#include <memory>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include <grpc++/completion_queue.h>
-#include <grpc++/status.h>
+/* Interface providing CPU information for currently running system */
 
-namespace grpc {
+/* Return the number of CPU cores on the current system. Will return 0 if
+   if information is not available. */
+unsigned gpr_cpu_num_cores(void);
 
-class AsyncServerContext;
-class RpcServiceMethod;
+/* Return the CPU on which the current thread is executing; N.B. This should
+   be considered advisory only - it is possible that the thread is switched
+   to a different CPU at any time. Returns a value in range
+   [0, gpr_cpu_num_cores() - 1] */
+unsigned gpr_cpu_current_cpu(void);
 
-class ServerRpcHandler {
- public:
-  // Takes ownership of async_server_context.
-  ServerRpcHandler(AsyncServerContext *async_server_context,
-                   RpcServiceMethod *method);
+#ifdef __cplusplus
+}  // extern "C"
+#endif
 
-  void StartRpc();
-
- private:
-  CompletionQueue::CompletionType WaitForNextEvent();
-  void FinishRpc(const Status &status);
-
-  std::unique_ptr<AsyncServerContext> async_server_context_;
-  RpcServiceMethod *method_;
-  CompletionQueue cq_;
-};
-
-}  // namespace grpc
-
-#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
+#endif /* __GRPC_INTERNAL_SUPPORT_CPU_H__ */
