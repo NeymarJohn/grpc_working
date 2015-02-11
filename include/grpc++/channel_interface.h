@@ -35,7 +35,6 @@
 #define __GRPCPP_CHANNEL_INTERFACE_H__
 
 #include <grpc++/status.h>
-#include <grpc++/impl/call.h>
 
 namespace google {
 namespace protobuf {
@@ -53,12 +52,13 @@ class CompletionQueue;
 class RpcMethod;
 class CallInterface;
 
-class ChannelInterface : public CallHook {
+class ChannelInterface {
  public:
   virtual ~ChannelInterface() {}
 
   virtual Call CreateCall(const RpcMethod &method, ClientContext *context,
                           CompletionQueue *cq) = 0;
+  virtual void PerformOpsOnCall(CallOpBuffer *ops, Call *call) = 0;
 };
 
 }  // namespace grpc
