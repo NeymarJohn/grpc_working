@@ -31,59 +31,31 @@
  *
  */
 
-#include <grpc++/async_server.h>
-
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
+#include <grpc++/impl/client_unary_call.h>
+#include <grpc++/impl/call.h>
+#include <grpc++/channel_interface.h>
 #include <grpc++/completion_queue.h>
+#include <grpc++/status.h>
 
 namespace grpc {
 
-AsyncServer::AsyncServer(CompletionQueue *cc)
-    : started_(false), shutdown_(false) {
-  server_ = grpc_server_create(cc->cq(), nullptr);
-}
-
-AsyncServer::~AsyncServer() {
-  std::unique_lock<std::mutex> lock(shutdown_mu_);
-  if (started_ && !shutdown_) {
-    lock.unlock();
-    Shutdown();
-  }
-  grpc_server_destroy(server_);
-}
-
-void AsyncServer::AddPort(const grpc::string &addr) {
-  GPR_ASSERT(!started_);
-  int success = grpc_server_add_http2_port(server_, addr.c_str());
-  GPR_ASSERT(success);
-}
-
-void AsyncServer::Start() {
-  GPR_ASSERT(!started_);
-  started_ = true;
-  grpc_server_start(server_);
-}
-
-void AsyncServer::RequestOneRpc() {
-  GPR_ASSERT(started_);
-  std::unique_lock<std::mutex> lock(shutdown_mu_);
-  if (shutdown_) {
-    return;
-  }
-  lock.unlock();
-  grpc_call_error err = grpc_server_request_call_old(server_, nullptr);
-  GPR_ASSERT(err == GRPC_CALL_OK);
-}
-
-void AsyncServer::Shutdown() {
-  std::unique_lock<std::mutex> lock(shutdown_mu_);
-  if (started_ && !shutdown_) {
-    shutdown_ = true;
-    lock.unlock();
-    // TODO(yangg) should we shutdown without start?
-    grpc_server_shutdown(server_);
-  }
+// Wrapper that performs a blocking unary call
+Status BlockingUnaryCall(ChannelInterface *channel, const RpcMethod &method,
+                         ClientContext *context,
+                         const google::protobuf::Message &request,
+                         google::protobuf::Message *result) {
+  CompletionQueue cq;
+  Call call(channel->CreateCall(method, context, &cq));
+  CallOpBuffer buf;
+  Status status;
+  buf.AddSendInitialMetadata(context);
+  buf.AddSendMessage(request);
+  buf.AddRecvMessage(result);
+  buf.AddClientSendClose();
+  buf.AddClientRecvStatus(nullptr, &status);  // TODO metadata
+  call.PerformOps(&buf);
+  cq.Pluck(&buf);
+  return status;
 }
 
 }  // namespace grpc
