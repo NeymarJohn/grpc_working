@@ -31,19 +31,30 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_SUPPORT_CPU_H__
-#define __GRPC_INTERNAL_SUPPORT_CPU_H__
+#include <grpc++/impl/client_unary_call.h>
+#include <grpc++/impl/call.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/completion_queue.h>
+#include <grpc++/status.h>
 
-/* Interface providing CPU information for currently running system */
+namespace grpc {
 
-/* Return the number of CPU cores on the current system. Will return 0 if
-   if information is not available. */
-unsigned gpr_cpu_num_cores(void);
+// Wrapper that performs a blocking unary call
+Status BlockingUnaryCall(ChannelInterface *channel, const RpcMethod &method,
+                         ClientContext *context,
+                         const google::protobuf::Message &request,
+                         google::protobuf::Message *result) {
+  CompletionQueue cq;
+  Call call(channel->CreateCall(method, context, &cq));
+  CallOpBuffer buf;
+  Status status;
+  buf.AddSendMessage(request);
+  buf.AddRecvMessage(result);
+  buf.AddClientSendClose();
+  buf.AddClientRecvStatus(&status);
+  call.PerformOps(&buf);
+  cq.Pluck(&buf);
+  return status;
+}
 
-/* Return the CPU on which the current thread is executing; N.B. This should
-   be considered advisory only - it is possible that the thread is switched
-   to a different CPU at any time. Returns a value in range
-   [0, gpr_cpu_num_cores() - 1] */
-unsigned gpr_cpu_current_cpu(void);
-
-#endif /* __GRPC_INTERNAL_SUPPORT_CPU_H__ */
+}  // namespace grpc

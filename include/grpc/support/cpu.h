@@ -31,40 +31,27 @@
  *
  */
 
-#ifndef __GRPCPP_ASYNC_SERVER_H__
-#define __GRPCPP_ASYNC_SERVER_H__
+#ifndef __GRPC_INTERNAL_SUPPORT_CPU_H__
+#define __GRPC_INTERNAL_SUPPORT_CPU_H__
 
-#include <mutex>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include <grpc++/config.h>
+/* Interface providing CPU information for currently running system */
 
-struct grpc_server;
+/* Return the number of CPU cores on the current system. Will return 0 if
+   if information is not available. */
+unsigned gpr_cpu_num_cores(void);
 
-namespace grpc {
-class CompletionQueue;
+/* Return the CPU on which the current thread is executing; N.B. This should
+   be considered advisory only - it is possible that the thread is switched
+   to a different CPU at any time. Returns a value in range
+   [0, gpr_cpu_num_cores() - 1] */
+unsigned gpr_cpu_current_cpu(void);
 
-class AsyncServer {
- public:
-  explicit AsyncServer(CompletionQueue* cc);
-  ~AsyncServer();
+#ifdef __cplusplus
+}  // extern "C"
+#endif
 
-  void AddPort(const grpc::string& addr);
-
-  void Start();
-
-  // The user has to call this to get one new rpc on the completion
-  // queue.
-  void RequestOneRpc();
-
-  void Shutdown();
-
- private:
-  bool started_;
-  std::mutex shutdown_mu_;
-  bool shutdown_;
-  grpc_server* server_;
-};
-
-}  // namespace grpc
-
-#endif  // __GRPCPP_ASYNC_SERVER_H__
+#endif /* __GRPC_INTERNAL_SUPPORT_CPU_H__ */
