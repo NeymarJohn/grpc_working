@@ -1892,7 +1892,6 @@ LIBGRPC_SRC = \
     src/core/iomgr/iomgr_windows.c \
     src/core/iomgr/pollset_kick.c \
     src/core/iomgr/pollset_multipoller_with_poll_posix.c \
-    src/core/iomgr/pollset_multipoller_with_epoll.c \
     src/core/iomgr/pollset_posix.c \
     src/core/iomgr/pollset_windows.c \
     src/core/iomgr/resolve_address.c \
@@ -2028,7 +2027,6 @@ src/core/iomgr/iomgr_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/iomgr_windows.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_kick.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_multipoller_with_poll_posix.c: $(OPENSSL_DEP)
-src/core/iomgr/pollset_multipoller_with_epoll.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_windows.c: $(OPENSSL_DEP)
 src/core/iomgr/resolve_address.c: $(OPENSSL_DEP)
@@ -2186,7 +2184,6 @@ objs/$(CONFIG)/src/core/iomgr/iomgr_posix.o:
 objs/$(CONFIG)/src/core/iomgr/iomgr_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_kick.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
-objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_epoll.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/resolve_address.o: 
@@ -2428,7 +2425,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/iomgr/iomgr_windows.c \
     src/core/iomgr/pollset_kick.c \
     src/core/iomgr/pollset_multipoller_with_poll_posix.c \
-    src/core/iomgr/pollset_multipoller_with_epoll.c \
     src/core/iomgr/pollset_posix.c \
     src/core/iomgr/pollset_windows.c \
     src/core/iomgr/resolve_address.c \
@@ -2569,7 +2565,6 @@ objs/$(CONFIG)/src/core/iomgr/iomgr_posix.o:
 objs/$(CONFIG)/src/core/iomgr/iomgr_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_kick.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
-objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_epoll.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/resolve_address.o: 
