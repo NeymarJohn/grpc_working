@@ -35,7 +35,7 @@
 #define __GRPCPP_SERVER_H__
 
 #include <condition_variable>
-#include <map>
+#include <list>
 #include <memory>
 #include <mutex>
 
@@ -48,8 +48,8 @@ struct grpc_server;
 namespace google {
 namespace protobuf {
 class Message;
-}
-}
+}  // namespace protobuf
+}  // namespace google
 
 namespace grpc {
 class AsyncServerContext;
@@ -69,24 +69,26 @@ class Server {
  private:
   friend class ServerBuilder;
 
+  class MethodRequestData;
+
   // ServerBuilder use only
-  Server(ThreadPoolInterface* thread_pool, ServerCredentials* creds);
+  Server(ThreadPoolInterface* thread_pool, bool thread_pool_owned, ServerCredentials* creds);
   Server();
   // Register a service. This call does not take ownership of the service.
   // The service must exist for the lifetime of the Server instance.
-  void RegisterService(RpcService* service);
+  bool RegisterService(RpcService* service);
   // Add a listening port. Can be called multiple times.
-  void AddPort(const grpc::string& addr);
+  int AddPort(const grpc::string& addr);
   // Start the server.
-  void Start();
+  bool Start();
 
-  void AllowOneRpc();
   void HandleQueueClosed();
   void RunRpc();
   void ScheduleCallback();
 
   // Completion queue.
-  CompletionQueue cq_;
+  std::unique_ptr<CompletionQueue> cq_sync_;
+  std::unique_ptr<CompletionQueue> cq_async_;
 
   // Sever status
   std::mutex mu_;
@@ -96,11 +98,10 @@ class Server {
   int num_running_cb_;
   std::condition_variable callback_cv_;
 
+  std::list<MethodRequestData> methods_;
+
   // Pointer to the c grpc server.
   grpc_server* server_;
-
-  // A map for all method information.
-  std::map<grpc::string, RpcServiceMethod*> method_map_;
 
   ThreadPoolInterface* thread_pool_;
   // Whether the thread pool is created and owned by the server.
