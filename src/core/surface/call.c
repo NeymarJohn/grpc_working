@@ -1260,10 +1260,7 @@ grpc_call_error grpc_call_server_accept_old(grpc_call *call,
   ls = get_legacy_state(call);
 
   err = bind_cq(call, cq);
-  if (err != GRPC_CALL_OK) {
-    unlock(call);
-    return err;
-  }
+  if (err != GRPC_CALL_OK) return err;
 
   ls->finished_tag = finished_tag;
 
