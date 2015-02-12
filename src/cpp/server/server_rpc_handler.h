@@ -31,29 +31,36 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_TAG_H_
-#define NET_GRPC_NODE_TAG_H_
+#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
+#define __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
 
-#include <node.h>
+#include <memory>
+
+#include <grpc++/completion_queue.h>
+#include <grpc++/status.h>
 
 namespace grpc {
-namespace node {
 
-/* Create a void* tag that can be passed to various grpc_call functions from
-   a javascript value and the javascript wrapper for the call. The call can be
-   null. */
-void *CreateTag(v8::Handle<v8::Value> tag, v8::Handle<v8::Value> call);
-/* Return the javascript value stored in the tag */
-v8::Handle<v8::Value> GetTagHandle(void *tag);
-/* Returns true if the call was set (non-null) when the tag was created */
-bool TagHasCall(void *tag);
-/* Returns the javascript wrapper for the call associated with this tag */
-v8::Handle<v8::Value> TagGetCall(void *call);
-/* Destroy the tag and all resources it is holding. It is illegal to call any
-   of these other functions on a tag after it has been destroyed. */
-void DestroyTag(void *tag);
+class AsyncServerContext;
+class RpcServiceMethod;
 
-}  // namespace node
+class ServerRpcHandler {
+ public:
+  // Takes ownership of async_server_context.
+  ServerRpcHandler(AsyncServerContext *async_server_context,
+                   RpcServiceMethod *method);
+
+  void StartRpc();
+
+ private:
+  CompletionQueue::CompletionType WaitForNextEvent();
+  void FinishRpc(const Status &status);
+
+  std::unique_ptr<AsyncServerContext> async_server_context_;
+  RpcServiceMethod *method_;
+  CompletionQueue cq_;
+};
+
 }  // namespace grpc
 
-#endif  // NET_GRPC_NODE_TAG_H_
+#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__

@@ -31,62 +31,31 @@
  *
  */
 
-#ifndef __GRPCPP_CLIENT_CONTEXT_H__
-#define __GRPCPP_CLIENT_CONTEXT_H__
+#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_CONTEXT_IMPL_H_
+#define __GRPCPP_INTERNAL_SERVER_SERVER_CONTEXT_IMPL_H_
+
+#include <grpc++/server_context.h>
 
 #include <chrono>
-#include <string>
-#include <vector>
 
-#include <grpc/support/log.h>
 #include <grpc/support/time.h>
-#include <grpc++/config.h>
-
-using std::chrono::system_clock;
-
-struct grpc_call;
-struct grpc_completion_queue;
 
 namespace grpc {
 
-class ClientContext {
+class ServerContextImpl : public ServerContext {
  public:
-  ClientContext();
-  ~ClientContext();
+  explicit ServerContextImpl(std::chrono::system_clock::time_point deadline)
+      : absolute_deadline_(deadline) {}
+  ~ServerContextImpl() {}
 
-  void AddMetadata(const grpc::string &meta_key,
-                   const grpc::string &meta_value);
-
-  void set_absolute_deadline(const system_clock::time_point &deadline);
-  system_clock::time_point absolute_deadline();
-
-  void StartCancel();
-
- private:
-  // Disallow copy and assign.
-  ClientContext(const ClientContext &);
-  ClientContext &operator=(const ClientContext &);
-
-  friend class Channel;
-  friend class StreamContext;
-
-  grpc_call *call() { return call_; }
-  void set_call(grpc_call *call) {
-    GPR_ASSERT(call_ == nullptr);
-    call_ = call;
+  std::chrono::system_clock::time_point absolute_deadline() const {
+    return absolute_deadline_;
   }
 
-  grpc_completion_queue *cq() { return cq_; }
-  void set_cq(grpc_completion_queue *cq) { cq_ = cq; }
-
-  gpr_timespec RawDeadline() { return absolute_deadline_; }
-
-  grpc_call *call_;
-  grpc_completion_queue *cq_;
-  gpr_timespec absolute_deadline_;
-  std::vector<std::pair<grpc::string, grpc::string> > metadata_;
+ private:
+  std::chrono::system_clock::time_point absolute_deadline_;
 };
 
 }  // namespace grpc
 
-#endif  // __GRPCPP_CLIENT_CONTEXT_H__
+#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_CONTEXT_IMPL_H_
