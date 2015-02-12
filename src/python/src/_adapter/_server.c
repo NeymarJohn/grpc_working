@@ -38,30 +38,18 @@
 
 #include "_adapter/_completion_queue.h"
 #include "_adapter/_error.h"
-#include "_adapter/_server_credentials.h"
 
 static int pygrpc_server_init(Server *self, PyObject *args, PyObject *kwds) {
   const PyObject *completion_queue;
-  PyObject *server_credentials;
-  if (!(PyArg_ParseTuple(args, "O!O", &pygrpc_CompletionQueueType,
-                         &completion_queue, &server_credentials))) {
+  if (!(PyArg_ParseTuple(args, "O!", &pygrpc_CompletionQueueType,
+                         &completion_queue))) {
     self->c_server = NULL;
     return -1;
   }
-  if (server_credentials == Py_None) {
-    self->c_server = grpc_server_create(
-        ((CompletionQueue *)completion_queue)->c_completion_queue, NULL);
-    return 0;
-  } else if (PyObject_TypeCheck(server_credentials,
-                                &pygrpc_ServerCredentialsType)) {
-    self->c_server = grpc_secure_server_create(
-        ((ServerCredentials *)server_credentials)->c_server_credentials,
-        ((CompletionQueue *)completion_queue)->c_completion_queue, NULL);
-    return 0;
-  } else {
-    self->c_server = NULL;
-    return -1;
-  }
+
+  self->c_server = grpc_server_create(
+      ((CompletionQueue *)completion_queue)->c_completion_queue, NULL);
+  return 0;
 }
 
 static void pygrpc_server_dealloc(Server *self) {

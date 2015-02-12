@@ -31,24 +31,37 @@
 *
 */
 
-#include <grpc/support/port_platform.h>
+#ifndef __GRPCPP_CLIENT_UNARY_CALL_H__
+#define __GRPCPP_CLIENT_UNARY_CALL_H__
 
-#ifdef GPR_WIN32
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
 
-#include "src/core/support/cpu.h"
+namespace grpc {
 
-#include <grpc/support/log.h>
+class ChannelInterface;
+class ClientContext;
+class CompletionQueue;
+class RpcMethod;
+class Status;
 
-unsigned gpr_cpu_num_cores(void) {
-  /* TODO(jtattermusch): implement */
-  gpr_log(GPR_ERROR, "Cannot determine number of CPUs: assuming 1");
-  return 1;
-}
+// Wrapper that begins an asynchronous unary call
+void AsyncUnaryCall(ChannelInterface *channel, const RpcMethod &method,
+                    ClientContext *context,
+                    const google::protobuf::Message &request,
+                    google::protobuf::Message *result, Status *status,
+                    CompletionQueue *cq, void *tag);
 
-unsigned gpr_cpu_current_cpu(void) {
-  /* TODO(jtattermusch): implement */
-  gpr_log(GPR_ERROR, "Cannot determine current CPU");
-  return 0;
-}
+// Wrapper that performs a blocking unary call
+Status BlockingUnaryCall(ChannelInterface *channel, const RpcMethod &method,
+                         ClientContext *context,
+                         const google::protobuf::Message &request,
+                         google::protobuf::Message *result);
 
-#endif /* GPR_WIN32 */
+} // namespace grpc
+
+#endif
+
