@@ -31,59 +31,35 @@
  *
  */
 
-#include <grpc++/async_server.h>
-
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
-#include <grpc++/completion_queue.h>
+#ifndef __GRPCPP_IMPL_SERVICE_TYPE_H__
+#define __GRPCPP_IMPL_SERVICE_TYPE_H__
 
 namespace grpc {
 
-AsyncServer::AsyncServer(CompletionQueue *cc)
-    : started_(false), shutdown_(false) {
-  server_ = grpc_server_create(cc->cq(), nullptr);
-}
+class RpcService;
+class Server;
 
-AsyncServer::~AsyncServer() {
-  std::unique_lock<std::mutex> lock(shutdown_mu_);
-  if (started_ && !shutdown_) {
-    lock.unlock();
-    Shutdown();
-  }
-  grpc_server_destroy(server_);
-}
+class SynchronousService {
+ public:
+  virtual ~SynchronousService() {}
+  virtual RpcService* service() = 0;
+};
 
-void AsyncServer::AddPort(const grpc::string &addr) {
-  GPR_ASSERT(!started_);
-  int success = grpc_server_add_http2_port(server_, addr.c_str());
-  GPR_ASSERT(success);
-}
+class AsynchronousService {
+ public:
+  AsynchronousService(CompletionQueue* cq, const char** method_names, size_t method_count) : cq_(cq), method_names_(method_names), method_count_(method_count) {}
 
-void AsyncServer::Start() {
-  GPR_ASSERT(!started_);
-  started_ = true;
-  grpc_server_start(server_);
-}
+  CompletionQueue* completion_queue() const { return cq_; }
 
-void AsyncServer::RequestOneRpc() {
-  GPR_ASSERT(started_);
-  std::unique_lock<std::mutex> lock(shutdown_mu_);
-  if (shutdown_) {
-    return;
-  }
-  lock.unlock();
-  grpc_call_error err = grpc_server_request_call_old(server_, nullptr);
-  GPR_ASSERT(err == GRPC_CALL_OK);
-}
-
-void AsyncServer::Shutdown() {
-  std::unique_lock<std::mutex> lock(shutdown_mu_);
-  if (started_ && !shutdown_) {
-    shutdown_ = true;
-    lock.unlock();
-    // TODO(yangg) should we shutdown without start?
-    grpc_server_shutdown(server_);
-  }
-}
+ private:
+  friend class Server;
+  CompletionQueue* const cq_;
+  Server* server_ = nullptr;
+  const char**const method_names_;
+  size_t method_count_;
+  std::vector<void*> request_args_;
+};
 
 }  // namespace grpc
+
+#endif  // __GRPCPP_IMPL_SERVICE_TYPE_H__
