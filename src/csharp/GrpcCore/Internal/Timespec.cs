@@ -13,7 +13,7 @@ namespace Google.GRPC.Core.Internal
         const int nanosPerSecond = 1000 * 1000 * 1000;
         const int nanosPerTick = 100;
 
-        [DllImport("gpr.dll")]
+        [DllImport("libgpr.so")]
         static extern Timespec gpr_now();
 
 		// TODO: this only works on 64bit linux, can we autoselect the right size of ints?

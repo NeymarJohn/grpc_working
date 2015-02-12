@@ -13,10 +13,10 @@ namespace Google.GRPC.Core
     {
         const int THREAD_POOL_SIZE = 1;
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern void grpc_init();
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern void grpc_shutdown();
 
         static object staticLock = new object();

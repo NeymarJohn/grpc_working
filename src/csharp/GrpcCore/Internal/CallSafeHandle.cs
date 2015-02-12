@@ -15,66 +15,66 @@ namespace Google.GRPC.Core.Internal
 	{
         const UInt32 GRPC_WRITE_BUFFER_HINT = 1;
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern CallSafeHandle grpc_channel_create_call_old(ChannelSafeHandle channel, string method, string host, Timespec deadline);
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern GRPCCallError grpc_call_add_metadata(CallSafeHandle call, IntPtr metadata, UInt32 flags);
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern GRPCCallError grpc_call_invoke_old(CallSafeHandle call, CompletionQueueSafeHandle cq, IntPtr metadataReadTag, IntPtr finishedTag, UInt32 flags);
 
-        [DllImport("grpc.dll", EntryPoint = "grpc_call_invoke_old")]
+        [DllImport("libgrpc.so", EntryPoint = "grpc_call_invoke_old")]
         static extern GRPCCallError grpc_call_invoke_old_CALLBACK(CallSafeHandle call, CompletionQueueSafeHandle cq,
                                                               [MarshalAs(UnmanagedType.FunctionPtr)] EventCallbackDelegate metadataReadCallback, 
                                                               [MarshalAs(UnmanagedType.FunctionPtr)] EventCallbackDelegate finishedCallback, 
                                                               UInt32 flags);
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern GRPCCallError grpc_call_server_accept_old(CallSafeHandle call, CompletionQueueSafeHandle completionQueue, IntPtr finishedTag);
 
-        [DllImport("grpc.dll", EntryPoint = "grpc_call_server_accept_old")]
+        [DllImport("libgrpc.so", EntryPoint = "grpc_call_server_accept_old")]
         static extern GRPCCallError grpc_call_server_accept_old_CALLBACK(CallSafeHandle call, CompletionQueueSafeHandle completionQueue, [MarshalAs(UnmanagedType.FunctionPtr)] EventCallbackDelegate finishedCallback);
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern GRPCCallError grpc_call_server_end_initial_metadata_old(CallSafeHandle call, UInt32 flags);
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern GRPCCallError grpc_call_cancel(CallSafeHandle call);
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern GRPCCallError grpc_call_cancel_with_status(CallSafeHandle call, StatusCode status, string description);
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern GRPCCallError grpc_call_start_write_status_old(CallSafeHandle call, StatusCode statusCode, string statusMessage, IntPtr tag);
 
-        [DllImport("grpc.dll", EntryPoint = "grpc_call_start_write_status_old")]
+        [DllImport("libgrpc.so", EntryPoint = "grpc_call_start_write_status_old")]
         static extern GRPCCallError grpc_call_start_write_status_old_CALLBACK(CallSafeHandle call, StatusCode statusCode, string statusMessage, [MarshalAs(UnmanagedType.FunctionPtr)] EventCallbackDelegate callback);
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern GRPCCallError grpc_call_writes_done_old(CallSafeHandle call, IntPtr tag);
 
-        [DllImport("grpc.dll", EntryPoint = "grpc_call_writes_done_old")]
+        [DllImport("libgrpc.so", EntryPoint = "grpc_call_writes_done_old")]
         static extern GRPCCallError grpc_call_writes_done_old_CALLBACK(CallSafeHandle call, [MarshalAs(UnmanagedType.FunctionPtr)] EventCallbackDelegate callback);
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern GRPCCallError grpc_call_start_read_old(CallSafeHandle call, IntPtr tag);
 
-        [DllImport("grpc.dll", EntryPoint = "grpc_call_start_read_old")]
+        [DllImport("libgrpc.so", EntryPoint = "grpc_call_start_read_old")]
         static extern GRPCCallError grpc_call_start_read_old_CALLBACK(CallSafeHandle call, [MarshalAs(UnmanagedType.FunctionPtr)] EventCallbackDelegate callback);
 
-        [DllImport("grpc_csharp_ext.dll")]
+        [DllImport("libgrpc_csharp_ext.so")]
         static extern void grpc_call_start_write_from_copied_buffer(CallSafeHandle call,
                                                                     byte[] buffer, UIntPtr length,
                                                                     IntPtr tag, UInt32 flags);
 
-        [DllImport("grpc_csharp_ext.dll", EntryPoint = "grpc_call_start_write_from_copied_buffer")]
+        [DllImport("libgrpc_csharp_ext.so", EntryPoint = "grpc_call_start_write_from_copied_buffer")]
         static extern void grpc_call_start_write_from_copied_buffer_CALLBACK(CallSafeHandle call,
                                                                              byte[] buffer, UIntPtr length,
                                                                              [MarshalAs(UnmanagedType.FunctionPtr)] EventCallbackDelegate callback,
                                                                              UInt32 flags);
 
-		[DllImport("grpc.dll")]
+		[DllImport("libgrpc.so")]
 		static extern void grpc_call_destroy(IntPtr call);
 
         private CallSafeHandle()

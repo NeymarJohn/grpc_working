@@ -121,8 +121,8 @@ static void simple_request_body(grpc_end2end_test_fixture f) {
   size_t details_capacity = 0;
   int was_cancelled = 2;
 
-  c = grpc_channel_create_call(f.client, f.client_cq, "/foo",
-                               "foo.test.google.com", deadline);
+  c = grpc_channel_create_call(f.client, f.client_cq, "/foo", "test.google.com",
+                               deadline);
   GPR_ASSERT(c);
 
   grpc_metadata_array_init(&initial_metadata_recv);
@@ -150,8 +150,7 @@ static void simple_request_body(grpc_end2end_test_fixture f) {
   GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, &s,
                                                       &call_details,
                                                       &request_metadata_recv,
-                                                      f.server_cq,
-                                                      tag(101)));
+                                                      f.server_cq, tag(101)));
   cq_expect_completion(v_server, tag(101), GRPC_OP_OK);
   cq_verify(v_server);
 
@@ -178,7 +177,7 @@ static void simple_request_body(grpc_end2end_test_fixture f) {
   GPR_ASSERT(status == GRPC_STATUS_UNIMPLEMENTED);
   GPR_ASSERT(0 == strcmp(details, "xyz"));
   GPR_ASSERT(0 == strcmp(call_details.method, "/foo"));
-  GPR_ASSERT(0 == strcmp(call_details.host, "foo.test.google.com"));
+  GPR_ASSERT(0 == strcmp(call_details.host, "test.google.com"));
   GPR_ASSERT(was_cancelled == 0);
 
   gpr_free(details);

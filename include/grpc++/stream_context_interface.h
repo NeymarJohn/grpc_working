@@ -31,29 +31,34 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_TAG_H_
-#define NET_GRPC_NODE_TAG_H_
+#ifndef __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
+#define __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
 
-#include <node.h>
+namespace google {
+namespace protobuf {
+class Message;
+}
+}
 
 namespace grpc {
-namespace node {
+class Status;
 
-/* Create a void* tag that can be passed to various grpc_call functions from
-   a javascript value and the javascript wrapper for the call. The call can be
-   null. */
-void *CreateTag(v8::Handle<v8::Value> tag, v8::Handle<v8::Value> call);
-/* Return the javascript value stored in the tag */
-v8::Handle<v8::Value> GetTagHandle(void *tag);
-/* Returns true if the call was set (non-null) when the tag was created */
-bool TagHasCall(void *tag);
-/* Returns the javascript wrapper for the call associated with this tag */
-v8::Handle<v8::Value> TagGetCall(void *call);
-/* Destroy the tag and all resources it is holding. It is illegal to call any
-   of these other functions on a tag after it has been destroyed. */
-void DestroyTag(void *tag);
+// An interface to avoid dependency on internal implementation.
+class StreamContextInterface {
+ public:
+  virtual ~StreamContextInterface() {}
 
-}  // namespace node
+  virtual void Start(bool buffered) = 0;
+
+  virtual bool Read(google::protobuf::Message* msg) = 0;
+  virtual bool Write(const google::protobuf::Message* msg, bool is_last) = 0;
+  virtual const Status& Wait() = 0;
+  virtual void Cancel() = 0;
+
+  virtual google::protobuf::Message* request() = 0;
+  virtual google::protobuf::Message* response() = 0;
+};
+
 }  // namespace grpc
 
-#endif  // NET_GRPC_NODE_TAG_H_
+#endif  // __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
