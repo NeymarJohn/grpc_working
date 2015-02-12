@@ -10,10 +10,10 @@ namespace Google.GRPC.Core.Internal
     /// </summary>
 	internal class ChannelSafeHandle : SafeHandleZeroIsInvalid
 	{
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern ChannelSafeHandle grpc_channel_create(string target, IntPtr channelArgs);
 
-		[DllImport("grpc.dll")]
+		[DllImport("libgrpc.so")]
 		static extern void grpc_channel_destroy(IntPtr channel);
 
         private ChannelSafeHandle()

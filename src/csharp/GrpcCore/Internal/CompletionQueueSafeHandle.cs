@@ -9,22 +9,22 @@ namespace Google.GRPC.Core.Internal
     /// </summary>
 	internal class CompletionQueueSafeHandle : SafeHandleZeroIsInvalid
 	{
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern CompletionQueueSafeHandle grpc_completion_queue_create();
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern EventSafeHandle grpc_completion_queue_pluck(CompletionQueueSafeHandle cq, IntPtr tag, Timespec deadline);
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern EventSafeHandle grpc_completion_queue_next(CompletionQueueSafeHandle cq, Timespec deadline);
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern void grpc_completion_queue_shutdown(CompletionQueueSafeHandle cq);
 
-        [DllImport("grpc_csharp_ext.dll")]
+        [DllImport("libgrpc_csharp_ext.so")]
         static extern GRPCCompletionType grpc_completion_queue_next_with_callback(CompletionQueueSafeHandle cq);
 
-        [DllImport("grpc.dll")]
+        [DllImport("libgrpc.so")]
         static extern void grpc_completion_queue_destroy(IntPtr cq);
 
         private CompletionQueueSafeHandle()
