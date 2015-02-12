@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+import "test/cpp/util/messages.proto";
+
+package grpc.cpp.test.util;
+
+service TestService {
+  rpc Echo(EchoRequest) returns (EchoResponse);
+  rpc RequestStream(stream EchoRequest) returns (EchoResponse);
+  rpc ResponseStream(EchoRequest) returns (stream EchoResponse);
+  rpc BidiStream(stream EchoRequest) returns (stream EchoResponse);
+  rpc Unimplemented(EchoRequest) returns (EchoResponse);
+}
