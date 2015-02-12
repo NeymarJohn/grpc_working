@@ -31,34 +31,18 @@
  *
  */
 
-#ifndef __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
-#define __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
+#ifndef NET_GRPC_NODE_EVENT_H_
+#define NET_GRPC_NODE_EVENT_H_
 
-namespace google {
-namespace protobuf {
-class Message;
-}
-}
+#include <node.h>
+#include "grpc/grpc.h"
 
 namespace grpc {
-class Status;
+namespace node {
 
-// An interface to avoid dependency on internal implementation.
-class StreamContextInterface {
- public:
-  virtual ~StreamContextInterface() {}
+v8::Handle<v8::Value> CreateEventObject(grpc_event *event);
 
-  virtual void Start(bool buffered) = 0;
-
-  virtual bool Read(google::protobuf::Message* msg) = 0;
-  virtual bool Write(const google::protobuf::Message* msg, bool is_last) = 0;
-  virtual const Status& Wait() = 0;
-  virtual void Cancel() = 0;
-
-  virtual google::protobuf::Message* request() = 0;
-  virtual google::protobuf::Message* response() = 0;
-};
-
+}  // namespace node
 }  // namespace grpc
 
-#endif  // __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
+#endif  // NET_GRPC_NODE_EVENT_H_
