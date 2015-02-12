@@ -35,8 +35,8 @@
 #define __GRPCPP_CLIENT_CONTEXT_H__
 
 #include <chrono>
+#include <map>
 #include <string>
-#include <vector>
 
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
@@ -48,6 +48,14 @@ struct grpc_call;
 struct grpc_completion_queue;
 
 namespace grpc {
+
+class CallOpBuffer;
+template <class R> class ClientReader;
+template <class W> class ClientWriter;
+template <class R, class W> class ClientReaderWriter;
+template <class R> class ServerReader;
+template <class W> class ServerWriter;
+template <class R, class W> class ServerReaderWriter;
 
 class ClientContext {
  public:
@@ -67,8 +75,14 @@ class ClientContext {
   ClientContext(const ClientContext &);
   ClientContext &operator=(const ClientContext &);
 
+  friend class CallOpBuffer;
   friend class Channel;
-  friend class StreamContext;
+  template <class R> friend class ::grpc::ClientReader;
+  template <class W> friend class ::grpc::ClientWriter;
+  template <class R, class W> friend class ::grpc::ClientReaderWriter;
+  template <class R> friend class ::grpc::ServerReader;
+  template <class W> friend class ::grpc::ServerWriter;
+  template <class R, class W> friend class ::grpc::ServerReaderWriter;
 
   grpc_call *call() { return call_; }
   void set_call(grpc_call *call) {
@@ -84,7 +98,9 @@ class ClientContext {
   grpc_call *call_;
   grpc_completion_queue *cq_;
   gpr_timespec absolute_deadline_;
-  std::vector<std::pair<grpc::string, grpc::string> > metadata_;
+  std::multimap<grpc::string, grpc::string> send_initial_metadata_;
+  std::multimap<grpc::string, grpc::string> recv_initial_metadata_;
+  std::multimap<grpc::string, grpc::string> trailing_metadata_;
 };
 
 }  // namespace grpc
