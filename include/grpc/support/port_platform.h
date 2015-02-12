@@ -70,23 +70,15 @@
 #define GPR_POSIX_TIME 1
 #define GPR_GETPID_IN_UNISTD_H 1
 #elif defined(__linux__)
-#include <features.h>
 #define GPR_CPU_LINUX 1
 #define GPR_GCC_ATOMIC 1
 #define GPR_LINUX 1
-#define GPR_POSIX_MULTIPOLL_WITH_POLL 1
+#define GPR_LINUX_MULTIPOLL_WITH_EPOLL 1
 #define GPR_POSIX_WAKEUP_FD 1
 #define GPR_LINUX_EVENTFD 1
 #define GPR_POSIX_SOCKET 1
 #define GPR_POSIX_SOCKETADDR 1
-#ifdef __GLIBC_PREREQ
-#if __GLIBC_PREREQ(2, 17)
 #define GPR_LINUX_ENV 1
-#endif
-#endif
-#ifndef GPR_LINUX_ENV
-#define GPR_POSIX_ENV 1
-#endif
 #define GPR_POSIX_FILE 1
 #define GPR_POSIX_STRING 1
 #define GPR_POSIX_SYNC 1
