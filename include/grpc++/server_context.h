@@ -35,15 +35,51 @@
 #define __GRPCPP_SERVER_CONTEXT_H_
 
 #include <chrono>
+#include <map>
+
+#include "config.h"
+
+struct grpc_metadata;
+struct gpr_timespec;
 
 namespace grpc {
+
+template <class R> class ServerAsyncReader;
+template <class W> class ServerAsyncWriter;
+template <class R, class W> class ServerAsyncReaderWriter;
+template <class R> class ServerReader;
+template <class W> class ServerWriter;
+template <class R, class W> class ServerReaderWriter;
+
+class CallOpBuffer;
+class Server;
 
 // Interface of server side rpc context.
 class ServerContext {
  public:
   virtual ~ServerContext() {}
 
-  virtual std::chrono::system_clock::time_point absolute_deadline() const = 0;
+  std::chrono::system_clock::time_point absolute_deadline() { return deadline_; }
+
+  void AddInitialMetadata(const grpc::string& key, const grpc::string& value);
+  void AddTrailingMetadata(const grpc::string& key, const grpc::string& value);
+
+ private:
+  friend class ::grpc::Server;
+  template <class R> friend class ::grpc::ServerAsyncReader;
+  template <class W> friend class ::grpc::ServerAsyncWriter;
+  template <class R, class W> friend class ::grpc::ServerAsyncReaderWriter;
+  template <class R> friend class ::grpc::ServerReader;
+  template <class W> friend class ::grpc::ServerWriter;
+  template <class R, class W> friend class ::grpc::ServerReaderWriter;
+
+  ServerContext(gpr_timespec deadline, grpc_metadata *metadata, size_t metadata_count);
+
+  const std::chrono::system_clock::time_point deadline_;
+  bool sent_initial_metadata_ = false;
+  std::multimap<grpc::string, grpc::string> client_metadata_;
+  std::multimap<grpc::string, grpc::string> initial_metadata_;
+  std::multimap<grpc::string, grpc::string> trailing_metadata_;
 };
 
 }  // namespace grpc

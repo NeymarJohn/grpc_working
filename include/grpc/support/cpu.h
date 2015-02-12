@@ -31,45 +31,27 @@
  *
  */
 
-#ifndef __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
-#define __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+#ifndef __GRPC_INTERNAL_SUPPORT_CPU_H__
+#define __GRPC_INTERNAL_SUPPORT_CPU_H__
 
-#include <condition_variable>
-#include <mutex>
-#include <string>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include <grpc++/async_server.h>
-#include <grpc++/completion_queue.h>
+/* Interface providing CPU information for currently running system */
 
-namespace grpc {
+/* Return the number of CPU cores on the current system. Will return 0 if
+   if information is not available. */
+unsigned gpr_cpu_num_cores(void);
 
-namespace testing {
+/* Return the CPU on which the current thread is executing; N.B. This should
+   be considered advisory only - it is possible that the thread is switched
+   to a different CPU at any time. Returns a value in range
+   [0, gpr_cpu_num_cores() - 1] */
+unsigned gpr_cpu_current_cpu(void);
 
-class AsyncTestServer {
- public:
-  AsyncTestServer();
-  virtual ~AsyncTestServer();
+#ifdef __cplusplus
+}  // extern "C"
+#endif
 
-  void AddPort(const grpc::string& addr);
-  void Start();
-  void RequestOneRpc();
-  virtual void MainLoop();
-  void Shutdown();
-
-  CompletionQueue* completion_queue() { return &cq_; }
-
- protected:
-  void HandleQueueClosed();
-
- private:
-  CompletionQueue cq_;
-  AsyncServer server_;
-  bool cq_drained_;
-  std::mutex cq_drained_mu_;
-  std::condition_variable cq_drained_cv_;
-};
-
-}  // namespace testing
-}  // namespace grpc
-
-#endif  // __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+#endif /* __GRPC_INTERNAL_SUPPORT_CPU_H__ */
