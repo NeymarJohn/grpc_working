@@ -98,21 +98,7 @@ class ClientReader final : public ClientStreamingInterface,
     cq_.Pluck(&buf);
   }
 
-  // Blocking wait for initial metadata from server. The received metadata
-  // can only be accessed after this call returns. Calling this method is
-  // optional as it will be called internally before the first Read.
-  void WaitForInitialMetadata() {
-    if (!call_.initial_metadata_received()) {
-      CallOpBuffer buf;
-      buf.AddRecvInitialMetadata(&context_->recv_initial_metadata_);
-      call_.PerformOps(&buf);
-      GPR_ASSERT(cq_.Pluck(&buf));
-      call_.set_initial_metadata_received();
-    }
-  }
-
   virtual bool Read(R *msg) override {
-    WaitForInitialMetadata();
     CallOpBuffer buf;
     bool got_message;
     buf.AddRecvMessage(msg, &got_message);
@@ -200,21 +186,7 @@ class ClientReaderWriter final : public ClientStreamingInterface,
     GPR_ASSERT(cq_.Pluck(&buf));
   }
 
-  // Blocking wait for initial metadata from server. The received metadata
-  // can only be accessed after this call returns. Calling this method is
-  // optional as it will be called internally before the first Read.
-  void WaitForInitialMetadata() {
-    if (!call_.initial_metadata_received()) {
-      CallOpBuffer buf;
-      buf.AddRecvInitialMetadata(&context_->recv_initial_metadata_);
-      call_.PerformOps(&buf);
-      GPR_ASSERT(cq_.Pluck(&buf));
-      call_.set_initial_metadata_received();
-    }
-  }
-
   virtual bool Read(R *msg) override {
-    WaitForInitialMetadata();
     CallOpBuffer buf;
     bool got_message;
     buf.AddRecvMessage(msg, &got_message);
@@ -254,17 +226,7 @@ class ClientReaderWriter final : public ClientStreamingInterface,
 template <class R>
 class ServerReader final : public ReaderInterface<R> {
  public:
-  ServerReader(Call* call, ServerContext* ctx) : call_(call), ctx_(ctx) {}
-
-  void SendInitialMetadata() {
-    if (!ctx_->sent_initial_metadata_) {
-      CallOpBuffer buf;
-      buf.AddSendInitialMetadata(&ctx_->initial_metadata_);
-      ctx_->sent_initial_metadata_ = true;
-      call_->PerformOps(&buf);
-      call_->cq()->Pluck(&buf);
-    }
-  }
+  explicit ServerReader(Call* call, ServerContext* ctx) : call_(call), ctx_(ctx) {}
 
   virtual bool Read(R* msg) override {
     CallOpBuffer buf;
@@ -282,21 +244,11 @@ class ServerReader final : public ReaderInterface<R> {
 template <class W>
 class ServerWriter final : public WriterInterface<W> {
  public:
-  ServerWriter(Call* call, ServerContext* ctx) : call_(call), ctx_(ctx) {}
-
-  void SendInitialMetadata() {
-    if (!ctx_->sent_initial_metadata_) {
-      CallOpBuffer buf;
-      buf.AddSendInitialMetadata(&ctx_->initial_metadata_);
-      ctx_->sent_initial_metadata_ = true;
-      call_->PerformOps(&buf);
-      call_->cq()->Pluck(&buf);
-    }
-  }
+  explicit ServerWriter(Call* call, ServerContext* ctx) : call_(call), ctx_(ctx) {}
 
   virtual bool Write(const W& msg) override {
-    SendInitialMetadata();
     CallOpBuffer buf;
+    ctx_->SendInitialMetadataIfNeeded(&buf);
     buf.AddSendMessage(msg);
     call_->PerformOps(&buf);
     return call_->cq()->Pluck(&buf);
@@ -312,17 +264,7 @@ template <class W, class R>
 class ServerReaderWriter final : public WriterInterface<W>,
                            public ReaderInterface<R> {
  public:
-  ServerReaderWriter(Call* call, ServerContext* ctx) : call_(call), ctx_(ctx) {}
-
-  void SendInitialMetadata() {
-    if (!ctx_->sent_initial_metadata_) {
-      CallOpBuffer buf;
-      buf.AddSendInitialMetadata(&ctx_->initial_metadata_);
-      ctx_->sent_initial_metadata_ = true;
-      call_->PerformOps(&buf);
-      call_->cq()->Pluck(&buf);
-    }
-  }
+  explicit ServerReaderWriter(Call* call, ServerContext* ctx) : call_(call), ctx_(ctx) {}
 
   virtual bool Read(R* msg) override {
     CallOpBuffer buf;
@@ -333,8 +275,8 @@ class ServerReaderWriter final : public WriterInterface<W>,
   }
 
   virtual bool Write(const W& msg) override {
-    SendInitialMetadata();
     CallOpBuffer buf;
+    ctx_->SendInitialMetadataIfNeeded(&buf);
     buf.AddSendMessage(msg);
     call_->PerformOps(&buf);
     return call_->cq()->Pluck(&buf);
