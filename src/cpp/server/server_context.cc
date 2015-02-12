@@ -49,10 +49,4 @@ ServerContext::ServerContext(gpr_timespec deadline, grpc_metadata *metadata,
   }
 }
 
-ServerContext::~ServerContext() {
-  if (call_) {
-    grpc_call_destroy(call_);
-  }
-}
-
 }  // namespace grpc
