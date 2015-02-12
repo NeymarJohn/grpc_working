@@ -39,6 +39,7 @@
 #include <grpc++/completion_queue.h>
 #include <grpc++/server_context.h>
 #include <grpc++/impl/call.h>
+#include <grpc++/impl/service_type.h>
 #include <grpc++/status.h>
 #include <grpc/support/log.h>
 
@@ -370,15 +371,6 @@ class ClientAsyncStreamingInterface {
   virtual void Finish(Status* status, void* tag) = 0;
 };
 
-class ServerAsyncStreamingInterface {
- public:
-  virtual ~ServerAsyncStreamingInterface() {}
-
-  virtual void SendInitialMetadata(void* tag) = 0;
-
-  virtual void Finish(const Status& status, void* tag) = 0;
-};
-
 // An interface that yields a sequence of R messages.
 template <class R>
 class AsyncReaderInterface {
@@ -580,54 +572,19 @@ class ClientAsyncReaderWriter final : public ClientAsyncStreamingInterface,
 
 // TODO(yangg) Move out of stream.h
 template <class W>
-class ServerAsyncResponseWriter final {
+class ServerAsyncResponseWriter final : public ServerAsyncStreamingInterface {
  public:
-  ServerAsyncResponseWriter(Call* call, ServerContext* ctx)
-      : call_(call), ctx_(ctx) {}
+  explicit ServerAsyncResponseWriter(Call* call) : call_(call) {}
 
-  void SendInitialMetadata(void* tag) {
-    GPR_ASSERT(!ctx_->sent_initial_metadata_);
-
-    meta_buf_.Reset(tag);
-    meta_buf_.AddSendInitialMetadata(&ctx_->initial_metadata_);
-    ctx_->sent_initial_metadata_ = true;
-    call_->PerformOps(&meta_buf_);
-  }
-
-  void Finish(const W& msg, const Status& status, void* tag) {
-    finish_buf_.Reset(tag);
-    if (!ctx_->sent_initial_metadata_) {
-      finish_buf_.AddSendInitialMetadata(&ctx_->initial_metadata_);
-      ctx_->sent_initial_metadata_ = true;
-    }
-    // The response is dropped if the status is not OK.
-    if (status.IsOk()) {
-      finish_buf_.AddSendMessage(msg);
-    }
-    bool cancelled = false;
-    finish_buf_.AddServerRecvClose(&cancelled);
-    finish_buf_.AddServerSendStatus(&ctx_->trailing_metadata_, status);
-    call_->PerformOps(&finish_buf_);
-  }
-
-  void FinishWithError(const Status& status, void* tag) {
-    GPR_ASSERT(!status.IsOk());
-    finish_buf_.Reset(tag);
-    if (!ctx_->sent_initial_metadata_) {
-      finish_buf_.AddSendInitialMetadata(&ctx_->initial_metadata_);
-      ctx_->sent_initial_metadata_ = true;
-    }
-    bool cancelled = false;
-    finish_buf_.AddServerRecvClose(&cancelled);
-    finish_buf_.AddServerSendStatus(&ctx_->trailing_metadata_, status);
-    call_->PerformOps(&finish_buf_);
+  virtual void Write(const W& msg, void* tag) {
+    CallOpBuffer buf;
+    buf.Reset(tag);
+    buf.AddSendMessage(msg);
+    call_->PerformOps(&buf);
   }
 
  private:
   Call* call_;
-  ServerContext* ctx_;
-  CallOpBuffer meta_buf_;
-  CallOpBuffer finish_buf_;
 };
 
 template <class R>
