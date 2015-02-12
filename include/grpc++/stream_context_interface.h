@@ -31,62 +31,34 @@
  *
  */
 
-#ifndef __GRPCPP_CLIENT_CONTEXT_H__
-#define __GRPCPP_CLIENT_CONTEXT_H__
+#ifndef __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
+#define __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
 
-#include <chrono>
-#include <string>
-#include <vector>
-
-#include <grpc/support/log.h>
-#include <grpc/support/time.h>
-#include <grpc++/config.h>
-
-using std::chrono::system_clock;
-
-struct grpc_call;
-struct grpc_completion_queue;
+namespace google {
+namespace protobuf {
+class Message;
+}
+}
 
 namespace grpc {
+class Status;
 
-class ClientContext {
+// An interface to avoid dependency on internal implementation.
+class StreamContextInterface {
  public:
-  ClientContext();
-  ~ClientContext();
+  virtual ~StreamContextInterface() {}
 
-  void AddMetadata(const grpc::string &meta_key,
-                   const grpc::string &meta_value);
+  virtual void Start(bool buffered) = 0;
 
-  void set_absolute_deadline(const system_clock::time_point &deadline);
-  system_clock::time_point absolute_deadline();
+  virtual bool Read(google::protobuf::Message* msg) = 0;
+  virtual bool Write(const google::protobuf::Message* msg, bool is_last) = 0;
+  virtual const Status& Wait() = 0;
+  virtual void Cancel() = 0;
 
-  void StartCancel();
-
- private:
-  // Disallow copy and assign.
-  ClientContext(const ClientContext &);
-  ClientContext &operator=(const ClientContext &);
-
-  friend class Channel;
-  friend class StreamContext;
-
-  grpc_call *call() { return call_; }
-  void set_call(grpc_call *call) {
-    GPR_ASSERT(call_ == nullptr);
-    call_ = call;
-  }
-
-  grpc_completion_queue *cq() { return cq_; }
-  void set_cq(grpc_completion_queue *cq) { cq_ = cq; }
-
-  gpr_timespec RawDeadline() { return absolute_deadline_; }
-
-  grpc_call *call_;
-  grpc_completion_queue *cq_;
-  gpr_timespec absolute_deadline_;
-  std::vector<std::pair<grpc::string, grpc::string> > metadata_;
+  virtual google::protobuf::Message* request() = 0;
+  virtual google::protobuf::Message* response() = 0;
 };
 
 }  // namespace grpc
 
-#endif  // __GRPCPP_CLIENT_CONTEXT_H__
+#endif  // __GRPCPP_STREAM_CONTEXT_INTERFACE_H__
