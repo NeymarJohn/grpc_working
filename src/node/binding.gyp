@@ -9,15 +9,14 @@
       'include_dirs': [
         "<!(nodejs -e \"require('nan')\")"
       ],
-      'cflags': [
-        '-std=c++11',
+      'cxxflags': [
         '-Wall',
         '-pthread',
         '-pedantic',
         '-g',
         '-zdefs'
-        '-Werror'
-      ],
+        '-Werror',
+        ],
       'ldflags': [
         '-g'
       ],
@@ -34,9 +33,11 @@
         "ext/channel.cc",
         "ext/completion_queue_async_worker.cc",
         "ext/credentials.cc",
+        "ext/event.cc",
         "ext/node_grpc.cc",
         "ext/server.cc",
         "ext/server_credentials.cc",
+        "ext/tag.cc",
         "ext/timeval.cc"
       ],
       'conditions' : [

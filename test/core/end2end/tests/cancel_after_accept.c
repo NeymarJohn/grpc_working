@@ -131,8 +131,8 @@ static void test_cancel_after_accept(grpc_end2end_test_config config,
       grpc_byte_buffer_create(&response_payload_slice, 1);
   int was_cancelled = 2;
 
-  c = grpc_channel_create_call(f.client, f.client_cq, "/foo", "test.google.com",
-                                   deadline);
+  c = grpc_channel_create_call(f.client, f.client_cq, "/foo",
+                               "foo.test.google.com", deadline);
   GPR_ASSERT(c);
 
   grpc_metadata_array_init(&initial_metadata_recv);
@@ -166,7 +166,8 @@ static void test_cancel_after_accept(grpc_end2end_test_config config,
   GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, &s,
                                                       &call_details,
                                                       &request_metadata_recv,
-                                                      f.server_cq, tag(2)));
+                                                      f.server_cq,
+                                                      tag(2)));
   cq_expect_completion(v_server, tag(2), GRPC_OP_OK);
   cq_verify(v_server);
 
