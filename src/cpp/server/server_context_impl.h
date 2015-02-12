@@ -31,18 +31,31 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_EVENT_H_
-#define NET_GRPC_NODE_EVENT_H_
+#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_CONTEXT_IMPL_H_
+#define __GRPCPP_INTERNAL_SERVER_SERVER_CONTEXT_IMPL_H_
 
-#include <node.h>
-#include "grpc/grpc.h"
+#include <grpc++/server_context.h>
+
+#include <chrono>
+
+#include <grpc/support/time.h>
 
 namespace grpc {
-namespace node {
 
-v8::Handle<v8::Value> CreateEventObject(grpc_event *event);
+class ServerContextImpl : public ServerContext {
+ public:
+  explicit ServerContextImpl(std::chrono::system_clock::time_point deadline)
+      : absolute_deadline_(deadline) {}
+  ~ServerContextImpl() {}
 
-}  // namespace node
+  std::chrono::system_clock::time_point absolute_deadline() const {
+    return absolute_deadline_;
+  }
+
+ private:
+  std::chrono::system_clock::time_point absolute_deadline_;
+};
+
 }  // namespace grpc
 
-#endif  // NET_GRPC_NODE_EVENT_H_
+#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_CONTEXT_IMPL_H_

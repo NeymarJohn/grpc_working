@@ -41,12 +41,7 @@
     <Import Project="global.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <TargetName>grpc</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <TargetName>grpc</TargetName>
-  </PropertyGroup>
+  <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -270,8 +265,6 @@
     <ClCompile Include="..\..\src\core\iomgr\iomgr_windows.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\iomgr\pollset_kick.c">
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\iomgr\pollset_multipoller_with_epoll.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\iomgr\pollset_multipoller_with_poll_posix.c">
     </ClCompile>

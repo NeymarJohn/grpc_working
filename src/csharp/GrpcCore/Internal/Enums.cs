@@ -36,36 +36,29 @@ namespace Google.GRPC.Core.Internal
     /// </summary>
     internal enum GRPCCompletionType
     {
-        /* Shutting down */
         GRPC_QUEUE_SHUTDOWN,
-
-        /* operation completion */
-        GRPC_OP_COMPLETE,  
-
-        /* A read has completed */
+        /* Shutting down */
         GRPC_READ,
-
-        /* A write has been accepted by flow control */
+        /* A read has completed */
+        GRPC_INVOKE_ACCEPTED,
+        /* An invoke call has been accepted by flow
+                                control */
         GRPC_WRITE_ACCEPTED,
-
-        /* writes_done or write_status has been accepted */
+        /* A write has been accepted by
+                                flow control */
         GRPC_FINISH_ACCEPTED,
-
-        /* The metadata array sent by server received at client */
+        /* writes_done or write_status has been accepted */
         GRPC_CLIENT_METADATA_READ,
-
-        /* An RPC has finished. The event contains status. 
-         * On the server this will be OK or Cancelled. */
+        /* The metadata array sent by server received at
+                                client */
         GRPC_FINISHED,
-
-        /* A new RPC has arrived at the server */
+        /* An RPC has finished. The event contains status.
+                                On the server this will be OK or Cancelled. */
         GRPC_SERVER_RPC_NEW,
-
-        /* The server has finished shutting down */
-        GRPC_SERVER_SHUTDOWN,
-
-        /* must be last, forces users to include a default: case */
+        /* A new RPC has arrived at the server */
         GRPC_COMPLETION_DO_NOT_USE
+        /* must be last, forces users to include
+                                a default: case */
     }
 
     /// <summary>
