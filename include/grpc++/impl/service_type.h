@@ -31,6 +31,25 @@
  *
  */
 
-#include "src/cpp/server/server_context_impl.h"
+#ifndef __GRPCPP_IMPL_SERVICE_TYPE_H__
+#define __GRPCPP_IMPL_SERVICE_TYPE_H__
 
-namespace grpc {}  // namespace grpc
+namespace grpc {
+
+class RpcService;
+
+class SynchronousService {
+ public:
+  virtual ~SynchronousService() {}
+  virtual RpcService *service() = 0;
+};
+
+class AsynchronousService {
+ public:
+  virtual ~AsynchronousService() {}
+  virtual RpcService *service() = 0;
+};
+
+}  // namespace grpc
+
+#endif // __GRPCPP_IMPL_SERVICE_TYPE_H__
