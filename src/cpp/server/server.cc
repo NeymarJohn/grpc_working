@@ -84,7 +84,7 @@ Server::~Server() {
 bool Server::RegisterService(RpcService *service) {
   for (int i = 0; i < service->GetMethodCount(); ++i) {
     RpcServiceMethod *method = service->GetMethod(i);
-    void *tag = grpc_server_register_method(server_, method->name(), nullptr, cq_.cq());
+    void *tag = grpc_server_register_method(server_, method->name(), nullptr);
     if (!tag) {
       gpr_log(GPR_DEBUG, "Attempt to register %s multiple times",
               method->name());
@@ -177,7 +177,6 @@ class Server::MethodRequestData final : public CompletionQueueTag {
       auto status = method_->handler()->RunHandler(
           MethodHandler::HandlerParameter(&call_, &ctx_, req.get(), res.get()));
       CallOpBuffer buf;
-      ctx_.SendInitialMetadataIfNeeded(&buf);
       if (has_response_payload_) {
         buf.AddSendMessage(*res);
       }
