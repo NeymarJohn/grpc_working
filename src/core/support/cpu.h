@@ -31,62 +31,19 @@
  *
  */
 
-#ifndef __GRPCPP_CLIENT_CONTEXT_H__
-#define __GRPCPP_CLIENT_CONTEXT_H__
+#ifndef __GRPC_INTERNAL_SUPPORT_CPU_H__
+#define __GRPC_INTERNAL_SUPPORT_CPU_H__
 
-#include <chrono>
-#include <string>
-#include <vector>
+/* Interface providing CPU information for currently running system */
 
-#include <grpc/support/log.h>
-#include <grpc/support/time.h>
-#include <grpc++/config.h>
+/* Return the number of CPU cores on the current system. Will return 0 if
+   if information is not available. */
+unsigned gpr_cpu_num_cores(void);
 
-using std::chrono::system_clock;
+/* Return the CPU on which the current thread is executing; N.B. This should
+   be considered advisory only - it is possible that the thread is switched
+   to a different CPU at any time. Returns a value in range
+   [0, gpr_cpu_num_cores() - 1] */
+unsigned gpr_cpu_current_cpu(void);
 
-struct grpc_call;
-struct grpc_completion_queue;
-
-namespace grpc {
-
-class ClientContext {
- public:
-  ClientContext();
-  ~ClientContext();
-
-  void AddMetadata(const grpc::string &meta_key,
-                   const grpc::string &meta_value);
-
-  void set_absolute_deadline(const system_clock::time_point &deadline);
-  system_clock::time_point absolute_deadline();
-
-  void StartCancel();
-
- private:
-  // Disallow copy and assign.
-  ClientContext(const ClientContext &);
-  ClientContext &operator=(const ClientContext &);
-
-  friend class Channel;
-  friend class StreamContext;
-
-  grpc_call *call() { return call_; }
-  void set_call(grpc_call *call) {
-    GPR_ASSERT(call_ == nullptr);
-    call_ = call;
-  }
-
-  grpc_completion_queue *cq() { return cq_; }
-  void set_cq(grpc_completion_queue *cq) { cq_ = cq; }
-
-  gpr_timespec RawDeadline() { return absolute_deadline_; }
-
-  grpc_call *call_;
-  grpc_completion_queue *cq_;
-  gpr_timespec absolute_deadline_;
-  std::vector<std::pair<grpc::string, grpc::string> > metadata_;
-};
-
-}  // namespace grpc
-
-#endif  // __GRPCPP_CLIENT_CONTEXT_H__
+#endif /* __GRPC_INTERNAL_SUPPORT_CPU_H__ */

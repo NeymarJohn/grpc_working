@@ -39,7 +39,7 @@
 
 #ifdef GPR_CPU_LINUX
 
-#include <grpc/support/cpu.h>
+#include "src/core/support/cpu.h"
 
 #include <sched.h>
 #include <errno.h>
