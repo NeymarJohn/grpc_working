@@ -132,8 +132,6 @@ else
 LIBS = rt m z pthread
 LDFLAGS += -pthread
 endif
-LIBSXX = protobuf
-LIBS_PROTOC = protoc protobuf
 
 ifneq ($(wildcard /usr/src/gtest/src/gtest-all.cc),)
 GTEST_LIB = /usr/src/gtest/src/gtest-all.cc -I/usr/src/gtest
@@ -157,7 +155,6 @@ CPPFLAGS += $(CPPFLAGS_NO_ARCH) $(ARCH_FLAGS)
 LDFLAGS += $(ARCH_FLAGS)
 LDLIBS += $(addprefix -l, $(LIBS))
 LDLIBSXX += $(addprefix -l, $(LIBSXX))
-HOST_LDLIBS_PROTOC += $(addprefix -l, $(LIBS_PROTOC))
 
 HOST_CPPFLAGS = $(CPPFLAGS)
 HOST_CFLAGS = $(CFLAGS)
@@ -188,6 +185,8 @@ endif
 OPENSSL_ALPN_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o /dev/null test/build/openssl-alpn.c -lssl -lcrypto -ldl $(LDFLAGS)
 ZLIB_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o /dev/null test/build/zlib.c -lz $(LDFLAGS)
 PERFTOOLS_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o /dev/null test/build/perftools.c -lprofiler $(LDFLAGS)
+PROTOBUF_CHECK_CMD = $(CXX) $(CXXFLAGS) $(CPPFLAGS) -o /dev/null test/build/protobuf.cc -lprotobuf $(LDFLAGS)
+PROTOC_CHECK_CMD = protoc --version | grep -q libprotoc.3
 
 ifndef REQUIRE_CUSTOM_LIBRARIES_$(CONFIG)
 HAS_SYSTEM_PERFTOOLS = $(shell $(PERFTOOLS_CHECK_CMD) 2> /dev/null && echo true || echo false)
@@ -200,11 +199,15 @@ endif
 ifndef REQUIRE_CUSTOM_LIBRARIES_$(CONFIG)
 HAS_SYSTEM_OPENSSL_ALPN = $(shell $(OPENSSL_ALPN_CHECK_CMD) 2> /dev/null && echo true || echo false)
 HAS_SYSTEM_ZLIB = $(shell $(ZLIB_CHECK_CMD) 2> /dev/null && echo true || echo false)
+HAS_SYSTEM_PROTOBUF = $(shell $(PROTOBUF_CHECK_CMD) 2> /dev/null && echo true || echo false)
 else
 # override system libraries if the config requires a custom compiled library
 HAS_SYSTEM_OPENSSL_ALPN = false
 HAS_SYSTEM_ZLIB = false
+HAS_SYSTEM_PROTOBUF = false
 endif
+
+HAS_VALID_PROTOC = $(shell $(PROTOC_CHECK_CMD) 2> /dev/null && echo true || echo false)
 
 ifeq ($(wildcard third_party/openssl/ssl/ssl.h),)
 HAS_EMBEDDED_OPENSSL_ALPN = false
@@ -218,11 +221,20 @@ else
 HAS_EMBEDDED_ZLIB = true
 endif
 
+ifeq ($(wildcard third_party/protobuf/src/google/protobuf/descriptor.pb.h),)
+HAS_EMBEDDED_PROTOBUF = false
+ifneq ($(HAS_VALID_PROTOC),true)
+NO_PROTOC = true
+endif
+else
+HAS_EMBEDDED_PROTOBUF = true
+endif
+
 ifeq ($(HAS_SYSTEM_ZLIB),false)
 ifeq ($(HAS_EMBEDDED_ZLIB),true)
 ZLIB_DEP = libs/$(CONFIG)/zlib/libz.a
 CPPFLAGS += -Ithird_party/zlib
-LDFLAGS += -Lthird_party/zlib
+LDFLAGS += -Llibs/$(CONFIG)/zlib
 else
 DEP_MISSING += zlib
 endif
@@ -243,6 +255,24 @@ LIBS_SECURE = ssl crypto dl
 endif
 
 LDLIBS_SECURE += $(addprefix -l, $(LIBS_SECURE))
+
+ifeq ($(HAS_SYSTEM_PROTOBUF),false)
+ifeq ($(HAS_EMBEDDED_PROTOBUF),true)
+PROTOBUF_DEP = libs/$(CONFIG)/protobuf/libprotobuf.a
+CPPFLAGS += -Ithird_party/protobuf/src
+LDFLAGS += -Llibs/$(CONFIG)/protobuf
+PROTOC = bins/$(CONFIG)/protobuf/protoc
+else
+NO_PROTOBUF = true
+endif
+else
+endif
+
+LIBS_PROTOBUF = protobuf
+LIBS_PROTOC = protoc protobuf
+
+LDLIBS_PROTOBUF += $(addprefix -l, $(LIBS_PROTOBUF))
+HOST_LDLIBS_PROTOC += $(addprefix -l, $(LIBS_PROTOC))
 
 ifeq ($(MAKECMDGOALS),clean)
 NO_DEPS = true
@@ -287,11 +317,43 @@ endif
 
 openssl_dep_error: openssl_dep_message git_update stop
 
+protobuf_dep_error: protobuf_dep_message git_update stop
+
+protoc_dep_error: protoc_dep_message git_update stop
+
 openssl_dep_message:
 	@echo
 	@echo "DEPENDENCY ERROR"
 	@echo
 	@echo "The target you are trying to run requires OpenSSL with ALPN support."
+	@echo "Your system doesn't have it, and neither does the third_party directory."
+	@echo
+	@echo "Please consult INSTALL to get more information."
+	@echo
+	@echo "If you need information about why these tests failed, run:"
+	@echo
+	@echo "  make run_dep_checks"
+	@echo
+
+protobuf_dep_message:
+	@echo
+	@echo "DEPENDENCY ERROR"
+	@echo
+	@echo "The target you are trying to run requires protobuf 3.0.0+"
+	@echo "Your system doesn't have it, and neither does the third_party directory."
+	@echo
+	@echo "Please consult INSTALL to get more information."
+	@echo
+	@echo "If you need information about why these tests failed, run:"
+	@echo
+	@echo "  make run_dep_checks"
+	@echo
+
+protoc_dep_message:
+	@echo
+	@echo "DEPENDENCY ERROR"
+	@echo
+	@echo "The target you are trying to run requires protobuf-compiler 3.0.0+"
 	@echo "Your system doesn't have it, and neither does the third_party directory."
 	@echo
 	@echo "Please consult INSTALL to get more information."
@@ -381,6 +443,7 @@ time_averaged_stats_test: bins/$(CONFIG)/time_averaged_stats_test
 time_test: bins/$(CONFIG)/time_test
 timeout_encoding_test: bins/$(CONFIG)/timeout_encoding_test
 transport_metadata_test: bins/$(CONFIG)/transport_metadata_test
+async_end2end_test: bins/$(CONFIG)/async_end2end_test
 channel_arguments_test: bins/$(CONFIG)/channel_arguments_test
 cpp_plugin: bins/$(CONFIG)/cpp_plugin
 credentials_test: bins/$(CONFIG)/credentials_test
@@ -391,7 +454,6 @@ qps_client: bins/$(CONFIG)/qps_client
 qps_server: bins/$(CONFIG)/qps_server
 ruby_plugin: bins/$(CONFIG)/ruby_plugin
 status_test: bins/$(CONFIG)/status_test
-sync_client_async_server_test: bins/$(CONFIG)/sync_client_async_server_test
 thread_pool_test: bins/$(CONFIG)/thread_pool_test
 tips_client: bins/$(CONFIG)/tips_client
 tips_publisher_test: bins/$(CONFIG)/tips_publisher_test
@@ -688,6 +750,9 @@ chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_legacy
 run_dep_checks:
 	$(OPENSSL_ALPN_CHECK_CMD) || true
 	$(ZLIB_CHECK_CMD) || true
+	$(PERFTOOLS_CHECK_CMD) || true
+	$(PROTOBUF_CHECK_CMD) || true
+	$(PROTOC_CHECK_CMD) || true
 
 libs/$(CONFIG)/zlib/libz.a:
 	$(E) "[MAKE]    Building zlib"
@@ -708,6 +773,21 @@ endif
 	$(Q)$(MAKE) -C third_party/openssl build_crypto build_ssl
 	$(Q)mkdir -p libs/$(CONFIG)/openssl
 	$(Q)cp third_party/openssl/libssl.a third_party/openssl/libcrypto.a libs/$(CONFIG)/openssl
+
+third_party/protobuf/configure:
+	$(E) "[AUTOGEN] Preparing protobuf"
+	$(Q)(cd third_party/protobuf ; autoreconf -f -i -Wall,no-obsolete)
+
+libs/$(CONFIG)/protobuf/libprotobuf.a: third_party/protobuf/configure
+	$(E) "[MAKE]    Building protobuf"
+	$(Q)(cd third_party/protobuf ; CC="$(CC)" CXX="$(CXX)" LDFLAGS="$(LDFLAGS_$(CONFIG)) -g" CXXFLAGS="-DLANG_CXX11 -std=c++11" CPPFLAGS="$(CPPFLAGS_$(CONFIG)) -g" ./configure --disable-shared --enable-static)
+	$(Q)$(MAKE) -C third_party/protobuf clean
+	$(Q)$(MAKE) -C third_party/protobuf
+	$(Q)mkdir -p libs/$(CONFIG)/protobuf
+	$(Q)mkdir -p bins/$(CONFIG)/protobuf
+	$(Q)cp third_party/protobuf/src/.libs/libprotoc.a libs/$(CONFIG)/protobuf
+	$(Q)cp third_party/protobuf/src/.libs/libprotobuf.a libs/$(CONFIG)/protobuf
+	$(Q)cp third_party/protobuf/src/protoc bins/$(CONFIG)/protobuf
 
 static: static_c static_cxx
 
@@ -731,7 +811,7 @@ buildtests: buildtests_c buildtests_cxx
 
 buildtests_c: privatelibs_c bins/$(CONFIG)/alarm_heap_test bins/$(CONFIG)/alarm_list_test bins/$(CONFIG)/alarm_test bins/$(CONFIG)/alpn_test bins/$(CONFIG)/bin_encoder_test bins/$(CONFIG)/census_hash_table_test bins/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test bins/$(CONFIG)/census_statistics_multiple_writers_test bins/$(CONFIG)/census_statistics_performance_test bins/$(CONFIG)/census_statistics_quick_test bins/$(CONFIG)/census_statistics_small_log_test bins/$(CONFIG)/census_stub_test bins/$(CONFIG)/census_window_stats_test bins/$(CONFIG)/chttp2_status_conversion_test bins/$(CONFIG)/chttp2_stream_encoder_test bins/$(CONFIG)/chttp2_stream_map_test bins/$(CONFIG)/chttp2_transport_end2end_test bins/$(CONFIG)/dualstack_socket_test bins/$(CONFIG)/echo_client bins/$(CONFIG)/echo_server bins/$(CONFIG)/echo_test bins/$(CONFIG)/fd_posix_test bins/$(CONFIG)/fling_client bins/$(CONFIG)/fling_server bins/$(CONFIG)/fling_stream_test bins/$(CONFIG)/fling_test bins/$(CONFIG)/gpr_cancellable_test bins/$(CONFIG)/gpr_cmdline_test bins/$(CONFIG)/gpr_env_test bins/$(CONFIG)/gpr_file_test bins/$(CONFIG)/gpr_histogram_test bins/$(CONFIG)/gpr_host_port_test bins/$(CONFIG)/gpr_log_test bins/$(CONFIG)/gpr_slice_buffer_test bins/$(CONFIG)/gpr_slice_test bins/$(CONFIG)/gpr_string_test bins/$(CONFIG)/gpr_sync_test bins/$(CONFIG)/gpr_thd_test bins/$(CONFIG)/gpr_time_test bins/$(CONFIG)/gpr_useful_test bins/$(CONFIG)/grpc_base64_test bins/$(CONFIG)/grpc_byte_buffer_reader_test bins/$(CONFIG)/grpc_channel_stack_test bins/$(CONFIG)/grpc_completion_queue_test bins/$(CONFIG)/grpc_credentials_test bins/$(CONFIG)/grpc_json_token_test bins/$(CONFIG)/grpc_stream_op_test bins/$(CONFIG)/hpack_parser_test bins/$(CONFIG)/hpack_table_test bins/$(CONFIG)/httpcli_format_request_test bins/$(CONFIG)/httpcli_parser_test bins/$(CONFIG)/httpcli_test bins/$(CONFIG)/json_rewrite bins/$(CONFIG)/json_rewrite_test bins/$(CONFIG)/json_test bins/$(CONFIG)/lame_client_test bins/$(CONFIG)/message_compress_test bins/$(CONFIG)/metadata_buffer_test bins/$(CONFIG)/murmur_hash_test bins/$(CONFIG)/no_server_test bins/$(CONFIG)/poll_kick_posix_test bins/$(CONFIG)/resolve_address_test bins/$(CONFIG)/secure_endpoint_test bins/$(CONFIG)/sockaddr_utils_test bins/$(CONFIG)/tcp_client_posix_test bins/$(CONFIG)/tcp_posix_test bins/$(CONFIG)/tcp_server_posix_test bins/$(CONFIG)/time_averaged_stats_test bins/$(CONFIG)/time_test bins/$(CONFIG)/timeout_encoding_test bins/$(CONFIG)/transport_metadata_test bins/$(CONFIG)/chttp2_fake_security_cancel_after_accept_test bins/$(CONFIG)/chttp2_fake_security_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_fake_security_cancel_after_invoke_test bins/$(CONFIG)/chttp2_fake_security_cancel_before_invoke_test bins/$(CONFIG)/chttp2_fake_security_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_fake_security_census_simple_request_test bins/$(CONFIG)/chttp2_fake_security_disappearing_server_test bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_fake_security_empty_batch_test bins/$(CONFIG)/chttp2_fake_security_graceful_server_shutdown_test bins/$(CONFIG)/chttp2_fake_security_invoke_large_request_test bins/$(CONFIG)/chttp2_fake_security_max_concurrent_streams_test bins/$(CONFIG)/chttp2_fake_security_no_op_test bins/$(CONFIG)/chttp2_fake_security_ping_pong_streaming_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_payload_test bins/$(CONFIG)/chttp2_fake_security_request_with_large_metadata_test bins/$(CONFIG)/chttp2_fake_security_request_with_payload_test bins/$(CONFIG)/chttp2_fake_security_simple_delayed_request_test bins/$(CONFIG)/chttp2_fake_security_simple_request_test bins/$(CONFIG)/chttp2_fake_security_thread_stress_test bins/$(CONFIG)/chttp2_fake_security_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_fake_security_cancel_after_accept_legacy_test bins/$(CONFIG)/chttp2_fake_security_cancel_after_accept_and_writes_closed_legacy_test bins/$(CONFIG)/chttp2_fake_security_cancel_after_invoke_legacy_test bins/$(CONFIG)/chttp2_fake_security_cancel_before_invoke_legacy_test bins/$(CONFIG)/chttp2_fake_security_cancel_in_a_vacuum_legacy_test bins/$(CONFIG)/chttp2_fake_security_census_simple_request_legacy_test bins/$(CONFIG)/chttp2_fake_security_disappearing_server_legacy_test bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_inflight_calls_legacy_test bins/$(CONFIG)/chttp2_fake_security_early_server_shutdown_finishes_tags_legacy_test bins/$(CONFIG)/chttp2_fake_security_graceful_server_shutdown_legacy_test bins/$(CONFIG)/chttp2_fake_security_invoke_large_request_legacy_test bins/$(CONFIG)/chttp2_fake_security_max_concurrent_streams_legacy_test bins/$(CONFIG)/chttp2_fake_security_no_op_legacy_test bins/$(CONFIG)/chttp2_fake_security_ping_pong_streaming_legacy_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_binary_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_payload_legacy_test bins/$(CONFIG)/chttp2_fake_security_request_response_with_trailing_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_fake_security_request_with_large_metadata_legacy_test bins/$(CONFIG)/chttp2_fake_security_request_with_payload_legacy_test bins/$(CONFIG)/chttp2_fake_security_simple_delayed_request_legacy_test bins/$(CONFIG)/chttp2_fake_security_simple_request_legacy_test bins/$(CONFIG)/chttp2_fake_security_thread_stress_legacy_test bins/$(CONFIG)/chttp2_fake_security_writes_done_hangs_with_pending_read_legacy_test bins/$(CONFIG)/chttp2_fullstack_cancel_after_accept_test bins/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_fullstack_cancel_after_invoke_test bins/$(CONFIG)/chttp2_fullstack_cancel_before_invoke_test bins/$(CONFIG)/chttp2_fullstack_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_fullstack_census_simple_request_test bins/$(CONFIG)/chttp2_fullstack_disappearing_server_test bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_fullstack_empty_batch_test bins/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_test bins/$(CONFIG)/chttp2_fullstack_invoke_large_request_test bins/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_test bins/$(CONFIG)/chttp2_fullstack_no_op_test bins/$(CONFIG)/chttp2_fullstack_ping_pong_streaming_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_payload_test bins/$(CONFIG)/chttp2_fullstack_request_with_large_metadata_test bins/$(CONFIG)/chttp2_fullstack_request_with_payload_test bins/$(CONFIG)/chttp2_fullstack_simple_delayed_request_test bins/$(CONFIG)/chttp2_fullstack_simple_request_test bins/$(CONFIG)/chttp2_fullstack_thread_stress_test bins/$(CONFIG)/chttp2_fullstack_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_fullstack_cancel_after_accept_legacy_test bins/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_legacy_test bins/$(CONFIG)/chttp2_fullstack_cancel_after_invoke_legacy_test bins/$(CONFIG)/chttp2_fullstack_cancel_before_invoke_legacy_test bins/$(CONFIG)/chttp2_fullstack_cancel_in_a_vacuum_legacy_test bins/$(CONFIG)/chttp2_fullstack_census_simple_request_legacy_test bins/$(CONFIG)/chttp2_fullstack_disappearing_server_legacy_test bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_legacy_test bins/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_legacy_test bins/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_legacy_test bins/$(CONFIG)/chttp2_fullstack_invoke_large_request_legacy_test bins/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_legacy_test bins/$(CONFIG)/chttp2_fullstack_no_op_legacy_test bins/$(CONFIG)/chttp2_fullstack_ping_pong_streaming_legacy_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_binary_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_payload_legacy_test bins/$(CONFIG)/chttp2_fullstack_request_response_with_trailing_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_fullstack_request_with_large_metadata_legacy_test bins/$(CONFIG)/chttp2_fullstack_request_with_payload_legacy_test bins/$(CONFIG)/chttp2_fullstack_simple_delayed_request_legacy_test bins/$(CONFIG)/chttp2_fullstack_simple_request_legacy_test bins/$(CONFIG)/chttp2_fullstack_thread_stress_legacy_test bins/$(CONFIG)/chttp2_fullstack_writes_done_hangs_with_pending_read_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_accept_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_invoke_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_before_invoke_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_census_simple_request_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_disappearing_server_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_empty_batch_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_graceful_server_shutdown_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_invoke_large_request_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_max_concurrent_streams_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_no_op_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_ping_pong_streaming_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_payload_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_with_large_metadata_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_with_payload_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_simple_delayed_request_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_simple_request_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_thread_stress_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_accept_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_accept_and_writes_closed_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_invoke_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_before_invoke_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_in_a_vacuum_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_census_simple_request_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_disappearing_server_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_inflight_calls_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_tags_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_graceful_server_shutdown_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_invoke_large_request_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_max_concurrent_streams_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_no_op_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_ping_pong_streaming_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_binary_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_payload_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_response_with_trailing_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_with_large_metadata_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_request_with_payload_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_simple_delayed_request_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_simple_request_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_thread_stress_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_fullstack_writes_done_hangs_with_pending_read_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_invoke_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_before_invoke_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_census_simple_request_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_disappearing_server_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_empty_batch_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_max_concurrent_streams_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_no_op_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_ping_pong_streaming_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_payload_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_with_large_metadata_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_with_payload_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_simple_delayed_request_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_simple_request_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_thread_stress_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_and_writes_closed_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_invoke_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_before_invoke_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_in_a_vacuum_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_census_simple_request_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_disappearing_server_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_inflight_calls_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_tags_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_max_concurrent_streams_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_no_op_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_ping_pong_streaming_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_binary_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_payload_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_trailing_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_with_large_metadata_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_request_with_payload_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_simple_delayed_request_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_simple_request_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_thread_stress_legacy_test bins/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_writes_done_hangs_with_pending_read_legacy_test bins/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_test bins/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_socket_pair_cancel_after_invoke_test bins/$(CONFIG)/chttp2_socket_pair_cancel_before_invoke_test bins/$(CONFIG)/chttp2_socket_pair_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_socket_pair_census_simple_request_test bins/$(CONFIG)/chttp2_socket_pair_disappearing_server_test bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_socket_pair_empty_batch_test bins/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_test bins/$(CONFIG)/chttp2_socket_pair_invoke_large_request_test bins/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_test bins/$(CONFIG)/chttp2_socket_pair_no_op_test bins/$(CONFIG)/chttp2_socket_pair_ping_pong_streaming_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_payload_test bins/$(CONFIG)/chttp2_socket_pair_request_with_large_metadata_test bins/$(CONFIG)/chttp2_socket_pair_request_with_payload_test bins/$(CONFIG)/chttp2_socket_pair_simple_delayed_request_test bins/$(CONFIG)/chttp2_socket_pair_simple_request_test bins/$(CONFIG)/chttp2_socket_pair_thread_stress_test bins/$(CONFIG)/chttp2_socket_pair_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_legacy_test bins/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_legacy_test bins/$(CONFIG)/chttp2_socket_pair_cancel_after_invoke_legacy_test bins/$(CONFIG)/chttp2_socket_pair_cancel_before_invoke_legacy_test bins/$(CONFIG)/chttp2_socket_pair_cancel_in_a_vacuum_legacy_test bins/$(CONFIG)/chttp2_socket_pair_census_simple_request_legacy_test bins/$(CONFIG)/chttp2_socket_pair_disappearing_server_legacy_test bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_legacy_test bins/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_legacy_test bins/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_legacy_test bins/$(CONFIG)/chttp2_socket_pair_invoke_large_request_legacy_test bins/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_legacy_test bins/$(CONFIG)/chttp2_socket_pair_no_op_legacy_test bins/$(CONFIG)/chttp2_socket_pair_ping_pong_streaming_legacy_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_binary_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_payload_legacy_test bins/$(CONFIG)/chttp2_socket_pair_request_response_with_trailing_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_socket_pair_request_with_large_metadata_legacy_test bins/$(CONFIG)/chttp2_socket_pair_request_with_payload_legacy_test bins/$(CONFIG)/chttp2_socket_pair_simple_delayed_request_legacy_test bins/$(CONFIG)/chttp2_socket_pair_simple_request_legacy_test bins/$(CONFIG)/chttp2_socket_pair_thread_stress_legacy_test bins/$(CONFIG)/chttp2_socket_pair_writes_done_hangs_with_pending_read_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_census_simple_request_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_empty_batch_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_payload_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_thread_stress_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_census_simple_request_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_trailing_metadata_and_payload_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_payload_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_thread_stress_legacy_test bins/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_legacy_test
 
-buildtests_cxx: privatelibs_cxx bins/$(CONFIG)/channel_arguments_test bins/$(CONFIG)/credentials_test bins/$(CONFIG)/end2end_test bins/$(CONFIG)/interop_client bins/$(CONFIG)/interop_server bins/$(CONFIG)/qps_client bins/$(CONFIG)/qps_server bins/$(CONFIG)/status_test bins/$(CONFIG)/sync_client_async_server_test bins/$(CONFIG)/thread_pool_test bins/$(CONFIG)/tips_client bins/$(CONFIG)/tips_publisher_test bins/$(CONFIG)/tips_subscriber_test
+buildtests_cxx: privatelibs_cxx bins/$(CONFIG)/async_end2end_test bins/$(CONFIG)/channel_arguments_test bins/$(CONFIG)/credentials_test bins/$(CONFIG)/end2end_test bins/$(CONFIG)/interop_client bins/$(CONFIG)/interop_server bins/$(CONFIG)/qps_client bins/$(CONFIG)/qps_server bins/$(CONFIG)/status_test bins/$(CONFIG)/thread_pool_test bins/$(CONFIG)/tips_client bins/$(CONFIG)/tips_publisher_test bins/$(CONFIG)/tips_subscriber_test
 
 test: test_c test_cxx
 
@@ -1445,6 +1525,8 @@ test_c: buildtests_c
 
 
 test_cxx: buildtests_cxx
+	$(E) "[RUN]     Testing async_end2end_test"
+	$(Q) ./bins/$(CONFIG)/async_end2end_test || ( echo test async_end2end_test failed ; exit 1 )
 	$(E) "[RUN]     Testing channel_arguments_test"
 	$(Q) ./bins/$(CONFIG)/channel_arguments_test || ( echo test channel_arguments_test failed ; exit 1 )
 	$(E) "[RUN]     Testing credentials_test"
@@ -1453,8 +1535,6 @@ test_cxx: buildtests_cxx
 	$(Q) ./bins/$(CONFIG)/end2end_test || ( echo test end2end_test failed ; exit 1 )
 	$(E) "[RUN]     Testing status_test"
 	$(Q) ./bins/$(CONFIG)/status_test || ( echo test status_test failed ; exit 1 )
-	$(E) "[RUN]     Testing sync_client_async_server_test"
-	$(Q) ./bins/$(CONFIG)/sync_client_async_server_test || ( echo test sync_client_async_server_test failed ; exit 1 )
 	$(E) "[RUN]     Testing thread_pool_test"
 	$(Q) ./bins/$(CONFIG)/thread_pool_test || ( echo test thread_pool_test failed ; exit 1 )
 	$(E) "[RUN]     Testing tips_publisher_test"
@@ -1516,55 +1596,95 @@ ifeq ($(CONFIG),opt)
 	$(Q) $(STRIP) libs/$(CONFIG)/libgrpc++.$(SHARED_EXT)
 endif
 
-gens/examples/tips/empty.pb.cc: examples/tips/empty.proto $(PROTOC_PLUGINS)
+ifeq ($(NO_PROTOC),true)
+gens/examples/tips/empty.pb.cc: protoc_dep_error
+else
+gens/examples/tips/empty.pb.cc: examples/tips/empty.proto $(PROTOBUF_DEP) $(PROTOC_PLUGINS)
 	$(E) "[PROTOC]  Generating protobuf CC file from $<"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) $(PROTOC) --cpp_out=gens --grpc_out=gens --plugin=protoc-gen-grpc=bins/$(CONFIG)/cpp_plugin $<
+endif
 
-gens/examples/tips/label.pb.cc: examples/tips/label.proto $(PROTOC_PLUGINS)
+ifeq ($(NO_PROTOC),true)
+gens/examples/tips/label.pb.cc: protoc_dep_error
+else
+gens/examples/tips/label.pb.cc: examples/tips/label.proto $(PROTOBUF_DEP) $(PROTOC_PLUGINS)
 	$(E) "[PROTOC]  Generating protobuf CC file from $<"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) $(PROTOC) --cpp_out=gens --grpc_out=gens --plugin=protoc-gen-grpc=bins/$(CONFIG)/cpp_plugin $<
+endif
 
-gens/examples/tips/pubsub.pb.cc: examples/tips/pubsub.proto $(PROTOC_PLUGINS)
+ifeq ($(NO_PROTOC),true)
+gens/examples/tips/pubsub.pb.cc: protoc_dep_error
+else
+gens/examples/tips/pubsub.pb.cc: examples/tips/pubsub.proto $(PROTOBUF_DEP) $(PROTOC_PLUGINS)
 	$(E) "[PROTOC]  Generating protobuf CC file from $<"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) $(PROTOC) --cpp_out=gens --grpc_out=gens --plugin=protoc-gen-grpc=bins/$(CONFIG)/cpp_plugin $<
+endif
 
-gens/test/cpp/interop/empty.pb.cc: test/cpp/interop/empty.proto $(PROTOC_PLUGINS)
+ifeq ($(NO_PROTOC),true)
+gens/test/cpp/interop/empty.pb.cc: protoc_dep_error
+else
+gens/test/cpp/interop/empty.pb.cc: test/cpp/interop/empty.proto $(PROTOBUF_DEP) $(PROTOC_PLUGINS)
 	$(E) "[PROTOC]  Generating protobuf CC file from $<"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) $(PROTOC) --cpp_out=gens --grpc_out=gens --plugin=protoc-gen-grpc=bins/$(CONFIG)/cpp_plugin $<
+endif
 
-gens/test/cpp/interop/messages.pb.cc: test/cpp/interop/messages.proto $(PROTOC_PLUGINS)
+ifeq ($(NO_PROTOC),true)
+gens/test/cpp/interop/messages.pb.cc: protoc_dep_error
+else
+gens/test/cpp/interop/messages.pb.cc: test/cpp/interop/messages.proto $(PROTOBUF_DEP) $(PROTOC_PLUGINS)
 	$(E) "[PROTOC]  Generating protobuf CC file from $<"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) $(PROTOC) --cpp_out=gens --grpc_out=gens --plugin=protoc-gen-grpc=bins/$(CONFIG)/cpp_plugin $<
+endif
 
-gens/test/cpp/interop/test.pb.cc: test/cpp/interop/test.proto $(PROTOC_PLUGINS)
+ifeq ($(NO_PROTOC),true)
+gens/test/cpp/interop/test.pb.cc: protoc_dep_error
+else
+gens/test/cpp/interop/test.pb.cc: test/cpp/interop/test.proto $(PROTOBUF_DEP) $(PROTOC_PLUGINS)
 	$(E) "[PROTOC]  Generating protobuf CC file from $<"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) $(PROTOC) --cpp_out=gens --grpc_out=gens --plugin=protoc-gen-grpc=bins/$(CONFIG)/cpp_plugin $<
+endif
 
-gens/test/cpp/qps/qpstest.pb.cc: test/cpp/qps/qpstest.proto $(PROTOC_PLUGINS)
+ifeq ($(NO_PROTOC),true)
+gens/test/cpp/qps/qpstest.pb.cc: protoc_dep_error
+else
+gens/test/cpp/qps/qpstest.pb.cc: test/cpp/qps/qpstest.proto $(PROTOBUF_DEP) $(PROTOC_PLUGINS)
 	$(E) "[PROTOC]  Generating protobuf CC file from $<"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) $(PROTOC) --cpp_out=gens --grpc_out=gens --plugin=protoc-gen-grpc=bins/$(CONFIG)/cpp_plugin $<
+endif
 
-gens/test/cpp/util/echo.pb.cc: test/cpp/util/echo.proto $(PROTOC_PLUGINS)
+ifeq ($(NO_PROTOC),true)
+gens/test/cpp/util/echo.pb.cc: protoc_dep_error
+else
+gens/test/cpp/util/echo.pb.cc: test/cpp/util/echo.proto $(PROTOBUF_DEP) $(PROTOC_PLUGINS)
 	$(E) "[PROTOC]  Generating protobuf CC file from $<"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) $(PROTOC) --cpp_out=gens --grpc_out=gens --plugin=protoc-gen-grpc=bins/$(CONFIG)/cpp_plugin $<
+endif
 
-gens/test/cpp/util/echo_duplicate.pb.cc: test/cpp/util/echo_duplicate.proto $(PROTOC_PLUGINS)
+ifeq ($(NO_PROTOC),true)
+gens/test/cpp/util/echo_duplicate.pb.cc: protoc_dep_error
+else
+gens/test/cpp/util/echo_duplicate.pb.cc: test/cpp/util/echo_duplicate.proto $(PROTOBUF_DEP) $(PROTOC_PLUGINS)
 	$(E) "[PROTOC]  Generating protobuf CC file from $<"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) $(PROTOC) --cpp_out=gens --grpc_out=gens --plugin=protoc-gen-grpc=bins/$(CONFIG)/cpp_plugin $<
+endif
 
-gens/test/cpp/util/messages.pb.cc: test/cpp/util/messages.proto $(PROTOC_PLUGINS)
+ifeq ($(NO_PROTOC),true)
+gens/test/cpp/util/messages.pb.cc: protoc_dep_error
+else
+gens/test/cpp/util/messages.pb.cc: test/cpp/util/messages.proto $(PROTOBUF_DEP) $(PROTOC_PLUGINS)
 	$(E) "[PROTOC]  Generating protobuf CC file from $<"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) $(PROTOC) --cpp_out=gens --grpc_out=gens --plugin=protoc-gen-grpc=bins/$(CONFIG)/cpp_plugin $<
+endif
 
 
 objs/$(CONFIG)/%.o : %.c
@@ -1785,7 +1905,6 @@ else
 endif
 endif
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBGPR_OBJS:.o=.dep)
 endif
@@ -1840,7 +1959,11 @@ libs/$(CONFIG)/libgpr_test_util.a: openssl_dep_error
 
 else
 
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 test/core/util/test_config.c: $(OPENSSL_DEP)
 endif
 
@@ -1852,7 +1975,6 @@ libs/$(CONFIG)/libgpr_test_util.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGPR_TEST_UTIL
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libgpr_test_util.a 
 endif
-
 
 
 
@@ -1911,8 +2033,8 @@ LIBGRPC_SRC = \
     src/core/iomgr/iomgr_posix.c \
     src/core/iomgr/iomgr_windows.c \
     src/core/iomgr/pollset_kick.c \
-    src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_multipoller_with_epoll.c \
+    src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_posix.c \
     src/core/iomgr/pollset_windows.c \
     src/core/iomgr/resolve_address.c \
@@ -2004,7 +2126,11 @@ endif
 
 else
 
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 src/core/security/auth.c: $(OPENSSL_DEP)
 src/core/security/base64.c: $(OPENSSL_DEP)
 src/core/security/credentials.c: $(OPENSSL_DEP)
@@ -2047,8 +2173,8 @@ src/core/iomgr/iomgr.c: $(OPENSSL_DEP)
 src/core/iomgr/iomgr_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/iomgr_windows.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_kick.c: $(OPENSSL_DEP)
-src/core/iomgr/pollset_multipoller_with_poll_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_multipoller_with_epoll.c: $(OPENSSL_DEP)
+src/core/iomgr/pollset_multipoller_with_poll_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_windows.c: $(OPENSSL_DEP)
 src/core/iomgr/resolve_address.c: $(OPENSSL_DEP)
@@ -2154,7 +2280,6 @@ else
 endif
 endif
 
-
 endif
 
 ifneq ($(NO_SECURE),true)
@@ -2205,8 +2330,8 @@ objs/$(CONFIG)/src/core/iomgr/iomgr.o:
 objs/$(CONFIG)/src/core/iomgr/iomgr_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/iomgr_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_kick.o: 
-objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_epoll.o: 
+objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/resolve_address.o: 
@@ -2296,7 +2421,11 @@ endif
 
 else
 
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 src/csharp/ext/grpc_csharp_ext.c: $(OPENSSL_DEP)
 endif
 
@@ -2328,7 +2457,6 @@ else
 	$(Q) ln -sf libgrpc_csharp_ext.$(SHARED_EXT) libs/$(CONFIG)/libgrpc_csharp_ext.so
 endif
 endif
-
 
 endif
 
@@ -2367,7 +2495,11 @@ libs/$(CONFIG)/libgrpc_test_util.a: openssl_dep_error
 
 else
 
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 test/core/end2end/cq_verifier.c: $(OPENSSL_DEP)
 test/core/end2end/data/prod_roots_certs.c: $(OPENSSL_DEP)
 test/core/end2end/data/server1_cert.c: $(OPENSSL_DEP)
@@ -2390,7 +2522,6 @@ libs/$(CONFIG)/libgrpc_test_util.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC_TEST_UT
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libgrpc_test_util.a 
 endif
-
 
 
 
@@ -2447,8 +2578,8 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/iomgr/iomgr_posix.c \
     src/core/iomgr/iomgr_windows.c \
     src/core/iomgr/pollset_kick.c \
-    src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_multipoller_with_epoll.c \
+    src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_posix.c \
     src/core/iomgr/pollset_windows.c \
     src/core/iomgr/resolve_address.c \
@@ -2554,7 +2685,6 @@ else
 endif
 endif
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC_UNSECURE_OBJS:.o=.dep)
 endif
@@ -2588,8 +2718,8 @@ objs/$(CONFIG)/src/core/iomgr/iomgr.o:
 objs/$(CONFIG)/src/core/iomgr/iomgr_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/iomgr_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_kick.o: 
-objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_epoll.o: 
+objs/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_posix.o: 
 objs/$(CONFIG)/src/core/iomgr/pollset_windows.o: 
 objs/$(CONFIG)/src/core/iomgr/resolve_address.o: 
@@ -2663,27 +2793,23 @@ LIBGRPC++_SRC = \
     src/cpp/client/channel.cc \
     src/cpp/client/channel_arguments.cc \
     src/cpp/client/client_context.cc \
+    src/cpp/client/client_unary_call.cc \
     src/cpp/client/create_channel.cc \
     src/cpp/client/credentials.cc \
     src/cpp/client/internal_stub.cc \
+    src/cpp/common/call.cc \
     src/cpp/common/completion_queue.cc \
     src/cpp/common/rpc_method.cc \
     src/cpp/proto/proto_utils.cc \
-    src/cpp/server/async_server.cc \
-    src/cpp/server/async_server_context.cc \
     src/cpp/server/server.cc \
     src/cpp/server/server_builder.cc \
-    src/cpp/server/server_context_impl.cc \
+    src/cpp/server/server_context.cc \
     src/cpp/server/server_credentials.cc \
-    src/cpp/server/server_rpc_handler.cc \
     src/cpp/server/thread_pool.cc \
-    src/cpp/stream/stream_context.cc \
     src/cpp/util/status.cc \
     src/cpp/util/time.cc \
 
 PUBLIC_HEADERS_CXX += \
-    include/grpc++/async_server.h \
-    include/grpc++/async_server_context.h \
     include/grpc++/channel_arguments.h \
     include/grpc++/channel_interface.h \
     include/grpc++/client_context.h \
@@ -2691,6 +2817,8 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/config.h \
     include/grpc++/create_channel.h \
     include/grpc++/credentials.h \
+    include/grpc++/impl/call.h \
+    include/grpc++/impl/client_unary_call.h \
     include/grpc++/impl/internal_stub.h \
     include/grpc++/impl/rpc_method.h \
     include/grpc++/impl/rpc_service_method.h \
@@ -2718,30 +2846,45 @@ endif
 
 else
 
+ifeq ($(NO_PROTOBUF),true)
+
+# You can't build a C++ library if you don't have protobuf - a bit overreached, but still okay.
+
+libs/$(CONFIG)/libgrpc++.a: protobuf_dep_error
+
+ifeq ($(SYSTEM),MINGW32)
+libs/$(CONFIG)/grpc++.$(SHARED_EXT): protobuf_dep_error
+else
+libs/$(CONFIG)/libgrpc++.$(SHARED_EXT): protobuf_dep_error
+endif
+
+else
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 src/cpp/client/channel.cc: $(OPENSSL_DEP)
 src/cpp/client/channel_arguments.cc: $(OPENSSL_DEP)
 src/cpp/client/client_context.cc: $(OPENSSL_DEP)
+src/cpp/client/client_unary_call.cc: $(OPENSSL_DEP)
 src/cpp/client/create_channel.cc: $(OPENSSL_DEP)
 src/cpp/client/credentials.cc: $(OPENSSL_DEP)
 src/cpp/client/internal_stub.cc: $(OPENSSL_DEP)
+src/cpp/common/call.cc: $(OPENSSL_DEP)
 src/cpp/common/completion_queue.cc: $(OPENSSL_DEP)
 src/cpp/common/rpc_method.cc: $(OPENSSL_DEP)
 src/cpp/proto/proto_utils.cc: $(OPENSSL_DEP)
-src/cpp/server/async_server.cc: $(OPENSSL_DEP)
-src/cpp/server/async_server_context.cc: $(OPENSSL_DEP)
 src/cpp/server/server.cc: $(OPENSSL_DEP)
 src/cpp/server/server_builder.cc: $(OPENSSL_DEP)
-src/cpp/server/server_context_impl.cc: $(OPENSSL_DEP)
+src/cpp/server/server_context.cc: $(OPENSSL_DEP)
 src/cpp/server/server_credentials.cc: $(OPENSSL_DEP)
-src/cpp/server/server_rpc_handler.cc: $(OPENSSL_DEP)
 src/cpp/server/thread_pool.cc: $(OPENSSL_DEP)
-src/cpp/stream/stream_context.cc: $(OPENSSL_DEP)
 src/cpp/util/status.cc: $(OPENSSL_DEP)
 src/cpp/util/time.cc: $(OPENSSL_DEP)
 endif
 
-libs/$(CONFIG)/libgrpc++.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC++_OBJS)
+libs/$(CONFIG)/libgrpc++.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(PROTOBUF_DEP) $(LIBGRPC++_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) rm -f libs/$(CONFIG)/libgrpc++.a
@@ -2770,6 +2913,7 @@ else
 endif
 endif
 
+endif
 
 endif
 
@@ -2782,21 +2926,19 @@ endif
 objs/$(CONFIG)/src/cpp/client/channel.o: 
 objs/$(CONFIG)/src/cpp/client/channel_arguments.o: 
 objs/$(CONFIG)/src/cpp/client/client_context.o: 
+objs/$(CONFIG)/src/cpp/client/client_unary_call.o: 
 objs/$(CONFIG)/src/cpp/client/create_channel.o: 
 objs/$(CONFIG)/src/cpp/client/credentials.o: 
 objs/$(CONFIG)/src/cpp/client/internal_stub.o: 
+objs/$(CONFIG)/src/cpp/common/call.o: 
 objs/$(CONFIG)/src/cpp/common/completion_queue.o: 
 objs/$(CONFIG)/src/cpp/common/rpc_method.o: 
 objs/$(CONFIG)/src/cpp/proto/proto_utils.o: 
-objs/$(CONFIG)/src/cpp/server/async_server.o: 
-objs/$(CONFIG)/src/cpp/server/async_server_context.o: 
 objs/$(CONFIG)/src/cpp/server/server.o: 
 objs/$(CONFIG)/src/cpp/server/server_builder.o: 
-objs/$(CONFIG)/src/cpp/server/server_context_impl.o: 
+objs/$(CONFIG)/src/cpp/server/server_context.o: 
 objs/$(CONFIG)/src/cpp/server/server_credentials.o: 
-objs/$(CONFIG)/src/cpp/server/server_rpc_handler.o: 
 objs/$(CONFIG)/src/cpp/server/thread_pool.o: 
-objs/$(CONFIG)/src/cpp/stream/stream_context.o: 
 objs/$(CONFIG)/src/cpp/util/status.o: 
 objs/$(CONFIG)/src/cpp/util/time.o: 
 
@@ -2805,7 +2947,6 @@ LIBGRPC++_TEST_UTIL_SRC = \
     gens/test/cpp/util/messages.pb.cc \
     gens/test/cpp/util/echo.pb.cc \
     gens/test/cpp/util/echo_duplicate.pb.cc \
-    test/cpp/end2end/async_test_server.cc \
     test/cpp/util/create_test_channel.cc \
 
 
@@ -2820,15 +2961,26 @@ libs/$(CONFIG)/libgrpc++_test_util.a: openssl_dep_error
 
 else
 
+ifeq ($(NO_PROTOBUF),true)
+
+# You can't build a C++ library if you don't have protobuf - a bit overreached, but still okay.
+
+libs/$(CONFIG)/libgrpc++_test_util.a: protobuf_dep_error
+
+
+else
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 test/cpp/util/messages.proto: $(OPENSSL_DEP)
 test/cpp/util/echo.proto: $(OPENSSL_DEP)
 test/cpp/util/echo_duplicate.proto: $(OPENSSL_DEP)
-test/cpp/end2end/async_test_server.cc: $(OPENSSL_DEP)
 test/cpp/util/create_test_channel.cc: $(OPENSSL_DEP)
 endif
 
-libs/$(CONFIG)/libgrpc++_test_util.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC++_TEST_UTIL_OBJS)
+libs/$(CONFIG)/libgrpc++_test_util.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(PROTOBUF_DEP) $(LIBGRPC++_TEST_UTIL_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) rm -f libs/$(CONFIG)/libgrpc++_test_util.a
@@ -2840,6 +2992,7 @@ endif
 
 
 
+endif
 
 endif
 
@@ -2852,7 +3005,6 @@ endif
 
 
 
-objs/$(CONFIG)/test/cpp/end2end/async_test_server.o:     gens/test/cpp/util/messages.pb.cc    gens/test/cpp/util/echo.pb.cc    gens/test/cpp/util/echo_duplicate.pb.cc
 objs/$(CONFIG)/test/cpp/util/create_test_channel.o:     gens/test/cpp/util/messages.pb.cc    gens/test/cpp/util/echo.pb.cc    gens/test/cpp/util/echo_duplicate.pb.cc
 
 
@@ -2875,7 +3027,19 @@ libs/$(CONFIG)/libtips_client_lib.a: openssl_dep_error
 
 else
 
+ifeq ($(NO_PROTOBUF),true)
+
+# You can't build a C++ library if you don't have protobuf - a bit overreached, but still okay.
+
+libs/$(CONFIG)/libtips_client_lib.a: protobuf_dep_error
+
+
+else
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 examples/tips/label.proto: $(OPENSSL_DEP)
 examples/tips/empty.proto: $(OPENSSL_DEP)
 examples/tips/pubsub.proto: $(OPENSSL_DEP)
@@ -2883,7 +3047,7 @@ examples/tips/publisher.cc: $(OPENSSL_DEP)
 examples/tips/subscriber.cc: $(OPENSSL_DEP)
 endif
 
-libs/$(CONFIG)/libtips_client_lib.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBTIPS_CLIENT_LIB_OBJS)
+libs/$(CONFIG)/libtips_client_lib.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(PROTOBUF_DEP) $(LIBTIPS_CLIENT_LIB_OBJS)
 	$(E) "[AR]      Creating $@"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) rm -f libs/$(CONFIG)/libtips_client_lib.a
@@ -2895,6 +3059,7 @@ endif
 
 
 
+endif
 
 endif
 
@@ -2926,7 +3091,11 @@ libs/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a: openssl_dep_error
 
 else
 
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 test/core/end2end/fixtures/chttp2_fake_security.c: $(OPENSSL_DEP)
 endif
 
@@ -2938,7 +3107,6 @@ libs/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a: $(ZLIB_DEP) $(OPENSSL_
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a 
 endif
-
 
 
 
@@ -2969,7 +3137,11 @@ libs/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a: openssl_dep_error
 
 else
 
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 test/core/end2end/fixtures/chttp2_fullstack.c: $(OPENSSL_DEP)
 endif
 
@@ -2981,7 +3153,6 @@ libs/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a: $(ZLIB_DEP) $(OPENSSL_DEP)
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a 
 endif
-
 
 
 
@@ -3012,7 +3183,11 @@ libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a: openssl_dep_err
 
 else
 
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 test/core/end2end/fixtures/chttp2_simple_ssl_fullstack.c: $(OPENSSL_DEP)
 endif
 
@@ -3024,7 +3199,6 @@ libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a: $(ZLIB_DEP) $(O
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a 
 endif
-
 
 
 
@@ -3055,7 +3229,11 @@ libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a: ope
 
 else
 
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 test/core/end2end/fixtures/chttp2_simple_ssl_with_oauth2_fullstack.c: $(OPENSSL_DEP)
 endif
 
@@ -3067,7 +3245,6 @@ libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a: $(Z
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a 
 endif
-
 
 
 
@@ -3098,7 +3275,11 @@ libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a: openssl_dep_error
 
 else
 
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 test/core/end2end/fixtures/chttp2_socket_pair.c: $(OPENSSL_DEP)
 endif
 
@@ -3110,7 +3291,6 @@ libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a: $(ZLIB_DEP) $(OPENSSL_DE
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a 
 endif
-
 
 
 
@@ -3141,7 +3321,11 @@ libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a: opens
 
 else
 
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 test/core/end2end/fixtures/chttp2_socket_pair_one_byte_at_a_time.c: $(OPENSSL_DEP)
 endif
 
@@ -3153,7 +3337,6 @@ libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a: $(ZLI
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a 
 endif
-
 
 
 
@@ -3187,7 +3370,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_OBJS:.o=.dep)
 endif
@@ -3209,7 +3391,6 @@ libs/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a: $(ZLIB_D
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a 
 endif
-
 
 
 
@@ -3239,7 +3420,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_AFTER_INVOKE_OBJS:.o=.dep)
 endif
@@ -3261,7 +3441,6 @@ libs/$(CONFIG)/libend2end_test_cancel_before_invoke.a: $(ZLIB_DEP) $(LIBEND2END_
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_cancel_before_invoke.a 
 endif
-
 
 
 
@@ -3291,7 +3470,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_IN_A_VACUUM_OBJS:.o=.dep)
 endif
@@ -3313,7 +3491,6 @@ libs/$(CONFIG)/libend2end_test_census_simple_request.a: $(ZLIB_DEP) $(LIBEND2END
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_census_simple_request.a 
 endif
-
 
 
 
@@ -3343,7 +3520,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_DISAPPEARING_SERVER_OBJS:.o=.dep)
 endif
@@ -3365,7 +3541,6 @@ libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a: 
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a 
 endif
-
 
 
 
@@ -3395,7 +3570,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_OBJS:.o=.dep)
 endif
@@ -3417,7 +3591,6 @@ libs/$(CONFIG)/libend2end_test_empty_batch.a: $(ZLIB_DEP) $(LIBEND2END_TEST_EMPT
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_empty_batch.a 
 endif
-
 
 
 
@@ -3447,7 +3620,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_GRACEFUL_SERVER_SHUTDOWN_OBJS:.o=.dep)
 endif
@@ -3469,7 +3641,6 @@ libs/$(CONFIG)/libend2end_test_invoke_large_request.a: $(ZLIB_DEP) $(LIBEND2END_
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_invoke_large_request.a 
 endif
-
 
 
 
@@ -3499,7 +3670,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_MAX_CONCURRENT_STREAMS_OBJS:.o=.dep)
 endif
@@ -3521,7 +3691,6 @@ libs/$(CONFIG)/libend2end_test_no_op.a: $(ZLIB_DEP) $(LIBEND2END_TEST_NO_OP_OBJS
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_no_op.a 
 endif
-
 
 
 
@@ -3551,7 +3720,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_PING_PONG_STREAMING_OBJS:.o=.dep)
 endif
@@ -3573,7 +3741,6 @@ libs/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a 
 endif
-
 
 
 
@@ -3603,7 +3770,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_OBJS:.o=.dep)
 endif
@@ -3625,7 +3791,6 @@ libs/$(CONFIG)/libend2end_test_request_response_with_payload.a: $(ZLIB_DEP) $(LI
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_request_response_with_payload.a 
 endif
-
 
 
 
@@ -3655,7 +3820,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_WITH_LARGE_METADATA_OBJS:.o=.dep)
 endif
@@ -3677,7 +3841,6 @@ libs/$(CONFIG)/libend2end_test_request_with_payload.a: $(ZLIB_DEP) $(LIBEND2END_
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_request_with_payload.a 
 endif
-
 
 
 
@@ -3707,7 +3870,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_SIMPLE_DELAYED_REQUEST_OBJS:.o=.dep)
 endif
@@ -3729,7 +3891,6 @@ libs/$(CONFIG)/libend2end_test_simple_request.a: $(ZLIB_DEP) $(LIBEND2END_TEST_S
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_simple_request.a 
 endif
-
 
 
 
@@ -3759,7 +3920,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_THREAD_STRESS_OBJS:.o=.dep)
 endif
@@ -3781,7 +3941,6 @@ libs/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a: $(ZLIB_DEP
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a 
 endif
-
 
 
 
@@ -3811,7 +3970,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_LEGACY_OBJS:.o=.dep)
 endif
@@ -3833,7 +3991,6 @@ libs/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a: $
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a 
 endif
-
 
 
 
@@ -3863,7 +4020,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_AFTER_INVOKE_LEGACY_OBJS:.o=.dep)
 endif
@@ -3885,7 +4041,6 @@ libs/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a: $(ZLIB_DEP) $(LIBE
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a 
 endif
-
 
 
 
@@ -3915,7 +4070,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_IN_A_VACUUM_LEGACY_OBJS:.o=.dep)
 endif
@@ -3937,7 +4091,6 @@ libs/$(CONFIG)/libend2end_test_census_simple_request_legacy.a: $(ZLIB_DEP) $(LIB
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_census_simple_request_legacy.a 
 endif
-
 
 
 
@@ -3967,7 +4120,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_DISAPPEARING_SERVER_LEGACY_OBJS:.o=.dep)
 endif
@@ -3989,7 +4141,6 @@ libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_leg
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a 
 endif
-
 
 
 
@@ -4019,7 +4170,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_OBJS:.o=.dep)
 endif
@@ -4041,7 +4191,6 @@ libs/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a: $(ZLIB_DEP) $(
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a 
 endif
-
 
 
 
@@ -4071,7 +4220,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_INVOKE_LARGE_REQUEST_LEGACY_OBJS:.o=.dep)
 endif
@@ -4093,7 +4241,6 @@ libs/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a: $(ZLIB_DEP) $(LI
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a 
 endif
-
 
 
 
@@ -4123,7 +4270,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_NO_OP_LEGACY_OBJS:.o=.dep)
 endif
@@ -4145,7 +4291,6 @@ libs/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a: $(ZLIB_DEP) $(LIBEN
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a 
 endif
-
 
 
 
@@ -4175,7 +4320,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_OBJS:.o=.dep)
 endif
@@ -4197,7 +4341,6 @@ libs/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a 
 endif
-
 
 
 
@@ -4227,7 +4370,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_OBJS:.o=.dep)
 endif
@@ -4249,7 +4391,6 @@ libs/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_paylo
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a 
 endif
-
 
 
 
@@ -4279,7 +4420,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_WITH_LARGE_METADATA_LEGACY_OBJS:.o=.dep)
 endif
@@ -4301,7 +4441,6 @@ libs/$(CONFIG)/libend2end_test_request_with_payload_legacy.a: $(ZLIB_DEP) $(LIBE
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_request_with_payload_legacy.a 
 endif
-
 
 
 
@@ -4331,7 +4470,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_SIMPLE_DELAYED_REQUEST_LEGACY_OBJS:.o=.dep)
 endif
@@ -4353,7 +4491,6 @@ libs/$(CONFIG)/libend2end_test_simple_request_legacy.a: $(ZLIB_DEP) $(LIBEND2END
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_simple_request_legacy.a 
 endif
-
 
 
 
@@ -4383,7 +4520,6 @@ endif
 
 
 
-
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_THREAD_STRESS_LEGACY_OBJS:.o=.dep)
 endif
@@ -4405,7 +4541,6 @@ libs/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a: $(Z
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a 
 endif
-
 
 
 
@@ -4435,7 +4570,11 @@ libs/$(CONFIG)/libend2end_certs.a: openssl_dep_error
 
 else
 
+
 ifneq ($(OPENSSL_DEP),)
+# This is to ensure the embedded OpenSSL is built beforehand, properly
+# installing headers to their final destination on the drive. We need this
+# otherwise parallel compilation will fail if a source is compiled first.
 test/core/end2end/data/test_root_cert.c: $(OPENSSL_DEP)
 test/core/end2end/data/prod_roots_certs.c: $(OPENSSL_DEP)
 test/core/end2end/data/server1_cert.c: $(OPENSSL_DEP)
@@ -4450,7 +4589,6 @@ libs/$(CONFIG)/libend2end_certs.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBEND2END_CERTS
 ifeq ($(SYSTEM),Darwin)
 	$(Q) ranlib libs/$(CONFIG)/libend2end_certs.a 
 endif
-
 
 
 
@@ -6860,6 +6998,37 @@ endif
 endif
 
 
+ASYNC_END2END_TEST_SRC = \
+    test/cpp/end2end/async_end2end_test.cc \
+
+ASYNC_END2END_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(ASYNC_END2END_TEST_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+bins/$(CONFIG)/async_end2end_test: openssl_dep_error
+
+else
+
+bins/$(CONFIG)/async_end2end_test: $(ASYNC_END2END_TEST_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LDXX) $(LDFLAGS) $(ASYNC_END2END_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/async_end2end_test
+
+endif
+
+objs/$(CONFIG)/test/cpp/end2end/async_end2end_test.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
+
+deps_async_end2end_test: $(ASYNC_END2END_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(ASYNC_END2END_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
 CHANNEL_ARGUMENTS_TEST_SRC = \
     test/cpp/client/channel_arguments_test.cc \
 
@@ -6876,7 +7045,7 @@ else
 bins/$(CONFIG)/channel_arguments_test: $(CHANNEL_ARGUMENTS_TEST_OBJS) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(CHANNEL_ARGUMENTS_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/channel_arguments_test
+	$(Q) $(LDXX) $(LDFLAGS) $(CHANNEL_ARGUMENTS_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/channel_arguments_test
 
 endif
 
@@ -6897,10 +7066,21 @@ CPP_PLUGIN_SRC = \
 
 CPP_PLUGIN_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(CPP_PLUGIN_SRC))))
 
-bins/$(CONFIG)/cpp_plugin: $(CPP_PLUGIN_OBJS)
+
+ifeq ($(NO_PROTOBUF),true)
+
+# You can't build the protoc plugins if you don't have protobuf 3.0.0+.
+
+bins/$(CONFIG)/cpp_plugin: protobuf_dep_error
+
+else
+
+bins/$(CONFIG)/cpp_plugin: $(PROTOBUF_DEP) $(CPP_PLUGIN_OBJS)
 	$(E) "[HOSTLD]  Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(HOST_LDXX) $(HOST_LDFLAGS) $(CPP_PLUGIN_OBJS) $(HOST_LDLIBSXX) $(HOST_LDLIBS) $(HOST_LDLIBS_PROTOC) -o bins/$(CONFIG)/cpp_plugin
+	$(Q) $(HOST_LDXX) $(HOST_LDFLAGS) $(CPP_PLUGIN_OBJS) $(HOST_LDLIBSXX) $(HOST_LDLIBS_PROTOC) $(HOST_LDLIBS) $(HOST_LDLIBS_PROTOC) -o bins/$(CONFIG)/cpp_plugin
+
+endif
 
 objs/$(CONFIG)/src/compiler/cpp_generator.o: 
 objs/$(CONFIG)/src/compiler/cpp_plugin.o: 
@@ -6928,7 +7108,7 @@ else
 bins/$(CONFIG)/credentials_test: $(CREDENTIALS_TEST_OBJS) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(CREDENTIALS_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/credentials_test
+	$(Q) $(LDXX) $(LDFLAGS) $(CREDENTIALS_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/credentials_test
 
 endif
 
@@ -6959,7 +7139,7 @@ else
 bins/$(CONFIG)/end2end_test: $(END2END_TEST_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(END2END_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/end2end_test
+	$(Q) $(LDXX) $(LDFLAGS) $(END2END_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/end2end_test
 
 endif
 
@@ -6993,7 +7173,7 @@ else
 bins/$(CONFIG)/interop_client: $(INTEROP_CLIENT_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(INTEROP_CLIENT_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/interop_client
+	$(Q) $(LDXX) $(LDFLAGS) $(INTEROP_CLIENT_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/interop_client
 
 endif
 
@@ -7030,7 +7210,7 @@ else
 bins/$(CONFIG)/interop_server: $(INTEROP_SERVER_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(INTEROP_SERVER_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/interop_server
+	$(Q) $(LDXX) $(LDFLAGS) $(INTEROP_SERVER_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/interop_server
 
 endif
 
@@ -7065,7 +7245,7 @@ else
 bins/$(CONFIG)/qps_client: $(QPS_CLIENT_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(QPS_CLIENT_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/qps_client
+	$(Q) $(LDXX) $(LDFLAGS) $(QPS_CLIENT_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/qps_client
 
 endif
 
@@ -7098,7 +7278,7 @@ else
 bins/$(CONFIG)/qps_server: $(QPS_SERVER_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(QPS_SERVER_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/qps_server
+	$(Q) $(LDXX) $(LDFLAGS) $(QPS_SERVER_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/qps_server
 
 endif
 
@@ -7120,10 +7300,21 @@ RUBY_PLUGIN_SRC = \
 
 RUBY_PLUGIN_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(RUBY_PLUGIN_SRC))))
 
-bins/$(CONFIG)/ruby_plugin: $(RUBY_PLUGIN_OBJS)
+
+ifeq ($(NO_PROTOBUF),true)
+
+# You can't build the protoc plugins if you don't have protobuf 3.0.0+.
+
+bins/$(CONFIG)/ruby_plugin: protobuf_dep_error
+
+else
+
+bins/$(CONFIG)/ruby_plugin: $(PROTOBUF_DEP) $(RUBY_PLUGIN_OBJS)
 	$(E) "[HOSTLD]  Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(HOST_LDXX) $(HOST_LDFLAGS) $(RUBY_PLUGIN_OBJS) $(HOST_LDLIBSXX) $(HOST_LDLIBS) $(HOST_LDLIBS_PROTOC) -o bins/$(CONFIG)/ruby_plugin
+	$(Q) $(HOST_LDXX) $(HOST_LDFLAGS) $(RUBY_PLUGIN_OBJS) $(HOST_LDLIBSXX) $(HOST_LDLIBS_PROTOC) $(HOST_LDLIBS) $(HOST_LDLIBS_PROTOC) -o bins/$(CONFIG)/ruby_plugin
+
+endif
 
 objs/$(CONFIG)/src/compiler/ruby_generator.o: 
 objs/$(CONFIG)/src/compiler/ruby_plugin.o: 
@@ -7151,7 +7342,7 @@ else
 bins/$(CONFIG)/status_test: $(STATUS_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(STATUS_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/status_test
+	$(Q) $(LDXX) $(LDFLAGS) $(STATUS_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/status_test
 
 endif
 
@@ -7162,37 +7353,6 @@ deps_status_test: $(STATUS_TEST_OBJS:.o=.dep)
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(STATUS_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-SYNC_CLIENT_ASYNC_SERVER_TEST_SRC = \
-    test/cpp/end2end/sync_client_async_server_test.cc \
-
-SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS = $(addprefix objs/$(CONFIG)/, $(addsuffix .o, $(basename $(SYNC_CLIENT_ASYNC_SERVER_TEST_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-bins/$(CONFIG)/sync_client_async_server_test: openssl_dep_error
-
-else
-
-bins/$(CONFIG)/sync_client_async_server_test: $(SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/sync_client_async_server_test
-
-endif
-
-objs/$(CONFIG)/test/cpp/end2end/sync_client_async_server_test.o:  libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
-
-deps_sync_client_async_server_test: $(SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(SYNC_CLIENT_ASYNC_SERVER_TEST_OBJS:.o=.dep)
 endif
 endif
 
@@ -7213,7 +7373,7 @@ else
 bins/$(CONFIG)/thread_pool_test: $(THREAD_POOL_TEST_OBJS) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(THREAD_POOL_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/thread_pool_test
+	$(Q) $(LDXX) $(LDFLAGS) $(THREAD_POOL_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/thread_pool_test
 
 endif
 
@@ -7244,7 +7404,7 @@ else
 bins/$(CONFIG)/tips_client: $(TIPS_CLIENT_OBJS) libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(TIPS_CLIENT_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tips_client
+	$(Q) $(LDXX) $(LDFLAGS) $(TIPS_CLIENT_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tips_client
 
 endif
 
@@ -7275,7 +7435,7 @@ else
 bins/$(CONFIG)/tips_publisher_test: $(TIPS_PUBLISHER_TEST_OBJS) libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(TIPS_PUBLISHER_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tips_publisher_test
+	$(Q) $(LDXX) $(LDFLAGS) $(TIPS_PUBLISHER_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tips_publisher_test
 
 endif
 
@@ -7306,7 +7466,7 @@ else
 bins/$(CONFIG)/tips_subscriber_test: $(TIPS_SUBSCRIBER_TEST_OBJS) libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(TIPS_SUBSCRIBER_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tips_subscriber_test
+	$(Q) $(LDXX) $(LDFLAGS) $(TIPS_SUBSCRIBER_TEST_OBJS) $(GTEST_LIB) libs/$(CONFIG)/libtips_client_lib.a libs/$(CONFIG)/libgrpc++_test_util.a libs/$(CONFIG)/libgrpc_test_util.a libs/$(CONFIG)/libgrpc++.a libs/$(CONFIG)/libgrpc.a libs/$(CONFIG)/libgpr_test_util.a libs/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o bins/$(CONFIG)/tips_subscriber_test
 
 endif
 
