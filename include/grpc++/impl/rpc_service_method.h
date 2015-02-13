@@ -55,18 +55,25 @@ class MethodHandler {
  public:
   virtual ~MethodHandler() {}
   struct HandlerParameter {
-    HandlerParameter(Call *c,
-                     ServerContext* context,
+    HandlerParameter(ServerContext* context,
                      const google::protobuf::Message* req,
                      google::protobuf::Message* resp)
-        : call(c),
-          server_context(context),
+        : server_context(context),
           request(req),
-          response(resp) {}
-    Call* call;
+          response(resp),
+          stream_context(nullptr) {}
+    HandlerParameter(ServerContext* context,
+                     const google::protobuf::Message* req,
+                     google::protobuf::Message* resp,
+                     StreamContextInterface* stream)
+        : server_context(context),
+          request(req),
+          response(resp),
+          stream_context(stream) {}
     ServerContext* server_context;
     const google::protobuf::Message* request;
     google::protobuf::Message* response;
+    StreamContextInterface* stream_context;
   };
   virtual Status RunHandler(const HandlerParameter& param) = 0;
 };
@@ -107,7 +114,7 @@ class ClientStreamingHandler : public MethodHandler {
       : func_(func), service_(service) {}
 
   Status RunHandler(const HandlerParameter& param) final {
-    ServerReader<RequestType> reader(param.call, param.server_context);
+    ServerReader<RequestType> reader(param.stream_context);
     return func_(service_, param.server_context, &reader,
                  dynamic_cast<ResponseType*>(param.response));
   }
@@ -129,7 +136,7 @@ class ServerStreamingHandler : public MethodHandler {
       : func_(func), service_(service) {}
 
   Status RunHandler(const HandlerParameter& param) final {
-    ServerWriter<ResponseType> writer(param.call, param.server_context);
+    ServerWriter<ResponseType> writer(param.stream_context);
     return func_(service_, param.server_context,
                  dynamic_cast<const RequestType*>(param.request), &writer);
   }
@@ -152,7 +159,7 @@ class BidiStreamingHandler : public MethodHandler {
       : func_(func), service_(service) {}
 
   Status RunHandler(const HandlerParameter& param) final {
-    ServerReaderWriter<ResponseType, RequestType> stream(param.call, param.server_context);
+    ServerReaderWriter<ResponseType, RequestType> stream(param.stream_context);
     return func_(service_, param.server_context, &stream);
   }
 
@@ -196,7 +203,7 @@ class RpcService {
  public:
   // Takes ownership.
   void AddMethod(RpcServiceMethod* method) {
-    methods_.emplace_back(method);
+    methods_.push_back(std::unique_ptr<RpcServiceMethod>(method));
   }
 
   RpcServiceMethod* GetMethod(int i) { return methods_[i].get(); }
