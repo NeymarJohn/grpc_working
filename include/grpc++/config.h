@@ -39,7 +39,6 @@
 namespace grpc {
 
 typedef std::string string;
-
-} // namespace grpc
+}
 
 #endif  // __GRPCPP_CONFIG_H__

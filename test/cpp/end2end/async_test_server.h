@@ -31,62 +31,45 @@
  *
  */
 
-#ifndef __GRPCPP_CLIENT_CONTEXT_H__
-#define __GRPCPP_CLIENT_CONTEXT_H__
+#ifndef __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+#define __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
 
-#include <chrono>
+#include <condition_variable>
+#include <mutex>
 #include <string>
-#include <vector>
 
-#include <grpc/support/log.h>
-#include <grpc/support/time.h>
-#include <grpc++/config.h>
-
-using std::chrono::system_clock;
-
-struct grpc_call;
-struct grpc_completion_queue;
+#include <grpc++/async_server.h>
+#include <grpc++/completion_queue.h>
 
 namespace grpc {
 
-class ClientContext {
+namespace testing {
+
+class AsyncTestServer {
  public:
-  ClientContext();
-  ~ClientContext();
+  AsyncTestServer();
+  virtual ~AsyncTestServer();
 
-  void AddMetadata(const grpc::string &meta_key,
-                   const grpc::string &meta_value);
+  void AddPort(const grpc::string& addr);
+  void Start();
+  void RequestOneRpc();
+  virtual void MainLoop();
+  void Shutdown();
 
-  void set_absolute_deadline(const system_clock::time_point &deadline);
-  system_clock::time_point absolute_deadline();
+  CompletionQueue* completion_queue() { return &cq_; }
 
-  void StartCancel();
+ protected:
+  void HandleQueueClosed();
 
  private:
-  // Disallow copy and assign.
-  ClientContext(const ClientContext &);
-  ClientContext &operator=(const ClientContext &);
-
-  friend class Channel;
-  friend class StreamContext;
-
-  grpc_call *call() { return call_; }
-  void set_call(grpc_call *call) {
-    GPR_ASSERT(call_ == nullptr);
-    call_ = call;
-  }
-
-  grpc_completion_queue *cq() { return cq_; }
-  void set_cq(grpc_completion_queue *cq) { cq_ = cq; }
-
-  gpr_timespec RawDeadline() { return absolute_deadline_; }
-
-  grpc_call *call_;
-  grpc_completion_queue *cq_;
-  gpr_timespec absolute_deadline_;
-  std::vector<std::pair<grpc::string, grpc::string> > metadata_;
+  CompletionQueue cq_;
+  AsyncServer server_;
+  bool cq_drained_;
+  std::mutex cq_drained_mu_;
+  std::condition_variable cq_drained_cv_;
 };
 
+}  // namespace testing
 }  // namespace grpc
 
-#endif  // __GRPCPP_CLIENT_CONTEXT_H__
+#endif  // __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__

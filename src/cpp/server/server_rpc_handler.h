@@ -31,62 +31,36 @@
  *
  */
 
-#ifndef __GRPCPP_CLIENT_CONTEXT_H__
-#define __GRPCPP_CLIENT_CONTEXT_H__
+#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
+#define __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
 
-#include <chrono>
-#include <string>
-#include <vector>
+#include <memory>
 
-#include <grpc/support/log.h>
-#include <grpc/support/time.h>
-#include <grpc++/config.h>
-
-using std::chrono::system_clock;
-
-struct grpc_call;
-struct grpc_completion_queue;
+#include <grpc++/completion_queue.h>
+#include <grpc++/status.h>
 
 namespace grpc {
 
-class ClientContext {
+class AsyncServerContext;
+class RpcServiceMethod;
+
+class ServerRpcHandler {
  public:
-  ClientContext();
-  ~ClientContext();
+  // Takes ownership of async_server_context.
+  ServerRpcHandler(AsyncServerContext *async_server_context,
+                   RpcServiceMethod *method);
 
-  void AddMetadata(const grpc::string &meta_key,
-                   const grpc::string &meta_value);
-
-  void set_absolute_deadline(const system_clock::time_point &deadline);
-  system_clock::time_point absolute_deadline();
-
-  void StartCancel();
+  void StartRpc();
 
  private:
-  // Disallow copy and assign.
-  ClientContext(const ClientContext &);
-  ClientContext &operator=(const ClientContext &);
+  CompletionQueue::CompletionType WaitForNextEvent();
+  void FinishRpc(const Status &status);
 
-  friend class Channel;
-  friend class StreamContext;
-
-  grpc_call *call() { return call_; }
-  void set_call(grpc_call *call) {
-    GPR_ASSERT(call_ == nullptr);
-    call_ = call;
-  }
-
-  grpc_completion_queue *cq() { return cq_; }
-  void set_cq(grpc_completion_queue *cq) { cq_ = cq; }
-
-  gpr_timespec RawDeadline() { return absolute_deadline_; }
-
-  grpc_call *call_;
-  grpc_completion_queue *cq_;
-  gpr_timespec absolute_deadline_;
-  std::vector<std::pair<grpc::string, grpc::string> > metadata_;
+  std::unique_ptr<AsyncServerContext> async_server_context_;
+  RpcServiceMethod *method_;
+  CompletionQueue cq_;
 };
 
 }  // namespace grpc
 
-#endif  // __GRPCPP_CLIENT_CONTEXT_H__
+#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
