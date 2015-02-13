@@ -5,9 +5,11 @@ using System.Runtime.InteropServices;
 namespace Google.GRPC.Core
 {
     /// <summary>
-    /// Encapsulates initialization and shutdown of gRPC library.
+    /// Encapsulates initialization and shutdown of GRPC C core library.
+    /// You should not need to initialize it manually, as static constructors
+    /// should load the library when needed.
     /// </summary>
-    public class GrpcEnvironment
+    public static class GrpcEnvironment
     {
         const int THREAD_POOL_SIZE = 1;
 
@@ -18,24 +20,21 @@ namespace Google.GRPC.Core
         static extern void grpcsharp_shutdown();
 
         static object staticLock = new object();
-        static volatile GrpcEnvironment instance;
-       
-        readonly GrpcThreadPool threadPool;
-        bool isClosed;
+        static bool initCalled = false;
+        static bool shutdownCalled = false;
+
+        static GrpcThreadPool threadPool = new GrpcThreadPool(THREAD_POOL_SIZE);
 
         /// <summary>
-        /// Makes sure GRPC environment is initialized. Subsequent invocations don't have any
-        /// effect unless you call Shutdown first.
-        /// Although normal use cases assume you will call this just once in your application's
-        /// lifetime (and call Shutdown once you're done), for the sake of easier testing it's 
-        /// allowed to initialize the environment again after it has been successfully shutdown.
+        /// Makes sure GRPC environment is initialized.
         /// </summary>
-        public static void Initialize() {
+        public static void EnsureInitialized() {
             lock(staticLock)
             {
-                if (instance == null)
+                if (!initCalled)
                 {
-                    instance = new GrpcEnvironment();
+                    initCalled = true;
+                    GrpcInit();       
                 }
             }
         }
@@ -48,54 +47,44 @@ namespace Google.GRPC.Core
         {
             lock(staticLock)
             {
-                if (instance != null)
+                if (initCalled && !shutdownCalled)
                 {
-                    instance.Close();
-                    instance = null;
+                    shutdownCalled = true;
+                    GrpcShutdown();
                 }
             }
-        }
 
-        internal static GrpcThreadPool ThreadPool
-        {
-            get
-            {
-                var inst = instance;
-                if (inst == null)
-                {
-                    throw new InvalidOperationException("GRPC environment not initialized");
-                }
-                return inst.threadPool;
-            }
         }
 
         /// <summary>
-        /// Creates gRPC environment.
+        /// Initializes GRPC C Core library.
         /// </summary>
-        private GrpcEnvironment()
+        private static void GrpcInit()
         {
             grpcsharp_init();
-            threadPool = new GrpcThreadPool(THREAD_POOL_SIZE);
             threadPool.Start();
             // TODO: use proper logging here
             Console.WriteLine("GRPC initialized.");
         }
 
         /// <summary>
-        /// Shuts down this environment.
+        /// Shutdown GRPC C Core library.
         /// </summary>
-        private void Close()
+        private static void GrpcShutdown()
         {
-            if (isClosed)
-            {
-                throw new InvalidOperationException("Close has already been called");
-            }
             threadPool.Stop();
             grpcsharp_shutdown();
-            isClosed = true;
 
             // TODO: use proper logging here
             Console.WriteLine("GRPC shutdown.");
+        }
+
+        internal static GrpcThreadPool ThreadPool
+        {
+            get
+            {
+                return threadPool;
+            }
         }
     }
 }

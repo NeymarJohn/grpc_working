@@ -9,8 +9,6 @@ namespace math
     {
 		public static void Main (string[] args)
 		{
-            GrpcEnvironment.Initialize();
-
 			using (Channel channel = new Channel("127.0.0.1:23456"))
 			{
 				MathGrpc.IMathServiceClient stub = new MathGrpc.MathServiceClientStub(channel);

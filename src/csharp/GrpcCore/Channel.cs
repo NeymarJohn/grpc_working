@@ -8,6 +8,13 @@ namespace Google.GRPC.Core
 {
 	public class Channel : IDisposable
 	{
+        /// <summary>
+        /// Make sure GPRC environment is initialized before any channels get used.
+        /// </summary>
+        static Channel() {
+            GrpcEnvironment.EnsureInitialized();
+        }
+       
         readonly ChannelSafeHandle handle;
         readonly String target;
 
