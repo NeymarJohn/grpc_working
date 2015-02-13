@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,18 +31,18 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_EVENT_H_
-#define NET_GRPC_NODE_EVENT_H_
+#ifndef _ADAPTER__SERVER_CREDENTIALS_H_
+#define _ADAPTER__SERVER_CREDENTIALS_H_
 
-#include <node.h>
-#include "grpc/grpc.h"
+#include <Python.h>
+#include <grpc/grpc_security.h>
 
-namespace grpc {
-namespace node {
+typedef struct {
+  PyObject_HEAD grpc_server_credentials *c_server_credentials;
+} ServerCredentials;
 
-v8::Handle<v8::Value> CreateEventObject(grpc_event *event);
+PyTypeObject pygrpc_ServerCredentialsType;
 
-}  // namespace node
-}  // namespace grpc
+int pygrpc_add_server_credentials(PyObject *module);
 
-#endif  // NET_GRPC_NODE_EVENT_H_
+#endif /* _ADAPTER__SERVER_CREDENTIALS_H_ */
