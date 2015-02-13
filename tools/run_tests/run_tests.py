@@ -40,7 +40,7 @@ class ValgrindConfig(object):
     self.allow_hashing = False
 
   def job_spec(self, binary, hash_targets):
-    return jobset.JobSpec(cmdline=['valgrind', '--tool=%s' % self.tool, binary],
+    return JobSpec(cmdline=['valgrind', '--tool=%s' % self.tool, binary],
                    hash_targets=None)
 
 
@@ -111,7 +111,6 @@ _CONFIGS = {
     'tsan': SimpleConfig('tsan', environ={
         'TSAN_OPTIONS': 'suppressions=tools/tsan_suppressions.txt'}),
     'msan': SimpleConfig('msan'),
-    'ubsan': SimpleConfig('ubsan'),
     'asan': SimpleConfig('asan', environ={
         'ASAN_OPTIONS': 'detect_leaks=1:color=always:suppressions=tools/tsan_suppressions.txt'}),
     'gcov': SimpleConfig('gcov'),
@@ -181,16 +180,13 @@ forever = args.forever
 class TestCache(object):
   """Cache for running tests."""
 
-  def __init__(self, use_cache_results):
+  def __init__(self):
     self._last_successful_run = {}
-    self._use_cache_results = use_cache_results
 
   def should_run(self, cmdline, bin_hash):
     if cmdline not in self._last_successful_run:
       return True
     if self._last_successful_run[cmdline] != bin_hash:
-      return True
-    if not self._use_cache_results:
       return True
     return False
 
@@ -232,7 +228,7 @@ def _build_and_run(check_cancelled, newline_on_success, cache):
   return 0
 
 
-test_cache = TestCache(runs_per_test == 1)
+test_cache = TestCache()
 test_cache.maybe_load()
 
 if forever:

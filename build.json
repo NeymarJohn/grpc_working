@@ -42,7 +42,6 @@
         "src/core/iomgr/endpoint.h",
         "src/core/iomgr/endpoint_pair.h",
         "src/core/iomgr/fd_posix.h",
-        "src/core/iomgr/iocp_windows.h",
         "src/core/iomgr/iomgr.h",
         "src/core/iomgr/iomgr_internal.h",
         "src/core/iomgr/iomgr_posix.h",
@@ -58,11 +57,9 @@
         "src/core/iomgr/sockaddr_utils.h",
         "src/core/iomgr/sockaddr_win32.h",
         "src/core/iomgr/socket_utils_posix.h",
-        "src/core/iomgr/socket_windows.h",
         "src/core/iomgr/tcp_client.h",
         "src/core/iomgr/tcp_posix.h",
         "src/core/iomgr/tcp_server.h",
-        "src/core/iomgr/tcp_windows.h",
         "src/core/iomgr/time_averaged_stats.h",
         "src/core/iomgr/wakeup_fd_pipe.h",
         "src/core/iomgr/wakeup_fd_posix.h",
@@ -133,13 +130,10 @@
         "src/core/iomgr/endpoint.c",
         "src/core/iomgr/endpoint_pair_posix.c",
         "src/core/iomgr/fd_posix.c",
-        "src/core/iomgr/iocp_windows.c",
         "src/core/iomgr/iomgr.c",
         "src/core/iomgr/iomgr_posix.c",
-        "src/core/iomgr/iomgr_windows.c",
         "src/core/iomgr/pollset_kick.c",
         "src/core/iomgr/pollset_multipoller_with_poll_posix.c",
-        "src/core/iomgr/pollset_multipoller_with_epoll.c",
         "src/core/iomgr/pollset_posix.c",
         "src/core/iomgr/pollset_windows.c",
         "src/core/iomgr/resolve_address.c",
@@ -147,13 +141,9 @@
         "src/core/iomgr/socket_utils_common_posix.c",
         "src/core/iomgr/socket_utils_linux.c",
         "src/core/iomgr/socket_utils_posix.c",
-        "src/core/iomgr/socket_windows.c",
         "src/core/iomgr/tcp_client_posix.c",
-        "src/core/iomgr/tcp_client_windows.c",
         "src/core/iomgr/tcp_posix.c",
         "src/core/iomgr/tcp_server_posix.c",
-        "src/core/iomgr/tcp_server_windows.c",
-        "src/core/iomgr/tcp_windows.c",
         "src/core/iomgr/time_averaged_stats.c",
         "src/core/iomgr/wakeup_fd_eventfd.c",
         "src/core/iomgr/wakeup_fd_nospecial.c",
@@ -226,7 +216,6 @@
         "include/grpc/support/histogram.h",
         "include/grpc/support/host_port.h",
         "include/grpc/support/log.h",
-        "include/grpc/support/log_win32.h",
         "include/grpc/support/port_platform.h",
         "include/grpc/support/slice.h",
         "include/grpc/support/slice_buffer.h",
@@ -253,7 +242,6 @@
         "src/core/support/cmdline.c",
         "src/core/support/cpu_linux.c",
         "src/core/support/cpu_posix.c",
-        "src/core/support/cpu_windows.c",
         "src/core/support/env_linux.c",
         "src/core/support/env_posix.c",
         "src/core/support/env_win32.c",
@@ -349,8 +337,7 @@
       "deps": [
         "gpr",
         "grpc"
-      ],
-      "vs_project_guid": "{D64C6D63-4458-4A88-AB38-35678384A7E4}"
+      ]
     },
     {
       "name": "grpc_test_util",
@@ -761,7 +748,6 @@
     {
       "name": "echo_client",
       "build": "test",
-      "run": false,
       "language": "c",
       "src": [
         "test/core/echo/client.c"
@@ -771,12 +757,12 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ]
+      ],
+      "run": false
     },
     {
       "name": "echo_server",
       "build": "test",
-      "run": false,
       "language": "c",
       "src": [
         "test/core/echo/server.c"
@@ -786,7 +772,8 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ]
+      ],
+      "run": false
     },
     {
       "name": "echo_test",
@@ -819,7 +806,6 @@
     {
       "name": "fling_client",
       "build": "test",
-      "run": false,
       "language": "c",
       "src": [
         "test/core/fling/client.c"
@@ -829,12 +815,12 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ]
+      ],
+      "run": false
     },
     {
       "name": "fling_server",
       "build": "test",
-      "run": false,
       "language": "c",
       "src": [
         "test/core/fling/server.c"
@@ -844,7 +830,8 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ]
+      ],
+      "run": false
     },
     {
       "name": "fling_stream_test",
@@ -1254,7 +1241,6 @@
     {
       "name": "json_rewrite",
       "build": "test",
-      "run": false,
       "language": "c",
       "src": [
         "test/core/json/json_rewrite.c"
@@ -1262,12 +1248,12 @@
       "deps": [
         "grpc",
         "gpr"
-      ]
+      ],
+      "run": false
     },
     {
       "name": "json_rewrite_test",
       "build": "test",
-      "run": false,
       "language": "c",
       "src": [
         "test/core/json/json_rewrite_test.c"
@@ -1277,7 +1263,8 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ]
+      ],
+      "run": false
     },
     {
       "name": "json_test",
@@ -1589,7 +1576,6 @@
     {
       "name": "interop_client",
       "build": "test",
-      "run": false,
       "language": "c++",
       "src": [
         "test/cpp/interop/empty.proto",
@@ -1604,12 +1590,12 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ]
+      ],
+      "run": false
     },
     {
       "name": "interop_server",
       "build": "test",
-      "run": false,
       "language": "c++",
       "src": [
         "test/cpp/interop/empty.proto",
@@ -1624,12 +1610,12 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ]
+      ],
+      "run": false
     },
     {
       "name": "qps_client",
       "build": "test",
-      "run": false,
       "language": "c++",
       "src": [
         "test/cpp/qps/qpstest.proto",
@@ -1647,7 +1633,6 @@
     {
       "name": "qps_server",
       "build": "test",
-      "run": false,
       "language": "c++",
       "src": [
         "test/cpp/qps/qpstest.proto",
@@ -1728,7 +1713,6 @@
     {
       "name": "tips_client",
       "build": "test",
-      "run": false,
       "language": "c++",
       "src": [
         "examples/tips/main.cc"
@@ -1741,7 +1725,8 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ]
+      ],
+      "run": false
     },
     {
       "name": "tips_publisher_test",
