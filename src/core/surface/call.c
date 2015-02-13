@@ -258,6 +258,10 @@ void grpc_call_set_completion_queue(grpc_call *call,
   call->cq = cq;
 }
 
+grpc_completion_queue *grpc_call_get_completion_queue(grpc_call *call) {
+  return call->cq;
+}
+
 void grpc_call_internal_ref(grpc_call *c) { gpr_ref(&c->internal_refcount); }
 
 static void destroy_call(void *call, int ignored_success) {
@@ -990,6 +994,12 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
   size_t out;
   const grpc_op *op;
   grpc_ioreq *req;
+
+  if (nops == 0) {
+    grpc_cq_begin_op(call->cq, call, GRPC_OP_COMPLETE);
+    grpc_cq_end_op_complete(call->cq, tag, call, do_nothing, NULL, GRPC_OP_OK);
+    return GRPC_CALL_OK;
+  }
 
   /* rewrite batch ops into ioreq ops */
   for (in = 0, out = 0; in < nops; in++) {
