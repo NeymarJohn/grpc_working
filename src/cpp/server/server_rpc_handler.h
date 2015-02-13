@@ -31,18 +31,36 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_EVENT_H_
-#define NET_GRPC_NODE_EVENT_H_
+#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
+#define __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
 
-#include <node.h>
-#include "grpc/grpc.h"
+#include <memory>
+
+#include <grpc++/completion_queue.h>
+#include <grpc++/status.h>
 
 namespace grpc {
-namespace node {
 
-v8::Handle<v8::Value> CreateEventObject(grpc_event *event);
+class AsyncServerContext;
+class RpcServiceMethod;
 
-}  // namespace node
+class ServerRpcHandler {
+ public:
+  // Takes ownership of async_server_context.
+  ServerRpcHandler(AsyncServerContext *async_server_context,
+                   RpcServiceMethod *method);
+
+  void StartRpc();
+
+ private:
+  CompletionQueue::CompletionType WaitForNextEvent();
+  void FinishRpc(const Status &status);
+
+  std::unique_ptr<AsyncServerContext> async_server_context_;
+  RpcServiceMethod *method_;
+  CompletionQueue cq_;
+};
+
 }  // namespace grpc
 
-#endif  // NET_GRPC_NODE_EVENT_H_
+#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
