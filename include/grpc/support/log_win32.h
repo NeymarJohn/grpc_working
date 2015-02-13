@@ -31,29 +31,23 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_TAG_H_
-#define NET_GRPC_NODE_TAG_H_
+#ifndef __GRPC_SUPPORT_LOG_WIN32_H__
+#define __GRPC_SUPPORT_LOG_WIN32_H__
 
-#include <node.h>
+#include <windows.h>
 
-namespace grpc {
-namespace node {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/* Create a void* tag that can be passed to various grpc_call functions from
-   a javascript value and the javascript wrapper for the call. The call can be
-   null. */
-void *CreateTag(v8::Handle<v8::Value> tag, v8::Handle<v8::Value> call);
-/* Return the javascript value stored in the tag */
-v8::Handle<v8::Value> GetTagHandle(void *tag);
-/* Returns true if the call was set (non-null) when the tag was created */
-bool TagHasCall(void *tag);
-/* Returns the javascript wrapper for the call associated with this tag */
-v8::Handle<v8::Value> TagGetCall(void *call);
-/* Destroy the tag and all resources it is holding. It is illegal to call any
-   of these other functions on a tag after it has been destroyed. */
-void DestroyTag(void *tag);
+/* Returns a string allocated with gpr_malloc that contains a UTF-8
+ * formatted error message, corresponding to the error messageid.
+ * Use in conjunction with GetLastError() et al.
+ */
+char *gpr_format_message(DWORD messageid);
 
-}  // namespace node
-}  // namespace grpc
+#ifdef __cplusplus
+}
+#endif
 
-#endif  // NET_GRPC_NODE_TAG_H_
+#endif /* __GRPC_SUPPORT_LOG_H__ */
