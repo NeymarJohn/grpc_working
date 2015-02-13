@@ -33,7 +33,7 @@
 
 #include <grpc++/client_context.h>
 
-#include "examples/pubsub/subscriber.h"
+#include "examples/tips/subscriber.h"
 
 using tech::pubsub::Topic;
 using tech::pubsub::DeleteTopicRequest;
@@ -46,7 +46,7 @@ using tech::pubsub::PubsubMessage;
 
 namespace grpc {
 namespace examples {
-namespace pubsub {
+namespace tips {
 
 Subscriber::Subscriber(std::shared_ptr<ChannelInterface> channel)
     : stub_(SubscriberService::NewStub(channel)) {
@@ -113,6 +113,6 @@ Status Subscriber::Pull(const grpc::string& name, grpc::string* data) {
   return s;
 }
 
-}  // namespace pubsub
+}  // namespace tips
 }  // namespace examples
 }  // namespace grpc

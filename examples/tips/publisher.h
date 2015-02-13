@@ -31,23 +31,37 @@
  *
  */
 
-#ifndef __GRPC_SUPPORT_LOG_WIN32_H__
-#define __GRPC_SUPPORT_LOG_WIN32_H__
+#ifndef __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_
+#define __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_
 
-#include <windows.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/status.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "examples/tips/pubsub.pb.h"
 
-/* Returns a string allocated with gpr_malloc that contains a UTF-8
- * formatted error message, corresponding to the error messageid.
- * Use in conjunction with GetLastError() et al.
- */
-char *gpr_format_message(DWORD messageid);
+namespace grpc {
+namespace examples {
+namespace tips {
 
-#ifdef __cplusplus
-}
-#endif
+class Publisher {
+ public:
+  Publisher(std::shared_ptr<ChannelInterface> channel);
+  void Shutdown();
 
-#endif /* __GRPC_SUPPORT_LOG_H__ */
+  Status CreateTopic(const grpc::string& topic);
+  Status GetTopic(const grpc::string& topic);
+  Status DeleteTopic(const grpc::string& topic);
+  Status ListTopics(const grpc::string& project_id,
+                    std::vector<grpc::string>* topics);
+
+  Status Publish(const grpc::string& topic, const grpc::string& data);
+
+ private:
+  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
+};
+
+}  // namespace tips
+}  // namespace examples
+}  // namespace grpc
+
+#endif  // __GRPCPP_EXAMPLES_TIPS_PUBLISHER_H_

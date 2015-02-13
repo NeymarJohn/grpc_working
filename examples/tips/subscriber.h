@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,18 +31,38 @@
  *
  */
 
-#ifndef _ADAPTER__SERVER_CREDENTIALS_H_
-#define _ADAPTER__SERVER_CREDENTIALS_H_
+#ifndef __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#define __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
 
-#include <Python.h>
-#include <grpc/grpc_security.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/status.h>
 
-typedef struct {
-  PyObject_HEAD grpc_server_credentials *c_server_credentials;
-} ServerCredentials;
+#include "examples/tips/pubsub.pb.h"
 
-PyTypeObject pygrpc_ServerCredentialsType;
+namespace grpc {
+namespace examples {
+namespace tips {
 
-int pygrpc_add_server_credentials(PyObject *module);
+class Subscriber {
+ public:
+  Subscriber(std::shared_ptr<ChannelInterface> channel);
+  void Shutdown();
 
-#endif /* _ADAPTER__SERVER_CREDENTIALS_H_ */
+  Status CreateSubscription(const grpc::string& topic,
+                            const grpc::string& name);
+
+  Status GetSubscription(const grpc::string& name, grpc::string* topic);
+
+  Status DeleteSubscription(const grpc::string& name);
+
+  Status Pull(const grpc::string& name, grpc::string* data);
+
+ private:
+  std::unique_ptr<tech::pubsub::SubscriberService::Stub> stub_;
+};
+
+}  // namespace tips
+}  // namespace examples
+}  // namespace grpc
+
+#endif  // __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
