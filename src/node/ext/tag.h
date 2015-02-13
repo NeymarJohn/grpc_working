@@ -31,45 +31,29 @@
  *
  */
 
-#ifndef __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
-#define __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+#ifndef NET_GRPC_NODE_TAG_H_
+#define NET_GRPC_NODE_TAG_H_
 
-#include <condition_variable>
-#include <mutex>
-#include <string>
-
-#include <grpc++/async_server.h>
-#include <grpc++/completion_queue.h>
+#include <node.h>
 
 namespace grpc {
+namespace node {
 
-namespace testing {
+/* Create a void* tag that can be passed to various grpc_call functions from
+   a javascript value and the javascript wrapper for the call. The call can be
+   null. */
+void *CreateTag(v8::Handle<v8::Value> tag, v8::Handle<v8::Value> call);
+/* Return the javascript value stored in the tag */
+v8::Handle<v8::Value> GetTagHandle(void *tag);
+/* Returns true if the call was set (non-null) when the tag was created */
+bool TagHasCall(void *tag);
+/* Returns the javascript wrapper for the call associated with this tag */
+v8::Handle<v8::Value> TagGetCall(void *call);
+/* Destroy the tag and all resources it is holding. It is illegal to call any
+   of these other functions on a tag after it has been destroyed. */
+void DestroyTag(void *tag);
 
-class AsyncTestServer {
- public:
-  AsyncTestServer();
-  virtual ~AsyncTestServer();
-
-  void AddPort(const grpc::string& addr);
-  void Start();
-  void RequestOneRpc();
-  virtual void MainLoop();
-  void Shutdown();
-
-  CompletionQueue* completion_queue() { return &cq_; }
-
- protected:
-  void HandleQueueClosed();
-
- private:
-  CompletionQueue cq_;
-  AsyncServer server_;
-  bool cq_drained_;
-  std::mutex cq_drained_mu_;
-  std::condition_variable cq_drained_cv_;
-};
-
-}  // namespace testing
+}  // namespace node
 }  // namespace grpc
 
-#endif  // __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+#endif  // NET_GRPC_NODE_TAG_H_
