@@ -31,62 +31,65 @@
  *
  */
 
-#ifndef __GRPCPP_CLIENT_CONTEXT_H__
-#define __GRPCPP_CLIENT_CONTEXT_H__
+#ifndef __GRPCPP_ASYNC_SERVER_CONTEXT_H__
+#define __GRPCPP_ASYNC_SERVER_CONTEXT_H__
 
 #include <chrono>
-#include <string>
-#include <vector>
 
-#include <grpc/support/log.h>
-#include <grpc/support/time.h>
 #include <grpc++/config.h>
 
-using std::chrono::system_clock;
-
+struct grpc_byte_buffer;
 struct grpc_call;
 struct grpc_completion_queue;
 
+namespace google {
+namespace protobuf {
+class Message;
+}
+}
+
+using std::chrono::system_clock;
+
 namespace grpc {
+class Status;
 
-class ClientContext {
+// TODO(rocking): wrap grpc c structures.
+class AsyncServerContext {
  public:
-  ClientContext();
-  ~ClientContext();
+  AsyncServerContext(grpc_call* call, const grpc::string& method,
+                     const grpc::string& host,
+                     system_clock::time_point absolute_deadline);
+  ~AsyncServerContext();
 
-  void AddMetadata(const grpc::string &meta_key,
-                   const grpc::string &meta_value);
+  // Accept this rpc, bind it to a completion queue.
+  void Accept(grpc_completion_queue* cq);
 
-  void set_absolute_deadline(const system_clock::time_point &deadline);
-  system_clock::time_point absolute_deadline();
+  // Read and write calls, all async. Return true for success.
+  bool StartRead(google::protobuf::Message* request);
+  bool StartWrite(const google::protobuf::Message& response, int flags);
+  bool StartWriteStatus(const Status& status);
 
-  void StartCancel();
+  bool ParseRead(grpc_byte_buffer* read_buffer);
+
+  grpc::string method() const { return method_; }
+  grpc::string host() const { return host_; }
+  system_clock::time_point absolute_deadline() { return absolute_deadline_; }
+
+  grpc_call* call() { return call_; }
 
  private:
-  // Disallow copy and assign.
-  ClientContext(const ClientContext &);
-  ClientContext &operator=(const ClientContext &);
+  AsyncServerContext(const AsyncServerContext&);
+  AsyncServerContext& operator=(const AsyncServerContext&);
 
-  friend class Channel;
-  friend class StreamContext;
+  // These properties may be moved to a ServerContext class.
+  const grpc::string method_;
+  const grpc::string host_;
+  system_clock::time_point absolute_deadline_;
 
-  grpc_call *call() { return call_; }
-  void set_call(grpc_call *call) {
-    GPR_ASSERT(call_ == nullptr);
-    call_ = call;
-  }
-
-  grpc_completion_queue *cq() { return cq_; }
-  void set_cq(grpc_completion_queue *cq) { cq_ = cq; }
-
-  gpr_timespec RawDeadline() { return absolute_deadline_; }
-
-  grpc_call *call_;
-  grpc_completion_queue *cq_;
-  gpr_timespec absolute_deadline_;
-  std::vector<std::pair<grpc::string, grpc::string> > metadata_;
+  google::protobuf::Message* request_;  // not owned
+  grpc_call* call_;                     // owned
 };
 
 }  // namespace grpc
 
-#endif  // __GRPCPP_CLIENT_CONTEXT_H__
+#endif  // __GRPCPP_ASYNC_SERVER_CONTEXT_H__
