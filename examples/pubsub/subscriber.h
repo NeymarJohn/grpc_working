@@ -31,52 +31,38 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_CALL_H_
-#define NET_GRPC_NODE_CALL_H_
+#ifndef __GRPCPP_EXAMPLES_PUBSUB_SUBSCRIBER_H_
+#define __GRPCPP_EXAMPLES_PUBSUB_SUBSCRIBER_H_
 
-#include <node.h>
-#include <nan.h>
-#include "grpc/grpc.h"
+#include <grpc++/channel_interface.h>
+#include <grpc++/status.h>
 
-#include "channel.h"
+#include "examples/pubsub/pubsub.pb.h"
 
 namespace grpc {
-namespace node {
+namespace examples {
+namespace pubsub {
 
-/* Wrapper class for grpc_call structs. */
-class Call : public ::node::ObjectWrap {
+class Subscriber {
  public:
-  static void Init(v8::Handle<v8::Object> exports);
-  static bool HasInstance(v8::Handle<v8::Value> val);
-  /* Wrap a grpc_call struct in a javascript object */
-  static v8::Handle<v8::Value> WrapStruct(grpc_call *call);
+  Subscriber(std::shared_ptr<ChannelInterface> channel);
+  void Shutdown();
+
+  Status CreateSubscription(const grpc::string& topic,
+                            const grpc::string& name);
+
+  Status GetSubscription(const grpc::string& name, grpc::string* topic);
+
+  Status DeleteSubscription(const grpc::string& name);
+
+  Status Pull(const grpc::string& name, grpc::string* data);
 
  private:
-  explicit Call(grpc_call *call);
-  ~Call();
-
-  // Prevent copying
-  Call(const Call &);
-  Call &operator=(const Call &);
-
-  static NAN_METHOD(New);
-  static NAN_METHOD(AddMetadata);
-  static NAN_METHOD(Invoke);
-  static NAN_METHOD(ServerAccept);
-  static NAN_METHOD(ServerEndInitialMetadata);
-  static NAN_METHOD(Cancel);
-  static NAN_METHOD(StartWrite);
-  static NAN_METHOD(StartWriteStatus);
-  static NAN_METHOD(WritesDone);
-  static NAN_METHOD(StartRead);
-  static v8::Persistent<v8::Function> constructor;
-  // Used for typechecking instances of this javascript class
-  static v8::Persistent<v8::FunctionTemplate> fun_tpl;
-
-  grpc_call *wrapped_call;
+  std::unique_ptr<tech::pubsub::SubscriberService::Stub> stub_;
 };
 
-}  // namespace node
+}  // namespace pubsub
+}  // namespace examples
 }  // namespace grpc
 
-#endif  // NET_GRPC_NODE_CALL_H_
+#endif  // __GRPCPP_EXAMPLES_PUBSUB_SUBSCRIBER_H_
