@@ -10,7 +10,7 @@ namespace Google.GRPC.Core.Tests
 {
     public class ClientServerTest
     {
-        string host = "localhost";
+        string serverAddr = "localhost:" + PortPicker.PickUnusedPort();
 
         Method<string, string> unaryEchoStringMethod = new Method<string, string>(
             MethodType.Unary,
@@ -26,10 +26,10 @@ namespace Google.GRPC.Core.Tests
                 ServerServiceDefinition.CreateBuilder("someService")
                     .AddMethod(unaryEchoStringMethod, HandleUnaryEchoString).Build());
 
-            int port = server.AddPort(host + ":0");
+            server.AddPort(serverAddr);
             server.Start();
 
-            using (Channel channel = new Channel(host + ":" + port))
+            using (Channel channel = new Channel(serverAddr))
             {
                 var call = new Call<string, string>(unaryEchoStringMethod, channel);
 

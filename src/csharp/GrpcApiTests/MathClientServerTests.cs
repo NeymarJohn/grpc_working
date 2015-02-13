@@ -13,7 +13,7 @@ namespace math.Tests
     /// </summary>
     public class MathClientServerTest
     {
-        string host = "localhost";
+        string serverAddr = "localhost:" + PortPicker.PickUnusedPort();
         Server server;
         Channel channel;
         MathGrpc.IMathServiceClient client;
@@ -23,9 +23,9 @@ namespace math.Tests
         {
             server = new Server();
             server.AddServiceDefinition(MathGrpc.BindService(new MathServiceImpl()));
-            int port = server.AddPort(host + ":0");
+            server.AddPort(serverAddr);
             server.Start();
-            channel = new Channel(host + ":" + port);
+            channel = new Channel(serverAddr);
             client = MathGrpc.NewStub(channel);
         }
 
