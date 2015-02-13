@@ -22,24 +22,21 @@ ENV PATH $PATH:$JAVA_HOME/bin:$M2_HOME/bin
 ENV LD_LIBRARY_PATH /usr/local/lib
 
 # Get the protobuf source from GitHub and install it
-RUN wget -O - https://github.com/google/protobuf/archive/master.tar.gz | \
-  tar xz && \
-  cd protobuf-master && \
-  ./autogen.sh && \
+RUN wget -O - https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.bz2 | \
+  tar xj && \
+  cd protobuf-2.6.1 && \
   ./configure --prefix=/usr && \
   make -j12 && make check && make install && \
-  cd java && mvn install && cd .. && \
   rm -r "$(pwd)"
 
 # Install a GitHub SSH service credential that gives access to the GitHub repo while it's private
 # TODO: remove this once the repo is public
 COPY .ssh/github.rsa /root/.ssh/id_rsa
-RUN chmod 600 /root/.ssh/id_rsa
 RUN echo 'Host github.com\nStrictHostKeyChecking no' > /root/.ssh/config
 
 # Trigger download of as many Maven and Gradle artifacts as possible. We don't build grpc-java
 # because we don't want to install netty
-RUN git clone --recursive --depth 1 git@github.com:grpc/grpc-java.git && \
+RUN git clone --recursive --depth 1 git@github.com:google/grpc-java.git && \
   cd grpc-java/lib/netty && \
   mvn -pl codec-http2 -am -DskipTests verify && \
   cd ../.. && \

@@ -76,7 +76,7 @@ end:
     *tmp_filename_out = gpr_tchar_to_char(tmp_filename);
   }
 
-  gpr_free(template_string);
+  gpr_free(tmp_filename);
   return result;
 }
 
