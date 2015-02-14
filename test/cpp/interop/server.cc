@@ -200,7 +200,7 @@ void RunServer() {
 
   ServerBuilder builder;
   builder.AddPort(server_address.str());
-  builder.RegisterService(&service);
+  builder.RegisterService(service.service());
   if (FLAGS_enable_ssl) {
     SslServerCredentialsOptions ssl_opts = {
         "", {{test_server1_key, test_server1_cert}}};

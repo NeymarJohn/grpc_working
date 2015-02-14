@@ -31,38 +31,45 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
-#define __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#ifndef __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+#define __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+#include <condition_variable>
+#include <mutex>
+#include <string>
 
-#include "examples/tips/pubsub.pb.h"
+#include <grpc++/async_server.h>
+#include <grpc++/completion_queue.h>
 
 namespace grpc {
-namespace examples {
-namespace tips {
 
-class Subscriber {
+namespace testing {
+
+class AsyncTestServer {
  public:
-  Subscriber(std::shared_ptr<ChannelInterface> channel);
+  AsyncTestServer();
+  virtual ~AsyncTestServer();
+
+  void AddPort(const grpc::string& addr);
+  void Start();
+  void RequestOneRpc();
+  virtual void MainLoop();
   void Shutdown();
 
-  Status CreateSubscription(const grpc::string& topic,
-                            const grpc::string& name);
+  CompletionQueue* completion_queue() { return &cq_; }
 
-  Status GetSubscription(const grpc::string& name, grpc::string* topic);
-
-  Status DeleteSubscription(const grpc::string& name);
-
-  Status Pull(const grpc::string& name, grpc::string* data);
+ protected:
+  void HandleQueueClosed();
 
  private:
-  std::unique_ptr<tech::pubsub::SubscriberService::Stub> stub_;
+  CompletionQueue cq_;
+  AsyncServer server_;
+  bool cq_drained_;
+  std::mutex cq_drained_mu_;
+  std::condition_variable cq_drained_cv_;
 };
 
-}  // namespace tips
-}  // namespace examples
+}  // namespace testing
 }  // namespace grpc
 
-#endif  // __GRPCPP_EXAMPLES_TIPS_SUBSCRIBER_H_
+#endif  // __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
