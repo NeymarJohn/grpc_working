@@ -38,37 +38,28 @@
 
 #include <string.h>
 
+/* Initial number of operations to allocate */
+#define INITIAL_SLOTS 8
 /* Exponential growth function: Given x, return a larger x.
-   Currently we grow by 1.5 times upon reallocation. */
+   Currently we grow by 1.5 times upon reallocation.
+   Assumes INITIAL_SLOTS > 1 */
 #define GROW(x) (3 * (x) / 2)
 
 void grpc_sopb_init(grpc_stream_op_buffer *sopb) {
-  sopb->ops = sopb->inlined_ops;
+  sopb->ops = gpr_malloc(sizeof(grpc_stream_op) * INITIAL_SLOTS);
+  GPR_ASSERT(sopb->ops);
   sopb->nops = 0;
-  sopb->capacity = GRPC_SOPB_INLINE_ELEMENTS;
+  sopb->capacity = INITIAL_SLOTS;
 }
 
 void grpc_sopb_destroy(grpc_stream_op_buffer *sopb) {
   grpc_stream_ops_unref_owned_objects(sopb->ops, sopb->nops);
-  if (sopb->ops != sopb->inlined_ops) gpr_free(sopb->ops);
+  gpr_free(sopb->ops);
 }
 
 void grpc_sopb_reset(grpc_stream_op_buffer *sopb) {
   grpc_stream_ops_unref_owned_objects(sopb->ops, sopb->nops);
   sopb->nops = 0;
-}
-
-void grpc_sopb_swap(grpc_stream_op_buffer *a, grpc_stream_op_buffer *b) {
-  grpc_stream_op_buffer temp = *a;
-  *a = *b;
-  *b = temp;
-
-  if (a->ops == b->inlined_ops) {
-    a->ops = a->inlined_ops;
-  }
-  if (b->ops == a->inlined_ops) {
-    b->ops = b->inlined_ops;
-  }
 }
 
 void grpc_stream_ops_unref_owned_objects(grpc_stream_op *ops, size_t nops) {
@@ -93,21 +84,17 @@ void grpc_stream_ops_unref_owned_objects(grpc_stream_op *ops, size_t nops) {
   }
 }
 
-static void expandto(grpc_stream_op_buffer *sopb, size_t new_capacity) {
-  sopb->capacity = new_capacity;
-  if (sopb->ops == sopb->inlined_ops) {
-    sopb->ops = gpr_malloc(sizeof(grpc_stream_op) * new_capacity);
-    memcpy(sopb->ops, sopb->inlined_ops, sopb->nops * sizeof(grpc_stream_op));
-  } else {
-    sopb->ops = gpr_realloc(sopb->ops, sizeof(grpc_stream_op) * new_capacity);
-  }
+static void expand(grpc_stream_op_buffer *sopb) {
+  sopb->capacity = GROW(sopb->capacity);
+  sopb->ops = gpr_realloc(sopb->ops, sizeof(grpc_stream_op) * sopb->capacity);
+  GPR_ASSERT(sopb->ops);
 }
 
 static grpc_stream_op *add(grpc_stream_op_buffer *sopb) {
   grpc_stream_op *out;
 
   if (sopb->nops == sopb->capacity) {
-    expandto(sopb, GROW(sopb->capacity));
+    expand(sopb);
   }
   out = sopb->ops + sopb->nops;
   sopb->nops++;
@@ -165,7 +152,12 @@ void grpc_sopb_append(grpc_stream_op_buffer *sopb, grpc_stream_op *ops,
   size_t new_nops = orig_nops + nops;
 
   if (new_nops > sopb->capacity) {
-    expandto(sopb, GPR_MAX(GROW(sopb->capacity), new_nops));
+    size_t new_capacity = GROW(sopb->capacity);
+    if (new_capacity < new_nops) {
+      new_capacity = new_nops;
+    }
+    sopb->ops = gpr_realloc(sopb->ops, sizeof(grpc_stream_op) * new_capacity);
+    sopb->capacity = new_capacity;
   }
 
   memcpy(sopb->ops + orig_nops, ops, sizeof(grpc_stream_op) * nops);
