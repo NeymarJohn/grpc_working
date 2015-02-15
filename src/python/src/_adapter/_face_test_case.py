@@ -80,7 +80,7 @@ class FaceTestCase(test_case.FaceTestCase, coverage.BlockingCoverage):
 
     fore_link = fore.ForeLink(
         pool, serialization.request_deserializers,
-        serialization.response_serializers, None, ())
+        serialization.response_serializers)
     port = fore_link.start()
     rear_link = rear.RearLink(
         'localhost', port, pool,
