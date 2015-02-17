@@ -69,8 +69,7 @@ class ForeLink(ticket_interfaces.ForeLink):
   """A service-side bridge between RPC Framework and the C-ish _low code."""
 
   def __init__(
-      self, pool, request_deserializers, response_serializers,
-      root_certificates, key_chain_pairs, port=None):
+      self, pool, request_deserializers, response_serializers, port=None):
     """Constructor.
 
     Args:
@@ -79,10 +78,6 @@ class ForeLink(ticket_interfaces.ForeLink):
         deserializer behaviors.
       response_serializers: A dict from RPC method names to response object
         serializer behaviors.
-      root_certificates: The PEM-encoded client root certificates as a
-        bytestring or None.
-      key_chain_pairs: A sequence of PEM-encoded private key-certificate chain
-        pairs.
       port: The port on which to serve, or None to have a port selected
         automatically.
     """
@@ -90,8 +85,6 @@ class ForeLink(ticket_interfaces.ForeLink):
     self._pool = pool
     self._request_deserializers = request_deserializers
     self._response_serializers = response_serializers
-    self._root_certificates = root_certificates
-    self._key_chain_pairs = key_chain_pairs
     self._port = port
 
     self._rear_link = null.NULL_REAR_LINK
@@ -271,16 +264,10 @@ class ForeLink(ticket_interfaces.ForeLink):
     object.
     """
     with self._condition:
-      address = '[::]:%d' % (0 if self._port is None else self._port)
       self._completion_queue = _low.CompletionQueue()
-      if self._root_certificates is None and not self._key_chain_pairs:
-        self._server = _low.Server(self._completion_queue, None)
-        port = self._server.add_http2_addr(address)
-      else:
-        server_credentials = _low.ServerCredentials(
-          self._root_certificates, self._key_chain_pairs)
-        self._server = _low.Server(self._completion_queue, server_credentials)
-        port = self._server.add_secure_http2_addr(address)
+      self._server = _low.Server(self._completion_queue, None)
+      port = self._server.add_http2_addr(
+          '[::]:%d' % (0 if self._port is None else self._port))
       self._server.start()
 
       self._server.service(None)
