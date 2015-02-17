@@ -75,11 +75,7 @@ typedef struct {
   int fd;
   grpc_fd *emfd;
   grpc_tcp_server *server;
-  union {
-    gpr_uint8 untyped[GRPC_MAX_SOCKADDR_SIZE];
-    struct sockaddr sockaddr;
-    struct sockaddr_un un;
-  } addr;
+  gpr_uint8 addr[GRPC_MAX_SOCKADDR_SIZE];
   int addr_len;
 } server_port;
 
@@ -129,8 +125,9 @@ void grpc_tcp_server_destroy(grpc_tcp_server *s) {
   /* delete ALL the things */
   for (i = 0; i < s->nports; i++) {
     server_port *sp = &s->ports[i];
-    if (sp->addr.sockaddr.sa_family == AF_UNIX) {
-      unlink(sp->addr.un.sun_path);
+    if (((struct sockaddr *)sp->addr)->sa_family == AF_UNIX) {
+      struct sockaddr_un *un = (struct sockaddr_un *)sp->addr;
+      unlink(un->sun_path);
     }
     grpc_fd_orphan(sp->emfd, NULL, NULL);
   }
@@ -276,7 +273,7 @@ static int add_socket_to_server(grpc_tcp_server *s, int fd,
     sp->server = s;
     sp->fd = fd;
     sp->emfd = grpc_fd_create(fd);
-    memcpy(sp->addr.untyped, addr, addr_len);
+    memcpy(sp->addr, addr, addr_len);
     sp->addr_len = addr_len;
     GPR_ASSERT(sp->emfd);
     gpr_mu_unlock(&s->mu);
@@ -366,9 +363,10 @@ int grpc_tcp_server_get_fd(grpc_tcp_server *s, unsigned index) {
   return (index < s->nports) ? s->ports[index].fd : -1;
 }
 
-void grpc_tcp_server_start(grpc_tcp_server *s, grpc_pollset *pollset,
-                           grpc_tcp_server_cb cb, void *cb_arg) {
-  size_t i;
+void grpc_tcp_server_start(grpc_tcp_server *s, grpc_pollset **pollsets,
+                           size_t pollset_count, grpc_tcp_server_cb cb,
+                           void *cb_arg) {
+  size_t i, j;
   GPR_ASSERT(cb);
   gpr_mu_lock(&s->mu);
   GPR_ASSERT(!s->cb);
@@ -376,8 +374,8 @@ void grpc_tcp_server_start(grpc_tcp_server *s, grpc_pollset *pollset,
   s->cb = cb;
   s->cb_arg = cb_arg;
   for (i = 0; i < s->nports; i++) {
-    if (pollset) {
-      grpc_pollset_add_fd(pollset, s->ports[i].emfd);
+    for (j = 0; j < pollset_count; j++) {
+      grpc_pollset_add_fd(pollsets[j], s->ports[i].emfd);
     }
     grpc_fd_notify_on_read(s->ports[i].emfd, on_read, &s->ports[i]);
     s->active_ports++;
