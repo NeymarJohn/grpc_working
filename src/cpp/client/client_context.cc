@@ -72,13 +72,9 @@ system_clock::time_point ClientContext::absolute_deadline() {
 
 void ClientContext::AddMetadata(const grpc::string &meta_key,
                                 const grpc::string &meta_value) {
-  send_initial_metadata_.insert(std::make_pair(meta_key, meta_value));
+  return;
 }
 
-void ClientContext::TryCancel() {
-  if (call_) {
-    grpc_call_cancel(call_);
-  }
-}
+void ClientContext::StartCancel() {}
 
 }  // namespace grpc
