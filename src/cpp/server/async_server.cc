@@ -31,37 +31,59 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_PUBSUB_PUBLISHER_H_
-#define __GRPCPP_EXAMPLES_PUBSUB_PUBLISHER_H_
+#include <grpc++/async_server.h>
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
-
-#include "examples/pubsub/pubsub.pb.h"
+#include <grpc/grpc.h>
+#include <grpc/support/log.h>
+#include <grpc++/completion_queue.h>
 
 namespace grpc {
-namespace examples {
-namespace pubsub {
 
-class Publisher {
- public:
-  Publisher(std::shared_ptr<ChannelInterface> channel);
-  void Shutdown();
+AsyncServer::AsyncServer(CompletionQueue *cc)
+    : started_(false), shutdown_(false) {
+  server_ = grpc_server_create(cc->cq(), nullptr);
+}
 
-  Status CreateTopic(const grpc::string& topic);
-  Status GetTopic(const grpc::string& topic);
-  Status DeleteTopic(const grpc::string& topic);
-  Status ListTopics(const grpc::string& project_id,
-                    std::vector<grpc::string>* topics);
+AsyncServer::~AsyncServer() {
+  std::unique_lock<std::mutex> lock(shutdown_mu_);
+  if (started_ && !shutdown_) {
+    lock.unlock();
+    Shutdown();
+  }
+  grpc_server_destroy(server_);
+}
 
-  Status Publish(const grpc::string& topic, const grpc::string& data);
+void AsyncServer::AddPort(const grpc::string &addr) {
+  GPR_ASSERT(!started_);
+  int success = grpc_server_add_http2_port(server_, addr.c_str());
+  GPR_ASSERT(success);
+}
 
- private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
-};
+void AsyncServer::Start() {
+  GPR_ASSERT(!started_);
+  started_ = true;
+  grpc_server_start(server_);
+}
 
-}  // namespace pubsub
-}  // namespace examples
+void AsyncServer::RequestOneRpc() {
+  GPR_ASSERT(started_);
+  std::unique_lock<std::mutex> lock(shutdown_mu_);
+  if (shutdown_) {
+    return;
+  }
+  lock.unlock();
+  grpc_call_error err = grpc_server_request_call_old(server_, nullptr);
+  GPR_ASSERT(err == GRPC_CALL_OK);
+}
+
+void AsyncServer::Shutdown() {
+  std::unique_lock<std::mutex> lock(shutdown_mu_);
+  if (started_ && !shutdown_) {
+    shutdown_ = true;
+    lock.unlock();
+    // TODO(yangg) should we shutdown without start?
+    grpc_server_shutdown(server_);
+  }
+}
+
 }  // namespace grpc
-
-#endif  // __GRPCPP_EXAMPLES_PUBSUB_PUBLISHER_H_

@@ -31,38 +31,36 @@
  *
  */
 
-#ifndef __GRPCPP_EXAMPLES_PUBSUB_SUBSCRIBER_H_
-#define __GRPCPP_EXAMPLES_PUBSUB_SUBSCRIBER_H_
+#ifndef __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
+#define __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
 
-#include <grpc++/channel_interface.h>
+#include <memory>
+
+#include <grpc++/completion_queue.h>
 #include <grpc++/status.h>
 
-#include "examples/pubsub/pubsub.pb.h"
-
 namespace grpc {
-namespace examples {
-namespace pubsub {
 
-class Subscriber {
+class AsyncServerContext;
+class RpcServiceMethod;
+
+class ServerRpcHandler {
  public:
-  Subscriber(std::shared_ptr<ChannelInterface> channel);
-  void Shutdown();
+  // Takes ownership of async_server_context.
+  ServerRpcHandler(AsyncServerContext *async_server_context,
+                   RpcServiceMethod *method);
 
-  Status CreateSubscription(const grpc::string& topic,
-                            const grpc::string& name);
-
-  Status GetSubscription(const grpc::string& name, grpc::string* topic);
-
-  Status DeleteSubscription(const grpc::string& name);
-
-  Status Pull(const grpc::string& name, grpc::string* data);
+  void StartRpc();
 
  private:
-  std::unique_ptr<tech::pubsub::SubscriberService::Stub> stub_;
+  CompletionQueue::CompletionType WaitForNextEvent();
+  void FinishRpc(const Status &status);
+
+  std::unique_ptr<AsyncServerContext> async_server_context_;
+  RpcServiceMethod *method_;
+  CompletionQueue cq_;
 };
 
-}  // namespace pubsub
-}  // namespace examples
 }  // namespace grpc
 
-#endif  // __GRPCPP_EXAMPLES_PUBSUB_SUBSCRIBER_H_
+#endif  // __GRPCPP_INTERNAL_SERVER_SERVER_RPC_HANDLER_H__
