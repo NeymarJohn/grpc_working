@@ -31,62 +31,59 @@
  *
  */
 
-#ifndef __GRPCPP_CLIENT_CONTEXT_H__
-#define __GRPCPP_CLIENT_CONTEXT_H__
+#include <grpc++/async_server.h>
 
-#include <chrono>
-#include <string>
-#include <vector>
-
+#include <grpc/grpc.h>
 #include <grpc/support/log.h>
-#include <grpc/support/time.h>
-#include <grpc++/config.h>
-
-using std::chrono::system_clock;
-
-struct grpc_call;
-struct grpc_completion_queue;
+#include <grpc++/completion_queue.h>
 
 namespace grpc {
 
-class ClientContext {
- public:
-  ClientContext();
-  ~ClientContext();
+AsyncServer::AsyncServer(CompletionQueue *cc)
+    : started_(false), shutdown_(false) {
+  server_ = grpc_server_create(cc->cq(), nullptr);
+}
 
-  void AddMetadata(const grpc::string &meta_key,
-                   const grpc::string &meta_value);
-
-  void set_absolute_deadline(const system_clock::time_point &deadline);
-  system_clock::time_point absolute_deadline();
-
-  void StartCancel();
-
- private:
-  // Disallow copy and assign.
-  ClientContext(const ClientContext &);
-  ClientContext &operator=(const ClientContext &);
-
-  friend class Channel;
-  friend class StreamContext;
-
-  grpc_call *call() { return call_; }
-  void set_call(grpc_call *call) {
-    GPR_ASSERT(call_ == nullptr);
-    call_ = call;
+AsyncServer::~AsyncServer() {
+  std::unique_lock<std::mutex> lock(shutdown_mu_);
+  if (started_ && !shutdown_) {
+    lock.unlock();
+    Shutdown();
   }
+  grpc_server_destroy(server_);
+}
 
-  grpc_completion_queue *cq() { return cq_; }
-  void set_cq(grpc_completion_queue *cq) { cq_ = cq; }
+void AsyncServer::AddPort(const grpc::string &addr) {
+  GPR_ASSERT(!started_);
+  int success = grpc_server_add_http2_port(server_, addr.c_str());
+  GPR_ASSERT(success);
+}
 
-  gpr_timespec RawDeadline() { return absolute_deadline_; }
+void AsyncServer::Start() {
+  GPR_ASSERT(!started_);
+  started_ = true;
+  grpc_server_start(server_);
+}
 
-  grpc_call *call_;
-  grpc_completion_queue *cq_;
-  gpr_timespec absolute_deadline_;
-  std::vector<std::pair<grpc::string, grpc::string> > metadata_;
-};
+void AsyncServer::RequestOneRpc() {
+  GPR_ASSERT(started_);
+  std::unique_lock<std::mutex> lock(shutdown_mu_);
+  if (shutdown_) {
+    return;
+  }
+  lock.unlock();
+  grpc_call_error err = grpc_server_request_call_old(server_, nullptr);
+  GPR_ASSERT(err == GRPC_CALL_OK);
+}
+
+void AsyncServer::Shutdown() {
+  std::unique_lock<std::mutex> lock(shutdown_mu_);
+  if (started_ && !shutdown_) {
+    shutdown_ = true;
+    lock.unlock();
+    // TODO(yangg) should we shutdown without start?
+    grpc_server_shutdown(server_);
+  }
+}
 
 }  // namespace grpc
-
-#endif  // __GRPCPP_CLIENT_CONTEXT_H__

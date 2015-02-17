@@ -31,30 +31,23 @@
  *
  */
 
-#include <grpc++/server_context.h>
-#include <grpc++/impl/call.h>
 #include <grpc/grpc.h>
-#include "src/cpp/util/time.h"
+#include "test/core/util/test_config.h"
 
-namespace grpc {
-
-ServerContext::ServerContext() {}
-
-ServerContext::ServerContext(gpr_timespec deadline, grpc_metadata *metadata,
-                             size_t metadata_count)
-    : deadline_(Timespec2Timepoint(deadline)) {
-  for (size_t i = 0; i < metadata_count; i++) {
-    client_metadata_.insert(std::make_pair(
-        grpc::string(metadata[i].key),
-        grpc::string(metadata[i].value,
-                     metadata[i].value + metadata[i].value_length)));
+static void test(int rounds) {
+  int i;
+  for (i = 0; i < rounds; i++) {
+    grpc_init();
+  }
+  for (i = 0; i < rounds; i++) {
+    grpc_shutdown();
   }
 }
 
-ServerContext::~ServerContext() {
-  if (call_) {
-    grpc_call_destroy(call_);
-  }
+int main(int argc, char **argv) {
+  grpc_test_init(argc, argv);
+  test(1);
+  test(2);
+  test(3);
+  return 0;
 }
-
-}  // namespace grpc
