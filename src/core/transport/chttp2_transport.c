@@ -478,9 +478,6 @@ static void init_transport(transport *t, grpc_transport_setup_callback setup,
   ref_transport(t);
   gpr_mu_unlock(&t->mu);
 
-  ref_transport(t);
-  recv_data(t, slices, nslices, GRPC_ENDPOINT_CB_OK);
-
   sr = setup(arg, &t->base, t->metadata_context);
 
   lock(t);
@@ -488,6 +485,10 @@ static void init_transport(transport *t, grpc_transport_setup_callback setup,
   t->cb_user_data = sr.user_data;
   t->calling_back = 0;
   unlock(t);
+
+  ref_transport(t);
+  recv_data(t, slices, nslices, GRPC_ENDPOINT_CB_OK);
+
   unref_transport(t);
 }
 
@@ -684,10 +685,11 @@ static void unlock(transport *t) {
   int i;
   pending_goaway *goaways = NULL;
   grpc_endpoint *ep = t->ep;
-  grpc_stream_op_buffer nuke_now = t->nuke_later_sopb;
-
-  if (nuke_now.nops) {
-    memset(&t->nuke_later_sopb, 0, sizeof(t->nuke_later_sopb));
+  grpc_stream_op_buffer nuke_now;
+  
+  grpc_sopb_init(&nuke_now);
+  if (t->nuke_later_sopb.nops) {
+    grpc_sopb_swap(&nuke_now, &t->nuke_later_sopb);
   }
 
   /* see if we need to trigger a write - and if so, get the data ready */
@@ -757,9 +759,7 @@ static void unlock(transport *t) {
     unref_transport(t);
   }
 
-  if (nuke_now.nops) {
-    grpc_sopb_destroy(&nuke_now);
-  }
+  grpc_sopb_destroy(&nuke_now);
 
   gpr_free(goaways);
 }
@@ -1013,6 +1013,8 @@ static void cancel_stream_inner(transport *t, stream *s, gpr_uint32 id,
                                 int send_rst) {
   int had_outgoing;
   char buffer[GPR_LTOA_MIN_BUFSIZE];
+
+  gpr_log(GPR_DEBUG, "cancel %d", id);
 
   if (s) {
     /* clear out any unreported input & output: nobody cares anymore */
@@ -1698,13 +1700,10 @@ static grpc_stream_state compute_state(gpr_uint8 write_closed,
 
 static int prepare_callbacks(transport *t) {
   stream *s;
-  grpc_stream_op_buffer temp_sopb;
   int n = 0;
   while ((s = stream_list_remove_head(t, PENDING_CALLBACKS))) {
     int execute = 1;
-    temp_sopb = s->parser.incoming_sopb;
-    s->parser.incoming_sopb = s->callback_sopb;
-    s->callback_sopb = temp_sopb;
+    grpc_sopb_swap(&s->parser.incoming_sopb, &s->callback_sopb);
 
     s->callback_state = compute_state(s->sent_write_closed, s->read_closed);
     if (s->callback_state == GRPC_STREAM_CLOSED) {

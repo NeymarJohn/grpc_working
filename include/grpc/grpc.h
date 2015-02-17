@@ -44,7 +44,7 @@
 extern "C" {
 #endif
 
-/* Completion Channels enable notification of the completion of asynchronous
+/* Completion Queues enable notification of the completion of asynchronous
    actions. */
 typedef struct grpc_completion_queue grpc_completion_queue;
 
@@ -156,7 +156,8 @@ typedef enum grpc_op_error {
 struct grpc_byte_buffer;
 typedef struct grpc_byte_buffer grpc_byte_buffer;
 
-/* Sample helpers to obtain byte buffers (these will certainly move place */
+/* Sample helpers to obtain byte buffers (these will certainly move
+   someplace else) */
 grpc_byte_buffer *grpc_byte_buffer_create(gpr_slice *slices, size_t nslices);
 grpc_byte_buffer *grpc_byte_buffer_copy(grpc_byte_buffer *bb);
 size_t grpc_byte_buffer_length(grpc_byte_buffer *bb);
@@ -254,15 +255,18 @@ void grpc_call_details_init(grpc_call_details *details);
 void grpc_call_details_destroy(grpc_call_details *details);
 
 typedef enum {
-  /* Send initial metadata: one and only one instance MUST be sent for each call,
+  /* Send initial metadata: one and only one instance MUST be sent for each
+     call,
      unless the call was cancelled - in which case this can be skipped */
   GRPC_OP_SEND_INITIAL_METADATA = 0,
   /* Send a message: 0 or more of these operations can occur for each call */
   GRPC_OP_SEND_MESSAGE,
-  /* Send a close from the server: one and only one instance MUST be sent from the client,
+  /* Send a close from the server: one and only one instance MUST be sent from
+     the client,
      unless the call was cancelled - in which case this can be skipped */
   GRPC_OP_SEND_CLOSE_FROM_CLIENT,
-  /* Send status from the server: one and only one instance MUST be sent from the server
+  /* Send status from the server: one and only one instance MUST be sent from
+     the server
      unless the call was cancelled - in which case this can be skipped */
   GRPC_OP_SEND_STATUS_FROM_SERVER,
   /* Receive initial metadata: one and only one MUST be made on the client, must
@@ -270,13 +274,16 @@ typedef enum {
   GRPC_OP_RECV_INITIAL_METADATA,
   /* Receive a message: 0 or more of these operations can occur for each call */
   GRPC_OP_RECV_MESSAGE,
-  /* Receive status on the client: one and only one must be made on the client */
+  /* Receive status on the client: one and only one must be made on the client
+     */
   GRPC_OP_RECV_STATUS_ON_CLIENT,
-  /* Receive status on the server: one and only one must be made on the server */
+  /* Receive status on the server: one and only one must be made on the server
+     */
   GRPC_OP_RECV_CLOSE_ON_SERVER
 } grpc_op_type;
 
-/* Operation data: one field for each op type (except SEND_CLOSE_FROM_CLIENT which has
+/* Operation data: one field for each op type (except SEND_CLOSE_FROM_CLIENT
+   which has
    no arguments) */
 typedef struct grpc_op {
   grpc_op_type op;
@@ -300,29 +307,33 @@ typedef struct grpc_op {
     grpc_metadata_array *recv_initial_metadata;
     grpc_byte_buffer **recv_message;
     struct {
-      /* ownership of the array is with the caller, but ownership of the elements
+      /* ownership of the array is with the caller, but ownership of the
+         elements
          stays with the call object (ie key, value members are owned by the call
          object, trailing_metadata->array is owned by the caller).
          After the operation completes, call grpc_metadata_array_destroy on this
          value, or reuse it in a future op. */
       grpc_metadata_array *trailing_metadata;
       grpc_status_code *status;
-      /* status_details is a buffer owned by the application before the op completes
-         and after the op has completed. During the operation status_details may be
-         reallocated to a size larger than *status_details_capacity, in which case
+      /* status_details is a buffer owned by the application before the op
+         completes
+         and after the op has completed. During the operation status_details may
+         be
+         reallocated to a size larger than *status_details_capacity, in which
+         case
          *status_details_capacity will be updated with the new array capacity.
 
          Pre-allocating space:
          size_t my_capacity = 8;
          char *my_details = gpr_malloc(my_capacity);
          x.status_details = &my_details;
-         x.status_details_capacity = &my_capacity; 
+         x.status_details_capacity = &my_capacity;
 
          Not pre-allocating space:
          size_t my_capacity = 0;
          char *my_details = NULL;
          x.status_details = &my_details;
-         x.status_details_capacity = &my_capacity; 
+         x.status_details_capacity = &my_capacity;
 
          After the call:
          gpr_free(my_details); */
@@ -330,7 +341,8 @@ typedef struct grpc_op {
       size_t *status_details_capacity;
     } recv_status_on_client;
     struct {
-      /* out argument, set to 1 if the call failed in any way (seen as a cancellation
+      /* out argument, set to 1 if the call failed in any way (seen as a
+         cancellation
          on the server), or 0 if the call succeeded */
       int *cancelled;
     } recv_close_on_server;
@@ -340,12 +352,12 @@ typedef struct grpc_op {
 /* Initialize the grpc library */
 void grpc_init(void);
 
-/* Shutdown the grpc library */
+/* Shut down the grpc library */
 void grpc_shutdown(void);
 
 grpc_completion_queue *grpc_completion_queue_create(void);
 
-/* Blocks until an event is available, the completion queue is being shutdown,
+/* Blocks until an event is available, the completion queue is being shut down,
    or deadline is reached. Returns NULL on timeout, otherwise the event that
    occurred. Callers should call grpc_event_finish once they have processed
    the event.
@@ -365,7 +377,7 @@ grpc_event *grpc_completion_queue_next(grpc_completion_queue *cq,
 grpc_event *grpc_completion_queue_pluck(grpc_completion_queue *cq, void *tag,
                                         gpr_timespec deadline);
 
-/* Cleanup any data owned by the event */
+/* Clean up any data owned by the event */
 void grpc_event_finish(grpc_event *event);
 
 /* Begin destruction of a completion queue. Once all possible events are
@@ -392,7 +404,7 @@ grpc_call *grpc_channel_create_call(grpc_channel *channel,
                                     gpr_timespec deadline);
 
 /* Start a batch of operations defined in the array ops; when complete, post a
-   completion of type 'tag' to the completion queue bound to the call. 
+   completion of type 'tag' to the completion queue bound to the call.
    The order of ops specified in the batch has no significance.
    Only one operation of each type can be active at once in any given
    batch. */
@@ -539,10 +551,30 @@ void grpc_call_destroy(grpc_call *call);
 grpc_call_error grpc_server_request_call_old(grpc_server *server,
                                              void *tag_new);
 
+/* Request notification of a new call */
 grpc_call_error grpc_server_request_call(
     grpc_server *server, grpc_call **call, grpc_call_details *details,
     grpc_metadata_array *request_metadata,
-    grpc_completion_queue *completion_queue, void *tag_new);
+    grpc_completion_queue *cq_bound_to_call, 
+    void *tag_new);
+
+/* Registers a method in the server.
+   Methods to this (host, method) pair will not be reported by
+   grpc_server_request_call, but instead be reported by 
+   grpc_server_request_registered_call when passed the appropriate
+   registered_method (as returned by this function).
+   Must be called before grpc_server_start.
+   Returns NULL on failure. */
+void *grpc_server_register_method(grpc_server *server, const char *method,
+                                  const char *host, 
+                                  grpc_completion_queue *new_call_cq);
+
+/* Request notification of a new pre-registered call */
+grpc_call_error grpc_server_request_registered_call(
+    grpc_server *server, void *registered_method, grpc_call **call,
+    gpr_timespec *deadline, grpc_metadata_array *request_metadata,
+    grpc_byte_buffer **optional_payload,
+    grpc_completion_queue *cq_bound_to_call, void *tag_new);
 
 /* Create a server */
 grpc_server *grpc_server_create(grpc_completion_queue *cq,
