@@ -92,7 +92,12 @@ typedef struct {
   } value;
 } grpc_arg;
 
-/* An array of arguments that can be passed around */
+/* An array of arguments that can be passed around.
+   Used to set optional channel-level configuration.
+   These configuration options are modelled as key-value pairs as defined
+   by grpc_arg; keys are strings to allow easy backwards-compatible extension
+   by arbitrary parties.
+   All evaluation is performed at channel creation time. */
 typedef struct {
   size_t num_args;
   grpc_arg *args;
@@ -400,7 +405,10 @@ grpc_call *grpc_channel_create_call(grpc_channel *channel,
 grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
                                       size_t nops, void *tag);
 
-/* Create a client channel */
+/* Create a client channel to 'target'. Additional channel level configuration
+   MAY be provided by grpc_channel_args, though the expectation is that most
+   clients will want to simply pass NULL. See grpc_channel_args definition
+   for more on this. */
 grpc_channel *grpc_channel_create(const char *target,
                                   const grpc_channel_args *args);
 
@@ -545,14 +553,21 @@ grpc_call_error grpc_server_request_call(
     grpc_metadata_array *request_metadata,
     grpc_completion_queue *completion_queue, void *tag_new);
 
-/* Create a server */
+/* Create a server. Additional configuration for each incoming channel can
+   be specified with args. If no additional configuration is needed, args can
+   be NULL. See grpc_channel_args for more. */
 grpc_server *grpc_server_create(grpc_completion_queue *cq,
                                 const grpc_channel_args *args);
 
-/* Add a HTTP2 over plaintext over tcp listener.
+/* Add a http2 over tcp listener.
    Returns bound port number on success, 0 on failure.
    REQUIRES: server not started */
 int grpc_server_add_http2_port(grpc_server *server, const char *addr);
+
+/* Add a secure port to server.
+   Returns bound port number on success, 0 on failure.
+   REQUIRES: server not started */
+int grpc_server_add_secure_http2_port(grpc_server *server, const char *addr);
 
 /* Start a server - tells all listeners to start listening */
 void grpc_server_start(grpc_server *server);
