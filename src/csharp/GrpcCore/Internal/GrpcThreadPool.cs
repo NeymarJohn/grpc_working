@@ -48,11 +48,17 @@ namespace Google.GRPC.Core.Internal
         readonly object myLock = new object();
         readonly List<Thread> threads = new List<Thread>();
         readonly int poolSize;
+        readonly Action<EventSafeHandle> eventHandler;
 
         CompletionQueueSafeHandle cq;
 
         public GrpcThreadPool(int poolSize) {
             this.poolSize = poolSize;
+        }
+
+        internal GrpcThreadPool(int poolSize, Action<EventSafeHandle> eventHandler) {
+            this.poolSize = poolSize;
+            this.eventHandler = eventHandler;
         }
 
         public void Start() {
@@ -98,24 +104,55 @@ namespace Google.GRPC.Core.Internal
             }
         }
 
-        private Thread CreateAndStartThread(int i)
-        {
-            var thread = new Thread(new ThreadStart(RunHandlerLoop));
+        private Thread CreateAndStartThread(int i) {
+            Action body;
+            if (eventHandler != null)
+            {
+                body = ThreadBodyWithHandler;
+            }
+            else
+            {
+                body = ThreadBodyNoHandler;
+            }
+            var thread = new Thread(new ThreadStart(body));
             thread.IsBackground = false;
             thread.Start();
-            thread.Name = "grpc " + i;
+            if (eventHandler != null)
+            {
+                thread.Name = "grpc_server_newrpc " + i;
+            }
+            else
+            {
+                thread.Name = "grpc " + i;
+            }
             return thread;
         }
 
         /// <summary>
         /// Body of the polling thread.
         /// </summary>
-        private void RunHandlerLoop()
+        private void ThreadBodyNoHandler()
         {
             GRPCCompletionType completionType;
             do
             {
                 completionType = cq.NextWithCallback();
+            } while(completionType != GRPCCompletionType.GRPC_QUEUE_SHUTDOWN);
+            Console.WriteLine("Completion queue has shutdown successfully, thread " + Thread.CurrentThread.Name + " exiting.");
+        }
+
+        /// <summary>
+        /// Body of the polling thread.
+        /// </summary>
+        private void ThreadBodyWithHandler()
+        {
+            GRPCCompletionType completionType;
+            do
+            {
+                using (EventSafeHandle ev = cq.Next(Timespec.InfFuture)) {
+                    completionType = ev.GetCompletionType();
+                    eventHandler(ev);
+                }
             } while(completionType != GRPCCompletionType.GRPC_QUEUE_SHUTDOWN);
             Console.WriteLine("Completion queue has shutdown successfully, thread " + Thread.CurrentThread.Name + " exiting.");
         }

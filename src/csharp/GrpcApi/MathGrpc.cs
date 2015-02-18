@@ -81,7 +81,7 @@ namespace math
 
             Task<DivReply> DivAsync(DivArgs request, CancellationToken token = default(CancellationToken));
 
-            void Fib(FibArgs request, IObserver<Num> responseObserver, CancellationToken token = default(CancellationToken));
+            Task Fib(FibArgs request, IObserver<Num> responseObserver, CancellationToken token = default(CancellationToken));
 
             ClientStreamingAsyncResult<Num, Num> Sum(CancellationToken token = default(CancellationToken));
 
@@ -109,10 +109,10 @@ namespace math
                 return Calls.AsyncUnaryCall(call, request, token);
             }
 
-            public void Fib(FibArgs request, IObserver<Num> responseObserver, CancellationToken token = default(CancellationToken))
+            public Task Fib(FibArgs request, IObserver<Num> responseObserver, CancellationToken token = default(CancellationToken))
             {
                 var call = new Google.GRPC.Core.Call<FibArgs, Num>(fibMethod, channel);
-                Calls.AsyncServerStreamingCall(call, request, responseObserver, token);
+                return Calls.AsyncServerStreamingCall(call, request, responseObserver, token);
             }
 
             public ClientStreamingAsyncResult<Num, Num> Sum(CancellationToken token = default(CancellationToken))
