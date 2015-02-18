@@ -36,9 +36,9 @@ require 'faraday'
 require 'grpc/auth/compute_engine'
 require 'spec_helper'
 
-describe GRPC::Auth::GCECredentials do
+describe Google::RPC::Auth::GCECredentials do
   MD_URI = '/computeMetadata/v1/instance/service-accounts/default/token'
-  GCECredentials = GRPC::Auth::GCECredentials
+  GCECredentials = Google::RPC::Auth::GCECredentials
 
   before(:example) do
     @client = GCECredentials.new

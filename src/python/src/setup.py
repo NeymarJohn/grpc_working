@@ -32,13 +32,13 @@
 from distutils import core as _core
 
 _EXTENSION_SOURCES = (
-    'grpc/_adapter/_c.c',
-    'grpc/_adapter/_call.c',
-    'grpc/_adapter/_channel.c',
-    'grpc/_adapter/_completion_queue.c',
-    'grpc/_adapter/_error.c',
-    'grpc/_adapter/_server.c',
-    'grpc/_adapter/_server_credentials.c',
+    '_adapter/_c.c',
+    '_adapter/_call.c',
+    '_adapter/_channel.c',
+    '_adapter/_completion_queue.c',
+    '_adapter/_error.c',
+    '_adapter/_server.c',
+    '_adapter/_server_credentials.c',
 )
 
 _EXTENSION_INCLUDE_DIRECTORIES = (
@@ -51,31 +51,29 @@ _EXTENSION_LIBRARIES = (
 )
 
 _EXTENSION_MODULE = _core.Extension(
-    'grpc._adapter._c', sources=list(_EXTENSION_SOURCES),
+    '_adapter._c', sources=list(_EXTENSION_SOURCES),
     include_dirs=_EXTENSION_INCLUDE_DIRECTORIES,
     libraries=_EXTENSION_LIBRARIES,
     )
 
 _PACKAGES=(
-    'grpc',
-    'grpc._adapter',
-    'grpc._junkdrawer',
-    'grpc.early_adopter',
-    'grpc.framework',
-    'grpc.framework.base',
-    'grpc.framework.base.packets',
-    'grpc.framework.common',
-    'grpc.framework.face',
-    'grpc.framework.face.testing',
-    'grpc.framework.foundation',
+    '_adapter',
+    '_framework',
+    '_framework.base',
+    '_framework.base.packets',
+    '_framework.common',
+    '_framework.face',
+    '_framework.face.testing',
+    '_framework.foundation',
+    '_junkdrawer',
+    'grpc_early_adopter',
 )
 
 _PACKAGE_DIRECTORIES = {
-    'grpc': 'grpc',
-    'grpc._adapter': 'grpc/_adapter',
-    'grpc._junkdrawer': 'grpc/_junkdrawer',
-    'grpc.early_adopter': 'grpc/early_adopter',
-    'grpc.framework': 'grpc/framework',
+    '_adapter': '_adapter',
+    '_framework': '_framework',
+    '_junkdrawer': '_junkdrawer',
+    'grpc_early_adopter': 'grpc_early_adopter',
 }
 
 _core.setup(
