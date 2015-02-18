@@ -35,7 +35,7 @@
 
 #include <grpc++/client_context.h>
 
-#include "examples/pubsub/publisher.h"
+#include "examples/tips/publisher.h"
 
 using tech::pubsub::Topic;
 using tech::pubsub::DeleteTopicRequest;
@@ -48,7 +48,7 @@ using tech::pubsub::PubsubMessage;
 
 namespace grpc {
 namespace examples {
-namespace pubsub {
+namespace tips {
 
 Publisher::Publisher(std::shared_ptr<ChannelInterface> channel)
     : stub_(PublisherService::NewStub(channel)) {
@@ -119,6 +119,6 @@ Status Publisher::Publish(const grpc::string& topic, const grpc::string& data) {
   return stub_->Publish(&context, request, &response);
 }
 
-}  // namespace pubsub
+}  // namespace tips
 }  // namespace examples
 }  // namespace grpc
