@@ -31,45 +31,33 @@
  *
  */
 
-#ifndef __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
-#define __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+#include <grpc/grpc.h>
+#include "test/core/util/test_config.h"
 
-#include <condition_variable>
-#include <mutex>
-#include <string>
+static void test(int rounds) {
+  int i;
+  for (i = 0; i < rounds; i++) {
+    grpc_init();
+  }
+  for (i = 0; i < rounds; i++) {
+    grpc_shutdown();
+  }
+}
 
-#include <grpc++/async_server.h>
-#include <grpc++/completion_queue.h>
+static void test_mixed() {
+  grpc_init();
+  grpc_init();
+  grpc_shutdown();
+  grpc_init();
+  grpc_shutdown();
+  grpc_shutdown();
+}
 
-namespace grpc {
-
-namespace testing {
-
-class AsyncTestServer {
- public:
-  AsyncTestServer();
-  virtual ~AsyncTestServer();
-
-  void AddPort(const grpc::string& addr);
-  void Start();
-  void RequestOneRpc();
-  virtual void MainLoop();
-  void Shutdown();
-
-  CompletionQueue* completion_queue() { return &cq_; }
-
- protected:
-  void HandleQueueClosed();
-
- private:
-  CompletionQueue cq_;
-  AsyncServer server_;
-  bool cq_drained_;
-  std::mutex cq_drained_mu_;
-  std::condition_variable cq_drained_cv_;
-};
-
-}  // namespace testing
-}  // namespace grpc
-
-#endif  // __GRPCPP_TEST_END2END_ASYNC_TEST_SERVER_H__
+int main(int argc, char **argv) {
+  grpc_test_init(argc, argv);
+  test(1);
+  test(2);
+  test(3);
+  test_mixed();
+  return 0;
+}
