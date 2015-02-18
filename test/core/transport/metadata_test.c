@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@
 #define LOG_TEST() gpr_log(GPR_INFO, "%s", __FUNCTION__)
 
 /* a large number */
-#define MANY 10000
+#define MANY 1000000
 
 static void test_no_op(void) {
   grpc_mdctx *ctx;

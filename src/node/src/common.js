@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-
-var _ = require('underscore');
 
 var capitalize = require('underscore.string/capitalize');
 
@@ -90,24 +88,6 @@ function fullyQualifiedName(value) {
 }
 
 /**
- * Wrap a function to pass null-like values through without calling it. If no
- * function is given, just uses the identity;
- * @param {?function} func The function to wrap
- * @return {function} The wrapped function
- */
-function wrapIgnoreNull(func) {
-  if (!func) {
-    return _.identity;
-  }
-  return function(arg) {
-    if (arg === null || arg === undefined) {
-      return null;
-    }
-    return func(arg);
-  };
-}
-
-/**
  * See docs for deserializeCls
  */
 exports.deserializeCls = deserializeCls;
@@ -121,8 +101,3 @@ exports.serializeCls = serializeCls;
  * See docs for fullyQualifiedName
  */
 exports.fullyQualifiedName = fullyQualifiedName;
-
-/**
- * See docs for wrapIgnoreNull
- */
-exports.wrapIgnoreNull = wrapIgnoreNull;
