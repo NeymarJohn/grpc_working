@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -231,7 +231,7 @@ void CallOpBuffer::FillOps(grpc_op* ops, size_t* nops) {
   }
 }
 
-bool CallOpBuffer::FinalizeResult(void** tag, bool* status) {
+void CallOpBuffer::FinalizeResult(void** tag, bool* status) {
   // Release send buffers.
   if (send_message_buf_) {
     grpc_byte_buffer_destroy(send_message_buf_);
@@ -274,7 +274,6 @@ bool CallOpBuffer::FinalizeResult(void** tag, bool* status) {
   if (recv_closed_) {
     *recv_closed_ = cancelled_buf_ != 0;
   }
-  return true;
 }
 
 Call::Call(grpc_call* call, CallHook* call_hook, CompletionQueue* cq)

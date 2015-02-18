@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -163,11 +163,10 @@ class Server::SyncRequest final : public CompletionQueueTag {
                    this));
   }
 
-  bool FinalizeResult(void** tag, bool* status) override {
+  void FinalizeResult(void** tag, bool* status) override {
     if (!*status) {
       grpc_completion_queue_destroy(cq_);
     }
-    return true;
   }
 
   class CallData final {
@@ -205,7 +204,6 @@ class Server::SyncRequest final : public CompletionQueueTag {
       if (has_response_payload_) {
         res.reset(method_->AllocateResponseProto());
       }
-      ctx_.BeginCompletionOp(&call_);
       auto status = method_->handler()->RunHandler(
           MethodHandler::HandlerParameter(&call_, &ctx_, req.get(), res.get()));
       CallOpBuffer buf;
@@ -216,12 +214,10 @@ class Server::SyncRequest final : public CompletionQueueTag {
         buf.AddSendMessage(*res);
       }
       buf.AddServerSendStatus(&ctx_.trailing_metadata_, status);
+      bool cancelled;
+      buf.AddServerRecvClose(&cancelled);
       call_.PerformOps(&buf);
       GPR_ASSERT(cq_.Pluck(&buf));
-      void* ignored_tag;
-      bool ignored_ok;
-      cq_.Shutdown();
-      GPR_ASSERT(cq_.Next(&ignored_tag, &ignored_ok) == false);
     }
 
    private:
@@ -314,11 +310,11 @@ class Server::AsyncRequest final : public CompletionQueueTag {
     grpc_metadata_array_destroy(&array_);
   }
 
-  bool FinalizeResult(void** tag, bool* status) override {
+  void FinalizeResult(void** tag, bool* status) override {
     *tag = tag_;
     if (*status && request_) {
       if (payload_) {
-        *status = DeserializeProto(payload_, request_);
+        *status = *status && DeserializeProto(payload_, request_);
       } else {
         *status = false;
       }
@@ -335,11 +331,8 @@ class Server::AsyncRequest final : public CompletionQueueTag {
     }
     ctx_->call_ = call_;
     Call call(call_, server_, cq_);
-    ctx_->BeginCompletionOp(&call);
-    // just the pointers inside call are copied here
     stream_->BindCall(&call);
     delete this;
-    return true;
   }
 
  private:
