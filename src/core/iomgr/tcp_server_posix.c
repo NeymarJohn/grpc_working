@@ -82,7 +82,6 @@ typedef struct {
     struct sockaddr_un un;
   } addr;
   int addr_len;
-  grpc_iomgr_closure read_closure;
 } server_port;
 
 static void unlink_if_unix_domain_socket(const struct sockaddr_un *un) {
@@ -245,7 +244,7 @@ static void on_read(void *arg, int success) {
         case EINTR:
           continue;
         case EAGAIN:
-          grpc_fd_notify_on_read(sp->emfd, &sp->read_closure);
+          grpc_fd_notify_on_read(sp->emfd, on_read, sp);
           return;
         default:
           gpr_log(GPR_ERROR, "Failed accept4: %s", strerror(errno));
@@ -394,9 +393,7 @@ void grpc_tcp_server_start(grpc_tcp_server *s, grpc_pollset **pollsets,
     for (j = 0; j < pollset_count; j++) {
       grpc_pollset_add_fd(pollsets[j], s->ports[i].emfd);
     }
-    s->ports[i].read_closure.cb = on_read;
-    s->ports[i].read_closure.cb_arg = &s->ports[i];
-    grpc_fd_notify_on_read(s->ports[i].emfd, &s->ports[i].read_closure);
+    grpc_fd_notify_on_read(s->ports[i].emfd, on_read, &s->ports[i]);
     s->active_ports++;
   }
   gpr_mu_unlock(&s->mu);
