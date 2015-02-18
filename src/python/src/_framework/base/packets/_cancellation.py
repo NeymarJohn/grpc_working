@@ -27,56 +27,38 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""A setup module for the GRPC Python package."""
+"""State and behavior for operation cancellation."""
 
-from distutils import core as _core
+from _framework.base.packets import _interfaces
+from _framework.base.packets import packets
 
-_EXTENSION_SOURCES = (
-    '_adapter/_c.c',
-    '_adapter/_call.c',
-    '_adapter/_channel.c',
-    '_adapter/_completion_queue.c',
-    '_adapter/_error.c',
-    '_adapter/_server.c',
-    '_adapter/_server_credentials.c',
-)
 
-_EXTENSION_INCLUDE_DIRECTORIES = (
-    '.',
-)
+class CancellationManager(_interfaces.CancellationManager):
+  """An implementation of _interfaces.CancellationManager."""
 
-_EXTENSION_LIBRARIES = (
-    'gpr',
-    'grpc',
-)
+  def __init__(
+      self, lock, termination_manager, transmission_manager, ingestion_manager,
+      expiration_manager):
+    """Constructor.
 
-_EXTENSION_MODULE = _core.Extension(
-    '_adapter._c', sources=list(_EXTENSION_SOURCES),
-    include_dirs=_EXTENSION_INCLUDE_DIRECTORIES,
-    libraries=_EXTENSION_LIBRARIES,
-    )
+    Args:
+      lock: The operation-wide lock.
+      termination_manager: The _interfaces.TerminationManager for the operation.
+      transmission_manager: The _interfaces.TransmissionManager for the
+        operation.
+      ingestion_manager: The _interfaces.IngestionManager for the operation.
+      expiration_manager: The _interfaces.ExpirationManager for the operation.
+    """
+    self._lock = lock
+    self._termination_manager = termination_manager
+    self._transmission_manager = transmission_manager
+    self._ingestion_manager = ingestion_manager
+    self._expiration_manager = expiration_manager
 
-_PACKAGES=(
-    '_adapter',
-    '_framework',
-    '_framework.base',
-    '_framework.base.packets',
-    '_framework.common',
-    '_framework.face',
-    '_framework.face.testing',
-    '_framework.foundation',
-    '_junkdrawer',
-    'grpc_early_adopter',
-)
-
-_PACKAGE_DIRECTORIES = {
-    '_adapter': '_adapter',
-    '_framework': '_framework',
-    '_junkdrawer': '_junkdrawer',
-    'grpc_early_adopter': 'grpc_early_adopter',
-}
-
-_core.setup(
-    name='grpc-2015', version='0.0.1',
-    ext_modules=[_EXTENSION_MODULE], packages=_PACKAGES,
-    package_dir=_PACKAGE_DIRECTORIES)
+  def cancel(self):
+    """See _interfaces.CancellationManager.cancel for specification."""
+    with self._lock:
+      self._termination_manager.abort(packets.Kind.CANCELLATION)
+      self._transmission_manager.abort(packets.Kind.CANCELLATION)
+      self._ingestion_manager.abort()
+      self._expiration_manager.abort()

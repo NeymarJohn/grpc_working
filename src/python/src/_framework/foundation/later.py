@@ -27,56 +27,25 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""A setup module for the GRPC Python package."""
+"""Enables scheduling execution at a later time."""
 
-from distutils import core as _core
+import time
 
-_EXTENSION_SOURCES = (
-    '_adapter/_c.c',
-    '_adapter/_call.c',
-    '_adapter/_channel.c',
-    '_adapter/_completion_queue.c',
-    '_adapter/_error.c',
-    '_adapter/_server.c',
-    '_adapter/_server_credentials.c',
-)
+from _framework.foundation import _timer_future
 
-_EXTENSION_INCLUDE_DIRECTORIES = (
-    '.',
-)
 
-_EXTENSION_LIBRARIES = (
-    'gpr',
-    'grpc',
-)
+def later(delay, computation):
+  """Schedules later execution of a callable.
 
-_EXTENSION_MODULE = _core.Extension(
-    '_adapter._c', sources=list(_EXTENSION_SOURCES),
-    include_dirs=_EXTENSION_INCLUDE_DIRECTORIES,
-    libraries=_EXTENSION_LIBRARIES,
-    )
+  Args:
+    delay: Any numeric value. Represents the minimum length of time in seconds
+      to allow to pass before beginning the computation. No guarantees are made
+      about the maximum length of time that will pass.
+    computation: A callable that accepts no arguments.
 
-_PACKAGES=(
-    '_adapter',
-    '_framework',
-    '_framework.base',
-    '_framework.base.packets',
-    '_framework.common',
-    '_framework.face',
-    '_framework.face.testing',
-    '_framework.foundation',
-    '_junkdrawer',
-    'grpc_early_adopter',
-)
-
-_PACKAGE_DIRECTORIES = {
-    '_adapter': '_adapter',
-    '_framework': '_framework',
-    '_junkdrawer': '_junkdrawer',
-    'grpc_early_adopter': 'grpc_early_adopter',
-}
-
-_core.setup(
-    name='grpc-2015', version='0.0.1',
-    ext_modules=[_EXTENSION_MODULE], packages=_PACKAGES,
-    package_dir=_PACKAGE_DIRECTORIES)
+  Returns:
+    A Future representing the scheduled computation.
+  """
+  timer_future = _timer_future.TimerFuture(time.time() + delay, computation)
+  timer_future.start()
+  return timer_future

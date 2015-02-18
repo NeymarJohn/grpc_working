@@ -27,56 +27,20 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""A setup module for the GRPC Python package."""
+"""One of the tests of the Face layer of RPC Framework."""
 
-from distutils import core as _core
+import unittest
 
-_EXTENSION_SOURCES = (
-    '_adapter/_c.c',
-    '_adapter/_call.c',
-    '_adapter/_channel.c',
-    '_adapter/_completion_queue.c',
-    '_adapter/_error.c',
-    '_adapter/_server.c',
-    '_adapter/_server_credentials.c',
-)
+from _adapter import _face_test_case
+from _framework.face.testing import event_invocation_synchronous_event_service_test_case as test_case
 
-_EXTENSION_INCLUDE_DIRECTORIES = (
-    '.',
-)
 
-_EXTENSION_LIBRARIES = (
-    'gpr',
-    'grpc',
-)
+class EventInvocationSynchronousEventServiceTest(
+    _face_test_case.FaceTestCase,
+    test_case.EventInvocationSynchronousEventServiceTestCase,
+    unittest.TestCase):
+  pass
 
-_EXTENSION_MODULE = _core.Extension(
-    '_adapter._c', sources=list(_EXTENSION_SOURCES),
-    include_dirs=_EXTENSION_INCLUDE_DIRECTORIES,
-    libraries=_EXTENSION_LIBRARIES,
-    )
 
-_PACKAGES=(
-    '_adapter',
-    '_framework',
-    '_framework.base',
-    '_framework.base.packets',
-    '_framework.common',
-    '_framework.face',
-    '_framework.face.testing',
-    '_framework.foundation',
-    '_junkdrawer',
-    'grpc_early_adopter',
-)
-
-_PACKAGE_DIRECTORIES = {
-    '_adapter': '_adapter',
-    '_framework': '_framework',
-    '_junkdrawer': '_junkdrawer',
-    'grpc_early_adopter': 'grpc_early_adopter',
-}
-
-_core.setup(
-    name='grpc-2015', version='0.0.1',
-    ext_modules=[_EXTENSION_MODULE], packages=_PACKAGES,
-    package_dir=_PACKAGE_DIRECTORIES)
+if __name__ == '__main__':
+  unittest.main()
