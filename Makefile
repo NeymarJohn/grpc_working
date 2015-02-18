@@ -177,9 +177,7 @@ LDFLAGS += -g -fPIC
 
 INCLUDES = . include $(GENDIR)
 ifeq ($(SYSTEM),Darwin)
-INCLUDES += /usr/local/ssl/include /opt/local/include
 LIBS = m z
-LDFLAGS += -L/usr/local/ssl/lib -L/opt/local/lib
 else
 LIBS = rt m z pthread
 LDFLAGS += -pthread
@@ -3027,7 +3025,6 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/server_credentials.h \
     include/grpc++/status.h \
     include/grpc++/stream.h \
-    include/grpc++/stream_context_interface.h \
 
 LIBGRPC++_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC++_SRC))))
 
