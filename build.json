@@ -398,7 +398,6 @@
       "build": "all",
       "language": "c++",
       "public_headers": [
-        "include/grpc++/async_unary_call.h",
         "include/grpc++/channel_arguments.h",
         "include/grpc++/channel_interface.h",
         "include/grpc++/client_context.h",
@@ -416,8 +415,7 @@
         "include/grpc++/server_context.h",
         "include/grpc++/server_credentials.h",
         "include/grpc++/status.h",
-        "include/grpc++/stream.h",
-        "include/grpc++/stream_context_interface.h"
+        "include/grpc++/stream.h"
       ],
       "headers": [
         "src/cpp/client/channel.h",
