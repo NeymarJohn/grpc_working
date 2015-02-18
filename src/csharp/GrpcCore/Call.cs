@@ -32,9 +32,9 @@
 #endregion
 
 using System;
-using Grpc.Core.Internal;
+using Google.GRPC.Core.Internal;
 
-namespace Grpc.Core
+namespace Google.GRPC.Core
 {
     public class Call<TRequest, TResponse>
     {
