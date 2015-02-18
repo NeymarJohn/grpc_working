@@ -92,12 +92,7 @@ typedef struct {
   } value;
 } grpc_arg;
 
-/* An array of arguments that can be passed around.
-   Used to set optional channel-level configuration.
-   These configuration options are modelled as key-value pairs as defined
-   by grpc_arg; keys are strings to allow easy backwards-compatible extension
-   by arbitrary parties.
-   All evaluation is performed at channel creation time. */
+/* An array of arguments that can be passed around */
 typedef struct {
   size_t num_args;
   grpc_arg *args;
@@ -343,10 +338,18 @@ typedef struct grpc_op {
   } data;
 } grpc_op;
 
-/* Initialize the grpc library */
+/* Initialize the grpc library.
+   It is not safe to call any other grpc functions before calling this.
+   (To avoid overhead, little checking is done, and some things may work. We
+   do not warrant that they will continue to do so in future revisions of this
+   library). */
 void grpc_init(void);
 
-/* Shut down the grpc library */
+/* Shut down the grpc library. 
+   No memory is used by grpc after this call returns, nor are any instructions
+   executing within the grpc library.
+   Prior to calling, all application owned grpc objects must have been
+   destroyed. */
 void grpc_shutdown(void);
 
 grpc_completion_queue *grpc_completion_queue_create(void);
@@ -405,10 +408,7 @@ grpc_call *grpc_channel_create_call(grpc_channel *channel,
 grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
                                       size_t nops, void *tag);
 
-/* Create a client channel to 'target'. Additional channel level configuration
-   MAY be provided by grpc_channel_args, though the expectation is that most
-   clients will want to simply pass NULL. See grpc_channel_args definition
-   for more on this. */
+/* Create a client channel */
 grpc_channel *grpc_channel_create(const char *target,
                                   const grpc_channel_args *args);
 
@@ -553,8 +553,7 @@ grpc_call_error grpc_server_request_call(
     grpc_metadata_array *request_metadata,
     grpc_completion_queue *completion_queue, void *tag_new);
 
-/* Create a server. Additional configuration for each incoming channel can
-   be specified with args. See grpc_channel_args for more. */
+/* Create a server */
 grpc_server *grpc_server_create(grpc_completion_queue *cq,
                                 const grpc_channel_args *args);
 
