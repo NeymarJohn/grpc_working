@@ -48,14 +48,12 @@
 #include <netinet/tcp.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/un.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
 
 #include "src/core/iomgr/pollset_posix.h"
-#include "src/core/iomgr/resolve_address.h"
 #include "src/core/iomgr/sockaddr_utils.h"
 #include "src/core/iomgr/socket_utils_posix.h"
 #include "src/core/iomgr/tcp_posix.h"
@@ -75,12 +73,6 @@ typedef struct {
   int fd;
   grpc_fd *emfd;
   grpc_tcp_server *server;
-  union {
-    gpr_uint8 untyped[GRPC_MAX_SOCKADDR_SIZE];
-    struct sockaddr sockaddr;
-    struct sockaddr_un un;
-  } addr;
-  int addr_len;
 } server_port;
 
 /* the overall server */
@@ -129,9 +121,6 @@ void grpc_tcp_server_destroy(grpc_tcp_server *s) {
   /* delete ALL the things */
   for (i = 0; i < s->nports; i++) {
     server_port *sp = &s->ports[i];
-    if (sp->addr.sockaddr.sa_family == AF_UNIX) {
-      unlink(sp->addr.un.sun_path);
-    }
     grpc_fd_orphan(sp->emfd, NULL, NULL);
   }
   gpr_free(s->ports);
@@ -181,8 +170,8 @@ static int prepare_socket(int fd, const struct sockaddr *addr, int addr_len) {
   }
 
   if (!grpc_set_socket_nonblocking(fd, 1) || !grpc_set_socket_cloexec(fd, 1) ||
-      (addr->sa_family != AF_UNIX && (!grpc_set_socket_low_latency(fd, 1) ||
-                                      !grpc_set_socket_reuse_addr(fd, 1)))) {
+      !grpc_set_socket_low_latency(fd, 1) ||
+      !grpc_set_socket_reuse_addr(fd, 1)) {
     gpr_log(GPR_ERROR, "Unable to configure socket %d: %s", fd,
             strerror(errno));
     goto error;
@@ -276,8 +265,6 @@ static int add_socket_to_server(grpc_tcp_server *s, int fd,
     sp->server = s;
     sp->fd = fd;
     sp->emfd = grpc_fd_create(fd);
-    memcpy(sp->addr.untyped, addr, addr_len);
-    sp->addr_len = addr_len;
     GPR_ASSERT(sp->emfd);
     gpr_mu_unlock(&s->mu);
   }
