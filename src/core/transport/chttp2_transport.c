@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -336,8 +336,10 @@ static void recv_data(void *tp, gpr_slice *slices, size_t nslices,
  * CONSTRUCTION/DESTRUCTION/REFCOUNTING
  */
 
-static void destruct_transport(transport *t) {
+static void unref_transport(transport *t) {
   size_t i;
+
+  if (!gpr_unref(&t->refs)) return;
 
   gpr_mu_lock(&t->mu);
 
@@ -378,14 +380,7 @@ static void destruct_transport(transport *t) {
 
   grpc_sopb_destroy(&t->nuke_later_sopb);
 
-  grpc_mdctx_unref(t->metadata_context);
-
   gpr_free(t);
-}
-
-static void unref_transport(transport *t) {
-  if (!gpr_unref(&t->refs)) return;
-  destruct_transport(t);
 }
 
 static void ref_transport(transport *t) { gpr_ref(&t->refs); }
@@ -406,7 +401,6 @@ static void init_transport(transport *t, grpc_transport_setup_callback setup,
   gpr_ref_init(&t->refs, 2);
   gpr_mu_init(&t->mu);
   gpr_cv_init(&t->cv);
-  grpc_mdctx_ref(mdctx);
   t->metadata_context = mdctx;
   t->str_grpc_timeout =
       grpc_mdstr_from_string(t->metadata_context, "grpc-timeout");
@@ -489,6 +483,9 @@ static void init_transport(transport *t, grpc_transport_setup_callback setup,
   ref_transport(t);
   gpr_mu_unlock(&t->mu);
 
+  ref_transport(t);
+  recv_data(t, slices, nslices, GRPC_ENDPOINT_CB_OK);
+
   sr = setup(arg, &t->base, t->metadata_context);
 
   lock(t);
@@ -497,10 +494,6 @@ static void init_transport(transport *t, grpc_transport_setup_callback setup,
   t->calling_back = 0;
   if (t->destroying) gpr_cv_signal(&t->cv);
   unlock(t);
-
-  ref_transport(t);
-  recv_data(t, slices, nslices, GRPC_ENDPOINT_CB_OK);
-
   unref_transport(t);
 }
 
@@ -702,7 +695,7 @@ static void unlock(transport *t) {
   pending_goaway *goaways = NULL;
   grpc_endpoint *ep = t->ep;
   grpc_stream_op_buffer nuke_now;
-
+  
   grpc_sopb_init(&nuke_now);
   if (t->nuke_later_sopb.nops) {
     grpc_sopb_swap(&nuke_now, &t->nuke_later_sopb);
