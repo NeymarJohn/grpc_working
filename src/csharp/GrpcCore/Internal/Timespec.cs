@@ -35,7 +35,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace Grpc.Core.Internal
+namespace Google.GRPC.Core.Internal
 {
 	/// <summary>
 	/// gpr_timespec from grpc/support/time.h

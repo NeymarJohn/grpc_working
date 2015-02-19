@@ -34,7 +34,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Grpc.Core
+namespace Google.GRPC.Core
 {
 	/// <summary>
 	/// Represents RPC result.

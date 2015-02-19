@@ -1,43 +1,38 @@
 gRPC Ruby
 =========
 
-A Ruby implementation of gRPC.
+A Ruby implementation of gRPC, Google's RPC library.
 
-Status
--------
-
-Alpha : Ready for early adopters
 
 INSTALLATION PREREQUISITES
 --------------------------
 
-This requires Ruby 2.x, as the RPC API surface uses keyword args.
+This requires Ruby 2.x, as the rpc api surface uses keyword args.
 
 
-QUICK - INSTALL
----------------
+INSTALLING
+----------
 
-- Clone this repository.
-- Follow the instructions in [INSTALL](../../INSTALL) to install the gRPC C core.
-- Use bundler to install
-```sh
-$ # from this directory
-$ gem install bundler && bundle install
+- Install the gRPC core library
+  TODO: describe this, once the core distribution mechanism is defined.
 ```
+$ gem install grpc
+```
+
 
 Installing from source
 ----------------------
 
-- Build the gRPC C core
-E.g, from the root of the gRPC [git repo](https://github.com/google/grpc)
-```sh
+- Build or Install the gRPC core
+E.g, from the root of the grpc [git repo](https://github.com/google/grpc)
+```
 $ cd ../..
 $ make && sudo make install
 ```
 
 - Install Ruby 2.x. Consider doing this with [RVM](http://rvm.io), it's a nice way of controlling
   the exact ruby version that's used.
-```sh
+```
 $ command curl -sSL https://rvm.io/mpapis.asc | gpg --import -
 $ \curl -sSL https://get.rvm.io | bash -s stable --ruby
 $
@@ -50,8 +45,8 @@ $ # and that the rvm command is installed
 $ gem install bundler
 ```
 
-- Finally, install the gRPC gem locally.
-```sh
+- Finally, install grpc ruby locally.
+```
 $ cd <install_dir>
 $ bundle install
 $ rake  # compiles the extension, runs the unit tests, see rake -T for other options
@@ -65,7 +60,7 @@ Directory structure is the layout for [ruby extensions](http://guides.rubygems.o
 - ext:
   the gRPC ruby extension
 - lib:
-  the entrypoint gRPC ruby library to be used in a 'require' statement
+  the entrypoint grpc ruby library to be used in a 'require' statement
 - spec:
   Rspec unittest
 - bin:
@@ -74,6 +69,6 @@ Directory structure is the layout for [ruby extensions](http://guides.rubygems.o
 stub = Math::Math::Stub.new('my.test.math.server.com:8080')
 req = Math::DivArgs.new(dividend: 7, divisor: 3)
 logger.info("div(7/3): req=#{req.inspect}")
-resp = stub.div(req)
+resp = stub.div(req, INFINITE_FUTURE)
 logger.info("Answer: #{resp.inspect}")
 ```

@@ -33,7 +33,7 @@
 
 using System;
 
-namespace Grpc.Core
+namespace Google.GRPC.Core
 {
     // TODO: perhaps add also serverSideStreaming and clientSideStreaming
 

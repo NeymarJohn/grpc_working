@@ -60,5 +60,4 @@ Status BlockingUnaryCall(ChannelInterface *channel, const RpcMethod &method,
   GPR_ASSERT((cq.Pluck(&buf) && buf.got_message) || !status.IsOk());
   return status;
 }
-
 }  // namespace grpc

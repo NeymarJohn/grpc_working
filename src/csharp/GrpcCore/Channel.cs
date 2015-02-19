@@ -35,9 +35,9 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Grpc.Core.Internal;
+using Google.GRPC.Core.Internal;
 
-namespace Grpc.Core
+namespace Google.GRPC.Core
 {
 	public class Channel : IDisposable
 	{
