@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,17 +104,14 @@ static void destroy(grpc_fd *fd) {
 }
 
 static void ref_by(grpc_fd *fd, int n) {
-  GPR_ASSERT(gpr_atm_no_barrier_fetch_add(&fd->refst, n) > 0);
+  gpr_atm_no_barrier_fetch_add(&fd->refst, n);
 }
 
 static void unref_by(grpc_fd *fd, int n) {
-  gpr_atm old = gpr_atm_full_fetch_add(&fd->refst, -n);
-  if (old == n) {
+  if (gpr_atm_full_fetch_add(&fd->refst, -n) == n) {
     grpc_iomgr_add_callback(fd->on_done, fd->on_done_user_data);
     freelist_fd(fd);
     grpc_iomgr_unref();
-  } else {
-    GPR_ASSERT(old > n);
   }
 }
 
@@ -295,8 +292,6 @@ gpr_uint32 grpc_fd_begin_poll(grpc_fd *fd, grpc_pollset *pollset,
                               grpc_fd_watcher *watcher) {
   /* keep track of pollers that have requested our events, in case they change
    */
-  grpc_fd_ref(fd);
-
   gpr_mu_lock(&fd->watcher_mu);
   watcher->next = &fd->watcher_root;
   watcher->prev = watcher->next->prev;
@@ -314,8 +309,6 @@ void grpc_fd_end_poll(grpc_fd_watcher *watcher) {
   watcher->next->prev = watcher->prev;
   watcher->prev->next = watcher->next;
   gpr_mu_unlock(&watcher->fd->watcher_mu);
-
-  grpc_fd_unref(watcher->fd);
 }
 
 void grpc_fd_become_readable(grpc_fd *fd, int allow_synchronous_callback) {

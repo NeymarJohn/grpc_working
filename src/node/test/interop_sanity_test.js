@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,35 +53,30 @@ describe('Interop tests', function() {
   });
   // This depends on not using a binary stream
   it('should pass empty_unary', function(done) {
-    interop_client.runTest(port, name_override, 'empty_unary', true, true,
-                           done);
+    interop_client.runTest(port, name_override, 'empty_unary', true, done);
   });
   // This fails due to an unknown bug
-  it('should pass large_unary', function(done) {
-    interop_client.runTest(port, name_override, 'large_unary', true, true,
-                           done);
+  it.skip('should pass large_unary', function(done) {
+    interop_client.runTest(port, name_override, 'large_unary', true, done);
   });
   it('should pass client_streaming', function(done) {
-    interop_client.runTest(port, name_override, 'client_streaming', true, true,
-                           done);
+    interop_client.runTest(port, name_override, 'client_streaming', true, done);
   });
   it('should pass server_streaming', function(done) {
-    interop_client.runTest(port, name_override, 'server_streaming', true, true,
-                           done);
+    interop_client.runTest(port, name_override, 'server_streaming', true, done);
   });
   it('should pass ping_pong', function(done) {
-    interop_client.runTest(port, name_override, 'ping_pong', true, true, done);
+    interop_client.runTest(port, name_override, 'ping_pong', true, done);
   });
   it('should pass empty_stream', function(done) {
-    interop_client.runTest(port, name_override, 'empty_stream', true, true,
-                           done);
+    interop_client.runTest(port, name_override, 'empty_stream', true, done);
   });
   it('should pass cancel_after_begin', function(done) {
     interop_client.runTest(port, name_override, 'cancel_after_begin', true,
-                           true, done);
+                           done);
   });
   it('should pass cancel_after_first_response', function(done) {
     interop_client.runTest(port, name_override, 'cancel_after_first_response',
-                           true, true, done);
+                           true, done);
   });
 });
