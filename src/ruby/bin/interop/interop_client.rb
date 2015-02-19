@@ -211,8 +211,10 @@ class NamedTests
   def compute_engine_creds
     resp = perform_large_unary(fill_username: true,
                                fill_oauth_scope: true)
+    assert(@args.oauth_scope.include?(resp.oauth_scope),
+           'service_account_creds: incorrect oauth_scope')
     assert_equal(@args.default_service_account, resp.username,
-                 'compute_engine_creds: incorrect username')
+                 'service_account_creds: incorrect username')
     p 'OK: compute_engine_creds'
   end
 

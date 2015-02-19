@@ -1,7 +1,7 @@
 gRPC Ruby
 =========
 
-A Ruby implementation of gRPC.
+A Ruby implementation of gRPC, Google's RPC library.
 
 
 INSTALLATION PREREQUISITES
@@ -10,30 +10,29 @@ INSTALLATION PREREQUISITES
 This requires Ruby 2.x, as the rpc api surface uses keyword args.
 
 
-QUICK - INSTALL
----------------
+INSTALLING
+----------
 
-- Clone this repository.
-- Follow the instructions in the [INSTALL](../../INSTALL) to install grpc C core library.
-- Use bundler to install
-```sh
-$ # from this directory
-$ gem install bundler && bundle install
+- Install the gRPC core library
+  TODO: describe this, once the core distribution mechanism is defined.
 ```
+$ gem install grpc
+```
+
 
 Installing from source
 ----------------------
 
 - Build or Install the gRPC core
 E.g, from the root of the grpc [git repo](https://github.com/google/grpc)
-```sh
+```
 $ cd ../..
 $ make && sudo make install
 ```
 
 - Install Ruby 2.x. Consider doing this with [RVM](http://rvm.io), it's a nice way of controlling
   the exact ruby version that's used.
-```sh
+```
 $ command curl -sSL https://rvm.io/mpapis.asc | gpg --import -
 $ \curl -sSL https://get.rvm.io | bash -s stable --ruby
 $
@@ -47,7 +46,7 @@ $ gem install bundler
 ```
 
 - Finally, install grpc ruby locally.
-```sh
+```
 $ cd <install_dir>
 $ bundle install
 $ rake  # compiles the extension, runs the unit tests, see rake -T for other options
@@ -70,6 +69,6 @@ Directory structure is the layout for [ruby extensions](http://guides.rubygems.o
 stub = Math::Math::Stub.new('my.test.math.server.com:8080')
 req = Math::DivArgs.new(dividend: 7, divisor: 3)
 logger.info("div(7/3): req=#{req.inspect}")
-resp = stub.div(req)
+resp = stub.div(req, INFINITE_FUTURE)
 logger.info("Answer: #{resp.inspect}")
 ```
