@@ -34,9 +34,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Grpc.Core.Internal;
+using Google.GRPC.Core.Internal;
 
-namespace Grpc.Core
+namespace Google.GRPC.Core
 {
     // NOTE: this class is work-in-progress
 
