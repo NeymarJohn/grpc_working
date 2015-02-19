@@ -32,14 +32,14 @@
 #endregion
 
 using System;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using Grpc.Core.Internal;
+using Google.GRPC.Core.Internal;
 
-namespace Grpc.Core
+namespace Google.GRPC.Core
 {
     /// <summary>
     /// Server is implemented only to be able to do
