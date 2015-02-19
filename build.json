@@ -345,7 +345,7 @@
     {
       "name": "grpc_csharp_ext",
       "build": "all",
-      "language": "csharp",
+      "language": "c",
       "src": [
         "src/csharp/ext/grpc_csharp_ext.c"
       ],
