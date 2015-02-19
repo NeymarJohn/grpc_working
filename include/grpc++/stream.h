@@ -582,6 +582,8 @@ class ServerAsyncReader : public ServerAsyncStreamingInterface,
     if (status.IsOk()) {
       finish_buf_.AddSendMessage(msg);
     }
+    bool cancelled = false;
+    finish_buf_.AddServerRecvClose(&cancelled);
     finish_buf_.AddServerSendStatus(&ctx_->trailing_metadata_, status);
     call_.PerformOps(&finish_buf_);
   }
@@ -593,6 +595,8 @@ class ServerAsyncReader : public ServerAsyncStreamingInterface,
       finish_buf_.AddSendInitialMetadata(&ctx_->initial_metadata_);
       ctx_->sent_initial_metadata_ = true;
     }
+    bool cancelled = false;
+    finish_buf_.AddServerRecvClose(&cancelled);
     finish_buf_.AddServerSendStatus(&ctx_->trailing_metadata_, status);
     call_.PerformOps(&finish_buf_);
   }
@@ -639,6 +643,8 @@ class ServerAsyncWriter : public ServerAsyncStreamingInterface,
       finish_buf_.AddSendInitialMetadata(&ctx_->initial_metadata_);
       ctx_->sent_initial_metadata_ = true;
     }
+    bool cancelled = false;
+    finish_buf_.AddServerRecvClose(&cancelled);
     finish_buf_.AddServerSendStatus(&ctx_->trailing_metadata_, status);
     call_.PerformOps(&finish_buf_);
   }
@@ -693,6 +699,8 @@ class ServerAsyncReaderWriter : public ServerAsyncStreamingInterface,
       finish_buf_.AddSendInitialMetadata(&ctx_->initial_metadata_);
       ctx_->sent_initial_metadata_ = true;
     }
+    bool cancelled = false;
+    finish_buf_.AddServerRecvClose(&cancelled);
     finish_buf_.AddServerSendStatus(&ctx_->trailing_metadata_, status);
     call_.PerformOps(&finish_buf_);
   }

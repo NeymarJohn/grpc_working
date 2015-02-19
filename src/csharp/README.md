@@ -25,11 +25,10 @@ INSTALLATION AND USAGE: WINDOWS
 INSTALLATION AND USAGE: LINUX & MONO
 ------------------------------------
 
-- Compile and install the gRPC C# extension library (that will be used via
-  P/Invoke from C#).
+- Compile and install the gRPC C Core library
 ```
-make grpc_csharp_ext
-sudo make install_grpc_csharp_ext
+make shared_c
+sudo make install
 ```
 
 - Prerequisites for development: Mono framework, MonoDevelop (IDE)

@@ -31,13 +31,12 @@
  *
  */
 
-#include "src/core/support/string.h"
-
 #include <grpc/support/port_platform.h>
 #include <grpc/support/alloc.h>
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/slice.h>
+#include <grpc/support/string.h>
 
 #include <string.h>
 
