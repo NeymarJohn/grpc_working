@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -145,8 +145,8 @@ function serverStreaming(client, done) {
     resp_index += 1;
   });
   call.on('status', function(status) {
-    assert.strictEqual(status.code, grpc.status.OK);
     assert.strictEqual(resp_index, 4);
+    assert.strictEqual(status.code, grpc.status.OK);
     if (done) {
       done();
     }
