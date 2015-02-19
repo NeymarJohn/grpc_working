@@ -361,6 +361,7 @@
       "language": "c",
       "src": [
         "test/core/end2end/cq_verifier.c",
+        "test/core/end2end/data/prod_roots_certs.c",
         "test/core/end2end/data/server1_cert.c",
         "test/core/end2end/data/server1_key.c",
         "test/core/end2end/data/test_root_cert.c",
@@ -1574,7 +1575,7 @@
       ]
     },
     {
-      "name": "cpp_plugin",
+      "name": "grpc_cpp_plugin",
       "build": "protoc",
       "language": "c++",
       "headers": [
@@ -1746,7 +1747,7 @@
       ]
     },
     {
-      "name": "ruby_plugin",
+      "name": "grpc_ruby_plugin",
       "build": "protoc",
       "language": "c++",
       "src": [
