@@ -224,32 +224,25 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
     emitter.cancel = function cancel() {
       call.cancel();
     };
-    this.updateMetadata(metadata, function(error, metadata) {
-      if (error) {
-        call.cancel();
-        callback(error);
+    var client_batch = {};
+    client_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
+    client_batch[grpc.opType.SEND_MESSAGE] = serialize(argument);
+    client_batch[grpc.opType.SEND_CLOSE_FROM_CLIENT] = true;
+    client_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
+    client_batch[grpc.opType.RECV_MESSAGE] = true;
+    client_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
+    call.startBatch(client_batch, function(err, response) {
+      if (err) {
+        callback(err);
         return;
       }
-      var client_batch = {};
-      client_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
-      client_batch[grpc.opType.SEND_MESSAGE] = serialize(argument);
-      client_batch[grpc.opType.SEND_CLOSE_FROM_CLIENT] = true;
-      client_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
-      client_batch[grpc.opType.RECV_MESSAGE] = true;
-      client_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
-      call.startBatch(client_batch, function(err, response) {
-        if (err) {
-          callback(err);
-          return;
-        }
-        if (response.status.code != grpc.status.OK) {
-          callback(response.status);
-          return;
-        }
-        emitter.emit('status', response.status);
-        emitter.emit('metadata', response.metadata);
-        callback(null, deserialize(response.read));
-      });
+      if (response.status.code != grpc.status.OK) {
+        callback(response.status);
+        return;
+      }
+      emitter.emit('status', response.status);
+      emitter.emit('metadata', response.metadata);
+      callback(null, deserialize(response.read));
     });
     return emitter;
   }
@@ -286,37 +279,30 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
       metadata = {};
     }
     var stream = new ClientWritableStream(call, serialize);
-    this.updateMetadata(metadata, function(error, metadata) {
-      if (error) {
-        call.cancel();
-        callback(error);
+    var metadata_batch = {};
+    metadata_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
+    metadata_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
+    call.startBatch(metadata_batch, function(err, response) {
+      if (err) {
+        callback(err);
         return;
       }
-      var metadata_batch = {};
-      metadata_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
-      metadata_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
-      call.startBatch(metadata_batch, function(err, response) {
-        if (err) {
-          callback(err);
-          return;
-        }
-        stream.emit('metadata', response.metadata);
-      });
-      var client_batch = {};
-      client_batch[grpc.opType.RECV_MESSAGE] = true;
-      client_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
-      call.startBatch(client_batch, function(err, response) {
-        if (err) {
-          callback(err);
-          return;
-        }
-        if (response.status.code != grpc.status.OK) {
-          callback(response.status);
-          return;
-        }
-        stream.emit('status', response.status);
-        callback(null, deserialize(response.read));
-      });
+      stream.emit('metadata', response.metadata);
+    });
+    var client_batch = {};
+    client_batch[grpc.opType.RECV_MESSAGE] = true;
+    client_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
+    call.startBatch(client_batch, function(err, response) {
+      if (err) {
+        callback(err);
+        return;
+      }
+      if (response.status.code != grpc.status.OK) {
+        callback(response.status);
+        return;
+      }
+      stream.emit('status', response.status);
+      callback(null, deserialize(response.read));
     });
     return stream;
   }
@@ -353,31 +339,24 @@ function makeServerStreamRequestFunction(method, serialize, deserialize) {
       metadata = {};
     }
     var stream = new ClientReadableStream(call, deserialize);
-    this.updateMetadata(metadata, function(error, metadata) {
-      if (error) {
-        call.cancel();
-        stream.emit('error', error);
-        return;
+    var start_batch = {};
+    start_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
+    start_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
+    start_batch[grpc.opType.SEND_MESSAGE] = serialize(argument);
+    start_batch[grpc.opType.SEND_CLOSE_FROM_CLIENT] = true;
+    call.startBatch(start_batch, function(err, response) {
+      if (err) {
+        throw err;
       }
-      var start_batch = {};
-      start_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
-      start_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
-      start_batch[grpc.opType.SEND_MESSAGE] = serialize(argument);
-      start_batch[grpc.opType.SEND_CLOSE_FROM_CLIENT] = true;
-      call.startBatch(start_batch, function(err, response) {
-        if (err) {
-          throw err;
-        }
-        stream.emit('metadata', response.metadata);
-      });
-      var status_batch = {};
-      status_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
-      call.startBatch(status_batch, function(err, response) {
-        if (err) {
-          throw err;
-        }
-        stream.emit('status', response.status);
-      });
+      stream.emit('metadata', response.metadata);
+    });
+    var status_batch = {};
+    status_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
+    call.startBatch(status_batch, function(err, response) {
+      if (err) {
+        throw err;
+      }
+      stream.emit('status', response.status);
     });
     return stream;
   }
@@ -412,29 +391,22 @@ function makeBidiStreamRequestFunction(method, serialize, deserialize) {
       metadata = {};
     }
     var stream = new ClientDuplexStream(call, serialize, deserialize);
-    this.updateMetadata(metadata, function(error, metadata) {
-      if (error) {
-        call.cancel();
-        stream.emit('error', error);
-        return;
+    var start_batch = {};
+    start_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
+    start_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
+    call.startBatch(start_batch, function(err, response) {
+      if (err) {
+        throw err;
       }
-      var start_batch = {};
-      start_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
-      start_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
-      call.startBatch(start_batch, function(err, response) {
-        if (err) {
-          throw err;
-        }
-        stream.emit('metadata', response.metadata);
-      });
-      var status_batch = {};
-      status_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
-      call.startBatch(status_batch, function(err, response) {
-        if (err) {
-          throw err;
-        }
-        stream.emit('status', response.status);
-      });
+      stream.emit('metadata', response.metadata);
+    });
+    var status_batch = {};
+    status_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
+    call.startBatch(status_batch, function(err, response) {
+      if (err) {
+        throw err;
+      }
+      stream.emit('status', response.status);
     });
     return stream;
   }
@@ -466,17 +438,8 @@ function makeClientConstructor(service) {
    * @constructor
    * @param {string} address The address of the server to connect to
    * @param {Object} options Options to pass to the underlying channel
-   * @param {function(Object, function)=} updateMetadata function to update the
-   *     metadata for each request
    */
-  function Client(address, options, updateMetadata) {
-    if (updateMetadata) {
-      this.updateMetadata = updateMetadata;
-    } else {
-      this.updateMetadata = function(metadata, callback) {
-        callback(null, metadata);
-      };
-    }
+  function Client(address, options) {
     this.channel = new grpc.Channel(address, options);
   }
 
@@ -495,13 +458,11 @@ function makeClientConstructor(service) {
         method_type = 'unary';
       }
     }
-    var serialize = common.serializeCls(method.resolvedRequestType.build());
-    var deserialize = common.deserializeCls(
-        method.resolvedResponseType.build());
-    Client.prototype[decapitalize(method.name)] = requester_makers[method_type](
-        prefix + capitalize(method.name), serialize, deserialize);
-    Client.prototype[decapitalize(method.name)].serialize = serialize;
-    Client.prototype[decapitalize(method.name)].deserialize = deserialize;
+    Client.prototype[decapitalize(method.name)] =
+        requester_makers[method_type](
+            prefix + capitalize(method.name),
+            common.serializeCls(method.resolvedRequestType.build()),
+            common.deserializeCls(method.resolvedResponseType.build()));
   });
 
   Client.service = service;
