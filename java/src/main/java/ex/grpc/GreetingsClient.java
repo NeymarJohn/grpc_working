@@ -9,17 +9,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.concurrent.TimeUnit;
 
-public class GreeterClient {
+public class GreetingsClient {
   private final Logger logger = Logger.getLogger(
-      GreeterClient.class.getName());
+      GreetingsClient.class.getName());
   private final ChannelImpl channel;
-  private final GreeterGrpc.GreeterBlockingStub blockingStub;
+  private final GreetingsGrpc.GreetingsBlockingStub blockingStub;
 
-  public GreeterClient(String host, int port) {
+  public GreetingsClient(String host, int port) {
     channel = NettyChannelBuilder.forAddress(host, port)
               .negotiationType(NegotiationType.PLAINTEXT)
               .build();
-    blockingStub = GreeterGrpc.newBlockingStub(channel);
+    blockingStub = GreetingsGrpc.newBlockingStub(channel);
   }
 
   public void shutdown() throws InterruptedException {
@@ -31,7 +31,7 @@ public class GreeterClient {
       logger.fine("Will try to greet " + name + " ...");
       Helloworld.HelloRequest req =
           Helloworld.HelloRequest.newBuilder().setName(name).build();
-      Helloworld.HelloReply reply = blockingStub.sayHello(req);
+      Helloworld.HelloReply reply = blockingStub.hello(req);
       logger.info("Greeting: " + reply.getMessage());
     } catch (RuntimeException e) {
       logger.log(Level.WARNING, "RPC failed", e);
@@ -40,7 +40,7 @@ public class GreeterClient {
   }
 
   public static void main(String[] args) throws Exception {
-    GreeterClient client = new GreeterClient("localhost", 50051);
+    GreetingsClient client = new GreetingsClient("localhost", 50051);
     try {
       /* Access a service running on the local machine on port 50051 */
       String user = "world";

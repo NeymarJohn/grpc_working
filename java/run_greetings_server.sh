@@ -1,6 +1,6 @@
 #!/bin/bash -e
-TARGET='Greeter Server'
-TARGET_CLASS='ex.grpc.GreeterServer'
+TARGET='Greetings Server'
+TARGET_CLASS='ex.grpc.GreetingsServer'
 
 cd "$(dirname "$0")"
 mvn -q -nsu -am package -Dcheckstyle.skip=true -DskipTests

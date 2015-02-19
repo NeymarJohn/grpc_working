@@ -29,23 +29,43 @@
 
 syntax = "proto3";
 
-option java_package = "ex.grpc";
+package examples;
 
-package helloworld;
-
-// The request message containing the user's name.
-message HelloRequest {
-  optional string name = 1;
+// Protocol type definitions
+message StockRequest {
+  optional string symbol = 1;
+  optional int32 num_trades_to_watch = 2;
 }
 
-// The response message containing the greetings
-message HelloReply {
-  optional string message = 1;
+message StockReply {
+  optional float price = 1;
+  optional string symbol = 2;
 }
 
-// The greeting service definition.
-service Greetings {
-  // Sends a greeting
-  rpc hello (HelloRequest) returns (HelloReply) {
+// Interface exported by the server
+service Stock {
+  // A simple blocking RPC.
+  //
+  // Obtains the last traded price for the given Stock.
+  rpc GetLastTradePrice(StockRequest) returns (StockReply) {
+  }
+
+  // A Unidirectional server-to-client streaming RPC.
+  //
+  // Streams future prices for a given symbol.
+  rpc WatchFutureTrades(StockRequest) returns (stream StockReply) {
+  }
+
+  // A Unidirectional client-to-server streaming RPC.
+  //
+  // Gets the highest traded price for a series of symbols
+  rpc GetHighestTradePrice(stream StockRequest) returns (StockReply) {
+  }
+
+  // Bidirectional streaming RPC.
+  //
+  // Gets the most recent traded price of series of trades.
+  rpc GetLastTradePriceMultiple(stream StockRequest) returns
+    (stream StockReply) {
   }
 }
