@@ -31,10 +31,21 @@
  *
  */
 
-#ifndef __GRPC_INTERNAL_SECURITY_GOOGLE_ROOT_CERTS_H__
-#define __GRPC_INTERNAL_SECURITY_GOOGLE_ROOT_CERTS_H__
+#ifndef __GRPC_COMPILER_PYTHON_GENERATOR_H__
+#define __GRPC_COMPILER_PYTHON_GENERATOR_H__
 
-extern unsigned char grpc_google_root_certs[];
-extern unsigned int grpc_google_root_certs_size;
+#include <string>
 
-#endif /* __GRPC_INTERNAL_SECURITY_GOOGLE_ROOT_CERTS_H__ */
+namespace google {
+namespace protobuf {
+class FileDescriptor;
+}  // namespace protobuf
+}  // namespace google
+
+namespace grpc_python_generator {
+
+std::string GetServices(const google::protobuf::FileDescriptor* file);
+
+}  // namespace grpc_python_generator
+
+#endif  // __GRPC_COMPILER_PYTHON_GENERATOR_H__
