@@ -41,7 +41,7 @@
 #include <grpc/grpc.h>
 #include <grpc/support/histogram.h>
 #include <grpc/support/log.h>
-#include <gflags/gflags.h>
+#include <google/gflags.h>
 #include <grpc++/client_context.h>
 #include <grpc++/status.h>
 #include "test/core/util/grpc_profiler.h"
@@ -79,13 +79,6 @@ using grpc::testing::SimpleRequest;
 using grpc::testing::SimpleResponse;
 using grpc::testing::StatsRequest;
 using grpc::testing::TestService;
-
-// In some distros, gflags is in the namespace google, and in some others,
-// in gflags. This hack is enabling us to find both.
-namespace google { }
-namespace gflags { }
-using namespace google;
-using namespace gflags;
 
 static double now() {
   gpr_timespec tv = gpr_now();
@@ -228,7 +221,7 @@ void RunTest(const int client_threads, const int client_channels,
 
 int main(int argc, char **argv) {
   grpc_init();
-  ParseCommandLineFlags(&argc, &argv, true);
+  google::ParseCommandLineFlags(&argc, &argv, true);
 
   GPR_ASSERT(FLAGS_server_port);
 
