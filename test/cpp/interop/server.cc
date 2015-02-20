@@ -35,8 +35,6 @@
 #include <sstream>
 #include <thread>
 
-#include <signal.h>
-
 #include <gflags/gflags.h>
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
@@ -81,8 +79,6 @@ namespace google { }
 namespace gflags { }
 using namespace google;
 using namespace gflags;
-
-static bool got_sigint = false;
 
 bool SetPayload(PayloadType type, int size, Payload* payload) {
   PayloadType response_type = type;
@@ -221,17 +217,14 @@ void RunServer() {
   }
   std::unique_ptr<Server> server(builder.BuildAndStart());
   gpr_log(GPR_INFO, "Server listening on %s", server_address.str().c_str());
-  while (!got_sigint) {
+  while (true) {
     std::this_thread::sleep_for(std::chrono::seconds(5));
   }
 }
 
-static void sigint_handler(int x) { got_sigint = true; }
-
 int main(int argc, char** argv) {
   grpc_init();
   ParseCommandLineFlags(&argc, &argv, true);
-  signal(SIGINT, sigint_handler);
 
   GPR_ASSERT(FLAGS_port != 0);
   RunServer();
