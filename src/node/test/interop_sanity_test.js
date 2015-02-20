@@ -31,8 +31,6 @@
  *
  */
 
-'use strict';
-
 var interop_server = require('../interop/interop_server.js');
 var interop_client = require('../interop/interop_client.js');
 

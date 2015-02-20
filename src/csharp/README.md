@@ -3,7 +3,7 @@ gRPC C#
 
 A C# implementation of gRPC.
 
-Status
+EXPERIMENTAL ONLY
 -----------------
 
 **This gRPC C# implementation is work-in-progress and is not expected to work yet.**
