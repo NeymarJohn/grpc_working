@@ -31,8 +31,6 @@
  *
  */
 
-'use strict';
-
 var assert = require('assert');
 
 var grpc = require('..');
@@ -61,7 +59,7 @@ describe('Math client', function() {
   });
   it('should handle a single request', function(done) {
     var arg = {dividend: 7, divisor: 4};
-    math_client.div(arg, function handleDivResult(err, value) {
+    var call = math_client.div(arg, function handleDivResult(err, value) {
       assert.ifError(err);
       assert.equal(value.quotient, 1);
       assert.equal(value.remainder, 3);

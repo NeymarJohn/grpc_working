@@ -107,16 +107,13 @@ static void on_connect(void *rp, grpc_endpoint *tcp) {
     } else {
       return;
     }
-  } else if (grpc_client_setup_cb_begin(r->cs_request)) {
+  } else {
     grpc_create_chttp2_transport(
         r->setup->setup_callback, r->setup->setup_user_data,
         grpc_client_setup_get_channel_args(r->cs_request), tcp, NULL, 0,
         grpc_client_setup_get_mdctx(r->cs_request), 1);
-    grpc_client_setup_cb_end(r->cs_request);
     done(r, 1);
     return;
-  } else {
-    done(r, 0);
   }
 }
 

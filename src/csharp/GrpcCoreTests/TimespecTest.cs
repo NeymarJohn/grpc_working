@@ -32,11 +32,11 @@
 #endregion
 
 using System;
-using System.Runtime.InteropServices;
-using Grpc.Core.Internal;
 using NUnit.Framework;
+using System.Runtime.InteropServices;
+using Google.GRPC.Core.Internal;
 
-namespace Grpc.Core.Internal.Tests
+namespace Google.GRPC.Core.Internal.Tests
 {
     public class TimespecTest
     {

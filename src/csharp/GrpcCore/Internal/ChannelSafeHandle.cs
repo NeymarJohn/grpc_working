@@ -36,7 +36,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Grpc.Core.Internal
+namespace Google.GRPC.Core.Internal
 {
     /// <summary>
     /// grpc_channel from <grpc/grpc.h>

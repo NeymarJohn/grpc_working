@@ -31,8 +31,6 @@
  *
  */
 
-'use strict';
-
 var assert = require('assert');
 var grpc = require('bindings')('grpc.node');
 

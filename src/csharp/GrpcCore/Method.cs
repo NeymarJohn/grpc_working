@@ -33,7 +33,7 @@
 
 using System;
 
-namespace Grpc.Core
+namespace Google.GRPC.Core
 {
     public enum MethodType
     {

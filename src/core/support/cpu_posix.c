@@ -35,6 +35,8 @@
 
 #ifdef GPR_CPU_POSIX
 
+#include "src/core/support/cpu.h"
+
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>

@@ -31,8 +31,6 @@
  *
  */
 
-'use strict';
-
 var _ = require('underscore');
 
 var capitalize = require('underscore.string/capitalize');
@@ -219,7 +217,6 @@ function ServerWritableStream(call, serialize) {
  *     complete
  */
 function _write(chunk, encoding, callback) {
-  /* jshint validthis: true */
   var batch = {};
   batch[grpc.opType.SEND_MESSAGE] = this.serialize(chunk);
   this.call.startBatch(batch, function(err, value) {
@@ -254,7 +251,6 @@ function ServerReadableStream(call, deserialize) {
  * @param {number} size Ignored
  */
 function _read(size) {
-  /* jshint validthis: true */
   var self = this;
   /**
    * Callback to be called when a READ event is received. Pushes the data onto
@@ -271,7 +267,7 @@ function _read(size) {
       return;
     }
     var data = event.read;
-    if (self.push(self.deserialize(data)) && data !== null) {
+    if (self.push(self.deserialize(data)) && data != null) {
       var read_batch = {};
       read_batch[grpc.opType.RECV_MESSAGE] = true;
       self.call.startBatch(read_batch, readCallback);
@@ -428,6 +424,7 @@ function Server(getMetadata, options) {
   var handlers = this.handlers;
   var server = new grpc.Server(options);
   this._server = server;
+  var started = false;
   /**
    * Start the server and begin handling requests
    * @this Server
@@ -459,7 +456,8 @@ function Server(getMetadata, options) {
         return;
       }
       server.requestCall(handleNewCall);
-      var handler;
+      var handler = undefined;
+      var deadline = details.deadline;
       if (handlers.hasOwnProperty(method)) {
         handler = handlers[method];
       } else {
@@ -467,7 +465,7 @@ function Server(getMetadata, options) {
         batch[grpc.opType.SEND_INITIAL_METADATA] = {};
         batch[grpc.opType.SEND_STATUS_FROM_SERVER] = {
           code: grpc.status.UNIMPLEMENTED,
-          details: 'This method is not available on this server.',
+          details: "This method is not available on this server.",
           metadata: {}
         };
         batch[grpc.opType.RECV_CLOSE_ON_SERVER] = true;

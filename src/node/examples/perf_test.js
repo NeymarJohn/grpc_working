@@ -31,8 +31,6 @@
  *
  */
 
-'use strict';
-
 var grpc = require('..');
 var testProto = grpc.load(__dirname + '/../interop/test.proto').grpc.testing;
 var _ = require('underscore');
@@ -46,6 +44,7 @@ function runTest(iterations, callback) {
   function runIterations(finish) {
     var start = process.hrtime();
     var intervals = [];
+    var pending = iterations;
     function next(i) {
       if (i >= iterations) {
         testServer.server.shutdown();
@@ -70,30 +69,28 @@ function runTest(iterations, callback) {
 
   function warmUp(num) {
     var pending = num;
-    function startCall() {
-      client.emptyCall({}, function(err, resp) {
-        pending--;
-        if (pending === 0) {
-          runIterations(callback);
-        }
-      });
-    }
     for (var i = 0; i < num; i++) {
-      startCall();
+      (function(i) {
+        client.emptyCall({}, function(err, resp) {
+          pending--;
+          if (pending === 0) {
+            runIterations(callback);
+          }
+        });
+      })(i);
     }
   }
   warmUp(100);
 }
 
-function percentile(arr, pct) {
-  if (pct > 99) {
-    pct = 99;
+function percentile(arr, percentile) {
+  if (percentile > 99) {
+    percentile = 99;
   }
-  if (pct < 0) {
-    pct = 0;
+  if (percentile < 0) {
+    percentile = 0;
   }
-  var index = Math.floor(arr.length * pct / 100);
-  return arr[index];
+  return arr[(arr.length * percentile / 100)|0];
 }
 
 if (require.main === module) {

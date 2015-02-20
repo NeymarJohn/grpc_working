@@ -34,7 +34,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Grpc.Core.Internal
+namespace Google.GRPC.Core.Internal
 {
     /// <summary>
     /// from grpc/grpc.h
