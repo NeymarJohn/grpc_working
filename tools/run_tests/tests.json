@@ -195,10 +195,6 @@
   }, 
   {
     "language": "c", 
-    "name": "interop_test"
-  }, 
-  {
-    "language": "c", 
     "name": "json_rewrite_test"
   }, 
   {

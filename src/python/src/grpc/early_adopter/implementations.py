@@ -70,8 +70,7 @@ class _Server(interfaces.Server):
             self._pool, self._breakdown.request_deserializers,
             self._breakdown.response_serializers, None,
             ((self._private_key, self._certificate_chain),), port=self._port)
-        self._fore_link.start()
-        port = self._fore_link.port()
+        port = self._fore_link.start()
         self._back = _tickets_implementations.back(
             servicer, self._pool, self._pool, self._pool, _MEGA_TIMEOUT,
             _MEGA_TIMEOUT)

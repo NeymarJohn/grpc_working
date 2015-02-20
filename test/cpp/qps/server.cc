@@ -36,7 +36,7 @@
 #include <sys/signal.h>
 #include <thread>
 
-#include <gflags/gflags.h>
+#include <google/gflags.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/host_port.h>
 #include <grpc++/config.h>
@@ -67,13 +67,6 @@ using grpc::testing::SimpleResponse;
 using grpc::testing::StatsRequest;
 using grpc::testing::TestService;
 using grpc::Status;
-
-// In some distros, gflags is in the namespace google, and in some others,
-// in gflags. This hack is enabling us to find both.
-namespace google { }
-namespace gflags { }
-using namespace google;
-using namespace gflags;
 
 static bool got_sigint = false;
 
@@ -156,7 +149,7 @@ static void RunServer() {
 
 int main(int argc, char** argv) {
   grpc_init();
-  ParseCommandLineFlags(&argc, &argv, true);
+  google::ParseCommandLineFlags(&argc, &argv, true);
 
   signal(SIGINT, sigint_handler);
 
