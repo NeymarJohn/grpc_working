@@ -1,7 +1,7 @@
 # GRPC global makefile
 # This currently builds C and C++ code.
 
-# Copyright 2015, Google Inc.
+# Copyright 2014, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -180,7 +180,7 @@ HOST_LD = $(LD)
 HOST_LDXX = $(LDXX)
 
 CPPFLAGS += $(CPPFLAGS_$(CONFIG))
-DEFINES += $(DEFINES_$(CONFIG))
+DEFINES += $(DEFINES_$(CONFIG)) INSTALL_PREFIX=\"$(prefix)\"
 LDFLAGS += $(LDFLAGS_$(CONFIG))
 
 CFLAGS += -std=c89 -pedantic
