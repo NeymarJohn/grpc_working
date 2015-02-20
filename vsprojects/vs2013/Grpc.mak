@@ -1,3 +1,32 @@
+# Copyright 2014, Google Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#     * Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above
+# copyright notice, this list of conditions and the following disclaimer
+# in the documentation and/or other materials provided with the
+# distribution.
+#     * Neither the name of Google Inc. nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 # NMake file to build secondary gRPC targets on Windows.
 # Use grpc.sln to solution to build the gRPC libraries.
 
@@ -25,10 +54,10 @@ grpc_test_util:
 $(OUT_DIR):
 	mkdir $(OUT_DIR)
 
-buildtests: alarm_heap_test.exe alarm_list_test.exe alarm_test.exe alpn_test.exe bin_encoder_test.exe census_hash_table_test.exe census_statistics_multiple_writers_circular_buffer_test.exe census_statistics_multiple_writers_test.exe census_statistics_performance_test.exe census_statistics_quick_test.exe census_statistics_small_log_test.exe census_stats_store_test.exe census_stub_test.exe census_trace_store_test.exe census_window_stats_test.exe chttp2_status_conversion_test.exe chttp2_stream_encoder_test.exe chttp2_stream_map_test.exe chttp2_transport_end2end_test.exe dualstack_socket_test.exe echo_test.exe fd_posix_test.exe fling_stream_test.exe fling_test.exe gpr_cancellable_test.exe gpr_cmdline_test.exe gpr_env_test.exe gpr_file_test.exe gpr_histogram_test.exe gpr_host_port_test.exe gpr_log_test.exe gpr_slice_buffer_test.exe gpr_slice_test.exe gpr_string_test.exe gpr_sync_test.exe gpr_thd_test.exe gpr_time_test.exe gpr_useful_test.exe grpc_base64_test.exe grpc_byte_buffer_reader_test.exe grpc_channel_stack_test.exe grpc_completion_queue_test.exe grpc_credentials_test.exe grpc_json_token_test.exe grpc_stream_op_test.exe hpack_parser_test.exe hpack_table_test.exe httpcli_format_request_test.exe httpcli_parser_test.exe httpcli_test.exe interop_test.exe json_rewrite_test.exe json_test.exe lame_client_test.exe message_compress_test.exe metadata_buffer_test.exe multi_init_test.exe murmur_hash_test.exe no_server_test.exe poll_kick_posix_test.exe resolve_address_test.exe secure_endpoint_test.exe sockaddr_utils_test.exe tcp_client_posix_test.exe tcp_posix_test.exe tcp_server_posix_test.exe time_averaged_stats_test.exe time_test.exe timeout_encoding_test.exe transport_metadata_test.exe 
+buildtests: alarm_heap_test.exe alarm_list_test.exe alarm_test.exe alpn_test.exe bin_encoder_test.exe census_hash_table_test.exe census_statistics_multiple_writers_circular_buffer_test.exe census_statistics_multiple_writers_test.exe census_statistics_performance_test.exe census_statistics_quick_test.exe census_statistics_small_log_test.exe census_stats_store_test.exe census_stub_test.exe census_trace_store_test.exe census_window_stats_test.exe chttp2_status_conversion_test.exe chttp2_stream_encoder_test.exe chttp2_stream_map_test.exe chttp2_transport_end2end_test.exe dualstack_socket_test.exe echo_test.exe fd_posix_test.exe fling_stream_test.exe fling_test.exe gpr_cancellable_test.exe gpr_cmdline_test.exe gpr_env_test.exe gpr_file_test.exe gpr_histogram_test.exe gpr_host_port_test.exe gpr_log_test.exe gpr_slice_buffer_test.exe gpr_slice_test.exe gpr_string_test.exe gpr_sync_test.exe gpr_thd_test.exe gpr_time_test.exe gpr_useful_test.exe grpc_base64_test.exe grpc_byte_buffer_reader_test.exe grpc_channel_stack_test.exe grpc_completion_queue_test.exe grpc_credentials_test.exe grpc_json_token_test.exe grpc_stream_op_test.exe hpack_parser_test.exe hpack_table_test.exe httpcli_format_request_test.exe httpcli_parser_test.exe httpcli_test.exe json_rewrite_test.exe json_test.exe lame_client_test.exe message_compress_test.exe metadata_buffer_test.exe multi_init_test.exe murmur_hash_test.exe no_server_test.exe poll_kick_posix_test.exe resolve_address_test.exe secure_endpoint_test.exe sockaddr_utils_test.exe tcp_client_posix_test.exe tcp_posix_test.exe tcp_server_posix_test.exe time_averaged_stats_test.exe time_test.exe timeout_encoding_test.exe transport_metadata_test.exe 
 	echo All tests built.
 
-test: alarm_heap_test alarm_list_test alarm_test alpn_test bin_encoder_test census_hash_table_test census_statistics_multiple_writers_circular_buffer_test census_statistics_multiple_writers_test census_statistics_performance_test census_statistics_quick_test census_statistics_small_log_test census_stats_store_test census_stub_test census_trace_store_test census_window_stats_test chttp2_status_conversion_test chttp2_stream_encoder_test chttp2_stream_map_test chttp2_transport_end2end_test dualstack_socket_test echo_test fd_posix_test fling_stream_test fling_test gpr_cancellable_test gpr_cmdline_test gpr_env_test gpr_file_test gpr_histogram_test gpr_host_port_test gpr_log_test gpr_slice_buffer_test gpr_slice_test gpr_string_test gpr_sync_test gpr_thd_test gpr_time_test gpr_useful_test grpc_base64_test grpc_byte_buffer_reader_test grpc_channel_stack_test grpc_completion_queue_test grpc_credentials_test grpc_json_token_test grpc_stream_op_test hpack_parser_test hpack_table_test httpcli_format_request_test httpcli_parser_test httpcli_test interop_test json_rewrite_test json_test lame_client_test message_compress_test metadata_buffer_test multi_init_test murmur_hash_test no_server_test poll_kick_posix_test resolve_address_test secure_endpoint_test sockaddr_utils_test tcp_client_posix_test tcp_posix_test tcp_server_posix_test time_averaged_stats_test time_test timeout_encoding_test transport_metadata_test 
+test: alarm_heap_test alarm_list_test alarm_test alpn_test bin_encoder_test census_hash_table_test census_statistics_multiple_writers_circular_buffer_test census_statistics_multiple_writers_test census_statistics_performance_test census_statistics_quick_test census_statistics_small_log_test census_stats_store_test census_stub_test census_trace_store_test census_window_stats_test chttp2_status_conversion_test chttp2_stream_encoder_test chttp2_stream_map_test chttp2_transport_end2end_test dualstack_socket_test echo_test fd_posix_test fling_stream_test fling_test gpr_cancellable_test gpr_cmdline_test gpr_env_test gpr_file_test gpr_histogram_test gpr_host_port_test gpr_log_test gpr_slice_buffer_test gpr_slice_test gpr_string_test gpr_sync_test gpr_thd_test gpr_time_test gpr_useful_test grpc_base64_test grpc_byte_buffer_reader_test grpc_channel_stack_test grpc_completion_queue_test grpc_credentials_test grpc_json_token_test grpc_stream_op_test hpack_parser_test hpack_table_test httpcli_format_request_test httpcli_parser_test httpcli_test json_rewrite_test json_test lame_client_test message_compress_test metadata_buffer_test multi_init_test murmur_hash_test no_server_test poll_kick_posix_test resolve_address_test secure_endpoint_test sockaddr_utils_test tcp_client_posix_test tcp_posix_test tcp_server_posix_test time_averaged_stats_test time_test timeout_encoding_test transport_metadata_test 
 	echo All tests ran.
 
 test_gpr: gpr_cancellable_test gpr_cmdline_test gpr_env_test gpr_file_test gpr_histogram_test gpr_host_port_test gpr_log_test gpr_slice_buffer_test gpr_slice_test gpr_string_test gpr_sync_test gpr_thd_test gpr_time_test gpr_useful_test 
@@ -489,14 +518,6 @@ httpcli_test.exe: grpc_test_util
 httpcli_test: httpcli_test.exe
 	echo Running httpcli_test
 	$(OUT_DIR)\httpcli_test.exe
-
-interop_test.exe: grpc_test_util
-	echo Building interop_test
-	$(CC) $(CFLAGS) /Fo:$(OUT_DIR)\ ..\..\test\cpp\interop\interop_test.c 
-	$(LINK) $(LFLAGS) /OUT:"$(OUT_DIR)\interop_test.exe" Debug\grpc_test_util.lib Debug\grpc.lib Debug\gpr_test_util.lib Debug\gpr.lib $(LIBS) $(OUT_DIR)\interop_test.obj 
-interop_test: interop_test.exe
-	echo Running interop_test
-	$(OUT_DIR)\interop_test.exe
 
 json_rewrite.exe: grpc_test_util
 	echo Building json_rewrite
