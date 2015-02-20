@@ -38,6 +38,7 @@
 
 #include "call.h"
 #include "channel.h"
+#include "event.h"
 #include "server.h"
 #include "completion_queue_async_worker.h"
 #include "credentials.h"

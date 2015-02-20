@@ -167,6 +167,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\core\support\cpu.h">
+      <Filter>src\core\support</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\core\support\env.h">
       <Filter>src\core\support</Filter>
     </ClInclude>
