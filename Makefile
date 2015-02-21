@@ -477,9 +477,9 @@ grpc_byte_buffer_reader_test: $(BINDIR)/$(CONFIG)/grpc_byte_buffer_reader_test
 grpc_channel_stack_test: $(BINDIR)/$(CONFIG)/grpc_channel_stack_test
 grpc_completion_queue_benchmark: $(BINDIR)/$(CONFIG)/grpc_completion_queue_benchmark
 grpc_completion_queue_test: $(BINDIR)/$(CONFIG)/grpc_completion_queue_test
+grpc_create_jwt: $(BINDIR)/$(CONFIG)/grpc_create_jwt
 grpc_credentials_test: $(BINDIR)/$(CONFIG)/grpc_credentials_test
 grpc_fetch_oauth2: $(BINDIR)/$(CONFIG)/grpc_fetch_oauth2
-grpc_create_jwt: $(BINDIR)/$(CONFIG)/grpc_create_jwt
 grpc_json_token_test: $(BINDIR)/$(CONFIG)/grpc_json_token_test
 grpc_stream_op_test: $(BINDIR)/$(CONFIG)/grpc_stream_op_test
 hpack_parser_test: $(BINDIR)/$(CONFIG)/hpack_parser_test
@@ -1763,7 +1763,7 @@ test_cxx: buildtests_cxx
 	$(Q) $(BINDIR)/$(CONFIG)/thread_pool_test || ( echo test thread_pool_test failed ; exit 1 )
 
 
-tools: privatelibs $(BINDIR)/$(CONFIG)/gen_hpack_tables $(BINDIR)/$(CONFIG)/grpc_fetch_oauth2 $(BINDIR)/$(CONFIG)/grpc_create_jwt
+tools: privatelibs $(BINDIR)/$(CONFIG)/gen_hpack_tables $(BINDIR)/$(CONFIG)/grpc_create_jwt $(BINDIR)/$(CONFIG)/grpc_fetch_oauth2
 
 buildbenchmarks: privatelibs $(BINDIR)/$(CONFIG)/grpc_completion_queue_benchmark $(BINDIR)/$(CONFIG)/low_level_ping_pong_benchmark
 
@@ -2324,7 +2324,8 @@ LIBGRPC_SRC = \
     src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_posix.c \
     src/core/iomgr/pollset_windows.c \
-    src/core/iomgr/resolve_address.c \
+    src/core/iomgr/resolve_address_posix.c \
+    src/core/iomgr/resolve_address_windows.c \
     src/core/iomgr/sockaddr_utils.c \
     src/core/iomgr/socket_utils_common_posix.c \
     src/core/iomgr/socket_utils_linux.c \
@@ -2464,7 +2465,8 @@ src/core/iomgr/pollset_multipoller_with_epoll.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_multipoller_with_poll_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/pollset_windows.c: $(OPENSSL_DEP)
-src/core/iomgr/resolve_address.c: $(OPENSSL_DEP)
+src/core/iomgr/resolve_address_posix.c: $(OPENSSL_DEP)
+src/core/iomgr/resolve_address_windows.c: $(OPENSSL_DEP)
 src/core/iomgr/sockaddr_utils.c: $(OPENSSL_DEP)
 src/core/iomgr/socket_utils_common_posix.c: $(OPENSSL_DEP)
 src/core/iomgr/socket_utils_linux.c: $(OPENSSL_DEP)
@@ -2621,7 +2623,8 @@ $(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_epoll.o:
 $(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
 $(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_posix.o: 
 $(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_windows.o: 
-$(OBJDIR)/$(CONFIG)/src/core/iomgr/resolve_address.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/resolve_address_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/resolve_address_windows.o: 
 $(OBJDIR)/$(CONFIG)/src/core/iomgr/sockaddr_utils.o: 
 $(OBJDIR)/$(CONFIG)/src/core/iomgr/socket_utils_common_posix.o: 
 $(OBJDIR)/$(CONFIG)/src/core/iomgr/socket_utils_linux.o: 
@@ -2793,7 +2796,8 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_posix.c \
     src/core/iomgr/pollset_windows.c \
-    src/core/iomgr/resolve_address.c \
+    src/core/iomgr/resolve_address_posix.c \
+    src/core/iomgr/resolve_address_windows.c \
     src/core/iomgr/sockaddr_utils.c \
     src/core/iomgr/socket_utils_common_posix.c \
     src/core/iomgr/socket_utils_linux.c \
@@ -2928,7 +2932,8 @@ $(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_epoll.o:
 $(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
 $(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_posix.o: 
 $(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_windows.o: 
-$(OBJDIR)/$(CONFIG)/src/core/iomgr/resolve_address.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/resolve_address_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/resolve_address_windows.o: 
 $(OBJDIR)/$(CONFIG)/src/core/iomgr/sockaddr_utils.o: 
 $(OBJDIR)/$(CONFIG)/src/core/iomgr/socket_utils_common_posix.o: 
 $(OBJDIR)/$(CONFIG)/src/core/iomgr/socket_utils_linux.o: 
@@ -6417,6 +6422,37 @@ endif
 endif
 
 
+GRPC_CREATE_JWT_SRC = \
+    test/core/security/create_jwt.c \
+
+GRPC_CREATE_JWT_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_CREATE_JWT_SRC))))
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL with ALPN.
+
+$(BINDIR)/$(CONFIG)/grpc_create_jwt: openssl_dep_error
+
+else
+
+$(BINDIR)/$(CONFIG)/grpc_create_jwt: $(GRPC_CREATE_JWT_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GRPC_CREATE_JWT_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/grpc_create_jwt
+
+endif
+
+$(OBJDIR)/$(CONFIG)/test/core/security/create_jwt.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_grpc_create_jwt: $(GRPC_CREATE_JWT_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GRPC_CREATE_JWT_OBJS:.o=.dep)
+endif
+endif
+
+
 GRPC_CREDENTIALS_TEST_SRC = \
     test/core/security/credentials_test.c \
 
@@ -6475,37 +6511,6 @@ deps_grpc_fetch_oauth2: $(GRPC_FETCH_OAUTH2_OBJS:.o=.dep)
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(GRPC_FETCH_OAUTH2_OBJS:.o=.dep)
-endif
-endif
-
-
-GRPC_CREATE_JWT_SRC = \
-    test/core/security/create_jwt.c \
-
-GRPC_CREATE_JWT_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_CREATE_JWT_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/grpc_create_jwt: openssl_dep_error
-
-else
-
-$(BINDIR)/$(CONFIG)/grpc_create_jwt: $(GRPC_CREATE_JWT_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GRPC_CREATE_JWT_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/grpc_create_jwt
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/core/security/create_jwt.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_grpc_create_jwt: $(GRPC_CREATE_JWT_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GRPC_CREATE_JWT_OBJS:.o=.dep)
 endif
 endif
 
