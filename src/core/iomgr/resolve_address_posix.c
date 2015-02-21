@@ -31,9 +31,8 @@
  *
  */
 
-#ifndef _POSIX_SOURCE
-#define _POSIX_SOURCE
-#endif
+#include <grpc/support/port_platform.h>
+#ifdef GPR_POSIX_SOCKET
 
 #include "src/core/iomgr/sockaddr.h"
 #include "src/core/iomgr/resolve_address.h"
@@ -134,7 +133,7 @@ grpc_resolved_addresses *grpc_blocking_resolve_address(
     un = (struct sockaddr_un *)addrs->addrs->addr;
     un->sun_family = AF_UNIX;
     strcpy(un->sun_path, name + 5);
-    addrs->addrs->len = strlen(un->sun_path) + sizeof(un->sun_family) + 1;
+    addrs->addrs->len = strlen(un->sun_path) + sizeof(un->sun_family);
     return addrs;
   }
 
@@ -233,3 +232,5 @@ void grpc_resolve_address(const char *name, const char *default_port,
   r->arg = arg;
   gpr_thd_new(&id, do_request, r, NULL);
 }
+
+#endif
