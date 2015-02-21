@@ -34,7 +34,6 @@
 #ifndef NET_GRPC_COMPILER_RUBY_GENERATOR_MAP_INL_H_
 #define NET_GRPC_COMPILER_RUBY_GENERATOR_MAP_INL_H_
 
-#include <iostream>
 #include <initializer_list>
 #include <map>
 #include <ostream>  // NOLINT

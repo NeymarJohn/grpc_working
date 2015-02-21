@@ -39,7 +39,6 @@ from grpc._adapter import _low
 from grpc.framework.base.packets import interfaces as ticket_interfaces
 from grpc.framework.base.packets import null
 from grpc.framework.base.packets import packets as tickets
-from grpc.framework.foundation import activated
 
 _INVOCATION_EVENT_KINDS = (
     _low.Event.Kind.METADATA_ACCEPTED,
@@ -85,7 +84,7 @@ def _write(operation_id, call, outstanding, write_state, serialized_payload):
     raise ValueError('Write attempted after writes completed!')
 
 
-class RearLink(ticket_interfaces.RearLink, activated.Activated):
+class RearLink(ticket_interfaces.RearLink):
   """An invocation-side bridge between RPC Framework and the C-ish _low code."""
 
   def __init__(
@@ -298,7 +297,7 @@ class RearLink(ticket_interfaces.RearLink, activated.Activated):
     with self._condition:
       self._fore_link = null.NULL_FORE_LINK if fore_link is None else fore_link
 
-  def _start(self):
+  def start(self):
     """Starts this RearLink.
 
     This method must be called before attempting to exchange tickets with this
@@ -307,9 +306,8 @@ class RearLink(ticket_interfaces.RearLink, activated.Activated):
     with self._condition:
       self._completion_queue = _low.CompletionQueue()
       self._channel = _low.Channel('%s:%d' % (self._host, self._port))
-    return self
 
-  def _stop(self):
+  def stop(self):
     """Stops this RearLink.
 
     This method must be called for proper termination of this object, and no
@@ -322,23 +320,6 @@ class RearLink(ticket_interfaces.RearLink, activated.Activated):
 
       while self._spinning:
         self._condition.wait()
-
-  def __enter__(self):
-    """See activated.Activated.__enter__ for specification."""
-    return self._start()
-
-  def __exit__(self, exc_type, exc_val, exc_tb):
-    """See activated.Activated.__exit__ for specification."""
-    self._stop()
-    return False
-
-  def start(self):
-    """See activated.Activated.start for specification."""
-    return self._start()
-
-  def stop(self):
-    """See activated.Activated.stop for specification."""
-    self._stop()
 
   def accept_front_to_back_ticket(self, ticket):
     """See ticket_interfaces.RearLink.accept_front_to_back_ticket for spec."""
