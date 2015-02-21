@@ -32,15 +32,14 @@
  */
 
 #include <grpc/grpc.h>
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/debug/trace.h"
 #include "src/core/statistics/census_interface.h"
+#include "src/core/iomgr/iomgr.h"
 
 static gpr_once g_init = GPR_ONCE_INIT;
 static gpr_mu g_init_mu;
 static int g_initializations;
 
-static void do_init(void) {
+static void do_init() {
   gpr_mu_init(&g_init_mu);
   g_initializations = 0;
 }
@@ -50,7 +49,6 @@ void grpc_init(void) {
 
   gpr_mu_lock(&g_init_mu);
   if (++g_initializations == 1) {
-    grpc_init_trace_bits();
     grpc_iomgr_init();
     census_init();
   }

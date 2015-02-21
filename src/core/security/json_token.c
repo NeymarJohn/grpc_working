@@ -55,6 +55,7 @@ const gpr_timespec grpc_max_auth_token_lifetime = {3600, 0};
 #define GRPC_AUTH_JSON_KEY_TYPE_INVALID "invalid"
 #define GRPC_AUTH_JSON_KEY_TYPE_SERVICE_ACCOUNT "service_account"
 
+#define GRPC_JWT_AUDIENCE "https://www.googleapis.com/oauth2/v3/token"
 #define GRPC_JWT_RSA_SHA256_ALGORITHM "RS256"
 #define GRPC_JWT_TYPE "JWT"
 
@@ -170,8 +171,8 @@ void grpc_auth_json_key_destruct(grpc_auth_json_key *json_key) {
 /* --- jwt encoding and signature. --- */
 
 static grpc_json *create_child(grpc_json *brother, grpc_json *parent,
-                               const char *key, const char *value,
-                               grpc_json_type type) {
+                         const char *key, const char *value,
+                         grpc_json_type type) {
   grpc_json *child = grpc_json_create(type);
   if (brother) brother->next = child;
   if (!parent->child) parent->child = child;
@@ -181,15 +182,14 @@ static grpc_json *create_child(grpc_json *brother, grpc_json *parent,
   return child;
 }
 
-static char *encoded_jwt_header(const char *key_id, const char *algorithm) {
+static char *encoded_jwt_header(const char *algorithm) {
   grpc_json *json = grpc_json_create(GRPC_JSON_OBJECT);
   grpc_json *child = NULL;
   char *json_str = NULL;
   char *result = NULL;
 
   child = create_child(NULL, json, "alg", algorithm, GRPC_JSON_STRING);
-  child = create_child(child, json, "typ", GRPC_JWT_TYPE, GRPC_JSON_STRING);
-  create_child(child, json, "kid", key_id, GRPC_JSON_STRING);
+  create_child(child, json, "typ", GRPC_JWT_TYPE, GRPC_JSON_STRING);
 
   json_str = grpc_json_dump_to_string(json, 0);
   result = grpc_base64_encode(json_str, strlen(json_str), 1, 0);
@@ -199,8 +199,7 @@ static char *encoded_jwt_header(const char *key_id, const char *algorithm) {
 }
 
 static char *encoded_jwt_claim(const grpc_auth_json_key *json_key,
-                               const char *audience,
-                               gpr_timespec token_lifetime, const char *scope) {
+                               const char *scope, gpr_timespec token_lifetime) {
   grpc_json *json = grpc_json_create(GRPC_JSON_OBJECT);
   grpc_json *child = NULL;
   char *json_str = NULL;
@@ -218,15 +217,8 @@ static char *encoded_jwt_claim(const grpc_auth_json_key *json_key,
 
   child = create_child(NULL, json, "iss", json_key->client_email,
                        GRPC_JSON_STRING);
-  if (scope != NULL) {
-    child = create_child(child, json, "scope", scope, GRPC_JSON_STRING);
-  } else {
-    /* Unscoped JWTs need a sub field. */
-    child = create_child(child, json, "sub", json_key->client_email,
-                         GRPC_JSON_STRING);
-  }
-
-  child = create_child(child, json, "aud", audience, GRPC_JSON_STRING);
+  child = create_child(child, json, "scope", scope, GRPC_JSON_STRING);
+  child = create_child(child, json, "aud", GRPC_JWT_AUDIENCE, GRPC_JSON_STRING);
   child = create_child(child, json, "iat", now_str, GRPC_JSON_NUMBER);
   create_child(child, json, "exp", expiration_str, GRPC_JSON_NUMBER);
 
@@ -308,16 +300,14 @@ end:
 }
 
 char *grpc_jwt_encode_and_sign(const grpc_auth_json_key *json_key,
-                               const char *audience,
-                               gpr_timespec token_lifetime, const char *scope) {
+                               const char *scope, gpr_timespec token_lifetime) {
   if (g_jwt_encode_and_sign_override != NULL) {
-    return g_jwt_encode_and_sign_override(json_key, audience, token_lifetime,
-                                          scope);
+    return g_jwt_encode_and_sign_override(json_key, scope, token_lifetime);
   } else {
     const char *sig_algo = GRPC_JWT_RSA_SHA256_ALGORITHM;
     char *to_sign = dot_concat_and_free_strings(
-        encoded_jwt_header(json_key->private_key_id, sig_algo),
-        encoded_jwt_claim(json_key, audience, token_lifetime, scope));
+        encoded_jwt_header(sig_algo),
+        encoded_jwt_claim(json_key, scope, token_lifetime));
     char *sig = compute_and_encode_signature(json_key, sig_algo, to_sign);
     if (sig == NULL) {
       gpr_free(to_sign);

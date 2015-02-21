@@ -45,7 +45,6 @@
 #include <unistd.h>
 
 #include "src/core/support/string.h"
-#include "src/core/debug/trace.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/slice.h>
@@ -294,17 +293,17 @@ static void call_read_cb(grpc_tcp *tcp, gpr_slice *slices, size_t nslices,
                          grpc_endpoint_cb_status status) {
   grpc_endpoint_read_cb cb = tcp->read_cb;
 
-  if (grpc_trace_bits & GRPC_TRACE_TCP) {
-    size_t i;
-    gpr_log(GPR_DEBUG, "read: status=%d", status);
-    for (i = 0; i < nslices; i++) {
-      char *dump =
-          gpr_hexdump((char *)GPR_SLICE_START_PTR(slices[i]),
-                      GPR_SLICE_LENGTH(slices[i]), GPR_HEXDUMP_PLAINTEXT);
-      gpr_log(GPR_DEBUG, "READ: %s", dump);
-      gpr_free(dump);
-    }
+#ifdef GRPC_TRACE_TCP
+  size_t i;
+  gpr_log(GPR_DEBUG, "read: status=%d", status);
+  for (i = 0; i < nslices; i++) {
+    char *dump =
+        gpr_hexdump((char *)GPR_SLICE_START_PTR(slices[i]),
+                    GPR_SLICE_LENGTH(slices[i]), GPR_HEXDUMP_PLAINTEXT);
+    gpr_log(GPR_DEBUG, "READ: %s", dump);
+    gpr_free(dump);
   }
+#endif
 
   tcp->read_cb = NULL;
   cb(tcp->read_user_data, slices, nslices, status);
@@ -495,17 +494,17 @@ static grpc_endpoint_write_status grpc_tcp_write(grpc_endpoint *ep,
   grpc_tcp *tcp = (grpc_tcp *)ep;
   grpc_endpoint_write_status status;
 
-  if (grpc_trace_bits & GRPC_TRACE_TCP) {
-    size_t i;
+#ifdef GRPC_TRACE_TCP
+  size_t i;
 
-    for (i = 0; i < nslices; i++) {
-      char *data =
-          gpr_hexdump((char *)GPR_SLICE_START_PTR(slices[i]),
-                      GPR_SLICE_LENGTH(slices[i]), GPR_HEXDUMP_PLAINTEXT);
-      gpr_log(GPR_DEBUG, "WRITE %p: %s", tcp, data);
-      gpr_free(data);
-    }
+  for (i = 0; i < nslices; i++) {
+    char *data =
+        gpr_hexdump((char *)GPR_SLICE_START_PTR(slices[i]),
+                    GPR_SLICE_LENGTH(slices[i]), GPR_HEXDUMP_PLAINTEXT);
+    gpr_log(GPR_DEBUG, "WRITE %p: %s", tcp, data);
+    gpr_free(data);
   }
+#endif
 
   GPR_ASSERT(tcp->write_cb == NULL);
   slice_state_init(&tcp->write_state, slices, nslices, nslices);
