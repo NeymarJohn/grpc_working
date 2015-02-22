@@ -51,7 +51,7 @@ var COORD_FACTOR = 1e7;
 var feature_list = [];
 
 /**
- * Get a feature object at the given point.
+ * Get a feature object at the given point, or creates one if it does not exist.
  * @param {point} point The point to check
  * @return {feature} The feature object at the point. Note that an empty name
  *     indicates no feature
