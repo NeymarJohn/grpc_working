@@ -31,37 +31,30 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/debug/trace.h"
-#include "src/core/statistics/census_interface.h"
+#ifndef GRPC_CORE_DEBUG_TRACE_H
+#define GRPC_CORE_DEBUG_TRACE_H
 
-static gpr_once g_init = GPR_ONCE_INIT;
-static gpr_mu g_init_mu;
-static int g_initializations;
+#include <grpc/support/port_platform.h>
 
-static void do_init(void) {
-  gpr_mu_init(&g_init_mu);
-  g_initializations = 0;
-}
+/* set to zero to remove all debug trace code */
+#ifndef GRPC_ENABLE_TRACING
+# define GRPC_ENABLE_TRACING 1
+#endif
 
-void grpc_init(void) {
-  gpr_once_init(&g_init, do_init);
+typedef enum {
+  GRPC_TRACE_SURFACE = 1 << 0,
+  GRPC_TRACE_CHANNEL = 1 << 1,
+  GRPC_TRACE_TCP = 1 << 2,
+  GRPC_TRACE_SECURE_ENDPOINT = 1 << 3
+} grpc_trace_bit_value;
 
-  gpr_mu_lock(&g_init_mu);
-  if (++g_initializations == 1) {
-    grpc_init_trace_bits();
-    grpc_iomgr_init();
-    census_init();
-  }
-  gpr_mu_unlock(&g_init_mu);
-}
+#if GRPC_ENABLE_TRACING
+extern gpr_uint32 grpc_trace_bits;
+#else
+# define grpc_trace_bits 0
+#endif
 
-void grpc_shutdown(void) {
-  gpr_mu_lock(&g_init_mu);
-  if (--g_initializations == 0) {
-    grpc_iomgr_shutdown();
-    census_shutdown();
-  }
-  gpr_mu_unlock(&g_init_mu);
-}
+void grpc_init_trace_bits();
+
+#endif
+
