@@ -105,7 +105,7 @@ class AsyncEnd2endTest : public ::testing::Test {
 
   void ResetStub() {
     std::shared_ptr<ChannelInterface> channel =
-        CreateChannelDeprecated(server_address_.str(), ChannelArguments());
+        CreateChannel(server_address_.str(), ChannelArguments());
     stub_ = std::move(grpc::cpp::test::util::TestService::NewStub(channel));
   }
 

@@ -109,8 +109,7 @@ class SubscriberTest : public ::testing::Test {
     builder.RegisterService(&service_);
     server_ = builder.BuildAndStart();
 
-    channel_ =
-        CreateChannelDeprecated(server_address_.str(), ChannelArguments());
+    channel_ = CreateChannel(server_address_.str(), ChannelArguments());
 
     subscriber_.reset(new grpc::examples::pubsub::Subscriber(channel_));
   }
