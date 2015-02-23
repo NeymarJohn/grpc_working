@@ -33,9 +33,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Google.ProtocolBuffers;
 using Grpc.Core;
 using Grpc.Core.Utils;
@@ -129,9 +127,6 @@ namespace Grpc.IntegrationTesting
                     break;
                 case "empty_stream":
                     RunEmptyStream(client);
-                    break;
-                case "benchmark_empty_unary":
-                    RunBenchmarkEmptyUnary(client);
                     break;
                 default:
                     throw new ArgumentException("Unknown test case " + testCase);
@@ -272,12 +267,6 @@ namespace Grpc.IntegrationTesting
             Console.WriteLine("Passed!");
         }
 
-        // This is not an official interop test, but it's useful.
-        private void RunBenchmarkEmptyUnary(TestServiceGrpc.ITestServiceClient client)
-        {
-            BenchmarkUtil.RunBenchmark(10000, 10000,
-                                       () => { client.EmptyCall(Empty.DefaultInstance);});
-        }
 
         private Payload CreateZerosPayload(int size) {
             return Payload.CreateBuilder().SetBody(ByteString.CopyFrom(new byte[size])).Build();

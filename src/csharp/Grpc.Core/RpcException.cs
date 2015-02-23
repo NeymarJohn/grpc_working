@@ -49,8 +49,7 @@ namespace Grpc.Core
             this.status = status;
         }
 
-        public Status Status
-        {
+        public Status Status {
             get
             {
                 return status;
