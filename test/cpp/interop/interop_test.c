@@ -44,11 +44,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-extern "C" {
 #include "src/core/iomgr/socket_utils_posix.h"
 #include "src/core/support/string.h"
-}
-
 #include <grpc/support/alloc.h>
 #include <grpc/support/host_port.h>
 #include <grpc/support/log.h>

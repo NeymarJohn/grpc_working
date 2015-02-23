@@ -35,13 +35,7 @@ mkdir -p $deb_dest
 
 version='0.8.0.0'
 
-if [ -f /.dockerinit ]; then
-  # We're in Docker where uname -p returns "unknown".
-  arch=x86_64
-else
-  arch=`uname -p`
-fi
-
+arch=`uname -p`
 if [ $arch != "x86_64" ]
 then
   echo Unsupported architecture.
@@ -83,14 +77,13 @@ do
     # create symlinks to shared libraries
     for libname in $arch_lib_dir/*.a
     do
-      base=`basename $libname .a`
+      base=`basename -s .a $libname`
       ln -s $base.so.$version $arch_lib_dir/$base.so
     done
   fi
 
   # Adjust mode for some files in the package
   find $tmp_dir/$pkg_name -type d | xargs chmod 755
-  find $tmp_dir/$pkg_name -type d | xargs chmod a-s
   find $tmp_dir/$pkg_name -type f | xargs chmod 644
   chmod 755 $tmp_dir/$pkg_name/DEBIAN/{postinst,postrm}
 
