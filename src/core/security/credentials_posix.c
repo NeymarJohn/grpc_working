@@ -31,34 +31,30 @@
  *
  */
 
-#include <string.h>
+#include <grpc/support/port_platform.h>
+
+#ifdef GPR_POSIX_FILE
+
+#include "src/core/security/credentials.h"
 
 #include <grpc/support/alloc.h>
+#include <grpc/support/log.h>
 
-#include "src/core/json/json.h"
+#include "src/core/support/env.h"
+#include "src/core/support/string.h"
 
-grpc_json *grpc_json_create(grpc_json_type type) {
-  grpc_json *json = gpr_malloc(sizeof(*json));
-  memset(json, 0, sizeof(*json));
-  json->type = type;
-
-  return json;
+char *grpc_get_well_known_google_credentials_file_path(void) {
+  char *result = NULL;
+  char *home = gpr_getenv("HOME");
+  if (home == NULL) {
+    gpr_log(GPR_ERROR, "Could not get HOME environment variable.");
+    return NULL;
+  }
+  gpr_asprintf(&result, "%s/.config/%s/%s", home,
+               GRPC_GOOGLE_CLOUD_SDK_CONFIG_DIRECTORY,
+               GRPC_GOOGLE_WELL_KNOWN_CREDENTIALS_FILE);
+  gpr_free(home);
+  return result;
 }
 
-void grpc_json_destroy(grpc_json *json) {
-  while (json->child) {
-    grpc_json_destroy(json->child);
-  }
-
-  if (json->next) {
-    json->next->prev = json->prev;
-  }
-
-  if (json->prev) {
-    json->prev->next = json->next;
-  } else if (json->parent) {
-    json->parent->child = json->next;
-  }
-
-  gpr_free(json);
-}
+#endif /* GPR_POSIX_FILE */
