@@ -1282,18 +1282,25 @@ tsi_result tsi_create_ssl_server_handshaker_factory(
 
 int tsi_ssl_peer_matches_name(const tsi_peer* peer, const char* name) {
   size_t i = 0;
-  size_t san_count = 0;
-
-  /* Check the SAN first. */
   const tsi_peer_property* property = tsi_peer_get_property_by_name(
+      peer, TSI_X509_SUBJECT_COMMON_NAME_PEER_PROPERTY);
+  if (property == NULL || property->type != TSI_PEER_PROPERTY_TYPE_STRING) {
+    gpr_log(GPR_ERROR, "Invalid x509 subject common name property.");
+    return 0;
+  }
+  if (does_entry_match_name(property->value.string.data,
+                            property->value.string.length, name)) {
+    return 1;
+  }
+
+  property = tsi_peer_get_property_by_name(
       peer, TSI_X509_SUBJECT_ALTERNATIVE_NAMES_PEER_PROPERTY);
   if (property == NULL || property->type != TSI_PEER_PROPERTY_TYPE_LIST) {
     gpr_log(GPR_ERROR, "Invalid x509 subject alternative names property.");
     return 0;
   }
 
-  san_count = property->value.list.child_count;
-  for (i = 0; i < san_count; i++) {
+  for (i = 0; i < property->value.list.child_count; i++) {
     const tsi_peer_property* alt_name_property =
         &property->value.list.children[i];
     if (alt_name_property->type != TSI_PEER_PROPERTY_TYPE_STRING) {
@@ -1305,20 +1312,5 @@ int tsi_ssl_peer_matches_name(const tsi_peer* peer, const char* name) {
       return 1;
     }
   }
-
-  /* If there's no SAN, try the CN. */
-  if (san_count == 0) {
-    property = tsi_peer_get_property_by_name(
-        peer, TSI_X509_SUBJECT_COMMON_NAME_PEER_PROPERTY);
-    if (property == NULL || property->type != TSI_PEER_PROPERTY_TYPE_STRING) {
-      gpr_log(GPR_ERROR, "Invalid x509 subject common name property.");
-      return 0;
-    }
-    if (does_entry_match_name(property->value.string.data,
-                              property->value.string.length, name)) {
-      return 1;
-    }
-  }
-
   return 0; /* Not found. */
 }

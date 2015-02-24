@@ -40,7 +40,7 @@ var server;
 
 var port;
 
-var name_override = 'foo.test.google.fr';
+var name_override = 'foo.test.google.com';
 
 describe('Interop tests', function() {
   before(function(done) {
