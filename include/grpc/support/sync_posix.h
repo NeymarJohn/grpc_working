@@ -36,6 +36,7 @@
 
 #include <grpc/support/sync_generic.h>
 
+/* Posix variant of gpr_sync_platform.h */
 #include <pthread.h>
 
 typedef pthread_mutex_t gpr_mu;
