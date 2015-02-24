@@ -1,21 +1,17 @@
-gRPC in 3 minutes (Node.js)
-===========================
+# gRPC Node.js Helloworld
 
-PREREQUISITES
--------------
+## INSTALLATION REQUIREMENTS
 
 This requires Node 10.x or greater.
 
-INSTALL
--------
+## INSTALL
 
  - Clone this repository
  - Follow the instructions in [INSTALL](https://github.com/grpc/grpc/blob/master/INSTALL) to install the gRPC C core.
  - Run `npm install` to install dependencies
    - If `grpc` is not found, clone the [gRPC](https://github.com/grpc/grpc) repository and run `npm install path/to/grpc/src/node`.
 
-Try it! 
--------
+## USAGE
 
  - Run the server
 
@@ -31,8 +27,7 @@ Try it!
    $ nodejs ./greeter_client.js
    ```
 
-Note
-----
+## NOTE
 
 This directory has a copy of `helloworld.proto` because it currently depends on
 some Protocol Buffer 2.0 syntax that is deprecated in Protocol Buffer 3.0.
