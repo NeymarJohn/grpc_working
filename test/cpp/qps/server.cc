@@ -44,7 +44,6 @@
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
 #include <grpc++/status.h>
-#include <grpc++/stream.h>
 #include "src/cpp/server/thread_pool.h"
 #include "test/core/util/grpc_profiler.h"
 #include "test/cpp/qps/qpstest.pb.h"
@@ -52,13 +51,13 @@
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
 
+DEFINE_bool(enable_ssl, false, "Whether to use ssl/tls.");
 DEFINE_int32(port, 0, "Server port.");
-DEFINE_int32(driver_port, 0, "Server driver port.");
+DEFINE_int32(server_threads, 4, "Number of server threads.");
 
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
-using grpc::ServerReaderWriter;
 using grpc::ThreadPool;
 using grpc::testing::Payload;
 using grpc::testing::PayloadType;
@@ -67,10 +66,6 @@ using grpc::testing::SimpleRequest;
 using grpc::testing::SimpleResponse;
 using grpc::testing::StatsRequest;
 using grpc::testing::TestService;
-using grpc::testing::QpsServer;
-using grpc::testing::ServerArgs;
-using grpc::testing::ServerStats;
-using grpc::testing::ServerStatus;
 using grpc::Status;
 
 // In some distros, gflags is in the namespace google, and in some others,
@@ -129,76 +124,34 @@ class TestServiceImpl final : public TestService::Service {
 
 }  // namespace
 
-class ServerImpl : public QpsServer::Service {
- public:
-  Status RunServer(ServerContext* ctx, ServerReaderWriter<ServerStatus, ServerArgs>* stream) {
-    ServerArgs args;
-    std::unique_ptr<ServerStats> last_stats;
-    if (!stream->Read(&args)) return Status::OK;
-
-    bool done = false;
-    while (!done) {
-      std::lock_guard<std::mutex> lock(server_mu_);
-
-      char* server_address = NULL;
-      gpr_join_host_port(&server_address, "::", FLAGS_port);
-
-      TestServiceImpl service;
-
-      ServerBuilder builder;
-      builder.AddPort(server_address);
-      builder.RegisterService(&service);
-
-      gpr_free(server_address);
-
-      std::unique_ptr<ThreadPool> pool(new ThreadPool(args.threads()));
-      builder.SetThreadPool(pool.get());
-
-      auto server = builder.BuildAndStart();
-      gpr_log(GPR_INFO, "Server listening on %s\n", server_address);
-
-      ServerStatus last_status;
-      if (last_stats.get()) {
-        *last_status.mutable_stats() = *last_stats;
-      }
-      if (!stream->Write(last_status)) return Status(grpc::UNKNOWN);
-
-      grpc_profiler_start("qps_server.prof");
-
-      done = stream->Read(&args);
-
-      grpc_profiler_stop();
-    }
-
-    ServerStatus last_status;
-    if (last_stats.get()) {
-      *last_status.mutable_stats() = *last_stats;
-    }
-    stream->Write(last_status);
-    return Status::OK;
-  }
-
- private:
-  std::mutex server_mu_;
-};
-
 static void RunServer() {
   char* server_address = NULL;
-  gpr_join_host_port(&server_address, "::", FLAGS_driver_port);
+  gpr_join_host_port(&server_address, "::", FLAGS_port);
 
-  ServerImpl service;
+  TestServiceImpl service;
+
+  SimpleRequest request;
+  SimpleResponse response;
 
   ServerBuilder builder;
   builder.AddPort(server_address);
   builder.RegisterService(&service);
 
-  gpr_free(server_address);
+  std::unique_ptr<ThreadPool> pool(new ThreadPool(FLAGS_server_threads));
+  builder.SetThreadPool(pool.get());
 
-  auto server = builder.BuildAndStart();
+  std::unique_ptr<Server> server(builder.BuildAndStart());
+  gpr_log(GPR_INFO, "Server listening on %s\n", server_address);
+
+  grpc_profiler_start("qps_server.prof");
 
   while (!got_sigint) {
     std::this_thread::sleep_for(std::chrono::seconds(5));
   }
+
+  grpc_profiler_stop();
+
+  gpr_free(server_address);
 }
 
 int main(int argc, char** argv) {
@@ -208,6 +161,7 @@ int main(int argc, char** argv) {
   signal(SIGINT, sigint_handler);
 
   GPR_ASSERT(FLAGS_port != 0);
+  GPR_ASSERT(!FLAGS_enable_ssl);
   RunServer();
 
   grpc_shutdown();
