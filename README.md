@@ -1,10 +1,21 @@
+
 # Getting started
 
 Welcome to the developer documentation for gRPC, a language-neutral,
 platform-neutral remote procedure call (RPC) system developed at Google.
 
 This document introduces you to gRPC with a quick overview and a simple
-Hello World example. More documentation is coming soon!
+Hello World example. You'll find more tutorials and reference docs in this repository - more documentation is coming soon!
+
+<a name="quickstart"></a>
+## Quick start
+You can find quick start guides for each language, including installation instructions, examples, and tutorials here:
+* [C++](https://github.com/grpc/grpc-common/tree/master/cpp)
+* [Java](https://github.com/grpc/grpc-common/tree/master/java)
+* [Go](https://github.com/grpc/grpc-common/tree/master/go)
+* [ruby](https://github.com/grpc/grpc-common/tree/master/ruby)
+* [Node.js](https://github.com/grpc/grpc-common/tree/master/node)
+* Python is coming soon
 
 ## What's in this repository?
 
@@ -56,21 +67,13 @@ While protocol buffers have been available for open source users for some
 time, our examples use a new flavour of protocol buffers called proto3,
 which has a slightly simplified syntax, some useful new features, and supports
 lots more languages. This is currently available as an alpha release in
-Java, C++ from [the protocol buffers Github
+Java, C++, Java_nano (Android Java), Python, and Ruby from [the protocol buffers Github
 repo](https://github.com/google/protobuf/releases), as well as a Go language
-generator [wherever that is](), with more languages in development. Full
-documentation for proto3 is currently in development but you can see
+generator from [the golang/protobuf Github repo](https://github.com/golang/protobuf), with more languages in development. Full documentation for proto3 is currently in development, but you can see
 the major differences from the current default version in the [release notes](https://github.com/google/protobuf/releases).
 
-In general, we recommend that you use proto3 with gRPC as it lets you use the
-full range of gRPC-supported languages, as well as avoiding compatibility
-issues with proto2 clients talking to proto3 servers and vice versa. You
-can find out more about these potential issues in [where should we put this
-info? It's important but not really part of an overview]. If you need to
-continue using proto2 for Java, C++, or Python but want
-to try gRPC, you can see an example using a proto2 gRPC client and server
-[wherever we put it].
-
+In general, while you *can* use proto2 (the current default protocol buffers version), we recommend that you use proto3 with gRPC as it lets you use the full range of gRPC-supported languages, as well as avoiding compatibility
+issues with proto2 clients talking to proto3 servers and vice versa.
 
 <a name="hello"></a>
 ## Hello gRPC!
@@ -96,8 +99,8 @@ than how to install and run a few git commands.
 This is an introductory example rather than a comprehensive tutorial, so
 don't worry if you're not a Go or
 Java developer - the concepts are similar for all languages, and you can
-find more implementations of our Hello World example in other languages in
-the language-specific folders in this repository. Complete tutorials and
+find more implementations of our Hello World example in other languages (and full tutorials where available) in
+the [language-specific folders](#quickstart) in this repository. Complete tutorials and
 reference documentation for all gRPC languages are coming soon.
 
 <a name="setup"></a>
@@ -317,8 +320,8 @@ As you can see, the class `GreeterImpl` implements the interface
   }
 ```
 - `hello` takes two parameters:
-    -`Helloworld.HelloRequest`: the request
-    -`StreamObserver<Helloworld.HelloReply>`: a response observer, which is
+    - `Helloworld.HelloRequest`: the request
+    - `StreamObserver<Helloworld.HelloReply>`: a response observer, which is
     a special interface for the server to call with its response
 
 To return our response to the client and complete the call:
