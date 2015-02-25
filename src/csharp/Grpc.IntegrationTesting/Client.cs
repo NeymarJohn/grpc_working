@@ -138,7 +138,7 @@ namespace Grpc.IntegrationTesting
             }
         }
 
-        public static void RunEmptyUnary(TestServiceGrpc.ITestServiceClient client)
+        private void RunEmptyUnary(TestServiceGrpc.ITestServiceClient client)
         {
             Console.WriteLine("running empty_unary");
             var response = client.EmptyCall(Empty.DefaultInstance);
@@ -146,7 +146,7 @@ namespace Grpc.IntegrationTesting
             Console.WriteLine("Passed!");
         }
 
-        public static void RunLargeUnary(TestServiceGrpc.ITestServiceClient client)
+        private void RunLargeUnary(TestServiceGrpc.ITestServiceClient client)
         {
             Console.WriteLine("running large_unary");
             var request = SimpleRequest.CreateBuilder()
@@ -162,7 +162,7 @@ namespace Grpc.IntegrationTesting
             Console.WriteLine("Passed!");
         }
 
-        public static void RunClientStreaming(TestServiceGrpc.ITestServiceClient client)
+        private void RunClientStreaming(TestServiceGrpc.ITestServiceClient client)
         {
             Console.WriteLine("running client_streaming");
 
@@ -181,7 +181,7 @@ namespace Grpc.IntegrationTesting
             Console.WriteLine("Passed!");
         }
 
-        public static void RunServerStreaming(TestServiceGrpc.ITestServiceClient client)
+        private void RunServerStreaming(TestServiceGrpc.ITestServiceClient client)
         {
             Console.WriteLine("running server_streaming");
 
@@ -206,7 +206,7 @@ namespace Grpc.IntegrationTesting
             Console.WriteLine("Passed!");
         }
 
-        public static void RunPingPong(TestServiceGrpc.ITestServiceClient client)
+        private void RunPingPong(TestServiceGrpc.ITestServiceClient client)
         {
             Console.WriteLine("running ping_pong");
 
@@ -235,7 +235,7 @@ namespace Grpc.IntegrationTesting
 
             inputs.OnNext(StreamingOutputCallRequest.CreateBuilder()
                           .SetResponseType(PayloadType.COMPRESSABLE)
-                          .AddResponseParameters(ResponseParameters.CreateBuilder().SetSize(2653))
+                          .AddResponseParameters(ResponseParameters.CreateBuilder().SetSize(2635))
                           .SetPayload(CreateZerosPayload(1828)).Build());
 
             response = recorder.Queue.Take();
@@ -252,15 +252,13 @@ namespace Grpc.IntegrationTesting
             Assert.AreEqual(PayloadType.COMPRESSABLE, response.Payload.Type);
             Assert.AreEqual(58979, response.Payload.Body.Length);
 
-            inputs.OnCompleted();
-
             recorder.Finished.Wait();
             Assert.AreEqual(0, recorder.Queue.Count);
 
             Console.WriteLine("Passed!");
         }
 
-        public static void RunEmptyStream(TestServiceGrpc.ITestServiceClient client)
+        private void RunEmptyStream(TestServiceGrpc.ITestServiceClient client)
         {
             Console.WriteLine("running empty_stream");
 
@@ -275,13 +273,13 @@ namespace Grpc.IntegrationTesting
         }
 
         // This is not an official interop test, but it's useful.
-        public static void RunBenchmarkEmptyUnary(TestServiceGrpc.ITestServiceClient client)
+        private void RunBenchmarkEmptyUnary(TestServiceGrpc.ITestServiceClient client)
         {
             BenchmarkUtil.RunBenchmark(10000, 10000,
                                        () => { client.EmptyCall(Empty.DefaultInstance);});
         }
 
-        private static Payload CreateZerosPayload(int size) {
+        private Payload CreateZerosPayload(int size) {
             return Payload.CreateBuilder().SetBody(ByteString.CopyFrom(new byte[size])).Build();
         }
 
