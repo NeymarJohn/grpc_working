@@ -16,11 +16,9 @@ Our example is a simple route mapping application that lets clients get informat
 
 With gRPC we can define our service once in a .proto file and implement clients and servers in any of gRPC's supported languages, which in turn can be run in environments ranging from servers inside Google to your own tablet - all the complexity of communication between different languages and environments is handled for you by gRPC. We also get all the advantages of working with protocol buffers, including efficient serialization, a simple IDL, and easy interface updating.
 
-[possibly insert more advantages here]
-
 ## Example code and setup
 
-The example code for our tutorial is in [grpc/grpc-common/cpp/route_guide](https://github.com/grpc/grpc-common/cpp/route_guide). To download the example, clone the `grpc-common` repository by running the following command:
+The example code for our tutorial is in [grpc/grpc-common/cpp/route_guide](https://github.com/grpc/grpc-common/tree/master/cpp/route_guide). To download the example, clone the `grpc-common` repository by running the following command:
 ```shell
 $ git clone https://github.com/google/grpc-common.git
 ```
@@ -30,7 +28,7 @@ Then change your current directory to `grpc-common/cpp/route_guide`:
 $ cd grpc-common/cpp/route_guide
 ```
 
-Although we've provided the complete example so you don't need to generate the gRPC code yourself, if you want to try generating your own server and client interface code you can follow the setup instructions in [the C++ quick start guide](https://github.com/grpc/grpc-common/tree/master/cpp).
+You also should have the relevant tools installed to generate the server and client interface code - if you don't already, follow the setup instructions in [the C++ quick start guide](https://github.com/grpc/grpc-common/tree/master/cpp).
 
 
 ## Defining the service
@@ -49,7 +47,7 @@ Then you define `rpc` methods inside your service definition, specifying their r
 
 - A *simple RPC* where the client sends a request to the server using the stub and waits for a response to come back, just like a normal function call.
 ```
- // Obtains the feature at a given position.
+   // Obtains the feature at a given position.
    rpc GetFeature(Point) returns (Feature) {}
 ```
 
@@ -101,9 +99,11 @@ $ make route_guide.pb.cc
 
 which actually runs:
 
-[actual command]
+```shell
+$ protoc -I ../../protos --cpp_out=. --grpc_out=. --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ../../protos/route_guide.proto
+```
 
-Running this command generates the following files:
+Running this command generates the following files in your current directory:
 - `route_guide.pb.h`, the header which declares your generated classes
 - `route_guide.pb.cc`, which contains the implementation of your classes
 
@@ -123,7 +123,7 @@ There are two parts to making our `RouteGuide` service do its job:
 - Implementing the service interface generated from our service definition: doing the actual "work" of our service.
 - Running a gRPC server to listen for requests from clients and return the service responses.
 
-You can find our example `RouteGuide` server in [grpc-common/cpp/route_guide/route_guide_server.cc]((https://github.com/grpc/grpc-common/blob/master/cpp/route_guide/route_guide_server.cc). Let's take a closer look at how it works.
+You can find our example `RouteGuide` server in [grpc-common/cpp/route_guide/route_guide_server.cc](https://github.com/grpc/grpc-common/blob/master/cpp/route_guide/route_guide_server.cc). Let's take a closer look at how it works.
 
 ### Implementing RouteGuide
 
@@ -218,9 +218,7 @@ void RunServer(const std::string& db_path) {
   builder.RegisterService(&service);
   std::unique_ptr<Server> server(builder.BuildAndStart());
   std::cout << "Server listening on " << server_address << std::endl;
-  while (true) {
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-  }
+  server->Wait();
 }
 ```
 As you can see, we build and start our server using a `ServerBuilder`. To do this, we:
@@ -230,8 +228,7 @@ As you can see, we build and start our server using a `ServerBuilder`. To do thi
 3. Specify the address and port we want to use to listen for client requests using the builder's `AddPort()` method.
 4. Register our service implementation with the builder.
 5. Call `BuildAndStart()` on the builder to create and start an RPC server for our service.
-
-_[is there no equivalent of the Stubby4 wait() method, ie do you have to do the while(true) loop to keep the server running?]_
+5. Call `Wait()` on the server to do a blocking wait until process is killed or `Shutdown()` is called.
 
 <a name="client"></a>
 ## Creating the client
@@ -351,7 +348,16 @@ The syntax for reading and writing here is exactly the same as for our client-st
 
 ## Try it out!
 
-_[need build and run instructions here]_
-
-
+Build client and server:
+```shell
+$ make
+```
+Run the server, which will listen on port 50051:
+```shell
+$ ./route_guide_server
+```
+Run the client (in a different terminal):
+```shell
+$ ./route_guide_client
+```
 

@@ -31,39 +31,20 @@
  *
  */
 
-package main
+#ifndef GRPC_COMMON_CPP_ROUTE_GUIDE_HELPER_H_
+#define GRPC_COMMON_CPP_ROUTE_GUIDE_HELPER_H_
 
-import (
-	"log"
-	"os"
+#include <string>
+#include <vector>
 
-	pb "github.com/grpc/grpc-common/go/helloworld"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
-)
+namespace examples {
+class Feature;
 
-const (
-	address     = "localhost:50051"
-	defaultName = "world"
-)
+std::string GetDbFileContent(int argc, char** argv);
 
-func main() {
-	// Set up a connection to the server.
-	conn, err := grpc.Dial(address)
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
-	defer conn.Close()
-	c := pb.NewGreeterClient(conn)
+void ParseDb(const std::string& db, std::vector<Feature>* feature_list);
 
-	// Contact the server and print out its response.
-	name := defaultName
-	if len(os.Args) > 1 {
-		name = os.Args[1]
-	}
-	r, err := c.SayHello(context.Background(), &pb.HelloRequest{Name: name})
-	if err != nil {
-		log.Fatalf("could not greet: %v", err)
-	}
-	log.Printf("Greeting: %s", r.Message)
-}
+}  // namespace examples
+
+#endif  // GRPC_COMMON_CPP_ROUTE_GUIDE_HELPER_H_
+
