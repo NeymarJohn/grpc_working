@@ -44,7 +44,9 @@
 #include "src/core/support/string.h"
 #include "src/core/surface/lame_client.h"
 #include "src/core/transport/chttp2/alpn.h"
+
 #include <grpc/support/alloc.h>
+#include <grpc/support/host_port.h>
 #include <grpc/support/log.h>
 #include <grpc/support/slice_buffer.h>
 #include "src/core/tsi/fake_transport_security.h"
@@ -52,32 +54,19 @@
 
 /* -- Constants. -- */
 
+/* Defines the cipher suites that we accept. All these cipher suites are
+   compliant with TLS 1.2 and use an RSA public key. We prefer GCM over CBC
+   and ECDHE-RSA over just RSA. */
+#define GRPC_SSL_CIPHER_SUITES                                                 \
+  "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:AES128-GCM-SHA256:" \
+  "AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:AES128-"  \
+  "SHA256:AES256-SHA256"
+
 #ifndef INSTALL_PREFIX
 static const char *installed_roots_path = "/usr/share/grpc/roots.pem";
 #else
 static const char *installed_roots_path = INSTALL_PREFIX "/share/grpc/roots.pem";
 #endif
-
-/* -- Cipher suites. -- */
-
-/* Defines the cipher suites that we accept by default. All these cipher suites
-   are compliant with HTTP2. */
-#define GRPC_SSL_CIPHER_SUITES                                            \
-  "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-" \
-  "SHA384:ECDHE-RSA-AES256-GCM-SHA384"
-
-static gpr_once cipher_suites_once = GPR_ONCE_INIT;
-static const char *cipher_suites = NULL;
-
-static void init_cipher_suites(void) {
-  char *overridden = gpr_getenv("GRPC_SSL_CIPHER_SUITES");
-  cipher_suites = overridden != NULL ? overridden : GRPC_SSL_CIPHER_SUITES;
-}
-
-static const char *ssl_cipher_suites(void) {
-  gpr_once_init(&cipher_suites_once, init_cipher_suites);
-  return cipher_suites;
-}
 
 /* -- Common methods. -- */
 
@@ -456,6 +445,7 @@ grpc_security_status grpc_ssl_channel_security_context_create(
   size_t i;
   const unsigned char *pem_root_certs;
   size_t pem_root_certs_size;
+  char *port;
 
   for (i = 0; i < num_alpn_protocols; i++) {
     alpn_protocol_strings[i] =
@@ -481,9 +471,8 @@ grpc_security_status grpc_ssl_channel_security_context_create(
   c->base.base.url_scheme = GRPC_SSL_URL_SCHEME;
   c->base.request_metadata_creds = grpc_credentials_ref(request_metadata_creds);
   c->base.check_call_host = ssl_channel_check_call_host;
-  if (target_name != NULL) {
-    c->target_name = gpr_strdup(target_name);
-  }
+  gpr_split_host_port(target_name, &c->target_name, &port);
+  gpr_free(port);
   if (overridden_target_name != NULL) {
     c->overridden_target_name = gpr_strdup(overridden_target_name);
   }
@@ -500,7 +489,7 @@ grpc_security_status grpc_ssl_channel_security_context_create(
   result = tsi_create_ssl_client_handshaker_factory(
       config->pem_private_key, config->pem_private_key_size,
       config->pem_cert_chain, config->pem_cert_chain_size, pem_root_certs,
-      pem_root_certs_size, ssl_cipher_suites(), alpn_protocol_strings,
+      pem_root_certs_size, GRPC_SSL_CIPHER_SUITES, alpn_protocol_strings,
       alpn_protocol_string_lengths, num_alpn_protocols, &c->handshaker_factory);
   if (result != TSI_OK) {
     gpr_log(GPR_ERROR, "Handshaker factory creation failed with %s.",
@@ -554,7 +543,7 @@ grpc_security_status grpc_ssl_server_security_context_create(
       (const unsigned char **)config->pem_cert_chains,
       config->pem_cert_chains_sizes, config->num_key_cert_pairs,
       config->pem_root_certs, config->pem_root_certs_size,
-      ssl_cipher_suites(), alpn_protocol_strings,
+      GRPC_SSL_CIPHER_SUITES, alpn_protocol_strings,
       alpn_protocol_string_lengths, num_alpn_protocols, &c->handshaker_factory);
   if (result != TSI_OK) {
     gpr_log(GPR_ERROR, "Handshaker factory creation failed with %s.",
