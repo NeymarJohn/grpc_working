@@ -926,8 +926,7 @@ grpc_cloud_prod_auth_service_account_creds_gen_go_cmd() {
   local cmd_prefix="sudo docker run grpc/go /bin/bash -c"
   local test_script="cd src/google.golang.org/grpc/interop/client"
   local test_script+=" && go run client.go --use_tls=true"
-  local gfe_flags=$(_grpc_prod_gfe_flags)
-  local gfe_flags+="  --tls_ca_file=\"\""
+  local gfe_flags="  --tls_ca_file=\"\" --tls_server_name=\"\" --server_port=443 --server_host=grpc-test.sandbox.google.com"
   local added_gfe_flags=$(_grpc_svc_acc_test_flags)
   local the_cmd="$cmd_prefix '$test_script $gfe_flags $added_gfe_flags $@'"
   echo $the_cmd
@@ -942,8 +941,7 @@ grpc_cloud_prod_auth_compute_engine_creds_gen_go_cmd() {
   local cmd_prefix="sudo docker run grpc/go /bin/bash -c"
   local test_script="cd src/google.golang.org/grpc/interop/client"
   local test_script+=" && go run client.go --use_tls=true"
-  local gfe_flags=$(_grpc_prod_gfe_flags)
-  local gfe_flags+="  --tls_ca_file=\"\""
+  local gfe_flags="  --tls_ca_file=\"\" --tls_server_name=\"\" --server_port=443 --server_host=grpc-test.sandbox.google.com"
   local added_gfe_flags=$(_grpc_gce_test_flags)
   local the_cmd="$cmd_prefix '$test_script $gfe_flags $added_gfe_flags $@'"
   echo $the_cmd
@@ -1003,8 +1001,7 @@ grpc_cloud_prod_gen_go_cmd() {
   local cmd_prefix="sudo docker run grpc/go /bin/bash -c"
   local test_script="cd src/google.golang.org/grpc/interop/client"
   local test_script+=" && go run client.go --use_tls=true"
-  local gfe_flags=$(_grpc_prod_gfe_flags)
-  local gfe_flags+="  --tls_ca_file=\"\""
+  local gfe_flags="  --tls_ca_file=\"\" --tls_server_name=\"\" --server_port=443 --server_host=grpc-test.sandbox.google.com"
   local the_cmd="$cmd_prefix '$test_script $gfe_flags $@'"
   echo $the_cmd
 }
