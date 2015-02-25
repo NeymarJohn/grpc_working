@@ -33,7 +33,6 @@
 
 // Generates a Python gRPC service interface out of Protobuf IDL.
 
-#include <cstring>
 #include <memory>
 #include <string>
 
@@ -51,7 +50,6 @@ using google::protobuf::compiler::PluginMain;
 using google::protobuf::io::CodedOutputStream;
 using google::protobuf::io::ZeroCopyOutputStream;
 using std::string;
-using std::strlen;
 
 class PythonGrpcGenerator : public CodeGenerator {
  public:
@@ -64,7 +62,7 @@ class PythonGrpcGenerator : public CodeGenerator {
                 string* error) const override {
     // Get output file name.
     string file_name;
-    static const int proto_suffix_length = strlen(".proto");
+    static const int proto_suffix_length = 6;  // length of ".proto"
     if (file->name().size() > static_cast<size_t>(proto_suffix_length) &&
         file->name().find_last_of(".proto") == file->name().size() - 1) {
       file_name = file->name().substr(
@@ -77,15 +75,9 @@ class PythonGrpcGenerator : public CodeGenerator {
     std::unique_ptr<ZeroCopyOutputStream> output(
         context->OpenForInsert(file_name, "module_scope"));
     CodedOutputStream coded_out(output.get());
-    bool success = false;
-    string code = "";
-    tie(success, code) = grpc_python_generator::GetServices(file);
-    if (success) {
-      coded_out.WriteRaw(code.data(), code.size());
-      return true;
-    } else {
-      return false;
-    }
+    string code = grpc_python_generator::GetServices(file);
+    coded_out.WriteRaw(code.data(), code.size());
+    return true;
   }
 };
 

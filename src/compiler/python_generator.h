@@ -35,7 +35,6 @@
 #define __GRPC_COMPILER_PYTHON_GENERATOR_H__
 
 #include <string>
-#include <utility>
 
 namespace google {
 namespace protobuf {
@@ -45,7 +44,7 @@ class FileDescriptor;
 
 namespace grpc_python_generator {
 
-std::pair<bool, std::string> GetServices(const google::protobuf::FileDescriptor* file);
+std::string GetServices(const google::protobuf::FileDescriptor* file);
 
 }  // namespace grpc_python_generator
 
