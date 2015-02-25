@@ -75,11 +75,11 @@ std::shared_ptr<ChannelInterface> CreateTestChannel(
         server.empty() ? override_hostname : server;
     if (creds.get()) {
       channel_creds =
-          CredentialsFactory::CompositeCredentials(creds, channel_creds);
+          CredentialsFactory::ComposeCredentials(creds, channel_creds);
     }
     return CreateChannel(connect_to, channel_creds, channel_args);
   } else {
-    return CreateChannelDeprecated(server, channel_args);
+    return CreateChannel(server, channel_args);
   }
 }
 

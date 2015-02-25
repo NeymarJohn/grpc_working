@@ -33,7 +33,6 @@ import hashlib
 import multiprocessing
 import os
 import random
-import signal
 import subprocess
 import sys
 import tempfile
@@ -41,12 +40,6 @@ import time
 
 
 _DEFAULT_MAX_JOBS = 16 * multiprocessing.cpu_count()
-
-
-# setup a signal handler so that signal.pause registers 'something'
-# when a child finishes
-# not using futures and threading to avoid a dependency on subprocess32
-signal.signal(signal.SIGCHLD, lambda unused_signum, unused_frame: None)
 
 
 def shuffle_iteratable(it):
@@ -239,7 +232,7 @@ class Jobset(object):
       if dead: return
       message('WAITING', '%d jobs running, %d complete, %d failed' % (
           len(self._running), self._completed, self._failures))
-      signal.pause()
+      time.sleep(0.1)
 
   def cancelled(self):
     """Poll for cancellation."""
