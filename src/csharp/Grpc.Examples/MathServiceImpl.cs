@@ -127,7 +127,8 @@ namespace math
 
             public void OnCompleted()
             {
-                responseObserver.OnCompleted();
+                Task.Factory.StartNew(() =>
+                    responseObserver.OnCompleted());
             }
 
             public void OnError(Exception error)
@@ -137,7 +138,13 @@ namespace math
 
             public void OnNext(DivArgs value)
             {
-                responseObserver.OnNext(DivInternal(value));
+                // TODO: currently we need this indirection because
+                // responseObserver waits for write to finish, this
+                // callback is called from grpc threadpool which
+                // currently only has one thread.
+                // Same story for OnCompleted().
+                Task.Factory.StartNew(() =>
+                responseObserver.OnNext(DivInternal(value)));
             }
         }
     }
