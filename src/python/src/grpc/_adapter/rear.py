@@ -170,8 +170,7 @@ class RearLink(ticket_interfaces.RearLink, activated.Activated):
     if event.status.code is _low.Code.OK:
       category = tickets.Kind.COMPLETION
     elif event.status.code is _low.Code.CANCELLED:
-      # TODO(issue 752): Use a CANCELLATION ticket kind here.
-      category = tickets.Kind.SERVICER_FAILURE
+      category = tickets.Kind.CANCELLATION
     elif event.status.code is _low.Code.EXPIRED:
       category = tickets.Kind.EXPIRATION
     else:
@@ -383,8 +382,6 @@ class _ActivatedRearLink(ticket_interfaces.RearLink, activated.Activated):
   def join_fore_link(self, fore_link):
     with self._lock:
       self._fore_link = null.NULL_FORE_LINK if fore_link is None else fore_link
-      if self._rear_link is not None:
-        self._rear_link.join_fore_link(self._fore_link)
 
   def _start(self):
     with self._lock:
