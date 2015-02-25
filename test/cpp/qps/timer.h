@@ -31,28 +31,25 @@
  *
  */
 
-#ifndef __GRPC_SUPPORT_ALLOC_H__
-#define __GRPC_SUPPORT_ALLOC_H__
+#ifndef TEST_QPS_TIMER_H
+#define TEST_QPS_TIMER_H
 
-#include <stddef.h>
+class Timer {
+ public:
+  Timer();
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+  struct Result {
+  	double wall;
+  	double user;
+  	double system;
+  };
 
-/* malloc, never returns NULL */
-void *gpr_malloc(size_t size);
-/* free */
-void gpr_free(void *ptr);
-/* realloc, never returns NULL */
-void *gpr_realloc(void *p, size_t size);
-/* aligned malloc, never returns NULL, will align to 1 << alignment_log */
-void *gpr_malloc_aligned(size_t size, size_t alignment_log);
-/* free memory allocated by gpr_malloc_aligned */
-void gpr_free_aligned(void *ptr);
+  Result Mark();
 
-#ifdef __cplusplus
-}
-#endif
+ private:
+  static Result Sample();
 
-#endif /* __GRPC_SUPPORT_ALLOC_H__ */
+  const Result start_;
+};
+
+#endif // TEST_QPS_TIMER_H

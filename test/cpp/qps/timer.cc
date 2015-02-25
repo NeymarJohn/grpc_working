@@ -31,28 +31,35 @@
  *
  */
 
-#ifndef __GRPC_SUPPORT_ALLOC_H__
-#define __GRPC_SUPPORT_ALLOC_H__
+#include "test/cpp/qps/timer.h"
 
-#include <stddef.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+Timer::Timer() : start_(Sample()) {}
 
-/* malloc, never returns NULL */
-void *gpr_malloc(size_t size);
-/* free */
-void gpr_free(void *ptr);
-/* realloc, never returns NULL */
-void *gpr_realloc(void *p, size_t size);
-/* aligned malloc, never returns NULL, will align to 1 << alignment_log */
-void *gpr_malloc_aligned(size_t size, size_t alignment_log);
-/* free memory allocated by gpr_malloc_aligned */
-void gpr_free_aligned(void *ptr);
-
-#ifdef __cplusplus
+static double time_double(struct timeval* tv) {
+  return tv->tv_sec + 1e-6 * tv->tv_usec;
 }
-#endif
 
-#endif /* __GRPC_SUPPORT_ALLOC_H__ */
+Timer::Result Timer::Sample() {
+  struct rusage usage;
+  struct timeval tv;
+  gettimeofday(&tv, nullptr);
+  getrusage(RUSAGE_SELF, &usage);
+
+  Result r;
+  r.wall = time_double(&tv);
+  r.user = time_double(&usage.ru_utime);
+  r.system = time_double(&usage.ru_stime);
+  return r;
+}
+
+Timer::Result Timer::Mark() {
+  Result s = Sample();
+  Result r;
+  r.wall = s.wall - start_.wall;
+  r.user = s.user - start_.user;
+  r.system = s.system - start_.system;
+  return r;
+}

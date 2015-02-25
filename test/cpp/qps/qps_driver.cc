@@ -31,28 +31,53 @@
  *
  */
 
-#ifndef __GRPC_SUPPORT_ALLOC_H__
-#define __GRPC_SUPPORT_ALLOC_H__
+#include <gflags/gflags.h>
 
-#include <stddef.h>
+#include "test/cpp/qps/driver.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+DEFINE_int32(num_clients, 1, "Number of client binaries");
+DEFINE_int32(num_servers, 1, "Number of server binaries");
 
-/* malloc, never returns NULL */
-void *gpr_malloc(size_t size);
-/* free */
-void gpr_free(void *ptr);
-/* realloc, never returns NULL */
-void *gpr_realloc(void *p, size_t size);
-/* aligned malloc, never returns NULL, will align to 1 << alignment_log */
-void *gpr_malloc_aligned(size_t size, size_t alignment_log);
-/* free memory allocated by gpr_malloc_aligned */
-void gpr_free_aligned(void *ptr);
+// Common config
+DEFINE_bool(enable_ssl, false, "Use SSL");
 
-#ifdef __cplusplus
+// Server config
+DEFINE_int32(server_threads, 1, "Number of server threads");
+
+// Client config
+DEFINE_int32(client_threads, 1, "Number of client threads");
+DEFINE_int32(client_channels, 1, "Number of client channels");
+DEFINE_int32(num_rpcs, 10000, "Number of rpcs per client thread");
+DEFINE_int32(payload_size, 1, "Payload size");
+
+using grpc::testing::ClientConfig;
+using grpc::testing::ServerConfig;
+
+// In some distros, gflags is in the namespace google, and in some others,
+// in gflags. This hack is enabling us to find both.
+namespace google { }
+namespace gflags { }
+using namespace google;
+using namespace gflags;
+
+int main(int argc, char **argv) {
+  grpc_init();
+  ParseCommandLineFlags(&argc, &argv, true);
+
+  ClientConfig client_config;
+  client_config.set_enable_ssl(FLAGS_enable_ssl);
+  client_config.set_client_threads(FLAGS_client_threads);
+  client_config.set_client_channels(FLAGS_client_channels);
+  client_config.set_num_rpcs(FLAGS_num_rpcs);
+  client_config.set_payload_size(FLAGS_payload_size);
+
+  ServerConfig server_config;
+  server_config.set_threads(FLAGS_server_threads);
+  server_config.set_enable_ssl(FLAGS_enable_ssl);
+
+  RunScenario(client_config, FLAGS_num_clients, server_config, FLAGS_num_servers);
+
+  grpc_shutdown();
+  return 0;
 }
-#endif
 
-#endif /* __GRPC_SUPPORT_ALLOC_H__ */
