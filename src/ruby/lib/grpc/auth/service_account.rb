@@ -27,15 +27,40 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'grpc/auth/compute_engine.rb'
-require 'grpc/auth/service_account.rb'
-require 'grpc/errors'
-require 'grpc/grpc'
-require 'grpc/logconfig'
-require 'grpc/version'
-require 'grpc/core/event'
-require 'grpc/core/time_consts'
-require 'grpc/generic/active_call'
-require 'grpc/generic/client_stub'
-require 'grpc/generic/service'
-require 'grpc/generic/rpc_server'
+require 'grpc/auth/signet'
+require 'multi_json'
+require 'openssl'
+
+# Reads the private key and client email fields from service account JSON key.
+def read_json_key(json_key_io)
+  json_key = MultiJson.load(json_key_io.read)
+  fail 'missing client_email' unless json_key.key?('client_email')
+  fail 'missing private_key' unless json_key.key?('private_key')
+  [json_key['private_key'], json_key['client_email']]
+end
+
+module GRPC
+  # Module Auth provides classes that provide Google-specific authentication
+  # used to access Google gRPC services.
+  module Auth
+    # Authenticates requests using Google's Service Account credentials.
+    # (cf https://developers.google.com/accounts/docs/OAuth2ServiceAccount)
+    class ServiceAccountCredentials < Signet::OAuth2::Client
+      TOKEN_CRED_URI = 'https://www.googleapis.com/oauth2/v3/token'
+      AUDIENCE = TOKEN_CRED_URI
+
+      # Initializes a ServiceAccountCredentials.
+      #
+      # @param scope [string|array] the scope(s) to access
+      # @param json_key_io [IO] an IO from which the JSON key can be read
+      def initialize(scope, json_key_io)
+        private_key, client_email = read_json_key(json_key_io)
+        super(token_credential_uri: TOKEN_CRED_URI,
+              audience: AUDIENCE,
+              scope: scope,
+              issuer: client_email,
+              signing_key: OpenSSL::PKey::RSA.new(private_key))
+      end
+    end
+  end
+end

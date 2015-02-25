@@ -27,15 +27,41 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'grpc/auth/compute_engine.rb'
-require 'grpc/auth/service_account.rb'
-require 'grpc/errors'
-require 'grpc/grpc'
-require 'grpc/logconfig'
-require 'grpc/version'
-require 'grpc/core/event'
-require 'grpc/core/time_consts'
-require 'grpc/generic/active_call'
-require 'grpc/generic/client_stub'
-require 'grpc/generic/service'
-require 'grpc/generic/rpc_server'
+require 'signet/oauth_2/client'
+
+module Signet
+  # Signet::OAuth2 supports OAuth2 authentication.
+  module OAuth2
+    AUTH_METADATA_KEY = :Authorization
+    # Signet::OAuth2::Client creates an OAuth2 client
+    #
+    # Here client is re-opened to add the #apply and #apply! methods which
+    # update a hash map with the fetched authentication token
+    #
+    # Eventually, this change may be merged into signet itself, or some other
+    # package that provides Google-specific auth via signet, and this extension
+    # will be unnecessary.
+    class Client
+      # Updates a_hash updated with the authentication token
+      def apply!(a_hash, opts = {})
+        # fetch the access token there is currently not one, or if the client
+        # has expired
+        fetch_access_token!(opts) if access_token.nil? || expired?
+        a_hash[AUTH_METADATA_KEY] = "Bearer #{access_token}"
+      end
+
+      # Returns a clone of a_hash updated with the authentication token
+      def apply(a_hash, opts = {})
+        a_copy = a_hash.clone
+        apply!(a_copy, opts)
+        a_copy
+      end
+
+      # Returns a reference to the #apply method, suitable for passing as
+      # a closure
+      def updater_proc
+        lambda(&method(:apply))
+      end
+    end
+  end
+end

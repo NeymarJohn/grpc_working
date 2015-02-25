@@ -27,15 +27,44 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'grpc/auth/compute_engine.rb'
-require 'grpc/auth/service_account.rb'
-require 'grpc/errors'
-require 'grpc/grpc'
-require 'grpc/logconfig'
-require 'grpc/version'
-require 'grpc/core/event'
-require 'grpc/core/time_consts'
-require 'grpc/generic/active_call'
-require 'grpc/generic/client_stub'
-require 'grpc/generic/service'
-require 'grpc/generic/rpc_server'
+spec_dir = File.expand_path(File.join(File.dirname(__FILE__)))
+$LOAD_PATH.unshift(spec_dir)
+$LOAD_PATH.uniq!
+
+require 'apply_auth_examples'
+require 'grpc/auth/signet'
+require 'jwt'
+require 'openssl'
+require 'spec_helper'
+
+describe Signet::OAuth2::Client do
+  before(:example) do
+    @key = OpenSSL::PKey::RSA.new(2048)
+    @client = Signet::OAuth2::Client.new(
+        token_credential_uri: 'https://accounts.google.com/o/oauth2/token',
+        scope: 'https://www.googleapis.com/auth/userinfo.profile',
+        issuer: 'app@example.com',
+        audience: 'https://accounts.google.com/o/oauth2/token',
+        signing_key: @key
+      )
+  end
+
+  def make_auth_stubs(with_access_token: '')
+    Faraday::Adapter::Test::Stubs.new do |stub|
+      stub.post('/o/oauth2/token') do |env|
+        params = Addressable::URI.form_unencode(env[:body])
+        _claim, _header = JWT.decode(params.assoc('assertion').last,
+                                     @key.public_key)
+        want = ['grant_type', 'urn:ietf:params:oauth:grant-type:jwt-bearer']
+        expect(params.assoc('grant_type')).to eq(want)
+        build_json_response(
+          'access_token' => with_access_token,
+          'token_type' => 'Bearer',
+          'expires_in' => 3600
+        )
+      end
+    end
+  end
+
+  it_behaves_like 'apply/apply! are OK'
+end
