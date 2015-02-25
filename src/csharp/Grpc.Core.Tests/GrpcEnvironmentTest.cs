@@ -41,16 +41,14 @@ namespace Grpc.Core.Tests
     public class GrpcEnvironmentTest
     {
         [Test]
-        public void InitializeAndShutdownGrpcEnvironment()
-        {
+        public void InitializeAndShutdownGrpcEnvironment() {
             GrpcEnvironment.Initialize();
             Assert.IsNotNull(GrpcEnvironment.ThreadPool.CompletionQueue);
             GrpcEnvironment.Shutdown();
         }
 
         [Test]
-        public void SubsequentInvocations()
-        {
+        public void SubsequentInvocations() {
             GrpcEnvironment.Initialize();
             GrpcEnvironment.Initialize();
             GrpcEnvironment.Shutdown();
@@ -58,8 +56,7 @@ namespace Grpc.Core.Tests
         }
 
         [Test]
-        public void InitializeAfterShutdown()
-        {
+        public void InitializeAfterShutdown() {
             GrpcEnvironment.Initialize();
             var tp1 = GrpcEnvironment.ThreadPool;
             GrpcEnvironment.Shutdown();

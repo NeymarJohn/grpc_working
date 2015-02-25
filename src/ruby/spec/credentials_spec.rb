@@ -68,4 +68,10 @@ describe Credentials do
       expect { cred1.compose(cred2) }.to_not raise_error
     end
   end
+
+  describe 'Credentials#default' do
+    it 'is not implemented yet' do
+      expect { Credentials.default }.to raise_error RuntimeError
+    end
+  end
 end
