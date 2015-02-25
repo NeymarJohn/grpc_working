@@ -116,7 +116,7 @@ describe 'ClientStub' do
       host = FAKE_HOST
       blk = proc do
         opts = {
-          GRPC::Core::Channel::SSL_TARGET => 'foo.test.google.fr',
+          GRPC::Core::Channel::SSL_TARGET => 'foo.test.google.com',
           a_channel_arg: 'an_arg',
           creds: GRPC::Core::Credentials.new(certs[0], nil, nil)
         }

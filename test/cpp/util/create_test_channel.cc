@@ -79,7 +79,7 @@ std::shared_ptr<ChannelInterface> CreateTestChannel(
     }
     return CreateChannel(connect_to, channel_creds, channel_args);
   } else {
-    return CreateChannel(server, channel_args);
+    return CreateChannelDeprecated(server, channel_args);
   }
 }
 
@@ -93,7 +93,7 @@ std::shared_ptr<ChannelInterface> CreateTestChannel(
 // Shortcut for end2end and interop tests.
 std::shared_ptr<ChannelInterface> CreateTestChannel(const grpc::string& server,
                                                     bool enable_ssl) {
-  return CreateTestChannel(server, "foo.test.google.fr", enable_ssl, false);
+  return CreateTestChannel(server, "foo.test.google.com", enable_ssl, false);
 }
 
 }  // namespace grpc
