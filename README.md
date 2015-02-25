@@ -12,10 +12,10 @@ Hello World example. You'll find more tutorials and reference docs in this repos
 You can find quick start guides for each language, including installation instructions, examples, and tutorials here:
 * [C++](https://github.com/grpc/grpc-common/tree/master/cpp)
 * [Java](https://github.com/grpc/grpc-common/tree/master/java)
-* [Python](https://github.com/grpc/grpc-common/tree/master/python)
 * [Go](https://github.com/grpc/grpc-common/tree/master/go)
 * [ruby](https://github.com/grpc/grpc-common/tree/master/ruby)
 * [Node.js](https://github.com/grpc/grpc-common/tree/master/node)
+* Python is coming soon
 
 ## What's in this repository?
 
@@ -89,7 +89,6 @@ Hello World method.
 - Create a Java client that accesses the Java server.
 - Create a Go client that accesses
 the same Java server.
-- Update the service with a streaming RPC.
 
 The complete code for the example is available in the `grpc-common` GitHub
 repository. We use the Git versioning system for source code management:
@@ -290,7 +289,7 @@ public static class GreeterStub extends
 Now let's write some code! First we'll create a server application to implement
 our service. Note that we're not going to go into a lot of detail about how
 to create a server in this section. More detailed information will be in the
-tutorial for your chosen language (coming soon).
+tutorial for your chosen language: check if there's one available yet in the relevant [quick start](#quickstart).
 
 Our server application has two classes:
 
