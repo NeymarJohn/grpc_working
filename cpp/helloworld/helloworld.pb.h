@@ -320,9 +320,9 @@ class Greeter final {
   class Stub final : public ::grpc::InternalStub {
    public:
     ::grpc::Status SayHello(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::helloworld::HelloReply* response);
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::helloworld::HelloReply>> SayHello(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq, void* tag);
+    ::grpc::ClientAsyncResponseReader< ::helloworld::HelloReply>* SayHello(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq, void* tag);
   };
-  static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel);
+  static Stub* NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel);
 
   class Service : public ::grpc::SynchronousService {
    public:
