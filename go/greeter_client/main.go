@@ -31,54 +31,39 @@
  *
  */
 
-#include <iostream>
-#include <memory>
-#include <string>
-#include <thread>
+package main
 
-#include <grpc/grpc.h>
-#include <grpc++/server.h>
-#include <grpc++/server_builder.h>
-#include <grpc++/server_context.h>
-#include <grpc++/status.h>
-#include "helloworld.pb.h"
+import (
+	"log"
+	"os"
 
-using grpc::Server;
-using grpc::ServerBuilder;
-using grpc::ServerContext;
-using grpc::Status;
-using helloworld::HelloRequest;
-using helloworld::HelloReply;
-using helloworld::Greeter;
+	pb "github.com/grpc/grpc-common/go/helloworld"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+)
 
-class GreeterServiceImpl final : public Greeter::Service {
-  Status SayHello(ServerContext* context, const HelloRequest* request,
-                  HelloReply* reply) override {
-    std::string prefix("Hello ");
-    reply->set_message(prefix + request->name());
-    return Status::OK;
-  }
-};
+const (
+	address     = "localhost:50051"
+	defaultName = "world"
+)
 
-void RunServer() {
-  std::string server_address("0.0.0.0:50051");
-  GreeterServiceImpl service;
+func main() {
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(address)
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := pb.NewGreeterClient(conn)
 
-  ServerBuilder builder;
-  builder.AddPort(server_address);
-  builder.RegisterService(&service);
-  std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "Server listening on " << server_address << std::endl;
-  while (true) {
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-  }
-}
-
-int main(int argc, char** argv) {
-  grpc_init();
-
-  RunServer();
-
-  grpc_shutdown();
-  return 0;
+	// Contact the server and print out its response.
+	name := defaultName
+	if len(os.Args) > 1 {
+		name = os.Args[1]
+	}
+	r, err := c.SayHello(context.Background(), &pb.HelloRequest{Name: name})
+	if err != nil {
+		log.Fatalf("could not greet: %v", err)
+	}
+	log.Printf("Greeting: %s", r.Message)
 }

@@ -31,54 +31,20 @@
  *
  */
 
-#include <iostream>
-#include <memory>
+#ifndef GRPC_COMMON_CPP_ROUTE_GUIDE_HELPER_H_
+#define GRPC_COMMON_CPP_ROUTE_GUIDE_HELPER_H_
+
 #include <string>
-#include <thread>
+#include <vector>
 
-#include <grpc/grpc.h>
-#include <grpc++/server.h>
-#include <grpc++/server_builder.h>
-#include <grpc++/server_context.h>
-#include <grpc++/status.h>
-#include "helloworld.pb.h"
+namespace examples {
+class Feature;
 
-using grpc::Server;
-using grpc::ServerBuilder;
-using grpc::ServerContext;
-using grpc::Status;
-using helloworld::HelloRequest;
-using helloworld::HelloReply;
-using helloworld::Greeter;
+std::string GetDbFileContent(int argc, char** argv);
 
-class GreeterServiceImpl final : public Greeter::Service {
-  Status SayHello(ServerContext* context, const HelloRequest* request,
-                  HelloReply* reply) override {
-    std::string prefix("Hello ");
-    reply->set_message(prefix + request->name());
-    return Status::OK;
-  }
-};
+void ParseDb(const std::string& db, std::vector<Feature>* feature_list);
 
-void RunServer() {
-  std::string server_address("0.0.0.0:50051");
-  GreeterServiceImpl service;
+}  // namespace examples
 
-  ServerBuilder builder;
-  builder.AddPort(server_address);
-  builder.RegisterService(&service);
-  std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "Server listening on " << server_address << std::endl;
-  while (true) {
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-  }
-}
+#endif  // GRPC_COMMON_CPP_ROUTE_GUIDE_HELPER_H_
 
-int main(int argc, char** argv) {
-  grpc_init();
-
-  RunServer();
-
-  grpc_shutdown();
-  return 0;
-}

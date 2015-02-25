@@ -31,54 +31,35 @@
  *
  */
 
-#include <iostream>
-#include <memory>
-#include <string>
-#include <thread>
+package main
 
-#include <grpc/grpc.h>
-#include <grpc++/server.h>
-#include <grpc++/server_builder.h>
-#include <grpc++/server_context.h>
-#include <grpc++/status.h>
-#include "helloworld.pb.h"
+import (
+	"log"
+	"net"
 
-using grpc::Server;
-using grpc::ServerBuilder;
-using grpc::ServerContext;
-using grpc::Status;
-using helloworld::HelloRequest;
-using helloworld::HelloReply;
-using helloworld::Greeter;
+	pb "github.com/grpc-common/go/helloworld"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+)
 
-class GreeterServiceImpl final : public Greeter::Service {
-  Status SayHello(ServerContext* context, const HelloRequest* request,
-                  HelloReply* reply) override {
-    std::string prefix("Hello ");
-    reply->set_message(prefix + request->name());
-    return Status::OK;
-  }
-};
+const (
+	port = ":50051"
+)
 
-void RunServer() {
-  std::string server_address("0.0.0.0:50051");
-  GreeterServiceImpl service;
+// server is used to implement hellowrld.GreeterServer.
+type server struct{}
 
-  ServerBuilder builder;
-  builder.AddPort(server_address);
-  builder.RegisterService(&service);
-  std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "Server listening on " << server_address << std::endl;
-  while (true) {
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-  }
+// SayHello implements helloworld.GreeterServer
+func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+	return &pb.HelloReply{Message: "Hello " + in.Name}, nil
 }
 
-int main(int argc, char** argv) {
-  grpc_init();
-
-  RunServer();
-
-  grpc_shutdown();
-  return 0;
+func main() {
+	lis, err := net.Listen("tcp", port)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	s := grpc.NewServer()
+	pb.RegisterGreeterServer(s, &server{})
+	s.Serve(lis)
 }
