@@ -43,19 +43,15 @@
 
 static __thread char magic_thread_local;
 
-static int ncpus = 0;
-
-static void init_ncpus() {
-  ncpus = sysconf(_SC_NPROCESSORS_ONLN);
-  if (ncpus < 1) {
-    gpr_log(GPR_ERROR, "Cannot determine number of CPUs: assuming 1");
-    ncpus = 1;
-  }
-}
-
 unsigned gpr_cpu_num_cores(void) {
-  static gpr_once once = GPR_ONCE_INIT;
-  gpr_once_init(&once, init_num_cpus);
+  static int ncpus = 0;
+  if (ncpus == 0) {
+    ncpus = sysconf(_SC_NPROCESSORS_ONLN);
+    if (ncpus < 1) {
+      gpr_log(GPR_ERROR, "Cannot determine number of CPUs: assuming 1");
+      ncpus = 1;
+    }
+  }
   return ncpus;
 }
 

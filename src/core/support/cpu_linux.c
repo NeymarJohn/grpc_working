@@ -39,28 +39,25 @@
 
 #ifdef GPR_CPU_LINUX
 
+#include <grpc/support/cpu.h>
+
 #include <sched.h>
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
 
-#include <grpc/support/cpu.h>
 #include <grpc/support/log.h>
-#include <grpc/support/sync.h>
-
-static int ncpus = 0;
-
-static void init_num_cpus() {
-  ncpus = sysconf(_SC_NPROCESSORS_ONLN);
-  if (ncpus < 1) {
-    gpr_log(GPR_ERROR, "Cannot determine number of CPUs: assuming 1");
-    ncpus = 1;
-  }
-}
 
 unsigned gpr_cpu_num_cores(void) {
-  static gpr_once once = GPR_ONCE_INIT;
-  gpr_once_init(&once, init_num_cpus);
+  static int ncpus = 0;
+  /* FIXME: !threadsafe */
+  if (ncpus == 0) {
+    ncpus = sysconf(_SC_NPROCESSORS_ONLN);
+    if (ncpus < 1) {
+      gpr_log(GPR_ERROR, "Cannot determine number of CPUs: assuming 1");
+      ncpus = 1;
+    }
+  }
   return ncpus;
 }
 
