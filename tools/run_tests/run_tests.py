@@ -175,10 +175,6 @@ argp.add_argument('-f', '--forever',
                   default=False,
                   action='store_const',
                   const=True)
-argp.add_argument('-t', '--travis',
-                  default=False,
-                  action='store_const',
-                  const=True)
 argp.add_argument('--newline_on_success',
                   default=False,
                   action='store_const',
@@ -255,18 +251,17 @@ class TestCache(object):
         self.parse(json.loads(f.read()))
 
 
-def _build_and_run(check_cancelled, newline_on_success, travis, cache):
+def _build_and_run(check_cancelled, newline_on_success, cache):
   """Do one pass of building & running tests."""
   # build latest sequentially
-  if not jobset.run(build_steps, maxjobs=1,
-                    newline_on_success=newline_on_success, travis=travis):
+  if not jobset.run(build_steps, maxjobs=1):
     return 1
 
   # run all the tests
   all_runs = itertools.chain.from_iterable(
       itertools.repeat(one_run, runs_per_test))
   if not jobset.run(all_runs, check_cancelled,
-                    newline_on_success=newline_on_success, travis=travis,
+                    newline_on_success=newline_on_success,
                     maxjobs=min(args.jobs, min(c.maxjobs for c in run_configs)),
                     cache=cache):
     return 2
@@ -297,7 +292,6 @@ if forever:
 else:
   result = _build_and_run(check_cancelled=lambda: False,
                           newline_on_success=args.newline_on_success,
-                          travis=args.travis,
                           cache=test_cache)
   if result == 0:
     jobset.message('SUCCESS', 'All tests passed', do_newline=True)
