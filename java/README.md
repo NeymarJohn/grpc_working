@@ -1,13 +1,17 @@
 gRPC in 3 minutes (Java)
 ========================
 
+BACKGROUND
+-------------
+For this sample, we've already generated the server and client stubs from [helloworld.proto](https://github.com/grpc/grpc-common/blob/master/protos/helloworld.proto). 
+
 PREREQUISITES
 -------------
 
 - [Java 8](http://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html)
 
 - [Maven 3.2 or later](http://maven.apache.org/download.cgi).
-  - this is needed to install Netty5, a dependency of gRPC
+  - this is needed to install Netty5, a dependency of gRPC, and to build this sample
 
 INSTALL
 -------
@@ -25,24 +29,30 @@ $ cd grpc-java
 $ # follow the instructions in 'How to Build'
 ```
 
+3 Clone this repo, if you've not already done so.
+```sh
+$ cd <path/to/your/working_dir>
+$ git clone https://github.com/grpc/grpc-common
+$ cd grpc-common/java  # switch to this directory
+```
+
+4 Build the samples
+```sh
+$ # from this directory
+$ mvn package
+```
+
 TRY IT!
 -------
 
-Our [Gradle build file](https://github.com/grpc/grpc-java/blob/master/examples/build.gradle) simplifies building and running the examples.
-
-You can build and run the Hello World server used in [Getting started](https://github.com/grpc/grpc-common) from the `grpc-java` root folder with:
-
+- Run the server
 ```sh
-$ ./gradlew :grpc-examples:helloWorldServer
+$ # from this directory
+$ ./run_greeter_server.sh &
 ```
 
-and in another terminal window confirm that it receives a message.
-
+- Run the client
 ```sh
-$  ./gradlew :grpc-examples:helloWorldClient
+$ # from this directory
+$ ./run_greeter_client.sh
 ```
-
-TUTORIAL
---------
-
-You can find a more detailed tutorial in [gRPC Basics: Java](https://github.com/grpc/grpc-common/blob/master/java/javatutorial.md).

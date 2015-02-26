@@ -26,7 +26,7 @@ INSTALL
    ```
 
 
-TRY IT!
+Try it!
 -------
 
  - Run the server
@@ -43,13 +43,8 @@ TRY IT!
    $ node ./greeter_client.js
    ```
 
-NOTE
+Note
 ----
 
 This directory has a copy of `helloworld.proto` because it currently depends on
 some Protocol Buffer 2.0 syntax that is deprecated in Protocol Buffer 3.0.
-
-TUTORIAL
---------
-
-You can find a more detailed tutorial in [gRPC Basics: Node.js](https://github.com/grpc/grpc-common/blob/master/node/route_guide/README.md).
