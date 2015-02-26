@@ -5,18 +5,16 @@ Welcome to the developer documentation for gRPC, a language-neutral,
 platform-neutral remote procedure call (RPC) system developed at Google.
 
 This document introduces you to gRPC with a quick overview and a simple
-Hello World example. You'll find more tutorials and reference docs in this repository - more documentation is coming soon!
+Hello World example. More documentation is coming soon!
 
-<a name="quickstart"></a>
 ## Quick start
-You can find quick start guides for each language, including installation instructions, examples, and tutorials here:
+You can find quick start guides for each language, including installation instructions and examples here:
 * [C++](https://github.com/grpc/grpc-common/tree/master/cpp)
 * [Java](https://github.com/grpc/grpc-common/tree/master/java)
+* [Python](https://github.com/grpc/grpc-common/tree/master/python)
 * [Go](https://github.com/grpc/grpc-common/tree/master/go)
 * [ruby](https://github.com/grpc/grpc-common/tree/master/ruby)
 * [Node.js](https://github.com/grpc/grpc-common/tree/master/node)
-* [Android Java](https://github.com/grpc/grpc-common/tree/master/java/android)
-* [Python](https://github.com/grpc/grpc-common/tree/master/python/helloworld)
 
 ## What's in this repository?
 
@@ -90,6 +88,7 @@ Hello World method.
 - Create a Java client that accesses the Java server.
 - Create a Go client that accesses
 the same Java server.
+- Update the service with a streaming RPC.
 
 The complete code for the example is available in the `grpc-common` GitHub
 repository. We use the Git versioning system for source code management:
@@ -99,8 +98,8 @@ than how to install and run a few git commands.
 This is an introductory example rather than a comprehensive tutorial, so
 don't worry if you're not a Go or
 Java developer - the concepts are similar for all languages, and you can
-find more implementations of our Hello World example in other languages (and full tutorials where available) in
-the [language-specific folders](#quickstart) in this repository. Complete tutorials and
+find more implementations of our Hello World example in other languages in
+the language-specific folders in this repository. Complete tutorials and
 reference documentation for all gRPC languages are coming soon.
 
 <a name="setup"></a>
@@ -290,7 +289,7 @@ public static class GreeterStub extends
 Now let's write some code! First we'll create a server application to implement
 our service. Note that we're not going to go into a lot of detail about how
 to create a server in this section. More detailed information will be in the
-tutorial for your chosen language: check if there's one available yet in the relevant [quick start](#quickstart).
+tutorial for your chosen language (coming soon).
 
 Our server application has two classes:
 
@@ -320,8 +319,8 @@ As you can see, the class `GreeterImpl` implements the interface
   }
 ```
 - `hello` takes two parameters:
-    - `Helloworld.HelloRequest`: the request
-    - `StreamObserver<Helloworld.HelloReply>`: a response observer, which is
+    -`Helloworld.HelloRequest`: the request
+    -`StreamObserver<Helloworld.HelloReply>`: a response observer, which is
     a special interface for the server to call with its response
 
 To return our response to the client and complete the call:
