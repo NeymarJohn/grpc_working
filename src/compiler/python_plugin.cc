@@ -56,10 +56,12 @@ using std::strlen;
 class PythonGrpcGenerator : public CodeGenerator {
  public:
   PythonGrpcGenerator() {}
-  ~PythonGrpcGenerator() {}
+  ~PythonGrpcGenerator() override {}
 
-  bool Generate(const FileDescriptor* file, const string& parameter,
-                GeneratorContext* context, string* error) const {
+  bool Generate(const FileDescriptor* file,
+                const string& parameter,
+                GeneratorContext* context,
+                string* error) const override {
     // Get output file name.
     string file_name;
     static const int proto_suffix_length = strlen(".proto");

@@ -35,7 +35,6 @@
 #define __GRPCPP_CALL_H__
 
 #include <grpc/grpc.h>
-#include <grpc++/config.h>
 #include <grpc++/status.h>
 #include <grpc++/completion_queue.h>
 
@@ -57,7 +56,7 @@ class Call;
 
 class CallOpBuffer : public CompletionQueueTag {
  public:
-  CallOpBuffer();
+  CallOpBuffer() : return_tag_(this) {}
   ~CallOpBuffer();
 
   void Reset(void *next_return_tag);
@@ -81,40 +80,40 @@ class CallOpBuffer : public CompletionQueueTag {
   void FillOps(grpc_op *ops, size_t *nops);
 
   // Called by completion queue just prior to returning from Next() or Pluck()
-  bool FinalizeResult(void **tag, bool *status) GRPC_OVERRIDE;
+  bool FinalizeResult(void **tag, bool *status) override;
 
-  bool got_message;
+  bool got_message = false;
 
  private:
-  void *return_tag_;
+  void *return_tag_ = nullptr;
   // Send initial metadata
-  bool send_initial_metadata_;
-  size_t initial_metadata_count_;
-  grpc_metadata *initial_metadata_;
+  bool send_initial_metadata_ = false;
+  size_t initial_metadata_count_ = 0;
+  grpc_metadata *initial_metadata_ = nullptr;
   // Recv initial metadta
-  std::multimap<grpc::string, grpc::string> *recv_initial_metadata_;
-  grpc_metadata_array recv_initial_metadata_arr_;
+  std::multimap<grpc::string, grpc::string> *recv_initial_metadata_ = nullptr;
+  grpc_metadata_array recv_initial_metadata_arr_ = {0, 0, nullptr};
   // Send message
-  const google::protobuf::Message *send_message_;
-  grpc_byte_buffer *send_message_buf_;
+  const google::protobuf::Message *send_message_ = nullptr;
+  grpc_byte_buffer *send_message_buf_ = nullptr;
   // Recv message
-  google::protobuf::Message *recv_message_;
-  grpc_byte_buffer *recv_message_buf_;
+  google::protobuf::Message *recv_message_ = nullptr;
+  grpc_byte_buffer *recv_message_buf_ = nullptr;
   // Client send close
-  bool client_send_close_;
+  bool client_send_close_ = false;
   // Client recv status
-  std::multimap<grpc::string, grpc::string> *recv_trailing_metadata_;
-  Status *recv_status_;
-  grpc_metadata_array recv_trailing_metadata_arr_;
-  grpc_status_code status_code_;
-  char *status_details_;
-  size_t status_details_capacity_;
+  std::multimap<grpc::string, grpc::string> *recv_trailing_metadata_ = nullptr;
+  Status *recv_status_ = nullptr;
+  grpc_metadata_array recv_trailing_metadata_arr_ = {0, 0, nullptr};
+  grpc_status_code status_code_ = GRPC_STATUS_OK;
+  char *status_details_ = nullptr;
+  size_t status_details_capacity_ = 0;
   // Server send status
-  const Status *send_status_;
-  size_t trailing_metadata_count_;
-  grpc_metadata *trailing_metadata_;
+  const Status *send_status_ = nullptr;
+  size_t trailing_metadata_count_ = 0;
+  grpc_metadata *trailing_metadata_ = nullptr;
   int cancelled_buf_;
-  bool *recv_closed_;
+  bool *recv_closed_ = nullptr;
 };
 
 // Channel and Server implement this to allow them to hook performing ops
@@ -125,7 +124,7 @@ class CallHook {
 };
 
 // Straightforward wrapping of the C call object
-class Call GRPC_FINAL {
+class Call final {
  public:
   /* call is owned by the caller */
   Call(grpc_call *call, CallHook *call_hook_, CompletionQueue *cq);
