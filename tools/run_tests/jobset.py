@@ -161,7 +161,6 @@ class Job(object):
     env = os.environ.copy()
     for k, v in spec.environ.iteritems():
       env[k] = v
-    self._start = time.time()
     self._process = subprocess.Popen(args=spec.cmdline,
                                      stderr=subprocess.STDOUT,
                                      stdout=self._tempfile,
@@ -175,7 +174,6 @@ class Job(object):
   def state(self, update_cache):
     """Poll current state of the job. Prints messages at completion."""
     if self._state == _RUNNING and self._process.poll() is not None:
-      elapsed = time.time() - self._start
       if self._process.returncode != 0:
         self._state = _FAILURE
         self._tempfile.seek(0)
@@ -184,7 +182,7 @@ class Job(object):
             self._spec.shortname, self._process.returncode), stdout)
       else:
         self._state = _SUCCESS
-        message('PASSED', '%s [time=%.1fsec]' % (self._spec.shortname, elapsed),
+        message('PASSED', self._spec.shortname,
                 do_newline=self._newline_on_success or self._travis)
         if self._bin_hash:
           update_cache.finished(self._spec.identity(), self._bin_hash)
