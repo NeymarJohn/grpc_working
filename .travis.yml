@@ -1,4 +1,0 @@
-language: cpp
-script: ./tools/run_tests/run_tests.py -lc
-notifications:
-  email: false
