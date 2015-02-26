@@ -93,7 +93,13 @@ class _Server(interfaces.Server):
     with self._lock:
       return self._fore_link.port()
 
-def _build_stub(breakdown, activated_rear_link):
+def _build_stub(
+    methods, host, port, root_certificates, private_key, certificate_chain):
+  breakdown = _assembly_utilities.break_down_invocation(methods)
+  # TODO(nathaniel): pass security values.
+  activated_rear_link = _rear.activated_rear_link(
+      host, port, breakdown.request_serializers,
+      breakdown.response_deserializers)
   assembly_stub = _assembly_implementations.assemble_dynamic_inline_stub(
       breakdown.implementations, activated_rear_link)
   return _reexport.stub(assembly_stub, breakdown.cardinalities)
@@ -117,11 +123,7 @@ def insecure_stub(methods, host, port):
   Returns:
     An interfaces.Stub affording RPC invocation.
   """
-  breakdown = _assembly_utilities.break_down_invocation(methods)
-  activated_rear_link = _rear.activated_rear_link(
-      host, port, breakdown.request_serializers,
-      breakdown.response_deserializers)
-  return _build_stub(breakdown, activated_rear_link)
+  return _build_stub(methods, host, port, None, None, None)
 
 
 def secure_stub(
@@ -144,12 +146,8 @@ def secure_stub(
   Returns:
     An interfaces.Stub affording RPC invocation.
   """
-  breakdown = _assembly_utilities.break_down_invocation(methods)
-  activated_rear_link = _rear.secure_activated_rear_link(
-      host, port, breakdown.request_serializers,
-      breakdown.response_deserializers, root_certificates, private_key,
-      certificate_chain)
-  return _build_stub(breakdown, activated_rear_link)
+  return _build_stub(
+      methods, host, port, root_certificates, private_key, certificate_chain)
 
 
 def insecure_server(methods, port):
