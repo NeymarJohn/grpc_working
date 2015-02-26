@@ -1,6 +1,4 @@
 language: cpp
-script:
- - ./tools/run_tests/run_tests.py -l c -t -j2
- - ./tools/run_tests/run_tests.py -l node -t -j2
+script: ./tools/run_tests/run_tests.py -l c -t -j 8 -c dbg
 notifications:
   email: false
