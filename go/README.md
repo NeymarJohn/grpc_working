@@ -1,10 +1,6 @@
 gRPC in 3 minutes (Go)
 ======================
 
-BACKGROUND
--------------
-For this sample, we've already generated the server and client stubs from [helloworld.proto](https://github.com/grpc/grpc-common/blob/master/protos/helloworld.proto). 
-
 PREREQUISITES
 -------------
 
@@ -49,5 +45,5 @@ OPTIONAL - Rebuilding the generated code
 $ go get -a github.com/golang/protobuf/protoc-gen-go
 $
 $ # from this dir; invoke protoc
-$ protoc -I ../protos ../protos/helloworld.proto --go_out=plugins=grpc:helloworld
+$ protoc -I ../protos ../protos/helloworld.proto --go_out=plugins=grpc:.
 ```

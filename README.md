@@ -15,7 +15,8 @@ You can find quick start guides for each language, including installation instru
 * [Go](https://github.com/grpc/grpc-common/tree/master/go)
 * [ruby](https://github.com/grpc/grpc-common/tree/master/ruby)
 * [Node.js](https://github.com/grpc/grpc-common/tree/master/node)
-* [Python](https://github.com/grpc/grpc-common/tree/master/python/helloworld)
+* [Android Java](https://github.com/grpc/grpc-common/tree/master/java/android)
+* Python is coming soon
 
 ## What's in this repository?
 
