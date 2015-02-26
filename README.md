@@ -13,7 +13,7 @@ You can find quick start guides for each language, including installation instru
 * [C++](https://github.com/grpc/grpc-common/tree/master/cpp)
 * [Java](https://github.com/grpc/grpc-common/tree/master/java)
 * [Go](https://github.com/grpc/grpc-common/tree/master/go)
-* [Ruby](https://github.com/grpc/grpc-common/tree/master/ruby)
+* [ruby](https://github.com/grpc/grpc-common/tree/master/ruby)
 * [Node.js](https://github.com/grpc/grpc-common/tree/master/node)
 * [Android Java](https://github.com/grpc/grpc-common/tree/master/java/android)
 * [Python](https://github.com/grpc/grpc-common/tree/master/python/helloworld)
@@ -223,16 +223,19 @@ has all the protocol buffer code to populate, serialize, and retrieve our
 
     ```java
   public static interface Greeter {
-      public void sayHello(io.grpc.examples.Helloworld.HelloRequest request,
-          io.grpc.stub.StreamObserver<io.grpc.examples.Helloworld.HelloReply> responseObserver);
+
+    public void SayHello(ex.grpc.Helloworld.HelloRequest request,
+        com.google.net.stubby.stub.StreamObserver<ex.grpc.Helloworld.HelloReply>
+        responseObserver);
   }
     ```
 
     - _stub_ classes that clients can use to talk to a `Greeter` server. As you can see, they also implement the `Greeter` interface.
 
   ```java
-  public static class GreeterStub extends
-      io.grpc.stub.AbstractStub<GreeterStub, GreeterServiceDescriptor>
+public static class GreeterStub extends
+      com.google.net.stubby.stub.AbstractStub<GreeterStub,
+      GreeterServiceDescriptor>
       implements Greeter {
    ...
   }
