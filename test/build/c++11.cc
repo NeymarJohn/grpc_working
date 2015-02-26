@@ -31,72 +31,22 @@
  *
  */
 
-#include "src/core/httpcli/httpcli.h"
+/* This is just a compilation test, to see if we have zlib installed. */
 
-#include <string.h>
+#include <stdlib.h>
+#include <zlib.h>
 
-#include "src/core/iomgr/iomgr.h"
-#include <grpc/support/log.h>
-#include <grpc/support/sync.h>
-#include "test/core/util/test_config.h"
+class Base {
+ public:
+  virtual void foo() = 0;
+};
 
-static gpr_event g_done;
+class Foo final : public Base {
+ public:
+  void foo() override {}
+};
 
-static gpr_timespec n_seconds_time(int seconds) {
-  return GRPC_TIMEOUT_SECONDS_TO_DEADLINE(seconds);
-}
-
-static void on_finish(void *arg, const grpc_httpcli_response *response) {
-  GPR_ASSERT(arg == (void *)42);
-  GPR_ASSERT(response);
-  GPR_ASSERT(response->status == 200);
-  gpr_event_set(&g_done, (void *)1);
-}
-
-static void test_get(int use_ssl) {
-  grpc_httpcli_request req;
-
-  gpr_log(GPR_INFO, "running %s with use_ssl=%d.", __FUNCTION__, use_ssl);
-
-  gpr_event_init(&g_done);
-  memset(&req, 0, sizeof(req));
-  req.host = "www.google.com";
-  req.path = "/";
-  req.use_ssl = use_ssl;
-
-  grpc_httpcli_get(&req, n_seconds_time(15), on_finish, (void *)42);
-  GPR_ASSERT(gpr_event_wait(&g_done, n_seconds_time(20)));
-}
-
-/*
-static void test_post(int use_ssl) {
-  grpc_httpcli_request req;
-
-  gpr_log(GPR_INFO, "running %s with use_ssl=%d.", __FUNCTION__, (int)use_ssl);
-
-  gpr_event_init(&g_done);
-  memset(&req, 0, sizeof(req));
-  req.host = "requestb.in";
-  req.path = "/1eamwr21";
-  req.use_ssl = use_ssl;
-
-  grpc_httpcli_post(&req, NULL, 0, n_seconds_time(15), on_finish,
-                    (void *)42);
-  GPR_ASSERT(gpr_event_wait(&g_done, n_seconds_time(20)));
-}
-*/
-
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  grpc_iomgr_init();
-
-  test_get(0);
-  test_get(1);
-
-  /* test_post(0); */
-  /* test_post(1); */
-
-  grpc_iomgr_shutdown();
-
+int main() {
+  Foo().foo();
   return 0;
 }
