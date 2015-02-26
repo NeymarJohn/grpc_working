@@ -1,447 +1,106 @@
+[gRPC - An RPC library and framework](http://github.com/grpc/grpc)
+===================================
 
-# Getting started
-
-Welcome to the developer documentation for gRPC, a language-neutral,
-platform-neutral remote procedure call (RPC) system developed at Google.
-
-This document introduces you to gRPC with a quick overview and a simple
-Hello World example. You'll find more tutorials and reference docs in this repository - more documentation is coming soon!
-
-<a name="quickstart"></a>
-## Quick start
-You can find quick start guides for each language, including installation instructions, examples, and tutorials here:
-* [C++](https://github.com/grpc/grpc-common/tree/master/cpp)
-* [Java](https://github.com/grpc/grpc-common/tree/master/java)
-* [Go](https://github.com/grpc/grpc-common/tree/master/go)
-* [Ruby](https://github.com/grpc/grpc-common/tree/master/ruby)
-* [Node.js](https://github.com/grpc/grpc-common/tree/master/node)
-* [Android Java](https://github.com/grpc/grpc-common/tree/master/java/android)
-* [Python](https://github.com/grpc/grpc-common/tree/master/python/helloworld)
-
-## What's in this repository?
-
-The `grpc-common` repository contains documentation, resources, and examples
-for all gRPC users. You can find examples and instructions specific to your
-favourite language in the relevant subdirectory.
-
-You can find out about the gRPC source code repositories in
-[`grpc`](https://github.com/grpc/grpc). Each repository provides instructions
-for building the appropriate libraries for your language.
-
-
-## What is gRPC?
-
-In gRPC a *client* application can directly call
-methods on a *server* application on a different machine as if it was a
-local object, making it easier for you to create distributed applications and
-services. As in many RPC systems, gRPC is based around the idea of defining
-a *service*, specifying the methods that can be called remotely with their
-parameters and return types. On the server side, the server implements this
-interface and runs a gRPC server to handle client calls. On the client side,
-the client has a *stub* that provides exactly the same methods as the server.
-
-<!--TODO: diagram-->
-
-gRPC clients and servers can run and talk to each other in a variety of
-environments - from servers inside Google to your own desktop - and can
-be written in any of gRPC's [supported languages](#quickstart). So, for
-example, you can easily create a gRPC server in Java with clients in Go,
-Python, or Ruby. In addition, the latest Google APIs will have gRPC versions
-of their interfaces, letting you easily build Google functionality into
-your applications.
+Copyright 2015 Google Inc.
 
-<a name="protocolbuffers"></a>
-### Working with protocol buffers
+#Installation
 
-By default gRPC uses *protocol buffers*, Google’s
-mature open source mechanism for serializing structured data (although it
-can be used with other data formats such as JSON). As you'll
-see in our example below, you define gRPC services using *proto files*,
-with method parameters and return types specified as protocol buffer message
-types. You
-can find out lots more about protocol buffers in the [Protocol Buffers
-documentation](https://developers.google.com/protocol-buffers/docs/overview).
-
-#### Protocol buffer versions
-
-While protocol buffers have been available for open source users for some
-time, our examples use a new flavour of protocol buffers called proto3,
-which has a slightly simplified syntax, some useful new features, and supports
-lots more languages. This is currently available as an alpha release in
-Java, C++, Java_nano (Android Java), Python, and Ruby from [the protocol buffers Github
-repo](https://github.com/google/protobuf/releases), as well as a Go language
-generator from [the golang/protobuf Github repo](https://github.com/golang/protobuf), with more languages in development. Full documentation for proto3 is currently in development, but you can see
-the major differences from the current default version in the [release notes](https://github.com/google/protobuf/releases).
-
-In general, while you *can* use proto2 (the current default protocol buffers version), we recommend that you use proto3 with gRPC as it lets you use the full range of gRPC-supported languages, as well as avoiding compatibility
-issues with proto2 clients talking to proto3 servers and vice versa.
-
-<a name="hello"></a>
-## Hello gRPC!
-
-Now that you know a bit more about gRPC, the easiest way to see how it
-works is to look at a simple example. Our Hello World walks you through the
-construction of a simple gRPC client-server application, showing you how to:
-
-- Create a protocol buffers schema that defines a simple RPC service with
-a single
-Hello World method.
-- Create a Java server that implements this interface.
-- Create a Java client that accesses the Java server.
-- Create a Go client that accesses
-the same Java server.
-
-The complete code for the example is available in the `grpc-common` GitHub
-repository. We use the Git versioning system for source code management:
-however, you don't need to know anything about Git to follow along other
-than how to install and run a few git commands.
-
-This is an introductory example rather than a comprehensive tutorial, so
-don't worry if you're not a Go or
-Java developer - the concepts are similar for all languages, and you can
-find more implementations of our Hello World example in other languages (and full tutorials where available) in
-the [language-specific folders](#quickstart) in this repository. Complete tutorials and
-reference documentation for all gRPC languages are coming soon.
+See grpc/INSTALL for installation instructions for various platforms.
 
-<a name="setup"></a>
-### Setup
+#Repository Structure
 
-This section explains how to set up your local machine to work with
-the example code. If you just want to read the example, you can go straight
-to the [next step](#servicedef).
+This repository contains source code for gRPC libraries for multiple lanugages written on top
+of shared C core library [src/core] (src/core).
 
-#### Install Git
+   * C++ source code: [src/cpp] (src/cpp)
+   * Python source code: [src/python] (src/python)
+   * Ruby source code: [src/ruby] (src/ruby)
+   * NodeJS source code: [src/node] (src/node)
+   * PHP source code: [src/php] (src/php)
+   * C# source code: [src/csharp] (src/csharp)
+   * Objective-C source code: [src/objective-c] (src/objective-c)
+   
+Java source code is in [grpc-java] (http://github.com/grpc/grpc-java) repository. 
+Go source code is in [grpc-go] (http://github.com/grpc/grpc-go) repository.
 
-You can download and install Git from http://git-scm.com/download. Once
-installed you should have access to the git command line tool. The main
-commands that you will need to use are:
+#Documentation
 
-- git clone ... : clone a remote repository onto your local machine
-- git checkout ... : check out a particular branch or a tagged version of
-the code to hack on
+You can find more detailed documentation and examples in the [grpc-common repository](http://github.com/grpc/grpc-common).
 
-#### Install gRPC
+#Current Status of libraries
 
-To build and install gRPC plugins and related tools:
-- For Java, see the [Java quick start](https://github.com/grpc/grpc-java).
-- For Go, see the [Go quick start](https://github.com/grpc/grpc-go).
+Libraries in different languages are in different state of development. We are seeking contributions for all of these libraries.
 
-#### Get the source code
+   * shared C core library [src/core] (src/core) : Early adopter ready - Alpha.
+   * C++ Library: [src/cpp] (src/cpp) : Early adopter ready - Alpha.
+   * Python Library: [src/python] (src/python) : Early adopter ready - Alpha.
+   * Ruby Library: [src/ruby] (src/ruby) : Early adopter ready - Alpha.
+   * NodeJS Library: [src/node] (src/node) : Early adopter ready - Alpha.
+   * PHP Library: [src/php] (src/php) : Pre-Alpha.
+   * C# Library: [src/csharp] (src/csharp) : Pre-Alpha.
+   * Objective-C Library: [src/objective-c] (src/objective-c): Pre-Alpha.
 
-The example code for our Java example lives in the `grpc-java`
-GitHub repository. Clone this repository to your local machine by running the
-following command:
+#Overview
 
 
-```
-git clone https://github.com/google/grpc-java.git
-```
+Remote Procedure Calls (RPCs) provide a useful abstraction for building 
+distributed applications and services. The libraries in this repository
+provide a concrete implementation of the gRPC protocol, layered over HTTP/2.
+These libraries enable communication between clients and servers using any
+combination of the supported languages. 
 
-Change your current directory to grpc-java/examples
 
-```
-cd grpc-java/examples
-```
+##Interface
 
 
+Developers using gRPC typically start with the description of an RPC service
+(a collection of methods), and generate client and server side interfaces
+which they use on the client-side and implement on the server side.
 
-<a name="servicedef"></a>
-### Defining a service
+By default, gRPC uses [Protocol Buffers](https://github.com/google/protobuf) as the
+Interface Definition Language (IDL) for describing both the service interface
+and the structure of the payload messages. It is possible to use other 
+alternatives if desired.
 
-The first step in creating our example is to define a *service*: an RPC
-service specifies the methods that can be called remotely with their parameters
-and return types. As you saw in the
-[overview](#protocolbuffers) above, gRPC does this using [protocol
-buffers](https://developers.google.com/protocol-buffers/docs/overview). We
-use the protocol buffers interface definition language (IDL) to define our
-service methods, and define the parameters and return
-types as protocol buffer message types. Both the client and the
-server use interface code generated from the service definition.
+###Surface API
+Starting from an interface definition in a .proto file, gRPC provides
+Protocol Compiler plugins that generate Client- and Server-side APIs. 
+gRPC users typically call into these APIs on the Client side and implement
+the corresponding API on the server side.
 
-Here's our example service definition, defined using protocol buffers IDL in
-[helloworld.proto](https://github.com/grpc/grpc-java/tree/master/examples/src/main/proto). The `Greeting`
-service has one method, `hello`, that lets the server receive a single
-`HelloRequest`
-message from the remote client containing the user's name, then send back
-a greeting in a single `HelloReply`. This is the simplest type of RPC you
-can specify in gRPC - we'll look at some other types later in this document.
+#### Synchronous vs. asynchronous
+Synchronous RPC calls, that block until a response arrives from the server, are
+the closest approximation to the abstraction of a procedure call that RPC
+aspires to.
 
-```
-syntax = "proto3";
+On the other hand, networks are inherently asynchronous and in many scenarios,  
+it is desirable to have the ability to start RPCs without blocking the current
+thread. 
 
-option java_package = "io.grpc.examples";
+The gRPC programming surface in most languages comes in both synchronous and
+asynchronous flavors.
 
-package helloworld;
 
-// The greeting service definition.
-service Greeter {
-  // Sends a greeting
-  rpc SayHello (HelloRequest) returns (HelloReply) {}
-}
+## Streaming
 
-// The request message containing the user's name.
-message HelloRequest {
-  string name = 1;
-}
+gRPC supports streaming semantics, where either the client or the server (or both)
+send a stream of messages on a single RPC call. The most general case is 
+Bidirectional Streaming where a single gRPC call establishes a stream where both 
+the client and the server can send a stream of messages to each other. The streamed
+messages are delivered in the order they were sent.
 
-// The response message containing the greetings
-message HelloReply {
-  string message = 1;
-}
 
-```
+#Protocol
 
-<a name="generating"></a>
-### Generating gRPC code
+The [gRPC protocol](https://github.com/grpc/grpc-common/blob/master/PROTOCOL-HTTP2.md) specifies the abstract requirements for communication between
+clients and servers. A concrete embedding over HTTP/2 completes the picture by
+fleshing out the details of each of the required operations.
 
-Once we've defined our service, we use the protocol buffer compiler
-`protoc` to generate the special client and server code we need to create
-our application - right now we're going to generate Java code, though you
-can generate gRPC code in any gRPC-supported language (as you'll see later
-in this example). The generated code contains both stub code for clients to
-use and an abstract interface for servers to implement, both with the method
-defined in our `Greeting` service.
+## Abstract gRPC protocol
+A gRPC RPC comprises of a bidirectional stream of messages, initiated by the client. In the client-to-server direction, this stream begins with a mandatory `Call Header`, followed by optional `Initial-Metadata`, followed by zero or more `Payload Messages`. The server-to-client direction contains an optional `Initial-Metadata`, followed by zero or more `Payload Messages` terminated with a mandatory `Status` and optional `Status-Metadata` (a.k.a.,`Trailing-Metadata`).
 
-(If you didn't install the gRPC plugins and protoc on your system and are just reading along with
-the example, you can skip this step and move
-onto the next one where we examine the generated code.)
+## Implementation over HTTP/2
+The abstract protocol defined above is implemented over [HTTP/2](https://http2.github.io/). gRPC bidirectional streams are mapped to HTTP/2 streams. The contents of `Call Header` and `Initial Metadata` are sent as HTTP/2 headers and subject to HPACK compression. `Payload Messages` are serialized into a byte stream of length prefixed gRPC frames which are then fragmented into HTTP/2 frames at the sender and reassembled at the receiver. `Status` and `Trailing-Metadata` are sent as HTTP/2 trailing headers (a.k.a., trailers).     
 
-For simplicity, we've provided a [Gradle build file](https://github.com/grpc/grpc-java/blob/master/examples/build.gradle) with our Java examples that runs `protoc` for you with the appropriate plugin, input, and output:
-
-```shell
-../gradlew build
-```
-
-This generates the following classes from our .proto, which contain all the generated code
-we need to create our example:
-
-- `Helloworld.java`, which
-has all the protocol buffer code to populate, serialize, and retrieve our
-`HelloRequest` and `HelloReply` message types
-- `GreeterGrpc.java`, which contains (along with some other useful code):
-    - an interface for `Greeter` servers to implement
-
-    ```java
-  public static interface Greeter {
-      public void sayHello(io.grpc.examples.Helloworld.HelloRequest request,
-          io.grpc.stub.StreamObserver<io.grpc.examples.Helloworld.HelloReply> responseObserver);
-  }
-    ```
-
-    - _stub_ classes that clients can use to talk to a `Greeter` server. As you can see, they also implement the `Greeter` interface.
-
-  ```java
-  public static class GreeterStub extends
-      io.grpc.stub.AbstractStub<GreeterStub, GreeterServiceDescriptor>
-      implements Greeter {
-   ...
-  }
-  ```
-
-<a name="server"></a>
-### Writing a server
-
-Now let's write some code! First we'll create a server application to implement
-our service. Note that we're not going to go into a lot of detail about how
-to create a server in this section. More detailed information will be in the
-tutorial for your chosen language: check if there's one available yet in the relevant [quick start](#quickstart).
-
-Our server application has two classes:
-
-- a main server class that hosts the service implementation and allows access over the
-network: [HelloWorldServer.java](https://github.com/grpc/grpc-java/blob/master/examples/src/main/java/io/grpc/examples/HelloWorldServer.java).
-
-
-- a simple service implementation class [GreeterImpl.java](https://github.com/grpc/grpc-java/blob/master/examples/src/main/java/io/grpc/examples/HelloWorldServer.java#L51).
-
-
-#### Service implementation
-
-[GreeterImpl.java](https://github.com/grpc/grpc-java/blob/master/examples/src/main/java/io/grpc/examples/HelloWorldServer.java#L51)
-actually implements our GreetingService's required behaviour.
-
-As you can see, the class `GreeterImpl` implements the interface
-`GreeterGrpc.Greeter` that we [generated](#generating) from our proto
-[IDL](https://github.com/grpc/grpc-java/tree/master/examples/src/main/proto) by implementing the method `sayHello`:
-
-```java
-    @Override
-    public void sayHello(HelloRequest req, StreamObserver<HelloReply> responseObserver) {
-      HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + req.getName()).build();
-      responseObserver.onValue(reply);
-      responseObserver.onCompleted();
-    }
-```
-- `hello` takes two parameters:
-    - `HelloRequest`: the request
-    - `StreamObserver<HelloReply>`: a response observer, which is
-    a special interface for the server to call with its response
-
-To return our response to the client and complete the call:
-
-1. We construct and populate a `HelloReply` response object with our exciting
-message, as specified in our interface definition.
-2. We return the `HelloReply` to the client and then specify that we've finished dealing with the RPC.
-
-
-#### Server implementation
-
-[HelloWorldServer.java](https://github.com/grpc/grpc-java/blob/master/examples/src/main/java/io/grpc/examples/HelloWorldServer.java)
-shows the other main feature required to provide a gRPC service; making the service
-implementation available from the network.
-
-```java
-  /* The port on which the server should run */
-  private int port = 50051;
-  private ServerImpl server;
-
-  private void start() throws Exception {
-    server = NettyServerBuilder.forPort(port)
-        .addService(GreeterGrpc.bindService(new GreeterImpl()))
-        .build().start();
-    logger.info("Server started, listening on " + port);
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        // Use stderr here since the logger may has been reset by its JVM shutdown hook.
-        System.err.println("*** shutting down gRPC server since JVM is shutting down");
-        HelloWorldServer.this.stop();
-        System.err.println("*** server shut down");
-      }
-    });
-  }
-
-```
-
-Here we create an appropriate gRPC server, binding the `GreeterService`
-implementation that we created to a port. Then we start the server running: the server is now ready to receive
-requests from `Greeter` service clients on our specified port. We'll cover
-how all this works in a bit more detail in our language-specific documentation.
-
-<a name="client"></a>
-### Writing a client
-
-Client-side gRPC is pretty simple. In this step, we'll use the generated code
-to write a simple client that can access the `Greeter` server we created
-in the [previous section](#server). You can see the complete client code in
-[HelloWorldClient.java](https://github.com/grpc/grpc-java/blob/master/examples/src/main/java/io/grpc/examples/HelloWorldClient.java).
-
-Again, we're not going to go into much detail about how to implement a client;
-we'll leave that for the tutorial.
-
-#### Connecting to the service
-
-First let's look at how we connect to the `Greetings` server. First we need
-to create a gRPC channel, specifying the hostname and port of the server we
-want to connect to. Then we use the channel to construct the stub instance.
-
-
-```java
-  private final ChannelImpl channel;
-  private final GreeterGrpc.GreeterBlockingStub blockingStub;
-
-  public HelloWorldClient(String host, int port) {
-    channel =
-        NettyChannelBuilder.forAddress(host, port).negotiationType(NegotiationType.PLAINTEXT)
-            .build();
-    blockingStub = GreeterGrpc.newBlockingStub(channel);
-  }
-
-```
-
-In this case, we create a blocking stub. This means that the RPC call waits
-for the server to respond, and will either return a response or raise an
-exception. gRPC Java has other kinds of stubs that make non-blocking calls
-to the server, where the response is returned asynchronously.
-
-#### Calling an RPC
-
-Now we can contact the service and obtain a greeting:
-
-1. We construct and fill in a `HelloRequest` to send to the service.
-2. We call the stub's `hello()` RPC with our request and get a `HelloReply`
-back, from which we can get our greeting.
-
-
-```java
-    HelloRequest req = HelloRequest.newBuilder().setName(name).build();
-    HelloReply reply = blockingStub.sayHello(req);
-
-```
-
-<a name="run"></a>
-### Try it out!
-
-Our [Gradle build file](https://github.com/grpc/grpc-java/blob/master/examples/build.gradle) simplifies building and running the examples.
-
-You can build and run the server from the `grpc-java` root folder with:
-
-```sh
-$ ./gradlew :grpc-examples:helloWorldServer
-```
-
-and in another terminal window confirm that it receives a message.
-
-```sh
-$  ./gradlew :grpc-examples:helloWorldClient
-```
-
-### Adding another client
-
-Finally, let's look at one of gRPC's most useful features - interoperability
-between code in different languages. So far, we've just looked at Java code
-generated from and implementing our `Greeter` service definition. However,
-as you'll see if you look at the language-specific subdirectories
-in this repository, we've also generated and implemented `Greeter`
-in some of gRPC's other supported languages. Each service
-and client uses interface code generated from the same proto
-that we used for the Java example.
-
-So, for example, if we visit the [`go` example
-directory](https://github.com/grpc/grpc-common/tree/master/go) and look at the
-[`greeter_client`](https://github.com/grpc/grpc-common/blob/master/go/greeter_client/main.go),
-we can see that like the Java client, it connects to a `Greeter` service
-at `localhost:50051` and uses a stub to call the `SayHello` method with a
-`HelloRequest`:
-
-```go
-const (
-	address = "localhost:50051"
-	defaultName = "world"
-)
-
-func main() {
-	// Set up a connection to the server.
-	conn, err := grpc.Dial(address)
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
-	defer conn.Close()
-	c := pb.NewGreeterClient(conn)
-
-	// Contact the server and print out its response.
-	name := defaultName
-	if len(os.Args) > 1 {
-		name = os.Args[1]
-	}
-	r, err := c.SayHello(context.Background(), &pb.HelloRequest{Name:
-	name})
-	if err != nil {
-		log.Fatalf("could not greet: %v", err)
-	}
-	log.Printf("Greeting: %s", r.Message)
-}
-```
-
-
-If we run the Java server from earlier in another terminal window, we can
-run the Go client and connect to it just like the Java client, even though
-it's written in a different language.
-
-```
-$ greeter_client
-```
-## Read more!
-
-- You can find links to language-specific tutorials, examples, and other docs in each language's [quick start](#quickstart).
-- [gRPC Authentication Support]() introduces authentication support in gRPC with supported mechanisms and examples.
+## Flow Control
+gRPC inherits the flow control mechanisms in HTTP/2 and uses them to enable fine-grained control of the amount of memory used for buffering in-flight messages.
