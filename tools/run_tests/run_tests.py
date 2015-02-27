@@ -44,10 +44,6 @@ import jobset
 import watch_dirs
 
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '../..'))
-os.chdir(ROOT)
-
-
 # SimpleConfig: just compile with CONFIG=config, and run the binary to test
 class SimpleConfig(object):
 
@@ -175,7 +171,6 @@ argp.add_argument('-c', '--config',
 argp.add_argument('-n', '--runs_per_test', default=1, type=int)
 argp.add_argument('-r', '--regex', default='.*', type=str)
 argp.add_argument('-j', '--jobs', default=1000, type=int)
-argp.add_argument('-s', '--slowdown', default=1.0, type=float)
 argp.add_argument('-f', '--forever',
                   default=False,
                   action='store_const',
@@ -205,7 +200,6 @@ make_targets = []
 languages = set(_LANGUAGES[l] for l in args.language)
 build_steps = [jobset.JobSpec(['make',
                                '-j', '%d' % (multiprocessing.cpu_count() + 1),
-                               'EXTRA_DEFINES=GRPC_TEST_SLOWDOWN_MACHINE_FACTOR=%f' % args.slowdown,
                                'CONFIG=%s' % cfg] + list(set(
                                    itertools.chain.from_iterable(
                                        l.make_targets() for l in languages))))

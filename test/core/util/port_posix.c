@@ -117,10 +117,9 @@ int grpc_pick_unused_port(void) {
 
   for (;;) {
     int port;
-    try++;
-    if (try == 1) {
+    if (try == 0) {
       port = getpid() % (65536 - 30000) + 30000;
-    } else if (try <= NUM_RANDOM_PORTS_TO_PICK) {
+    } else if (try < NUM_RANDOM_PORTS_TO_PICK) {
       port = rand() % (65536 - 30000) + 30000;
     } else {
       port = 0;
