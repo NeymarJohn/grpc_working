@@ -38,8 +38,6 @@
 #include <string>
 #include <thread>
 
-#include <unistd.h>
-
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
 #include <gflags/gflags.h>
@@ -315,7 +313,8 @@ void DoResponseStreamingWithSlowConsumer() {
     GPR_ASSERT(response.payload().body() ==
                grpc::string(kResponseMessageSize, '\0'));
     gpr_log(GPR_INFO, "received message %d", i);
-    usleep(kReceiveDelayMilliSeconds * 1000);
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(kReceiveDelayMilliSeconds));
     ++i;
   }
   GPR_ASSERT(kNumResponseMessages == i);

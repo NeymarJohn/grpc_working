@@ -61,28 +61,28 @@ class PublisherServiceImpl : public tech::pubsub::PublisherService::Service {
  public:
   Status CreateTopic(::grpc::ServerContext* context,
                      const ::tech::pubsub::Topic* request,
-                     ::tech::pubsub::Topic* response) GRPC_OVERRIDE {
+                     ::tech::pubsub::Topic* response) override {
     EXPECT_EQ(request->name(), kTopic);
     return Status::OK;
   }
 
   Status Publish(ServerContext* context,
                  const ::tech::pubsub::PublishRequest* request,
-                 ::proto2::Empty* response) GRPC_OVERRIDE {
+                 ::proto2::Empty* response) override {
     EXPECT_EQ(request->message().data(), kMessageData);
     return Status::OK;
   }
 
   Status GetTopic(ServerContext* context,
                   const ::tech::pubsub::GetTopicRequest* request,
-                  ::tech::pubsub::Topic* response) GRPC_OVERRIDE {
+                  ::tech::pubsub::Topic* response) override {
     EXPECT_EQ(request->topic(), kTopic);
     return Status::OK;
   }
 
-  Status ListTopics(
-      ServerContext* context, const ::tech::pubsub::ListTopicsRequest* request,
-      ::tech::pubsub::ListTopicsResponse* response) GRPC_OVERRIDE {
+ Status ListTopics(ServerContext* context,
+                   const ::tech::pubsub::ListTopicsRequest* request,
+                   ::tech::pubsub::ListTopicsResponse* response) override {
    std::ostringstream ss;
    ss << "cloud.googleapis.com/project in (/projects/" << kProjectId << ")";
    EXPECT_EQ(request->query(), ss.str());
@@ -92,7 +92,7 @@ class PublisherServiceImpl : public tech::pubsub::PublisherService::Service {
 
  Status DeleteTopic(ServerContext* context,
                     const ::tech::pubsub::DeleteTopicRequest* request,
-                    ::proto2::Empty* response) GRPC_OVERRIDE {
+                    ::proto2::Empty* response) override {
     EXPECT_EQ(request->topic(), kTopic);
     return Status::OK;
  }
@@ -102,7 +102,7 @@ class PublisherServiceImpl : public tech::pubsub::PublisherService::Service {
 class PublisherTest : public ::testing::Test {
  protected:
   // Setup a server and a client for PublisherService.
-  void SetUp() GRPC_OVERRIDE {
+  void SetUp() override {
     int port = grpc_pick_unused_port_or_die();
     server_address_ << "localhost:" << port;
     ServerBuilder builder;
@@ -116,7 +116,7 @@ class PublisherTest : public ::testing::Test {
     publisher_.reset(new grpc::examples::pubsub::Publisher(channel_));
   }
 
-  void TearDown() GRPC_OVERRIDE {
+  void TearDown() override {
     server_->Shutdown();
     publisher_->Shutdown();
   }
