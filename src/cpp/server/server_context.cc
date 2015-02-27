@@ -44,13 +44,10 @@ namespace grpc {
 
 // CompletionOp
 
-class ServerContext::CompletionOp GRPC_FINAL : public CallOpBuffer {
+class ServerContext::CompletionOp final : public CallOpBuffer {
  public:
-  // initial refs: one in the server context, one in the cq
-  CompletionOp() : refs_(2), finalized_(false), cancelled_(false) {
-    AddServerRecvClose(&cancelled_);
-  }
-  bool FinalizeResult(void** tag, bool* status) GRPC_OVERRIDE;
+  CompletionOp();
+  bool FinalizeResult(void** tag, bool* status) override;
 
   bool CheckCancelled(CompletionQueue* cq);
 
@@ -58,10 +55,12 @@ class ServerContext::CompletionOp GRPC_FINAL : public CallOpBuffer {
 
  private:
   std::mutex mu_;
-  int refs_;
-  bool finalized_;
-  bool cancelled_;
+  int refs_ = 2;  // initial refs: one in the server context, one in the cq
+  bool finalized_ = false;
+  bool cancelled_ = false;
 };
+
+ServerContext::CompletionOp::CompletionOp() { AddServerRecvClose(&cancelled_); }
 
 void ServerContext::CompletionOp::Unref() {
   std::unique_lock<std::mutex> lock(mu_);
@@ -91,19 +90,11 @@ bool ServerContext::CompletionOp::FinalizeResult(void** tag, bool* status) {
 
 // ServerContext body
 
-ServerContext::ServerContext()
-    : completion_op_(nullptr),
-      call_(nullptr),
-      cq_(nullptr),
-      sent_initial_metadata_(false) {}
+ServerContext::ServerContext() {}
 
 ServerContext::ServerContext(gpr_timespec deadline, grpc_metadata* metadata,
                              size_t metadata_count)
-    : completion_op_(nullptr),
-      deadline_(Timespec2Timepoint(deadline)),
-      call_(nullptr),
-      cq_(nullptr),
-      sent_initial_metadata_(false) {
+    : deadline_(Timespec2Timepoint(deadline)) {
   for (size_t i = 0; i < metadata_count; i++) {
     client_metadata_.insert(std::make_pair(
         grpc::string(metadata[i].key),

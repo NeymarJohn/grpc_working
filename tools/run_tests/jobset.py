@@ -43,17 +43,10 @@ import time
 _DEFAULT_MAX_JOBS = 16 * multiprocessing.cpu_count()
 
 
-have_alarm = False
-def alarm_handler(unused_signum, unused_frame):
-  global have_alarm
-  have_alarm = False
-
-
 # setup a signal handler so that signal.pause registers 'something'
 # when a child finishes
 # not using futures and threading to avoid a dependency on subprocess32
 signal.signal(signal.SIGCHLD, lambda unused_signum, unused_frame: None)
-signal.signal(signal.SIGALRM, alarm_handler)
 
 
 def shuffle_iteratable(it):
@@ -99,7 +92,6 @@ _CLEAR_LINE = '\x1b[2K'
 
 _TAG_COLOR = {
     'FAILED': 'red',
-    'TIMEOUT': 'red',
     'PASSED': 'green',
     'START': 'gray',
     'WAITING': 'yellow',
@@ -162,27 +154,24 @@ class JobSpec(object):
 class Job(object):
   """Manages one job."""
 
-  def __init__(self, spec, bin_hash, newline_on_success, travis):
+  def __init__(self, spec, bin_hash, newline_on_success):
     self._spec = spec
     self._bin_hash = bin_hash
     self._tempfile = tempfile.TemporaryFile()
     env = os.environ.copy()
     for k, v in spec.environ.iteritems():
       env[k] = v
-    self._start = time.time()
     self._process = subprocess.Popen(args=spec.cmdline,
                                      stderr=subprocess.STDOUT,
                                      stdout=self._tempfile,
                                      env=env)
     self._state = _RUNNING
     self._newline_on_success = newline_on_success
-    self._travis = travis
-    message('START', spec.shortname, do_newline=self._travis)
+    message('START', spec.shortname)
 
   def state(self, update_cache):
     """Poll current state of the job. Prints messages at completion."""
     if self._state == _RUNNING and self._process.poll() is not None:
-      elapsed = time.time() - self._start
       if self._process.returncode != 0:
         self._state = _FAILURE
         self._tempfile.seek(0)
@@ -191,13 +180,10 @@ class Job(object):
             self._spec.shortname, self._process.returncode), stdout)
       else:
         self._state = _SUCCESS
-        message('PASSED', '%s [time=%.1fsec]' % (self._spec.shortname, elapsed),
-                do_newline=self._newline_on_success or self._travis)
+        message('PASSED', self._spec.shortname,
+                do_newline=self._newline_on_success)
         if self._bin_hash:
           update_cache.finished(self._spec.identity(), self._bin_hash)
-    elif self._state == _RUNNING and time.time() - self._start > 300:
-      message('TIMEOUT', self._spec.shortname, do_newline=self._travis)
-      self.kill()
     return self._state
 
   def kill(self):
@@ -209,7 +195,7 @@ class Job(object):
 class Jobset(object):
   """Manages one run of jobs."""
 
-  def __init__(self, check_cancelled, maxjobs, newline_on_success, travis, cache):
+  def __init__(self, check_cancelled, maxjobs, newline_on_success, cache):
     self._running = set()
     self._check_cancelled = check_cancelled
     self._cancelled = False
@@ -217,7 +203,6 @@ class Jobset(object):
     self._completed = 0
     self._maxjobs = maxjobs
     self._newline_on_success = newline_on_success
-    self._travis = travis
     self._cache = cache
 
   def start(self, spec):
@@ -239,8 +224,7 @@ class Jobset(object):
     if should_run:
       self._running.add(Job(spec,
                             bin_hash,
-                            self._newline_on_success,
-                            self._travis))
+                            self._newline_on_success))
     return True
 
   def reap(self):
@@ -251,19 +235,13 @@ class Jobset(object):
         st = job.state(self._cache)
         if st == _RUNNING: continue
         if st == _FAILURE: self._failures += 1
-        if st == _KILLED: self._failures += 1
         dead.add(job)
       for job in dead:
         self._completed += 1
         self._running.remove(job)
       if dead: return
-      if (not self._travis):
-        message('WAITING', '%d jobs running, %d complete, %d failed' % (
-            len(self._running), self._completed, self._failures))
-      global have_alarm
-      if not have_alarm:
-        have_alarm = True
-        signal.alarm(10)
+      message('WAITING', '%d jobs running, %d complete, %d failed' % (
+          len(self._running), self._completed, self._failures))
       signal.pause()
 
   def cancelled(self):
@@ -299,17 +277,12 @@ def run(cmdlines,
         check_cancelled=_never_cancelled,
         maxjobs=None,
         newline_on_success=False,
-        travis=False,
         cache=None):
   js = Jobset(check_cancelled,
               maxjobs if maxjobs is not None else _DEFAULT_MAX_JOBS,
-              newline_on_success, travis,
+              newline_on_success,
               cache if cache is not None else NoCache())
-  if not travis:
-    cmdlines = shuffle_iteratable(cmdlines)
-  else:
-    cmdlines = sorted(cmdlines, key=lambda x: x.shortname)
-  for cmdline in cmdlines:
+  for cmdline in shuffle_iteratable(cmdlines):
     if not js.start(cmdline):
       break
   return js.finish()
