@@ -83,8 +83,8 @@ class WriterInterface {
 };
 
 template <class R>
-class ClientReader GRPC_FINAL : public ClientStreamingInterface,
-                                public ReaderInterface<R> {
+class ClientReader final : public ClientStreamingInterface,
+                           public ReaderInterface<R> {
  public:
   // Blocking create a stream and write the first request out.
   ClientReader(ChannelInterface* channel, const RpcMethod& method,
@@ -111,7 +111,7 @@ class ClientReader GRPC_FINAL : public ClientStreamingInterface,
     GPR_ASSERT(cq_.Pluck(&buf));
   }
 
-  virtual bool Read(R* msg) GRPC_OVERRIDE {
+  virtual bool Read(R* msg) override {
     CallOpBuffer buf;
     if (!context_->initial_metadata_received_) {
       buf.AddRecvInitialMetadata(context_);
@@ -121,7 +121,7 @@ class ClientReader GRPC_FINAL : public ClientStreamingInterface,
     return cq_.Pluck(&buf) && buf.got_message;
   }
 
-  virtual Status Finish() GRPC_OVERRIDE {
+  virtual Status Finish() override {
     CallOpBuffer buf;
     Status status;
     buf.AddClientRecvStatus(context_, &status);
@@ -137,8 +137,8 @@ class ClientReader GRPC_FINAL : public ClientStreamingInterface,
 };
 
 template <class W>
-class ClientWriter GRPC_FINAL : public ClientStreamingInterface,
-                                public WriterInterface<W> {
+class ClientWriter final : public ClientStreamingInterface,
+                           public WriterInterface<W> {
  public:
   // Blocking create a stream.
   ClientWriter(ChannelInterface* channel, const RpcMethod& method,
@@ -152,7 +152,7 @@ class ClientWriter GRPC_FINAL : public ClientStreamingInterface,
     cq_.Pluck(&buf);
   }
 
-  virtual bool Write(const W& msg) GRPC_OVERRIDE {
+  virtual bool Write(const W& msg) override {
     CallOpBuffer buf;
     buf.AddSendMessage(msg);
     call_.PerformOps(&buf);
@@ -167,7 +167,7 @@ class ClientWriter GRPC_FINAL : public ClientStreamingInterface,
   }
 
   // Read the final response and wait for the final status.
-  virtual Status Finish() GRPC_OVERRIDE {
+  virtual Status Finish() override {
     CallOpBuffer buf;
     Status status;
     buf.AddRecvMessage(response_);
@@ -186,9 +186,9 @@ class ClientWriter GRPC_FINAL : public ClientStreamingInterface,
 
 // Client-side interface for bi-directional streaming.
 template <class W, class R>
-class ClientReaderWriter GRPC_FINAL : public ClientStreamingInterface,
-                                      public WriterInterface<W>,
-                                      public ReaderInterface<R> {
+class ClientReaderWriter final : public ClientStreamingInterface,
+                                 public WriterInterface<W>,
+                                 public ReaderInterface<R> {
  public:
   // Blocking create a stream.
   ClientReaderWriter(ChannelInterface* channel, const RpcMethod& method,
@@ -213,7 +213,7 @@ class ClientReaderWriter GRPC_FINAL : public ClientStreamingInterface,
     GPR_ASSERT(cq_.Pluck(&buf));
   }
 
-  virtual bool Read(R* msg) GRPC_OVERRIDE {
+  virtual bool Read(R* msg) override {
     CallOpBuffer buf;
     if (!context_->initial_metadata_received_) {
       buf.AddRecvInitialMetadata(context_);
@@ -223,7 +223,7 @@ class ClientReaderWriter GRPC_FINAL : public ClientStreamingInterface,
     return cq_.Pluck(&buf) && buf.got_message;
   }
 
-  virtual bool Write(const W& msg) GRPC_OVERRIDE {
+  virtual bool Write(const W& msg) override {
     CallOpBuffer buf;
     buf.AddSendMessage(msg);
     call_.PerformOps(&buf);
@@ -237,7 +237,7 @@ class ClientReaderWriter GRPC_FINAL : public ClientStreamingInterface,
     return cq_.Pluck(&buf);
   }
 
-  virtual Status Finish() GRPC_OVERRIDE {
+  virtual Status Finish() override {
     CallOpBuffer buf;
     Status status;
     buf.AddClientRecvStatus(context_, &status);
@@ -253,7 +253,7 @@ class ClientReaderWriter GRPC_FINAL : public ClientStreamingInterface,
 };
 
 template <class R>
-class ServerReader GRPC_FINAL : public ReaderInterface<R> {
+class ServerReader final : public ReaderInterface<R> {
  public:
   ServerReader(Call* call, ServerContext* ctx) : call_(call), ctx_(ctx) {}
 
@@ -267,7 +267,7 @@ class ServerReader GRPC_FINAL : public ReaderInterface<R> {
     call_->cq()->Pluck(&buf);
   }
 
-  virtual bool Read(R* msg) GRPC_OVERRIDE {
+  virtual bool Read(R* msg) override {
     CallOpBuffer buf;
     buf.AddRecvMessage(msg);
     call_->PerformOps(&buf);
@@ -280,7 +280,7 @@ class ServerReader GRPC_FINAL : public ReaderInterface<R> {
 };
 
 template <class W>
-class ServerWriter GRPC_FINAL : public WriterInterface<W> {
+class ServerWriter final : public WriterInterface<W> {
  public:
   ServerWriter(Call* call, ServerContext* ctx) : call_(call), ctx_(ctx) {}
 
@@ -294,7 +294,7 @@ class ServerWriter GRPC_FINAL : public WriterInterface<W> {
     call_->cq()->Pluck(&buf);
   }
 
-  virtual bool Write(const W& msg) GRPC_OVERRIDE {
+  virtual bool Write(const W& msg) override {
     CallOpBuffer buf;
     if (!ctx_->sent_initial_metadata_) {
       buf.AddSendInitialMetadata(&ctx_->initial_metadata_);
@@ -312,8 +312,8 @@ class ServerWriter GRPC_FINAL : public WriterInterface<W> {
 
 // Server-side interface for bi-directional streaming.
 template <class W, class R>
-class ServerReaderWriter GRPC_FINAL : public WriterInterface<W>,
-                                      public ReaderInterface<R> {
+class ServerReaderWriter final : public WriterInterface<W>,
+                                 public ReaderInterface<R> {
  public:
   ServerReaderWriter(Call* call, ServerContext* ctx) : call_(call), ctx_(ctx) {}
 
@@ -327,14 +327,14 @@ class ServerReaderWriter GRPC_FINAL : public WriterInterface<W>,
     call_->cq()->Pluck(&buf);
   }
 
-  virtual bool Read(R* msg) GRPC_OVERRIDE {
+  virtual bool Read(R* msg) override {
     CallOpBuffer buf;
     buf.AddRecvMessage(msg);
     call_->PerformOps(&buf);
     return call_->cq()->Pluck(&buf) && buf.got_message;
   }
 
-  virtual bool Write(const W& msg) GRPC_OVERRIDE {
+  virtual bool Write(const W& msg) override {
     CallOpBuffer buf;
     if (!ctx_->sent_initial_metadata_) {
       buf.AddSendInitialMetadata(&ctx_->initial_metadata_);
@@ -380,8 +380,8 @@ class AsyncWriterInterface {
 };
 
 template <class R>
-class ClientAsyncReader GRPC_FINAL : public ClientAsyncStreamingInterface,
-                                     public AsyncReaderInterface<R> {
+class ClientAsyncReader final : public ClientAsyncStreamingInterface,
+                                public AsyncReaderInterface<R> {
  public:
   // Create a stream and write the first request out.
   ClientAsyncReader(ChannelInterface* channel, CompletionQueue* cq,
@@ -395,7 +395,7 @@ class ClientAsyncReader GRPC_FINAL : public ClientAsyncStreamingInterface,
     call_.PerformOps(&init_buf_);
   }
 
-  void ReadInitialMetadata(void* tag) GRPC_OVERRIDE {
+  void ReadInitialMetadata(void* tag) override {
     GPR_ASSERT(!context_->initial_metadata_received_);
 
     meta_buf_.Reset(tag);
@@ -403,7 +403,7 @@ class ClientAsyncReader GRPC_FINAL : public ClientAsyncStreamingInterface,
     call_.PerformOps(&meta_buf_);
   }
 
-  void Read(R* msg, void* tag) GRPC_OVERRIDE {
+  void Read(R* msg, void* tag) override {
     read_buf_.Reset(tag);
     if (!context_->initial_metadata_received_) {
       read_buf_.AddRecvInitialMetadata(context_);
@@ -412,7 +412,7 @@ class ClientAsyncReader GRPC_FINAL : public ClientAsyncStreamingInterface,
     call_.PerformOps(&read_buf_);
   }
 
-  void Finish(Status* status, void* tag) GRPC_OVERRIDE {
+  void Finish(Status* status, void* tag) override {
     finish_buf_.Reset(tag);
     if (!context_->initial_metadata_received_) {
       finish_buf_.AddRecvInitialMetadata(context_);
@@ -422,7 +422,7 @@ class ClientAsyncReader GRPC_FINAL : public ClientAsyncStreamingInterface,
   }
 
  private:
-  ClientContext* context_;
+  ClientContext* context_ = nullptr;
   Call call_;
   CallOpBuffer init_buf_;
   CallOpBuffer meta_buf_;
@@ -431,8 +431,8 @@ class ClientAsyncReader GRPC_FINAL : public ClientAsyncStreamingInterface,
 };
 
 template <class W>
-class ClientAsyncWriter GRPC_FINAL : public ClientAsyncStreamingInterface,
-                                     public AsyncWriterInterface<W> {
+class ClientAsyncWriter final : public ClientAsyncStreamingInterface,
+                                public AsyncWriterInterface<W> {
  public:
   ClientAsyncWriter(ChannelInterface* channel, CompletionQueue* cq,
                     const RpcMethod& method, ClientContext* context,
@@ -445,7 +445,7 @@ class ClientAsyncWriter GRPC_FINAL : public ClientAsyncStreamingInterface,
     call_.PerformOps(&init_buf_);
   }
 
-  void ReadInitialMetadata(void* tag) GRPC_OVERRIDE {
+  void ReadInitialMetadata(void* tag) override {
     GPR_ASSERT(!context_->initial_metadata_received_);
 
     meta_buf_.Reset(tag);
@@ -453,7 +453,7 @@ class ClientAsyncWriter GRPC_FINAL : public ClientAsyncStreamingInterface,
     call_.PerformOps(&meta_buf_);
   }
 
-  void Write(const W& msg, void* tag) GRPC_OVERRIDE {
+  void Write(const W& msg, void* tag) override {
     write_buf_.Reset(tag);
     write_buf_.AddSendMessage(msg);
     call_.PerformOps(&write_buf_);
@@ -465,7 +465,7 @@ class ClientAsyncWriter GRPC_FINAL : public ClientAsyncStreamingInterface,
     call_.PerformOps(&writes_done_buf_);
   }
 
-  void Finish(Status* status, void* tag) GRPC_OVERRIDE {
+  void Finish(Status* status, void* tag) override {
     finish_buf_.Reset(tag);
     if (!context_->initial_metadata_received_) {
       finish_buf_.AddRecvInitialMetadata(context_);
@@ -476,7 +476,7 @@ class ClientAsyncWriter GRPC_FINAL : public ClientAsyncStreamingInterface,
   }
 
  private:
-  ClientContext* context_;
+  ClientContext* context_ = nullptr;
   google::protobuf::Message* const response_;
   Call call_;
   CallOpBuffer init_buf_;
@@ -488,9 +488,9 @@ class ClientAsyncWriter GRPC_FINAL : public ClientAsyncStreamingInterface,
 
 // Client-side interface for bi-directional streaming.
 template <class W, class R>
-class ClientAsyncReaderWriter GRPC_FINAL : public ClientAsyncStreamingInterface,
-                                           public AsyncWriterInterface<W>,
-                                           public AsyncReaderInterface<R> {
+class ClientAsyncReaderWriter final : public ClientAsyncStreamingInterface,
+                                      public AsyncWriterInterface<W>,
+                                      public AsyncReaderInterface<R> {
  public:
   ClientAsyncReaderWriter(ChannelInterface* channel, CompletionQueue* cq,
                           const RpcMethod& method, ClientContext* context,
@@ -501,7 +501,7 @@ class ClientAsyncReaderWriter GRPC_FINAL : public ClientAsyncStreamingInterface,
     call_.PerformOps(&init_buf_);
   }
 
-  void ReadInitialMetadata(void* tag) GRPC_OVERRIDE {
+  void ReadInitialMetadata(void* tag) override {
     GPR_ASSERT(!context_->initial_metadata_received_);
 
     meta_buf_.Reset(tag);
@@ -509,7 +509,7 @@ class ClientAsyncReaderWriter GRPC_FINAL : public ClientAsyncStreamingInterface,
     call_.PerformOps(&meta_buf_);
   }
 
-  void Read(R* msg, void* tag) GRPC_OVERRIDE {
+  void Read(R* msg, void* tag) override {
     read_buf_.Reset(tag);
     if (!context_->initial_metadata_received_) {
       read_buf_.AddRecvInitialMetadata(context_);
@@ -518,7 +518,7 @@ class ClientAsyncReaderWriter GRPC_FINAL : public ClientAsyncStreamingInterface,
     call_.PerformOps(&read_buf_);
   }
 
-  void Write(const W& msg, void* tag) GRPC_OVERRIDE {
+  void Write(const W& msg, void* tag) override {
     write_buf_.Reset(tag);
     write_buf_.AddSendMessage(msg);
     call_.PerformOps(&write_buf_);
@@ -530,7 +530,7 @@ class ClientAsyncReaderWriter GRPC_FINAL : public ClientAsyncStreamingInterface,
     call_.PerformOps(&writes_done_buf_);
   }
 
-  void Finish(Status* status, void* tag) GRPC_OVERRIDE {
+  void Finish(Status* status, void* tag) override {
     finish_buf_.Reset(tag);
     if (!context_->initial_metadata_received_) {
       finish_buf_.AddRecvInitialMetadata(context_);
@@ -540,7 +540,7 @@ class ClientAsyncReaderWriter GRPC_FINAL : public ClientAsyncStreamingInterface,
   }
 
  private:
-  ClientContext* context_;
+  ClientContext* context_ = nullptr;
   Call call_;
   CallOpBuffer init_buf_;
   CallOpBuffer meta_buf_;
@@ -551,13 +551,13 @@ class ClientAsyncReaderWriter GRPC_FINAL : public ClientAsyncStreamingInterface,
 };
 
 template <class W, class R>
-class ServerAsyncReader GRPC_FINAL : public ServerAsyncStreamingInterface,
-                                     public AsyncReaderInterface<R> {
+class ServerAsyncReader : public ServerAsyncStreamingInterface,
+                          public AsyncReaderInterface<R> {
  public:
   explicit ServerAsyncReader(ServerContext* ctx)
       : call_(nullptr, nullptr, nullptr), ctx_(ctx) {}
 
-  void SendInitialMetadata(void* tag) GRPC_OVERRIDE {
+  void SendInitialMetadata(void* tag) override {
     GPR_ASSERT(!ctx_->sent_initial_metadata_);
 
     meta_buf_.Reset(tag);
@@ -566,7 +566,7 @@ class ServerAsyncReader GRPC_FINAL : public ServerAsyncStreamingInterface,
     call_.PerformOps(&meta_buf_);
   }
 
-  void Read(R* msg, void* tag) GRPC_OVERRIDE {
+  void Read(R* msg, void* tag) override {
     read_buf_.Reset(tag);
     read_buf_.AddRecvMessage(msg);
     call_.PerformOps(&read_buf_);
@@ -598,7 +598,7 @@ class ServerAsyncReader GRPC_FINAL : public ServerAsyncStreamingInterface,
   }
 
  private:
-  void BindCall(Call* call) GRPC_OVERRIDE { call_ = *call; }
+  void BindCall(Call* call) override { call_ = *call; }
 
   Call call_;
   ServerContext* ctx_;
@@ -608,13 +608,13 @@ class ServerAsyncReader GRPC_FINAL : public ServerAsyncStreamingInterface,
 };
 
 template <class W>
-class ServerAsyncWriter GRPC_FINAL : public ServerAsyncStreamingInterface,
-                                     public AsyncWriterInterface<W> {
+class ServerAsyncWriter : public ServerAsyncStreamingInterface,
+                          public AsyncWriterInterface<W> {
  public:
   explicit ServerAsyncWriter(ServerContext* ctx)
       : call_(nullptr, nullptr, nullptr), ctx_(ctx) {}
 
-  void SendInitialMetadata(void* tag) GRPC_OVERRIDE {
+  void SendInitialMetadata(void* tag) override {
     GPR_ASSERT(!ctx_->sent_initial_metadata_);
 
     meta_buf_.Reset(tag);
@@ -623,7 +623,7 @@ class ServerAsyncWriter GRPC_FINAL : public ServerAsyncStreamingInterface,
     call_.PerformOps(&meta_buf_);
   }
 
-  void Write(const W& msg, void* tag) GRPC_OVERRIDE {
+  void Write(const W& msg, void* tag) override {
     write_buf_.Reset(tag);
     if (!ctx_->sent_initial_metadata_) {
       write_buf_.AddSendInitialMetadata(&ctx_->initial_metadata_);
@@ -644,7 +644,7 @@ class ServerAsyncWriter GRPC_FINAL : public ServerAsyncStreamingInterface,
   }
 
  private:
-  void BindCall(Call* call) GRPC_OVERRIDE { call_ = *call; }
+  void BindCall(Call* call) override { call_ = *call; }
 
   Call call_;
   ServerContext* ctx_;
@@ -655,14 +655,14 @@ class ServerAsyncWriter GRPC_FINAL : public ServerAsyncStreamingInterface,
 
 // Server-side interface for bi-directional streaming.
 template <class W, class R>
-class ServerAsyncReaderWriter GRPC_FINAL : public ServerAsyncStreamingInterface,
-                                           public AsyncWriterInterface<W>,
-                                           public AsyncReaderInterface<R> {
+class ServerAsyncReaderWriter : public ServerAsyncStreamingInterface,
+                                public AsyncWriterInterface<W>,
+                                public AsyncReaderInterface<R> {
  public:
   explicit ServerAsyncReaderWriter(ServerContext* ctx)
       : call_(nullptr, nullptr, nullptr), ctx_(ctx) {}
 
-  void SendInitialMetadata(void* tag) GRPC_OVERRIDE {
+  void SendInitialMetadata(void* tag) override {
     GPR_ASSERT(!ctx_->sent_initial_metadata_);
 
     meta_buf_.Reset(tag);
@@ -671,13 +671,13 @@ class ServerAsyncReaderWriter GRPC_FINAL : public ServerAsyncStreamingInterface,
     call_.PerformOps(&meta_buf_);
   }
 
-  virtual void Read(R* msg, void* tag) GRPC_OVERRIDE {
+  virtual void Read(R* msg, void* tag) override {
     read_buf_.Reset(tag);
     read_buf_.AddRecvMessage(msg);
     call_.PerformOps(&read_buf_);
   }
 
-  virtual void Write(const W& msg, void* tag) GRPC_OVERRIDE {
+  virtual void Write(const W& msg, void* tag) override {
     write_buf_.Reset(tag);
     if (!ctx_->sent_initial_metadata_) {
       write_buf_.AddSendInitialMetadata(&ctx_->initial_metadata_);
@@ -698,7 +698,7 @@ class ServerAsyncReaderWriter GRPC_FINAL : public ServerAsyncStreamingInterface,
   }
 
  private:
-  void BindCall(Call* call) GRPC_OVERRIDE { call_ = *call; }
+  void BindCall(Call* call) override { call_ = *call; }
 
   Call call_;
   ServerContext* ctx_;
