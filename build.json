@@ -866,8 +866,7 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "flaky": true
+      ]
     },
     {
       "name": "fling_test",
@@ -881,8 +880,7 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "flaky": true
+      ]
     },
     {
       "name": "gen_hpack_tables",
