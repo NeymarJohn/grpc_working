@@ -292,7 +292,7 @@ def run(cmdlines,
   if not travis:
     cmdlines = shuffle_iteratable(cmdlines)
   else:
-    cmdlines = sorted(cmdlines, key=lambda x: x.shortname)
+    cmdlines = sorted(cmdlines)
   for cmdline in cmdlines:
     if not js.start(cmdline):
       break

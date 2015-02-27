@@ -45,7 +45,7 @@
 
 namespace grpc {
 template <class R>
-class ClientAsyncResponseReader GRPC_FINAL {
+class ClientAsyncResponseReader final {
  public:
   ClientAsyncResponseReader(ChannelInterface* channel, CompletionQueue* cq,
                     const RpcMethod& method, ClientContext* context,
@@ -79,7 +79,7 @@ class ClientAsyncResponseReader GRPC_FINAL {
 
 
  private:
-  ClientContext* context_;
+  ClientContext* context_ = nullptr;
   Call call_;
   CallOpBuffer init_buf_;
   CallOpBuffer meta_buf_;
@@ -87,8 +87,7 @@ class ClientAsyncResponseReader GRPC_FINAL {
 };
 
 template <class W>
-class ServerAsyncResponseWriter GRPC_FINAL
-    : public ServerAsyncStreamingInterface {
+class ServerAsyncResponseWriter final : public ServerAsyncStreamingInterface {
  public:
   explicit ServerAsyncResponseWriter(ServerContext* ctx)
       : call_(nullptr, nullptr, nullptr), ctx_(ctx) {}
@@ -128,7 +127,7 @@ class ServerAsyncResponseWriter GRPC_FINAL
   }
 
  private:
-  void BindCall(Call* call) GRPC_OVERRIDE { call_ = *call; }
+  void BindCall(Call* call) override { call_ = *call; }
 
   Call call_;
   ServerContext* ctx_;
