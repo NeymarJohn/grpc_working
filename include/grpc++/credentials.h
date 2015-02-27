@@ -47,7 +47,7 @@ namespace grpc {
 // to creating an instance using CredentialsFactory, and passing it down
 // during channel construction.
 
-class Credentials GRPC_FINAL {
+class Credentials final {
  public:
   ~Credentials();
 
