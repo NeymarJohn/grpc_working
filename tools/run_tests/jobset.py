@@ -99,7 +99,6 @@ _CLEAR_LINE = '\x1b[2K'
 
 _TAG_COLOR = {
     'FAILED': 'red',
-    'TIMEOUT': 'red',
     'PASSED': 'green',
     'START': 'gray',
     'WAITING': 'yellow',
