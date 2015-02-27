@@ -44,6 +44,10 @@ import jobset
 import watch_dirs
 
 
+ROOT = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '../..'))
+os.chdir(ROOT)
+
+
 # SimpleConfig: just compile with CONFIG=config, and run the binary to test
 class SimpleConfig(object):
 
@@ -136,17 +140,6 @@ class PythonLanguage(object):
   def build_steps(self):
     return [['tools/run_tests/build_python.sh']]
 
-class RubyLanguage(object):
-
-  def test_specs(self, config, travis):
-    return [config.job_spec('tools/run_tests/run_ruby.sh', None)]
-
-  def make_targets(self):
-    return ['static_c']
-
-  def build_steps(self):
-    return [['tools/run_tests/build_ruby.sh']]
-
 
 # different configurations we can run under
 _CONFIGS = {
@@ -171,7 +164,6 @@ _LANGUAGES = {
     'node': NodeLanguage(),
     'php': PhpLanguage(),
     'python': PythonLanguage(),
-    'ruby': RubyLanguage()
     }
 
 # parse command line
