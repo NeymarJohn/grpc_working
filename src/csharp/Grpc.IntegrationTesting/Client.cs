@@ -44,7 +44,7 @@ using grpc.testing;
 
 namespace Grpc.IntegrationTesting
 {
-    public class InteropClient
+    class Client
     {
         private class ClientOptions
         {
@@ -59,12 +59,12 @@ namespace Grpc.IntegrationTesting
 
         ClientOptions options;
 
-        private InteropClient(ClientOptions options)
+        private Client(ClientOptions options)
         {
             this.options = options;
         }
 
-        public static void Run(string[] args)
+        public static void Main(string[] args)
         {
             Console.WriteLine("gRPC C# interop testing client");
             ClientOptions options = ParseArguments(args);
@@ -89,7 +89,7 @@ namespace Grpc.IntegrationTesting
                 Environment.Exit(1);
             }
 
-            var interopClient = new InteropClient(options);
+            var interopClient = new Client(options);
             interopClient.Run();
         }
 

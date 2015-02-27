@@ -124,17 +124,6 @@ namespace Grpc.Core
             handle.Dispose();
         }
 
-        /// <summary>
-        /// To allow awaiting termination of the server.
-        /// </summary>
-        public Task ShutdownTask
-        {
-            get
-            {
-                return shutdownTcs.Task;
-            }
-        }
-
         public void Kill() {
             handle.Dispose();
         }

@@ -77,37 +77,37 @@ namespace Grpc.IntegrationTesting
         [Test]
         public void EmptyUnary()
         {
-            InteropClient.RunEmptyUnary(client);
+            Client.RunEmptyUnary(client);
         }
 
         [Test]
         public void LargeUnary()
         {
-            InteropClient.RunEmptyUnary(client);
+            Client.RunEmptyUnary(client);
         }
 
         [Test]
         public void ClientStreaming()
         {
-            InteropClient.RunClientStreaming(client);
+            Client.RunClientStreaming(client);
         }
 
         [Test]
         public void ServerStreaming()
         {
-            InteropClient.RunServerStreaming(client);
+            Client.RunServerStreaming(client);
         }
 
         [Test]
         public void PingPong()
         {
-            InteropClient.RunPingPong(client);
+            Client.RunPingPong(client);
         }
 
         [Test]
         public void EmptyStream()
         {
-            InteropClient.RunEmptyStream(client);
+            Client.RunEmptyStream(client);
         }
 
         // TODO: add cancel_after_begin
