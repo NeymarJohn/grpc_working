@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,31 +27,27 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -ex
+# Base Dockerfile for gRPC C# (on Mono).
+#
+# Includes gRPC C# installation dependencies, things that are unlikely to vary.
+FROM grpc/base
 
-# change to grpc repo root
-cd $(dirname $0)/../..
+# Update to a newer version of mono
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+RUN echo "deb http://download.mono-project.com/repo/debian wheezy main" | tee /etc/apt/sources.list.d/mono-xamarin.list
 
-root=`pwd`
-export LD_LIBRARY_PATH=$root/libs/opt
-source python2.7_virtual_environment/bin/activate
-# TODO(issue 215): Properly itemize these in run_tests.py so that they can be parallelized.
-# TODO(atash): Enable dynamic unused port discovery for this test.
-python2.7 -B test/compiler/python_plugin_test.py --build_mode=opt
-python2.7 -B -m grpc._adapter._blocking_invocation_inline_service_test
-python2.7 -B -m grpc._adapter._c_test
-python2.7 -B -m grpc._adapter._event_invocation_synchronous_event_service_test
-python2.7 -B -m grpc._adapter._future_invocation_asynchronous_event_service_test
-python2.7 -B -m grpc._adapter._links_test
-python2.7 -B -m grpc._adapter._lonely_rear_link_test
-python2.7 -B -m grpc._adapter._low_test
-python2.7 -B -m grpc.early_adopter.implementations_test
-python2.7 -B -m grpc.framework.assembly.implementations_test
-python2.7 -B -m grpc.framework.base.packets.implementations_test
-python2.7 -B -m grpc.framework.face.blocking_invocation_inline_service_test
-python2.7 -B -m grpc.framework.face.event_invocation_synchronous_event_service_test
-python2.7 -B -m grpc.framework.face.future_invocation_asynchronous_event_service_test
-python2.7 -B -m grpc.framework.foundation._later_test
-python2.7 -B -m grpc.framework.foundation._logging_pool_test
-# TODO(nathaniel): Get tests working under 3.4 (requires 3.X-friendly protobuf)
-# python3.4 -B -m unittest discover -s src/python -p '*.py'
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    mono-devel \
+    nunit \
+    nunit-console \
+    monodevelop
+
+# Get the source from GitHub
+RUN git clone git@github.com:grpc/grpc.git /var/local/git/grpc
+RUN cd /var/local/git/grpc && \
+  git pull --recurse-submodules && \
+  git submodule update --init --recursive
+
+# Define the default command.
+CMD ["bash","-l"]

@@ -7,7 +7,12 @@ env:
   global:
     - RUBY_VERSION=2.1
   matrix:
-    - CONFIG=opt TEST=python
+    - CONFIG=dbg TEST=c
+    - CONFIG=dbg TEST=c++
+    - CONFIG=opt TEST=c
+    - CONFIG=opt TEST=c++
+    - CONFIG=opt TEST=node
+    - CONFIG=opt TEST=ruby
 script:
   - rvm use $RUBY_VERSION
   - gem install bundler
