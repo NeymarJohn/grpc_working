@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,31 +27,33 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -ex
+# Dockerfile for gRPC C# (on Mono).
+FROM grpc/csharp_mono_base
 
-# change to grpc repo root
-cd $(dirname $0)/../..
+# Pull the latest sources
+RUN cd /var/local/git/grpc \
+  && git pull --recurse-submodules \
+  && git submodule update --init --recursive
 
-root=`pwd`
-export LD_LIBRARY_PATH=$root/libs/opt
-source python2.7_virtual_environment/bin/activate
-# TODO(issue 215): Properly itemize these in run_tests.py so that they can be parallelized.
-# TODO(atash): Enable dynamic unused port discovery for this test.
-python2.7 -B test/compiler/python_plugin_test.py --build_mode=opt
-python2.7 -B -m grpc._adapter._blocking_invocation_inline_service_test
-python2.7 -B -m grpc._adapter._c_test
-python2.7 -B -m grpc._adapter._event_invocation_synchronous_event_service_test
-python2.7 -B -m grpc._adapter._future_invocation_asynchronous_event_service_test
-python2.7 -B -m grpc._adapter._links_test
-python2.7 -B -m grpc._adapter._lonely_rear_link_test
-python2.7 -B -m grpc._adapter._low_test
-python2.7 -B -m grpc.early_adopter.implementations_test
-python2.7 -B -m grpc.framework.assembly.implementations_test
-python2.7 -B -m grpc.framework.base.packets.implementations_test
-python2.7 -B -m grpc.framework.face.blocking_invocation_inline_service_test
-python2.7 -B -m grpc.framework.face.event_invocation_synchronous_event_service_test
-python2.7 -B -m grpc.framework.face.future_invocation_asynchronous_event_service_test
-python2.7 -B -m grpc.framework.foundation._later_test
-python2.7 -B -m grpc.framework.foundation._logging_pool_test
-# TODO(nathaniel): Get tests working under 3.4 (requires 3.X-friendly protobuf)
-# python3.4 -B -m unittest discover -s src/python -p '*.py'
+# Install the gRPC C# extension library
+RUN make install_grpc_csharp_ext -j12 -C /var/local/git/grpc
+
+# TODO: download NuGet from web. The problem is there seems to be no direct link
+# we could use :-)
+ADD NuGet.exe NuGet.exe
+
+# Restore the NuGet dependencies
+RUN cd /var/local/git/grpc/src/csharp && mono /NuGet.exe restore Grpc.sln
+
+# Build gRPC solution
+RUN cd /var/local/git/grpc/src/csharp && xbuild Grpc.sln
+
+# Add a cacerts directory containing the Google root pem file, allowing the
+# ruby client to access the production test instance
+ADD cacerts cacerts
+
+# Add a service_account directory containing the auth creds file
+ADD service_account service_account
+
+# TODO: add command to run the interop server
+CMD ["/bin/bash", "-l"]
