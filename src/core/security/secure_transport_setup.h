@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_SECURE_TRANSPORT_SETUP_H
-#define GRPC_INTERNAL_CORE_SECURITY_SECURE_TRANSPORT_SETUP_H
+#ifndef __GRPC_INTERNAL_SECURITY_SECURE_TRANSPORT_SETUP_H__
+#define __GRPC_INTERNAL_SECURITY_SECURE_TRANSPORT_SETUP_H__
 
 #include "src/core/iomgr/endpoint.h"
 #include "src/core/security/security_context.h"
@@ -50,4 +50,4 @@ void grpc_setup_secure_transport(grpc_security_context *ctx,
                                  grpc_secure_transport_setup_done_cb cb,
                                  void *user_data);
 
-#endif  /* GRPC_INTERNAL_CORE_SECURITY_SECURE_TRANSPORT_SETUP_H */
+#endif /* __GRPC_INTERNAL_SECURITY_SECURE_TRANSPORT_SETUP_H__ */

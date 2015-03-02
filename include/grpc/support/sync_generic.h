@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_SYNC_GENERIC_H
-#define GRPC_SUPPORT_SYNC_GENERIC_H
+#ifndef __GRPC_SUPPORT_SYNC_GENERIC_H__
+#define __GRPC_SUPPORT_SYNC_GENERIC_H__
 /* Generic type defintions for gpr_sync. */
 
 #include <grpc/support/atm.h>
@@ -58,4 +58,4 @@ typedef struct {
 #define GPR_STATS_INIT \
   { 0 }
 
-#endif  /* GRPC_SUPPORT_SYNC_GENERIC_H */
+#endif /* __GRPC_SUPPORT_SYNC_GENERIC_H__ */

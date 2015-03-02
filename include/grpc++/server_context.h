@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPCXX_SERVER_CONTEXT_H
-#define GRPCXX_SERVER_CONTEXT_H
+#ifndef __GRPCPP_SERVER_CONTEXT_H_
+#define __GRPCPP_SERVER_CONTEXT_H_
 
 #include <chrono>
 #include <map>
@@ -121,4 +121,4 @@ class ServerContext GRPC_FINAL {
 
 }  // namespace grpc
 
-#endif  // GRPCXX_SERVER_CONTEXT_H
+#endif  // __GRPCPP_SERVER_CONTEXT_H_

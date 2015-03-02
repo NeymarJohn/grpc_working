@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SUPPORT_FILE_H
-#define GRPC_INTERNAL_CORE_SUPPORT_FILE_H
+#ifndef __GRPC_SUPPORT_FILE_H__
+#define __GRPC_SUPPORT_FILE_H__
 
 #include <stdio.h>
 
@@ -58,4 +58,4 @@ FILE *gpr_tmpfile(const char *prefix, char **tmp_filename);
 }
 #endif
 
-#endif  /* GRPC_INTERNAL_CORE_SUPPORT_FILE_H */
+#endif /* __GRPC_SUPPORT_FILE_H__ */

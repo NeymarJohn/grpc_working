@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_END2END_END2END_TESTS_H
-#define GRPC_TEST_CORE_END2END_END2END_TESTS_H
+#ifndef __GRPC_TEST_END2END_END2END_TESTS_H__
+#define __GRPC_TEST_END2END_END2END_TESTS_H__
 
 #include <grpc/grpc.h>
 
@@ -63,4 +63,4 @@ struct grpc_end2end_test_config {
 
 void grpc_end2end_tests(grpc_end2end_test_config config);
 
-#endif  /* GRPC_TEST_CORE_END2END_END2END_TESTS_H */
+#endif /* __GRPC_TEST_END2END_END2END_TESTS_H__ */

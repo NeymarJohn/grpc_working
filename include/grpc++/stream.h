@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPCXX_STREAM_H
-#define GRPCXX_STREAM_H
+#ifndef __GRPCPP_STREAM_H__
+#define __GRPCPP_STREAM_H__
 
 #include <grpc++/channel_interface.h>
 #include <grpc++/client_context.h>
@@ -710,4 +710,4 @@ class ServerAsyncReaderWriter GRPC_FINAL : public ServerAsyncStreamingInterface,
 
 }  // namespace grpc
 
-#endif  // GRPCXX_STREAM_H
+#endif  // __GRPCPP_STREAM_H__

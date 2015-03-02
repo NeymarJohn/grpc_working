@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_ATM_GCC_SYNC_H
-#define GRPC_SUPPORT_ATM_GCC_SYNC_H
+#ifndef __GRPC_SUPPORT_ATM_GCC_SYNC_H__
+#define __GRPC_SUPPORT_ATM_GCC_SYNC_H__
 
 /* variant of atm_platform.h for gcc and gcc-like compiers with __sync_*
    interface */
@@ -70,4 +70,4 @@ static __inline void gpr_atm_rel_store(gpr_atm *p, gpr_atm value) {
 #define gpr_atm_acq_cas(p, o, n) (__sync_bool_compare_and_swap((p), (o), (n)))
 #define gpr_atm_rel_cas(p, o, n) gpr_atm_acq_cas((p), (o), (n))
 
-#endif  /* GRPC_SUPPORT_ATM_GCC_SYNC_H */
+#endif /* __GRPC_SUPPORT_ATM_GCC_SYNC_H__ */

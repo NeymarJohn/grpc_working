@@ -31,12 +31,12 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_EVENT_STRING_H
-#define GRPC_INTERNAL_CORE_SURFACE_EVENT_STRING_H
+#ifndef __GRPC_INTERNAL_SURFACE_EVENT_STRING_H__
+#define __GRPC_INTERNAL_SURFACE_EVENT_STRING_H__
 
 #include <grpc/grpc.h>
 
 /* Returns a string describing an event. Must be later freed with gpr_free() */
 char *grpc_event_string(grpc_event *ev);
 
-#endif  /* GRPC_INTERNAL_CORE_SURFACE_EVENT_STRING_H */
+#endif /* __GRPC_INTERNAL_SURFACE_EVENT_STRING_H__ */

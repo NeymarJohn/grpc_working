@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_HISTOGRAM_H
-#define GRPC_SUPPORT_HISTOGRAM_H
+#ifndef __GRPC_SUPPORT_HISTOGRAM_H__
+#define __GRPC_SUPPORT_HISTOGRAM_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,4 +63,4 @@ double gpr_histogram_sum_of_squares(gpr_histogram *histogram);
 }
 #endif
 
-#endif  /* GRPC_SUPPORT_HISTOGRAM_H */
+#endif /* __GRPC_SUPPORT_HISTOGRAM_H__ */

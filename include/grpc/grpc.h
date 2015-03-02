@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_GRPC_H
-#define GRPC_GRPC_H
+#ifndef __GRPC_GRPC_H__
+#define __GRPC_GRPC_H__
 
 #include <grpc/status.h>
 
@@ -632,4 +632,4 @@ void grpc_server_destroy(grpc_server *server);
 }
 #endif
 
-#endif  /* GRPC_GRPC_H */
+#endif /* __GRPC_GRPC_H__ */

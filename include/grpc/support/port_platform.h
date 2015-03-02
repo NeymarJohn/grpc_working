@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_PORT_PLATFORM_H
-#define GRPC_SUPPORT_PORT_PLATFORM_H
+#ifndef __GRPC_SUPPORT_PORT_PLATFORM_H__
+#define __GRPC_SUPPORT_PORT_PLATFORM_H__
 
 /* Override this file with one for your platform if you need to redefine
    things.  */
@@ -206,4 +206,4 @@ typedef uintptr_t gpr_uintptr;
    power of two */
 #define GPR_MAX_ALIGNMENT 16
 
-#endif  /* GRPC_SUPPORT_PORT_PLATFORM_H */
+#endif /* __GRPC_SUPPORT_PORT_PLATFORM_H__ */

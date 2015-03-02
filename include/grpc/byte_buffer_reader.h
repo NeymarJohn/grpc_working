@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_BYTE_BUFFER_READER_H
-#define GRPC_BYTE_BUFFER_READER_H
+#ifndef __GRPC_BYTE_BUFFER_READER_H__
+#define __GRPC_BYTE_BUFFER_READER_H__
 
 #include <grpc/grpc.h>
 #include <grpc/byte_buffer.h>
@@ -46,4 +46,4 @@ struct grpc_byte_buffer_reader {
   } current;
 };
 
-#endif  /* GRPC_BYTE_BUFFER_READER_H */
+#endif /* __GRPC_BYTE_BUFFER_READER_H__ */

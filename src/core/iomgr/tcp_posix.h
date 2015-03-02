@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_TCP_POSIX_H
-#define GRPC_INTERNAL_CORE_IOMGR_TCP_POSIX_H
+#ifndef __GRPC_INTERNAL_IOMGR_TCP_POSIX_H__
+#define __GRPC_INTERNAL_IOMGR_TCP_POSIX_H__
 /*
    Low level TCP "bottom half" implementation, for use by transports built on
    top of a TCP connection.
@@ -53,4 +53,4 @@
    Takes ownership of fd. */
 grpc_endpoint *grpc_tcp_create(grpc_fd *fd, size_t read_slice_size);
 
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_TCP_POSIX_H */
+#endif /* __GRPC_INTERNAL_IOMGR_TCP_POSIX_H__ */

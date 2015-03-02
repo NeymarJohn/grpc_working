@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_FD_POSIX_H
-#define GRPC_INTERNAL_CORE_IOMGR_FD_POSIX_H
+#ifndef __GRPC_INTERNAL_IOMGR_FD_POSIX_H_
+#define __GRPC_INTERNAL_IOMGR_FD_POSIX_H_
 
 #include "src/core/iomgr/iomgr.h"
 #include "src/core/iomgr/pollset.h"
@@ -143,4 +143,4 @@ void grpc_fd_unref(grpc_fd *fd);
 void grpc_fd_global_init(void);
 void grpc_fd_global_shutdown(void);
 
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_FD_POSIX_H */
+#endif /* __GRPC_INTERNAL_IOMGR_FD_POSIX_H_ */

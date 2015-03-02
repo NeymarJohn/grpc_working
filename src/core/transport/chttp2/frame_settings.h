@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_SETTINGS_H
-#define GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_SETTINGS_H
+#ifndef __GRPC_INTERNAL_TRANSPORT_CHTTP2_FRAME_SETTINGS_H__
+#define __GRPC_INTERNAL_TRANSPORT_CHTTP2_FRAME_SETTINGS_H__
 
 #include <grpc/support/port_platform.h>
 #include <grpc/support/slice.h>
@@ -96,4 +96,4 @@ grpc_chttp2_parse_error grpc_chttp2_settings_parser_begin_frame(
 grpc_chttp2_parse_error grpc_chttp2_settings_parser_parse(
     void *parser, grpc_chttp2_parse_state *state, gpr_slice slice, int is_last);
 
-#endif  /* GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_SETTINGS_H */
+#endif /* __GRPC_INTERNAL_TRANSPORT_CHTTP2_FRAME_SETTINGS_H__ */

@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_USEFUL_H
-#define GRPC_SUPPORT_USEFUL_H
+#ifndef __GRPC_SUPPORT_USEFUL_H__
+#define __GRPC_SUPPORT_USEFUL_H__
 
 /* useful macros that don't belong anywhere else */
 
@@ -45,4 +45,4 @@
 
 #define GPR_ARRAY_SIZE(array) (sizeof(array) / sizeof(*(array)))
 
-#endif  /* GRPC_SUPPORT_USEFUL_H */
+#endif /* __GRPC_SUPPORT_USEFUL_H__ */

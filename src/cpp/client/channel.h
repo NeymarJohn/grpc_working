@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_CLIENT_CHANNEL_H
-#define GRPC_INTERNAL_CPP_CLIENT_CHANNEL_H
+#ifndef __GRPCPP_INTERNAL_CLIENT_CHANNEL_H__
+#define __GRPCPP_INTERNAL_CLIENT_CHANNEL_H__
 
 #include <memory>
 
@@ -68,4 +68,4 @@ class Channel GRPC_FINAL : public ChannelInterface {
 
 }  // namespace grpc
 
-#endif  // GRPC_INTERNAL_CPP_CLIENT_CHANNEL_H
+#endif  // __GRPCPP_INTERNAL_CLIENT_CHANNEL_H__

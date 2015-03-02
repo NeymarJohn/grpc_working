@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_TRANSPORT_TRANSPORT_H
-#define GRPC_INTERNAL_CORE_TRANSPORT_TRANSPORT_H
+#ifndef __GRPC_INTERNAL_TRANSPORT_TRANSPORT_H__
+#define __GRPC_INTERNAL_TRANSPORT_TRANSPORT_H__
 
 #include <stddef.h>
 
@@ -254,4 +254,4 @@ void grpc_transport_setup_initiate(grpc_transport_setup *setup);
    used as a destruction call by setup). */
 void grpc_transport_setup_cancel(grpc_transport_setup *setup);
 
-#endif  /* GRPC_INTERNAL_CORE_TRANSPORT_TRANSPORT_H */
+#endif /* __GRPC_INTERNAL_TRANSPORT_TRANSPORT_H__ */

@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_TCP_SERVER_H
-#define GRPC_INTERNAL_CORE_IOMGR_TCP_SERVER_H
+#ifndef __GRPC_INTERNAL_IOMGR_TCP_SERVER_H__
+#define __GRPC_INTERNAL_IOMGR_TCP_SERVER_H__
 
 #include "src/core/iomgr/endpoint.h"
 
@@ -73,4 +73,4 @@ int grpc_tcp_server_get_fd(grpc_tcp_server *s, unsigned index);
 
 void grpc_tcp_server_destroy(grpc_tcp_server *server);
 
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_TCP_SERVER_H */
+#endif /* __GRPC_INTERNAL_IOMGR_TCP_SERVER_H__ */

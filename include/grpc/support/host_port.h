@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_HOST_PORT_H
-#define GRPC_SUPPORT_HOST_PORT_H
+#ifndef __GRPC_SUPPORT_HOST_PORT_H__
+#define __GRPC_SUPPORT_HOST_PORT_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,4 +59,4 @@ void gpr_split_host_port(const char *name, char **host, char **port);
 }
 #endif
 
-#endif  /* GRPC_SUPPORT_HOST_PORT_H */
+#endif /* __GRPC_SUPPORT_HOST_PORT_H__ */

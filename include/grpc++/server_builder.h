@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPCXX_SERVER_BUILDER_H
-#define GRPCXX_SERVER_BUILDER_H
+#ifndef __GRPCPP_SERVER_BUILDER_H__
+#define __GRPCPP_SERVER_BUILDER_H__
 
 #include <memory>
 #include <vector>
@@ -88,4 +88,4 @@ class ServerBuilder {
 
 }  // namespace grpc
 
-#endif  // GRPCXX_SERVER_BUILDER_H
+#endif  // __GRPCPP_SERVER_BUILDER_H__

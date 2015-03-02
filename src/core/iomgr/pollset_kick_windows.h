@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
+#ifndef __GRPC_INTERNAL_IOMGR_POLLSET_KICK_WINDOWS_H_
+#define __GRPC_INTERNAL_IOMGR_POLLSET_KICK_WINDOWS_H_
 
 #include <grpc/support/sync.h>
 
@@ -42,4 +42,4 @@ typedef struct grpc_pollset_kick_state {
   int unused;
 } grpc_pollset_kick_state;
 
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H */
+#endif  /* __GRPC_INTERNALIOMGR_POLLSET_KICK_WINDOWS_H_ */

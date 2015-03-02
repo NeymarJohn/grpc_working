@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPCXX_SERVER_CREDENTIALS_H
-#define GRPCXX_SERVER_CREDENTIALS_H
+#ifndef __GRPCPP_SERVER_CREDENTIALS_H_
+#define __GRPCPP_SERVER_CREDENTIALS_H_
 
 #include <memory>
 #include <vector>
@@ -79,4 +79,4 @@ class ServerCredentialsFactory {
 
 }  // namespace grpc
 
-#endif  // GRPCXX_SERVER_CREDENTIALS_H
+#endif  // __GRPCPP_SERVER_CREDENTIALS_H_

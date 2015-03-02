@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_SERVER_H
-#define GRPC_INTERNAL_CORE_SURFACE_SERVER_H
+#ifndef __GRPC_INTERNAL_SURFACE_SERVER_H__
+#define __GRPC_INTERNAL_SURFACE_SERVER_H__
 
 #include "src/core/channel/channel_stack.h"
 #include <grpc/grpc.h>
@@ -60,4 +60,4 @@ grpc_transport_setup_result grpc_server_setup_transport(
 
 const grpc_channel_args *grpc_server_get_channel_args(grpc_server *server);
 
-#endif  /* GRPC_INTERNAL_CORE_SURFACE_SERVER_H */
+#endif /* __GRPC_INTERNAL_SURFACE_SERVER_H__ */

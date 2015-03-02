@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_TRANSPORT_METADATA_H
-#define GRPC_INTERNAL_CORE_TRANSPORT_METADATA_H
+#ifndef __GRPC_INTERNAL_TRANSPORT_METADATA_H__
+#define __GRPC_INTERNAL_TRANSPORT_METADATA_H__
 
 #include <grpc/support/slice.h>
 #include <grpc/support/useful.h>
@@ -137,4 +137,4 @@ const char *grpc_mdstr_as_c_string(grpc_mdstr *s);
 
 #define GRPC_MDSTR_KV_HASH(k_hash, v_hash) (GPR_ROTL((k_hash), 2) ^ (v_hash))
 
-#endif  /* GRPC_INTERNAL_CORE_TRANSPORT_METADATA_H */
+#endif /* __GRPC_INTERNAL_TRANSPORT_METADATA_H__ */

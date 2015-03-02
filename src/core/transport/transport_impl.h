@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_TRANSPORT_TRANSPORT_IMPL_H
-#define GRPC_INTERNAL_CORE_TRANSPORT_TRANSPORT_IMPL_H
+#ifndef __GRPC_INTERNAL_TRANSPORT_TRANSPORT_IMPL_H__
+#define __GRPC_INTERNAL_TRANSPORT_TRANSPORT_IMPL_H__
 
 #include "src/core/transport/transport.h"
 
@@ -84,4 +84,4 @@ struct grpc_transport {
   const grpc_transport_vtable *vtable;
 };
 
-#endif  /* GRPC_INTERNAL_CORE_TRANSPORT_TRANSPORT_IMPL_H */
+#endif /* __GRPC_INTERNAL_TRANSPORT_TRANSPORT_IMPL_H__ */

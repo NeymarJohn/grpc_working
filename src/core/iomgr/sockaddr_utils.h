@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_SOCKADDR_UTILS_H
-#define GRPC_INTERNAL_CORE_IOMGR_SOCKADDR_UTILS_H
+#ifndef __GRPC_INTERNAL_IOMGR_SOCKADDR_UTILS_H__
+#define __GRPC_INTERNAL_IOMGR_SOCKADDR_UTILS_H__
 
 #include "src/core/iomgr/sockaddr.h"
 
@@ -84,4 +84,4 @@ int grpc_sockaddr_set_port(const struct sockaddr *addr, int port);
 int grpc_sockaddr_to_string(char **out, const struct sockaddr *addr,
                             int normalize);
 
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_SOCKADDR_UTILS_H */
+#endif /* __GRPC_INTERNAL_IOMGR_SOCKADDR_UTILS_H__ */

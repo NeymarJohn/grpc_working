@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_HTTP_CLIENT_FILTER_H
-#define GRPC_INTERNAL_CORE_CHANNEL_HTTP_CLIENT_FILTER_H
+#ifndef __GRPC_INTERNAL_CHANNEL_HTTP_CLIENT_FILTER_H__
+#define __GRPC_INTERNAL_CHANNEL_HTTP_CLIENT_FILTER_H__
 
 #include "src/core/channel/channel_stack.h"
 
@@ -41,4 +41,4 @@ extern const grpc_channel_filter grpc_http_client_filter;
 
 #define GRPC_ARG_HTTP2_SCHEME "grpc.http2_scheme"
 
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_HTTP_CLIENT_FILTER_H */
+#endif /* __GRPC_INTERNAL_CHANNEL_HTTP_CLIENT_FILTER_H__ */

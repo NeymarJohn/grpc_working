@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_JSON_TOKEN_H
-#define GRPC_INTERNAL_CORE_SECURITY_JSON_TOKEN_H
+#ifndef __GRPC_INTERNAL_SECURITY_JSON_TOKEN_H_
+#define __GRPC_INTERNAL_SECURITY_JSON_TOKEN_H_
 
 #include <grpc/support/slice.h>
 #include <openssl/rsa.h>
@@ -79,4 +79,4 @@ typedef char *(*grpc_jwt_encode_and_sign_override)(
 void grpc_jwt_encode_and_sign_set_override(
     grpc_jwt_encode_and_sign_override func);
 
-#endif  /* GRPC_INTERNAL_CORE_SECURITY_JSON_TOKEN_H */
+#endif /* __GRPC_INTERNAL_SECURITY_JSON_TOKEN_H_ */

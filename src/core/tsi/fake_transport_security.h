@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_TSI_FAKE_TRANSPORT_SECURITY_H
-#define GRPC_INTERNAL_CORE_TSI_FAKE_TRANSPORT_SECURITY_H
+#ifndef __FAKE_TRANSPORT_SECURITY_H_
+#define __FAKE_TRANSPORT_SECURITY_H_
 
 #include "src/core/tsi/transport_security_interface.h"
 
@@ -58,4 +58,4 @@ tsi_frame_protector* tsi_create_fake_protector(
 }
 #endif
 
-#endif  /* GRPC_INTERNAL_CORE_TSI_FAKE_TRANSPORT_SECURITY_H */
+#endif /* __FAKE_TRANSPORT_SECURITY_H_ */

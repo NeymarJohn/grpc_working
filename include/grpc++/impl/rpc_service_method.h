@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_RPC_SERVICE_METHOD_H
-#define GRPCXX_IMPL_RPC_SERVICE_METHOD_H
+#ifndef __GRPCPP_IMPL_RPC_SERVICE_METHOD_H__
+#define __GRPCPP_IMPL_RPC_SERVICE_METHOD_H__
 
 #include <functional>
 #include <map>
@@ -203,4 +203,4 @@ class RpcService {
 
 }  // namespace grpc
 
-#endif  // GRPCXX_IMPL_RPC_SERVICE_METHOD_H
+#endif  // __GRPCPP_IMPL_RPC_SERVICE_METHOD_H__

@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_CLIENT_CHANNEL_H
-#define GRPC_INTERNAL_CORE_CHANNEL_CLIENT_CHANNEL_H
+#ifndef __GRPC_INTERNAL_CHANNEL_CLIENT_CHANNEL_H__
+#define __GRPC_INTERNAL_CHANNEL_CLIENT_CHANNEL_H__
 
 #include "src/core/channel/channel_stack.h"
 
@@ -59,4 +59,4 @@ grpc_transport_setup_result grpc_client_channel_transport_setup_complete(
     grpc_channel_filter const **channel_filters, size_t num_channel_filters,
     grpc_mdctx *mdctx);
 
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_CLIENT_CHANNEL_H */
+#endif /* __GRPC_INTERNAL_CHANNEL_CLIENT_CHANNEL_H__ */

@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_COMPILER_GENERATOR_HELPERS_H
-#define GRPC_INTERNAL_COMPILER_GENERATOR_HELPERS_H
+#ifndef NET_GRPC_COMPILER_GENERATOR_HELPERS_H__
+#define NET_GRPC_COMPILER_GENERATOR_HELPERS_H__
 
 #include <map>
 #include <string>
@@ -76,4 +76,4 @@ inline std::string StringReplace(std::string str, const std::string &from,
 
 }  // namespace grpc_generator
 
-#endif  // GRPC_INTERNAL_COMPILER_GENERATOR_HELPERS_H
+#endif  // NET_GRPC_COMPILER_GENERATOR_HELPERS_H__

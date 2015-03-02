@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_UTIL_TIME_H
-#define GRPC_INTERNAL_CPP_UTIL_TIME_H
+#ifndef __GRPCPP_INTERNAL_UTIL_TIME_H__
+#define __GRPCPP_INTERNAL_UTIL_TIME_H__
 
 #include <chrono>
 
@@ -48,4 +48,4 @@ std::chrono::system_clock::time_point Timespec2Timepoint(gpr_timespec t);
 
 }  // namespace grpc
 
-#endif  // GRPC_INTERNAL_CPP_UTIL_TIME_H
+#endif  // __GRPCPP_INTERNAL_UTIL_TIME_H__

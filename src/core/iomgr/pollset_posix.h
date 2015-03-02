@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_POSIX_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_POSIX_H
+#ifndef __GRPC_INTERNAL_IOMGR_POLLSET_POSIX_H_
+#define __GRPC_INTERNAL_IOMGR_POLLSET_POSIX_H_
 
 #include <grpc/support/sync.h>
 
@@ -104,4 +104,4 @@ grpc_pollset *grpc_backup_pollset(void);
 void grpc_platform_become_multipoller(grpc_pollset *pollset,
                                       struct grpc_fd **fds, size_t fd_count);
 
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_POSIX_H */
+#endif /* __GRPC_INTERNAL_IOMGR_POLLSET_POSIX_H_ */

@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_UTIL_SLICE_SPLITTER_H
-#define GRPC_TEST_CORE_UTIL_SLICE_SPLITTER_H
+#ifndef __GRPC_TEST_UTIL_SLICE_SPLITTER_H__
+#define __GRPC_TEST_UTIL_SLICE_SPLITTER_H__
 
 /* utility function to split/merge slices together to help create test
    cases */
@@ -65,4 +65,4 @@ gpr_slice grpc_slice_merge(gpr_slice *slices, size_t nslices);
 
 const char *grpc_slice_split_mode_name(grpc_slice_split_mode mode);
 
-#endif  /* GRPC_TEST_CORE_UTIL_SLICE_SPLITTER_H */
+#endif /* __GRPC_TEST_UTIL_SLICE_SPLITTER_H__ */

@@ -31,11 +31,11 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_AUTH_H
-#define GRPC_INTERNAL_CORE_SECURITY_AUTH_H
+#ifndef __GRPC_INTERNAL_SECURITY_AUTH_H__
+#define __GRPC_INTERNAL_SECURITY_AUTH_H__
 
 #include "src/core/channel/channel_stack.h"
 
 extern const grpc_channel_filter grpc_client_auth_filter;
 
-#endif  /* GRPC_INTERNAL_CORE_SECURITY_AUTH_H */
+#endif /* __GRPC_INTERNAL_SECURITY_AUTH_H__ */

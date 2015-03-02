@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_DEBUG_TRACE_H
-#define GRPC_INTERNAL_CORE_DEBUG_TRACE_H
+#ifndef GRPC_CORE_DEBUG_TRACE_H
+#define GRPC_CORE_DEBUG_TRACE_H
 
 #include <grpc/support/port_platform.h>
 
@@ -57,4 +57,5 @@ extern gpr_uint32 grpc_trace_bits;
 
 void grpc_init_trace_bits();
 
-#endif  /* GRPC_INTERNAL_CORE_DEBUG_TRACE_H */
+#endif
+

@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_UTIL_CREATE_TEST_CHANNEL_H
-#define GRPC_TEST_CPP_UTIL_CREATE_TEST_CHANNEL_H
+#ifndef __GRPCPP_TEST_UTIL_CREATE_TEST_CHANNEL_H_
+#define __GRPCPP_TEST_UTIL_CREATE_TEST_CHANNEL_H_
 
 #include <memory>
 
@@ -56,4 +56,4 @@ std::shared_ptr<ChannelInterface> CreateTestChannel(
 
 }  // namespace grpc
 
-#endif  // GRPC_TEST_CPP_UTIL_CREATE_TEST_CHANNEL_H
+#endif  // __GRPCPP_TEST_UTIL_CREATE_TEST_CHANNEL_H_

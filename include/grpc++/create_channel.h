@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPCXX_CREATE_CHANNEL_H
-#define GRPCXX_CREATE_CHANNEL_H
+#ifndef __GRPCPP_CREATE_CHANNEL_H__
+#define __GRPCPP_CREATE_CHANNEL_H__
 
 #include <memory>
 
@@ -55,4 +55,4 @@ std::shared_ptr<ChannelInterface> CreateChannel(
 
 }  // namespace grpc
 
-#endif  // GRPCXX_CREATE_CHANNEL_H
+#endif  // __GRPCPP_CREATE_CHANNEL_H__

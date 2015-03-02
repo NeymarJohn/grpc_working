@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_CREDENTIALS_H
-#define GRPC_INTERNAL_CORE_SECURITY_CREDENTIALS_H
+#ifndef __GRPC_INTERNAL_SECURITY_CREDENTIALS_H__
+#define __GRPC_INTERNAL_SECURITY_CREDENTIALS_H__
 
 #include "src/core/transport/stream_op.h"
 #include <grpc/grpc.h>
@@ -160,4 +160,4 @@ typedef struct {
 const grpc_ssl_server_config *grpc_ssl_server_credentials_get_config(
     const grpc_server_credentials *ssl_creds);
 
-#endif  /* GRPC_INTERNAL_CORE_SECURITY_CREDENTIALS_H */
+#endif /* __GRPC_INTERNAL_SECURITY_CREDENTIALS_H__ */

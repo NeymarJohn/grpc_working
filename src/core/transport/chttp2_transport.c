@@ -309,7 +309,6 @@ static void push_setting(transport *t, grpc_chttp2_setting_id id,
 
 static int prepare_callbacks(transport *t);
 static void run_callbacks(transport *t, const grpc_transport_callbacks *cb);
-static void call_cb_closed(transport *t, const grpc_transport_callbacks *cb);
 
 static int prepare_write(transport *t);
 static void perform_write(transport *t, grpc_endpoint *ep);
@@ -517,23 +516,13 @@ static void init_transport(transport *t, grpc_transport_setup_callback setup,
 static void destroy_transport(grpc_transport *gt) {
   transport *t = (transport *)gt;
 
-  lock(t);
+  gpr_mu_lock(&t->mu);
   t->destroying = 1;
-  /* Wait for pending stuff to finish.
-     We need to be not calling back to ensure that closed() gets a chance to
-     trigger if needed during unlock() before we die.
-     We need to be not writing as cancellation finalization may produce some
-     callbacks that NEED to be made to close out some streams when t->writing
-     becomes 0. */
-  while (t->calling_back || t->writing) {
+  while (t->calling_back) {
     gpr_cv_wait(&t->cv, &t->mu, gpr_inf_future);
   }
-  drop_connection(t);
-  unlock(t);
-
-  lock(t);
-  GPR_ASSERT(!t->cb);
-  unlock(t);
+  t->cb = NULL;
+  gpr_mu_unlock(&t->mu);
 
   unref_transport(t);
 }
@@ -691,7 +680,6 @@ static void stream_list_add_tail(transport *t, stream *s, stream_list_id id) {
 }
 
 static void stream_list_join(transport *t, stream *s, stream_list_id id) {
-  if (id == PENDING_CALLBACKS) GPR_ASSERT(t->cb != NULL || t->error_state == ERROR_STATE_NONE);
   if (s->included[id]) {
     return;
   }
@@ -750,7 +738,7 @@ static void unlock(transport *t) {
     if (perform_callbacks) {
       t->calling_back = 1;
     }
-    if (t->error_state == ERROR_STATE_SEEN && !t->writing) {
+    if (t->error_state == ERROR_STATE_SEEN) {
       call_closed = 1;
       t->calling_back = 1;
       t->cb = NULL;  /* no more callbacks */
@@ -784,7 +772,7 @@ static void unlock(transport *t) {
   }
 
   if (call_closed) {
-    call_cb_closed(t, cb);
+    cb->closed(t->cb_user_data, &t->base);
   }
 
   /* write some bytes if necessary */
@@ -915,16 +903,13 @@ static void finish_write_common(transport *t, int success) {
   }
   while ((s = stream_list_remove_head(t, WRITTEN_CLOSED))) {
     s->sent_write_closed = 1;
-    if (!s->cancelled) stream_list_join(t, s, PENDING_CALLBACKS);
+    stream_list_join(t, s, PENDING_CALLBACKS);
   }
   t->outbuf.count = 0;
   t->outbuf.length = 0;
   /* leave the writing flag up on shutdown to prevent further writes in unlock()
      from starting */
   t->writing = 0;
-  if (t->destroying) {
-    gpr_cv_signal(&t->cv);
-  }
   if (!t->reading) {
     grpc_endpoint_destroy(t->ep);
     t->ep = NULL;
@@ -1778,10 +1763,6 @@ static void run_callbacks(transport *t, const grpc_transport_callbacks *cb) {
     cb->recv_batch(t->cb_user_data, &t->base, (grpc_stream *)s,
                    s->callback_sopb.ops, nops, s->callback_state);
   }
-}
-
-static void call_cb_closed(transport *t, const grpc_transport_callbacks *cb) {
-  cb->closed(t->cb_user_data, &t->base);
 }
 
 static void add_to_pollset(grpc_transport *gt, grpc_pollset *pollset) {

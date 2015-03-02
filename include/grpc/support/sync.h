@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_SYNC_H
-#define GRPC_SUPPORT_SYNC_H
+#ifndef __GRPC_SUPPORT_SYNC_H__
+#define __GRPC_SUPPORT_SYNC_H__
 /* Synchronization primitives for GPR.
 
    The type  gpr_mu              provides a non-reentrant mutex (lock).
@@ -345,4 +345,4 @@ gpr_intptr gpr_stats_read(const gpr_stats_counter *c);
 }
 #endif
 
-#endif  /* GRPC_SUPPORT_SYNC_H */
+#endif /* __GRPC_SUPPORT_SYNC_H__ */

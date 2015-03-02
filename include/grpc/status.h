@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_STATUS_H
-#define GRPC_STATUS_H
+#ifndef __GRPC_STATUS_H__
+#define __GRPC_STATUS_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -199,4 +199,4 @@ typedef enum {
 }
 #endif
 
-#endif  /* GRPC_STATUS_H */
+#endif /* __GRPC_STATUS_H__ */

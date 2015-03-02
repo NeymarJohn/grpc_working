@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_ALPN_H
-#define GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_ALPN_H
+#ifndef __GRPC_INTERNAL_TRANSPORT_CHTTP2_ALPN_H_
+#define __GRPC_INTERNAL_TRANSPORT_CHTTP2_ALPN_H_
 
 #include <string.h>
 
@@ -46,4 +46,4 @@ size_t grpc_chttp2_num_alpn_versions(void);
  * grpc_chttp2_num_alpn_versions()) */
 const char *grpc_chttp2_get_alpn_version_index(size_t i);
 
-#endif  /* GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_ALPN_H */
+#endif /* __GRPC_INTERNAL_TRANSPORT_CHTTP2_ALPN_H_ */

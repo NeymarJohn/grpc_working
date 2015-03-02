@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_CHANNEL_H
-#define GRPC_INTERNAL_CORE_SURFACE_CHANNEL_H
+#ifndef __GRPC_INTERNAL_SURFACE_CHANNEL_H__
+#define __GRPC_INTERNAL_SURFACE_CHANNEL_H__
 
 #include "src/core/channel/channel_stack.h"
 
@@ -50,4 +50,4 @@ void grpc_client_channel_closed(grpc_channel_element *elem);
 void grpc_channel_internal_ref(grpc_channel *channel);
 void grpc_channel_internal_unref(grpc_channel *channel);
 
-#endif  /* GRPC_INTERNAL_CORE_SURFACE_CHANNEL_H */
+#endif /* __GRPC_INTERNAL_SURFACE_CHANNEL_H__ */

@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_GRPC_HTTP_H
-#define GRPC_GRPC_HTTP_H
+#ifndef __GRPC_GRPC_HTTP_H__
+#define __GRPC_GRPC_HTTP_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,4 +64,4 @@ typedef struct {
 }
 #endif
 
-#endif  /* GRPC_GRPC_HTTP_H */
+#endif /* __GRPC_GRPC_HTTP_H__ */

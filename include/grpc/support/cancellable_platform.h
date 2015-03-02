@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_CANCELLABLE_PLATFORM_H
-#define GRPC_SUPPORT_CANCELLABLE_PLATFORM_H
+#ifndef __GRPC_SUPPORT_CANCELLABLE_PLATFORM_H__
+#define __GRPC_SUPPORT_CANCELLABLE_PLATFORM_H__
 
 #include <grpc/support/atm.h>
 #include <grpc/support/sync.h>
@@ -53,4 +53,4 @@ typedef struct {
   struct gpr_cancellable_list_ waiters;
 } gpr_cancellable;
 
-#endif  /* GRPC_SUPPORT_CANCELLABLE_PLATFORM_H */
+#endif /* __GRPC_SUPPORT_CANCELLABLE_PLATFORM_H__ */

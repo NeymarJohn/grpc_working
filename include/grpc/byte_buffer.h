@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_BYTE_BUFFER_H
-#define GRPC_BYTE_BUFFER_H
+#ifndef __GRPC_BYTE_BUFFER_H__
+#define __GRPC_BYTE_BUFFER_H__
 
 #include <grpc/grpc.h>
 #include <grpc/support/slice_buffer.h>
@@ -47,4 +47,4 @@ struct grpc_byte_buffer {
   } data;
 };
 
-#endif  /* GRPC_BYTE_BUFFER_H */
+#endif /* __GRPC_BYTE_BUFFER_H__ */

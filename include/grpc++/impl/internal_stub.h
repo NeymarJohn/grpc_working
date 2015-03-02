@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_INTERNAL_STUB_H
-#define GRPCXX_IMPL_INTERNAL_STUB_H
+#ifndef __GRPCPP_IMPL_INTERNAL_STUB_H__
+#define __GRPCPP_IMPL_INTERNAL_STUB_H__
 
 #include <memory>
 
@@ -57,4 +57,4 @@ class InternalStub {
 
 }  // namespace grpc
 
-#endif  // GRPCXX_IMPL_INTERNAL_STUB_H
+#endif  // __GRPCPP_IMPL_INTERNAL_STUB_H__

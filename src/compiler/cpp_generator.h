@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_COMPILER_CPP_GENERATOR_H
-#define GRPC_INTERNAL_COMPILER_CPP_GENERATOR_H
+#ifndef NET_GRPC_COMPILER_CPP_GENERATOR_H_
+#define NET_GRPC_COMPILER_CPP_GENERATOR_H_
 
 #include <string>
 
@@ -58,4 +58,4 @@ std::string GetSourceServices(const google::protobuf::FileDescriptor *file);
 
 }  // namespace grpc_cpp_generator
 
-#endif  // GRPC_INTERNAL_COMPILER_CPP_GENERATOR_H
+#endif  // NET_GRPC_COMPILER_CPP_GENERATOR_H_
