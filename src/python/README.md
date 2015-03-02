@@ -46,7 +46,7 @@ Installing
 
 - Install gRPC Python's dependencies
 ```
-$ pip install -r requirements.txt
+$ pip install enum34==1.0.4 futures==2.2.0 protobuf==3.0.0-alpha-1
 ```
 
 - Install gRPC Python
