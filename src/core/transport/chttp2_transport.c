@@ -309,7 +309,6 @@ static void push_setting(transport *t, grpc_chttp2_setting_id id,
 
 static int prepare_callbacks(transport *t);
 static void run_callbacks(transport *t, const grpc_transport_callbacks *cb);
-static void call_cb_closed(transport *t, const grpc_transport_callbacks *cb);
 
 static int prepare_write(transport *t);
 static void perform_write(transport *t, grpc_endpoint *ep);
@@ -517,13 +516,13 @@ static void init_transport(transport *t, grpc_transport_setup_callback setup,
 static void destroy_transport(grpc_transport *gt) {
   transport *t = (transport *)gt;
 
-  lock(t);
+  gpr_mu_lock(&t->mu);
   t->destroying = 1;
   while (t->calling_back) {
     gpr_cv_wait(&t->cv, &t->mu, gpr_inf_future);
   }
-  drop_connection(t);
-  unlock(t);
+  t->cb = NULL;
+  gpr_mu_unlock(&t->mu);
 
   unref_transport(t);
 }
@@ -773,7 +772,7 @@ static void unlock(transport *t) {
   }
 
   if (call_closed) {
-    call_cb_closed(t, cb);
+    cb->closed(t->cb_user_data, &t->base);
   }
 
   /* write some bytes if necessary */
@@ -1764,10 +1763,6 @@ static void run_callbacks(transport *t, const grpc_transport_callbacks *cb) {
     cb->recv_batch(t->cb_user_data, &t->base, (grpc_stream *)s,
                    s->callback_sopb.ops, nops, s->callback_state);
   }
-}
-
-static void call_cb_closed(transport *t, const grpc_transport_callbacks *cb) {
-  cb->closed(t->cb_user_data, &t->base);
 }
 
 static void add_to_pollset(grpc_transport *gt, grpc_pollset *pollset) {
