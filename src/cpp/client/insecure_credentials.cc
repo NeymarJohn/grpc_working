@@ -31,6 +31,35 @@
  *
  */
 
-#include "src/core/surface/surface_trace.h"
+#include <string>
 
-int grpc_surface_trace = 0;
+#include <grpc/grpc.h>
+#include <grpc/support/log.h>
+
+#include <grpc++/channel_arguments.h>
+#include <grpc++/config.h>
+#include <grpc++/credentials.h>
+#include "src/cpp/client/channel.h"
+
+namespace grpc {
+
+namespace {
+class InsecureCredentialsImpl GRPC_FINAL : public Credentials {
+ public:
+  std::shared_ptr<grpc::ChannelInterface> CreateChannel(
+      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE {
+    grpc_channel_args channel_args;
+    args.SetChannelArgs(&channel_args);
+    return std::shared_ptr<ChannelInterface>(new Channel(
+        target, grpc_channel_create(target.c_str(), &channel_args)));
+  }
+
+  SecureCredentials* AsSecureCredentials() { return nullptr; }
+};
+}  // namespace
+
+std::unique_ptr<Credentials> InsecureCredentials() {
+  return std::unique_ptr<Credentials>(new InsecureCredentialsImpl());
+}
+
+}  // namespace grpc
