@@ -31,41 +31,53 @@
  *
  */
 
-#include <grpc/grpc_security.h>
+#include <gflags/gflags.h>
 
-#include <grpc++/server_credentials.h>
+#include "test/cpp/qps/driver.h"
 
-namespace grpc {
+DEFINE_int32(num_clients, 1, "Number of client binaries");
+DEFINE_int32(num_servers, 1, "Number of server binaries");
 
-namespace {
-class SecureServerCredentials GRPC_FINAL : public ServerCredentials {
- public:
-  explicit SecureServerCredentials(grpc_server_credentials* creds) : creds_(creds) {}
-  ~SecureServerCredentials() GRPC_OVERRIDE {
-    grpc_server_credentials_release(creds_);
-  }
+// Common config
+DEFINE_bool(enable_ssl, false, "Use SSL");
 
-  int AddPortToServer(const grpc::string& addr,
-                      grpc_server* server) GRPC_OVERRIDE {
-    return grpc_server_add_secure_http2_port(server, addr.c_str(), creds_);
-  }
+// Server config
+DEFINE_int32(server_threads, 1, "Number of server threads");
 
- private:
-  grpc_server_credentials* const creds_;
-};
-}  // namespace
+// Client config
+DEFINE_int32(client_threads, 1, "Number of client threads");
+DEFINE_int32(client_channels, 1, "Number of client channels");
+DEFINE_int32(num_rpcs, 10000, "Number of rpcs per client thread");
+DEFINE_int32(payload_size, 1, "Payload size");
 
-std::shared_ptr<ServerCredentials> SslServerCredentials(
-    const SslServerCredentialsOptions &options) {
-  std::vector<grpc_ssl_pem_key_cert_pair> pem_key_cert_pairs;
-  for (const auto &key_cert_pair : options.pem_key_cert_pairs) {
-    pem_key_cert_pairs.push_back(
-        {key_cert_pair.private_key.c_str(), key_cert_pair.cert_chain.c_str()});
-  }
-  grpc_server_credentials *c_creds = grpc_ssl_server_credentials_create(
-      options.pem_root_certs.empty() ? nullptr : options.pem_root_certs.c_str(),
-      &pem_key_cert_pairs[0], pem_key_cert_pairs.size());
-  return std::shared_ptr<ServerCredentials>(new SecureServerCredentials(c_creds));
+using grpc::testing::ClientConfig;
+using grpc::testing::ServerConfig;
+
+// In some distros, gflags is in the namespace google, and in some others,
+// in gflags. This hack is enabling us to find both.
+namespace google { }
+namespace gflags { }
+using namespace google;
+using namespace gflags;
+
+int main(int argc, char **argv) {
+  grpc_init();
+  ParseCommandLineFlags(&argc, &argv, true);
+
+  ClientConfig client_config;
+  client_config.set_enable_ssl(FLAGS_enable_ssl);
+  client_config.set_client_threads(FLAGS_client_threads);
+  client_config.set_client_channels(FLAGS_client_channels);
+  client_config.set_num_rpcs(FLAGS_num_rpcs);
+  client_config.set_payload_size(FLAGS_payload_size);
+
+  ServerConfig server_config;
+  server_config.set_threads(FLAGS_server_threads);
+  server_config.set_enable_ssl(FLAGS_enable_ssl);
+
+  RunScenario(client_config, FLAGS_num_clients, server_config, FLAGS_num_servers);
+
+  grpc_shutdown();
+  return 0;
 }
 
-}  // namespace grpc

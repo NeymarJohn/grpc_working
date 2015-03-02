@@ -31,22 +31,35 @@
  *
  */
 
-#include <grpc/grpc_security.h>
-#include <grpc++/server_credentials.h>
+#include "test/cpp/qps/timer.h"
 
-namespace grpc {
-namespace {
-class InsecureServerCredentialsImpl GRPC_FINAL : public ServerCredentials {
- public:
-  int AddPortToServer(const grpc::string& addr,
-                      grpc_server* server) GRPC_OVERRIDE {
-    return grpc_server_add_http2_port(server, addr.c_str());
-  }
-};
-}  // namespace
+#include <sys/time.h>
+#include <sys/resource.h>
 
-std::shared_ptr<ServerCredentials> InsecureServerCredentials() {
-  return std::shared_ptr<ServerCredentials>(new InsecureServerCredentialsImpl());
+Timer::Timer() : start_(Sample()) {}
+
+static double time_double(struct timeval* tv) {
+  return tv->tv_sec + 1e-6 * tv->tv_usec;
 }
 
-}  // namespace grpc
+Timer::Result Timer::Sample() {
+  struct rusage usage;
+  struct timeval tv;
+  gettimeofday(&tv, nullptr);
+  getrusage(RUSAGE_SELF, &usage);
+
+  Result r;
+  r.wall = time_double(&tv);
+  r.user = time_double(&usage.ru_utime);
+  r.system = time_double(&usage.ru_stime);
+  return r;
+}
+
+Timer::Result Timer::Mark() {
+  Result s = Sample();
+  Result r;
+  r.wall = s.wall - start_.wall;
+  r.user = s.user - start_.user;
+  r.system = s.system - start_.system;
+  return r;
+}

@@ -96,10 +96,10 @@ int main(int argc, char** argv) {
   std::unique_ptr<grpc::Credentials> creds;
   if (FLAGS_service_account_key_file != "") {
     grpc::string json_key = GetServiceAccountJsonKey();
-    creds = grpc::ServiceAccountCredentials(
+    creds = grpc::CredentialsFactory::ServiceAccountCredentials(
         json_key, FLAGS_oauth_scope, std::chrono::hours(1));
   } else {
-    creds = grpc::ComputeEngineCredentials();
+    creds = grpc::CredentialsFactory::ComputeEngineCredentials();
   }
 
   ss << FLAGS_server_host << ":" << FLAGS_server_port;
