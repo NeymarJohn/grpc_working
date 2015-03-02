@@ -37,10 +37,8 @@
 #include "src/core/debug/trace.h"
 #include <grpc/support/log.h>
 
-extern int grpc_surface_trace;
-
 #define GRPC_SURFACE_TRACE_RETURNED_EVENT(cq, event)    \
-  if (grpc_surface_trace) {           \
+  if (grpc_trace_bits & GRPC_TRACE_SURFACE) {           \
     char *_ev = grpc_event_string(event);               \
     gpr_log(GPR_INFO, "RETURN_EVENT[%p]: %s", cq, _ev); \
     gpr_free(_ev);                                      \
