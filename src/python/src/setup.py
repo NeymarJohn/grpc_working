@@ -47,9 +47,8 @@ _EXTENSION_INCLUDE_DIRECTORIES = (
 )
 
 _EXTENSION_LIBRARIES = (
-    'grpc',
     'gpr',
-    'rt',
+    'grpc',
 )
 
 _EXTENSION_MODULE = _core.Extension(

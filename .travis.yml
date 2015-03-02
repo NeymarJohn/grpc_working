@@ -14,7 +14,6 @@ env:
     - CONFIG=opt TEST=c++
     - CONFIG=opt TEST=node
     - CONFIG=opt TEST=ruby
-    - CONFIG=opt TEST=python
 script:
   - rvm use $RUBY_VERSION
   - gem install bundler
