@@ -31,24 +31,34 @@
  *
  */
 
-#include "test/core/util/grpc_profiler.h"
+#ifndef TEST_QPS_HISTOGRAM_H
+#define TEST_QPS_HISTOGRAM_H
 
-#if GRPC_HAVE_PERFTOOLS
-#include <gperftools/profiler.h>
+#include <grpc/support/histogram.h>
 
-void grpc_profiler_start(const char *filename) { ProfilerStart(filename); }
+namespace grpc {
+namespace testing {
 
-void grpc_profiler_stop() { ProfilerStop(); }
-#else
-#include <grpc/support/log.h>
+class Histogram {
+ public:
+  Histogram() : impl_(gpr_histogram_create(0.01, 60e9)) {}
+  ~Histogram() { gpr_histogram_destroy(impl_); }
 
-void grpc_profiler_start(const char *filename) {
-  gpr_log(GPR_DEBUG,
-          "You do not have google-perftools installed, profiling is disabled [for %s]", filename);
-  gpr_log(GPR_DEBUG,
-          "To install on ubuntu: sudo apt-get install google-perftools "
-          "libgoogle-perftools-dev");
+  void Merge(Histogram* h) { gpr_histogram_merge(impl_, h->impl_); }
+  void Add(double value) { gpr_histogram_add(impl_, value); }
+  double Percentile(double pctile) {
+    return gpr_histogram_percentile(impl_, pctile);
+  }
+  double Count() { return gpr_histogram_count(impl_); }
+  void Swap(Histogram* other) { std::swap(impl_, other->impl_); }
+
+ private:
+  Histogram(const Histogram&);
+  Histogram& operator=(const Histogram&);
+
+  gpr_histogram* impl_;
+};
+}
 }
 
-void grpc_profiler_stop(void) {}
-#endif
+#endif /* TEST_QPS_HISTOGRAM_H */
