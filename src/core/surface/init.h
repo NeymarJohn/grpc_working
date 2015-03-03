@@ -31,41 +31,9 @@
  *
  */
 
-#include <grpc/grpc_security.h>
+#ifndef GRPC_INTERNAL_CORE_SURFACE_INIT_H
+#define GRPC_INTERNAL_CORE_SURFACE_INIT_H
 
-#include <grpc++/server_credentials.h>
+void grpc_security_pre_init(void);
 
-namespace grpc {
-
-namespace {
-class SecureServerCredentials GRPC_FINAL : public ServerCredentials {
- public:
-  explicit SecureServerCredentials(grpc_server_credentials* creds) : creds_(creds) {}
-  ~SecureServerCredentials() GRPC_OVERRIDE {
-    grpc_server_credentials_release(creds_);
-  }
-
-  int AddPortToServer(const grpc::string& addr,
-                      grpc_server* server) GRPC_OVERRIDE {
-    return grpc_server_add_secure_http2_port(server, addr.c_str(), creds_);
-  }
-
- private:
-  grpc_server_credentials* const creds_;
-};
-}  // namespace
-
-std::shared_ptr<ServerCredentials> SslServerCredentials(
-    const SslServerCredentialsOptions &options) {
-  std::vector<grpc_ssl_pem_key_cert_pair> pem_key_cert_pairs;
-  for (const auto &key_cert_pair : options.pem_key_cert_pairs) {
-    pem_key_cert_pairs.push_back(
-        {key_cert_pair.private_key.c_str(), key_cert_pair.cert_chain.c_str()});
-  }
-  grpc_server_credentials *c_creds = grpc_ssl_server_credentials_create(
-      options.pem_root_certs.empty() ? nullptr : options.pem_root_certs.c_str(),
-      &pem_key_cert_pairs[0], pem_key_cert_pairs.size());
-  return std::shared_ptr<ServerCredentials>(new SecureServerCredentials(c_creds));
-}
-
-}  // namespace grpc
+#endif  /* GRPC_INTERNAL_CORE_SURFACE_INIT_H */

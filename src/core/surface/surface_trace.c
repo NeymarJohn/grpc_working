@@ -31,22 +31,6 @@
  *
  */
 
-#include <grpc/grpc_security.h>
-#include <grpc++/server_credentials.h>
+#include "src/core/surface/surface_trace.h"
 
-namespace grpc {
-namespace {
-class InsecureServerCredentialsImpl GRPC_FINAL : public ServerCredentials {
- public:
-  int AddPortToServer(const grpc::string& addr,
-                      grpc_server* server) GRPC_OVERRIDE {
-    return grpc_server_add_http2_port(server, addr.c_str());
-  }
-};
-}  // namespace
-
-std::shared_ptr<ServerCredentials> InsecureServerCredentials() {
-  return std::shared_ptr<ServerCredentials>(new InsecureServerCredentialsImpl());
-}
-
-}  // namespace grpc
+int grpc_surface_trace = 0;
