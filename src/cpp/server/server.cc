@@ -287,14 +287,12 @@ void Server::Wait() {
 }
 
 void Server::PerformOpsOnCall(CallOpBuffer* buf, Call* call) {
-  if (call->call()) {
-    static const size_t MAX_OPS = 8;
-    size_t nops = MAX_OPS;
-    grpc_op ops[MAX_OPS];
-    buf->FillOps(ops, &nops);
-    GPR_ASSERT(GRPC_CALL_OK ==
-               grpc_call_start_batch(call->call(), ops, nops, buf));
-  }
+  static const size_t MAX_OPS = 8;
+  size_t nops = MAX_OPS;
+  grpc_op ops[MAX_OPS];
+  buf->FillOps(ops, &nops);
+  GPR_ASSERT(GRPC_CALL_OK ==
+             grpc_call_start_batch(call->call(), ops, nops, buf));
 }
 
 class Server::AsyncRequest GRPC_FINAL : public CompletionQueueTag {
@@ -345,9 +343,7 @@ class Server::AsyncRequest GRPC_FINAL : public CompletionQueueTag {
     }
     ctx_->call_ = call_;
     Call call(call_, server_, cq_);
-    if (call_) {
-      ctx_->BeginCompletionOp(&call);
-    }
+    ctx_->BeginCompletionOp(&call);
     // just the pointers inside call are copied here
     stream_->BindCall(&call);
     delete this;
