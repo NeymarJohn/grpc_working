@@ -140,8 +140,6 @@ struct grpc_call {
   gpr_uint8 have_alarm;
   /* are we currently performing a send operation */
   gpr_uint8 sending;
-  /* are we currently completing requests */
-  gpr_uint8 completing;
   /* pairs with completed_requests */
   gpr_uint8 num_completed_requests;
   /* flag that we need to request more data */
@@ -359,7 +357,7 @@ static void lock(grpc_call *call) { gpr_mu_lock(&call->mu); }
 static void unlock(grpc_call *call) {
   send_action sa = SEND_NOTHING;
   completed_request completed_requests[GRPC_IOREQ_OP_COUNT];
-  int completing_requests = 0;
+  int num_completed_requests = call->num_completed_requests;
   int need_more_data =
       call->need_more_data &&
       (call->write_state >= WRITE_STATE_STARTED || !call->is_client);
@@ -369,12 +367,10 @@ static void unlock(grpc_call *call) {
     call->need_more_data = 0;
   }
 
-  if (!call->completing && call->num_completed_requests != 0) {
-    completing_requests = call->num_completed_requests;
+  if (num_completed_requests != 0) {
     memcpy(completed_requests, call->completed_requests,
            sizeof(completed_requests));
     call->num_completed_requests = 0;
-    call->completing = 1;
   }
 
   if (!call->sending) {
@@ -395,14 +391,9 @@ static void unlock(grpc_call *call) {
     enact_send_action(call, sa);
   }
 
-  if (completing_requests > 0) {
-    for (i = 0; i < completing_requests; i++) {
-      completed_requests[i].on_complete(call, completed_requests[i].status,
-                                        completed_requests[i].user_data);
-    }
-    lock(call);
-    call->completing = 0;
-    unlock(call);
+  for (i = 0; i < num_completed_requests; i++) {
+    completed_requests[i].on_complete(call, completed_requests[i].status,
+                                      completed_requests[i].user_data);
   }
 }
 
