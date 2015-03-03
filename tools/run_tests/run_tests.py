@@ -135,7 +135,7 @@ class PythonLanguage(object):
     return [config.job_spec('tools/run_tests/run_python.sh', None)]
 
   def make_targets(self):
-    return ['static_c']
+    return[]
 
   def build_steps(self):
     return [['tools/run_tests/build_python.sh']]
@@ -298,7 +298,7 @@ test_cache.maybe_load()
 if forever:
   success = True
   while True:
-    dw = watch_dirs.DirWatcher(['src', 'include', 'test'])
+    dw = watch_dirs.DirWatcher(['src', 'include', 'test', 'examples'])
     initial_time = dw.most_recent_change()
     have_files_changed = lambda: dw.most_recent_change() != initial_time
     previous_success = success

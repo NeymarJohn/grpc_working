@@ -41,44 +41,64 @@ namespace Grpc.Core
     /// </summary>
     public enum StatusCode
     {
-        /* Not an error; returned on success */
+        /* Not an error; returned on success
+
+     HTTP Mapping: 200 OK */
         OK = 0,
-        /* The operation was cancelled (typically by the caller). */
+        /* The operation was cancelled (typically by the caller).
+
+     HTTP Mapping: 499 Client Closed Request */
         Cancelled = 1,
         /* Unknown error.  An example of where this error may be returned is
      if a Status value received from another address space belongs to
      an error-space that is not known in this address space.  Also
      errors raised by APIs that do not return enough error information
-     may be converted to this error. */
+     may be converted to this error.
+
+     HTTP Mapping: 500 Internal Server Error */
         Unknown = 2,
         /* Client specified an invalid argument.  Note that this differs
      from FAILED_PRECONDITION.  INVALID_ARGUMENT indicates arguments
      that are problematic regardless of the state of the system
-     (e.g., a malformed file name). */
+     (e.g., a malformed file name).
+
+     HTTP Mapping: 400 Bad Request */
         InvalidArgument = 3,
         /* Deadline expired before operation could complete.  For operations
      that change the state of the system, this error may be returned
      even if the operation has completed successfully.  For example, a
      successful response from a server could have been delayed long
-     enough for the deadline to expire. */
+     enough for the deadline to expire.
+
+     HTTP Mapping: 504 Gateway Timeout */
         DeadlineExceeded = 4,
-        /* Some requested entity (e.g., file or directory) was not found. */
+        /* Some requested entity (e.g., file or directory) was not found.
+
+     HTTP Mapping: 404 Not Found */
         NotFound = 5,
         /* Some entity that we attempted to create (e.g., file or directory)
-     already exists. */
+     already exists.
+
+     HTTP Mapping: 409 Conflict */
         AlreadyExists = 6,
         /* The caller does not have permission to execute the specified
      operation.  PERMISSION_DENIED must not be used for rejections
      caused by exhausting some resource (use RESOURCE_EXHAUSTED
      instead for those errors).  PERMISSION_DENIED must not be
      used if the caller can not be identified (use UNAUTHENTICATED
-     instead for those errors). */
+     instead for those errors).
+
+     HTTP Mapping: 403 Forbidden */
         PermissionDenied = 7,
         /* The request does not have valid authentication credentials for the
-     operation. */
+     operation.
+
+     HTTP Mapping: 401 Unauthorized */
         Unauthenticated = 16,
         /* Some resource has been exhausted, perhaps a per-user quota, or
-     perhaps the entire file system is out of space. */
+     perhaps the entire file system is out of space.
+
+     HTTP Mapping: 429 Too Many Requests */
         ResourceExhausted = 8,
         /* Operation was rejected because the system is not in a state
      required for the operation's execution.  For example, directory
@@ -98,13 +118,22 @@ namespace Grpc.Core
       (d) Use FAILED_PRECONDITION if the client performs conditional
           REST Get/Update/Delete on a resource and the resource on the
           server does not match the condition. E.g., conflicting
-          read-modify-write on the same resource. */
+          read-modify-write on the same resource.
+
+     HTTP Mapping: 400 Bad Request
+
+     NOTE: HTTP spec says 412 Precondition Failed should only be used if
+     the request contains Etag related headers. So if the server does see
+     Etag related headers in the request, it may choose to return 412
+     instead of 400 for this error code. */
         FailedPrecondition = 9,
         /* The operation was aborted, typically due to a concurrency issue
      like sequencer check failures, transaction aborts, etc.
 
      See litmus test above for deciding between FAILED_PRECONDITION,
-     ABORTED, and UNAVAILABLE. */
+     ABORTED, and UNAVAILABLE.
+
+     HTTP Mapping: 409 Conflict */
         Aborted = 10,
         /* Operation was attempted past the valid range.  E.g., seeking or
      reading past end of file.
@@ -120,22 +149,32 @@ namespace Grpc.Core
      OUT_OF_RANGE.  We recommend using OUT_OF_RANGE (the more specific
      error) when it applies so that callers who are iterating through
      a space can easily look for an OUT_OF_RANGE error to detect when
-     they are done. */
+     they are done.
+
+     HTTP Mapping: 400 Bad Request */
         OutOfRange = 11,
-        /* Operation is not implemented or not supported/enabled in this service. */
+        /* Operation is not implemented or not supported/enabled in this service.
+
+     HTTP Mapping: 501 Not Implemented */
         Unimplemented = 12,
         /* Internal errors.  Means some invariants expected by underlying
      system has been broken.  If you see one of these errors,
-     something is very broken. */
+     something is very broken.
+
+     HTTP Mapping: 500 Internal Server Error */
         Internal = 13,
         /* The service is currently unavailable.  This is a most likely a
      transient condition and may be corrected by retrying with
      a backoff.
 
      See litmus test above for deciding between FAILED_PRECONDITION,
-     ABORTED, and UNAVAILABLE. */
+     ABORTED, and UNAVAILABLE.
+
+     HTTP Mapping: 503 Service Unavailable */
         Unavailable = 14,
-        /* Unrecoverable data loss or corruption. */
+        /* Unrecoverable data loss or corruption.
+
+     HTTP Mapping: 500 Internal Server Error */
         DataLoss = 15
     }
 }
