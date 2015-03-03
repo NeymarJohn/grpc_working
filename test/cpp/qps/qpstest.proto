@@ -51,14 +51,17 @@ message StatsRequest {
 }
 
 message ServerStats {
-  // wall clock time
-  required double time_elapsed = 1;
+  // wall clock time for timestamp
+  required double time_now = 1;
 
   // user time used by the server process and threads
   required double time_user = 2;
 
   // server time used by the server process and all threads
   required double time_system = 3;
+
+  // RPC count so far
+  optional int32 num_rpcs = 4;
 }
 
 message Payload {
@@ -75,68 +78,22 @@ message Latencies {
   required double l_999 = 4;
 }
 
-enum ClientType {
-  SYNCHRONOUS_CLIENT = 1;
-  ASYNC_CLIENT = 2;
+message StartArgs {
+  required string server_host = 1;
+  required int32 server_port = 2;
+  optional bool enable_ssl = 3 [default = false];
+  optional int32 client_threads = 4 [default = 1];
+  optional int32 client_channels = 5 [default = -1];
+  optional int32 num_rpcs = 6 [default = 1];
+  optional int32 payload_size = 7 [default = 1];
 }
 
-enum ServerType {
-  SYNCHRONOUS_SERVER = 1;
-  ASYNC_SERVER = 2;
-}
-
-message ClientConfig {
-  repeated string server_targets = 1;
-  required ClientType client_type = 2;
-  required bool enable_ssl = 3;
-  required int32 client_threads = 4;
-  // We have a configurable number of channels for sending RPCs.
-  // RPCs are sent round-robin on the available channels by the
-  // various threads. Interesting cases are 1 global channel or
-  // 1 per-thread channel, but we can support any number.
-  // The channels are assigned round-robin on an RPC by RPC basis
-  // rather than just at initialization time in order to also measure the
-  // impact of cache thrashing caused by channel changes. This is an issue
-  // if you are not in one of the above "interesting cases"
-  required int32 client_channels = 5;
-  required int32 num_rpcs = 6;
-  required int32 payload_size = 7;
-}
-
-message ClientStart {}
-
-message ClientArgs {
-  oneof argtype {
-    ClientConfig setup = 1;
-    ClientStart start = 2;
-  }
-}
-
-message ClientResult {
+message StartResult {
   required Latencies latencies = 1;
   required int32 num_rpcs = 2;
   required double time_elapsed = 3;
   required double time_user = 4;
   required double time_system = 5;
-}
-
-message ClientStatus {
-  optional ClientResult result = 1;
-}
-
-message ServerConfig {
-  required ServerType server_type = 1;
-  required int32 threads = 2;
-  required bool enable_ssl = 3;
-}
-
-message ServerArgs {
-  required ServerConfig config = 1;
-}
-
-message ServerStatus {
-  optional ServerStats stats = 1;
-  required int32 port = 2;
 }
 
 message SimpleRequest {
@@ -196,6 +153,12 @@ message StreamingOutputCallResponse {
 }
 
 service TestService {
+  // Start test with specified workload
+  rpc StartTest(StartArgs) returns (Latencies);
+
+  // Collect stats from server, ignore request content
+  rpc CollectServerStats(StatsRequest) returns (ServerStats);
+
   // One request followed by one response.
   // The server returns the client payload as-is.
   rpc UnaryCall(SimpleRequest) returns (SimpleResponse);
@@ -222,11 +185,4 @@ service TestService {
   // first request.
   rpc HalfDuplexCall(stream StreamingOutputCallRequest)
       returns (stream StreamingOutputCallResponse);
-}
-
-service Worker {
-  // Start test with specified workload
-  rpc RunTest(stream ClientArgs) returns (stream ClientStatus);
-  // Start test with specified workload
-  rpc RunServer(stream ServerArgs) returns (stream ServerStatus);
 }

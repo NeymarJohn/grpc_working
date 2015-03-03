@@ -31,25 +31,12 @@
  *
  */
 
-#ifndef TEST_QPS_TIMER_H
-#define TEST_QPS_TIMER_H
+#include "src/core/surface/init.h"
+#include "src/core/debug/trace.h"
+#include "src/core/security/secure_endpoint.h"
+#include "src/core/tsi/transport_security_interface.h"
 
-class Timer {
- public:
-  Timer();
-
-  struct Result {
-  	double wall;
-  	double user;
-  	double system;
-  };
-
-  Result Mark();
-
- private:
-  static Result Sample();
-
-  const Result start_;
-};
-
-#endif // TEST_QPS_TIMER_H
+void grpc_security_pre_init(void) {
+  grpc_register_tracer("secure_endpoint", &grpc_trace_secure_endpoint);
+  grpc_register_tracer("transport_security", &tsi_tracing_enabled);
+}

@@ -31,23 +31,6 @@
  *
  */
 
-#ifndef TEST_QPS_SERVER_H
-#define TEST_QPS_SERVER_H
+#include "src/core/surface/surface_trace.h"
 
-#include "test/cpp/qps/qpstest.pb.h"
-
-namespace grpc {
-namespace testing {
-
-class Server {
- public:
-  virtual ~Server() {}
-};
-
-std::unique_ptr<Server> CreateSynchronousServer(const ServerConfig& config, int port);
-std::unique_ptr<Server> CreateAsyncServer(const ServerConfig& config, int port);
-
-}  // namespace testing
-}  // namespace grpc
-
-#endif
+int grpc_surface_trace = 0;
