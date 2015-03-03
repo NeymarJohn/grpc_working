@@ -48,12 +48,12 @@
 /* the protobuf library will (by default) start warning at 100megs */
 #define DEFAULT_MAX_MESSAGE_LENGTH (100 * 1024 * 1024)
 
-typedef struct connected_channel_channel_data {
+typedef struct {
   grpc_transport *transport;
   gpr_uint32 max_message_length;
 } channel_data;
 
-typedef struct connected_channel_call_data {
+typedef struct {
   grpc_call_element *elem;
   grpc_stream_op_buffer outgoing_sopb;
 

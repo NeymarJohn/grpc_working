@@ -2115,7 +2115,7 @@ ifeq ($(INSTALL_OK),true)
 	@echo "Your system looks ready to go."
 	@echo
 else
-	@echo "We couldn't find protoc 3.0.0+ installed on your system. While this"
+	@echo "Your system doesn't have protoc 3.0.0+ installed. While this"
 	@echo "won't prevent grpc from working, you won't be able to compile"
 	@echo "and run any meaningful code with it."
 	@echo
@@ -2124,8 +2124,7 @@ else
 	@echo
 	@echo "   https://github.com/google/protobuf/releases"
 	@echo
-	@echo "Once you've done so, or if you think this message is in error,"
-	@echo "you can re-run this check by doing:"
+	@echo "Once you've done so, you can re-run this check by doing:"
 	@echo
 	@echo "   make verify-install"
 endif
@@ -2204,7 +2203,7 @@ $(LIBDIR)/$(CONFIG)/libgpr.a: $(ZLIB_DEP) $(LIBGPR_OBJS)
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBGPR_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgpr.a 
 endif
 
 
@@ -2295,7 +2294,7 @@ $(LIBDIR)/$(CONFIG)/libgpr_test_util.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGPR_TEST
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libgpr_test_util.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBGPR_TEST_UTIL_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgpr_test_util.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgpr_test_util.a 
 endif
 
 
@@ -2329,7 +2328,6 @@ LIBGRPC_SRC = \
     src/core/security/secure_transport_setup.c \
     src/core/security/security_context.c \
     src/core/security/server_secure_chttp2.c \
-    src/core/surface/init_secure.c \
     src/core/surface/secure_channel_create.c \
     src/core/surface/secure_server_create.c \
     src/core/tsi/fake_transport_security.c \
@@ -2409,7 +2407,6 @@ LIBGRPC_SRC = \
     src/core/surface/server.c \
     src/core/surface/server_chttp2.c \
     src/core/surface/server_create.c \
-    src/core/surface/surface_trace.c \
     src/core/transport/chttp2/alpn.c \
     src/core/transport/chttp2/bin_encoder.c \
     src/core/transport/chttp2/frame_data.c \
@@ -2475,7 +2472,6 @@ src/core/security/secure_endpoint.c: $(OPENSSL_DEP)
 src/core/security/secure_transport_setup.c: $(OPENSSL_DEP)
 src/core/security/security_context.c: $(OPENSSL_DEP)
 src/core/security/server_secure_chttp2.c: $(OPENSSL_DEP)
-src/core/surface/init_secure.c: $(OPENSSL_DEP)
 src/core/surface/secure_channel_create.c: $(OPENSSL_DEP)
 src/core/surface/secure_server_create.c: $(OPENSSL_DEP)
 src/core/tsi/fake_transport_security.c: $(OPENSSL_DEP)
@@ -2555,7 +2551,6 @@ src/core/surface/metadata_array.c: $(OPENSSL_DEP)
 src/core/surface/server.c: $(OPENSSL_DEP)
 src/core/surface/server_chttp2.c: $(OPENSSL_DEP)
 src/core/surface/server_create.c: $(OPENSSL_DEP)
-src/core/surface/surface_trace.c: $(OPENSSL_DEP)
 src/core/transport/chttp2/alpn.c: $(OPENSSL_DEP)
 src/core/transport/chttp2/bin_encoder.c: $(OPENSSL_DEP)
 src/core/transport/chttp2/frame_data.c: $(OPENSSL_DEP)
@@ -2591,7 +2586,7 @@ $(LIBDIR)/$(CONFIG)/libgrpc.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC_OBJS)
 	$(Q) ar rcs $(LIBDIR)/$(CONFIG)/libgrpc.a tmp-merge/*
 	$(Q) rm -rf tmp-merge
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc.a 
 endif
 
 
@@ -2638,7 +2633,6 @@ $(OBJDIR)/$(CONFIG)/src/core/security/secure_endpoint.o:
 $(OBJDIR)/$(CONFIG)/src/core/security/secure_transport_setup.o: 
 $(OBJDIR)/$(CONFIG)/src/core/security/security_context.o: 
 $(OBJDIR)/$(CONFIG)/src/core/security/server_secure_chttp2.o: 
-$(OBJDIR)/$(CONFIG)/src/core/surface/init_secure.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/secure_channel_create.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/secure_server_create.o: 
 $(OBJDIR)/$(CONFIG)/src/core/tsi/fake_transport_security.o: 
@@ -2718,7 +2712,6 @@ $(OBJDIR)/$(CONFIG)/src/core/surface/metadata_array.o:
 $(OBJDIR)/$(CONFIG)/src/core/surface/server.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/server_chttp2.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/server_create.o: 
-$(OBJDIR)/$(CONFIG)/src/core/surface/surface_trace.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/alpn.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/bin_encoder.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_data.o: 
@@ -2790,7 +2783,7 @@ $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC_TE
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBGRPC_TEST_UTIL_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a 
 endif
 
 
@@ -2818,7 +2811,6 @@ $(OBJDIR)/$(CONFIG)/test/core/util/slice_splitter.o:
 
 
 LIBGRPC_UNSECURE_SRC = \
-    src/core/surface/init_unsecure.c \
     src/core/channel/call_op_string.c \
     src/core/channel/census_filter.c \
     src/core/channel/channel_args.c \
@@ -2893,7 +2885,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/surface/server.c \
     src/core/surface/server_chttp2.c \
     src/core/surface/server_create.c \
-    src/core/surface/surface_trace.c \
     src/core/transport/chttp2/alpn.c \
     src/core/transport/chttp2/bin_encoder.c \
     src/core/transport/chttp2/frame_data.c \
@@ -2929,7 +2920,7 @@ $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a: $(ZLIB_DEP) $(LIBGRPC_UNSECURE_OBJS)
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBGRPC_UNSECURE_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a 
 endif
 
 
@@ -2956,7 +2947,6 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC_UNSECURE_OBJS:.o=.dep)
 endif
 
-$(OBJDIR)/$(CONFIG)/src/core/surface/init_unsecure.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/call_op_string.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/census_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/channel_args.o: 
@@ -3031,7 +3021,6 @@ $(OBJDIR)/$(CONFIG)/src/core/surface/metadata_array.o:
 $(OBJDIR)/$(CONFIG)/src/core/surface/server.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/server_chttp2.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/server_create.o: 
-$(OBJDIR)/$(CONFIG)/src/core/surface/surface_trace.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/alpn.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/bin_encoder.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_data.o: 
@@ -3158,7 +3147,7 @@ $(LIBDIR)/$(CONFIG)/libgrpc++.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(PROTOBUF_DEP) $(LI
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libgrpc++.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBGRPC++_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc++.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc++.a 
 endif
 
 
@@ -3254,7 +3243,7 @@ $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(PROTOBUF
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBGRPC++_TEST_UTIL_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a 
 endif
 
 
@@ -3321,7 +3310,7 @@ $(LIBDIR)/$(CONFIG)/libpubsub_client_lib.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(PROTOBU
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libpubsub_client_lib.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libpubsub_client_lib.a $(LIBPUBSUB_CLIENT_LIB_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libpubsub_client_lib.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libpubsub_client_lib.a 
 endif
 
 
@@ -3378,7 +3367,7 @@ $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC_C
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext.a $(LIBGRPC_CSHARP_EXT_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext.a 
 endif
 
 
@@ -3441,7 +3430,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a: $(ZLIB_DEP) $(OPE
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a $(LIBEND2END_FIXTURE_CHTTP2_FAKE_SECURITY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a 
 endif
 
 
@@ -3487,7 +3476,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a: $(ZLIB_DEP) $(OPENSSL
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBEND2END_FIXTURE_CHTTP2_FULLSTACK_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a 
 endif
 
 
@@ -3533,7 +3522,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a: $(ZLIB_DEP) $(OPE
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBEND2END_FIXTURE_CHTTP2_FULLSTACK_UDS_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a 
 endif
 
 
@@ -3579,7 +3568,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a: $(ZLIB_DEP
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a $(LIBEND2END_FIXTURE_CHTTP2_SIMPLE_SSL_FULLSTACK_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a 
 endif
 
 
@@ -3625,7 +3614,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a $(LIBEND2END_FIXTURE_CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a 
 endif
 
 
@@ -3671,7 +3660,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a: $(ZLIB_DEP) $(OPENS
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBEND2END_FIXTURE_CHTTP2_SOCKET_PAIR_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a 
 endif
 
 
@@ -3717,7 +3706,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a: 
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBEND2END_FIXTURE_CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a 
 endif
 
 
@@ -3746,7 +3735,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a: $(ZLIB_DEP) $(LIBEND2
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a 
 endif
 
 
@@ -3771,7 +3760,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a: $(Z
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a 
 endif
 
 
@@ -3796,7 +3785,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a: $(ZLIB_DEP) $(LIBEND2
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBEND2END_TEST_CANCEL_AFTER_INVOKE_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a 
 endif
 
 
@@ -3821,7 +3810,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a: $(ZLIB_DEP) $(LIBEND
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBEND2END_TEST_CANCEL_BEFORE_INVOKE_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a 
 endif
 
 
@@ -3846,7 +3835,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a: $(ZLIB_DEP) $(LIBEND2E
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBEND2END_TEST_CANCEL_IN_A_VACUUM_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a 
 endif
 
 
@@ -3871,7 +3860,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a: $(ZLIB_DEP) $(LIBEN
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBEND2END_TEST_CENSUS_SIMPLE_REQUEST_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a 
 endif
 
 
@@ -3896,7 +3885,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a: $(ZLIB_DEP) $(LIBEND2
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBEND2END_TEST_DISAPPEARING_SERVER_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a 
 endif
 
 
@@ -3921,7 +3910,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_call
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a 
 endif
 
 
@@ -3946,7 +3935,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a: $(ZLI
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a 
 endif
 
 
@@ -3971,7 +3960,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a: $(ZLIB_DEP) $(LIBEND2END_TEST
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBEND2END_TEST_EMPTY_BATCH_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a 
 endif
 
 
@@ -3996,7 +3985,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a: $(ZLIB_DEP) $(LI
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBEND2END_TEST_GRACEFUL_SERVER_SHUTDOWN_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a 
 endif
 
 
@@ -4021,7 +4010,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a: $(ZLIB_DEP) $(LIBEND
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBEND2END_TEST_INVOKE_LARGE_REQUEST_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a 
 endif
 
 
@@ -4046,7 +4035,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a: $(ZLIB_DEP) $(LIBE
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBEND2END_TEST_MAX_CONCURRENT_STREAMS_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a 
 endif
 
 
@@ -4071,7 +4060,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a: $(ZLIB_DEP) $(LIBEND2END_TEST_NO_OP
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBEND2END_TEST_NO_OP_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a 
 endif
 
 
@@ -4096,7 +4085,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a: $(ZLIB_DEP) $(LIBEND2
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBEND2END_TEST_PING_PONG_STREAMING_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a 
 endif
 
 
@@ -4121,7 +4110,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_pa
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a 
 endif
 
 
@@ -4146,7 +4135,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a 
 endif
 
 
@@ -4171,7 +4160,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a: $(ZLIB_DEP)
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_PAYLOAD_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a 
 endif
 
 
@@ -4196,7 +4185,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a: $(ZLIB_DEP) $
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBEND2END_TEST_REQUEST_WITH_LARGE_METADATA_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a 
 endif
 
 
@@ -4221,7 +4210,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a: $(ZLIB_DEP) $(LIBEND
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBEND2END_TEST_REQUEST_WITH_PAYLOAD_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a 
 endif
 
 
@@ -4246,7 +4235,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a: $(ZLIB_DEP) $(LIBE
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBEND2END_TEST_SIMPLE_DELAYED_REQUEST_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a 
 endif
 
 
@@ -4271,7 +4260,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a: $(ZLIB_DEP) $(LIBEND2END_T
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBEND2END_TEST_SIMPLE_REQUEST_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a 
 endif
 
 
@@ -4296,7 +4285,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a: $(ZLIB_DEP) $(LIBEND2END_TE
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a $(LIBEND2END_TEST_THREAD_STRESS_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a 
 endif
 
 
@@ -4321,7 +4310,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a: $(ZLI
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBEND2END_TEST_WRITES_DONE_HANGS_WITH_PENDING_READ_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a 
 endif
 
 
@@ -4346,7 +4335,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a: $(ZLIB_DEP) $(
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a 
 endif
 
 
@@ -4371,7 +4360,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a 
 endif
 
 
@@ -4396,7 +4385,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a: $(ZLIB_DEP) $(
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a $(LIBEND2END_TEST_CANCEL_AFTER_INVOKE_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a 
 endif
 
 
@@ -4421,7 +4410,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a: $(ZLIB_DEP) $
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a $(LIBEND2END_TEST_CANCEL_BEFORE_INVOKE_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a 
 endif
 
 
@@ -4446,7 +4435,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a: $(ZLIB_DEP) $(L
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a $(LIBEND2END_TEST_CANCEL_IN_A_VACUUM_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a 
 endif
 
 
@@ -4471,7 +4460,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a: $(ZLIB_DEP) 
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a $(LIBEND2END_TEST_CENSUS_SIMPLE_REQUEST_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a 
 endif
 
 
@@ -4496,7 +4485,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a: $(ZLIB_DEP) $(
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a $(LIBEND2END_TEST_DISAPPEARING_SERVER_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a 
 endif
 
 
@@ -4521,7 +4510,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_call
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a 
 endif
 
 
@@ -4546,7 +4535,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a 
 endif
 
 
@@ -4571,7 +4560,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a: $(ZLIB_DE
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a $(LIBEND2END_TEST_GRACEFUL_SERVER_SHUTDOWN_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a 
 endif
 
 
@@ -4596,7 +4585,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a: $(ZLIB_DEP) $
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a $(LIBEND2END_TEST_INVOKE_LARGE_REQUEST_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a 
 endif
 
 
@@ -4621,7 +4610,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a: $(ZLIB_DEP)
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a $(LIBEND2END_TEST_MAX_CONCURRENT_STREAMS_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a 
 endif
 
 
@@ -4646,7 +4635,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a: $(ZLIB_DEP) $(LIBEND2END_TES
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a $(LIBEND2END_TEST_NO_OP_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a 
 endif
 
 
@@ -4671,7 +4660,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a: $(ZLIB_DEP) $(
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a $(LIBEND2END_TEST_PING_PONG_STREAMING_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a 
 endif
 
 
@@ -4696,7 +4685,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_pa
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a 
 endif
 
 
@@ -4721,7 +4710,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_l
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a 
 endif
 
 
@@ -4746,7 +4735,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a: $(ZL
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a 
 endif
 
 
@@ -4771,7 +4760,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a 
 endif
 
 
@@ -4796,7 +4785,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a: $(ZLIB
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a $(LIBEND2END_TEST_REQUEST_WITH_LARGE_METADATA_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a 
 endif
 
 
@@ -4821,7 +4810,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a: $(ZLIB_DEP) $
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a $(LIBEND2END_TEST_REQUEST_WITH_PAYLOAD_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a 
 endif
 
 
@@ -4846,7 +4835,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a: $(ZLIB_DEP)
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a $(LIBEND2END_TEST_SIMPLE_DELAYED_REQUEST_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a 
 endif
 
 
@@ -4871,7 +4860,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a: $(ZLIB_DEP) $(LIBEN
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a $(LIBEND2END_TEST_SIMPLE_REQUEST_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a 
 endif
 
 
@@ -4896,7 +4885,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a: $(ZLIB_DEP) $(LIBEND
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a $(LIBEND2END_TEST_THREAD_STRESS_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a 
 endif
 
 
@@ -4921,7 +4910,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a $(LIBEND2END_TEST_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a 
 endif
 
 
@@ -4967,7 +4956,7 @@ $(LIBDIR)/$(CONFIG)/libend2end_certs.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBEND2END_
 	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libend2end_certs.a
 	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libend2end_certs.a $(LIBEND2END_CERTS_OBJS)
 ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_certs.a
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libend2end_certs.a 
 endif
 
 
@@ -8087,21 +8076,10 @@ $(BINDIR)/$(CONFIG)/qps_client_async: openssl_dep_error
 
 else
 
-
-ifeq ($(NO_PROTOBUF),true)
-
-# You can't build the protoc plugins or protobuf-enabled targets if you don't have protobuf 3.0.0+.
-
-$(BINDIR)/$(CONFIG)/qps_client_async: protobuf_dep_error
-
-else
-
-$(BINDIR)/$(CONFIG)/qps_client_async: $(PROTOBUF_DEP) $(QPS_CLIENT_ASYNC_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(BINDIR)/$(CONFIG)/qps_client_async: $(QPS_CLIENT_ASYNC_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) $(LDXX) $(LDFLAGS) $(QPS_CLIENT_ASYNC_OBJS) $(GTEST_LIB) $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/qps_client_async
-
-endif
 
 endif
 
@@ -8175,21 +8153,10 @@ $(BINDIR)/$(CONFIG)/qps_server_async: openssl_dep_error
 
 else
 
-
-ifeq ($(NO_PROTOBUF),true)
-
-# You can't build the protoc plugins or protobuf-enabled targets if you don't have protobuf 3.0.0+.
-
-$(BINDIR)/$(CONFIG)/qps_server_async: protobuf_dep_error
-
-else
-
-$(BINDIR)/$(CONFIG)/qps_server_async: $(PROTOBUF_DEP) $(QPS_SERVER_ASYNC_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(BINDIR)/$(CONFIG)/qps_server_async: $(QPS_SERVER_ASYNC_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 	$(Q) $(LDXX) $(LDFLAGS) $(QPS_SERVER_ASYNC_OBJS) $(GTEST_LIB) $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/qps_server_async
-
-endif
 
 endif
 
@@ -18038,3 +18005,4 @@ endif
 
 
 .PHONY: all strip tools dep_error openssl_dep_error openssl_dep_message git_update stop buildtests buildtests_c buildtests_cxx test test_c test_cxx install install_c install_cxx install-headers install-headers_c install-headers_cxx install-shared install-shared_c install-shared_cxx install-static install-static_c install-static_cxx strip strip-shared strip-static strip_c strip-shared_c strip-static_c strip_cxx strip-shared_cxx strip-static_cxx dep_c dep_cxx bins_dep_c bins_dep_cxx clean
+

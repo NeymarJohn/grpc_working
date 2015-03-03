@@ -41,7 +41,6 @@ _TOP_LEVEL_KEYS = ['settings', 'filegroups', 'libs', 'targets']
 _VERSION_KEYS = ['major', 'minor', 'micro', 'build']
 _ELEM_KEYS = [
     'name',
-    'flaky',
     'build',
     'run',
     'language',

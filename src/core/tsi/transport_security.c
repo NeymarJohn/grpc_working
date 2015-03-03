@@ -40,6 +40,10 @@
 
 int tsi_tracing_enabled = 0;
 
+void tsi_enable_tracing() {
+  tsi_tracing_enabled = 1;
+}
+
 /* --- Utils. --- */
 
 char* tsi_strdup(const char* src) {
