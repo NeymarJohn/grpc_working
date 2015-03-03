@@ -46,7 +46,6 @@ END2END_FIXTURES = [
 
 
 END2END_TESTS = [
-    'bad_hostname',
     'cancel_after_accept',
     'cancel_after_accept_and_writes_closed',
     'cancel_after_invoke',
