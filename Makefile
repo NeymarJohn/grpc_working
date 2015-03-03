@@ -2436,7 +2436,6 @@ LIBGRPC_SRC = \
     src/core/surface/byte_buffer_reader.c \
     src/core/surface/call.c \
     src/core/surface/call_details.c \
-    src/core/surface/call_log_batch.c \
     src/core/surface/channel.c \
     src/core/surface/channel_create.c \
     src/core/surface/client.c \
@@ -2582,7 +2581,6 @@ src/core/surface/byte_buffer_queue.c: $(OPENSSL_DEP)
 src/core/surface/byte_buffer_reader.c: $(OPENSSL_DEP)
 src/core/surface/call.c: $(OPENSSL_DEP)
 src/core/surface/call_details.c: $(OPENSSL_DEP)
-src/core/surface/call_log_batch.c: $(OPENSSL_DEP)
 src/core/surface/channel.c: $(OPENSSL_DEP)
 src/core/surface/channel_create.c: $(OPENSSL_DEP)
 src/core/surface/client.c: $(OPENSSL_DEP)
@@ -2745,7 +2743,6 @@ $(OBJDIR)/$(CONFIG)/src/core/surface/byte_buffer_queue.o:
 $(OBJDIR)/$(CONFIG)/src/core/surface/byte_buffer_reader.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/call.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/call_details.o: 
-$(OBJDIR)/$(CONFIG)/src/core/surface/call_log_batch.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/channel.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/channel_create.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/client.o: 
@@ -2921,7 +2918,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/surface/byte_buffer_reader.c \
     src/core/surface/call.c \
     src/core/surface/call_details.c \
-    src/core/surface/call_log_batch.c \
     src/core/surface/channel.c \
     src/core/surface/channel_create.c \
     src/core/surface/client.c \
@@ -3060,7 +3056,6 @@ $(OBJDIR)/$(CONFIG)/src/core/surface/byte_buffer_queue.o:
 $(OBJDIR)/$(CONFIG)/src/core/surface/byte_buffer_reader.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/call.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/call_details.o: 
-$(OBJDIR)/$(CONFIG)/src/core/surface/call_log_batch.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/channel.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/channel_create.o: 
 $(OBJDIR)/$(CONFIG)/src/core/surface/client.o: 
