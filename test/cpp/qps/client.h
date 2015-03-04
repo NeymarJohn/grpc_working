@@ -31,35 +31,25 @@
  *
  */
 
-#ifndef GRPCXX_CONFIG_H
-#define GRPCXX_CONFIG_H
+#ifndef TEST_QPS_CLIENT_H
+#define TEST_QPS_CLIENT_H
 
-#ifdef GRPC_OLD_CXX
-#define GRPC_FINAL
-#define GRPC_OVERRIDE
-#else
-#define GRPC_FINAL final
-#define GRPC_OVERRIDE override
-#endif
-
-#ifndef GRPC_CUSTOM_STRING
-#include <string>
-#define GRPC_CUSTOM_STRING std::string
-#endif
-
-#ifndef GRPC_CUSTOM_MESSAGE
-#include <google/protobuf/message.h>
-#define GRPC_CUSTOM_MESSAGE ::google::protobuf::Message
-#endif
+#include "test/cpp/qps/qpstest.pb.h"
 
 namespace grpc {
+namespace testing {
 
-typedef GRPC_CUSTOM_STRING string;
+class Client {
+ public:
+  virtual ~Client() {}
 
-namespace protobuf {
-typedef GRPC_CUSTOM_MESSAGE Message;
-}  // namespace protobuf
+  virtual ClientStats Mark() = 0;
+};
 
+std::unique_ptr<Client> CreateSynchronousClient(const ClientConfig& args);
+std::unique_ptr<Client> CreateAsyncClient(const ClientConfig& args);
+
+}  // namespace testing
 }  // namespace grpc
 
-#endif  // GRPCXX_CONFIG_H
+#endif

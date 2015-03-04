@@ -31,35 +31,27 @@
  *
  */
 
-#ifndef GRPCXX_CONFIG_H
-#define GRPCXX_CONFIG_H
+#ifndef TEST_QPS_TIMER_H
+#define TEST_QPS_TIMER_H
 
-#ifdef GRPC_OLD_CXX
-#define GRPC_FINAL
-#define GRPC_OVERRIDE
-#else
-#define GRPC_FINAL final
-#define GRPC_OVERRIDE override
-#endif
+class Timer {
+ public:
+  Timer();
 
-#ifndef GRPC_CUSTOM_STRING
-#include <string>
-#define GRPC_CUSTOM_STRING std::string
-#endif
+  struct Result {
+    double wall;
+    double user;
+    double system;
+  };
 
-#ifndef GRPC_CUSTOM_MESSAGE
-#include <google/protobuf/message.h>
-#define GRPC_CUSTOM_MESSAGE ::google::protobuf::Message
-#endif
+  Result Mark();
 
-namespace grpc {
+  static double Now();
 
-typedef GRPC_CUSTOM_STRING string;
+ private:
+  static Result Sample();
 
-namespace protobuf {
-typedef GRPC_CUSTOM_MESSAGE Message;
-}  // namespace protobuf
+  const Result start_;
+};
 
-}  // namespace grpc
-
-#endif  // GRPCXX_CONFIG_H
+#endif  // TEST_QPS_TIMER_H

@@ -31,35 +31,41 @@
  *
  */
 
-#ifndef GRPCXX_CONFIG_H
-#define GRPCXX_CONFIG_H
+#include "test/cpp/qps/timer.h"
 
-#ifdef GRPC_OLD_CXX
-#define GRPC_FINAL
-#define GRPC_OVERRIDE
-#else
-#define GRPC_FINAL final
-#define GRPC_OVERRIDE override
-#endif
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <grpc/support/time.h>
 
-#ifndef GRPC_CUSTOM_STRING
-#include <string>
-#define GRPC_CUSTOM_STRING std::string
-#endif
+Timer::Timer() : start_(Sample()) {}
 
-#ifndef GRPC_CUSTOM_MESSAGE
-#include <google/protobuf/message.h>
-#define GRPC_CUSTOM_MESSAGE ::google::protobuf::Message
-#endif
+double Timer::Now() {
+  auto ts = gpr_now();
+  return ts.tv_sec + 1e-9 * ts.tv_nsec;
+}
 
-namespace grpc {
+static double time_double(struct timeval* tv) {
+  return tv->tv_sec + 1e-6 * tv->tv_usec;
+}
 
-typedef GRPC_CUSTOM_STRING string;
+Timer::Result Timer::Sample() {
+  struct rusage usage;
+  struct timeval tv;
+  gettimeofday(&tv, nullptr);
+  getrusage(RUSAGE_SELF, &usage);
 
-namespace protobuf {
-typedef GRPC_CUSTOM_MESSAGE Message;
-}  // namespace protobuf
+  Result r;
+  r.wall = time_double(&tv);
+  r.user = time_double(&usage.ru_utime);
+  r.system = time_double(&usage.ru_stime);
+  return r;
+}
 
-}  // namespace grpc
-
-#endif  // GRPCXX_CONFIG_H
+Timer::Result Timer::Mark() {
+  Result s = Sample();
+  Result r;
+  r.wall = s.wall - start_.wall;
+  r.user = s.user - start_.user;
+  r.system = s.system - start_.system;
+  return r;
+}

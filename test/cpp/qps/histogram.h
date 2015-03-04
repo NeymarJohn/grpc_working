@@ -31,35 +31,50 @@
  *
  */
 
-#ifndef GRPCXX_CONFIG_H
-#define GRPCXX_CONFIG_H
+#ifndef TEST_QPS_HISTOGRAM_H
+#define TEST_QPS_HISTOGRAM_H
 
-#ifdef GRPC_OLD_CXX
-#define GRPC_FINAL
-#define GRPC_OVERRIDE
-#else
-#define GRPC_FINAL final
-#define GRPC_OVERRIDE override
-#endif
-
-#ifndef GRPC_CUSTOM_STRING
-#include <string>
-#define GRPC_CUSTOM_STRING std::string
-#endif
-
-#ifndef GRPC_CUSTOM_MESSAGE
-#include <google/protobuf/message.h>
-#define GRPC_CUSTOM_MESSAGE ::google::protobuf::Message
-#endif
+#include <grpc/support/histogram.h>
+#include "test/cpp/qps/qpstest.pb.h"
 
 namespace grpc {
+namespace testing {
 
-typedef GRPC_CUSTOM_STRING string;
+class Histogram {
+ public:
+  Histogram() : impl_(gpr_histogram_create(0.01, 60e9)) {}
+  ~Histogram() { gpr_histogram_destroy(impl_); }
 
-namespace protobuf {
-typedef GRPC_CUSTOM_MESSAGE Message;
-}  // namespace protobuf
+  void Merge(Histogram* h) { gpr_histogram_merge(impl_, h->impl_); }
+  void Add(double value) { gpr_histogram_add(impl_, value); }
+  double Percentile(double pctile) {
+    return gpr_histogram_percentile(impl_, pctile);
+  }
+  double Count() { return gpr_histogram_count(impl_); }
+  void Swap(Histogram* other) { std::swap(impl_, other->impl_); }
+  void FillProto(HistogramData* p) {
+    size_t n;
+    const auto* data = gpr_histogram_get_contents(impl_, &n);
+    for (size_t i = 0; i < n; i++) {
+      p->add_bucket(data[i]);
+    }
+    p->set_min_seen(gpr_histogram_minimum(impl_));
+    p->set_max_seen(gpr_histogram_maximum(impl_));
+    p->set_sum(gpr_histogram_sum(impl_));
+    p->set_sum_of_squares(gpr_histogram_sum_of_squares(impl_));
+    p->set_count(gpr_histogram_count(impl_));
+  }
+  void MergeProto(const HistogramData& p) {
+    gpr_histogram_merge_contents(impl_, &*p.bucket().begin(), p.bucket_size(), p.min_seen(), p.max_seen(), p.sum(), p.sum_of_squares(), p.count());
+  }
 
-}  // namespace grpc
+ private:
+  Histogram(const Histogram&);
+  Histogram& operator=(const Histogram&);
 
-#endif  // GRPCXX_CONFIG_H
+  gpr_histogram* impl_;
+};
+}
+}
+
+#endif /* TEST_QPS_HISTOGRAM_H */
