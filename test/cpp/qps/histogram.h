@@ -31,63 +31,55 @@
  *
  */
 
-#include <cassert>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <thread>
-#include <vector>
-#include <sstream>
+#ifndef TEST_QPS_HISTOGRAM_H
+#define TEST_QPS_HISTOGRAM_H
 
-#include <sys/signal.h>
-
-#include <grpc/grpc.h>
-#include <grpc/support/alloc.h>
 #include <grpc/support/histogram.h>
-#include <grpc/support/log.h>
-#include <grpc/support/host_port.h>
-#include <gflags/gflags.h>
-#include <grpc++/client_context.h>
-#include <grpc++/status.h>
-#include <grpc++/server.h>
-#include <grpc++/server_builder.h>
-#include "test/core/util/grpc_profiler.h"
-#include "test/cpp/util/create_test_channel.h"
-#include "test/cpp/qps/client.h"
 #include "test/cpp/qps/qpstest.pb.h"
-#include "test/cpp/qps/histogram.h"
-#include "test/cpp/qps/timer.h"
 
 namespace grpc {
 namespace testing {
 
-class SynchronousClient GRPC_FINAL : public Client {
+class Histogram {
  public:
-  SynchronousClient(const ClientConfig& config) : Client(config) {
-    size_t num_threads = config.outstanding_rpcs_per_channel() * config.client_channels();
-    responses_.resize(num_threads);
-    StartThreads(num_threads);
+  Histogram() : impl_(gpr_histogram_create(0.01, 60e9)) {}
+  ~Histogram() { if (impl_) gpr_histogram_destroy(impl_); }
+  Histogram(Histogram&& other) : impl_(other.impl_) {
+    other.impl_ = nullptr;
   }
 
-  ~SynchronousClient() {
-    EndThreads();
+  void Merge(Histogram* h) { gpr_histogram_merge(impl_, h->impl_); }
+  void Add(double value) { gpr_histogram_add(impl_, value); }
+  double Percentile(double pctile) {
+    return gpr_histogram_percentile(impl_, pctile);
   }
-
-  void ThreadFunc(Histogram* histogram, size_t thread_idx) {
-    auto* stub = channels_[thread_idx % channels_.size()].get_stub();
-    double start = Timer::Now();
-    grpc::ClientContext context;
-    grpc::Status s = stub->UnaryCall(&context, request_, &responses_[thread_idx]);
-    histogram->Add((Timer::Now() - start) * 1e9);
+  double Count() { return gpr_histogram_count(impl_); }
+  void Swap(Histogram* other) { std::swap(impl_, other->impl_); }
+  void FillProto(HistogramData* p) {
+    size_t n;
+    const auto* data = gpr_histogram_get_contents(impl_, &n);
+    for (size_t i = 0; i < n; i++) {
+      p->add_bucket(data[i]);
+    }
+    p->set_min_seen(gpr_histogram_minimum(impl_));
+    p->set_max_seen(gpr_histogram_maximum(impl_));
+    p->set_sum(gpr_histogram_sum(impl_));
+    p->set_sum_of_squares(gpr_histogram_sum_of_squares(impl_));
+    p->set_count(gpr_histogram_count(impl_));
+  }
+  void MergeProto(const HistogramData& p) {
+    gpr_histogram_merge_contents(impl_, &*p.bucket().begin(), p.bucket_size(),
+                                 p.min_seen(), p.max_seen(), p.sum(),
+                                 p.sum_of_squares(), p.count());
   }
 
  private:
-  std::vector<SimpleResponse> responses_;
-};
+  Histogram(const Histogram&);
+  Histogram& operator=(const Histogram&);
 
-std::unique_ptr<Client> CreateSynchronousClient(const ClientConfig& config) {
-  return std::unique_ptr<Client>(new SynchronousClient(config));
+  gpr_histogram* impl_;
+};
+}
 }
 
-}  // namespace testing
-}  // namespace grpc
+#endif /* TEST_QPS_HISTOGRAM_H */

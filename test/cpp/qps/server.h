@@ -31,63 +31,26 @@
  *
  */
 
-#include <cassert>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <thread>
-#include <vector>
-#include <sstream>
+#ifndef TEST_QPS_SERVER_H
+#define TEST_QPS_SERVER_H
 
-#include <sys/signal.h>
-
-#include <grpc/grpc.h>
-#include <grpc/support/alloc.h>
-#include <grpc/support/histogram.h>
-#include <grpc/support/log.h>
-#include <grpc/support/host_port.h>
-#include <gflags/gflags.h>
-#include <grpc++/client_context.h>
-#include <grpc++/status.h>
-#include <grpc++/server.h>
-#include <grpc++/server_builder.h>
-#include "test/core/util/grpc_profiler.h"
-#include "test/cpp/util/create_test_channel.h"
-#include "test/cpp/qps/client.h"
 #include "test/cpp/qps/qpstest.pb.h"
-#include "test/cpp/qps/histogram.h"
-#include "test/cpp/qps/timer.h"
 
 namespace grpc {
 namespace testing {
 
-class SynchronousClient GRPC_FINAL : public Client {
+class Server {
  public:
-  SynchronousClient(const ClientConfig& config) : Client(config) {
-    size_t num_threads = config.outstanding_rpcs_per_channel() * config.client_channels();
-    responses_.resize(num_threads);
-    StartThreads(num_threads);
-  }
+  virtual ~Server() {}
 
-  ~SynchronousClient() {
-    EndThreads();
-  }
-
-  void ThreadFunc(Histogram* histogram, size_t thread_idx) {
-    auto* stub = channels_[thread_idx % channels_.size()].get_stub();
-    double start = Timer::Now();
-    grpc::ClientContext context;
-    grpc::Status s = stub->UnaryCall(&context, request_, &responses_[thread_idx]);
-    histogram->Add((Timer::Now() - start) * 1e9);
-  }
-
- private:
-  std::vector<SimpleResponse> responses_;
+  virtual ServerStats Mark() = 0;
 };
 
-std::unique_ptr<Client> CreateSynchronousClient(const ClientConfig& config) {
-  return std::unique_ptr<Client>(new SynchronousClient(config));
-}
+std::unique_ptr<Server> CreateSynchronousServer(const ServerConfig& config,
+                                                int port);
+std::unique_ptr<Server> CreateAsyncServer(const ServerConfig& config, int port);
 
 }  // namespace testing
 }  // namespace grpc
+
+#endif

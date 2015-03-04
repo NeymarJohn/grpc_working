@@ -674,7 +674,7 @@ _grpc_launch_servers_args() {
   [[ -n $1 ]] && {
     servers="$@"
   } || {
-    servers="cxx java go node ruby python csharp_mono"
+    servers="cxx java go node ruby python"
     echo "$FUNCNAME: no servers specified, will launch defaults '$servers'"
   }
 }
@@ -710,7 +710,6 @@ grpc_launch_servers() {
       node)   grpc_port=8040 ;;
       python) grpc_port=8050 ;;
       ruby)   grpc_port=8060 ;;
-      csharp_mono)   grpc_port=8070 ;;
       *) echo "bad server_type: $1" 1>&2; return 1 ;;
     esac
     local docker_label="grpc/$server"
@@ -1170,9 +1169,8 @@ grpc_cloud_prod_auth_compute_engine_creds_gen_cxx_cmd() {
 #   flags= .... # generic flags to include the command
 #   cmd=$($grpc_gen_test_cmd $flags)
 grpc_interop_gen_csharp_mono_cmd() {
-  local workdir_flag="-w /var/local/git/grpc/src/csharp/Grpc.IntegrationTesting.Client/bin/Debug"
-  local cmd_prefix="sudo docker run $workdir_flag grpc/csharp_mono";
-  local test_script="mono Grpc.IntegrationTesting.Client.exe --use_tls=true --use_test_ca=true";
+  local cmd_prefix="sudo docker run grpc/csharp_mono";
+  local test_script="mono /var/local/git/grpc/src/csharp/Grpc.IntegrationTesting.Client/bin/Debug/Grpc.IntegrationTesting.Client.exe --use_tls=true --use_test_ca=true";
   local the_cmd="$cmd_prefix $test_script $@";
   echo $the_cmd
 }
@@ -1184,9 +1182,8 @@ grpc_interop_gen_csharp_mono_cmd() {
 #   cmd=$($grpc_gen_test_cmd $flags)
 grpc_cloud_prod_gen_csharp_mono_cmd() {
   local env_flag="-e SSL_CERT_FILE=/cacerts/roots.pem "
-  local workdir_flag="-w /var/local/git/grpc/src/csharp/Grpc.IntegrationTesting.Client/bin/Debug"
-  local cmd_prefix="sudo docker run $env_flag $workdir_flag grpc/csharp_mono";
-  local test_script="mono Grpc.IntegrationTesting.Client.exe --use_tls=true";
+  local cmd_prefix="sudo docker run $env_flag grpc/csharp_mono";
+  local test_script="mono /var/local/git/grpc/src/csharp/Grpc.IntegrationTesting.Client/bin/Debug/Grpc.IntegrationTesting.Client.exe --use_tls=true";
   local gfe_flags=$(_grpc_prod_gfe_flags);
   local the_cmd="$cmd_prefix $test_script $gfe_flags $@";
   echo $the_cmd
