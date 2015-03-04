@@ -47,7 +47,6 @@
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
-#include <grpc++/server_credentials.h>
 #include <grpc++/status.h>
 #include <grpc++/stream.h>
 #include "test/core/util/port.h"
@@ -85,7 +84,7 @@ class AsyncEnd2endTest : public ::testing::Test {
     server_address_ << "localhost:" << port;
     // Setup server
     ServerBuilder builder;
-    builder.AddPort(server_address_.str(), grpc::InsecureServerCredentials());
+    builder.AddPort(server_address_.str());
     builder.RegisterAsyncService(&service_);
     server_ = builder.BuildAndStart();
   }
@@ -103,8 +102,8 @@ class AsyncEnd2endTest : public ::testing::Test {
   }
 
   void ResetStub() {
-    std::shared_ptr<ChannelInterface> channel = CreateChannel(
-        server_address_.str(), InsecureCredentials(), ChannelArguments());
+    std::shared_ptr<ChannelInterface> channel =
+        CreateChannelDeprecated(server_address_.str(), ChannelArguments());
     stub_ = std::move(grpc::cpp::test::util::TestService::NewStub(channel));
   }
 

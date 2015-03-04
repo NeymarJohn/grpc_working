@@ -42,16 +42,30 @@
 
 static int pygrpc_server_init(Server *self, PyObject *args, PyObject *kwds) {
   const PyObject *completion_queue;
-  static char *kwlist[] = {"completion_queue", NULL};
+  PyObject *server_credentials;
+  static char *kwlist[] = {"completion_queue", "server_credentials", NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!:Server", kwlist,
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O:Server", kwlist,
                                    &pygrpc_CompletionQueueType,
-                                   &completion_queue)) {
+                                   &completion_queue, &server_credentials)) {
     return -1;
   }
-  self->c_server = grpc_server_create(
-      ((CompletionQueue *)completion_queue)->c_completion_queue, NULL);
-  return 0;
+  if (server_credentials == Py_None) {
+    self->c_server = grpc_server_create(
+        ((CompletionQueue *)completion_queue)->c_completion_queue, NULL);
+    return 0;
+  } else if (PyObject_TypeCheck(server_credentials,
+                                &pygrpc_ServerCredentialsType)) {
+    self->c_server = grpc_secure_server_create(
+        ((ServerCredentials *)server_credentials)->c_server_credentials,
+        ((CompletionQueue *)completion_queue)->c_completion_queue, NULL);
+    return 0;
+  } else {
+    PyErr_Format(PyExc_TypeError,
+                 "server_credentials must be _grpc.ServerCredentials, not %s",
+                 Py_TYPE(server_credentials)->tp_name);
+    return -1;
+  }
 }
 
 static void pygrpc_server_dealloc(Server *self) {
@@ -78,21 +92,13 @@ static PyObject *pygrpc_server_add_http2_addr(Server *self, PyObject *args) {
 }
 
 static PyObject *pygrpc_server_add_secure_http2_addr(Server *self,
-                                                     PyObject *args,
-                                                     PyObject *kwargs) {
+                                                     PyObject *args) {
   const char *addr;
-  PyObject *server_credentials;
-  static char *kwlist[] = {"addr", "server_credentials", NULL};
   int port;
-
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sO!:add_secure_http2_addr",
-                                   kwlist, &addr, &pygrpc_ServerCredentialsType,
-                                   &server_credentials)) {
+  if (!PyArg_ParseTuple(args, "s:add_secure_http2_addr", &addr)) {
     return NULL;
   }
-  port = grpc_server_add_secure_http2_port(
-      self->c_server, addr,
-      ((ServerCredentials *)server_credentials)->c_server_credentials);
+  port = grpc_server_add_secure_http2_port(self->c_server, addr);
   if (port == 0) {
     PyErr_SetString(PyExc_RuntimeError, "Couldn't add port to server!");
     return NULL;
@@ -132,7 +138,8 @@ static PyMethodDef methods[] = {
      METH_VARARGS, "Add a secure HTTP2 address."},
     {"start", (PyCFunction)pygrpc_server_start, METH_NOARGS,
      "Starts the server."},
-    {"service", (PyCFunction)pygrpc_server_service, METH_O, "Services a call."},
+    {"service", (PyCFunction)pygrpc_server_service, METH_O,
+     "Services a call."},
     {"stop", (PyCFunction)pygrpc_server_stop, METH_NOARGS, "Stops the server."},
     {NULL}};
 
