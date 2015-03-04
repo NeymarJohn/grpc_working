@@ -37,7 +37,7 @@
 #include <chrono>
 #include <map>
 
-#include <grpc++/config.h>
+#include "config.h"
 
 struct gpr_timespec;
 struct grpc_metadata;

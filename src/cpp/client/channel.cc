@@ -50,6 +50,7 @@
 #include <grpc++/impl/call.h>
 #include <grpc++/impl/rpc_method.h>
 #include <grpc++/status.h>
+#include <google/protobuf/message.h>
 
 namespace grpc {
 

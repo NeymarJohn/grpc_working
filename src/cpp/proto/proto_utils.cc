@@ -36,6 +36,7 @@
 
 #include <grpc/grpc.h>
 #include <grpc/support/slice.h>
+#include <google/protobuf/message.h>
 
 namespace grpc {
 
