@@ -31,41 +31,26 @@
  *
  */
 
-#include <grpc/grpc_security.h>
+#ifndef TEST_QPS_SERVER_H
+#define TEST_QPS_SERVER_H
 
-#include <grpc++/server_credentials.h>
+#include "test/cpp/qps/qpstest.pb.h"
 
 namespace grpc {
+namespace testing {
 
-namespace {
-class SecureServerCredentials GRPC_FINAL : public ServerCredentials {
+class Server {
  public:
-  explicit SecureServerCredentials(grpc_server_credentials* creds) : creds_(creds) {}
-  ~SecureServerCredentials() GRPC_OVERRIDE {
-    grpc_server_credentials_release(creds_);
-  }
+  virtual ~Server() {}
 
-  int AddPortToServer(const grpc::string& addr,
-                      grpc_server* server) GRPC_OVERRIDE {
-    return grpc_server_add_secure_http2_port(server, addr.c_str(), creds_);
-  }
-
- private:
-  grpc_server_credentials* const creds_;
+  virtual ServerStats Mark() = 0;
 };
-}  // namespace
 
-std::shared_ptr<ServerCredentials> SslServerCredentials(
-    const SslServerCredentialsOptions &options) {
-  std::vector<grpc_ssl_pem_key_cert_pair> pem_key_cert_pairs;
-  for (const auto &key_cert_pair : options.pem_key_cert_pairs) {
-    pem_key_cert_pairs.push_back(
-        {key_cert_pair.private_key.c_str(), key_cert_pair.cert_chain.c_str()});
-  }
-  grpc_server_credentials *c_creds = grpc_ssl_server_credentials_create(
-      options.pem_root_certs.empty() ? nullptr : options.pem_root_certs.c_str(),
-      &pem_key_cert_pairs[0], pem_key_cert_pairs.size());
-  return std::shared_ptr<ServerCredentials>(new SecureServerCredentials(c_creds));
-}
+std::unique_ptr<Server> CreateSynchronousServer(const ServerConfig& config,
+                                                int port);
+std::unique_ptr<Server> CreateAsyncServer(const ServerConfig& config, int port);
 
+}  // namespace testing
 }  // namespace grpc
+
+#endif
