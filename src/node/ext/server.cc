@@ -53,6 +53,7 @@ namespace grpc {
 namespace node {
 
 using std::unique_ptr;
+using v8::Arguments;
 using v8::Array;
 using v8::Boolean;
 using v8::Date;
@@ -68,7 +69,7 @@ using v8::Persistent;
 using v8::String;
 using v8::Value;
 
-NanCallback *Server::constructor;
+Persistent<Function> Server::constructor;
 Persistent<FunctionTemplate> Server::fun_tpl;
 
 class NewCallOp : public Op {
@@ -120,30 +121,28 @@ Server::~Server() { grpc_server_destroy(wrapped_server); }
 
 void Server::Init(Handle<Object> exports) {
   NanScope();
-  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
-  tpl->SetClassName(NanNew("Server"));
+  Local<FunctionTemplate> tpl = FunctionTemplate::New(New);
+  tpl->SetClassName(String::NewSymbol("Server"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NanSetPrototypeTemplate(tpl, "requestCall",
-                          NanNew<FunctionTemplate>(RequestCall)->GetFunction());
+                          FunctionTemplate::New(RequestCall)->GetFunction());
 
-  NanSetPrototypeTemplate(
-      tpl, "addHttp2Port",
-      NanNew<FunctionTemplate>(AddHttp2Port)->GetFunction());
+  NanSetPrototypeTemplate(tpl, "addHttp2Port",
+                          FunctionTemplate::New(AddHttp2Port)->GetFunction());
 
   NanSetPrototypeTemplate(
       tpl, "addSecureHttp2Port",
-      NanNew<FunctionTemplate>(AddSecureHttp2Port)->GetFunction());
+      FunctionTemplate::New(AddSecureHttp2Port)->GetFunction());
 
   NanSetPrototypeTemplate(tpl, "start",
-                          NanNew<FunctionTemplate>(Start)->GetFunction());
+                          FunctionTemplate::New(Start)->GetFunction());
 
   NanSetPrototypeTemplate(tpl, "shutdown",
-                          NanNew<FunctionTemplate>(Shutdown)->GetFunction());
+                          FunctionTemplate::New(Shutdown)->GetFunction());
 
   NanAssignPersistent(fun_tpl, tpl);
-  Handle<Function> ctr = tpl->GetFunction();
-  constructor = new NanCallback(ctr);
-  exports->Set(NanNew("Server"), ctr);
+  NanAssignPersistent(constructor, tpl->GetFunction());
+  exports->Set(String::NewSymbol("Server"), constructor);
 }
 
 bool Server::HasInstance(Handle<Value> val) {
@@ -158,7 +157,7 @@ NAN_METHOD(Server::New) {
   if (!args.IsConstructCall()) {
     const int argc = 1;
     Local<Value> argv[argc] = {args[0]};
-    NanReturnValue(constructor->GetFunction()->NewInstance(argc, argv));
+    NanReturnValue(constructor->NewInstance(argc, argv));
   }
   grpc_server *wrapped_server;
   grpc_completion_queue *queue = CompletionQueueAsyncWorker::GetQueue();
