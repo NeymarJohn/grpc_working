@@ -36,7 +36,7 @@
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
 #include "src/cpp/proto/proto_utils.h"
-#include <grpc++/config.h>
+#include <google/protobuf/message.h>
 #include <grpc++/status.h>
 
 namespace grpc {
