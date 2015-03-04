@@ -31,35 +31,21 @@
  *
  */
 
-#ifndef GRPCXX_CONFIG_H
-#define GRPCXX_CONFIG_H
+#ifndef NET_GRPC_PHP_GRPC_EVENT_H_
+#define NET_GRPC_PHP_GRPC_EVENT_H_
 
-#ifdef GRPC_OLD_CXX
-#define GRPC_FINAL
-#define GRPC_OVERRIDE
-#else
-#define GRPC_FINAL final
-#define GRPC_OVERRIDE override
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #endif
 
-#ifndef GRPC_CUSTOM_STRING
-#include <string>
-#define GRPC_CUSTOM_STRING std::string
-#endif
+#include "php.h"
+#include "php_ini.h"
+#include "ext/standard/info.h"
+#include "php_grpc.h"
 
-#ifndef GRPC_CUSTOM_MESSAGE
-#include <google/protobuf/message.h>
-#define GRPC_CUSTOM_MESSAGE ::google::protobuf::Message
-#endif
+#include "grpc/grpc.h"
 
-namespace grpc {
+/* Create a new Event object that wraps an existing grpc_event struct */
+zval *grpc_php_convert_event(grpc_event *event);
 
-typedef GRPC_CUSTOM_STRING string;
-
-namespace protobuf {
-typedef GRPC_CUSTOM_MESSAGE Message;
-}  // namespace protobuf
-
-}  // namespace grpc
-
-#endif  // GRPCXX_CONFIG_H
+#endif /* NET_GRPC_PHP_GRPC_COMPLETION_CHANNEL_H */
