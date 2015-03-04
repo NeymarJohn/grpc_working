@@ -35,7 +35,7 @@ main() {
   cd ../../
 
   # build images for all languages
-  languages=(cxx java go ruby node python csharp_mono)
+  languages=(cxx java go ruby node python)
   for lan in "${languages[@]}"
   do
     grpc_update_image $lan
