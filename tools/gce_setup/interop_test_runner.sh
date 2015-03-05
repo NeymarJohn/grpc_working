@@ -35,9 +35,8 @@ echo $result_file_name
 
 main() {
   source grpc_docker.sh
-  # temporarily remove ping_pong and cancel_after_first_response while investigating timeout
-  test_cases=(large_unary empty_unary client_streaming server_streaming cancel_after_begin)
-  clients=(cxx java go ruby node csharp_mono)
+  test_cases=(large_unary empty_unary ping_pong client_streaming server_streaming cancel_after_begin cancel_after_first_response)
+  clients=(cxx java go ruby node)
   servers=(cxx java go ruby node python)
   for test_case in "${test_cases[@]}"
   do
