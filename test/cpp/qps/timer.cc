@@ -31,41 +31,41 @@
  *
  */
 
-#include <grpc/grpc_security.h>
+#include "test/cpp/qps/timer.h"
 
-#include <grpc++/server_credentials.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <grpc/support/time.h>
 
-namespace grpc {
+Timer::Timer() : start_(Sample()) {}
 
-namespace {
-class SecureServerCredentials GRPC_FINAL : public ServerCredentials {
- public:
-  explicit SecureServerCredentials(grpc_server_credentials* creds) : creds_(creds) {}
-  ~SecureServerCredentials() GRPC_OVERRIDE {
-    grpc_server_credentials_release(creds_);
-  }
-
-  int AddPortToServer(const grpc::string& addr,
-                      grpc_server* server) GRPC_OVERRIDE {
-    return grpc_server_add_secure_http2_port(server, addr.c_str(), creds_);
-  }
-
- private:
-  grpc_server_credentials* const creds_;
-};
-}  // namespace
-
-std::shared_ptr<ServerCredentials> SslServerCredentials(
-    const SslServerCredentialsOptions &options) {
-  std::vector<grpc_ssl_pem_key_cert_pair> pem_key_cert_pairs;
-  for (const auto &key_cert_pair : options.pem_key_cert_pairs) {
-    pem_key_cert_pairs.push_back(
-        {key_cert_pair.private_key.c_str(), key_cert_pair.cert_chain.c_str()});
-  }
-  grpc_server_credentials *c_creds = grpc_ssl_server_credentials_create(
-      options.pem_root_certs.empty() ? nullptr : options.pem_root_certs.c_str(),
-      &pem_key_cert_pairs[0], pem_key_cert_pairs.size());
-  return std::shared_ptr<ServerCredentials>(new SecureServerCredentials(c_creds));
+double Timer::Now() {
+  auto ts = gpr_now();
+  return ts.tv_sec + 1e-9 * ts.tv_nsec;
 }
 
-}  // namespace grpc
+static double time_double(struct timeval* tv) {
+  return tv->tv_sec + 1e-6 * tv->tv_usec;
+}
+
+Timer::Result Timer::Sample() {
+  struct rusage usage;
+  struct timeval tv;
+  gettimeofday(&tv, nullptr);
+  getrusage(RUSAGE_SELF, &usage);
+
+  Result r;
+  r.wall = time_double(&tv);
+  r.user = time_double(&usage.ru_utime);
+  r.system = time_double(&usage.ru_stime);
+  return r;
+}
+
+Timer::Result Timer::Mark() {
+  Result s = Sample();
+  Result r;
+  r.wall = s.wall - start_.wall;
+  r.user = s.user - start_.user;
+  r.system = s.system - start_.system;
+  return r;
+}

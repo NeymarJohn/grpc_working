@@ -51,7 +51,10 @@ class StreamContextInterface;
 
 class Channel GRPC_FINAL : public ChannelInterface {
  public:
-  Channel(const grpc::string &target, grpc_channel *c_channel);
+  Channel(const grpc::string &target, const ChannelArguments &args);
+  Channel(const grpc::string &target, const std::unique_ptr<Credentials> &creds,
+          const ChannelArguments &args);
+
   ~Channel() GRPC_OVERRIDE;
 
   virtual Call CreateCall(const RpcMethod &method, ClientContext *context,
@@ -60,7 +63,7 @@ class Channel GRPC_FINAL : public ChannelInterface {
 
  private:
   const grpc::string target_;
-  grpc_channel *const c_channel_;  // owned
+  grpc_channel *c_channel_;  // owned
 };
 
 }  // namespace grpc
