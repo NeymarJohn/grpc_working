@@ -32,7 +32,6 @@
  */
 
 #include <cassert>
-#include <functional>
 #include <memory>
 #include <string>
 #include <thread>
@@ -43,7 +42,6 @@
 #include <grpc/support/histogram.h>
 #include <grpc/support/log.h>
 #include <gflags/gflags.h>
-#include <grpc++/async_unary_call.h>
 #include <grpc++/client_context.h>
 #include <grpc++/status.h>
 #include "test/core/util/grpc_profiler.h"
@@ -84,8 +82,8 @@ using grpc::testing::TestService;
 
 // In some distros, gflags is in the namespace google, and in some others,
 // in gflags. This hack is enabling us to find both.
-namespace google {}
-namespace gflags {}
+namespace google { }
+namespace gflags { }
 using namespace google;
 using namespace gflags;
 
@@ -94,71 +92,8 @@ static double now() {
   return 1e9 * tv.tv_sec + tv.tv_nsec;
 }
 
-class ClientRpcContext {
- public:
-  ClientRpcContext() {}
-  virtual ~ClientRpcContext() {}
-  virtual bool RunNextState() = 0;  // do next state, return false if steps done
-  static void *tag(ClientRpcContext *c) { return reinterpret_cast<void *>(c); }
-  static ClientRpcContext *detag(void *t) {
-    return reinterpret_cast<ClientRpcContext *>(t);
-  }
-  virtual void report_stats(gpr_histogram *hist) = 0;
-};
-template <class RequestType, class ResponseType>
-class ClientRpcContextUnaryImpl : public ClientRpcContext {
- public:
-  ClientRpcContextUnaryImpl(
-      TestService::Stub *stub,
-      const RequestType &req,
-      std::function<
-          std::unique_ptr<grpc::ClientAsyncResponseReader<ResponseType>>(
-	      TestService::Stub *, grpc::ClientContext *, const RequestType &,
-	      void *)> start_req,
-      std::function<void(grpc::Status, ResponseType *)> on_done)
-      : context_(),
-	stub_(stub),
-        req_(req),
-        response_(),
-        next_state_(&ClientRpcContextUnaryImpl::ReqSent),
-        callback_(on_done),
-        start_(now()),
-        response_reader_(
-	    start_req(stub_, &context_, req_, ClientRpcContext::tag(this))) {}
-  ~ClientRpcContextUnaryImpl() GRPC_OVERRIDE {}
-  bool RunNextState() GRPC_OVERRIDE { return (this->*next_state_)(); }
-  void report_stats(gpr_histogram *hist) GRPC_OVERRIDE {
-    gpr_histogram_add(hist, now() - start_);
-  }
-
- private:
-  bool ReqSent() {
-    next_state_ = &ClientRpcContextUnaryImpl::RespDone;
-    response_reader_->Finish(&response_, &status_, ClientRpcContext::tag(this));
-    return true;
-  }
-  bool RespDone() {
-    next_state_ = &ClientRpcContextUnaryImpl::DoCallBack;
-    return false;
-  }
-  bool DoCallBack() {
-    callback_(status_, &response_);
-    return false;
-  }
-  grpc::ClientContext context_;
-  TestService::Stub *stub_;
-  RequestType req_;
-  ResponseType response_;
-  bool (ClientRpcContextUnaryImpl::*next_state_)();
-  std::function<void(grpc::Status, ResponseType *)> callback_;
-  grpc::Status status_;
-  double start_;
-  std::unique_ptr<grpc::ClientAsyncResponseReader<ResponseType>>
-      response_reader_;
-};
-
-static void RunTest(const int client_threads, const int client_channels,
-                    const int num_rpcs, const int payload_size) {
+void RunTest(const int client_threads, const int client_channels,
+             const int num_rpcs, const int payload_size) {
   gpr_log(GPR_INFO,
           "QPS test with parameters\n"
           "enable_ssl = %d\n"
@@ -202,68 +137,44 @@ static void RunTest(const int client_threads, const int client_channels,
   grpc::Status status_beg = stub_stats->CollectServerStats(
       &context_stats_begin, stats_request, &server_stats_begin);
 
-  grpc_profiler_start("qps_client_async.prof");
-
-  auto CheckDone = [=](grpc::Status s, SimpleResponse *response) {
-    GPR_ASSERT(s.IsOk() && (response->payload().type() ==
-                            grpc::testing::PayloadType::COMPRESSABLE) &&
-               (response->payload().body().length() ==
-                static_cast<size_t>(payload_size)));
-  };
+  grpc_profiler_start("qps_client.prof");
 
   for (int i = 0; i < client_threads; i++) {
     gpr_histogram *hist = gpr_histogram_create(0.01, 60e9);
     GPR_ASSERT(hist != NULL);
     thread_stats[i] = hist;
 
-    threads.push_back(std::thread(
-        [hist, client_threads, client_channels, num_rpcs, payload_size,
-         &channels, &CheckDone](int channel_num) {
-          using namespace std::placeholders;
-          SimpleRequest request;
-          request.set_response_type(grpc::testing::PayloadType::COMPRESSABLE);
-          request.set_response_size(payload_size);
+    threads.push_back(
+        std::thread([hist, client_threads, client_channels, num_rpcs,
+                     payload_size, &channels](int channel_num) {
+                      SimpleRequest request;
+                      SimpleResponse response;
+                      request.set_response_type(
+                          grpc::testing::PayloadType::COMPRESSABLE);
+                      request.set_response_size(payload_size);
 
-          grpc::CompletionQueue cli_cq;
-	  auto start_req = std::bind(&TestService::Stub::AsyncUnaryCall, _1,
-				     _2, _3, &cli_cq, _4);
+                      for (int j = 0; j < num_rpcs; j++) {
+                        TestService::Stub *stub =
+                            channels[channel_num].get_stub();
+                        double start = now();
+                        grpc::ClientContext context;
+                        grpc::Status s =
+                            stub->UnaryCall(&context, request, &response);
+                        gpr_histogram_add(hist, now() - start);
 
-          int rpcs_sent = 0;
-          while (rpcs_sent < num_rpcs) {
-            rpcs_sent++;
-            TestService::Stub *stub = channels[channel_num].get_stub();
-            new ClientRpcContextUnaryImpl<SimpleRequest, SimpleResponse>(stub,
-                request, start_req, CheckDone);
-            void *got_tag;
-            bool ok;
+                        GPR_ASSERT((s.code() == grpc::StatusCode::OK) &&
+                                   (response.payload().type() ==
+                                    grpc::testing::PayloadType::COMPRESSABLE) &&
+                                   (response.payload().body().length() ==
+                                    static_cast<size_t>(payload_size)));
 
-            // Need to call 2 next for every 1 RPC (1 for req done, 1 for resp
-            // done)
-            cli_cq.Next(&got_tag, &ok);
-            if (!ok) break;
-            ClientRpcContext *ctx = ClientRpcContext::detag(got_tag);
-            if (ctx->RunNextState() == false) {
-              // call the callback and then delete it
-              ctx->report_stats(hist);
-              ctx->RunNextState();
-              delete ctx;
-            }
-            cli_cq.Next(&got_tag, &ok);
-            if (!ok) break;
-            ctx = ClientRpcContext::detag(got_tag);
-            if (ctx->RunNextState() == false) {
-              // call the callback and then delete it
-              ctx->report_stats(hist);
-	      ctx->RunNextState();
-              delete ctx;
-            }
-            // Now do runtime round-robin assignment of the next
-            // channel number
-            channel_num += client_threads;
-            channel_num %= client_channels;
-          }
-        },
-        i % client_channels));
+                        // Now do runtime round-robin assignment of the next
+                        // channel number
+                        channel_num += client_threads;
+                        channel_num %= client_channels;
+                      }
+                    },
+                    i % client_channels));
   }
 
   gpr_histogram *hist = gpr_histogram_create(0.01, 60e9);
