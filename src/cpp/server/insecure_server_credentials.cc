@@ -31,27 +31,22 @@
  *
  */
 
-#ifndef TEST_QPS_TIMER_H
-#define TEST_QPS_TIMER_H
+#include <grpc/grpc_security.h>
+#include <grpc++/server_credentials.h>
 
-class Timer {
+namespace grpc {
+namespace {
+class InsecureServerCredentialsImpl GRPC_FINAL : public ServerCredentials {
  public:
-  Timer();
-
-  struct Result {
-    double wall;
-    double user;
-    double system;
-  };
-
-  Result Mark();
-
-  static double Now();
-
- private:
-  static Result Sample();
-
-  const Result start_;
+  int AddPortToServer(const grpc::string& addr,
+                      grpc_server* server) GRPC_OVERRIDE {
+    return grpc_server_add_http2_port(server, addr.c_str());
+  }
 };
+}  // namespace
 
-#endif  // TEST_QPS_TIMER_H
+std::shared_ptr<ServerCredentials> InsecureServerCredentials() {
+  return std::shared_ptr<ServerCredentials>(new InsecureServerCredentialsImpl());
+}
+
+}  // namespace grpc
