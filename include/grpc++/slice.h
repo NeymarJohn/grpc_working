@@ -31,45 +31,39 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/debug/trace.h"
-#include "src/core/statistics/census_interface.h"
-#include "src/core/channel/channel_stack.h"
-#include "src/core/surface/init.h"
-#include "src/core/surface/surface_trace.h"
-#include "src/core/transport/chttp2_transport.h"
+#ifndef __GRPCPP_SLICE_H_
+#define __GRPCPP_SLICE_H_
 
-static gpr_once g_init = GPR_ONCE_INIT;
-static gpr_mu g_init_mu;
-static int g_initializations;
+#include <grpc++/stream.h>
+#include <grpc/slice.h>
 
-static void do_init(void) {
-  gpr_mu_init(&g_init_mu);
-  g_initializations = 0;
-}
+namespace grpc {
 
-void grpc_init(void) {
-  gpr_once_init(&g_init, do_init);
+class Slice {
+ public:
+  // construct empty slice
+  Slice();
+  // destructor - drops one ref
+  ~Slice();
+  // construct slice from grpc slice, adding a ref
+  enum AddRef { ADD_REF };
+  Slice(gpr_slice slice, AddRef);
+  // construct slice from grpc slice, stealing a ref
+  enum StealRef { STEAL_REF };
+  Slice(gpr_slice slice, StealRef);
+  // copy constructor - adds a ref
+  Slice(const Slice& other);
+  // assignment
+  Slice& operator=(Slice other) { std::swap(slice_, other.slice_); }
 
-  gpr_mu_lock(&g_init_mu);
-  if (++g_initializations == 1) {
-    grpc_register_tracer("channel", &grpc_trace_channel);
-    grpc_register_tracer("surface", &grpc_surface_trace);
-    grpc_register_tracer("http", &grpc_http_trace);
-    grpc_security_pre_init();
-    grpc_tracer_init("GRPC_TRACE");
-    grpc_iomgr_init();
-    census_init();
-  }
-  gpr_mu_unlock(&g_init_mu);
-}
+  size_t size() const { return GPR_SLICE_LENGTH(slice_); }
+  const gpr_uint8* begin() const { return GPR_SLICE_START_PTR(slice_); }
+  const gpr_uint8* end() const { return GPR_SLICE_END_PTR(slice_); }
 
-void grpc_shutdown(void) {
-  gpr_mu_lock(&g_init_mu);
-  if (--g_initializations == 0) {
-    grpc_iomgr_shutdown();
-    census_shutdown();
-  }
-  gpr_mu_unlock(&g_init_mu);
-}
+ private:
+  gpr_slice slice_;
+};
+
+} // namespace grpc
+
+#endif

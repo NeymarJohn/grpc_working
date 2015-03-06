@@ -31,45 +31,21 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/debug/trace.h"
-#include "src/core/statistics/census_interface.h"
-#include "src/core/channel/channel_stack.h"
-#include "src/core/surface/init.h"
-#include "src/core/surface/surface_trace.h"
-#include "src/core/transport/chttp2_transport.h"
+#ifndef __GRPCPP_BYTE_BUFFER_H_
+#define __GRPCPP_BYTE_BUFFER_H_
 
-static gpr_once g_init = GPR_ONCE_INIT;
-static gpr_mu g_init_mu;
-static int g_initializations;
+#include <grpc++/stream.h>
 
-static void do_init(void) {
-  gpr_mu_init(&g_init_mu);
-  g_initializations = 0;
-}
+namespace grpc {
 
-void grpc_init(void) {
-  gpr_once_init(&g_init, do_init);
+class ByteBuffer {
+ public:
+  // Some interface with operations that make sense.
 
-  gpr_mu_lock(&g_init_mu);
-  if (++g_initializations == 1) {
-    grpc_register_tracer("channel", &grpc_trace_channel);
-    grpc_register_tracer("surface", &grpc_surface_trace);
-    grpc_register_tracer("http", &grpc_http_trace);
-    grpc_security_pre_init();
-    grpc_tracer_init("GRPC_TRACE");
-    grpc_iomgr_init();
-    census_init();
-  }
-  gpr_mu_unlock(&g_init_mu);
-}
+ private:
+  grpc_byte_buffer* byte_buffer_;
+};
 
-void grpc_shutdown(void) {
-  gpr_mu_lock(&g_init_mu);
-  if (--g_initializations == 0) {
-    grpc_iomgr_shutdown();
-    census_shutdown();
-  }
-  gpr_mu_unlock(&g_init_mu);
-}
+} // namespace
+
+#endif

@@ -31,45 +31,29 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/debug/trace.h"
-#include "src/core/statistics/census_interface.h"
-#include "src/core/channel/channel_stack.h"
-#include "src/core/surface/init.h"
-#include "src/core/surface/surface_trace.h"
-#include "src/core/transport/chttp2_transport.h"
+#ifndef GRPCXX_ANONYMOUS_STUB_H
+#define GRPCXX_ANONYMOUS_STUB_H
 
-static gpr_once g_init = GPR_ONCE_INIT;
-static gpr_mu g_init_mu;
-static int g_initializations;
+#include <grpc++/byte_buffer.h>
+#include <grpc++/stream.h>
 
-static void do_init(void) {
-  gpr_mu_init(&g_init_mu);
-  g_initializations = 0;
-}
+namespace grpc {
 
-void grpc_init(void) {
-  gpr_once_init(&g_init, do_init);
+typedef ClientAsyncReaderWriter<ByteBuffer, ByteBuffer> GenericClientReaderWriter;
 
-  gpr_mu_lock(&g_init_mu);
-  if (++g_initializations == 1) {
-    grpc_register_tracer("channel", &grpc_trace_channel);
-    grpc_register_tracer("surface", &grpc_surface_trace);
-    grpc_register_tracer("http", &grpc_http_trace);
-    grpc_security_pre_init();
-    grpc_tracer_init("GRPC_TRACE");
-    grpc_iomgr_init();
-    census_init();
-  }
-  gpr_mu_unlock(&g_init_mu);
-}
+// Anonymous stubs provide a type-unsafe interface to call gRPC methods
+// by name.
+class AnonymousStub {
+ public:
+  explicit AnonymousStub(std::shared_ptr<ChannelInterface> channel) : channel_(channel) {}
 
-void grpc_shutdown(void) {
-  gpr_mu_lock(&g_init_mu);
-  if (--g_initializations == 0) {
-    grpc_iomgr_shutdown();
-    census_shutdown();
-  }
-  gpr_mu_unlock(&g_init_mu);
-}
+  // begin a call to a named method
+  std::unique_ptr<GenericClientReaderWriter> Call(ClientContext* context, const grpc::string& method);
+
+ private:
+  std::shared_ptr<ChannelInterface> channel_;
+};
+
+} // namespace grpc
+
+#endif  // GRPCXX_ANONYMOUS_STUB_H

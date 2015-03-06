@@ -31,45 +31,42 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/debug/trace.h"
-#include "src/core/statistics/census_interface.h"
-#include "src/core/channel/channel_stack.h"
-#include "src/core/surface/init.h"
-#include "src/core/surface/surface_trace.h"
-#include "src/core/transport/chttp2_transport.h"
+#ifndef GRPCXX_ANONYMOUS_SERVICE_H
+#define GRPCXX_ANONYMOUS_SERVICE_H
 
-static gpr_once g_init = GPR_ONCE_INIT;
-static gpr_mu g_init_mu;
-static int g_initializations;
+#include <grpc++/byte_buffer.h>
+#include <grpc++/stream.h>
 
-static void do_init(void) {
-  gpr_mu_init(&g_init_mu);
-  g_initializations = 0;
-}
+struct grpc_server;
 
-void grpc_init(void) {
-  gpr_once_init(&g_init, do_init);
+namespace grpc {
 
-  gpr_mu_lock(&g_init_mu);
-  if (++g_initializations == 1) {
-    grpc_register_tracer("channel", &grpc_trace_channel);
-    grpc_register_tracer("surface", &grpc_surface_trace);
-    grpc_register_tracer("http", &grpc_http_trace);
-    grpc_security_pre_init();
-    grpc_tracer_init("GRPC_TRACE");
-    grpc_iomgr_init();
-    census_init();
-  }
-  gpr_mu_unlock(&g_init_mu);
-}
+typedef ServerAsyncReaderWriter<ByteBuffer, ByteBuffer> GenericServerReaderWriter;
 
-void grpc_shutdown(void) {
-  gpr_mu_lock(&g_init_mu);
-  if (--g_initializations == 0) {
-    grpc_iomgr_shutdown();
-    census_shutdown();
-  }
-  gpr_mu_unlock(&g_init_mu);
-}
+class AnonymousServerContext : public ServerContext {
+ public:
+  const grpc::string& method() const { return method_; }
+  const grpc::string& host() const { return host_; }
+
+ private:
+  grpc::string method_;
+  grpc::string host_;
+};
+
+class AnonymousService {
+ public:
+  // TODO(yangg) Once we can add multiple completion queues to the server
+  // in c core, add a CompletionQueue* argument to the ctor here.
+  AnonymousService() : server_(nullptr) {}
+
+  void RequestCall(AnonymousServerContext* ctx,
+                   GenericServerReaderWriter* reader_writer,
+                   CompletionQueue* cq, void* tag);
+ private:
+  friend class Server;
+  Server* server_;
+};
+
+} // namespace grpc
+
+#endif  // GRPCXX_ANONYMOUS_SERVICE_H
