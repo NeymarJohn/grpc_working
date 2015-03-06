@@ -45,6 +45,7 @@
 namespace grpc {
 namespace node {
 
+using v8::Arguments;
 using v8::Array;
 using v8::Exception;
 using v8::Function;
@@ -58,7 +59,7 @@ using v8::Persistent;
 using v8::String;
 using v8::Value;
 
-NanCallback *Channel::constructor;
+Persistent<Function> Channel::constructor;
 Persistent<FunctionTemplate> Channel::fun_tpl;
 
 Channel::Channel(grpc_channel *channel, NanUtf8String *host)
@@ -73,15 +74,14 @@ Channel::~Channel() {
 
 void Channel::Init(Handle<Object> exports) {
   NanScope();
-  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
+  Local<FunctionTemplate> tpl = FunctionTemplate::New(New);
   tpl->SetClassName(NanNew("Channel"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NanSetPrototypeTemplate(tpl, "close",
-                          NanNew<FunctionTemplate>(Close)->GetFunction());
+                          FunctionTemplate::New(Close)->GetFunction());
   NanAssignPersistent(fun_tpl, tpl);
-  Handle<Function> ctr = tpl->GetFunction();
-  constructor = new NanCallback(ctr);
-  exports->Set(NanNew("Channel"), ctr);
+  NanAssignPersistent(constructor, tpl->GetFunction());
+  exports->Set(NanNew("Channel"), constructor);
 }
 
 bool Channel::HasInstance(Handle<Value> val) {
@@ -170,7 +170,7 @@ NAN_METHOD(Channel::New) {
   } else {
     const int argc = 2;
     Local<Value> argv[argc] = {args[0], args[1]};
-    NanReturnValue(constructor->GetFunction()->NewInstance(argc, argv));
+    NanReturnValue(constructor->NewInstance(argc, argv));
   }
 }
 
