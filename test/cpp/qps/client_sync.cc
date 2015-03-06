@@ -31,52 +31,63 @@
  *
  */
 
-#ifndef GRPCXX_SERVER_CREDENTIALS_H
-#define GRPCXX_SERVER_CREDENTIALS_H
-
+#include <cassert>
 #include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
 #include <vector>
+#include <sstream>
 
-#include <grpc++/config.h>
+#include <sys/signal.h>
 
-struct grpc_server_credentials;
+#include <grpc/grpc.h>
+#include <grpc/support/alloc.h>
+#include <grpc/support/histogram.h>
+#include <grpc/support/log.h>
+#include <grpc/support/host_port.h>
+#include <gflags/gflags.h>
+#include <grpc++/client_context.h>
+#include <grpc++/status.h>
+#include <grpc++/server.h>
+#include <grpc++/server_builder.h>
+#include "test/core/util/grpc_profiler.h"
+#include "test/cpp/util/create_test_channel.h"
+#include "test/cpp/qps/client.h"
+#include "test/cpp/qps/qpstest.pb.h"
+#include "test/cpp/qps/histogram.h"
+#include "test/cpp/qps/timer.h"
 
 namespace grpc {
+namespace testing {
 
-// grpc_server_credentials wrapper class.
-class ServerCredentials GRPC_FINAL {
+class SynchronousClient GRPC_FINAL : public Client {
  public:
-  ~ServerCredentials();
+  SynchronousClient(const ClientConfig& config) : Client(config) {
+    size_t num_threads =
+        config.outstanding_rpcs_per_channel() * config.client_channels();
+    responses_.resize(num_threads);
+    StartThreads(num_threads);
+  }
+
+  ~SynchronousClient() { EndThreads(); }
+
+  void ThreadFunc(Histogram* histogram, size_t thread_idx) {
+    auto* stub = channels_[thread_idx % channels_.size()].get_stub();
+    double start = Timer::Now();
+    grpc::ClientContext context;
+    grpc::Status s =
+        stub->UnaryCall(&context, request_, &responses_[thread_idx]);
+    histogram->Add((Timer::Now() - start) * 1e9);
+  }
 
  private:
-  explicit ServerCredentials(grpc_server_credentials* c_creds);
-
-  grpc_server_credentials* GetRawCreds();
-
-  friend class ServerCredentialsFactory;
-  friend class Server;
-
-  grpc_server_credentials* creds_;
+  std::vector<SimpleResponse> responses_;
 };
 
-// Options to create ServerCredentials with SSL
-struct SslServerCredentialsOptions {
-  struct PemKeyCertPair {
-    grpc::string private_key;
-    grpc::string cert_chain;
-  };
-  grpc::string pem_root_certs;
-  std::vector<PemKeyCertPair> pem_key_cert_pairs;
-};
+std::unique_ptr<Client> CreateSynchronousClient(const ClientConfig& config) {
+  return std::unique_ptr<Client>(new SynchronousClient(config));
+}
 
-// Factory for building different types of ServerCredentials
-class ServerCredentialsFactory {
- public:
-  // Builds SSL ServerCredentials given SSL specific options
-  static std::shared_ptr<ServerCredentials> SslCredentials(
-      const SslServerCredentialsOptions& options);
-};
-
+}  // namespace testing
 }  // namespace grpc
-
-#endif  // GRPCXX_SERVER_CREDENTIALS_H

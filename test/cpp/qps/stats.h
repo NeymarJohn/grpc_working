@@ -31,55 +31,30 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/debug/trace.h"
-#include "src/core/statistics/census_interface.h"
-#include "src/core/channel/channel_stack.h"
-#include "src/core/surface/init.h"
-#include "src/core/surface/surface_trace.h"
-#include "src/core/transport/chttp2_transport.h"
+#ifndef TEST_QPS_STATS_UTILS_H
+#define TEST_QPS_STATS_UTILS_H
 
-static gpr_once g_init = GPR_ONCE_INIT;
-static gpr_mu g_init_mu;
-static int g_initializations;
+#include "test/cpp/qps/histogram.h"
+#include <string>
 
-static void do_init(void) {
-  gpr_mu_init(&g_init_mu);
-  g_initializations = 0;
-}
+namespace grpc {
+namespace testing {
 
-void grpc_init(void) {
-  gpr_once_init(&g_init, do_init);
-
-  gpr_mu_lock(&g_init_mu);
-  if (++g_initializations == 1) {
-    grpc_register_tracer("channel", &grpc_trace_channel);
-    grpc_register_tracer("surface", &grpc_surface_trace);
-    grpc_register_tracer("http", &grpc_http_trace);
-    grpc_security_pre_init();
-    grpc_tracer_init("GRPC_TRACE");
-    grpc_iomgr_init();
-    census_init();
+template <class T, class F>
+double sum(const T& container, F functor) {
+  double r = 0;
+  for (auto v : container) {
+    r += functor(v);
   }
-  gpr_mu_unlock(&g_init_mu);
-}
-
-void grpc_shutdown(void) {
-  gpr_mu_lock(&g_init_mu);
-  if (--g_initializations == 0) {
-    grpc_iomgr_shutdown();
-    census_shutdown();
-  }
-  gpr_mu_unlock(&g_init_mu);
-}
-
-int grpc_is_initialized(void) {
-  int r;
-  gpr_once_init(&g_init, do_init);
-  gpr_mu_lock(&g_init_mu);
-  r = g_initializations > 0;
-  gpr_mu_unlock(&g_init_mu);
   return r;
 }
 
+template <class T, class F>
+double average(const T& container, F functor) {
+  return sum(container, functor) / container.size();
+}
+
+}  // namespace testing
+}  // namespace grpc
+
+#endif

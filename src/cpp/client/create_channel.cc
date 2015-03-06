@@ -40,10 +40,14 @@
 namespace grpc {
 class ChannelArguments;
 
+std::shared_ptr<ChannelInterface> CreateChannelDeprecated(
+    const grpc::string &target, const ChannelArguments &args) {
+  return std::shared_ptr<ChannelInterface>(new Channel(target, args));
+}
+
 std::shared_ptr<ChannelInterface> CreateChannel(
     const grpc::string &target, const std::unique_ptr<Credentials> &creds,
     const ChannelArguments &args) {
-  return creds ? creds->CreateChannel(target, args) : 
-  	std::shared_ptr<ChannelInterface>(new Channel(target, grpc_lame_client_channel_create()));
+  return std::shared_ptr<ChannelInterface>(new Channel(target, creds, args));
 }
 }  // namespace grpc

@@ -31,28 +31,55 @@
  *
  */
 
-#ifndef GRPCXX_CREATE_CHANNEL_H
-#define GRPCXX_CREATE_CHANNEL_H
+#ifndef TEST_QPS_HISTOGRAM_H
+#define TEST_QPS_HISTOGRAM_H
 
-#include <memory>
-
-#include <grpc++/config.h>
-#include <grpc++/credentials.h>
+#include <grpc/support/histogram.h>
+#include "test/cpp/qps/qpstest.pb.h"
 
 namespace grpc {
-class ChannelArguments;
-class ChannelInterface;
+namespace testing {
 
-// Deprecation warning: This function will soon be deleted
-// (See pull request #711)
-std::shared_ptr<ChannelInterface> CreateChannelDeprecated(
-    const grpc::string& target, const ChannelArguments& args);
+class Histogram {
+ public:
+  Histogram() : impl_(gpr_histogram_create(0.01, 60e9)) {}
+  ~Histogram() {
+    if (impl_) gpr_histogram_destroy(impl_);
+  }
+  Histogram(Histogram&& other) : impl_(other.impl_) { other.impl_ = nullptr; }
 
-// If creds does not hold an object or is invalid, a lame channel is returned.
-std::shared_ptr<ChannelInterface> CreateChannel(
-    const grpc::string& target, const std::unique_ptr<Credentials>& creds,
-    const ChannelArguments& args);
+  void Merge(Histogram* h) { gpr_histogram_merge(impl_, h->impl_); }
+  void Add(double value) { gpr_histogram_add(impl_, value); }
+  double Percentile(double pctile) {
+    return gpr_histogram_percentile(impl_, pctile);
+  }
+  double Count() { return gpr_histogram_count(impl_); }
+  void Swap(Histogram* other) { std::swap(impl_, other->impl_); }
+  void FillProto(HistogramData* p) {
+    size_t n;
+    const auto* data = gpr_histogram_get_contents(impl_, &n);
+    for (size_t i = 0; i < n; i++) {
+      p->add_bucket(data[i]);
+    }
+    p->set_min_seen(gpr_histogram_minimum(impl_));
+    p->set_max_seen(gpr_histogram_maximum(impl_));
+    p->set_sum(gpr_histogram_sum(impl_));
+    p->set_sum_of_squares(gpr_histogram_sum_of_squares(impl_));
+    p->set_count(gpr_histogram_count(impl_));
+  }
+  void MergeProto(const HistogramData& p) {
+    gpr_histogram_merge_contents(impl_, &*p.bucket().begin(), p.bucket_size(),
+                                 p.min_seen(), p.max_seen(), p.sum(),
+                                 p.sum_of_squares(), p.count());
+  }
 
-}  // namespace grpc
+ private:
+  Histogram(const Histogram&);
+  Histogram& operator=(const Histogram&);
 
-#endif  // GRPCXX_CREATE_CHANNEL_H
+  gpr_histogram* impl_;
+};
+}
+}
+
+#endif /* TEST_QPS_HISTOGRAM_H */

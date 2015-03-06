@@ -31,55 +31,54 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/debug/trace.h"
-#include "src/core/statistics/census_interface.h"
-#include "src/core/channel/channel_stack.h"
-#include "src/core/surface/init.h"
-#include "src/core/surface/surface_trace.h"
-#include "src/core/transport/chttp2_transport.h"
+#ifndef TEST_QPS_SERVER_H
+#define TEST_QPS_SERVER_H
 
-static gpr_once g_init = GPR_ONCE_INIT;
-static gpr_mu g_init_mu;
-static int g_initializations;
+#include "test/cpp/qps/timer.h"
+#include "test/cpp/qps/qpstest.pb.h"
 
-static void do_init(void) {
-  gpr_mu_init(&g_init_mu);
-  g_initializations = 0;
-}
+namespace grpc {
+namespace testing {
 
-void grpc_init(void) {
-  gpr_once_init(&g_init, do_init);
+class Server {
+ public:
+  Server() : timer_(new Timer) {}
+  virtual ~Server() {}
 
-  gpr_mu_lock(&g_init_mu);
-  if (++g_initializations == 1) {
-    grpc_register_tracer("channel", &grpc_trace_channel);
-    grpc_register_tracer("surface", &grpc_surface_trace);
-    grpc_register_tracer("http", &grpc_http_trace);
-    grpc_security_pre_init();
-    grpc_tracer_init("GRPC_TRACE");
-    grpc_iomgr_init();
-    census_init();
+  ServerStats Mark() {
+    std::unique_ptr<Timer> timer(new Timer);
+    timer.swap(timer_);
+
+    auto timer_result = timer->Mark();
+
+    ServerStats stats;
+    stats.set_time_elapsed(timer_result.wall);
+    stats.set_time_system(timer_result.system);
+    stats.set_time_user(timer_result.user);
+    return stats;
   }
-  gpr_mu_unlock(&g_init_mu);
-}
 
-void grpc_shutdown(void) {
-  gpr_mu_lock(&g_init_mu);
-  if (--g_initializations == 0) {
-    grpc_iomgr_shutdown();
-    census_shutdown();
+  static bool SetPayload(PayloadType type, int size, Payload* payload) {
+    PayloadType response_type = type;
+    // TODO(yangg): Support UNCOMPRESSABLE payload.
+    if (type != PayloadType::COMPRESSABLE) {
+      return false;
+    }
+    payload->set_type(response_type);
+    std::unique_ptr<char[]> body(new char[size]());
+    payload->set_body(body.get(), size);
+    return true;
   }
-  gpr_mu_unlock(&g_init_mu);
-}
 
-int grpc_is_initialized(void) {
-  int r;
-  gpr_once_init(&g_init, do_init);
-  gpr_mu_lock(&g_init_mu);
-  r = g_initializations > 0;
-  gpr_mu_unlock(&g_init_mu);
-  return r;
-}
+ private:
+  std::unique_ptr<Timer> timer_;
+};
 
+std::unique_ptr<Server> CreateSynchronousServer(const ServerConfig& config,
+                                                int port);
+std::unique_ptr<Server> CreateAsyncServer(const ServerConfig& config, int port);
+
+}  // namespace testing
+}  // namespace grpc
+
+#endif
