@@ -96,7 +96,7 @@ class Server GRPC_FINAL : private CallHook,
   void RequestAsyncCall(void* registered_method, ServerContext* context,
                         grpc::protobuf::Message* request,
                         ServerAsyncStreamingInterface* stream,
-                        CompletionQueue* cq, void* tag) GRPC_OVERRIDE;
+                        CompletionQueue* cq, void* tag);
 
   // Completion queue.
   CompletionQueue cq_;
