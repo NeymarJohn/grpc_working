@@ -31,22 +31,64 @@
  *
  */
 
-#include <grpc/grpc_security.h>
-#include <grpc++/server_credentials.h>
+'use strict';
 
-namespace grpc {
-namespace {
-class InsecureServerCredentialsImpl GRPC_FINAL : public ServerCredentials {
- public:
-  int AddPortToServer(const grpc::string& addr,
-                      grpc_server* server) GRPC_OVERRIDE {
-    return grpc_server_add_http2_port(server, addr.c_str());
-  }
-};
-}  // namespace
+var assert = require('assert');
+var grpc = require('bindings')('grpc.node');
 
-std::shared_ptr<ServerCredentials> InsecureServerCredentials() {
-  return std::shared_ptr<ServerCredentials>(new InsecureServerCredentialsImpl());
-}
-
-}  // namespace grpc
+describe('server', function() {
+  describe('constructor', function() {
+    it('should work with no arguments', function() {
+      assert.doesNotThrow(function() {
+        new grpc.Server();
+      });
+    });
+    it('should work with an empty list argument', function() {
+      assert.doesNotThrow(function() {
+        new grpc.Server([]);
+      });
+    });
+  });
+  describe('addHttp2Port', function() {
+    var server;
+    before(function() {
+      server = new grpc.Server();
+    });
+    it('should bind to an unused port', function() {
+      var port;
+      assert.doesNotThrow(function() {
+        port = server.addHttp2Port('0.0.0.0:0');
+      });
+      assert(port > 0);
+    });
+  });
+  describe('addSecureHttp2Port', function() {
+    var server;
+    before(function() {
+      server = new grpc.Server();
+    });
+    it('should bind to an unused port with fake credentials', function() {
+      var port;
+      var creds = grpc.ServerCredentials.createFake();
+      assert.doesNotThrow(function() {
+        port = server.addSecureHttp2Port('0.0.0.0:0', creds);
+      });
+      assert(port > 0);
+    });
+  });
+  describe('listen', function() {
+    var server;
+    before(function() {
+      server = new grpc.Server();
+      server.addHttp2Port('0.0.0.0:0');
+    });
+    after(function() {
+      server.shutdown();
+    });
+    it('should listen without error', function() {
+      assert.doesNotThrow(function() {
+        server.start();
+      });
+    });
+  });
+});

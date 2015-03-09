@@ -517,15 +517,14 @@ Server.prototype.register = function(name, handler, serialize, deserialize,
 };
 
 /**
- * Binds the server to the given port, with SSL enabled if creds is given
+ * Binds the server to the given port, with SSL enabled if secure is specified
  * @param {string} port The port that the server should bind on, in the format
  *     "address:port"
- * @param {boolean=} creds Server credential object to be used for SSL. Pass
- *     nothing for an insecure port
+ * @param {boolean=} secure Whether the server should open a secure port
  */
-Server.prototype.bind = function(port, creds) {
-  if (creds) {
-    return this._server.addSecureHttp2Port(port, creds);
+Server.prototype.bind = function(port, secure) {
+  if (secure) {
+    return this._server.addSecureHttp2Port(port);
   } else {
     return this._server.addHttp2Port(port);
   }
@@ -605,14 +604,14 @@ function makeServerConstructor(services) {
   }
 
   /**
-   * Binds the server to the given port, with SSL enabled if creds is supplied
+   * Binds the server to the given port, with SSL enabled if secure is specified
    * @param {string} port The port that the server should bind on, in the format
    *     "address:port"
-   * @param {boolean=} creds Credentials to use for SSL
+   * @param {boolean=} secure Whether the server should open a secure port
    * @return {SurfaceServer} this
    */
-  SurfaceServer.prototype.bind = function(port, creds) {
-    return this.inner_server.bind(port, creds);
+  SurfaceServer.prototype.bind = function(port, secure) {
+    return this.inner_server.bind(port, secure);
   };
 
   /**

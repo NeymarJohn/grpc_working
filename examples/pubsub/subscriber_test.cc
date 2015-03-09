@@ -40,7 +40,6 @@
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
-#include <grpc++/server_credentials.h>
 #include <grpc++/status.h>
 #include <gtest/gtest.h>
 
@@ -105,11 +104,12 @@ class SubscriberTest : public ::testing::Test {
     int port = grpc_pick_unused_port_or_die();
     server_address_ << "localhost:" << port;
     ServerBuilder builder;
-    builder.AddPort(server_address_.str(), grpc::InsecureServerCredentials());
+    builder.AddPort(server_address_.str());
     builder.RegisterService(&service_);
     server_ = builder.BuildAndStart();
 
-    channel_ = CreateChannel(server_address_.str(), grpc::InsecureCredentials(), ChannelArguments());
+    channel_ =
+        CreateChannelDeprecated(server_address_.str(), ChannelArguments());
 
     subscriber_.reset(new grpc::examples::pubsub::Subscriber(channel_));
   }

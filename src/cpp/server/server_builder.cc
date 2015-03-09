@@ -51,10 +51,14 @@ void ServerBuilder::RegisterAsyncService(AsynchronousService* service) {
   async_services_.push_back(service);
 }
 
-void ServerBuilder::AddPort(const grpc::string& addr,
-                            std::shared_ptr<ServerCredentials> creds,
-                            int* selected_port) {
-  ports_.push_back(Port{addr, creds, selected_port});
+void ServerBuilder::AddPort(const grpc::string& addr) {
+  ports_.push_back(addr);
+}
+
+void ServerBuilder::SetCredentials(
+    const std::shared_ptr<ServerCredentials>& creds) {
+  GPR_ASSERT(!creds_);
+  creds_ = creds;
 }
 
 void ServerBuilder::SetThreadPool(ThreadPoolInterface* thread_pool) {
@@ -67,13 +71,14 @@ std::unique_ptr<Server> ServerBuilder::BuildAndStart() {
     gpr_log(GPR_ERROR, "Mixing async and sync services is unsupported for now");
     return nullptr;
   }
-  if (!thread_pool_ && !services_.empty()) {
+  if (!thread_pool_ && services_.size()) {
     int cores = gpr_cpu_num_cores();
     if (!cores) cores = 4;
     thread_pool_ = new ThreadPool(cores);
     thread_pool_owned = true;
   }
-  std::unique_ptr<Server> server(new Server(thread_pool_, thread_pool_owned));
+  std::unique_ptr<Server> server(
+      new Server(thread_pool_, thread_pool_owned, creds_.get()));
   for (auto* service : services_) {
     if (!server->RegisterService(service)) {
       return nullptr;
@@ -85,10 +90,8 @@ std::unique_ptr<Server> ServerBuilder::BuildAndStart() {
     }
   }
   for (auto& port : ports_) {
-    int r = server->AddPort(port.addr, port.creds.get());
-    if (!r) return nullptr;
-    if (port.selected_port != nullptr) {
-      *port.selected_port = r;
+    if (!server->AddPort(port)) {
+      return nullptr;
     }
   }
   if (!server->Start()) {

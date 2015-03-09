@@ -46,11 +46,5 @@
   },
   {
     "module": "grpc.framework.foundation._logging_pool_test"
-  },
-  {
-    "module": "interop._insecure_interop_test"
-  },
-  {
-    "module": "interop._secure_interop_test"
   }
 ]
