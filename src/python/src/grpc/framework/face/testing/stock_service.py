@@ -139,7 +139,7 @@ def _get_highest_trade_price(stock_reply_callback, control, active):
   return StockRequestConsumer()
 
 
-class GetLastTradePrice(service.UnaryUnaryTestMethodImplementation):
+class GetLastTradePrice(service.UnaryUnaryTestMethod):
   """GetLastTradePrice for use in tests."""
 
   def name(self):
@@ -186,7 +186,7 @@ class GetLastTradePriceMessages(service.UnaryUnaryTestMessages):
     test_case.assertEqual(_price(request.symbol), response.price)
 
 
-class GetLastTradePriceMultiple(service.StreamStreamTestMethodImplementation):
+class GetLastTradePriceMultiple(service.StreamStreamTestMethod):
   """GetLastTradePriceMultiple for use in tests."""
 
   def name(self):
@@ -238,7 +238,7 @@ class GetLastTradePriceMultipleMessages(service.StreamStreamTestMessages):
       test_case.assertEqual(_price(stock_request.symbol), stock_reply.price)
 
 
-class WatchFutureTrades(service.UnaryStreamTestMethodImplementation):
+class WatchFutureTrades(service.UnaryStreamTestMethod):
   """WatchFutureTrades for use in tests."""
 
   def name(self):
@@ -288,7 +288,7 @@ class WatchFutureTradesMessages(service.UnaryStreamTestMessages):
       test_case.assertEqual(base_price + index, response.price)
 
 
-class GetHighestTradePrice(service.StreamUnaryTestMethodImplementation):
+class GetHighestTradePrice(service.StreamUnaryTestMethod):
   """GetHighestTradePrice for use in tests."""
 
   def name(self):

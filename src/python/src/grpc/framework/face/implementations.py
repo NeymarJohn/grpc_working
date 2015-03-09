@@ -29,8 +29,6 @@
 
 """Entry points into the Face layer of RPC Framework."""
 
-from grpc.framework.common import cardinality
-from grpc.framework.common import style
 from grpc.framework.base import exceptions as _base_exceptions
 from grpc.framework.base import interfaces as base_interfaces
 from grpc.framework.face import _calls
@@ -58,7 +56,7 @@ class _BaseServicer(base_interfaces.Servicer):
       raise _base_exceptions.NoSuchMethodError()
 
 
-class _UnaryUnaryMultiCallable(interfaces.UnaryUnaryMultiCallable):
+class _UnaryUnarySyncAsync(interfaces.UnaryUnarySyncAsync):
 
   def __init__(self, front, name):
     self._front = front
@@ -68,33 +66,12 @@ class _UnaryUnaryMultiCallable(interfaces.UnaryUnaryMultiCallable):
     return _calls.blocking_value_in_value_out(
         self._front, self._name, request, timeout, 'unused trace ID')
 
-  def future(self, request, timeout):
+  def async(self, request, timeout):
     return _calls.future_value_in_value_out(
         self._front, self._name, request, timeout, 'unused trace ID')
 
-  def event(self, request, response_callback, abortion_callback, timeout):
-    return _calls.event_value_in_value_out(
-        self._front, self._name, request, response_callback, abortion_callback,
-        timeout, 'unused trace ID')
 
-
-class _UnaryStreamMultiCallable(interfaces.UnaryStreamMultiCallable):
-
-  def __init__(self, front, name):
-    self._front = front
-    self._name = name
-
-  def __call__(self, request, timeout):
-    return _calls.inline_value_in_stream_out(
-        self._front, self._name, request, timeout, 'unused trace ID')
-
-  def event(self, request, response_consumer, abortion_callback, timeout):
-    return _calls.event_value_in_stream_out(
-        self._front, self._name, request, response_consumer, abortion_callback,
-        timeout, 'unused trace ID')
-
-
-class _StreamUnaryMultiCallable(interfaces.StreamUnaryMultiCallable):
+class _StreamUnarySyncAsync(interfaces.StreamUnarySyncAsync):
 
   def __init__(self, front, name, pool):
     self._front = front
@@ -105,37 +82,18 @@ class _StreamUnaryMultiCallable(interfaces.StreamUnaryMultiCallable):
     return _calls.blocking_stream_in_value_out(
         self._front, self._name, request_iterator, timeout, 'unused trace ID')
 
-  def future(self, request_iterator, timeout):
+  def async(self, request_iterator, timeout):
     return _calls.future_stream_in_value_out(
         self._front, self._name, request_iterator, timeout, 'unused trace ID',
         self._pool)
 
-  def event(self, response_callback, abortion_callback, timeout):
-    return _calls.event_stream_in_value_out(
-        self._front, self._name, response_callback, abortion_callback, timeout,
-        'unused trace ID')
+
+class _Server(interfaces.Server):
+  """An interfaces.Server implementation."""
 
 
-class _StreamStreamMultiCallable(interfaces.StreamStreamMultiCallable):
-
-  def __init__(self, front, name, pool):
-    self._front = front
-    self._name = name
-    self._pool = pool
-
-  def __call__(self, request_iterator, timeout):
-    return _calls.inline_stream_in_stream_out(
-        self._front, self._name, request_iterator, timeout, 'unused trace ID',
-        self._pool)
-
-  def event(self, response_consumer, abortion_callback, timeout):
-    return _calls.event_stream_in_stream_out(
-        self._front, self._name, response_consumer, abortion_callback, timeout,
-        'unused trace ID')
-
-
-class _GenericStub(interfaces.GenericStub):
-  """An interfaces.GenericStub implementation."""
+class _Stub(interfaces.Stub):
+  """An interfaces.Stub implementation."""
 
   def __init__(self, front, pool):
     self._front = front
@@ -191,128 +149,136 @@ class _GenericStub(interfaces.GenericStub):
         self._front, name, response_consumer, abortion_callback, timeout,
         'unused trace ID')
 
-  def unary_unary_multi_callable(self, name):
-    return _UnaryUnaryMultiCallable(self._front, name)
+  def unary_unary_sync_async(self, name):
+    return _UnaryUnarySyncAsync(self._front, name)
 
-  def unary_stream_multi_callable(self, name):
-    return _UnaryStreamMultiCallable(self._front, name)
-
-  def stream_unary_multi_callable(self, name):
-    return _StreamUnaryMultiCallable(self._front, name, self._pool)
-
-  def stream_stream_multi_callable(self, name):
-    return _StreamStreamMultiCallable(self._front, name, self._pool)
+  def stream_unary_sync_async(self, name):
+    return _StreamUnarySyncAsync(self._front, name, self._pool)
 
 
-class _DynamicStub(interfaces.DynamicStub):
-  """An interfaces.DynamicStub implementation."""
+def _aggregate_methods(
+    pool,
+    inline_value_in_value_out_methods,
+    inline_value_in_stream_out_methods,
+    inline_stream_in_value_out_methods,
+    inline_stream_in_stream_out_methods,
+    event_value_in_value_out_methods,
+    event_value_in_stream_out_methods,
+    event_stream_in_value_out_methods,
+    event_stream_in_stream_out_methods):
+  """Aggregates methods coded in according to different interfaces."""
+  methods = {}
 
-  def __init__(self, cardinalities, front, pool):
-    self._cardinalities = cardinalities
-    self._front = front
-    self._pool = pool
+  def adapt_unpooled_methods(adapted_methods, unadapted_methods, adaptation):
+    if unadapted_methods is not None:
+      for name, unadapted_method in unadapted_methods.iteritems():
+        adapted_methods[name] = adaptation(unadapted_method)
 
-  def __getattr__(self, attr):
-    cardinality = self._cardinalities.get(attr)
-    if cardinality is cardinality.Cardinality.UNARY_UNARY:
-      return _UnaryUnaryMultiCallable(self._front, attr)
-    elif cardinality is cardinality.Cardinality.UNARY_STREAM:
-      return _UnaryStreamMultiCallable(self._front, attr)
-    elif cardinality is cardinality.Cardinality.STREAM_UNARY:
-      return _StreamUnaryMultiCallable(self._front, attr, self._pool)
-    elif cardinality is cardinality.Cardinality.STREAM_STREAM:
-      return _StreamStreamMultiCallable(self._front, attr, self._pool)
-    else:
-      raise AttributeError('_DynamicStub object has no attribute "%s"!' % attr)
+  def adapt_pooled_methods(adapted_methods, unadapted_methods, adaptation):
+    if unadapted_methods is not None:
+      for name, unadapted_method in unadapted_methods.iteritems():
+        adapted_methods[name] = adaptation(unadapted_method, pool)
 
+  adapt_unpooled_methods(
+      methods, inline_value_in_value_out_methods,
+      _service.adapt_inline_value_in_value_out)
+  adapt_unpooled_methods(
+      methods, inline_value_in_stream_out_methods,
+      _service.adapt_inline_value_in_stream_out)
+  adapt_pooled_methods(
+      methods, inline_stream_in_value_out_methods,
+      _service.adapt_inline_stream_in_value_out)
+  adapt_pooled_methods(
+      methods, inline_stream_in_stream_out_methods,
+      _service.adapt_inline_stream_in_stream_out)
+  adapt_unpooled_methods(
+      methods, event_value_in_value_out_methods,
+      _service.adapt_event_value_in_value_out)
+  adapt_unpooled_methods(
+      methods, event_value_in_stream_out_methods,
+      _service.adapt_event_value_in_stream_out)
+  adapt_unpooled_methods(
+      methods, event_stream_in_value_out_methods,
+      _service.adapt_event_stream_in_value_out)
+  adapt_unpooled_methods(
+      methods, event_stream_in_stream_out_methods,
+      _service.adapt_event_stream_in_stream_out)
 
-def _adapt_method_implementations(method_implementations, pool):
-  adapted_implementations = {}
-  for name, method_implementation in method_implementations.iteritems():
-    if method_implementation.style is style.Service.INLINE:
-      if method_implementation.cardinality is cardinality.Cardinality.UNARY_UNARY:
-        adapted_implementations[name] = _service.adapt_inline_value_in_value_out(
-            method_implementation.unary_unary_inline)
-      elif method_implementation.cardinality is cardinality.Cardinality.UNARY_STREAM:
-        adapted_implementations[name] = _service.adapt_inline_value_in_stream_out(
-            method_implementation.unary_stream_inline)
-      elif method_implementation.cardinality is cardinality.Cardinality.STREAM_UNARY:
-        adapted_implementations[name] = _service.adapt_inline_stream_in_value_out(
-            method_implementation.stream_unary_inline, pool)
-      elif method_implementation.cardinality is cardinality.Cardinality.STREAM_STREAM:
-        adapted_implementations[name] = _service.adapt_inline_stream_in_stream_out(
-            method_implementation.stream_stream_inline, pool)
-    elif method_implementation.style is style.Service.EVENT:
-      if method_implementation.cardinality is cardinality.Cardinality.UNARY_UNARY:
-        adapted_implementations[name] = _service.adapt_event_value_in_value_out(
-            method_implementation.unary_unary_event)
-      elif method_implementation.cardinality is cardinality.Cardinality.UNARY_STREAM:
-        adapted_implementations[name] = _service.adapt_event_value_in_stream_out(
-            method_implementation.unary_stream_event)
-      elif method_implementation.cardinality is cardinality.Cardinality.STREAM_UNARY:
-        adapted_implementations[name] = _service.adapt_event_stream_in_value_out(
-            method_implementation.stream_unary_event)
-      elif method_implementation.cardinality is cardinality.Cardinality.STREAM_STREAM:
-        adapted_implementations[name] = _service.adapt_event_stream_in_stream_out(
-            method_implementation.stream_stream_event)
-  return adapted_implementations
+  return methods
 
 
-def servicer(pool, method_implementations, multi_method_implementation):
+def servicer(
+    pool,
+    inline_value_in_value_out_methods=None,
+    inline_value_in_stream_out_methods=None,
+    inline_stream_in_value_out_methods=None,
+    inline_stream_in_stream_out_methods=None,
+    event_value_in_value_out_methods=None,
+    event_value_in_stream_out_methods=None,
+    event_stream_in_value_out_methods=None,
+    event_stream_in_stream_out_methods=None,
+    multi_method=None):
   """Creates a base_interfaces.Servicer.
 
-  It is guaranteed that any passed interfaces.MultiMethodImplementation will
-  only be called to service an RPC if there is no
-  interfaces.MethodImplementation for the RPC method in the passed
-  method_implementations dictionary.
+  The key sets of the passed dictionaries must be disjoint. It is guaranteed
+  that any passed MultiMethod implementation will only be called to service an
+  RPC if the RPC method name is not present in the key sets of the passed
+  dictionaries.
 
   Args:
     pool: A thread pool.
-    method_implementations: A dictionary from RPC method name to
-      interfaces.MethodImplementation object to be used to service the named
-      RPC method.
-    multi_method_implementation: An interfaces.MultiMethodImplementation to be
-      used to service any RPCs not serviced by the
-      interfaces.MethodImplementations given in the method_implementations
-      dictionary, or None.
+    inline_value_in_value_out_methods: A dictionary mapping method names to
+      interfaces.InlineValueInValueOutMethod implementations.
+    inline_value_in_stream_out_methods: A dictionary mapping method names to
+      interfaces.InlineValueInStreamOutMethod implementations.
+    inline_stream_in_value_out_methods: A dictionary mapping method names to
+      interfaces.InlineStreamInValueOutMethod implementations.
+    inline_stream_in_stream_out_methods: A dictionary mapping method names to
+      interfaces.InlineStreamInStreamOutMethod implementations.
+    event_value_in_value_out_methods: A dictionary mapping method names to
+      interfaces.EventValueInValueOutMethod implementations.
+    event_value_in_stream_out_methods: A dictionary mapping method names to
+      interfaces.EventValueInStreamOutMethod implementations.
+    event_stream_in_value_out_methods: A dictionary mapping method names to
+      interfaces.EventStreamInValueOutMethod implementations.
+    event_stream_in_stream_out_methods: A dictionary mapping method names to
+      interfaces.EventStreamInStreamOutMethod implementations.
+    multi_method: An implementation of interfaces.MultiMethod.
 
   Returns:
     A base_interfaces.Servicer that services RPCs via the given implementations.
   """
-  adapted_implementations = _adapt_method_implementations(
-      method_implementations, pool)
-  return _BaseServicer(adapted_implementations, multi_method_implementation)
+  methods = _aggregate_methods(
+      pool,
+      inline_value_in_value_out_methods,
+      inline_value_in_stream_out_methods,
+      inline_stream_in_value_out_methods,
+      inline_stream_in_stream_out_methods,
+      event_value_in_value_out_methods,
+      event_value_in_stream_out_methods,
+      event_stream_in_value_out_methods,
+      event_stream_in_stream_out_methods)
+
+  return _BaseServicer(methods, multi_method)
 
 
-def generic_stub(front, pool):
-  """Creates an interfaces.GenericStub.
+def server():
+  """Creates an interfaces.Server.
+
+  Returns:
+    An interfaces.Server.
+  """
+  return _Server()
+
+
+def stub(front, pool):
+  """Creates an interfaces.Stub.
 
   Args:
     front: A base_interfaces.Front.
     pool: A futures.ThreadPoolExecutor.
 
   Returns:
-    An interfaces.GenericStub that performs RPCs via the given
-      base_interfaces.Front.
+    An interfaces.Stub that performs RPCs via the given base_interfaces.Front.
   """
-  return _GenericStub(front, pool)
-
-
-def dynamic_stub(cardinalities, front, pool, prefix):
-  """Creates an interfaces.DynamicStub.
-
-  Args:
-    cardinalities: A dict from RPC method name to cardinality.Cardinality
-      value identifying the cardinality of every RPC method to be supported by
-      the created interfaces.DynamicStub.
-    front: A base_interfaces.Front.
-    pool: A futures.ThreadPoolExecutor.
-    prefix: A string to prepend when mapping requested attribute name to RPC
-      method name during attribute access on the created
-      interfaces.DynamicStub.
-
-  Returns:
-    An interfaces.DynamicStub that performs RPCs via the given
-      base_interfaces.Front.
-  """
-  return _DynamicStub(cardinalities, front, pool, prefix)
+  return _Stub(front, pool)

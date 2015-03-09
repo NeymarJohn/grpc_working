@@ -50,12 +50,31 @@ class FaceTestCase(test_case.FaceTestCase, coverage.BlockingCoverage):
   """Provides abstract Face-layer tests a GRPC-backed implementation."""
 
   def set_up_implementation(
-      self, name, methods, method_implementations,
-      multi_method_implementation):
+      self,
+      name,
+      methods,
+      inline_value_in_value_out_methods,
+      inline_value_in_stream_out_methods,
+      inline_stream_in_value_out_methods,
+      inline_stream_in_stream_out_methods,
+      event_value_in_value_out_methods,
+      event_value_in_stream_out_methods,
+      event_stream_in_value_out_methods,
+      event_stream_in_stream_out_methods,
+      multi_method):
     pool = logging_pool.pool(_MAXIMUM_POOL_SIZE)
 
     servicer = face_implementations.servicer(
-        pool, method_implementations, multi_method_implementation)
+        pool,
+        inline_value_in_value_out_methods=inline_value_in_value_out_methods,
+        inline_value_in_stream_out_methods=inline_value_in_stream_out_methods,
+        inline_stream_in_value_out_methods=inline_stream_in_value_out_methods,
+        inline_stream_in_stream_out_methods=inline_stream_in_stream_out_methods,
+        event_value_in_value_out_methods=event_value_in_value_out_methods,
+        event_value_in_stream_out_methods=event_value_in_stream_out_methods,
+        event_stream_in_value_out_methods=event_stream_in_value_out_methods,
+        event_stream_in_stream_out_methods=event_stream_in_stream_out_methods,
+        multi_method=multi_method)
 
     serialization = serial.serialization(methods)
 
@@ -77,8 +96,9 @@ class FaceTestCase(test_case.FaceTestCase, coverage.BlockingCoverage):
     rear_link.join_fore_link(front)
     front.join_rear_link(rear_link)
 
-    stub = face_implementations.generic_stub(front, pool)
-    return stub, (rear_link, fore_link, front, back)
+    server = face_implementations.server()
+    stub = face_implementations.stub(front, pool)
+    return server, stub, (rear_link, fore_link, front, back)
 
   def tear_down_implementation(self, memo):
     rear_link, fore_link, front, back = memo

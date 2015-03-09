@@ -47,7 +47,6 @@
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
-#include <grpc++/server_credentials.h>
 #include <grpc++/status.h>
 #include <grpc++/stream.h>
 #include "test/core/util/port.h"
@@ -151,7 +150,7 @@ class End2endTest : public ::testing::Test {
     server_address_ << "localhost:" << port;
     // Setup server
     ServerBuilder builder;
-    builder.AddPort(server_address_.str(), InsecureServerCredentials());
+    builder.AddPort(server_address_.str());
     builder.RegisterService(&service_);
     builder.RegisterService(&dup_pkg_service_);
     builder.SetThreadPool(&thread_pool_);
@@ -161,8 +160,8 @@ class End2endTest : public ::testing::Test {
   void TearDown() GRPC_OVERRIDE { server_->Shutdown(); }
 
   void ResetStub() {
-    std::shared_ptr<ChannelInterface> channel = CreateChannel(
-        server_address_.str(), InsecureCredentials(), ChannelArguments());
+    std::shared_ptr<ChannelInterface> channel =
+        CreateChannelDeprecated(server_address_.str(), ChannelArguments());
     stub_ = std::move(grpc::cpp::test::util::TestService::NewStub(channel));
   }
 
@@ -372,8 +371,8 @@ TEST_F(End2endTest, BidiStream) {
 // Talk to the two services with the same name but different package names.
 // The two stubs are created on the same channel.
 TEST_F(End2endTest, DiffPackageServices) {
-  std::shared_ptr<ChannelInterface> channel = CreateChannel(
-      server_address_.str(), InsecureCredentials(), ChannelArguments());
+  std::shared_ptr<ChannelInterface> channel =
+      CreateChannelDeprecated(server_address_.str(), ChannelArguments());
 
   EchoRequest request;
   EchoResponse response;
@@ -398,7 +397,8 @@ TEST_F(End2endTest, DiffPackageServices) {
 // rpc and stream should fail on bad credentials.
 TEST_F(End2endTest, BadCredentials) {
   std::unique_ptr<Credentials> bad_creds =
-      ServiceAccountCredentials("", "", std::chrono::seconds(1));
+      CredentialsFactory::ServiceAccountCredentials("", "",
+                                                    std::chrono::seconds(1));
   EXPECT_EQ(nullptr, bad_creds.get());
   std::shared_ptr<ChannelInterface> channel =
       CreateChannel(server_address_.str(), bad_creds, ChannelArguments());

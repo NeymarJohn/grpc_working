@@ -93,8 +93,7 @@ class RearLink(ticket_interfaces.RearLink, activated.Activated):
 
   def __init__(
       self, host, port, pool, request_serializers, response_deserializers,
-      secure, root_certificates, private_key, certificate_chain,
-      server_host_override=None):
+      secure, root_certificates, private_key, certificate_chain):
     """Constructor.
 
     Args:
@@ -112,8 +111,6 @@ class RearLink(ticket_interfaces.RearLink, activated.Activated):
         key should be used.
       certificate_chain: The PEM-encoded certificate chain to use or None if
         no certificate chain should be used.
-      server_host_override: (For testing only) the target name used for SSL
-        host name checking.
     """
     self._condition = threading.Condition()
     self._host = host
@@ -135,7 +132,6 @@ class RearLink(ticket_interfaces.RearLink, activated.Activated):
     self._root_certificates = root_certificates
     self._private_key = private_key
     self._certificate_chain = certificate_chain
-    self._server_host_override = server_host_override
 
   def _on_write_event(self, operation_id, event, rpc_state):
     if event.write_accepted:
@@ -331,8 +327,7 @@ class RearLink(ticket_interfaces.RearLink, activated.Activated):
     with self._condition:
       self._completion_queue = _low.CompletionQueue()
       self._channel = _low.Channel(
-          '%s:%d' % (self._host, self._port), self._client_credentials,
-          server_host_override=self._server_host_override)
+          '%s:%d' % (self._host, self._port), self._client_credentials)
     return self
 
   def _stop(self):
@@ -393,8 +388,7 @@ class _ActivatedRearLink(ticket_interfaces.RearLink, activated.Activated):
 
   def __init__(
       self, host, port, request_serializers, response_deserializers, secure,
-      root_certificates, private_key, certificate_chain,
-      server_host_override=None):
+      root_certificates, private_key, certificate_chain):
     self._host = host
     self._port = port
     self._request_serializers = request_serializers
@@ -403,7 +397,6 @@ class _ActivatedRearLink(ticket_interfaces.RearLink, activated.Activated):
     self._root_certificates = root_certificates
     self._private_key = private_key
     self._certificate_chain = certificate_chain
-    self._server_host_override = server_host_override
 
     self._lock = threading.Lock()
     self._pool = None
@@ -422,8 +415,7 @@ class _ActivatedRearLink(ticket_interfaces.RearLink, activated.Activated):
       self._rear_link = RearLink(
           self._host, self._port, self._pool, self._request_serializers,
           self._response_deserializers, self._secure, self._root_certificates,
-          self._private_key, self._certificate_chain,
-          server_host_override=self._server_host_override)
+          self._private_key, self._certificate_chain)
       self._rear_link.join_fore_link(self._fore_link)
       self._rear_link.start()
     return self
@@ -485,7 +477,7 @@ def activated_rear_link(
 
 def secure_activated_rear_link(
     host, port, request_serializers, response_deserializers, root_certificates,
-    private_key, certificate_chain, server_host_override=None):
+    private_key, certificate_chain):
   """Creates a RearLink that is also an activated.Activated.
 
   The returned object is only valid for use between calls to its start and stop
@@ -504,10 +496,7 @@ def secure_activated_rear_link(
       should be used.
     certificate_chain: The PEM-encoded certificate chain to use or None if no
       certificate chain should be used.
-    server_host_override: (For testing only) the target name used for SSL
-      host name checking.
   """
   return _ActivatedRearLink(
       host, port, request_serializers, response_deserializers, True,
-      root_certificates, private_key, certificate_chain,
-      server_host_override=server_host_override)
+      root_certificates, private_key, certificate_chain)
