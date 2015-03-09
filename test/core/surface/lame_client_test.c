@@ -31,7 +31,7 @@
  *
  */
 
-#include <grpc/grpc.h>
+#include "src/core/surface/lame_client.h"
 
 #include "test/core/end2end/cq_verifier.h"
 #include "test/core/util/test_config.h"

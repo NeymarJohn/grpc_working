@@ -32,10 +32,8 @@ import contextlib
 import errno
 import itertools
 import os
-import shutil
 import subprocess
 import sys
-import tempfile
 import time
 import unittest
 
@@ -57,8 +55,8 @@ DOES_NOT_MATTER_DELAY = 0
 NO_DELAY = 0
 LONG_DELAY = 1
 
-# Build mode environment variable set by tools/run_tests/run_tests.py.
-_build_mode = os.environ['CONFIG']
+# Assigned in __main__.
+_build_mode = None
 
 
 class _ServicerMethods(object):
@@ -229,26 +227,24 @@ class PythonPluginTest(unittest.TestCase):
       protoc_command = 'protoc'
 
     # Ensure that the output directory exists.
-    self.outdir = tempfile.mkdtemp()
+    outdir = '../../gens/test/compiler/python'
+    try:
+      os.makedirs(outdir)
+    except OSError as exception:
+      if exception.errno != errno.EEXIST:
+        raise
 
     # Invoke protoc with the plugin.
     cmd = [
         protoc_command,
         '--plugin=protoc-gen-python-grpc=%s' % protoc_plugin_filename,
         '-I %s' % os.path.dirname(test_proto_filename),
-        '--python_out=%s' % self.outdir,
-        '--python-grpc_out=%s' % self.outdir,
+        '--python_out=%s' % outdir,
+        '--python-grpc_out=%s' % outdir,
         os.path.basename(test_proto_filename),
     ]
     subprocess.call(' '.join(cmd), shell=True)
-    sys.path.append(self.outdir)
-
-  def tearDown(self):
-    try:
-      shutil.rmtree(self.outdir)
-    except OSError as exc:
-      if exc.errno != errno.ENOENT:
-        raise
+    sys.path.append(outdir)
 
   # TODO(atash): Figure out which of theses tests is hanging flakily with small
   # probability.
@@ -300,8 +296,6 @@ class PythonPluginTest(unittest.TestCase):
         with self.assertRaises(exceptions.ExpirationError):
           response_future.result()
 
-  @unittest.skip('TODO(atash,nathaniel): figure out why this flakily hangs '
-                 'forever and fix.')
   def testUnaryCallAsyncCancelled(self):
     import test_pb2  # pylint: disable=g-import-not-at-top
     request = test_pb2.SimpleRequest(response_size=13)
@@ -331,8 +325,6 @@ class PythonPluginTest(unittest.TestCase):
         expected_response, response = check
         self.assertEqual(expected_response, response)
 
-  @unittest.skip('TODO(atash,nathaniel): figure out why this flakily hangs '
-                 'forever and fix.')
   def testStreamingOutputCallExpired(self):
     import test_pb2  # pylint: disable=g-import-not-at-top
     request = StreamingOutputRequest(test_pb2)
@@ -343,8 +335,6 @@ class PythonPluginTest(unittest.TestCase):
         with self.assertRaises(exceptions.ExpirationError):
           list(responses)
 
-  @unittest.skip('TODO(atash,nathaniel): figure out why this flakily hangs '
-                 'forever and fix.')
   def testStreamingOutputCallCancelled(self):
     import test_pb2  # pylint: disable=g-import-not-at-top
     request = StreamingOutputRequest(test_pb2)
@@ -369,8 +359,6 @@ class PythonPluginTest(unittest.TestCase):
         with self.assertRaises(exceptions.ServicerError):
           next(responses)
 
-  @unittest.skip('TODO(atash,nathaniel): figure out why this flakily hangs '
-                 'forever and fix.')
   def testStreamingInputCall(self):
     import test_pb2  # pylint: disable=g-import-not-at-top
     with _CreateService(test_pb2, NO_DELAY) as (servicer, stub, unused_server):
@@ -438,8 +426,6 @@ class PythonPluginTest(unittest.TestCase):
         expected_response, response = check
         self.assertEqual(expected_response, response)
 
-  @unittest.skip('TODO(atash,nathaniel): figure out why this flakily hangs '
-                 'forever and fix.')
   def testFullDuplexCallExpired(self):
     import test_pb2  # pylint: disable=g-import-not-at-top
     request = FullDuplexRequest(test_pb2)
@@ -450,8 +436,6 @@ class PythonPluginTest(unittest.TestCase):
         with self.assertRaises(exceptions.ExpirationError):
           list(responses)
 
-  @unittest.skip('TODO(atash,nathaniel): figure out why this flakily hangs '
-                 'forever and fix.')
   def testFullDuplexCallCancelled(self):
     import test_pb2  # pylint: disable=g-import-not-at-top
     with _CreateService(test_pb2, NO_DELAY) as (servicer, stub, unused_server):
@@ -475,8 +459,6 @@ class PythonPluginTest(unittest.TestCase):
         with self.assertRaises(exceptions.ServicerError):
           next(responses)
 
-  @unittest.skip('TODO(atash,nathaniel): figure out why this flakily hangs '
-                 'forever and fix.')
   def testHalfDuplexCall(self):
     import test_pb2  # pylint: disable=g-import-not-at-top
     with _CreateService(test_pb2, DOES_NOT_MATTER_DELAY) as (
@@ -520,4 +502,14 @@ class PythonPluginTest(unittest.TestCase):
 
 if __name__ == '__main__':
   os.chdir(os.path.dirname(sys.argv[0]))
+  parser = argparse.ArgumentParser(
+      description='Run Python compiler plugin test.')
+  parser.add_argument(
+      '--build_mode', dest='build_mode', type=str, default='dbg',
+      help='The build mode of the targets to test, e.g. "dbg", "opt", "asan", '
+      'etc.')
+  parser.add_argument('--port', dest='port', type=int, default=0)
+  args, remainder = parser.parse_known_args()
+  _build_mode = args.build_mode
+  sys.argv[1:] = remainder
   unittest.main()

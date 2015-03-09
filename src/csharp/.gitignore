@@ -1,5 +1,4 @@
 *.userprefs
-StyleCop.Cache
 test-results
 packages
 Grpc.v12.suo

@@ -97,19 +97,35 @@ static VALUE grpc_rb_server_alloc(VALUE cls) {
 /*
   call-seq:
     cq = CompletionQueue.new
-    server = Server.new(cq, {'arg1': 'value1'})
+    insecure_server = Server.new(cq, {'arg1': 'value1'})
+    server_creds = ...
+    secure_server = Server.new(cq, {'arg1': 'value1'}, server_creds)
 
   Initializes server instances. */
-static VALUE grpc_rb_server_init(VALUE self, VALUE cqueue, VALUE channel_args) {
+static VALUE grpc_rb_server_init(int argc, VALUE *argv, VALUE self) {
+  VALUE cqueue = Qnil;
+  VALUE credentials = Qnil;
+  VALUE channel_args = Qnil;
   grpc_completion_queue *cq = NULL;
+  grpc_server_credentials *creds = NULL;
   grpc_rb_server *wrapper = NULL;
   grpc_server *srv = NULL;
   grpc_channel_args args;
   MEMZERO(&args, grpc_channel_args, 1);
+
+  /* "21" == 2 mandatory args, 1 (credentials) is optional */
+  rb_scan_args(argc, argv, "21", &cqueue, &channel_args, &credentials);
   cq = grpc_rb_get_wrapped_completion_queue(cqueue);
+
   Data_Get_Struct(self, grpc_rb_server, wrapper);
   grpc_rb_hash_convert_to_channel_args(channel_args, &args);
   srv = grpc_server_create(cq, &args);
+  if (credentials == Qnil) {
+    srv = grpc_server_create(cq, &args);
+  } else {
+    creds = grpc_rb_get_wrapped_server_credentials(credentials);
+    srv = grpc_secure_server_create(creds, cq, &args);
+  }
 
   if (args.args != NULL) {
     xfree(args.args); /* Allocated by grpc_rb_hash_convert_to_channel_args */
@@ -199,36 +215,33 @@ static VALUE grpc_rb_server_destroy(VALUE self) {
 
     // secure port
     server_creds = ...
-    secure_server = Server.new(cq, {'arg1': 'value1'})
-    secure_server.add_http_port('mydomain:7575', server_creds)
+    secure_server = Server.new(cq, {'arg1': 'value1'}, creds)
+    secure_server.add_http_port('mydomain:7575', True)
 
     Adds a http2 port to server */
 static VALUE grpc_rb_server_add_http2_port(int argc, VALUE *argv, VALUE self) {
   VALUE port = Qnil;
-  VALUE rb_creds = Qnil;
+  VALUE is_secure = Qnil;
   grpc_rb_server *s = NULL;
-  grpc_server_credentials *creds = NULL;
   int recvd_port = 0;
 
-  /* "11" == 1 mandatory args, 1 (rb_creds) is optional */
-  rb_scan_args(argc, argv, "11", &port, &rb_creds);
+  /* "11" == 1 mandatory args, 1 (is_secure) is optional */
+  rb_scan_args(argc, argv, "11", &port, &is_secure);
 
   Data_Get_Struct(self, grpc_rb_server, s);
   if (s->wrapped == NULL) {
     rb_raise(rb_eRuntimeError, "closed!");
     return Qnil;
-  } else if (rb_creds == Qnil) {
+  } else if (is_secure == Qnil || TYPE(is_secure) != T_TRUE) {
     recvd_port = grpc_server_add_http2_port(s->wrapped, StringValueCStr(port));
     if (recvd_port == 0) {
       rb_raise(rb_eRuntimeError,
                "could not add port %s to server, not sure why",
                StringValueCStr(port));
     }
-  } else {
-    creds = grpc_rb_get_wrapped_server_credentials(rb_creds);
+  } else if (TYPE(is_secure) != T_FALSE) {
     recvd_port =
-        grpc_server_add_secure_http2_port(s->wrapped, StringValueCStr(port),
-			                  creds);
+        grpc_server_add_secure_http2_port(s->wrapped, StringValueCStr(port));
     if (recvd_port == 0) {
       rb_raise(rb_eRuntimeError,
                "could not add secure port %s to server, not sure why",
@@ -245,7 +258,7 @@ void Init_grpc_server() {
   rb_define_alloc_func(rb_cServer, grpc_rb_server_alloc);
 
   /* Provides a ruby constructor and support for dup/clone. */
-  rb_define_method(rb_cServer, "initialize", grpc_rb_server_init, 2);
+  rb_define_method(rb_cServer, "initialize", grpc_rb_server_init, -1);
   rb_define_method(rb_cServer, "initialize_copy", grpc_rb_server_init_copy, 1);
 
   /* Add the server methods. */
