@@ -193,6 +193,9 @@
     <ClCompile Include="..\..\src\core\surface\call_details.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\core\surface\call_log_batch.c">
+      <Filter>src\core\surface</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\core\surface\channel.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
@@ -489,9 +492,6 @@
       <Filter>src\core\surface</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\surface\init.h">
-      <Filter>src\core\surface</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\surface\lame_client.h">
       <Filter>src\core\surface</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\surface\server.h">
