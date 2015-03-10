@@ -31,34 +31,29 @@
  *
  */
 
-#include <stdio.h>
-#include <string.h>
+#ifndef GRPCXX_ANONYMOUS_STUB_H
+#define GRPCXX_ANONYMOUS_STUB_H
 
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
+#include <grpc++/byte_buffer.h>
+#include <grpc++/stream.h>
 
-#include "src/core/support/env.h"
-#include "src/core/support/string.h"
-#include "test/core/util/test_config.h"
+namespace grpc {
 
-#define LOG_TEST_NAME() gpr_log(GPR_INFO, "%s", __FUNCTION__)
+typedef ClientAsyncReaderWriter<ByteBuffer, ByteBuffer> GenericClientReaderWriter;
 
-static void test_setenv_getenv(void) {
-  const char *name = "FOO";
-  const char *value = "BAR";
-  char *retrieved_value;
+// Anonymous stubs provide a type-unsafe interface to call gRPC methods
+// by name.
+class AnonymousStub {
+ public:
+  explicit AnonymousStub(std::shared_ptr<ChannelInterface> channel) : channel_(channel) {}
 
-  LOG_TEST_NAME();
+  // begin a call to a named method
+  std::unique_ptr<GenericClientReaderWriter> Call(ClientContext* context, const grpc::string& method);
 
-  gpr_setenv(name, value);
-  retrieved_value = gpr_getenv(name);
-  GPR_ASSERT(retrieved_value != NULL);
-  GPR_ASSERT(!strcmp(value, retrieved_value));
-  gpr_free(retrieved_value);
-}
+ private:
+  std::shared_ptr<ChannelInterface> channel_;
+};
 
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  test_setenv_getenv();
-  return 0;
-}
+} // namespace grpc
+
+#endif  // GRPCXX_ANONYMOUS_STUB_H

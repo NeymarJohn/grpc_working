@@ -31,34 +31,45 @@
  *
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <grpc++/byte_buffer.h>
 
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
+namespace grpc {
 
-#include "src/core/support/env.h"
-#include "src/core/support/string.h"
-#include "test/core/util/test_config.h"
-
-#define LOG_TEST_NAME() gpr_log(GPR_INFO, "%s", __FUNCTION__)
-
-static void test_setenv_getenv(void) {
-  const char *name = "FOO";
-  const char *value = "BAR";
-  char *retrieved_value;
-
-  LOG_TEST_NAME();
-
-  gpr_setenv(name, value);
-  retrieved_value = gpr_getenv(name);
-  GPR_ASSERT(retrieved_value != NULL);
-  GPR_ASSERT(!strcmp(value, retrieved_value));
-  gpr_free(retrieved_value);
+ByteBuffer::ByteBuffer(Slice* slices, size_t nslices) {
+  // TODO(yangg) maybe expose some core API to simplify this
+  std::vector<gpr_slice> c_slices(nslices);
+  for (size_t i = 0; i < nslices; i++) {
+    c_slices[i] = slices[i].slice_;
+  }
+  buffer_ = grpc_byte_buffer_create(c_slices.data(), nslices);
 }
 
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  test_setenv_getenv();
-  return 0;
+void ByteBuffer::Clear() {
+  if (buffer_) {
+    grpc_byte_buffer_destroy(buffer_);
+    buffer_ = nullptr;
+  }
 }
+
+void ByteBuffer::Dump(std::vector<Slice>* slices) {
+  slices->clear();
+  if (!buffer_) {
+    return;
+  }
+  grpc_byte_buffer_reader* reader = grpc_byte_buffer_reader_create(buffer_);
+  gpr_slice s;
+  while (grpc_byte_buffer_reader_next(reader, &s)) {
+    slices->push_back(Slice(s, Slice::STEAL_REF));
+  }
+  grpc_byte_buffer_reader_destroy(reader);
+}
+
+size_t ByteBuffer::Length() {
+  if (buffer_) {
+    return grpc_byte_buffer_length(buffer_);
+  } else {
+    return 0;
+  }
+}
+
+}  // namespace grpc

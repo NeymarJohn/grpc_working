@@ -31,34 +31,54 @@
  *
  */
 
-#include <stdio.h>
-#include <string.h>
+#ifndef GRPCXX_BYTE_BUFFER_H
+#define GRPCXX_BYTE_BUFFER_H
 
-#include <grpc/support/alloc.h>
+#include <grpc/grpc.h>
 #include <grpc/support/log.h>
+#include <grpc++/config.h>
+#include <grpc++/slice.h>
 
-#include "src/core/support/env.h"
-#include "src/core/support/string.h"
-#include "test/core/util/test_config.h"
+#include <vector>
 
-#define LOG_TEST_NAME() gpr_log(GPR_INFO, "%s", __FUNCTION__)
+namespace grpc {
 
-static void test_setenv_getenv(void) {
-  const char *name = "FOO";
-  const char *value = "BAR";
-  char *retrieved_value;
+class ByteBuffer GRPC_FINAL {
+ public:
+  ByteBuffer() : buffer_(nullptr) {}
 
-  LOG_TEST_NAME();
+  ByteBuffer(Slice* slices, size_t nslices);
 
-  gpr_setenv(name, value);
-  retrieved_value = gpr_getenv(name);
-  GPR_ASSERT(retrieved_value != NULL);
-  GPR_ASSERT(!strcmp(value, retrieved_value));
-  gpr_free(retrieved_value);
-}
+  ~ByteBuffer() {
+    if (buffer_) {
+      grpc_byte_buffer_destroy(buffer_);
+    }
+  }
 
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  test_setenv_getenv();
-  return 0;
-}
+  void Dump(std::vector<Slice>* slices);
+
+  void Clear();
+  size_t Length();
+
+ private:
+  friend class CallOpBuffer;
+
+  // takes ownership
+  void set_buffer(grpc_byte_buffer* buf) {
+    if (buffer_) {
+      gpr_log(GPR_ERROR, "Overriding existing buffer");
+      Clear();
+    }
+    buffer_ = buf;
+  }
+
+  grpc_byte_buffer* buffer() const {
+    return buffer_;
+  }
+
+  grpc_byte_buffer* buffer_;
+};
+
+}  // namespace grpc
+
+#endif  // GRPCXX_BYTE_BUFFER_H

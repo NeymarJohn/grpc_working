@@ -127,6 +127,8 @@ namespace Grpc.Core.Tests
         [Test]
         public void NopPInvokeBenchmark()
         {
+            CompletionCallbackDelegate handler = Handler;
+
             BenchmarkUtil.RunBenchmark(
                 1000000, 100000000,
                 () => {

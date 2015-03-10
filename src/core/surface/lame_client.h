@@ -31,34 +31,12 @@
  *
  */
 
-#include <stdio.h>
-#include <string.h>
+#ifndef GRPC_INTERNAL_CORE_SURFACE_LAME_CLIENT_H
+#define GRPC_INTERNAL_CORE_SURFACE_LAME_CLIENT_H
 
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
+#include <grpc/grpc.h>
 
-#include "src/core/support/env.h"
-#include "src/core/support/string.h"
-#include "test/core/util/test_config.h"
+/* Create a lame client: this client fails every operation attempted on it. */
+grpc_channel *grpc_lame_client_channel_create(void);
 
-#define LOG_TEST_NAME() gpr_log(GPR_INFO, "%s", __FUNCTION__)
-
-static void test_setenv_getenv(void) {
-  const char *name = "FOO";
-  const char *value = "BAR";
-  char *retrieved_value;
-
-  LOG_TEST_NAME();
-
-  gpr_setenv(name, value);
-  retrieved_value = gpr_getenv(name);
-  GPR_ASSERT(retrieved_value != NULL);
-  GPR_ASSERT(!strcmp(value, retrieved_value));
-  gpr_free(retrieved_value);
-}
-
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  test_setenv_getenv();
-  return 0;
-}
+#endif  /* GRPC_INTERNAL_CORE_SURFACE_LAME_CLIENT_H */

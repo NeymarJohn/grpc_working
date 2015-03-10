@@ -31,34 +31,17 @@
  *
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <grpc++/anonymous_service.h>
 
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
+#include <grpc++/server.h>
 
-#include "src/core/support/env.h"
-#include "src/core/support/string.h"
-#include "test/core/util/test_config.h"
+namespace grpc {
 
-#define LOG_TEST_NAME() gpr_log(GPR_INFO, "%s", __FUNCTION__)
-
-static void test_setenv_getenv(void) {
-  const char *name = "FOO";
-  const char *value = "BAR";
-  char *retrieved_value;
-
-  LOG_TEST_NAME();
-
-  gpr_setenv(name, value);
-  retrieved_value = gpr_getenv(name);
-  GPR_ASSERT(retrieved_value != NULL);
-  GPR_ASSERT(!strcmp(value, retrieved_value));
-  gpr_free(retrieved_value);
+void AnonymousService::RequestCall(AnonymousServerContext* ctx,
+                   GenericServerReaderWriter* reader_writer,
+                   CompletionQueue* cq, void* tag) {
+  server_->RequestAsyncAnonymousCall(ctx, reader_writer, cq, tag);
 }
 
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  test_setenv_getenv();
-  return 0;
-}
+} // namespace grpc
+
