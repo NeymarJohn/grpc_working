@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,40 +27,32 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-thisfile=$(readlink -ne "${BASH_SOURCE[0]}")
-current_time=$(date "+%Y-%m-%d-%H-%M-%S")
-result_file_name=interop_result.$current_time.html
-echo $result_file_name
+# TODO(nathaniel): The assembly layer only exists to smooth out wrinkles in
+# the face layer. The two should be squashed together as soon as manageable.
+"""Interfaces for assembling RPC Framework values."""
 
-main() {
-  source grpc_docker.sh
-  test_cases=(large_unary empty_unary ping_pong client_streaming server_streaming cancel_after_begin cancel_after_first_response)
-  clients=(cxx java go ruby node csharp_mono)
-  servers=(cxx java go ruby node python)
-  for test_case in "${test_cases[@]}"
-  do
-    for client in "${clients[@]}"
-    do
-      for server in "${servers[@]}"
-      do
-        if grpc_interop_test $test_case grpc-docker-testclients $client grpc-docker-server $server
-        then
-          echo "          ['$test_case', '$client', '$server', true]," >> /tmp/interop_result.txt
-        else
-          echo "          ['$test_case', '$client', '$server', false]," >> /tmp/interop_result.txt
-        fi
-      done
-    done
-  done
-  if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    cat pre.html /tmp/interop_result.txt post.html > /tmp/interop_result.html
-    gsutil cp /tmp/interop_result.txt gs://stoked-keyword-656-output/interop_result.txt
-    gsutil cp /tmp/interop_result.html gs://stoked-keyword-656-output/interop_result.html
-    gsutil cp /tmp/interop_result.html gs://stoked-keyword-656-output/result_history/$result_file_name
-    rm /tmp/interop_result.txt
-    rm /tmp/interop_result.html
-  fi
-}
+import abc
 
-set -x
-main "$@"
+from grpc.framework.foundation import activated
+
+
+class Server(activated.Activated):
+  """The server interface.
+
+  Aside from being able to be activated and deactivated, objects of this type
+  are able to report the port on which they are servicing RPCs.
+  """
+  __metaclass__ = abc.ABCMeta
+
+  # TODO(issue 726): This is an abstraction violation; not every Server is
+  # necessarily serving over a network at all.
+  @abc.abstractmethod
+  def port(self):
+    """Identifies the port on which this Server is servicing RPCs.
+
+    This method may only be called while the server is active.
+
+    Returns:
+      The number of the port on which this Server is servicing RPCs.
+    """
+    raise NotImplementedError()

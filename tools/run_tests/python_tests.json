@@ -27,6 +27,9 @@
     "module": "grpc.early_adopter.implementations_test"
   },
   {
+    "module": "grpc.framework.assembly.implementations_test"
+  },
+  {
     "module": "grpc.framework.base.packets.implementations_test"
   },
   {
