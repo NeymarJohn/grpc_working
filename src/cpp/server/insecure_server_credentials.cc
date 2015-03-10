@@ -31,45 +31,22 @@
  *
  */
 
-#ifndef GRPCXX_ANONYMOUS_SERVICE_H
-#define GRPCXX_ANONYMOUS_SERVICE_H
-
-#include <grpc++/byte_buffer.h>
-#include <grpc++/stream.h>
-
-struct grpc_server;
+#include <grpc/grpc_security.h>
+#include <grpc++/server_credentials.h>
 
 namespace grpc {
-
-typedef ServerAsyncReaderWriter<ByteBuffer, ByteBuffer> GenericServerReaderWriter;
-
-class AnonymousServerContext : public ServerContext {
+namespace {
+class InsecureServerCredentialsImpl GRPC_FINAL : public ServerCredentials {
  public:
-  const grpc::string& method() const { return method_; }
-  const grpc::string& host() const { return host_; }
-
- private:
-  friend class Server;
-
-  grpc::string method_;
-  grpc::string host_;
+  int AddPortToServer(const grpc::string& addr,
+                      grpc_server* server) GRPC_OVERRIDE {
+    return grpc_server_add_http2_port(server, addr.c_str());
+  }
 };
+}  // namespace
 
-class AnonymousService {
- public:
-  // TODO(yangg) Once we can add multiple completion queues to the server
-  // in c core, add a CompletionQueue* argument to the ctor here.
-  AnonymousService() : server_(nullptr) {}
+std::shared_ptr<ServerCredentials> InsecureServerCredentials() {
+  return std::shared_ptr<ServerCredentials>(new InsecureServerCredentialsImpl());
+}
 
-  void RequestCall(AnonymousServerContext* ctx,
-                   GenericServerReaderWriter* reader_writer,
-                   CompletionQueue* cq, void* tag);
-
- private:
-  friend class Server;
-  Server* server_;
-};
-
-} // namespace grpc
-
-#endif  // GRPCXX_ANONYMOUS_SERVICE_H
+}  // namespace grpc

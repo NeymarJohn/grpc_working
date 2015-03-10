@@ -31,27 +31,64 @@
  *
  */
 
-#include <grpc/grpc.h>
+'use strict';
 
-#include "src/core/channel/channel_args.h"
-#include "src/core/security/security_context.h"
-#include "src/core/surface/completion_queue.h"
-#include "src/core/surface/server.h"
-#include <grpc/support/log.h>
+var assert = require('assert');
+var grpc = require('bindings')('grpc.node');
 
-grpc_server *grpc_secure_server_create_internal(
-    grpc_completion_queue *cq, const grpc_channel_args *args,
-    grpc_security_context *context) {
-  grpc_arg context_arg;
-  grpc_channel_args *args_copy;
-  grpc_server *server;
-  if (grpc_find_security_context_in_args(args) != NULL) {
-    gpr_log(GPR_ERROR, "Cannot set security context in channel args.");
-  }
-
-  context_arg = grpc_security_context_to_arg(context);
-  args_copy = grpc_channel_args_copy_and_add(args, &context_arg);
-  server = grpc_server_create_from_filters(cq, NULL, 0, args_copy);
-  grpc_channel_args_destroy(args_copy);
-  return server;
-}
+describe('server', function() {
+  describe('constructor', function() {
+    it('should work with no arguments', function() {
+      assert.doesNotThrow(function() {
+        new grpc.Server();
+      });
+    });
+    it('should work with an empty list argument', function() {
+      assert.doesNotThrow(function() {
+        new grpc.Server([]);
+      });
+    });
+  });
+  describe('addHttp2Port', function() {
+    var server;
+    before(function() {
+      server = new grpc.Server();
+    });
+    it('should bind to an unused port', function() {
+      var port;
+      assert.doesNotThrow(function() {
+        port = server.addHttp2Port('0.0.0.0:0');
+      });
+      assert(port > 0);
+    });
+  });
+  describe('addSecureHttp2Port', function() {
+    var server;
+    before(function() {
+      server = new grpc.Server();
+    });
+    it('should bind to an unused port with fake credentials', function() {
+      var port;
+      var creds = grpc.ServerCredentials.createFake();
+      assert.doesNotThrow(function() {
+        port = server.addSecureHttp2Port('0.0.0.0:0', creds);
+      });
+      assert(port > 0);
+    });
+  });
+  describe('listen', function() {
+    var server;
+    before(function() {
+      server = new grpc.Server();
+      server.addHttp2Port('0.0.0.0:0');
+    });
+    after(function() {
+      server.shutdown();
+    });
+    it('should listen without error', function() {
+      assert.doesNotThrow(function() {
+        server.start();
+      });
+    });
+  });
+});
