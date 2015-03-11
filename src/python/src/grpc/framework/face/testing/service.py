@@ -36,8 +36,8 @@ from grpc.framework.face import interfaces as face_interfaces  # pylint: disable
 from grpc.framework.face.testing import interfaces
 
 
-class UnaryUnaryTestMethodImplementation(interfaces.Method):
-  """A controllable implementation of a unary-unary RPC method."""
+class UnaryUnaryTestMethod(interfaces.Method):
+  """Like face_interfaces.EventValueInValueOutMethod but with a control."""
 
   __metaclass__ = abc.ABCMeta
 
@@ -93,8 +93,8 @@ class UnaryUnaryTestMessages(object):
     raise NotImplementedError()
 
 
-class UnaryStreamTestMethodImplementation(interfaces.Method):
-  """A controllable implementation of a unary-stream RPC method."""
+class UnaryStreamTestMethod(interfaces.Method):
+  """Like face_interfaces.EventValueInStreamOutMethod but with a control."""
 
   __metaclass__ = abc.ABCMeta
 
@@ -106,7 +106,7 @@ class UnaryStreamTestMethodImplementation(interfaces.Method):
       request: The single request message for the RPC.
       response_consumer: A stream.Consumer to be called to accept the response
         messages of the RPC.
-      context: A face_interfaces.RpcContext object.
+      context: An RpcContext object.
       control: A test_control.Control to control execution of this method.
 
     Raises:
@@ -150,8 +150,8 @@ class UnaryStreamTestMessages(object):
     raise NotImplementedError()
 
 
-class StreamUnaryTestMethodImplementation(interfaces.Method):
-  """A controllable implementation of a stream-unary RPC method."""
+class StreamUnaryTestMethod(interfaces.Method):
+  """Like face_interfaces.EventStreamInValueOutMethod but with a control."""
 
   __metaclass__ = abc.ABCMeta
 
@@ -162,7 +162,7 @@ class StreamUnaryTestMethodImplementation(interfaces.Method):
     Args:
       response_callback: A callback to be called to accept the response message
         of the RPC.
-      context: A face_interfaces.RpcContext object.
+      context: An RpcContext object.
       control: A test_control.Control to control execution of this method.
 
     Returns:
@@ -214,8 +214,8 @@ class StreamUnaryTestMessages(object):
     raise NotImplementedError()
 
 
-class StreamStreamTestMethodImplementation(interfaces.Method):
-  """A controllable implementation of a stream-stream RPC method."""
+class StreamStreamTestMethod(interfaces.Method):
+  """Like face_interfaces.EventStreamInStreamOutMethod but with a control."""
 
   __metaclass__ = abc.ABCMeta
 
@@ -226,7 +226,7 @@ class StreamStreamTestMethodImplementation(interfaces.Method):
     Args:
       response_consumer: A stream.Consumer to be called to accept the response
         messages of the RPC.
-      context: A face_interfaces.RpcContext object.
+      context: An RpcContext object.
       control: A test_control.Control to control execution of this method.
 
     Returns:
@@ -298,8 +298,8 @@ class TestService(object):
 
     Returns:
       A dict from method name to pair. The first element of the pair
-        is a UnaryUnaryTestMethodImplementation object and the second element
-        is a sequence of UnaryUnaryTestMethodMessages objects.
+        is a UnaryUnaryTestMethod object and the second element is a sequence
+        of UnaryUnaryTestMethodMessages objects.
     """
     raise NotImplementedError()
 
@@ -309,8 +309,8 @@ class TestService(object):
 
     Returns:
       A dict from method name to pair. The first element of the pair is a
-        UnaryStreamTestMethodImplementation object and the second element is a
-        sequence of UnaryStreamTestMethodMessages objects.
+        UnaryStreamTestMethod object and the second element is a sequence of
+        UnaryStreamTestMethodMessages objects.
     """
     raise NotImplementedError()
 
@@ -320,8 +320,8 @@ class TestService(object):
 
     Returns:
       A dict from method name to pair. The first element of the pair is a
-        StreamUnaryTestMethodImplementation object and the second element is a
-        sequence of StreamUnaryTestMethodMessages objects.
+        StreamUnaryTestMethod object and the second element is a sequence of
+        StreamUnaryTestMethodMessages objects.
     """
     raise NotImplementedError()
 
@@ -331,7 +331,7 @@ class TestService(object):
 
     Returns:
       A dict from method name to pair. The first element of the pair is a
-        StreamStreamTestMethodImplementation object and the second element is a
-        sequence of StreamStreamTestMethodMessages objects.
+        StreamStreamTestMethod object and the second element is a sequence of
+        StreamStreamTestMethodMessages objects.
     """
     raise NotImplementedError()

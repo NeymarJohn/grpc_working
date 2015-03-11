@@ -37,7 +37,7 @@
 #include <chrono>
 #include <map>
 
-#include <grpc++/config.h>
+#include "config.h"
 
 struct gpr_timespec;
 struct grpc_metadata;
@@ -66,7 +66,7 @@ class CompletionQueue;
 class Server;
 
 // Interface of server side rpc context.
-class ServerContext {
+class ServerContext GRPC_FINAL {
  public:
   ServerContext();  // for async calls
   ~ServerContext();

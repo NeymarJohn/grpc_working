@@ -31,44 +31,27 @@
  *
  */
 
-#ifndef GRPCXX_SLICE_H
-#define GRPCXX_SLICE_H
+#include <grpc/grpc.h>
 
-#include <grpc/support/slice.h>
-#include <grpc++/config.h>
+#include "src/core/channel/channel_args.h"
+#include "src/core/security/security_context.h"
+#include "src/core/surface/completion_queue.h"
+#include "src/core/surface/server.h"
+#include <grpc/support/log.h>
 
-namespace grpc {
-
-class Slice GRPC_FINAL {
- public:
-  // construct empty slice
-  Slice();
-  // destructor - drops one ref
-  ~Slice();
-  // construct slice from grpc slice, adding a ref
-  enum AddRef { ADD_REF };
-  Slice(gpr_slice slice, AddRef);
-  // construct slice from grpc slice, stealing a ref
-  enum StealRef { STEAL_REF };
-  Slice(gpr_slice slice, StealRef);
-  // copy constructor - adds a ref
-  Slice(const Slice& other);
-  // assignment
-  Slice& operator=(Slice other) {
-    std::swap(slice_, other.slice_);
-    return *this;
+grpc_server *grpc_secure_server_create_internal(
+    grpc_completion_queue *cq, const grpc_channel_args *args,
+    grpc_security_context *context) {
+  grpc_arg context_arg;
+  grpc_channel_args *args_copy;
+  grpc_server *server;
+  if (grpc_find_security_context_in_args(args) != NULL) {
+    gpr_log(GPR_ERROR, "Cannot set security context in channel args.");
   }
 
-  size_t size() const { return GPR_SLICE_LENGTH(slice_); }
-  const gpr_uint8* begin() const { return GPR_SLICE_START_PTR(slice_); }
-  const gpr_uint8* end() const { return GPR_SLICE_END_PTR(slice_); }
-
- private:
-  friend class ByteBuffer;
-
-  gpr_slice slice_;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_SLICE_H
+  context_arg = grpc_security_context_to_arg(context);
+  args_copy = grpc_channel_args_copy_and_add(args, &context_arg);
+  server = grpc_server_create_from_filters(cq, NULL, 0, args_copy);
+  grpc_channel_args_destroy(args_copy);
+  return server;
+}

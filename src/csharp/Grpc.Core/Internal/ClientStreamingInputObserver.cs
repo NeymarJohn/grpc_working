@@ -1,4 +1,5 @@
 #region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 // 
@@ -27,40 +28,40 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #endregion
+
 using System;
 using Grpc.Core.Internal;
 
 namespace Grpc.Core.Internal
 {
     internal class ClientStreamingInputObserver<TWrite, TRead> : IObserver<TWrite>
-    {
+	{
         readonly AsyncCall<TWrite, TRead> call;
 
         public ClientStreamingInputObserver(AsyncCall<TWrite, TRead> call)
-        {
+		{
             this.call = call;
-        }
+		}
 
-        public void OnCompleted()
-        {
-            var taskSource = new AsyncCompletionTaskSource();
-            call.StartSendCloseFromClient(taskSource.CompletionDelegate);
+		public void OnCompleted()
+		{
+
             // TODO: how bad is the Wait here?
-            taskSource.Task.Wait();
-        }
+            call.SendCloseFromClientAsync().Wait();
+		}
 
-        public void OnError(Exception error)
-        {
-            throw new InvalidOperationException("This should never be called.");
-        }
+		public void OnError(Exception error)
+		{
+			throw new InvalidOperationException("This should never be called.");
+		}
 
-        public void OnNext(TWrite value)
-        {
-            var taskSource = new AsyncCompletionTaskSource();
-            call.StartSendMessage(value, taskSource.CompletionDelegate);
+		public void OnNext(TWrite value)
+		{
             // TODO: how bad is the Wait here?
-            taskSource.Task.Wait();
-        }
-    }
+            call.SendMessageAsync(value).Wait();
+		}
+	}
 }
+
