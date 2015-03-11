@@ -80,6 +80,7 @@ void CompletionQueueAsyncWorker::HandleOKCallback() {
   NanScope();
   NanCallback *callback = GetTagCallback(result->tag);
   Handle<Value> argv[] = {NanNull(), GetTagNodeValue(result->tag)};
+
   callback->Call(2, argv);
 
   DestroyTag(result->tag);

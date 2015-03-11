@@ -34,7 +34,11 @@
 #ifndef GRPCXX_IMPL_SERVICE_TYPE_H
 #define GRPCXX_IMPL_SERVICE_TYPE_H
 
-#include <grpc++/config.h>
+namespace google {
+namespace protobuf {
+class Message;
+}  // namespace protobuf
+}  // namespace google
 
 namespace grpc {
 
@@ -68,7 +72,7 @@ class AsynchronousService {
    public:
     virtual void RequestAsyncCall(void* registered_method,
                                   ServerContext* context,
-                                  ::grpc::protobuf::Message* request,
+                                  ::google::protobuf::Message* request,
                                   ServerAsyncStreamingInterface* stream,
                                   CompletionQueue* cq, void* tag) = 0;
   };
@@ -87,7 +91,7 @@ class AsynchronousService {
 
  protected:
   void RequestAsyncUnary(int index, ServerContext* context,
-                         grpc::protobuf::Message* request,
+                         ::google::protobuf::Message* request,
                          ServerAsyncStreamingInterface* stream,
                          CompletionQueue* cq, void* tag) {
     dispatch_impl_->RequestAsyncCall(request_args_[index], context, request,
@@ -100,7 +104,7 @@ class AsynchronousService {
                                      stream, cq, tag);
   }
   void RequestServerStreaming(int index, ServerContext* context,
-                              grpc::protobuf::Message* request,
+                              ::google::protobuf::Message* request,
                               ServerAsyncStreamingInterface* stream,
                               CompletionQueue* cq, void* tag) {
     dispatch_impl_->RequestAsyncCall(request_args_[index], context, request,

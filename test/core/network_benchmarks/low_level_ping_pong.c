@@ -81,7 +81,7 @@ typedef struct thread_args {
 
 /* Basic call to read() */
 static int read_bytes(int fd, char *buf, size_t read_size, int spin) {
-  size_t bytes_read = 0;
+  int bytes_read = 0;
   int err;
   do {
     err = read(fd, buf + bytes_read, read_size - bytes_read);
@@ -198,7 +198,7 @@ static int epoll_read_bytes_spin(struct thread_args *args, char *buf) {
    writes go directly out to the kernel.
  */
 static int blocking_write_bytes(struct thread_args *args, char *buf) {
-  size_t bytes_written = 0;
+  int bytes_written = 0;
   int err;
   size_t write_size = args->msg_size;
   do {
@@ -586,10 +586,10 @@ static int run_benchmark(char *socket_type, thread_args *client_args,
 
 static int run_all_benchmarks(int msg_size) {
   int error = 0;
-  size_t i;
+  int i;
   for (i = 0; i < GPR_ARRAY_SIZE(test_strategies); ++i) {
     test_strategy *test_strategy = &test_strategies[i];
-    size_t j;
+    int j;
     for (j = 0; j < GPR_ARRAY_SIZE(socket_types); ++j) {
       thread_args *client_args = malloc(sizeof(thread_args));
       thread_args *server_args = malloc(sizeof(thread_args));
@@ -620,7 +620,7 @@ int main(int argc, char **argv) {
   int msg_size = -1;
   char *read_strategy = NULL;
   char *socket_type = NULL;
-  size_t i;
+  int i;
   const test_strategy *test_strategy = NULL;
   int error = 0;
 
@@ -654,7 +654,7 @@ int main(int argc, char **argv) {
   }
 
   for (i = 0; i < GPR_ARRAY_SIZE(test_strategies); ++i) {
-    if (strcmp(test_strategies[i].name, read_strategy) == 0) {
+    if (!strcmp(test_strategies[i].name, read_strategy)) {
       test_strategy = &test_strategies[i];
     }
   }

@@ -81,6 +81,7 @@ module GRPC
                    max_waiting_requests:DEFAULT_MAX_WAITING_REQUESTS,
                    poll_period:INFINITE_FUTURE,
                    completion_queue_override:nil,
+                   creds:nil,
                    server_override:nil,
                    **kw)
       if completion_queue_override.nil?
@@ -94,7 +95,13 @@ module GRPC
       @cq = cq
 
       if server_override.nil?
-        srv = Core::Server.new(@cq, kw)
+        if creds.nil?
+          srv = Core::Server.new(@cq, kw)
+        elsif !creds.is_a? Core::ServerCredentials
+          fail(ArgumentError, 'not a ServerCredentials')
+        else
+          srv = Core::Server.new(@cq, kw, creds)
+        end
       else
         srv = server_override
         fail(ArgumentError, 'not a Server') unless srv.is_a? Core::Server
