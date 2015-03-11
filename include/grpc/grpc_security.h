@@ -167,9 +167,10 @@ grpc_server_credentials *grpc_ssl_server_credentials_create(
 grpc_server_credentials *grpc_fake_transport_security_server_credentials_create(
     void);
 
-/* --- Server-side secure ports. --- */
+/* --- Secure server creation. --- */
 
 /* Add a HTTP2 over an encrypted link over tcp listener.
+   Server must have been created with grpc_secure_server_create.
    Returns bound port number on success, 0 on failure.
    REQUIRES: server not started */
 int grpc_server_add_secure_http2_port(grpc_server *server, const char *addr,
