@@ -57,16 +57,11 @@ class EventDeleter {
   }
 };
 
-bool CompletionQueue::Next(void** tag, bool* ok, gpr_timespec deadline) {
+bool CompletionQueue::Next(void** tag, bool* ok) {
   std::unique_ptr<grpc_event, EventDeleter> ev;
 
   for (;;) {
-    ev.reset(grpc_completion_queue_next(cq_, deadline));
-    if (!ev) { /* got a NULL back because deadline passed */
-      *ok = true;
-      *tag = nullptr;
-      return true;
-    }
+    ev.reset(grpc_completion_queue_next(cq_, gpr_inf_future));
     if (ev->type == GRPC_QUEUE_SHUTDOWN) {
       return false;
     }
