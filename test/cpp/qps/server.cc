@@ -45,7 +45,6 @@
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
-#include <grpc++/server_credentials.h>
 #include <grpc++/status.h>
 #include "src/cpp/server/thread_pool.h"
 #include "test/core/util/grpc_profiler.h"
@@ -137,7 +136,7 @@ static void RunServer() {
   SimpleResponse response;
 
   ServerBuilder builder;
-  builder.AddPort(server_address, grpc::InsecureServerCredentials());
+  builder.AddPort(server_address);
   builder.RegisterService(&service);
 
   std::unique_ptr<ThreadPool> pool(new ThreadPool(FLAGS_server_threads));

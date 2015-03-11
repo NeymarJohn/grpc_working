@@ -31,27 +31,12 @@
  *
  */
 
-#ifndef TEST_QPS_TIMER_H
-#define TEST_QPS_TIMER_H
+#ifndef GRPC_INTERNAL_CORE_SURFACE_LAME_CLIENT_H
+#define GRPC_INTERNAL_CORE_SURFACE_LAME_CLIENT_H
 
-class Timer {
- public:
-  Timer();
+#include <grpc/grpc.h>
 
-  struct Result {
-    double wall;
-    double user;
-    double system;
-  };
+/* Create a lame client: this client fails every operation attempted on it. */
+grpc_channel *grpc_lame_client_channel_create(void);
 
-  Result Mark();
-
-  static double Now();
-
- private:
-  static Result Sample();
-
-  const Result start_;
-};
-
-#endif  // TEST_QPS_TIMER_H
+#endif  /* GRPC_INTERNAL_CORE_SURFACE_LAME_CLIENT_H */

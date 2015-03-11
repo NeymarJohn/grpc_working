@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -29,18 +28,3 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-main() {
-  # rebuild images on all languages on existing builder vm. 
-  source grpc_docker.sh
-  cd ../../
-
-  # build images for all languages
-  languages=(cxx java go ruby node python csharp_mono)
-  for lan in "${languages[@]}"
-  do
-    grpc_update_image $lan
-  done
-}
-
-set -x
-main "$@"

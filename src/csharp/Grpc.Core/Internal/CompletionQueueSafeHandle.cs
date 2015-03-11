@@ -1,4 +1,5 @@
 #region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,7 +28,9 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #endregion
+
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -37,8 +40,8 @@ namespace Grpc.Core.Internal
     /// <summary>
     /// grpc_completion_queue from <grpc/grpc.h>
     /// </summary>
-    internal class CompletionQueueSafeHandle : SafeHandleZeroIsInvalid
-    {
+	internal class CompletionQueueSafeHandle : SafeHandleZeroIsInvalid
+	{
         [DllImport("grpc_csharp_ext.dll")]
         static extern CompletionQueueSafeHandle grpcsharp_completion_queue_create();
 
@@ -70,11 +73,11 @@ namespace Grpc.Core.Internal
             grpcsharp_completion_queue_shutdown(this);
         }
 
-        protected override bool ReleaseHandle()
+		protected override bool ReleaseHandle()
         {
             grpcsharp_completion_queue_destroy(handle);
-            return true;
-        }
-    }
+			return true;
+		}
+	}
 }
 

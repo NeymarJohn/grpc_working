@@ -1083,8 +1083,7 @@ static int does_entry_match_name(const char* entry, size_t entry_length,
     if (entry_length == 0) return 0;
   }
 
-  if ((name_length == entry_length) &&
-      strncmp(name, entry, entry_length) == 0) {
+  if ((name_length == entry_length) && !strncmp(name, entry, entry_length)) {
     return 1; /* Perfect match. */
   }
   if (entry[0] != '*') return 0;
@@ -1111,7 +1110,7 @@ static int does_entry_match_name(const char* entry, size_t entry_length,
     name_subdomain_length--;
   }
   return ((entry_length > 0) && (name_subdomain_length == entry_length) &&
-          strncmp(entry, name_subdomain, entry_length) == 0);
+          !strncmp(entry, name_subdomain, entry_length));
 }
 
 static int ssl_server_handshaker_factory_servername_callback(SSL* ssl, int* ap,
