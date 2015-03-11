@@ -70,6 +70,7 @@ namespace Grpc.Core
             handler(request, responseObserver);
 
             finishedTask.Wait();
+
         }
     }
 
@@ -92,7 +93,7 @@ namespace Grpc.Core
 
             asyncCall.Initialize(call);
 
-            var responseObserver = new ServerStreamingOutputObserver<TRequest, TResponse>(asyncCall);
+            var responseObserver = new ServerStreamingOutputObserver<TRequest,TResponse>(asyncCall);
             var requestObserver = handler(responseObserver);
             var finishedTask = asyncCall.ServerSideCallAsync(requestObserver);
             finishedTask.Wait();
@@ -112,7 +113,7 @@ namespace Grpc.Core
             var finishedTask = asyncCall.ServerSideCallAsync(new NullObserver<byte[]>());
 
             // TODO: check result of the completion status.
-            asyncCall.StartSendStatusFromServer(new Status(StatusCode.Unimplemented, "No such method."), new AsyncCompletionDelegate((error) => { }));
+            asyncCall.StartSendStatusFromServer(new Status(StatusCode.Unimplemented, "No such method."), new AsyncCompletionDelegate((error) => {}));
 
             finishedTask.Wait();
         }
@@ -131,5 +132,7 @@ namespace Grpc.Core
         public void OnNext(T value)
         {
         }
+
     }
 }
+

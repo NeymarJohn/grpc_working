@@ -56,7 +56,8 @@ namespace Grpc.Core
             }
         }
 
-        public static Builder CreateBuilder(string serviceName)
+
+        public static Builder CreateBuilder(String serviceName)
         {
             return new Builder(serviceName);
         }
@@ -64,7 +65,7 @@ namespace Grpc.Core
         public class Builder
         {
             readonly string serviceName;
-            readonly Dictionary<string, IServerCallHandler> callHandlers = new Dictionary<string, IServerCallHandler>();
+            readonly Dictionary<string, IServerCallHandler> callHandlers = new Dictionary<String, IServerCallHandler>();
 
             public Builder(string serviceName)
             {
@@ -94,3 +95,4 @@ namespace Grpc.Core
         }
     }
 }
+
