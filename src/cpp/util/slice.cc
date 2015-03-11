@@ -31,45 +31,20 @@
  *
  */
 
-#include <grpc/support/log.h>
-#include <grpc/support/slice_buffer.h>
-#include "test/core/util/test_config.h"
+#include <grpc++/slice.h>
 
-int main(int argc, char **argv) {
-  gpr_slice_buffer buf;
-  gpr_slice aaa = gpr_slice_from_copied_string("aaa");
-  gpr_slice bb = gpr_slice_from_copied_string("bb");
-  size_t i;
+namespace grpc {
 
-  grpc_test_init(argc, argv);
-  gpr_slice_buffer_init(&buf);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_ref(aaa);
-    gpr_slice_ref(bb);
-    gpr_slice_buffer_add(&buf, aaa);
-    gpr_slice_buffer_add(&buf, bb);
-  }
-  GPR_ASSERT(buf.count > 0);
-  GPR_ASSERT(buf.length == 50);
-  gpr_slice_buffer_reset_and_unref(&buf);
-  GPR_ASSERT(buf.count == 0);
-  GPR_ASSERT(buf.length == 0);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_ref(aaa);
-    gpr_slice_ref(bb);
-    gpr_slice_buffer_add(&buf, aaa);
-    gpr_slice_buffer_add(&buf, bb);
-  }
-  GPR_ASSERT(buf.count > 0);
-  GPR_ASSERT(buf.length == 50);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_buffer_pop(&buf);
-    gpr_slice_unref(aaa);
-    gpr_slice_unref(bb);
-  }
-  GPR_ASSERT(buf.count == 0);
-  GPR_ASSERT(buf.length == 0);
-  gpr_slice_buffer_destroy(&buf);
+Slice::Slice() : slice_(gpr_empty_slice()) {}
 
-  return 0;
+Slice::~Slice() {
+  gpr_slice_unref(slice_);
 }
+
+Slice::Slice(gpr_slice slice, AddRef) : slice_(gpr_slice_ref(slice)) {}
+
+Slice::Slice(gpr_slice slice, StealRef) : slice_(slice) {}
+
+Slice::Slice(const Slice& other) : slice_(gpr_slice_ref(other.slice_)) {}
+
+}  // namespace grpc

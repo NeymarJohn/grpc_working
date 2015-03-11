@@ -31,45 +31,29 @@
  *
  */
 
-#include <grpc/support/log.h>
-#include <grpc/support/slice_buffer.h>
-#include "test/core/util/test_config.h"
+#ifndef GRPCXX_ANONYMOUS_STUB_H
+#define GRPCXX_ANONYMOUS_STUB_H
 
-int main(int argc, char **argv) {
-  gpr_slice_buffer buf;
-  gpr_slice aaa = gpr_slice_from_copied_string("aaa");
-  gpr_slice bb = gpr_slice_from_copied_string("bb");
-  size_t i;
+#include <grpc++/byte_buffer.h>
+#include <grpc++/stream.h>
 
-  grpc_test_init(argc, argv);
-  gpr_slice_buffer_init(&buf);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_ref(aaa);
-    gpr_slice_ref(bb);
-    gpr_slice_buffer_add(&buf, aaa);
-    gpr_slice_buffer_add(&buf, bb);
-  }
-  GPR_ASSERT(buf.count > 0);
-  GPR_ASSERT(buf.length == 50);
-  gpr_slice_buffer_reset_and_unref(&buf);
-  GPR_ASSERT(buf.count == 0);
-  GPR_ASSERT(buf.length == 0);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_ref(aaa);
-    gpr_slice_ref(bb);
-    gpr_slice_buffer_add(&buf, aaa);
-    gpr_slice_buffer_add(&buf, bb);
-  }
-  GPR_ASSERT(buf.count > 0);
-  GPR_ASSERT(buf.length == 50);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_buffer_pop(&buf);
-    gpr_slice_unref(aaa);
-    gpr_slice_unref(bb);
-  }
-  GPR_ASSERT(buf.count == 0);
-  GPR_ASSERT(buf.length == 0);
-  gpr_slice_buffer_destroy(&buf);
+namespace grpc {
 
-  return 0;
-}
+typedef ClientAsyncReaderWriter<ByteBuffer, ByteBuffer> GenericClientReaderWriter;
+
+// Anonymous stubs provide a type-unsafe interface to call gRPC methods
+// by name.
+class AnonymousStub {
+ public:
+  explicit AnonymousStub(std::shared_ptr<ChannelInterface> channel) : channel_(channel) {}
+
+  // begin a call to a named method
+  std::unique_ptr<GenericClientReaderWriter> Call(ClientContext* context, const grpc::string& method);
+
+ private:
+  std::shared_ptr<ChannelInterface> channel_;
+};
+
+} // namespace grpc
+
+#endif  // GRPCXX_ANONYMOUS_STUB_H

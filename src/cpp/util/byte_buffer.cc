@@ -31,45 +31,46 @@
  *
  */
 
-#include <grpc/support/log.h>
-#include <grpc/support/slice_buffer.h>
-#include "test/core/util/test_config.h"
+#include <grpc++/byte_buffer.h>
 
-int main(int argc, char **argv) {
-  gpr_slice_buffer buf;
-  gpr_slice aaa = gpr_slice_from_copied_string("aaa");
-  gpr_slice bb = gpr_slice_from_copied_string("bb");
-  size_t i;
+namespace grpc {
 
-  grpc_test_init(argc, argv);
-  gpr_slice_buffer_init(&buf);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_ref(aaa);
-    gpr_slice_ref(bb);
-    gpr_slice_buffer_add(&buf, aaa);
-    gpr_slice_buffer_add(&buf, bb);
+ByteBuffer::ByteBuffer(Slice* slices, size_t nslices) {
+  // TODO(yangg) maybe expose some core API to simplify this
+  std::vector<gpr_slice> c_slices(nslices);
+  for (size_t i = 0; i < nslices; i++) {
+    c_slices[i] = slices[i].slice_;
   }
-  GPR_ASSERT(buf.count > 0);
-  GPR_ASSERT(buf.length == 50);
-  gpr_slice_buffer_reset_and_unref(&buf);
-  GPR_ASSERT(buf.count == 0);
-  GPR_ASSERT(buf.length == 0);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_ref(aaa);
-    gpr_slice_ref(bb);
-    gpr_slice_buffer_add(&buf, aaa);
-    gpr_slice_buffer_add(&buf, bb);
-  }
-  GPR_ASSERT(buf.count > 0);
-  GPR_ASSERT(buf.length == 50);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_buffer_pop(&buf);
-    gpr_slice_unref(aaa);
-    gpr_slice_unref(bb);
-  }
-  GPR_ASSERT(buf.count == 0);
-  GPR_ASSERT(buf.length == 0);
-  gpr_slice_buffer_destroy(&buf);
-
-  return 0;
+  buffer_ = grpc_byte_buffer_create(c_slices.data(), nslices);
 }
+
+void ByteBuffer::Clear() {
+  if (buffer_) {
+    grpc_byte_buffer_destroy(buffer_);
+    buffer_ = nullptr;
+  }
+}
+
+void ByteBuffer::Dump(std::vector<Slice>* slices) {
+  slices->clear();
+  if (!buffer_) {
+    return;
+  }
+  grpc_byte_buffer_reader* reader = grpc_byte_buffer_reader_create(buffer_);
+  gpr_slice s;
+  while (grpc_byte_buffer_reader_next(reader, &s)) {
+    slices->push_back(Slice(s, Slice::STEAL_REF));
+    gpr_slice_unref(s);
+  }
+  grpc_byte_buffer_reader_destroy(reader);
+}
+
+size_t ByteBuffer::Length() {
+  if (buffer_) {
+    return grpc_byte_buffer_length(buffer_);
+  } else {
+    return 0;
+  }
+}
+
+}  // namespace grpc

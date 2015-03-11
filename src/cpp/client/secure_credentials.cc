@@ -54,8 +54,7 @@ class SecureCredentials GRPC_FINAL : public Credentials {
     grpc_channel_args channel_args;
     args.SetChannelArgs(&channel_args);
     return std::shared_ptr<ChannelInterface>(new Channel(
-        args.GetSslTargetNameOverride().empty()
-            ? target : args.GetSslTargetNameOverride(),
+        target,
         grpc_secure_channel_create(c_creds_, target.c_str(), &channel_args)));
   }
 

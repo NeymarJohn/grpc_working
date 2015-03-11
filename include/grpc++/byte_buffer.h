@@ -31,45 +31,54 @@
  *
  */
 
+#ifndef GRPCXX_BYTE_BUFFER_H
+#define GRPCXX_BYTE_BUFFER_H
+
+#include <grpc/grpc.h>
 #include <grpc/support/log.h>
-#include <grpc/support/slice_buffer.h>
-#include "test/core/util/test_config.h"
+#include <grpc++/config.h>
+#include <grpc++/slice.h>
 
-int main(int argc, char **argv) {
-  gpr_slice_buffer buf;
-  gpr_slice aaa = gpr_slice_from_copied_string("aaa");
-  gpr_slice bb = gpr_slice_from_copied_string("bb");
-  size_t i;
+#include <vector>
 
-  grpc_test_init(argc, argv);
-  gpr_slice_buffer_init(&buf);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_ref(aaa);
-    gpr_slice_ref(bb);
-    gpr_slice_buffer_add(&buf, aaa);
-    gpr_slice_buffer_add(&buf, bb);
-  }
-  GPR_ASSERT(buf.count > 0);
-  GPR_ASSERT(buf.length == 50);
-  gpr_slice_buffer_reset_and_unref(&buf);
-  GPR_ASSERT(buf.count == 0);
-  GPR_ASSERT(buf.length == 0);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_ref(aaa);
-    gpr_slice_ref(bb);
-    gpr_slice_buffer_add(&buf, aaa);
-    gpr_slice_buffer_add(&buf, bb);
-  }
-  GPR_ASSERT(buf.count > 0);
-  GPR_ASSERT(buf.length == 50);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_buffer_pop(&buf);
-    gpr_slice_unref(aaa);
-    gpr_slice_unref(bb);
-  }
-  GPR_ASSERT(buf.count == 0);
-  GPR_ASSERT(buf.length == 0);
-  gpr_slice_buffer_destroy(&buf);
+namespace grpc {
 
-  return 0;
-}
+class ByteBuffer GRPC_FINAL {
+ public:
+  ByteBuffer() : buffer_(nullptr) {}
+
+  ByteBuffer(Slice* slices, size_t nslices);
+
+  ~ByteBuffer() {
+    if (buffer_) {
+      grpc_byte_buffer_destroy(buffer_);
+    }
+  }
+
+  void Dump(std::vector<Slice>* slices);
+
+  void Clear();
+  size_t Length();
+
+ private:
+  friend class CallOpBuffer;
+
+  // takes ownership
+  void set_buffer(grpc_byte_buffer* buf) {
+    if (buffer_) {
+      gpr_log(GPR_ERROR, "Overriding existing buffer");
+      Clear();
+    }
+    buffer_ = buf;
+  }
+
+  grpc_byte_buffer* buffer() const {
+    return buffer_;
+  }
+
+  grpc_byte_buffer* buffer_;
+};
+
+}  // namespace grpc
+
+#endif  // GRPCXX_BYTE_BUFFER_H

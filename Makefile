@@ -3105,17 +3105,22 @@ LIBGRPC++_SRC = \
     src/cpp/common/completion_queue.cc \
     src/cpp/common/rpc_method.cc \
     src/cpp/proto/proto_utils.cc \
+    src/cpp/server/anonymous_service.cc \
     src/cpp/server/insecure_server_credentials.cc \
     src/cpp/server/server.cc \
     src/cpp/server/server_builder.cc \
     src/cpp/server/server_context.cc \
     src/cpp/server/server_credentials.cc \
     src/cpp/server/thread_pool.cc \
+    src/cpp/util/byte_buffer.cc \
+    src/cpp/util/slice.cc \
     src/cpp/util/status.cc \
     src/cpp/util/time.cc \
 
 PUBLIC_HEADERS_CXX += \
+    include/grpc++/anonymous_service.h \
     include/grpc++/async_unary_call.h \
+    include/grpc++/byte_buffer.h \
     include/grpc++/channel_arguments.h \
     include/grpc++/channel_interface.h \
     include/grpc++/client_context.h \
@@ -3133,6 +3138,7 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/server_builder.h \
     include/grpc++/server_context.h \
     include/grpc++/server_credentials.h \
+    include/grpc++/slice.h \
     include/grpc++/status.h \
     include/grpc++/status_code_enum.h \
     include/grpc++/stream.h \
@@ -3186,12 +3192,15 @@ src/cpp/common/call.cc: $(OPENSSL_DEP)
 src/cpp/common/completion_queue.cc: $(OPENSSL_DEP)
 src/cpp/common/rpc_method.cc: $(OPENSSL_DEP)
 src/cpp/proto/proto_utils.cc: $(OPENSSL_DEP)
+src/cpp/server/anonymous_service.cc: $(OPENSSL_DEP)
 src/cpp/server/insecure_server_credentials.cc: $(OPENSSL_DEP)
 src/cpp/server/server.cc: $(OPENSSL_DEP)
 src/cpp/server/server_builder.cc: $(OPENSSL_DEP)
 src/cpp/server/server_context.cc: $(OPENSSL_DEP)
 src/cpp/server/server_credentials.cc: $(OPENSSL_DEP)
 src/cpp/server/thread_pool.cc: $(OPENSSL_DEP)
+src/cpp/util/byte_buffer.cc: $(OPENSSL_DEP)
+src/cpp/util/slice.cc: $(OPENSSL_DEP)
 src/cpp/util/status.cc: $(OPENSSL_DEP)
 src/cpp/util/time.cc: $(OPENSSL_DEP)
 endif
@@ -3249,12 +3258,15 @@ $(OBJDIR)/$(CONFIG)/src/cpp/common/call.o:
 $(OBJDIR)/$(CONFIG)/src/cpp/common/completion_queue.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/common/rpc_method.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/proto/proto_utils.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/anonymous_service.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/server/insecure_server_credentials.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/server/server.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/server/server_builder.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/server/server_context.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/server/server_credentials.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/server/thread_pool.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/util/byte_buffer.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/util/slice.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/util/status.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/util/time.o: 
 
@@ -3337,17 +3349,22 @@ LIBGRPC++_UNSECURE_SRC = \
     src/cpp/common/completion_queue.cc \
     src/cpp/common/rpc_method.cc \
     src/cpp/proto/proto_utils.cc \
+    src/cpp/server/anonymous_service.cc \
     src/cpp/server/insecure_server_credentials.cc \
     src/cpp/server/server.cc \
     src/cpp/server/server_builder.cc \
     src/cpp/server/server_context.cc \
     src/cpp/server/server_credentials.cc \
     src/cpp/server/thread_pool.cc \
+    src/cpp/util/byte_buffer.cc \
+    src/cpp/util/slice.cc \
     src/cpp/util/status.cc \
     src/cpp/util/time.cc \
 
 PUBLIC_HEADERS_CXX += \
+    include/grpc++/anonymous_service.h \
     include/grpc++/async_unary_call.h \
+    include/grpc++/byte_buffer.h \
     include/grpc++/channel_arguments.h \
     include/grpc++/channel_interface.h \
     include/grpc++/client_context.h \
@@ -3365,6 +3382,7 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/server_builder.h \
     include/grpc++/server_context.h \
     include/grpc++/server_credentials.h \
+    include/grpc++/slice.h \
     include/grpc++/status.h \
     include/grpc++/status_code_enum.h \
     include/grpc++/stream.h \
@@ -3433,12 +3451,15 @@ $(OBJDIR)/$(CONFIG)/src/cpp/common/call.o:
 $(OBJDIR)/$(CONFIG)/src/cpp/common/completion_queue.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/common/rpc_method.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/proto/proto_utils.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/anonymous_service.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/server/insecure_server_credentials.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/server/server.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/server/server_builder.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/server/server_context.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/server/server_credentials.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/server/thread_pool.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/util/byte_buffer.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/util/slice.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/util/status.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/util/time.o: 
 

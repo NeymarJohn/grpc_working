@@ -31,45 +31,45 @@
  *
  */
 
-#include <grpc/support/log.h>
-#include <grpc/support/slice_buffer.h>
-#include "test/core/util/test_config.h"
+#ifndef GRPCXX_ANONYMOUS_SERVICE_H
+#define GRPCXX_ANONYMOUS_SERVICE_H
 
-int main(int argc, char **argv) {
-  gpr_slice_buffer buf;
-  gpr_slice aaa = gpr_slice_from_copied_string("aaa");
-  gpr_slice bb = gpr_slice_from_copied_string("bb");
-  size_t i;
+#include <grpc++/byte_buffer.h>
+#include <grpc++/stream.h>
 
-  grpc_test_init(argc, argv);
-  gpr_slice_buffer_init(&buf);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_ref(aaa);
-    gpr_slice_ref(bb);
-    gpr_slice_buffer_add(&buf, aaa);
-    gpr_slice_buffer_add(&buf, bb);
-  }
-  GPR_ASSERT(buf.count > 0);
-  GPR_ASSERT(buf.length == 50);
-  gpr_slice_buffer_reset_and_unref(&buf);
-  GPR_ASSERT(buf.count == 0);
-  GPR_ASSERT(buf.length == 0);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_ref(aaa);
-    gpr_slice_ref(bb);
-    gpr_slice_buffer_add(&buf, aaa);
-    gpr_slice_buffer_add(&buf, bb);
-  }
-  GPR_ASSERT(buf.count > 0);
-  GPR_ASSERT(buf.length == 50);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_buffer_pop(&buf);
-    gpr_slice_unref(aaa);
-    gpr_slice_unref(bb);
-  }
-  GPR_ASSERT(buf.count == 0);
-  GPR_ASSERT(buf.length == 0);
-  gpr_slice_buffer_destroy(&buf);
+struct grpc_server;
 
-  return 0;
-}
+namespace grpc {
+
+typedef ServerAsyncReaderWriter<ByteBuffer, ByteBuffer> GenericServerReaderWriter;
+
+class AnonymousServerContext : public ServerContext {
+ public:
+  const grpc::string& method() const { return method_; }
+  const grpc::string& host() const { return host_; }
+
+ private:
+  friend class Server;
+
+  grpc::string method_;
+  grpc::string host_;
+};
+
+class AnonymousService {
+ public:
+  // TODO(yangg) Once we can add multiple completion queues to the server
+  // in c core, add a CompletionQueue* argument to the ctor here.
+  AnonymousService() : server_(nullptr) {}
+
+  void RequestCall(AnonymousServerContext* ctx,
+                   GenericServerReaderWriter* reader_writer,
+                   CompletionQueue* cq, void* tag);
+
+ private:
+  friend class Server;
+  Server* server_;
+};
+
+} // namespace grpc
+
+#endif  // GRPCXX_ANONYMOUS_SERVICE_H

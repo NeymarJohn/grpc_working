@@ -31,45 +31,44 @@
  *
  */
 
-#include <grpc/support/log.h>
-#include <grpc/support/slice_buffer.h>
-#include "test/core/util/test_config.h"
+#ifndef GRPCXX_SLICE_H
+#define GRPCXX_SLICE_H
 
-int main(int argc, char **argv) {
-  gpr_slice_buffer buf;
-  gpr_slice aaa = gpr_slice_from_copied_string("aaa");
-  gpr_slice bb = gpr_slice_from_copied_string("bb");
-  size_t i;
+#include <grpc/support/slice.h>
+#include <grpc++/config.h>
 
-  grpc_test_init(argc, argv);
-  gpr_slice_buffer_init(&buf);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_ref(aaa);
-    gpr_slice_ref(bb);
-    gpr_slice_buffer_add(&buf, aaa);
-    gpr_slice_buffer_add(&buf, bb);
-  }
-  GPR_ASSERT(buf.count > 0);
-  GPR_ASSERT(buf.length == 50);
-  gpr_slice_buffer_reset_and_unref(&buf);
-  GPR_ASSERT(buf.count == 0);
-  GPR_ASSERT(buf.length == 0);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_ref(aaa);
-    gpr_slice_ref(bb);
-    gpr_slice_buffer_add(&buf, aaa);
-    gpr_slice_buffer_add(&buf, bb);
-  }
-  GPR_ASSERT(buf.count > 0);
-  GPR_ASSERT(buf.length == 50);
-  for (i = 0; i < 10; i++) {
-    gpr_slice_buffer_pop(&buf);
-    gpr_slice_unref(aaa);
-    gpr_slice_unref(bb);
-  }
-  GPR_ASSERT(buf.count == 0);
-  GPR_ASSERT(buf.length == 0);
-  gpr_slice_buffer_destroy(&buf);
+namespace grpc {
 
-  return 0;
-}
+class Slice GRPC_FINAL {
+ public:
+  // construct empty slice
+  Slice();
+  // destructor - drops one ref
+  ~Slice();
+  // construct slice from grpc slice, adding a ref
+  enum AddRef { ADD_REF };
+  Slice(gpr_slice slice, AddRef);
+  // construct slice from grpc slice, stealing a ref
+  enum StealRef { STEAL_REF };
+  Slice(gpr_slice slice, StealRef);
+  // copy constructor - adds a ref
+  Slice(const Slice& other);
+  // assignment
+  Slice& operator=(Slice other) {
+    std::swap(slice_, other.slice_);
+    return *this;
+  }
+
+  size_t size() const { return GPR_SLICE_LENGTH(slice_); }
+  const gpr_uint8* begin() const { return GPR_SLICE_START_PTR(slice_); }
+  const gpr_uint8* end() const { return GPR_SLICE_END_PTR(slice_); }
+
+ private:
+  friend class ByteBuffer;
+
+  gpr_slice slice_;
+};
+
+}  // namespace grpc
+
+#endif  // GRPCXX_SLICE_H
