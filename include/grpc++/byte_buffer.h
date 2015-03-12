@@ -31,35 +31,54 @@
  *
  */
 
-#include <string>
+#ifndef GRPCXX_BYTE_BUFFER_H
+#define GRPCXX_BYTE_BUFFER_H
 
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
-
-#include <grpc++/channel_arguments.h>
 #include <grpc++/config.h>
-#include <grpc++/credentials.h>
-#include "src/cpp/client/channel.h"
+#include <grpc++/slice.h>
+
+#include <vector>
 
 namespace grpc {
 
-namespace {
-class InsecureCredentialsImpl GRPC_FINAL : public Credentials {
+class ByteBuffer GRPC_FINAL {
  public:
-  std::shared_ptr<grpc::ChannelInterface> CreateChannel(
-      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE {
-    grpc_channel_args channel_args;
-    args.SetChannelArgs(&channel_args);
-    return std::shared_ptr<ChannelInterface>(new Channel(
-        target, grpc_channel_create(target.c_str(), &channel_args)));
+  ByteBuffer() : buffer_(nullptr) {}
+
+  ByteBuffer(Slice* slices, size_t nslices);
+
+  ~ByteBuffer() {
+    if (buffer_) {
+      grpc_byte_buffer_destroy(buffer_);
+    }
   }
 
-  SecureCredentials* AsSecureCredentials() { return nullptr; }
-};
-}  // namespace
+  void Dump(std::vector<Slice>* slices);
 
-std::unique_ptr<Credentials> InsecureCredentials() {
-  return std::unique_ptr<Credentials>(new InsecureCredentialsImpl());
-}
+  void Clear();
+  size_t Length();
+
+ private:
+  friend class CallOpBuffer;
+
+  // takes ownership
+  void set_buffer(grpc_byte_buffer* buf) {
+    if (buffer_) {
+      gpr_log(GPR_ERROR, "Overriding existing buffer");
+      Clear();
+    }
+    buffer_ = buf;
+  }
+
+  grpc_byte_buffer* buffer() const {
+    return buffer_;
+  }
+
+  grpc_byte_buffer* buffer_;
+};
 
 }  // namespace grpc
+
+#endif  // GRPCXX_BYTE_BUFFER_H

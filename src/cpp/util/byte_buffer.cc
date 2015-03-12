@@ -31,35 +31,46 @@
  *
  */
 
-#include <string>
-
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
-
-#include <grpc++/channel_arguments.h>
-#include <grpc++/config.h>
-#include <grpc++/credentials.h>
-#include "src/cpp/client/channel.h"
+#include <grpc++/byte_buffer.h>
 
 namespace grpc {
 
-namespace {
-class InsecureCredentialsImpl GRPC_FINAL : public Credentials {
- public:
-  std::shared_ptr<grpc::ChannelInterface> CreateChannel(
-      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE {
-    grpc_channel_args channel_args;
-    args.SetChannelArgs(&channel_args);
-    return std::shared_ptr<ChannelInterface>(new Channel(
-        target, grpc_channel_create(target.c_str(), &channel_args)));
+ByteBuffer::ByteBuffer(Slice* slices, size_t nslices) {
+  // TODO(yangg) maybe expose some core API to simplify this
+  std::vector<gpr_slice> c_slices(nslices);
+  for (size_t i = 0; i < nslices; i++) {
+    c_slices[i] = slices[i].slice_;
   }
+  buffer_ = grpc_byte_buffer_create(c_slices.data(), nslices);
+}
 
-  SecureCredentials* AsSecureCredentials() { return nullptr; }
-};
-}  // namespace
+void ByteBuffer::Clear() {
+  if (buffer_) {
+    grpc_byte_buffer_destroy(buffer_);
+    buffer_ = nullptr;
+  }
+}
 
-std::unique_ptr<Credentials> InsecureCredentials() {
-  return std::unique_ptr<Credentials>(new InsecureCredentialsImpl());
+void ByteBuffer::Dump(std::vector<Slice>* slices) {
+  slices->clear();
+  if (!buffer_) {
+    return;
+  }
+  grpc_byte_buffer_reader* reader = grpc_byte_buffer_reader_create(buffer_);
+  gpr_slice s;
+  while (grpc_byte_buffer_reader_next(reader, &s)) {
+    slices->push_back(Slice(s, Slice::STEAL_REF));
+    gpr_slice_unref(s);
+  }
+  grpc_byte_buffer_reader_destroy(reader);
+}
+
+size_t ByteBuffer::Length() {
+  if (buffer_) {
+    return grpc_byte_buffer_length(buffer_);
+  } else {
+    return 0;
+  }
 }
 
 }  // namespace grpc

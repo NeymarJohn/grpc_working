@@ -31,35 +31,29 @@
  *
  */
 
-#include <string>
+#ifndef GRPCXX_GENERIC_STUB_H
+#define GRPCXX_GENERIC_STUB_H
 
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
-
-#include <grpc++/channel_arguments.h>
-#include <grpc++/config.h>
-#include <grpc++/credentials.h>
-#include "src/cpp/client/channel.h"
+#include <grpc++/byte_buffer.h>
+#include <grpc++/stream.h>
 
 namespace grpc {
 
-namespace {
-class InsecureCredentialsImpl GRPC_FINAL : public Credentials {
+typedef ClientAsyncReaderWriter<ByteBuffer, ByteBuffer> GenericClientReaderWriter;
+
+// Generic stubs provide a type-unsafe interface to call gRPC methods
+// by name.
+class GenericStub GRPC_FINAL {
  public:
-  std::shared_ptr<grpc::ChannelInterface> CreateChannel(
-      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE {
-    grpc_channel_args channel_args;
-    args.SetChannelArgs(&channel_args);
-    return std::shared_ptr<ChannelInterface>(new Channel(
-        target, grpc_channel_create(target.c_str(), &channel_args)));
-  }
+  explicit GenericStub(std::shared_ptr<ChannelInterface> channel) : channel_(channel) {}
 
-  SecureCredentials* AsSecureCredentials() { return nullptr; }
+  // begin a call to a named method
+  std::unique_ptr<GenericClientReaderWriter> Call(ClientContext* context, const grpc::string& method);
+
+ private:
+  std::shared_ptr<ChannelInterface> channel_;
 };
-}  // namespace
 
-std::unique_ptr<Credentials> InsecureCredentials() {
-  return std::unique_ptr<Credentials>(new InsecureCredentialsImpl());
-}
+} // namespace grpc
 
-}  // namespace grpc
+#endif  // GRPCXX_GENERIC_STUB_H

@@ -31,35 +31,44 @@
  *
  */
 
-#include <string>
+#ifndef GRPCXX_SLICE_H
+#define GRPCXX_SLICE_H
 
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
-
-#include <grpc++/channel_arguments.h>
+#include <grpc/support/slice.h>
 #include <grpc++/config.h>
-#include <grpc++/credentials.h>
-#include "src/cpp/client/channel.h"
 
 namespace grpc {
 
-namespace {
-class InsecureCredentialsImpl GRPC_FINAL : public Credentials {
+class Slice GRPC_FINAL {
  public:
-  std::shared_ptr<grpc::ChannelInterface> CreateChannel(
-      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE {
-    grpc_channel_args channel_args;
-    args.SetChannelArgs(&channel_args);
-    return std::shared_ptr<ChannelInterface>(new Channel(
-        target, grpc_channel_create(target.c_str(), &channel_args)));
+  // construct empty slice
+  Slice();
+  // destructor - drops one ref
+  ~Slice();
+  // construct slice from grpc slice, adding a ref
+  enum AddRef { ADD_REF };
+  Slice(gpr_slice slice, AddRef);
+  // construct slice from grpc slice, stealing a ref
+  enum StealRef { STEAL_REF };
+  Slice(gpr_slice slice, StealRef);
+  // copy constructor - adds a ref
+  Slice(const Slice& other);
+  // assignment
+  Slice& operator=(Slice other) {
+    std::swap(slice_, other.slice_);
+    return *this;
   }
 
-  SecureCredentials* AsSecureCredentials() { return nullptr; }
-};
-}  // namespace
+  size_t size() const { return GPR_SLICE_LENGTH(slice_); }
+  const gpr_uint8* begin() const { return GPR_SLICE_START_PTR(slice_); }
+  const gpr_uint8* end() const { return GPR_SLICE_END_PTR(slice_); }
 
-std::unique_ptr<Credentials> InsecureCredentials() {
-  return std::unique_ptr<Credentials>(new InsecureCredentialsImpl());
-}
+ private:
+  friend class ByteBuffer;
+
+  gpr_slice slice_;
+};
 
 }  // namespace grpc
+
+#endif  // GRPCXX_SLICE_H

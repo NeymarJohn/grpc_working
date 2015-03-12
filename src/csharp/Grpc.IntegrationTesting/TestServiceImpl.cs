@@ -55,14 +55,14 @@ namespace grpc.testing
         {
             var response = SimpleResponse.CreateBuilder()
                 .SetPayload(CreateZerosPayload(request.ResponseSize)).Build();
-            // TODO: check we support ReponseType
+            //TODO: check we support ReponseType
             responseObserver.OnNext(response);
             responseObserver.OnCompleted();
         }
 
         public void StreamingOutputCall(StreamingOutputCallRequest request, IObserver<StreamingOutputCallResponse> responseObserver)
         {
-            foreach (var responseParam in request.ResponseParametersList)
+            foreach(var responseParam in request.ResponseParametersList)
             {
                 var response = StreamingOutputCallResponse.CreateBuilder()
                     .SetPayload(CreateZerosPayload(responseParam.Size)).Build();
@@ -74,10 +74,9 @@ namespace grpc.testing
         public IObserver<StreamingInputCallRequest> StreamingInputCall(IObserver<StreamingInputCallResponse> responseObserver)
         {
             var recorder = new RecordingObserver<StreamingInputCallRequest>();
-            Task.Run(() =>
-            {
+            Task.Run(() => {
                 int sum = 0;
-                foreach (var req in recorder.ToList().Result)
+                foreach(var req in recorder.ToList().Result)
                 {
                     sum += req.Payload.Body.Length;
                 }
@@ -99,8 +98,8 @@ namespace grpc.testing
             throw new NotImplementedException();
         }
 
-        private class FullDuplexObserver : IObserver<StreamingOutputCallRequest>
-        {
+        private class FullDuplexObserver : IObserver<StreamingOutputCallRequest> {
+
             readonly IObserver<StreamingOutputCallResponse> responseObserver;
 
             public FullDuplexObserver(IObserver<StreamingOutputCallResponse> responseObserver)
@@ -120,18 +119,22 @@ namespace grpc.testing
 
             public void OnNext(StreamingOutputCallRequest value)
             {
-                foreach (var responseParam in value.ResponseParametersList)
-                {
-                    var response = StreamingOutputCallResponse.CreateBuilder()
-                        .SetPayload(CreateZerosPayload(responseParam.Size)).Build();
-                    responseObserver.OnNext(response);
-                }
+                // TODO: this is not in order!!!
+                //Task.Factory.StartNew(() => {
+
+                    foreach(var responseParam in value.ResponseParametersList)
+                    {
+                        var response = StreamingOutputCallResponse.CreateBuilder()
+                            .SetPayload(CreateZerosPayload(responseParam.Size)).Build();
+                        responseObserver.OnNext(response);
+                    }
+                //});
             }
         }
 
-        private static Payload CreateZerosPayload(int size)
-        {
+        private static Payload CreateZerosPayload(int size) {
             return Payload.CreateBuilder().SetBody(ByteString.CopyFrom(new byte[size])).Build();
         }
     }
 }
+
