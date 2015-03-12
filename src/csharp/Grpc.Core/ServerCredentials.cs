@@ -32,29 +32,75 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using Grpc.Core.Internal;
 
 namespace Grpc.Core
 {
-    public class RpcException : Exception
+    public abstract class ServerCredentials
     {
-        private readonly Status status;
+        /// <summary>
+        /// Creates native object for the credentials.
+        /// </summary>
+        /// <returns>The native credentials.</returns>
+        internal abstract ServerCredentialsSafeHandle ToNativeCredentials();
+    }
 
-        public RpcException(Status status)
+    /// <summary>
+    /// Key certificate pair (in PEM encoding).
+    /// </summary>
+    public class KeyCertificatePair
+    {
+        string certChain;
+        string privateKey;
+
+        public KeyCertificatePair(string certChain, string privateKey)
         {
-            this.status = status;
+            this.certChain = certChain;
+            this.privateKey = privateKey;
         }
 
-        public RpcException(Status status, string message) : base(message)
-        {
-            this.status = status;
-        }
-
-        public Status Status
+        public string CertChain
         {
             get
             {
-                return status;
+                return certChain;
             }
+        }
+
+        public string PrivateKey
+        {
+            get
+            {
+                return privateKey;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Server-side SSL credentials.
+    /// </summary>
+    public class SslServerCredentials : ServerCredentials
+    {
+        // TODO: immutable list...
+        List<KeyCertificatePair> keyCertPairs;
+
+        public SslServerCredentials(List<KeyCertificatePair> keyCertPairs)
+        {
+            this.keyCertPairs = keyCertPairs;
+        }
+
+        internal override ServerCredentialsSafeHandle ToNativeCredentials()
+        {
+            int count = keyCertPairs.Count;
+            string[] certChains = new string[count];
+            string[] keys = new string[count];
+            for (int i = 0; i < count; i++)
+            {
+                certChains[i] = keyCertPairs[i].CertChain;
+                keys[i] = keyCertPairs[i].PrivateKey;
+            }
+            return ServerCredentialsSafeHandle.CreateSslCredentials(certChains, keys);
         }
     }
 }

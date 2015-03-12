@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef NET_GRPC_PHP_GRPC_CALL_H_
-#define NET_GRPC_PHP_GRPC_CALL_H_
+#ifndef NET_GRPC_PHP_GRPC_COMPLETION_QUEUE_H_
+#define NET_GRPC_PHP_GRPC_COMPLETION_QUEUE_H_
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -45,36 +45,18 @@
 
 #include "grpc/grpc.h"
 
-// Throw an exception if error_code is not OK
-#define MAYBE_THROW_CALL_ERROR(func_name, error_code)            \
-  do {                                                           \
-    if (error_code != GRPC_CALL_OK) {                            \
-      zend_throw_exception(spl_ce_LogicException,                \
-                           #func_name " was called incorrectly", \
-                           (long)error_code TSRMLS_CC);          \
-      return;                                                    \
-    }                                                            \
-  } while (0)
+/* Class entry for the PHP CompletionQueue class */
+zend_class_entry *grpc_ce_completion_queue;
 
-/* Class entry for the Call PHP class */
-zend_class_entry *grpc_ce_call;
-
-/* Wrapper struct for grpc_call that can be associated with a PHP object */
-typedef struct wrapped_grpc_call {
+/* Wrapper class for grpc_completion_queue that can be associated with a
+   PHP object */
+typedef struct wrapped_grpc_completion_queue {
   zend_object std;
 
-  bool owned;
-  grpc_call *wrapped;
-} wrapped_grpc_call;
+  grpc_completion_queue *wrapped;
+} wrapped_grpc_completion_queue;
 
-/* Initializes the Call PHP class */
-void grpc_init_call(TSRMLS_D);
+/* Initialize the CompletionQueue class */
+void grpc_init_completion_queue(TSRMLS_D);
 
-/* Creates a Call object that wraps the given grpc_call struct */
-zval *grpc_php_wrap_call(grpc_call *wrapped, bool owned);
-
-/* Creates and returns a PHP associative array of metadata from a C array of
- * call metadata */
-zval *grpc_call_create_metadata_array(int count, grpc_metadata *elements);
-
-#endif /* NET_GRPC_PHP_GRPC_CHANNEL_H_ */
+#endif /* NET_GRPC_PHP_GRPC_COMPLETION_QUEUE_H_ */
