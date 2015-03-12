@@ -34,7 +34,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Google.ProtocolBuffers;
@@ -50,7 +49,7 @@ namespace Grpc.IntegrationTesting
         private class ServerOptions
         {
             public bool help;
-            public int? port = 8070;
+            public int? port;
             public bool useTls;
         }
 
@@ -94,14 +93,7 @@ namespace Grpc.IntegrationTesting
             server.AddServiceDefinition(TestServiceGrpc.BindService(new TestServiceImpl()));
 
             string addr = "0.0.0.0:" + options.port;
-            if (options.useTls)
-            {
-                server.AddPort(addr, TestCredentials.CreateTestServerCredentials());
-            }
-            else
-            {
-                server.AddPort(addr);
-            }
+            server.AddPort(addr);
             Console.WriteLine("Running server on " + addr);
             server.Start();
 

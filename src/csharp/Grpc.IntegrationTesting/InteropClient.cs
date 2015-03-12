@@ -51,7 +51,7 @@ namespace Grpc.IntegrationTesting
         {
             public bool help;
             public string serverHost= "127.0.0.1";
-            public string serverHostOverride = TestCredentials.DefaultHostOverride;
+            public string serverHostOverride = "foo.test.google.fr";
             public int? serverPort;
             public string testCase = "large_unary";
             public bool useTls;
@@ -103,7 +103,16 @@ namespace Grpc.IntegrationTesting
             Credentials credentials = null;
             if (options.useTls)
             {
-                credentials = TestCredentials.CreateTestClientCredentials(options.useTestCa);
+                string caPath = "data/ca.pem";  // Default testing CA
+                if (!options.useTestCa)
+                {
+                    caPath = Environment.GetEnvironmentVariable("SSL_CERT_FILE");
+                    if (string.IsNullOrEmpty(caPath))
+                    {
+                        throw new ArgumentException("CA path environment variable is not set.");
+                    }
+                }
+                credentials = new SslCredentials(File.ReadAllText(caPath));
             }
 
             ChannelArgs channelArgs = null;
