@@ -1,5 +1,4 @@
 #region Copyright notice and license
-
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -28,33 +27,42 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #endregion
-
 using System;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using Grpc.Core.Utils;
 
-namespace Grpc.Core
+namespace Grpc.Core.Internal
 {
-    public class RpcException : Exception
+    /// <summary>
+    /// grpc_server_credentials from <grpc/grpc_security.h>
+    /// </summary>
+    internal class ServerCredentialsSafeHandle : SafeHandleZeroIsInvalid
     {
-        private readonly Status status;
+        [DllImport("grpc_csharp_ext.dll", CharSet = CharSet.Ansi)]
+        static extern ServerCredentialsSafeHandle grpcsharp_ssl_server_credentials_create(string pemRootCerts, string[] keyCertPairCertChainArray, string[] keyCertPairPrivateKeyArray, UIntPtr numKeyCertPairs);
 
-        public RpcException(Status status)
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern void grpcsharp_server_credentials_release(IntPtr credentials);
+
+        private ServerCredentialsSafeHandle()
         {
-            this.status = status;
         }
 
-        public RpcException(Status status, string message) : base(message)
+        public static ServerCredentialsSafeHandle CreateSslCredentials(string[] keyCertPairCertChainArray, string[] keyCertPairPrivateKeyArray)
         {
-            this.status = status;
+            Preconditions.CheckArgument(keyCertPairCertChainArray.Length == keyCertPairPrivateKeyArray.Length);
+            return grpcsharp_ssl_server_credentials_create(null,
+                                                           keyCertPairCertChainArray, keyCertPairPrivateKeyArray,
+                                                           new UIntPtr((ulong)keyCertPairCertChainArray.Length));
         }
 
-        public Status Status
+        protected override bool ReleaseHandle()
         {
-            get
-            {
-                return status;
-            }
+            grpcsharp_server_credentials_release(handle);
+            return true;
         }
     }
 }
