@@ -31,38 +31,64 @@
  *
  */
 
-#ifndef NET_GRPC_PHP_GRPC_TIMEVAL_H_
-#define NET_GRPC_PHP_GRPC_TIMEVAL_H_
+'use strict';
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+var assert = require('assert');
+var grpc = require('bindings')('grpc.node');
 
-#include "php.h"
-#include "php_ini.h"
-#include "ext/standard/info.h"
-#include "php_grpc.h"
-
-#include "grpc/grpc.h"
-#include "grpc/support/time.h"
-
-/* Class entry for the Timeval PHP Class */
-zend_class_entry *grpc_ce_timeval;
-
-/* Wrapper struct for timeval that can be associated with a PHP object */
-typedef struct wrapped_grpc_timeval {
-  zend_object std;
-
-  gpr_timespec wrapped;
-} wrapped_grpc_timeval;
-
-/* Initialize the Timeval PHP class */
-void grpc_init_timeval(TSRMLS_D);
-
-/* Shutdown the Timeval PHP class */
-void grpc_shutdown_timeval(TSRMLS_D);
-
-/* Creates a Timeval object that wraps the given timeval struct */
-zval *grpc_php_wrap_timeval(gpr_timespec wrapped);
-
-#endif /* NET_GRPC_PHP_GRPC_TIMEVAL_H_ */
+describe('server', function() {
+  describe('constructor', function() {
+    it('should work with no arguments', function() {
+      assert.doesNotThrow(function() {
+        new grpc.Server();
+      });
+    });
+    it('should work with an empty list argument', function() {
+      assert.doesNotThrow(function() {
+        new grpc.Server([]);
+      });
+    });
+  });
+  describe('addHttp2Port', function() {
+    var server;
+    before(function() {
+      server = new grpc.Server();
+    });
+    it('should bind to an unused port', function() {
+      var port;
+      assert.doesNotThrow(function() {
+        port = server.addHttp2Port('0.0.0.0:0');
+      });
+      assert(port > 0);
+    });
+  });
+  describe('addSecureHttp2Port', function() {
+    var server;
+    before(function() {
+      server = new grpc.Server();
+    });
+    it('should bind to an unused port with fake credentials', function() {
+      var port;
+      var creds = grpc.ServerCredentials.createFake();
+      assert.doesNotThrow(function() {
+        port = server.addSecureHttp2Port('0.0.0.0:0', creds);
+      });
+      assert(port > 0);
+    });
+  });
+  describe('listen', function() {
+    var server;
+    before(function() {
+      server = new grpc.Server();
+      server.addHttp2Port('0.0.0.0:0');
+    });
+    after(function() {
+      server.shutdown();
+    });
+    it('should listen without error', function() {
+      assert.doesNotThrow(function() {
+        server.start();
+      });
+    });
+  });
+});
