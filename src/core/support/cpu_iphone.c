@@ -31,45 +31,23 @@
  *
  */
 
-#ifndef GRPCXX_ASYNC_GENERIC_SERVICE_H
-#define GRPCXX_ASYNC_GENERIC_SERVICE_H
+#include <grpc/support/port_platform.h>
 
-#include <grpc++/byte_buffer.h>
-#include <grpc++/stream.h>
+#ifdef GPR_CPU_IPHONE
 
-struct grpc_server;
+/* Probably 2 instead of 1, but see comment on gpr_cpu_current_cpu. */
+unsigned gpr_cpu_num_cores(void) {
+  return 1;
+}
 
-namespace grpc {
+/* Most code that's using this is using it to shard across work queues. So
+   unless profiling shows it's a problem or there appears a way to detect the
+   currently running CPU core, let's have it shard the default way.
+   Note that the interface in cpu.h lets gpr_cpu_num_cores return 0, but doing
+   it makes it impossible for gpr_cpu_current_cpu to satisfy its stated range,
+   and some code might be relying on it. */
+unsigned gpr_cpu_current_cpu(void) {
+  return 0;
+}
 
-typedef ServerAsyncReaderWriter<ByteBuffer, ByteBuffer> GenericServerAsyncReaderWriter;
-
-class GenericServerContext GRPC_FINAL : public ServerContext {
- public:
-  const grpc::string& method() const { return method_; }
-  const grpc::string& host() const { return host_; }
-
- private:
-  friend class Server;
-
-  grpc::string method_;
-  grpc::string host_;
-};
-
-class AsyncGenericService GRPC_FINAL {
- public:
-  // TODO(yangg) Once we can add multiple completion queues to the server
-  // in c core, add a CompletionQueue* argument to the ctor here.
-  AsyncGenericService() : server_(nullptr) {}
-
-  void RequestCall(GenericServerContext* ctx,
-                   GenericServerAsyncReaderWriter* reader_writer,
-                   CompletionQueue* cq, void* tag);
-
- private:
-  friend class Server;
-  Server* server_;
-};
-
-} // namespace grpc
-
-#endif  // GRPCXX_ASYNC_GENERIC_SERVICE_H
+#endif /* GPR_CPU_IPHONE */

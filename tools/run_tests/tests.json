@@ -359,11 +359,6 @@
   {
     "flaky": false, 
     "language": "c++", 
-    "name": "generic_end2end_test"
-  }, 
-  {
-    "flaky": false, 
-    "language": "c++", 
     "name": "interop_test"
   }, 
   {

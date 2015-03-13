@@ -66,7 +66,7 @@ class CompletionQueue;
 class Server;
 
 // Interface of server side rpc context.
-class ServerContext {
+class ServerContext GRPC_FINAL {
  public:
   ServerContext();  // for async calls
   ~ServerContext();
