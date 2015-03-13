@@ -31,35 +31,20 @@
  *
  */
 
-#include <string>
-
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
-
-#include <grpc++/channel_arguments.h>
-#include <grpc++/config.h>
-#include <grpc++/credentials.h>
-#include "src/cpp/client/channel.h"
+#include <grpc++/slice.h>
 
 namespace grpc {
 
-namespace {
-class InsecureCredentialsImpl GRPC_FINAL : public Credentials {
- public:
-  std::shared_ptr<grpc::ChannelInterface> CreateChannel(
-      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE {
-    grpc_channel_args channel_args;
-    args.SetChannelArgs(&channel_args);
-    return std::shared_ptr<ChannelInterface>(new Channel(
-        target, grpc_channel_create(target.c_str(), &channel_args)));
-  }
+Slice::Slice() : slice_(gpr_empty_slice()) {}
 
-  SecureCredentials* AsSecureCredentials() { return nullptr; }
-};
-}  // namespace
-
-std::unique_ptr<Credentials> InsecureCredentials() {
-  return std::unique_ptr<Credentials>(new InsecureCredentialsImpl());
+Slice::~Slice() {
+  gpr_slice_unref(slice_);
 }
+
+Slice::Slice(gpr_slice slice, AddRef) : slice_(gpr_slice_ref(slice)) {}
+
+Slice::Slice(gpr_slice slice, StealRef) : slice_(slice) {}
+
+Slice::Slice(const Slice& other) : slice_(gpr_slice_ref(other.slice_)) {}
 
 }  // namespace grpc

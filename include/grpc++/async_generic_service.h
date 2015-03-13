@@ -31,35 +31,45 @@
  *
  */
 
-#include <string>
+#ifndef GRPCXX_ASYNC_GENERIC_SERVICE_H
+#define GRPCXX_ASYNC_GENERIC_SERVICE_H
 
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
+#include <grpc++/byte_buffer.h>
+#include <grpc++/stream.h>
 
-#include <grpc++/channel_arguments.h>
-#include <grpc++/config.h>
-#include <grpc++/credentials.h>
-#include "src/cpp/client/channel.h"
+struct grpc_server;
 
 namespace grpc {
 
-namespace {
-class InsecureCredentialsImpl GRPC_FINAL : public Credentials {
+typedef ServerAsyncReaderWriter<ByteBuffer, ByteBuffer> GenericServerAsyncReaderWriter;
+
+class GenericServerContext GRPC_FINAL : public ServerContext {
  public:
-  std::shared_ptr<grpc::ChannelInterface> CreateChannel(
-      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE {
-    grpc_channel_args channel_args;
-    args.SetChannelArgs(&channel_args);
-    return std::shared_ptr<ChannelInterface>(new Channel(
-        target, grpc_channel_create(target.c_str(), &channel_args)));
-  }
+  const grpc::string& method() const { return method_; }
+  const grpc::string& host() const { return host_; }
 
-  SecureCredentials* AsSecureCredentials() { return nullptr; }
+ private:
+  friend class Server;
+
+  grpc::string method_;
+  grpc::string host_;
 };
-}  // namespace
 
-std::unique_ptr<Credentials> InsecureCredentials() {
-  return std::unique_ptr<Credentials>(new InsecureCredentialsImpl());
-}
+class AsyncGenericService GRPC_FINAL {
+ public:
+  // TODO(yangg) Once we can add multiple completion queues to the server
+  // in c core, add a CompletionQueue* argument to the ctor here.
+  AsyncGenericService() : server_(nullptr) {}
 
-}  // namespace grpc
+  void RequestCall(GenericServerContext* ctx,
+                   GenericServerAsyncReaderWriter* reader_writer,
+                   CompletionQueue* cq, void* tag);
+
+ private:
+  friend class Server;
+  Server* server_;
+};
+
+} // namespace grpc
+
+#endif  // GRPCXX_ASYNC_GENERIC_SERVICE_H

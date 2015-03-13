@@ -122,13 +122,10 @@ namespace Grpc.Core.Tests
             {
                 var call = new Call<string, string>(unaryEchoStringMethod, channel);
 
-                try
-                {
+                try {
                     Calls.BlockingUnaryCall(call, "ABC", default(CancellationToken));
                     Assert.Fail();
-                }
-                catch (RpcException e)
-                {
+                } catch(RpcException e) {
                     Assert.AreEqual(StatusCode.Unimplemented, e.Status.StatusCode);
                 }
             }
@@ -143,3 +140,4 @@ namespace Grpc.Core.Tests
         }
     }
 }
+
