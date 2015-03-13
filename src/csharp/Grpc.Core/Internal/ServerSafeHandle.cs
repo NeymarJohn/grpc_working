@@ -53,10 +53,7 @@ namespace Grpc.Core.Internal
         static extern ServerSafeHandle grpcsharp_server_create(CompletionQueueSafeHandle cq, IntPtr args);
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern int grpcsharp_server_add_http2_port(ServerSafeHandle server, string addr);
-
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern int grpcsharp_server_add_secure_http2_port(ServerSafeHandle server, string addr, ServerCredentialsSafeHandle creds);
+        static extern Int32 grpcsharp_server_add_http2_port(ServerSafeHandle server, string addr);
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern void grpcsharp_server_start(ServerSafeHandle server);
@@ -77,17 +74,13 @@ namespace Grpc.Core.Internal
 
         public static ServerSafeHandle NewServer(CompletionQueueSafeHandle cq, IntPtr args)
         {
+            // TODO: also grpc_secure_server_create...
             return grpcsharp_server_create(cq, args);
         }
 
         public int AddPort(string addr)
         {
             return grpcsharp_server_add_http2_port(this, addr);
-        }
-
-        public int AddPort(string addr, ServerCredentialsSafeHandle credentials)
-        {
-            return grpcsharp_server_add_secure_http2_port(this, addr, credentials);
         }
 
         public void Start()

@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,40 +27,32 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# TODO(nathaniel): The assembly layer only exists to smooth out wrinkles in
+# the face layer. The two should be squashed together as soon as manageable.
+"""Interfaces for assembling RPC Framework values."""
 
-main() {
-  source grpc_docker.sh
-  # temporarily remove ping_pong and cancel_after_first_response while investigating timeout
-  test_cases=(large_unary empty_unary client_streaming server_streaming cancel_after_begin)
-  auth_test_cases=(service_account_creds compute_engine_creds)
-  clients=(cxx java go ruby node csharp_mono)
-  for test_case in "${test_cases[@]}"
-  do
-    for client in "${clients[@]}"
-    do
-      if grpc_cloud_prod_test $test_case grpc-docker-testclients $client
-      then
-        echo "$test_case $client $server passed" >> /tmp/cloud_prod_result.txt
-      else
-        echo "$test_case $client $server failed" >> /tmp/cloud_prod_result.txt
-      fi
-    done
-  done
-  for test_case in "${auth_test_cases[@]}"
-  do
-    for client in "${clients[@]}"
-    do
-      if grpc_cloud_prod_auth_test $test_case grpc-docker-testclients $client
-      then
-        echo "$test_case $client $server passed" >> /tmp/cloud_prod_result.txt
-      else
-        echo "$test_case $client $server failed" >> /tmp/cloud_prod_result.txt
-      fi
-    done
-  done
-  gsutil cp /tmp/cloud_prod_result.txt gs://stoked-keyword-656-output/cloud_prod_result.txt
-  rm /tmp/cloud_prod_result.txt
-}
+import abc
 
-set -x
-main "$@"
+from grpc.framework.foundation import activated
+
+
+class Server(activated.Activated):
+  """The server interface.
+
+  Aside from being able to be activated and deactivated, objects of this type
+  are able to report the port on which they are servicing RPCs.
+  """
+  __metaclass__ = abc.ABCMeta
+
+  # TODO(issue 726): This is an abstraction violation; not every Server is
+  # necessarily serving over a network at all.
+  @abc.abstractmethod
+  def port(self):
+    """Identifies the port on which this Server is servicing RPCs.
+
+    This method may only be called while the server is active.
+
+    Returns:
+      The number of the port on which this Server is servicing RPCs.
+    """
+    raise NotImplementedError()

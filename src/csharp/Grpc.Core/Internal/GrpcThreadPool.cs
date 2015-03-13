@@ -51,13 +51,12 @@ namespace Grpc.Core.Internal
 
         CompletionQueueSafeHandle cq;
 
-        public GrpcThreadPool(int poolSize)
-        {
+        public GrpcThreadPool(int poolSize) {
             this.poolSize = poolSize;
         }
 
-        public void Start()
-        {
+        public void Start() {
+
             lock (myLock)
             {
                 if (cq != null)
@@ -74,8 +73,8 @@ namespace Grpc.Core.Internal
             }
         }
 
-        public void Stop()
-        {
+        public void Stop() {
+
             lock (myLock)
             {
                 cq.Shutdown();
@@ -87,6 +86,7 @@ namespace Grpc.Core.Internal
                 }
 
                 cq.Dispose();
+
             }
         }
 
@@ -116,9 +116,10 @@ namespace Grpc.Core.Internal
             do
             {
                 completionType = cq.NextWithCallback();
-            }
-            while (completionType != GRPCCompletionType.GRPC_QUEUE_SHUTDOWN);
+            } while(completionType != GRPCCompletionType.GRPC_QUEUE_SHUTDOWN);
             Console.WriteLine("Completion queue has shutdown successfully, thread " + Thread.CurrentThread.Name + " exiting.");
         }
     }
+
 }
+
