@@ -31,38 +31,45 @@
  *
  */
 
-#ifndef NET_GRPC_PHP_GRPC_TIMEVAL_H_
-#define NET_GRPC_PHP_GRPC_TIMEVAL_H_
+#ifndef GRPCXX_ASYNC_GENERIC_SERVICE_H
+#define GRPCXX_ASYNC_GENERIC_SERVICE_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <grpc++/byte_buffer.h>
+#include <grpc++/stream.h>
 
-#include "php.h"
-#include "php_ini.h"
-#include "ext/standard/info.h"
-#include "php_grpc.h"
+struct grpc_server;
 
-#include "grpc/grpc.h"
-#include "grpc/support/time.h"
+namespace grpc {
 
-/* Class entry for the Timeval PHP Class */
-zend_class_entry *grpc_ce_timeval;
+typedef ServerAsyncReaderWriter<ByteBuffer, ByteBuffer> GenericServerAsyncReaderWriter;
 
-/* Wrapper struct for timeval that can be associated with a PHP object */
-typedef struct wrapped_grpc_timeval {
-  zend_object std;
+class GenericServerContext GRPC_FINAL : public ServerContext {
+ public:
+  const grpc::string& method() const { return method_; }
+  const grpc::string& host() const { return host_; }
 
-  gpr_timespec wrapped;
-} wrapped_grpc_timeval;
+ private:
+  friend class Server;
 
-/* Initialize the Timeval PHP class */
-void grpc_init_timeval(TSRMLS_D);
+  grpc::string method_;
+  grpc::string host_;
+};
 
-/* Shutdown the Timeval PHP class */
-void grpc_shutdown_timeval(TSRMLS_D);
+class AsyncGenericService GRPC_FINAL {
+ public:
+  // TODO(yangg) Once we can add multiple completion queues to the server
+  // in c core, add a CompletionQueue* argument to the ctor here.
+  AsyncGenericService() : server_(nullptr) {}
 
-/* Creates a Timeval object that wraps the given timeval struct */
-zval *grpc_php_wrap_timeval(gpr_timespec wrapped);
+  void RequestCall(GenericServerContext* ctx,
+                   GenericServerAsyncReaderWriter* reader_writer,
+                   CompletionQueue* cq, void* tag);
 
-#endif /* NET_GRPC_PHP_GRPC_TIMEVAL_H_ */
+ private:
+  friend class Server;
+  Server* server_;
+};
+
+} // namespace grpc
+
+#endif  // GRPCXX_ASYNC_GENERIC_SERVICE_H

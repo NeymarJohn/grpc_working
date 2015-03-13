@@ -47,8 +47,7 @@ namespace Grpc.Core
                     Func<TRequest, byte[]> requestSerializer,
                     Func<byte[], TResponse> responseDeserializer,
                     TimeSpan timeout,
-                    Channel channel)
-        {
+                    Channel channel) {
             this.methodName = methodName;
             this.requestSerializer = requestSerializer;
             this.responseDeserializer = responseDeserializer;
@@ -96,3 +95,4 @@ namespace Grpc.Core
         }
     }
 }
+

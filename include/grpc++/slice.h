@@ -31,38 +31,44 @@
  *
  */
 
-#ifndef NET_GRPC_PHP_GRPC_TIMEVAL_H_
-#define NET_GRPC_PHP_GRPC_TIMEVAL_H_
+#ifndef GRPCXX_SLICE_H
+#define GRPCXX_SLICE_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <grpc/support/slice.h>
+#include <grpc++/config.h>
 
-#include "php.h"
-#include "php_ini.h"
-#include "ext/standard/info.h"
-#include "php_grpc.h"
+namespace grpc {
 
-#include "grpc/grpc.h"
-#include "grpc/support/time.h"
+class Slice GRPC_FINAL {
+ public:
+  // construct empty slice
+  Slice();
+  // destructor - drops one ref
+  ~Slice();
+  // construct slice from grpc slice, adding a ref
+  enum AddRef { ADD_REF };
+  Slice(gpr_slice slice, AddRef);
+  // construct slice from grpc slice, stealing a ref
+  enum StealRef { STEAL_REF };
+  Slice(gpr_slice slice, StealRef);
+  // copy constructor - adds a ref
+  Slice(const Slice& other);
+  // assignment
+  Slice& operator=(Slice other) {
+    std::swap(slice_, other.slice_);
+    return *this;
+  }
 
-/* Class entry for the Timeval PHP Class */
-zend_class_entry *grpc_ce_timeval;
+  size_t size() const { return GPR_SLICE_LENGTH(slice_); }
+  const gpr_uint8* begin() const { return GPR_SLICE_START_PTR(slice_); }
+  const gpr_uint8* end() const { return GPR_SLICE_END_PTR(slice_); }
 
-/* Wrapper struct for timeval that can be associated with a PHP object */
-typedef struct wrapped_grpc_timeval {
-  zend_object std;
+ private:
+  friend class ByteBuffer;
 
-  gpr_timespec wrapped;
-} wrapped_grpc_timeval;
+  gpr_slice slice_;
+};
 
-/* Initialize the Timeval PHP class */
-void grpc_init_timeval(TSRMLS_D);
+}  // namespace grpc
 
-/* Shutdown the Timeval PHP class */
-void grpc_shutdown_timeval(TSRMLS_D);
-
-/* Creates a Timeval object that wraps the given timeval struct */
-zval *grpc_php_wrap_timeval(gpr_timespec wrapped);
-
-#endif /* NET_GRPC_PHP_GRPC_TIMEVAL_H_ */
+#endif  // GRPCXX_SLICE_H

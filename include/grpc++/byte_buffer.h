@@ -31,38 +31,54 @@
  *
  */
 
-#ifndef NET_GRPC_PHP_GRPC_TIMEVAL_H_
-#define NET_GRPC_PHP_GRPC_TIMEVAL_H_
+#ifndef GRPCXX_BYTE_BUFFER_H
+#define GRPCXX_BYTE_BUFFER_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <grpc/grpc.h>
+#include <grpc/support/log.h>
+#include <grpc++/config.h>
+#include <grpc++/slice.h>
 
-#include "php.h"
-#include "php_ini.h"
-#include "ext/standard/info.h"
-#include "php_grpc.h"
+#include <vector>
 
-#include "grpc/grpc.h"
-#include "grpc/support/time.h"
+namespace grpc {
 
-/* Class entry for the Timeval PHP Class */
-zend_class_entry *grpc_ce_timeval;
+class ByteBuffer GRPC_FINAL {
+ public:
+  ByteBuffer() : buffer_(nullptr) {}
 
-/* Wrapper struct for timeval that can be associated with a PHP object */
-typedef struct wrapped_grpc_timeval {
-  zend_object std;
+  ByteBuffer(Slice* slices, size_t nslices);
 
-  gpr_timespec wrapped;
-} wrapped_grpc_timeval;
+  ~ByteBuffer() {
+    if (buffer_) {
+      grpc_byte_buffer_destroy(buffer_);
+    }
+  }
 
-/* Initialize the Timeval PHP class */
-void grpc_init_timeval(TSRMLS_D);
+  void Dump(std::vector<Slice>* slices);
 
-/* Shutdown the Timeval PHP class */
-void grpc_shutdown_timeval(TSRMLS_D);
+  void Clear();
+  size_t Length();
 
-/* Creates a Timeval object that wraps the given timeval struct */
-zval *grpc_php_wrap_timeval(gpr_timespec wrapped);
+ private:
+  friend class CallOpBuffer;
 
-#endif /* NET_GRPC_PHP_GRPC_TIMEVAL_H_ */
+  // takes ownership
+  void set_buffer(grpc_byte_buffer* buf) {
+    if (buffer_) {
+      gpr_log(GPR_ERROR, "Overriding existing buffer");
+      Clear();
+    }
+    buffer_ = buf;
+  }
+
+  grpc_byte_buffer* buffer() const {
+    return buffer_;
+  }
+
+  grpc_byte_buffer* buffer_;
+};
+
+}  // namespace grpc
+
+#endif  // GRPCXX_BYTE_BUFFER_H

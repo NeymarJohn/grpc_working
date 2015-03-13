@@ -46,7 +46,7 @@
 #include "grpc/grpc.h"
 
 /* Class entry for the PHP Channel class */
-extern zend_class_entry *grpc_ce_channel;
+zend_class_entry *grpc_ce_channel;
 
 /* Wrapper struct for grpc_channel that can be associated with a PHP object */
 typedef struct wrapped_grpc_channel {

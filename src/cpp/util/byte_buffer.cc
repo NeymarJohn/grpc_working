@@ -31,38 +31,46 @@
  *
  */
 
-#ifndef NET_GRPC_PHP_GRPC_TIMEVAL_H_
-#define NET_GRPC_PHP_GRPC_TIMEVAL_H_
+#include <grpc++/byte_buffer.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+namespace grpc {
 
-#include "php.h"
-#include "php_ini.h"
-#include "ext/standard/info.h"
-#include "php_grpc.h"
+ByteBuffer::ByteBuffer(Slice* slices, size_t nslices) {
+  // TODO(yangg) maybe expose some core API to simplify this
+  std::vector<gpr_slice> c_slices(nslices);
+  for (size_t i = 0; i < nslices; i++) {
+    c_slices[i] = slices[i].slice_;
+  }
+  buffer_ = grpc_byte_buffer_create(c_slices.data(), nslices);
+}
 
-#include "grpc/grpc.h"
-#include "grpc/support/time.h"
+void ByteBuffer::Clear() {
+  if (buffer_) {
+    grpc_byte_buffer_destroy(buffer_);
+    buffer_ = nullptr;
+  }
+}
 
-/* Class entry for the Timeval PHP Class */
-zend_class_entry *grpc_ce_timeval;
+void ByteBuffer::Dump(std::vector<Slice>* slices) {
+  slices->clear();
+  if (!buffer_) {
+    return;
+  }
+  grpc_byte_buffer_reader* reader = grpc_byte_buffer_reader_create(buffer_);
+  gpr_slice s;
+  while (grpc_byte_buffer_reader_next(reader, &s)) {
+    slices->push_back(Slice(s, Slice::STEAL_REF));
+    gpr_slice_unref(s);
+  }
+  grpc_byte_buffer_reader_destroy(reader);
+}
 
-/* Wrapper struct for timeval that can be associated with a PHP object */
-typedef struct wrapped_grpc_timeval {
-  zend_object std;
+size_t ByteBuffer::Length() {
+  if (buffer_) {
+    return grpc_byte_buffer_length(buffer_);
+  } else {
+    return 0;
+  }
+}
 
-  gpr_timespec wrapped;
-} wrapped_grpc_timeval;
-
-/* Initialize the Timeval PHP class */
-void grpc_init_timeval(TSRMLS_D);
-
-/* Shutdown the Timeval PHP class */
-void grpc_shutdown_timeval(TSRMLS_D);
-
-/* Creates a Timeval object that wraps the given timeval struct */
-zval *grpc_php_wrap_timeval(gpr_timespec wrapped);
-
-#endif /* NET_GRPC_PHP_GRPC_TIMEVAL_H_ */
+}  // namespace grpc
