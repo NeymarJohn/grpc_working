@@ -36,9 +36,6 @@ using Grpc.Core.Internal;
 
 namespace Grpc.Core
 {
-    /// <summary>
-    /// gRPC Channel
-    /// </summary>
     public class Channel : IDisposable
     {
         readonly ChannelSafeHandle handle;

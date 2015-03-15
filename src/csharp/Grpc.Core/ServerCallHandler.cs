@@ -36,7 +36,7 @@ using System.Linq;
 using Grpc.Core.Internal;
 using Grpc.Core.Utils;
 
-namespace Grpc.Core.Internal
+namespace Grpc.Core
 {
     internal interface IServerCallHandler
     {

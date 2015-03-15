@@ -35,9 +35,9 @@ using System;
 
 namespace Grpc.Core
 {
+    // TODO: element names should changed to comply with C# naming conventions.
     /// <summary>
-    /// Result of a remote procedure call.
-    /// Based on grpc_status_code from grpc/status.h
+    /// based on grpc_status_code from grpc/status.h
     /// </summary>
     public enum StatusCode
     {
