@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python2.7
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -240,7 +240,7 @@ _CONFIGS = {
     }
 
 
-_DEFAULT = ['dbg', 'opt']
+_DEFAULT = ['opt']
 _LANGUAGES = {
     'c++': CLanguage('cxx', 'c++'),
     'c': CLanguage('c', 'c'),
