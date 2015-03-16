@@ -41,7 +41,7 @@ extern "C" {
 /* Interface providing CPU information for currently running system */
 
 /* Return the number of CPU cores on the current system. Will return 0 if
-   the information is not available. */
+   if information is not available. */
 unsigned gpr_cpu_num_cores(void);
 
 /* Return the CPU on which the current thread is executing; N.B. This should
