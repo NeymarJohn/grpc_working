@@ -31,55 +31,49 @@
  *
  */
 
-#ifndef GRPCXX_CONFIG_H
-#define GRPCXX_CONFIG_H
+#ifndef GRPCXX_ASYNC_GENERIC_SERVICE_H
+#define GRPCXX_ASYNC_GENERIC_SERVICE_H
 
-#ifdef GRPC_OLD_CXX
-#define GRPC_FINAL
-#define GRPC_OVERRIDE
-#else
-#define GRPC_FINAL final
-#define GRPC_OVERRIDE override
-#endif
+#include <grpc++/byte_buffer.h>
+#include <grpc++/stream.h>
 
-#ifndef GRPC_CUSTOM_PROTOBUF_INT64
-#include <google/protobuf/stubs/common.h>
-#define GRPC_CUSTOM_PROTOBUF_INT64 ::google::protobuf::int64
-#endif
-
-#ifndef GRPC_CUSTOM_MESSAGE
-#include <google/protobuf/message.h>
-#define GRPC_CUSTOM_MESSAGE ::google::protobuf::Message
-#endif
-
-#ifndef GRPC_CUSTOM_STRING
-#include <string>
-#define GRPC_CUSTOM_STRING std::string
-#endif
-
-#ifndef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM
-#include <google/protobuf/io/zero_copy_stream.h>
-#define GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM ::google::protobuf::io::ZeroCopyOutputStream
-#define GRPC_CUSTOM_ZEROCOPYINPUTSTREAM ::google::protobuf::io::ZeroCopyInputStream
-#endif
-
+struct grpc_server;
 
 namespace grpc {
 
-typedef GRPC_CUSTOM_STRING string;
+typedef ServerAsyncReaderWriter<ByteBuffer, ByteBuffer> GenericServerAsyncReaderWriter;
 
-namespace protobuf {
+class GenericServerContext GRPC_FINAL : public ServerContext {
+ public:
+  const grpc::string& method() const { return method_; }
+  const grpc::string& host() const { return host_; }
 
-typedef GRPC_CUSTOM_MESSAGE Message;
-typedef GRPC_CUSTOM_PROTOBUF_INT64 int64;
+ private:
+  friend class Server;
 
-namespace io {
-typedef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM ZeroCopyOutputStream;
-typedef GRPC_CUSTOM_ZEROCOPYINPUTSTREAM ZeroCopyInputStream;
-}  // namespace io
+  grpc::string method_;
+  grpc::string host_;
+};
 
-}  // namespace protobuf
+class AsyncGenericService GRPC_FINAL {
+ public:
+  // TODO(yangg) Once we can add multiple completion queues to the server
+  // in c core, add a CompletionQueue* argument to the ctor here.
+  // TODO(yangg) support methods list.
+  AsyncGenericService(const grpc::string& methods) : server_(nullptr) {}
 
-}  // namespace grpc
+  void RequestCall(GenericServerContext* ctx,
+                   GenericServerAsyncReaderWriter* reader_writer,
+                   CompletionQueue* cq, void* tag);
 
-#endif  // GRPCXX_CONFIG_H
+  // The new rpc event should be obtained from this completion queue.
+  CompletionQueue* completion_queue();
+
+ private:
+  friend class Server;
+  Server* server_;
+};
+
+} // namespace grpc
+
+#endif  // GRPCXX_ASYNC_GENERIC_SERVICE_H

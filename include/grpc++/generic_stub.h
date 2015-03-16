@@ -31,55 +31,32 @@
  *
  */
 
-#ifndef GRPCXX_CONFIG_H
-#define GRPCXX_CONFIG_H
+#ifndef GRPCXX_GENERIC_STUB_H
+#define GRPCXX_GENERIC_STUB_H
 
-#ifdef GRPC_OLD_CXX
-#define GRPC_FINAL
-#define GRPC_OVERRIDE
-#else
-#define GRPC_FINAL final
-#define GRPC_OVERRIDE override
-#endif
-
-#ifndef GRPC_CUSTOM_PROTOBUF_INT64
-#include <google/protobuf/stubs/common.h>
-#define GRPC_CUSTOM_PROTOBUF_INT64 ::google::protobuf::int64
-#endif
-
-#ifndef GRPC_CUSTOM_MESSAGE
-#include <google/protobuf/message.h>
-#define GRPC_CUSTOM_MESSAGE ::google::protobuf::Message
-#endif
-
-#ifndef GRPC_CUSTOM_STRING
-#include <string>
-#define GRPC_CUSTOM_STRING std::string
-#endif
-
-#ifndef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM
-#include <google/protobuf/io/zero_copy_stream.h>
-#define GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM ::google::protobuf::io::ZeroCopyOutputStream
-#define GRPC_CUSTOM_ZEROCOPYINPUTSTREAM ::google::protobuf::io::ZeroCopyInputStream
-#endif
-
+#include <grpc++/byte_buffer.h>
+#include <grpc++/stream.h>
 
 namespace grpc {
 
-typedef GRPC_CUSTOM_STRING string;
+typedef ClientAsyncReaderWriter<ByteBuffer, ByteBuffer>
+    GenericClientAsyncReaderWriter;
 
-namespace protobuf {
+// Generic stubs provide a type-unsafe interface to call gRPC methods
+// by name.
+class GenericStub GRPC_FINAL {
+ public:
+  explicit GenericStub(std::shared_ptr<ChannelInterface> channel)
+      : channel_(channel) {}
 
-typedef GRPC_CUSTOM_MESSAGE Message;
-typedef GRPC_CUSTOM_PROTOBUF_INT64 int64;
+  // begin a call to a named method
+  std::unique_ptr<GenericClientAsyncReaderWriter> Call(
+      ClientContext* context, const grpc::string& method);
 
-namespace io {
-typedef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM ZeroCopyOutputStream;
-typedef GRPC_CUSTOM_ZEROCOPYINPUTSTREAM ZeroCopyInputStream;
-}  // namespace io
+ private:
+  std::shared_ptr<ChannelInterface> channel_;
+};
 
-}  // namespace protobuf
+} // namespace grpc
 
-}  // namespace grpc
-
-#endif  // GRPCXX_CONFIG_H
+#endif  // GRPCXX_GENERIC_STUB_H

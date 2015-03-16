@@ -31,55 +31,46 @@
  *
  */
 
-#ifndef GRPCXX_CONFIG_H
-#define GRPCXX_CONFIG_H
-
-#ifdef GRPC_OLD_CXX
-#define GRPC_FINAL
-#define GRPC_OVERRIDE
-#else
-#define GRPC_FINAL final
-#define GRPC_OVERRIDE override
-#endif
-
-#ifndef GRPC_CUSTOM_PROTOBUF_INT64
-#include <google/protobuf/stubs/common.h>
-#define GRPC_CUSTOM_PROTOBUF_INT64 ::google::protobuf::int64
-#endif
-
-#ifndef GRPC_CUSTOM_MESSAGE
-#include <google/protobuf/message.h>
-#define GRPC_CUSTOM_MESSAGE ::google::protobuf::Message
-#endif
-
-#ifndef GRPC_CUSTOM_STRING
-#include <string>
-#define GRPC_CUSTOM_STRING std::string
-#endif
-
-#ifndef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM
-#include <google/protobuf/io/zero_copy_stream.h>
-#define GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM ::google::protobuf::io::ZeroCopyOutputStream
-#define GRPC_CUSTOM_ZEROCOPYINPUTSTREAM ::google::protobuf::io::ZeroCopyInputStream
-#endif
-
+#include <grpc++/byte_buffer.h>
 
 namespace grpc {
 
-typedef GRPC_CUSTOM_STRING string;
+ByteBuffer::ByteBuffer(Slice* slices, size_t nslices) {
+  // TODO(yangg) maybe expose some core API to simplify this
+  std::vector<gpr_slice> c_slices(nslices);
+  for (size_t i = 0; i < nslices; i++) {
+    c_slices[i] = slices[i].slice_;
+  }
+  buffer_ = grpc_byte_buffer_create(c_slices.data(), nslices);
+}
 
-namespace protobuf {
+void ByteBuffer::Clear() {
+  if (buffer_) {
+    grpc_byte_buffer_destroy(buffer_);
+    buffer_ = nullptr;
+  }
+}
 
-typedef GRPC_CUSTOM_MESSAGE Message;
-typedef GRPC_CUSTOM_PROTOBUF_INT64 int64;
+void ByteBuffer::Dump(std::vector<Slice>* slices) {
+  slices->clear();
+  if (!buffer_) {
+    return;
+  }
+  grpc_byte_buffer_reader* reader = grpc_byte_buffer_reader_create(buffer_);
+  gpr_slice s;
+  while (grpc_byte_buffer_reader_next(reader, &s)) {
+    slices->push_back(Slice(s, Slice::STEAL_REF));
+    gpr_slice_unref(s);
+  }
+  grpc_byte_buffer_reader_destroy(reader);
+}
 
-namespace io {
-typedef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM ZeroCopyOutputStream;
-typedef GRPC_CUSTOM_ZEROCOPYINPUTSTREAM ZeroCopyInputStream;
-}  // namespace io
-
-}  // namespace protobuf
+size_t ByteBuffer::Length() {
+  if (buffer_) {
+    return grpc_byte_buffer_length(buffer_);
+  } else {
+    return 0;
+  }
+}
 
 }  // namespace grpc
-
-#endif  // GRPCXX_CONFIG_H

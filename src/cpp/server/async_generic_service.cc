@@ -31,55 +31,21 @@
  *
  */
 
-#ifndef GRPCXX_CONFIG_H
-#define GRPCXX_CONFIG_H
+#include <grpc++/async_generic_service.h>
 
-#ifdef GRPC_OLD_CXX
-#define GRPC_FINAL
-#define GRPC_OVERRIDE
-#else
-#define GRPC_FINAL final
-#define GRPC_OVERRIDE override
-#endif
-
-#ifndef GRPC_CUSTOM_PROTOBUF_INT64
-#include <google/protobuf/stubs/common.h>
-#define GRPC_CUSTOM_PROTOBUF_INT64 ::google::protobuf::int64
-#endif
-
-#ifndef GRPC_CUSTOM_MESSAGE
-#include <google/protobuf/message.h>
-#define GRPC_CUSTOM_MESSAGE ::google::protobuf::Message
-#endif
-
-#ifndef GRPC_CUSTOM_STRING
-#include <string>
-#define GRPC_CUSTOM_STRING std::string
-#endif
-
-#ifndef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM
-#include <google/protobuf/io/zero_copy_stream.h>
-#define GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM ::google::protobuf::io::ZeroCopyOutputStream
-#define GRPC_CUSTOM_ZEROCOPYINPUTSTREAM ::google::protobuf::io::ZeroCopyInputStream
-#endif
-
+#include <grpc++/server.h>
 
 namespace grpc {
 
-typedef GRPC_CUSTOM_STRING string;
+void AsyncGenericService::RequestCall(
+    GenericServerContext* ctx, GenericServerAsyncReaderWriter* reader_writer,
+    CompletionQueue* cq, void* tag) {
+  server_->RequestAsyncGenericCall(ctx, reader_writer, cq, tag);
+}
 
-namespace protobuf {
+CompletionQueue* AsyncGenericService::completion_queue() {
+  return &server_->cq_;
+}
 
-typedef GRPC_CUSTOM_MESSAGE Message;
-typedef GRPC_CUSTOM_PROTOBUF_INT64 int64;
+} // namespace grpc
 
-namespace io {
-typedef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM ZeroCopyOutputStream;
-typedef GRPC_CUSTOM_ZEROCOPYINPUTSTREAM ZeroCopyInputStream;
-}  // namespace io
-
-}  // namespace protobuf
-
-}  // namespace grpc
-
-#endif  // GRPCXX_CONFIG_H
