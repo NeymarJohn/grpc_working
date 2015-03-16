@@ -57,28 +57,25 @@ namespace Grpc.Core.Internal
         [DllImport("grpc_csharp_ext.dll")]
         static extern GRPCCallError grpcsharp_call_start_unary(CallSafeHandle call,
                                                                [MarshalAs(UnmanagedType.FunctionPtr)] CompletionCallbackDelegate callback,
-                                                               byte[] send_buffer, UIntPtr send_buffer_len, MetadataArraySafeHandle metadataArray);
+                                                               byte[] send_buffer, UIntPtr send_buffer_len);
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern void grpcsharp_call_blocking_unary(CallSafeHandle call, CompletionQueueSafeHandle dedicatedCq,
                                                          [MarshalAs(UnmanagedType.FunctionPtr)] CompletionCallbackDelegate callback,
-                                                         byte[] send_buffer, UIntPtr send_buffer_len, MetadataArraySafeHandle metadataArray);
+                                                         byte[] send_buffer, UIntPtr send_buffer_len);
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern GRPCCallError grpcsharp_call_start_client_streaming(CallSafeHandle call,
-                                                                          [MarshalAs(UnmanagedType.FunctionPtr)] CompletionCallbackDelegate callback,
-                                                                          MetadataArraySafeHandle metadataArray);
+                                                                          [MarshalAs(UnmanagedType.FunctionPtr)] CompletionCallbackDelegate callback);
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern GRPCCallError grpcsharp_call_start_server_streaming(CallSafeHandle call,
                                                                           [MarshalAs(UnmanagedType.FunctionPtr)] CompletionCallbackDelegate callback,
-                                                                          byte[] send_buffer, UIntPtr send_buffer_len,
-                                                                          MetadataArraySafeHandle metadataArray);
+                                                                          byte[] send_buffer, UIntPtr send_buffer_len);
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern GRPCCallError grpcsharp_call_start_duplex_streaming(CallSafeHandle call,
-                                                                          [MarshalAs(UnmanagedType.FunctionPtr)] CompletionCallbackDelegate callback,
-                                                                          MetadataArraySafeHandle metadataArray);
+                                                                          [MarshalAs(UnmanagedType.FunctionPtr)] CompletionCallbackDelegate callback);
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern GRPCCallError grpcsharp_call_send_message(CallSafeHandle call,
@@ -112,29 +109,29 @@ namespace Grpc.Core.Internal
             return grpcsharp_channel_create_call(channel, cq, method, host, deadline);
         }
 
-        public void StartUnary(byte[] payload, CompletionCallbackDelegate callback, MetadataArraySafeHandle metadataArray)
+        public void StartUnary(byte[] payload, CompletionCallbackDelegate callback)
         {
-            AssertCallOk(grpcsharp_call_start_unary(this, callback, payload, new UIntPtr((ulong)payload.Length), metadataArray));
+            AssertCallOk(grpcsharp_call_start_unary(this, callback, payload, new UIntPtr((ulong)payload.Length)));
         }
 
-        public void BlockingUnary(CompletionQueueSafeHandle dedicatedCq, byte[] payload, CompletionCallbackDelegate callback, MetadataArraySafeHandle metadataArray)
+        public void BlockingUnary(CompletionQueueSafeHandle dedicatedCq, byte[] payload, CompletionCallbackDelegate callback)
         {
-            grpcsharp_call_blocking_unary(this, dedicatedCq, callback, payload, new UIntPtr((ulong)payload.Length), metadataArray);
+            grpcsharp_call_blocking_unary(this, dedicatedCq, callback, payload, new UIntPtr((ulong)payload.Length));
         }
 
-        public void StartClientStreaming(CompletionCallbackDelegate callback, MetadataArraySafeHandle metadataArray)
+        public void StartClientStreaming(CompletionCallbackDelegate callback)
         {
-            AssertCallOk(grpcsharp_call_start_client_streaming(this, callback, metadataArray));
+            AssertCallOk(grpcsharp_call_start_client_streaming(this, callback));
         }
 
-        public void StartServerStreaming(byte[] payload, CompletionCallbackDelegate callback, MetadataArraySafeHandle metadataArray)
+        public void StartServerStreaming(byte[] payload, CompletionCallbackDelegate callback)
         {
-            AssertCallOk(grpcsharp_call_start_server_streaming(this, callback, payload, new UIntPtr((ulong)payload.Length), metadataArray));
+            AssertCallOk(grpcsharp_call_start_server_streaming(this, callback, payload, new UIntPtr((ulong)payload.Length)));
         }
 
-        public void StartDuplexStreaming(CompletionCallbackDelegate callback, MetadataArraySafeHandle metadataArray)
+        public void StartDuplexStreaming(CompletionCallbackDelegate callback)
         {
-            AssertCallOk(grpcsharp_call_start_duplex_streaming(this, callback, metadataArray));
+            AssertCallOk(grpcsharp_call_start_duplex_streaming(this, callback));
         }
 
         public void StartSendMessage(byte[] payload, CompletionCallbackDelegate callback)

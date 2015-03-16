@@ -84,7 +84,7 @@ class GrpcBufferWriter GRPC_FINAL
     byte_count_ -= count;
   }
 
-  grpc::protobuf::int64 ByteCount() const GRPC_OVERRIDE { return byte_count_; }
+  gpr_int64 ByteCount() const GRPC_OVERRIDE { return byte_count_; }
 
  private:
   const int block_size_;
@@ -142,7 +142,7 @@ class GrpcBufferReader GRPC_FINAL
     return false;
   }
 
-  grpc::protobuf::int64 ByteCount() const GRPC_OVERRIDE {
+  gpr_int64 ByteCount() const GRPC_OVERRIDE {
     return byte_count_ - backup_count_;
   }
 
