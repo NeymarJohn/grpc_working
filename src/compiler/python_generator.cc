@@ -229,8 +229,7 @@ bool GetModuleAndMessagePath(const Descriptor* type,
   return true;
 }
 
-bool PrintServerFactory(const std::string& package_qualified_service_name,
-                        const ServiceDescriptor* service, Printer* out) {
+bool PrintServerFactory(const ServiceDescriptor* service, Printer* out) {
   out->Print("def early_adopter_create_$Service$_server(servicer, port, "
              "root_certificates, key_chain_pairs):\n",
              "Service", service->name());
@@ -294,18 +293,17 @@ bool PrintServerFactory(const std::string& package_qualified_service_name,
       out->Print("),\n");
     }
     out->Print("}\n");
+    // out->Print("return implementations.insecure_server("
+    //            "method_service_descriptions, port)\n");
     out->Print(
         "return implementations.secure_server("
-        "\"$PackageQualifiedServiceName$\","
-        " method_service_descriptions, port, root_certificates,"
-        " key_chain_pairs)\n",
-        "PackageQualifiedServiceName", package_qualified_service_name);
+        "method_service_descriptions, port, root_certificates,"
+        " key_chain_pairs)\n");
   }
   return true;
 }
 
-bool PrintStubFactory(const std::string& package_qualified_service_name,
-                      const ServiceDescriptor* service, Printer* out) {
+bool PrintStubFactory(const ServiceDescriptor* service, Printer* out) {
   map<std::string, std::string> dict = ListToDict({
         "Service", service->name(),
       });
@@ -371,9 +369,7 @@ bool PrintStubFactory(const std::string& package_qualified_service_name,
     out->Print("}\n");
     out->Print(
         "return implementations.insecure_stub("
-        "\"$PackageQualifiedServiceName$\","
-        " method_invocation_descriptions, host, port)\n",
-        "PackageQualifiedServiceName", package_qualified_service_name);
+        "method_invocation_descriptions, host, port)\n");
   }
   return true;
 }
@@ -396,18 +392,13 @@ pair<bool, std::string> GetServices(const FileDescriptor* file) {
     if (!PrintPreamble(file, &out)) {
       return make_pair(false, "");
     }
-    auto package = file->package();
-    if (!package.empty()) {
-      package = package.append(".");
-    }
     for (int i = 0; i < file->service_count(); ++i) {
       auto service = file->service(i);
-      auto package_qualified_service_name = package + service->name();
       if (!(PrintServicer(service, &out) &&
             PrintServer(service, &out) &&
             PrintStub(service, &out) &&
-            PrintServerFactory(package_qualified_service_name, service, &out) &&
-            PrintStubFactory(package_qualified_service_name, service, &out))) {
+            PrintServerFactory(service, &out) &&
+            PrintStubFactory(service, &out))) {
         return make_pair(false, "");
       }
     }
