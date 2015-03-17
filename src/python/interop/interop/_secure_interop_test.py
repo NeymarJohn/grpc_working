@@ -27,47 +27,37 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Dockerfile to build protoc and plugins for inclusion in a release.
-FROM grpc/base
+"""Secure client-server interoperability as a unit test."""
 
-# Install tools needed for building protoc.
-RUN apt-get update && apt-get -y install libgflags-dev libgtest-dev
+import unittest
 
-# Get the protobuf source from GitHub.
-RUN mkdir -p /var/local/git
-RUN git clone https://github.com/google/protobuf.git /var/local/git/protobuf
+from grpc.early_adopter import implementations
 
-# Build the protobuf library statically and install to /tmp/protoc_static.
-WORKDIR /var/local/git/protobuf
-RUN ./autogen.sh && \
-    ./configure --disable-shared --prefix=/tmp/protoc_static \
-    LDFLAGS="-lgcc_eh -static-libgcc -static-libstdc++" && \
-    make -j12 && make check && make install
+from interop import _interop_test_case
+from interop import methods
+from interop import resources
 
-# Build the protobuf library dynamically and install to /usr/local.
-WORKDIR /var/local/git/protobuf
-RUN ./autogen.sh && \
-    ./configure --prefix=/usr/local && \
-    make -j12 && make check && make install
-
-# Build the grpc plugins.
-RUN git clone https://github.com/google/grpc.git /var/local/git/grpc
-WORKDIR /var/local/git/grpc
-RUN LDFLAGS=-static make plugins
-
-# Create an archive containing all the generated binaries.
-RUN mkdir /tmp/proto_bins_root
-RUN cp -v bins/opt/* /tmp/proto_bins_root
-RUN cp -v /tmp/protoc_static/bin/protoc /tmp/proto_bins_root
-RUN cd /tmp/proto_bins_root && \
-    tar -czf /tmp/proto-bins-linux-$(uname -m).tar.gz *
-
-# List the tar contents: provides a way to visually confirm that the contents
-# are correct.
-RUN echo 'proto-bins-linux-tar-$(uname -m) contents:' && \
-    tar -ztf /tmp/proto-bins-linux-$(uname -m).tar.gz
+_SERVER_HOST_OVERRIDE = 'foo.test.google.fr'
 
 
+class SecureInteropTest(
+    _interop_test_case.InteropTestCase,
+    unittest.TestCase):
+
+  def setUp(self):
+    self.server = implementations.secure_server(
+        methods.SERVER_METHODS, 0, resources.private_key(),
+        resources.certificate_chain())
+    self.server.start()
+    port = self.server.port()
+    self.stub = implementations.secure_stub(
+        methods.CLIENT_METHODS, 'localhost', port,
+        resources.test_root_certificates(), None, None,
+        server_host_override=_SERVER_HOST_OVERRIDE)
+
+  def tearDown(self):
+    self.server.stop()
 
 
-
+if __name__ == '__main__':
+  unittest.main()
