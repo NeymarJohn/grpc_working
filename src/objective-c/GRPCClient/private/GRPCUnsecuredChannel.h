@@ -1,4 +1,3 @@
-<?php
 /*
  *
  * Copyright 2015, Google Inc.
@@ -31,18 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-require 'AbstractGeneratedCodeTest.php';
 
-class GeneratedCodeWithCallbackTest extends AbstractGeneratedCodeTest {
-  public static function setUpBeforeClass() {
-    self::$client = new math\MathClient(new Grpc\BaseStub(
-        getenv('GRPC_TEST_HOST'), ['update_metadata' =>
-                                   function($a_hash,
-                                            $opts = array(),
-                                            $client = array()) {
-                                     $a_copy = $a_hash;
-                                     $a_copy['foo'] = ['bar'];
-                                     return $a_copy;
-                                   }]));
-  }
-}
+#import "GRPCChannel.h"
+
+@interface GRPCUnsecuredChannel : GRPCChannel
+
+@end
