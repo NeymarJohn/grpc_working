@@ -36,14 +36,13 @@ using Grpc.Core;
 
 namespace Grpc.Core.Internal
 {
-    internal delegate void CompletionCallbackDelegate(GRPCOpError error, IntPtr batchContextPtr);
-    
+    internal delegate void CompletionCallbackDelegate(GRPCOpError error,IntPtr batchContextPtr);
     /// <summary>
     /// grpc_call from <grpc/grpc.h>
     /// </summary>
     internal class CallSafeHandle : SafeHandleZeroIsInvalid
     {
-        const uint GRPC_WRITE_BUFFER_HINT = 1;
+        const UInt32 GRPC_WRITE_BUFFER_HINT = 1;
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern CallSafeHandle grpcsharp_channel_create_call(ChannelSafeHandle channel, CompletionQueueSafeHandle cq, string method, string host, Timespec deadline);
@@ -180,7 +179,7 @@ namespace Grpc.Core.Internal
             Trace.Assert(callError == GRPCCallError.GRPC_CALL_OK, "Status not GRPC_CALL_OK");
         }
 
-        private static uint GetFlags(bool buffered)
+        private static UInt32 GetFlags(bool buffered)
         {
             return buffered ? 0 : GRPC_WRITE_BUFFER_HINT;
         }

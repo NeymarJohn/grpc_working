@@ -42,8 +42,7 @@ namespace Grpc.Core.Utils
         /// Otherwise, rethrows the original aggregate exception.
         /// Always throws, the exception return type is here only to make the.
         /// </summary>
-        public static Exception UnwrapRpcException(AggregateException ae)
-        {
+        public static Exception UnwrapRpcException(AggregateException ae) {
             foreach (var e in ae.InnerExceptions)
             {
                 if (e is RpcException)
@@ -55,3 +54,4 @@ namespace Grpc.Core.Utils
         }
     }
 }
+
