@@ -45,8 +45,6 @@ namespace math
     /// </summary>
     public class MathGrpc
     {
-        static readonly string ServiceName = "/math.Math";
-
         static readonly Marshaller<DivArgs> DivArgsMarshaller = Marshallers.Create((arg) => arg.ToByteArray(), DivArgs.ParseFrom);
         static readonly Marshaller<DivReply> DivReplyMarshaller = Marshallers.Create((arg) => arg.ToByteArray(), DivReply.ParseFrom);
         static readonly Marshaller<Num> NumMarshaller = Marshallers.Create((arg) => arg.ToByteArray(), Num.ParseFrom);
@@ -54,25 +52,25 @@ namespace math
 
         static readonly Method<DivArgs, DivReply> DivMethod = new Method<DivArgs, DivReply>(
             MethodType.Unary,
-            "Div",
+            "/math.Math/Div",
             DivArgsMarshaller,
             DivReplyMarshaller);
 
         static readonly Method<FibArgs, Num> FibMethod = new Method<FibArgs, Num>(
             MethodType.ServerStreaming,
-            "Fib",
+            "/math.Math/Fib",
             FibArgsMarshaller,
             NumMarshaller);
 
         static readonly Method<Num, Num> SumMethod = new Method<Num, Num>(
             MethodType.ClientStreaming,
-            "Sum",
+            "/math.Math/Sum",
             NumMarshaller,
             NumMarshaller);
 
         static readonly Method<DivArgs, DivReply> DivManyMethod = new Method<DivArgs, DivReply>(
             MethodType.DuplexStreaming,
-            "DivMany",
+            "/math.Math/DivMany",
             DivArgsMarshaller,
             DivReplyMarshaller);
 
@@ -89,43 +87,42 @@ namespace math
             IObserver<DivArgs> DivMany(IObserver<DivReply> responseObserver, CancellationToken token = default(CancellationToken));
         }
 
-        public class MathServiceClientStub : AbstractStub<MathServiceClientStub, StubConfiguration>, IMathServiceClient
+        public class MathServiceClientStub : IMathServiceClient
         {
-            public MathServiceClientStub(Channel channel) : this(channel, StubConfiguration.Default)
-            {
-            }
+            readonly Channel channel;
 
-            public MathServiceClientStub(Channel channel, StubConfiguration config) : base(channel, config)
+            public MathServiceClientStub(Channel channel)
             {
+                this.channel = channel;
             }
 
             public DivReply Div(DivArgs request, CancellationToken token = default(CancellationToken))
             {
-                var call = CreateCall(ServiceName, DivMethod);
+                var call = new Grpc.Core.Call<DivArgs, DivReply>(DivMethod, channel);
                 return Calls.BlockingUnaryCall(call, request, token);
             }
 
             public Task<DivReply> DivAsync(DivArgs request, CancellationToken token = default(CancellationToken))
             {
-                var call = CreateCall(ServiceName, DivMethod);
+                var call = new Grpc.Core.Call<DivArgs, DivReply>(DivMethod, channel);
                 return Calls.AsyncUnaryCall(call, request, token);
             }
 
             public void Fib(FibArgs request, IObserver<Num> responseObserver, CancellationToken token = default(CancellationToken))
             {
-                var call = CreateCall(ServiceName, FibMethod);
+                var call = new Grpc.Core.Call<FibArgs, Num>(FibMethod, channel);
                 Calls.AsyncServerStreamingCall(call, request, responseObserver, token);
             }
 
             public ClientStreamingAsyncResult<Num, Num> Sum(CancellationToken token = default(CancellationToken))
             {
-                var call = CreateCall(ServiceName, SumMethod);
+                var call = new Grpc.Core.Call<Num, Num>(SumMethod, channel);
                 return Calls.AsyncClientStreamingCall(call, token);
             }
 
             public IObserver<DivArgs> DivMany(IObserver<DivReply> responseObserver, CancellationToken token = default(CancellationToken))
             {
-                var call = CreateCall(ServiceName, DivManyMethod);
+                var call = new Grpc.Core.Call<DivArgs, DivReply>(DivManyMethod, channel);
                 return Calls.DuplexStreamingCall(call, responseObserver, token);
             }
         }
@@ -144,7 +141,7 @@ namespace math
 
         public static ServerServiceDefinition BindService(IMathService serviceImpl)
         {
-            return ServerServiceDefinition.CreateBuilder(ServiceName)
+            return ServerServiceDefinition.CreateBuilder("/math.Math/")
                 .AddMethod(DivMethod, serviceImpl.Div)
                 .AddMethod(FibMethod, serviceImpl.Fib)
                 .AddMethod(SumMethod, serviceImpl.Sum)
@@ -154,11 +151,6 @@ namespace math
         public static IMathServiceClient NewStub(Channel channel)
         {
             return new MathServiceClientStub(channel);
-        }
-
-        public static IMathServiceClient NewStub(Channel channel, StubConfiguration config)
-        {
-            return new MathServiceClientStub(channel, config);
         }
     }
 }
