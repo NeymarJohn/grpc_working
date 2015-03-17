@@ -107,7 +107,7 @@ def main():
               'name': 'end2end_fixture_%s' % f,
               'build': 'private',
               'language': 'c',
-              'secure': 'check',
+              'secure': True,
               'src': ['test/core/end2end/fixtures/%s.c' % f]
           }
           for f in END2END_FIXTURES] + [
@@ -115,7 +115,7 @@ def main():
               'name': 'end2end_test_%s' % t,
               'build': 'private',
               'language': 'c',
-              'secure': 'no',
+              'secure': False,
               'src': ['test/core/end2end/tests/%s.c' % t],
               'headers': ['test/core/end2end/tests/cancel_test_helpers.h']
           }

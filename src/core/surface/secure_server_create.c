@@ -31,21 +31,27 @@
  *
  */
 
-#include <grpc++/async_generic_service.h>
+#include <grpc/grpc.h>
 
-#include <grpc++/server.h>
+#include "src/core/channel/channel_args.h"
+#include "src/core/security/security_context.h"
+#include "src/core/surface/completion_queue.h"
+#include "src/core/surface/server.h"
+#include <grpc/support/log.h>
 
-namespace grpc {
+grpc_server *grpc_secure_server_create_internal(
+    grpc_completion_queue *cq, const grpc_channel_args *args,
+    grpc_security_context *context) {
+  grpc_arg context_arg;
+  grpc_channel_args *args_copy;
+  grpc_server *server;
+  if (grpc_find_security_context_in_args(args) != NULL) {
+    gpr_log(GPR_ERROR, "Cannot set security context in channel args.");
+  }
 
-void AsyncGenericService::RequestCall(
-    GenericServerContext* ctx, GenericServerAsyncReaderWriter* reader_writer,
-    CompletionQueue* cq, void* tag) {
-  server_->RequestAsyncGenericCall(ctx, reader_writer, cq, tag);
+  context_arg = grpc_security_context_to_arg(context);
+  args_copy = grpc_channel_args_copy_and_add(args, &context_arg);
+  server = grpc_server_create_from_filters(cq, NULL, 0, args_copy);
+  grpc_channel_args_destroy(args_copy);
+  return server;
 }
-
-CompletionQueue* AsyncGenericService::completion_queue() {
-  return &server_->cq_;
-}
-
-} // namespace grpc
-

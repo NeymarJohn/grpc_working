@@ -27,30 +27,4 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Insecure client-server interoperability as a unit test."""
 
-import unittest
-
-from grpc.early_adopter import implementations
-
-from interop import _interop_test_case
-from interop import methods
-
-
-class InsecureInteropTest(
-    _interop_test_case.InteropTestCase,
-    unittest.TestCase):
-
-  def setUp(self):
-    self.server = implementations.insecure_server(methods.SERVER_METHODS, 0)
-    self.server.start()
-    port = self.server.port()
-    self.stub = implementations.insecure_stub(
-        methods.CLIENT_METHODS, 'localhost', port)
-
-  def tearDown(self):
-    self.server.stop()
-
-
-if __name__ == '__main__':
-  unittest.main()
