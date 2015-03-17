@@ -39,11 +39,12 @@
 #include <grpc/support/slice.h>
 #include <grpc/support/slice_buffer.h>
 #include <grpc/support/port_platform.h>
+#include <google/protobuf/io/zero_copy_stream.h>
 
 const int kMaxBufferLength = 8192;
 
 class GrpcBufferWriter GRPC_FINAL
-    : public ::grpc::protobuf::io::ZeroCopyOutputStream {
+    : public ::google::protobuf::io::ZeroCopyOutputStream {
  public:
   explicit GrpcBufferWriter(grpc_byte_buffer **bp,
                             int block_size = kMaxBufferLength)
@@ -84,7 +85,7 @@ class GrpcBufferWriter GRPC_FINAL
     byte_count_ -= count;
   }
 
-  grpc::protobuf::int64 ByteCount() const GRPC_OVERRIDE { return byte_count_; }
+  gpr_int64 ByteCount() const GRPC_OVERRIDE { return byte_count_; }
 
  private:
   const int block_size_;
@@ -96,7 +97,7 @@ class GrpcBufferWriter GRPC_FINAL
 };
 
 class GrpcBufferReader GRPC_FINAL
-    : public ::grpc::protobuf::io::ZeroCopyInputStream {
+    : public ::google::protobuf::io::ZeroCopyInputStream {
  public:
   explicit GrpcBufferReader(grpc_byte_buffer *buffer)
       : byte_count_(0), backup_count_(0) {
@@ -142,7 +143,7 @@ class GrpcBufferReader GRPC_FINAL
     return false;
   }
 
-  grpc::protobuf::int64 ByteCount() const GRPC_OVERRIDE {
+  gpr_int64 ByteCount() const GRPC_OVERRIDE {
     return byte_count_ - backup_count_;
   }
 

@@ -30,7 +30,6 @@
 #endregion
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,18 +37,33 @@ using Grpc.Core.Internal;
 
 namespace Grpc.Core
 {
-    /// <summary>
-    /// gRPC channel options.
-    /// </summary>
+    // TODO: should we be using the builder pattern?
     public class ChannelArgs
     {
         public const string SslTargetNameOverrideKey = "grpc.ssl_target_name_override";
 
-        readonly ImmutableDictionary<string, string> stringArgs;
-
-        private ChannelArgs(ImmutableDictionary<string, string> stringArgs)
+        public class Builder
         {
-            this.stringArgs = stringArgs;
+            Dictionary<string, string> stringArgs = new Dictionary<string, string>();
+            // TODO: AddInteger not supported yet.
+            public Builder AddString(string key, string value)
+            {
+                stringArgs.Add(key, value);
+                return this;
+            }
+
+            public ChannelArgs Build()
+            {
+                return new ChannelArgs(stringArgs);
+            }
+        }
+
+        Dictionary<string, string> stringArgs;
+
+        private ChannelArgs(Dictionary<string, string> stringArgs)
+        {
+            // TODO: use immutable dict?
+            this.stringArgs = new Dictionary<string, string>(stringArgs);
         }
 
         public string GetSslTargetNameOverride()
@@ -62,26 +76,9 @@ namespace Grpc.Core
             return null;
         }
 
-        public static Builder CreateBuilder()
+        public static Builder NewBuilder()
         {
             return new Builder();
-        }
-
-        public class Builder
-        {
-            readonly Dictionary<string, string> stringArgs = new Dictionary<string, string>();
-
-            // TODO: AddInteger not supported yet.
-            public Builder AddString(string key, string value)
-            {
-                stringArgs.Add(key, value);
-                return this;
-            }
-
-            public ChannelArgs Build()
-            {
-                return new ChannelArgs(stringArgs.ToImmutableDictionary());
-            }
         }
 
         /// <summary>

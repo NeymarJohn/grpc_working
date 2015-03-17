@@ -109,7 +109,7 @@ namespace Grpc.IntegrationTesting
             ChannelArgs channelArgs = null;
             if (!string.IsNullOrEmpty(options.serverHostOverride))
             {
-                channelArgs = ChannelArgs.CreateBuilder()
+                channelArgs = ChannelArgs.NewBuilder()
                     .AddString(ChannelArgs.SslTargetNameOverrideKey, options.serverHostOverride).Build();
             }
 

@@ -50,8 +50,6 @@
 #include "grpc/grpc.h"
 #include "grpc/support/time.h"
 
-zend_class_entry *grpc_ce_timeval;
-
 /* Frees and destroys an instance of wrapped_grpc_call */
 void free_wrapped_grpc_timeval(void *object TSRMLS_DC) { efree(object); }
 

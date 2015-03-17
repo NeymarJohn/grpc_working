@@ -31,21 +31,23 @@
  *
  */
 
-#include <grpc++/async_generic_service.h>
+#include <grpc/support/port_platform.h>
 
-#include <grpc++/server.h>
+#ifdef GPR_CPU_IPHONE
 
-namespace grpc {
-
-void AsyncGenericService::RequestCall(
-    GenericServerContext* ctx, GenericServerAsyncReaderWriter* reader_writer,
-    CompletionQueue* cq, void* tag) {
-  server_->RequestAsyncGenericCall(ctx, reader_writer, cq, tag);
+/* Probably 2 instead of 1, but see comment on gpr_cpu_current_cpu. */
+unsigned gpr_cpu_num_cores(void) {
+  return 1;
 }
 
-CompletionQueue* AsyncGenericService::completion_queue() {
-  return &server_->cq_;
+/* Most code that's using this is using it to shard across work queues. So
+   unless profiling shows it's a problem or there appears a way to detect the
+   currently running CPU core, let's have it shard the default way.
+   Note that the interface in cpu.h lets gpr_cpu_num_cores return 0, but doing
+   it makes it impossible for gpr_cpu_current_cpu to satisfy its stated range,
+   and some code might be relying on it. */
+unsigned gpr_cpu_current_cpu(void) {
+  return 0;
 }
 
-} // namespace grpc
-
+#endif /* GPR_CPU_IPHONE */
