@@ -89,7 +89,7 @@ describe('Cancelling surface client', function() {
       }
     });
     var port = server.bind('localhost:0');
-    var Client = surface_client.makeProtobufClientConstructor(mathService);
+    var Client = surface_client.makeClientConstructor(mathService);
     client = new Client('localhost:' + port);
   });
   after(function() {
