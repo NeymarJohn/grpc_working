@@ -75,9 +75,6 @@ using v8::Value;
 NanCallback *Call::constructor;
 Persistent<FunctionTemplate> Call::fun_tpl;
 
-bool EndsWith(const char *str, const char *substr) {
-  return strcmp(str+strlen(str)-strlen(substr), substr) == 0;
-}
 
 bool CreateMetadataArray(Handle<Object> metadata, grpc_metadata_array *array,
                          shared_ptr<Resources> resources) {
@@ -102,19 +99,14 @@ bool CreateMetadataArray(Handle<Object> metadata, grpc_metadata_array *array,
       Handle<Value> value = values->Get(j);
       grpc_metadata *current = &array->metadata[array->count];
       current->key = **utf8_key;
-      // Only allow binary headers for "-bin" keys
-      if (EndsWith(current->key, "-bin")) {
-        if (::node::Buffer::HasInstance(value)) {
-          current->value = ::node::Buffer::Data(value);
-          current->value_length = ::node::Buffer::Length(value);
-          Persistent<Value> *handle = new Persistent<Value>();
-          NanAssignPersistent(*handle, value);
-          resources->handles.push_back(unique_ptr<PersistentHolder>(
-              new PersistentHolder(handle)));
-          continue;
-        }
-      }
-      if (value->IsString()) {
+      if (::node::Buffer::HasInstance(value)) {
+        current->value = ::node::Buffer::Data(value);
+        current->value_length = ::node::Buffer::Length(value);
+        Persistent<Value> *handle = new Persistent<Value>();
+        NanAssignPersistent(*handle, value);
+        resources->handles.push_back(unique_ptr<PersistentHolder>(
+            new PersistentHolder(handle)));
+      } else if (value->IsString()) {
         Handle<String> string_value = value->ToString();
         NanUtf8String *utf8_value = new NanUtf8String(string_value);
         resources->strings.push_back(unique_ptr<NanUtf8String>(utf8_value));
@@ -154,13 +146,9 @@ Handle<Value> ParseMetadata(const grpc_metadata_array *metadata_array) {
       array = NanNew<Array>(size_map[elem->key]);
       metadata_object->Set(key_string, array);
     }
-    if (EndsWith(elem->key, "-bin")) {
-      array->Set(index_map[elem->key],
-                 MakeFastBuffer(
-                     NanNewBufferHandle(elem->value, elem->value_length)));
-    } else {
-      array->Set(index_map[elem->key], NanNew(elem->value));
-    }
+    array->Set(index_map[elem->key],
+               MakeFastBuffer(
+                   NanNewBufferHandle(elem->value, elem->value_length)));
     index_map[elem->key] += 1;
   }
   return NanEscapeScope(metadata_object);
