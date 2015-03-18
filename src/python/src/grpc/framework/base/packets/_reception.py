@@ -27,46 +27,47 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""State and behavior for ticket reception."""
+"""State and behavior for packet reception."""
 
 import abc
 
-from grpc.framework.base import interfaces
-from grpc.framework.base import _interfaces
+from grpc.framework.base import interfaces as base_interfaces
+from grpc.framework.base.packets import _interfaces
+from grpc.framework.base.packets import packets
 
-_INITIAL_FRONT_TO_BACK_TICKET_KINDS = (
-    interfaces.FrontToBackTicket.Kind.COMMENCEMENT,
-    interfaces.FrontToBackTicket.Kind.ENTIRE,
+_INITIAL_FRONT_TO_BACK_PACKET_KINDS = (
+    packets.FrontToBackPacket.Kind.COMMENCEMENT,
+    packets.FrontToBackPacket.Kind.ENTIRE,
 )
 
 
 class _Receiver(object):
-  """Common specification of different ticket-handling behavior."""
+  """Common specification of different packet-handling behavior."""
   __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
-  def abort_if_abortive(self, ticket):
-    """Aborts the operation if the ticket is abortive.
+  def abort_if_abortive(self, packet):
+    """Aborts the operation if the packet is abortive.
 
     Args:
-      ticket: A just-arrived ticket.
+      packet: A just-arrived packet.
 
     Returns:
       A boolean indicating whether or not this Receiver aborted the operation
-        based on the ticket.
+        based on the packet.
     """
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def receive(self, ticket):
-    """Handles a just-arrived ticket.
+  def receive(self, packet):
+    """Handles a just-arrived packet.
 
     Args:
-      ticket: A just-arrived ticket.
+      packet: A just-arrived packet.
 
     Returns:
-      A boolean indicating whether or not the ticket was terminal (i.e. whether
-        or not non-abortive tickets are legal after this one).
+      A boolean indicating whether or not the packet was terminal (i.e. whether
+        or not non-abortive packets are legal after this one).
     """
     raise NotImplementedError()
 
@@ -87,15 +88,15 @@ def _abort(
 
 
 def _abort_if_abortive(
-    ticket, abortive, termination_manager, transmission_manager,
+    packet, abortive, termination_manager, transmission_manager,
     ingestion_manager, expiration_manager):
-  """Determines a ticket's being abortive and if so aborts the operation.
+  """Determines a packet's being abortive and if so aborts the operation.
 
   Args:
-    ticket: A just-arrived ticket.
-    abortive: A callable that takes a ticket and returns an interfaces.Outcome
-      indicating that the operation should be aborted or None indicating that
-      the operation should not be aborted.
+    packet: A just-arrived packet.
+    abortive: A callable that takes a packet and returns a
+      base_interfaces.Outcome indicating that the operation should be aborted
+      or None indicating that the operation should not be aborted.
     termination_manager: The operation's _interfaces.TerminationManager.
     transmission_manager: The operation's _interfaces.TransmissionManager.
     ingestion_manager: The operation's _interfaces.IngestionManager.
@@ -104,7 +105,7 @@ def _abort_if_abortive(
   Returns:
     True if the operation was aborted; False otherwise.
   """
-  abortion_outcome = abortive(ticket)
+  abortion_outcome = abortive(packet)
   if abortion_outcome is None:
     return False
   else:
@@ -119,12 +120,12 @@ def _reception_failure(
     expiration_manager):
   """Aborts the operation with an indication of reception failure."""
   _abort(
-      interfaces.Outcome.RECEPTION_FAILURE, termination_manager,
+      base_interfaces.Outcome.RECEPTION_FAILURE, termination_manager,
       transmission_manager, ingestion_manager, expiration_manager)
 
 
 class _BackReceiver(_Receiver):
-  """Ticket-handling specific to the back side of an operation."""
+  """Packet-handling specific to the back side of an operation."""
 
   def __init__(
       self, termination_manager, transmission_manager, ingestion_manager,
@@ -142,68 +143,68 @@ class _BackReceiver(_Receiver):
     self._ingestion_manager = ingestion_manager
     self._expiration_manager = expiration_manager
 
-    self._first_ticket_seen = False
-    self._last_ticket_seen = False
+    self._first_packet_seen = False
+    self._last_packet_seen = False
 
-  def _abortive(self, ticket):
-    """Determines whether or not (and if so, how) a ticket is abortive.
+  def _abortive(self, packet):
+    """Determines whether or not (and if so, how) a packet is abortive.
 
     Args:
-      ticket: A just-arrived ticket.
+      packet: A just-arrived packet.
 
     Returns:
-      An interfaces.Outcome value describing operation abortion if the
-        ticket is abortive or None if the ticket is not abortive.
+      A base_interfaces.Outcome value describing operation abortion if the
+        packet is abortive or None if the packet is not abortive.
     """
-    if ticket.kind is interfaces.FrontToBackTicket.Kind.CANCELLATION:
-      return interfaces.Outcome.CANCELLED
-    elif ticket.kind is interfaces.FrontToBackTicket.Kind.EXPIRATION:
-      return interfaces.Outcome.EXPIRED
-    elif ticket.kind is interfaces.FrontToBackTicket.Kind.SERVICED_FAILURE:
-      return interfaces.Outcome.SERVICED_FAILURE
-    elif ticket.kind is interfaces.FrontToBackTicket.Kind.RECEPTION_FAILURE:
-      return interfaces.Outcome.SERVICED_FAILURE
-    elif (ticket.kind in _INITIAL_FRONT_TO_BACK_TICKET_KINDS and
-          self._first_ticket_seen):
-      return interfaces.Outcome.RECEPTION_FAILURE
-    elif self._last_ticket_seen:
-      return interfaces.Outcome.RECEPTION_FAILURE
+    if packet.kind is packets.FrontToBackPacket.Kind.CANCELLATION:
+      return base_interfaces.Outcome.CANCELLED
+    elif packet.kind is packets.FrontToBackPacket.Kind.EXPIRATION:
+      return base_interfaces.Outcome.EXPIRED
+    elif packet.kind is packets.FrontToBackPacket.Kind.SERVICED_FAILURE:
+      return base_interfaces.Outcome.SERVICED_FAILURE
+    elif packet.kind is packets.FrontToBackPacket.Kind.RECEPTION_FAILURE:
+      return base_interfaces.Outcome.SERVICED_FAILURE
+    elif (packet.kind in _INITIAL_FRONT_TO_BACK_PACKET_KINDS and
+          self._first_packet_seen):
+      return base_interfaces.Outcome.RECEPTION_FAILURE
+    elif self._last_packet_seen:
+      return base_interfaces.Outcome.RECEPTION_FAILURE
     else:
       return None
 
-  def abort_if_abortive(self, ticket):
+  def abort_if_abortive(self, packet):
     """See _Receiver.abort_if_abortive for specification."""
     return _abort_if_abortive(
-        ticket, self._abortive, self._termination_manager,
+        packet, self._abortive, self._termination_manager,
         self._transmission_manager, self._ingestion_manager,
         self._expiration_manager)
 
-  def receive(self, ticket):
+  def receive(self, packet):
     """See _Receiver.receive for specification."""
-    if ticket.timeout is not None:
-      self._expiration_manager.change_timeout(ticket.timeout)
+    if packet.timeout is not None:
+      self._expiration_manager.change_timeout(packet.timeout)
 
-    if ticket.kind is interfaces.FrontToBackTicket.Kind.COMMENCEMENT:
-      self._first_ticket_seen = True
-      self._ingestion_manager.start(ticket.name)
-      if ticket.payload is not None:
-        self._ingestion_manager.consume(ticket.payload)
-    elif ticket.kind is interfaces.FrontToBackTicket.Kind.CONTINUATION:
-      self._ingestion_manager.consume(ticket.payload)
-    elif ticket.kind is interfaces.FrontToBackTicket.Kind.COMPLETION:
-      self._last_ticket_seen = True
-      if ticket.payload is None:
+    if packet.kind is packets.FrontToBackPacket.Kind.COMMENCEMENT:
+      self._first_packet_seen = True
+      self._ingestion_manager.start(packet.name)
+      if packet.payload is not None:
+        self._ingestion_manager.consume(packet.payload)
+    elif packet.kind is packets.FrontToBackPacket.Kind.CONTINUATION:
+      self._ingestion_manager.consume(packet.payload)
+    elif packet.kind is packets.FrontToBackPacket.Kind.COMPLETION:
+      self._last_packet_seen = True
+      if packet.payload is None:
         self._ingestion_manager.terminate()
       else:
-        self._ingestion_manager.consume_and_terminate(ticket.payload)
+        self._ingestion_manager.consume_and_terminate(packet.payload)
     else:
-      self._first_ticket_seen = True
-      self._last_ticket_seen = True
-      self._ingestion_manager.start(ticket.name)
-      if ticket.payload is None:
+      self._first_packet_seen = True
+      self._last_packet_seen = True
+      self._ingestion_manager.start(packet.name)
+      if packet.payload is None:
         self._ingestion_manager.terminate()
       else:
-        self._ingestion_manager.consume_and_terminate(ticket.payload)
+        self._ingestion_manager.consume_and_terminate(packet.payload)
 
   def reception_failure(self):
     """See _Receiver.reception_failure for specification."""
@@ -213,7 +214,7 @@ class _BackReceiver(_Receiver):
 
 
 class _FrontReceiver(_Receiver):
-  """Ticket-handling specific to the front side of an operation."""
+  """Packet-handling specific to the front side of an operation."""
 
   def __init__(
       self, termination_manager, transmission_manager, ingestion_manager,
@@ -231,48 +232,48 @@ class _FrontReceiver(_Receiver):
     self._ingestion_manager = ingestion_manager
     self._expiration_manager = expiration_manager
 
-    self._last_ticket_seen = False
+    self._last_packet_seen = False
 
-  def _abortive(self, ticket):
-    """Determines whether or not (and if so, how) a ticket is abortive.
+  def _abortive(self, packet):
+    """Determines whether or not (and if so, how) a packet is abortive.
 
     Args:
-      ticket: A just-arrived ticket.
+      packet: A just-arrived packet.
 
     Returns:
-      An interfaces.Outcome value describing operation abortion if the ticket
-        is abortive or None if the ticket is not abortive.
+      A base_interfaces.Outcome value describing operation abortion if the
+        packet is abortive or None if the packet is not abortive.
     """
-    if ticket.kind is interfaces.BackToFrontTicket.Kind.CANCELLATION:
-      return interfaces.Outcome.CANCELLED
-    elif ticket.kind is interfaces.BackToFrontTicket.Kind.EXPIRATION:
-      return interfaces.Outcome.EXPIRED
-    elif ticket.kind is interfaces.BackToFrontTicket.Kind.SERVICER_FAILURE:
-      return interfaces.Outcome.SERVICER_FAILURE
-    elif ticket.kind is interfaces.BackToFrontTicket.Kind.RECEPTION_FAILURE:
-      return interfaces.Outcome.SERVICER_FAILURE
-    elif self._last_ticket_seen:
-      return interfaces.Outcome.RECEPTION_FAILURE
+    if packet.kind is packets.BackToFrontPacket.Kind.CANCELLATION:
+      return base_interfaces.Outcome.CANCELLED
+    elif packet.kind is packets.BackToFrontPacket.Kind.EXPIRATION:
+      return base_interfaces.Outcome.EXPIRED
+    elif packet.kind is packets.BackToFrontPacket.Kind.SERVICER_FAILURE:
+      return base_interfaces.Outcome.SERVICER_FAILURE
+    elif packet.kind is packets.BackToFrontPacket.Kind.RECEPTION_FAILURE:
+      return base_interfaces.Outcome.SERVICER_FAILURE
+    elif self._last_packet_seen:
+      return base_interfaces.Outcome.RECEPTION_FAILURE
     else:
       return None
 
-  def abort_if_abortive(self, ticket):
+  def abort_if_abortive(self, packet):
     """See _Receiver.abort_if_abortive for specification."""
     return _abort_if_abortive(
-        ticket, self._abortive, self._termination_manager,
+        packet, self._abortive, self._termination_manager,
         self._transmission_manager, self._ingestion_manager,
         self._expiration_manager)
 
-  def receive(self, ticket):
+  def receive(self, packet):
     """See _Receiver.receive for specification."""
-    if ticket.kind is interfaces.BackToFrontTicket.Kind.CONTINUATION:
-      self._ingestion_manager.consume(ticket.payload)
-    elif ticket.kind is interfaces.BackToFrontTicket.Kind.COMPLETION:
-      self._last_ticket_seen = True
-      if ticket.payload is None:
+    if packet.kind is packets.BackToFrontPacket.Kind.CONTINUATION:
+      self._ingestion_manager.consume(packet.payload)
+    elif packet.kind is packets.BackToFrontPacket.Kind.COMPLETION:
+      self._last_packet_seen = True
+      if packet.payload is None:
         self._ingestion_manager.terminate()
       else:
-        self._ingestion_manager.consume_and_terminate(ticket.payload)
+        self._ingestion_manager.consume_and_terminate(packet.payload)
 
   def reception_failure(self):
     """See _Receiver.reception_failure for specification."""
@@ -289,72 +290,72 @@ class _ReceptionManager(_interfaces.ReceptionManager):
 
     Args:
       lock: The operation-servicing-wide lock object.
-      receiver: A _Receiver responsible for handling received tickets.
+      receiver: A _Receiver responsible for handling received packets.
     """
     self._lock = lock
     self._receiver = receiver
 
     self._lowest_unseen_sequence_number = 0
-    self._out_of_sequence_tickets = {}
+    self._out_of_sequence_packets = {}
     self._completed_sequence_number = None
     self._aborted = False
 
-  def _sequence_failure(self, ticket):
-    """Determines a just-arrived ticket's sequential legitimacy.
+  def _sequence_failure(self, packet):
+    """Determines a just-arrived packet's sequential legitimacy.
 
     Args:
-      ticket: A just-arrived ticket.
+      packet: A just-arrived packet.
 
     Returns:
-      True if the ticket is sequentially legitimate; False otherwise.
+      True if the packet is sequentially legitimate; False otherwise.
     """
-    if ticket.sequence_number < self._lowest_unseen_sequence_number:
+    if packet.sequence_number < self._lowest_unseen_sequence_number:
       return True
-    elif ticket.sequence_number in self._out_of_sequence_tickets:
+    elif packet.sequence_number in self._out_of_sequence_packets:
       return True
     elif (self._completed_sequence_number is not None and
-          self._completed_sequence_number <= ticket.sequence_number):
+          self._completed_sequence_number <= packet.sequence_number):
       return True
     else:
       return False
 
-  def _process(self, ticket):
-    """Process those tickets ready to be processed.
+  def _process(self, packet):
+    """Process those packets ready to be processed.
 
     Args:
-      ticket: A just-arrived ticket the sequence number of which matches this
+      packet: A just-arrived packet the sequence number of which matches this
         _ReceptionManager's _lowest_unseen_sequence_number field.
     """
     while True:
-      completed = self._receiver.receive(ticket)
+      completed = self._receiver.receive(packet)
       if completed:
-        self._out_of_sequence_tickets.clear()
-        self._completed_sequence_number = ticket.sequence_number
-        self._lowest_unseen_sequence_number = ticket.sequence_number + 1
+        self._out_of_sequence_packets.clear()
+        self._completed_sequence_number = packet.sequence_number
+        self._lowest_unseen_sequence_number = packet.sequence_number + 1
         return
       else:
-        next_ticket = self._out_of_sequence_tickets.pop(
-            ticket.sequence_number + 1, None)
-        if next_ticket is None:
-          self._lowest_unseen_sequence_number = ticket.sequence_number + 1
+        next_packet = self._out_of_sequence_packets.pop(
+            packet.sequence_number + 1, None)
+        if next_packet is None:
+          self._lowest_unseen_sequence_number = packet.sequence_number + 1
           return
         else:
-          ticket = next_ticket
+          packet = next_packet
 
-  def receive_ticket(self, ticket):
-    """See _interfaces.ReceptionManager.receive_ticket for specification."""
+  def receive_packet(self, packet):
+    """See _interfaces.ReceptionManager.receive_packet for specification."""
     with self._lock:
       if self._aborted:
         return
-      elif self._sequence_failure(ticket):
+      elif self._sequence_failure(packet):
         self._receiver.reception_failure()
         self._aborted = True
-      elif self._receiver.abort_if_abortive(ticket):
+      elif self._receiver.abort_if_abortive(packet):
         self._aborted = True
-      elif ticket.sequence_number == self._lowest_unseen_sequence_number:
-        self._process(ticket)
+      elif packet.sequence_number == self._lowest_unseen_sequence_number:
+        self._process(packet)
       else:
-        self._out_of_sequence_tickets[ticket.sequence_number] = ticket
+        self._out_of_sequence_packets[packet.sequence_number] = packet
 
 
 def front_reception_manager(

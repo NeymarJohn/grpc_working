@@ -27,51 +27,51 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Entry points into the ticket-exchange-based base layer implementation."""
+"""Entry points into the packet-exchange-based implementation the base layer."""
 
 # interfaces is referenced from specification in this module.
-from grpc.framework.base import _ends
-from grpc.framework.base import interfaces  # pylint: disable=unused-import
+from grpc.framework.base.packets import _ends
+from grpc.framework.base.packets import interfaces  # pylint: disable=unused-import
 
 
-def front_link(work_pool, transmission_pool, utility_pool):
-  """Factory function for creating interfaces.FrontLinks.
+def front(work_pool, transmission_pool, utility_pool):
+  """Factory function for creating interfaces.Fronts.
 
   Args:
-    work_pool: A thread pool to be used for doing work within the created
-      FrontLink object.
-    transmission_pool: A thread pool to be used within the created FrontLink
-      object for transmitting values to a joined RearLink object.
-    utility_pool: A thread pool to be used within the created FrontLink object
-      for utility tasks.
+    work_pool: A thread pool to be used for doing work within the created Front
+      object.
+    transmission_pool: A thread pool to be used within the created Front object
+      for transmitting values to some Back object.
+    utility_pool: A thread pool to be used within the created Front object for
+      utility tasks.
 
   Returns:
-    An interfaces.FrontLink.
+    An interfaces.Front.
   """
-  return _ends.FrontLink(work_pool, transmission_pool, utility_pool)
+  return _ends.Front(work_pool, transmission_pool, utility_pool)
 
 
-def back_link(
+def back(
     servicer, work_pool, transmission_pool, utility_pool, default_timeout,
     maximum_timeout):
-  """Factory function for creating interfaces.BackLinks.
+  """Factory function for creating interfaces.Backs.
 
   Args:
     servicer: An interfaces.Servicer for servicing operations.
-    work_pool: A thread pool to be used for doing work within the created
-      BackLink object.
-    transmission_pool: A thread pool to be used within the created BackLink
-      object for transmitting values to a joined ForeLink object.
-    utility_pool: A thread pool to be used within the created BackLink object
-      for utility tasks.
+    work_pool: A thread pool to be used for doing work within the created Back
+      object.
+    transmission_pool: A thread pool to be used within the created Back object
+      for transmitting values to some Front object.
+    utility_pool: A thread pool to be used within the created Back object for
+      utility tasks.
     default_timeout: A length of time in seconds to be used as the default
       time alloted for a single operation.
     maximum_timeout: A length of time in seconds to be used as the maximum
       time alloted for a single operation.
 
   Returns:
-    An interfaces.BackLink.
+    An interfaces.Back.
   """
-  return _ends.BackLink(
+  return _ends.Back(
       servicer, work_pool, transmission_pool, utility_pool, default_timeout,
       maximum_timeout)

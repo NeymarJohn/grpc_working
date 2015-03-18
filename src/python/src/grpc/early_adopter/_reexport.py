@@ -31,8 +31,8 @@ from grpc.framework.common import cardinality
 from grpc.framework.face import exceptions as face_exceptions
 from grpc.framework.face import interfaces as face_interfaces
 from grpc.framework.foundation import future
-from grpc.framework.alpha import exceptions
-from grpc.framework.alpha import interfaces
+from grpc.early_adopter import exceptions
+from grpc.early_adopter import interfaces
 
 _EARLY_ADOPTER_CARDINALITY_TO_COMMON_CARDINALITY = {
     interfaces.Cardinality.UNARY_UNARY: cardinality.Cardinality.UNARY_UNARY,
@@ -172,11 +172,6 @@ class _StreamUnarySyncAsync(interfaces.StreamUnarySyncAsync):
 
   def async(self, request_iterator, timeout):
     return _ReexportedFuture(self._underlying.future(request_iterator, timeout))
-
-
-def common_cardinality(early_adopter_cardinality):
-  return _EARLY_ADOPTER_CARDINALITY_TO_COMMON_CARDINALITY[
-      early_adopter_cardinality]
 
 
 def common_cardinalities(early_adopter_cardinalities):

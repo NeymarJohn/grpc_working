@@ -34,32 +34,20 @@ import collections
 from grpc.framework.common import cardinality
 from grpc.framework.face import interfaces as face_interfaces  # pylint: disable=unused-import
 from grpc.framework.face import utilities as face_utilities
-from grpc.framework.alpha import _reexport
-from grpc.framework.alpha import interfaces
+from grpc.early_adopter import _reexport
+from grpc.early_adopter import interfaces
 
 
-def _qualified_name(service_name, method_name):
-  return '/%s/%s' % (service_name, method_name)
-
-
-# TODO(nathaniel): This structure is getting bloated; it could be shrunk if
-# implementations._Stub used a generic rather than a dynamic underlying
-# face-layer stub.
 class InvocationBreakdown(object):
   """An intermediate representation of invocation-side views of RPC methods.
 
   Attributes:
     cardinalities: A dictionary from RPC method name to interfaces.Cardinality
       value.
-    qualified_names: A dictionary from unqualified RPC method name to
-      service-qualified RPC method name.
-    face_cardinalities: A dictionary from service-qualified RPC method name to
-      to cardinality.Cardinality value.
-    request_serializers: A dictionary from service-qualified RPC method name to
-      callable behavior to be used serializing request values for the RPC.
-    response_deserializers: A dictionary from service-qualified RPC method name
-      to callable behavior to be used deserializing response values for the
-      RPC.
+    request_serializers: A dictionary from RPC method name to callable
+      behavior to be used serializing request values for the RPC.
+    response_deserializers: A dictionary from RPC method name to callable
+      behavior to be used deserializing response values for the RPC.
   """
   __metaclass__ = abc.ABCMeta
 
@@ -68,8 +56,7 @@ class _EasyInvocationBreakdown(
     InvocationBreakdown,
     collections.namedtuple(
         '_EasyInvocationBreakdown',
-        ('cardinalities', 'qualified_names', 'face_cardinalities',
-         'request_serializers', 'response_deserializers'))):
+        ('cardinalities', 'request_serializers', 'response_deserializers'))):
   pass
 
 
@@ -77,12 +64,12 @@ class ServiceBreakdown(object):
   """An intermediate representation of service-side views of RPC methods.
 
   Attributes:
-    implementations: A dictionary from service-qualified RPC method name to
+    implementations: A dictionary from RPC method name to
       face_interfaces.MethodImplementation implementing the RPC method.
-    request_deserializers: A dictionary from service-qualified RPC method name
-      to callable behavior to be used deserializing request values for the RPC.
-    response_serializers: A dictionary from service-qualified RPC method name
-      to callable behavior to be used serializing response values for the RPC.
+    request_deserializers: A dictionary from RPC method name to callable
+      behavior to be used deserializing request values for the RPC.
+    response_serializers: A dictionary from RPC method name to callable
+      behavior to be used serializing response values for the RPC.
   """
   __metaclass__ = abc.ABCMeta
 
@@ -95,11 +82,10 @@ class _EasyServiceBreakdown(
   pass
 
 
-def break_down_invocation(service_name, method_descriptions):
+def break_down_invocation(method_descriptions):
   """Derives an InvocationBreakdown from several RPC method descriptions.
 
   Args:
-    service_name: The package-qualified full name of the service.
     method_descriptions: A dictionary from RPC method name to
       interfaces.RpcMethodInvocationDescription describing the RPCs.
 
@@ -107,26 +93,17 @@ def break_down_invocation(service_name, method_descriptions):
     An InvocationBreakdown corresponding to the given method descriptions.
   """
   cardinalities = {}
-  qualified_names = {}
-  face_cardinalities = {}
   request_serializers = {}
   response_deserializers = {}
   for name, method_description in method_descriptions.iteritems():
-    qualified_name = _qualified_name(service_name, name)
-    method_cardinality = method_description.cardinality()
     cardinalities[name] = method_description.cardinality()
-    qualified_names[name] = qualified_name
-    face_cardinalities[qualified_name] = _reexport.common_cardinality(
-        method_cardinality)
-    request_serializers[qualified_name] = method_description.serialize_request
-    response_deserializers[qualified_name] = (
-        method_description.deserialize_response)
+    request_serializers[name] = method_description.serialize_request
+    response_deserializers[name] = method_description.deserialize_response
   return _EasyInvocationBreakdown(
-      cardinalities, qualified_names, face_cardinalities, request_serializers,
-      response_deserializers)
+      cardinalities, request_serializers, response_deserializers)
 
 
-def break_down_service(service_name, method_descriptions):
+def break_down_service(method_descriptions):
   """Derives a ServiceBreakdown from several RPC method descriptions.
 
   Args:
@@ -140,44 +117,37 @@ def break_down_service(service_name, method_descriptions):
   request_deserializers = {}
   response_serializers = {}
   for name, method_description in method_descriptions.iteritems():
-    qualified_name = _qualified_name(service_name, name)
-    method_cardinality = method_description.cardinality()
-    if method_cardinality is interfaces.Cardinality.UNARY_UNARY:
+    cardinality = method_description.cardinality()
+    if cardinality is interfaces.Cardinality.UNARY_UNARY:
       def service(
           request, face_rpc_context,
           service_behavior=method_description.service_unary_unary):
         return service_behavior(
             request, _reexport.rpc_context(face_rpc_context))
-      implementations[qualified_name] = face_utilities.unary_unary_inline(
-          service)
-    elif method_cardinality is interfaces.Cardinality.UNARY_STREAM:
+      implementations[name] = face_utilities.unary_unary_inline(service)
+    elif cardinality is interfaces.Cardinality.UNARY_STREAM:
       def service(
           request, face_rpc_context,
           service_behavior=method_description.service_unary_stream):
         return service_behavior(
             request, _reexport.rpc_context(face_rpc_context))
-      implementations[qualified_name] = face_utilities.unary_stream_inline(
-          service)
-    elif method_cardinality is interfaces.Cardinality.STREAM_UNARY:
+      implementations[name] = face_utilities.unary_stream_inline(service)
+    elif cardinality is interfaces.Cardinality.STREAM_UNARY:
       def service(
           request_iterator, face_rpc_context,
           service_behavior=method_description.service_stream_unary):
         return service_behavior(
             request_iterator, _reexport.rpc_context(face_rpc_context))
-      implementations[qualified_name] = face_utilities.stream_unary_inline(
-          service)
-    elif method_cardinality is interfaces.Cardinality.STREAM_STREAM:
+      implementations[name] = face_utilities.stream_unary_inline(service)
+    elif cardinality is interfaces.Cardinality.STREAM_STREAM:
       def service(
           request_iterator, face_rpc_context,
           service_behavior=method_description.service_stream_stream):
         return service_behavior(
             request_iterator, _reexport.rpc_context(face_rpc_context))
-      implementations[qualified_name] = face_utilities.stream_stream_inline(
-          service)
-    request_deserializers[qualified_name] = (
-        method_description.deserialize_request)
-    response_serializers[qualified_name] = (
-        method_description.serialize_response)
+      implementations[name] = face_utilities.stream_stream_inline(service)
+    request_deserializers[name] = method_description.deserialize_request
+    response_serializers[name] = method_description.serialize_response
 
   return _EasyServiceBreakdown(
       implementations, request_deserializers, response_serializers)
