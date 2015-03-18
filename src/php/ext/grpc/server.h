@@ -46,7 +46,7 @@
 #include "grpc/grpc.h"
 
 /* Class entry for the Server PHP class */
-extern zend_class_entry *grpc_ce_server;
+zend_class_entry *grpc_ce_server;
 
 /* Wrapper struct for grpc_server that can be associated with a PHP object */
 typedef struct wrapped_grpc_server {

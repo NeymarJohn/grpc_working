@@ -33,24 +33,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using Grpc.Core.Internal;
 
 namespace Grpc.Core
 {
-    /// <summary>
-    /// Mapping of method names to server call handlers.
-    /// </summary>
     public class ServerServiceDefinition
     {
-        readonly ImmutableDictionary<string, IServerCallHandler> callHandlers;
+        readonly string serviceName;
+        // TODO: we would need an immutable dictionary here...
+        readonly Dictionary<string, IServerCallHandler> callHandlers;
 
-        private ServerServiceDefinition(ImmutableDictionary<string, IServerCallHandler> callHandlers)
+        private ServerServiceDefinition(string serviceName, Dictionary<string, IServerCallHandler> callHandlers)
         {
-            this.callHandlers = callHandlers;
+            this.serviceName = serviceName;
+            this.callHandlers = new Dictionary<string, IServerCallHandler>(callHandlers);
         }
 
-        internal ImmutableDictionary<string, IServerCallHandler> CallHandlers
+        internal Dictionary<string, IServerCallHandler> CallHandlers
         {
             get
             {
@@ -58,7 +56,8 @@ namespace Grpc.Core
             }
         }
 
-        public static Builder CreateBuilder(string serviceName)
+
+        public static Builder CreateBuilder(String serviceName)
         {
             return new Builder(serviceName);
         }
@@ -66,7 +65,7 @@ namespace Grpc.Core
         public class Builder
         {
             readonly string serviceName;
-            readonly Dictionary<string, IServerCallHandler> callHandlers = new Dictionary<string, IServerCallHandler>();
+            readonly Dictionary<string, IServerCallHandler> callHandlers = new Dictionary<String, IServerCallHandler>();
 
             public Builder(string serviceName)
             {
@@ -77,7 +76,7 @@ namespace Grpc.Core
                 Method<TRequest, TResponse> method,
                 UnaryRequestServerMethod<TRequest, TResponse> handler)
             {
-                callHandlers.Add(GetFullMethodName(serviceName, method.Name), ServerCalls.UnaryRequestCall(method, handler));
+                callHandlers.Add(method.Name, ServerCalls.UnaryRequestCall(method, handler));
                 return this;
             }
 
@@ -85,19 +84,15 @@ namespace Grpc.Core
                 Method<TRequest, TResponse> method,
                 StreamingRequestServerMethod<TRequest, TResponse> handler)
             {
-                callHandlers.Add(GetFullMethodName(serviceName, method.Name), ServerCalls.StreamingRequestCall(method, handler));
+                callHandlers.Add(method.Name, ServerCalls.StreamingRequestCall(method, handler));
                 return this;
             }
 
             public ServerServiceDefinition Build()
             {
-                return new ServerServiceDefinition(callHandlers.ToImmutableDictionary());
-            }
-
-            private string GetFullMethodName(string serviceName, string methodName)
-            {
-                return serviceName + "/" + methodName;
+                return new ServerServiceDefinition(serviceName, callHandlers);
             }
         }
     }
 }
+

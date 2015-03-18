@@ -29,10 +29,9 @@
 
 """Implementations of interoperability test methods."""
 
-import enum
 import threading
 
-from grpc.framework.alpha import utilities
+from grpc.early_adopter import utilities
 
 from interop import empty_pb2
 from interop import messages_pb2
@@ -122,31 +121,31 @@ _SERVER_HALF_DUPLEX_CALL = utilities.stream_stream_service_description(
     messages_pb2.StreamingOutputCallResponse.SerializeToString)
 
 
-SERVICE_NAME = 'grpc.testing.TestService'
+_SERVICE_NAME = '/grpc.testing.TestService'
 
-_EMPTY_CALL_METHOD_NAME = 'EmptyCall'
-_UNARY_CALL_METHOD_NAME = 'UnaryCall'
-_STREAMING_OUTPUT_CALL_METHOD_NAME = 'StreamingOutputCall'
-_STREAMING_INPUT_CALL_METHOD_NAME = 'StreamingInputCall'
-_FULL_DUPLEX_CALL_METHOD_NAME = 'FullDuplexCall'
-_HALF_DUPLEX_CALL_METHOD_NAME = 'HalfDuplexCall'
+EMPTY_CALL_METHOD_NAME = _SERVICE_NAME + '/EmptyCall'
+UNARY_CALL_METHOD_NAME = _SERVICE_NAME + '/UnaryCall'
+STREAMING_OUTPUT_CALL_METHOD_NAME = _SERVICE_NAME + '/StreamingOutputCall'
+STREAMING_INPUT_CALL_METHOD_NAME = _SERVICE_NAME + '/StreamingInputCall'
+FULL_DUPLEX_CALL_METHOD_NAME = _SERVICE_NAME + '/FullDuplexCall'
+HALF_DUPLEX_CALL_METHOD_NAME = _SERVICE_NAME + '/HalfDuplexCall'
 
 CLIENT_METHODS = {
-    _EMPTY_CALL_METHOD_NAME: _CLIENT_EMPTY_CALL,
-    _UNARY_CALL_METHOD_NAME: _CLIENT_UNARY_CALL,
-    _STREAMING_OUTPUT_CALL_METHOD_NAME: _CLIENT_STREAMING_OUTPUT_CALL,
-    _STREAMING_INPUT_CALL_METHOD_NAME: _CLIENT_STREAMING_INPUT_CALL,
-    _FULL_DUPLEX_CALL_METHOD_NAME: _CLIENT_FULL_DUPLEX_CALL,
-    _HALF_DUPLEX_CALL_METHOD_NAME: _CLIENT_HALF_DUPLEX_CALL,
+    EMPTY_CALL_METHOD_NAME: _CLIENT_EMPTY_CALL,
+    UNARY_CALL_METHOD_NAME: _CLIENT_UNARY_CALL,
+    STREAMING_OUTPUT_CALL_METHOD_NAME: _CLIENT_STREAMING_OUTPUT_CALL,
+    STREAMING_INPUT_CALL_METHOD_NAME: _CLIENT_STREAMING_INPUT_CALL,
+    FULL_DUPLEX_CALL_METHOD_NAME: _CLIENT_FULL_DUPLEX_CALL,
+    HALF_DUPLEX_CALL_METHOD_NAME: _CLIENT_HALF_DUPLEX_CALL,
 }
 
 SERVER_METHODS = {
-    _EMPTY_CALL_METHOD_NAME: _SERVER_EMPTY_CALL,
-    _UNARY_CALL_METHOD_NAME: _SERVER_UNARY_CALL,
-    _STREAMING_OUTPUT_CALL_METHOD_NAME: _SERVER_STREAMING_OUTPUT_CALL,
-    _STREAMING_INPUT_CALL_METHOD_NAME: _SERVER_STREAMING_INPUT_CALL,
-    _FULL_DUPLEX_CALL_METHOD_NAME: _SERVER_FULL_DUPLEX_CALL,
-    _HALF_DUPLEX_CALL_METHOD_NAME: _SERVER_HALF_DUPLEX_CALL,
+    EMPTY_CALL_METHOD_NAME: _SERVER_EMPTY_CALL,
+    UNARY_CALL_METHOD_NAME: _SERVER_UNARY_CALL,
+    STREAMING_OUTPUT_CALL_METHOD_NAME: _SERVER_STREAMING_OUTPUT_CALL,
+    STREAMING_INPUT_CALL_METHOD_NAME: _SERVER_STREAMING_INPUT_CALL,
+    FULL_DUPLEX_CALL_METHOD_NAME: _SERVER_FULL_DUPLEX_CALL,
+    HALF_DUPLEX_CALL_METHOD_NAME: _SERVER_HALF_DUPLEX_CALL,
 }
 
 
@@ -266,24 +265,16 @@ def _ping_pong(stub):
     pipe.close()
 
 
-@enum.unique
-class TestCase(enum.Enum):
-  EMPTY_UNARY = 'empty_unary'
-  LARGE_UNARY = 'large_unary'
-  SERVER_STREAMING = 'server_streaming'
-  CLIENT_STREAMING = 'client_streaming'
-  PING_PONG = 'ping_pong'
-
-  def test_interoperability(self, stub):
-    if self is TestCase.EMPTY_UNARY:
-      _empty_unary(stub)
-    elif self is TestCase.LARGE_UNARY:
-      _large_unary(stub)
-    elif self is TestCase.SERVER_STREAMING:
-      _server_streaming(stub)
-    elif self is TestCase.CLIENT_STREAMING:
-      _client_streaming(stub)
-    elif self is TestCase.PING_PONG:
-      _ping_pong(stub)
-    else:
-      raise NotImplementedError('Test case "%s" not implemented!' % self.name)
+def test_interoperability(test_case, stub):
+  if test_case == 'empty_unary':
+    _empty_unary(stub)
+  elif test_case == 'large_unary':
+    _large_unary(stub)
+  elif test_case == 'server_streaming':
+    _server_streaming(stub)
+  elif test_case == 'client_streaming':
+    _client_streaming(stub)
+  elif test_case == 'ping_pong':
+    _ping_pong(stub)
+  else:
+    raise NotImplementedError('Test case "%s" not implemented!')

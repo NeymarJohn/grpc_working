@@ -34,7 +34,7 @@ import unittest
 from grpc._adapter import fore
 from grpc._adapter import rear
 from grpc.framework.base import util
-from grpc.framework.base import implementations as base_implementations
+from grpc.framework.base.packets import implementations as tickets_implementations
 from grpc.framework.face import implementations as face_implementations
 from grpc.framework.face.testing import coverage
 from grpc.framework.face.testing import serial
@@ -50,12 +50,31 @@ class FaceTestCase(test_case.FaceTestCase, coverage.BlockingCoverage):
   """Provides abstract Face-layer tests a GRPC-backed implementation."""
 
   def set_up_implementation(
-      self, name, methods, method_implementations,
-      multi_method_implementation):
+      self,
+      name,
+      methods,
+      inline_value_in_value_out_methods,
+      inline_value_in_stream_out_methods,
+      inline_stream_in_value_out_methods,
+      inline_stream_in_stream_out_methods,
+      event_value_in_value_out_methods,
+      event_value_in_stream_out_methods,
+      event_stream_in_value_out_methods,
+      event_stream_in_stream_out_methods,
+      multi_method):
     pool = logging_pool.pool(_MAXIMUM_POOL_SIZE)
 
     servicer = face_implementations.servicer(
-        pool, method_implementations, multi_method_implementation)
+        pool,
+        inline_value_in_value_out_methods=inline_value_in_value_out_methods,
+        inline_value_in_stream_out_methods=inline_value_in_stream_out_methods,
+        inline_stream_in_value_out_methods=inline_stream_in_value_out_methods,
+        inline_stream_in_stream_out_methods=inline_stream_in_stream_out_methods,
+        event_value_in_value_out_methods=event_value_in_value_out_methods,
+        event_value_in_stream_out_methods=event_value_in_stream_out_methods,
+        event_stream_in_value_out_methods=event_stream_in_value_out_methods,
+        event_stream_in_stream_out_methods=event_stream_in_stream_out_methods,
+        multi_method=multi_method)
 
     serialization = serial.serialization(methods)
 
@@ -69,16 +88,17 @@ class FaceTestCase(test_case.FaceTestCase, coverage.BlockingCoverage):
         serialization.request_serializers,
         serialization.response_deserializers, False, None, None, None)
     rear_link.start()
-    front = base_implementations.front_link(pool, pool, pool)
-    back = base_implementations.back_link(
+    front = tickets_implementations.front(pool, pool, pool)
+    back = tickets_implementations.back(
         servicer, pool, pool, pool, _TIMEOUT, _MAXIMUM_TIMEOUT)
     fore_link.join_rear_link(back)
     back.join_fore_link(fore_link)
     rear_link.join_fore_link(front)
     front.join_rear_link(rear_link)
 
-    stub = face_implementations.generic_stub(front, pool)
-    return stub, (rear_link, fore_link, front, back)
+    server = face_implementations.server()
+    stub = face_implementations.stub(front, pool)
+    return server, stub, (rear_link, fore_link, front, back)
 
   def tear_down_implementation(self, memo):
     rear_link, fore_link, front, back = memo

@@ -30,7 +30,7 @@
 """Demonstration-suitable implementation of the face layer of RPC Framework."""
 
 from grpc.framework.base import util as _base_util
-from grpc.framework.base import implementations as _base_implementations
+from grpc.framework.base.packets import implementations as _tickets_implementations
 from grpc.framework.face import implementations
 from grpc.framework.foundation import logging_pool
 
@@ -105,9 +105,9 @@ def server_and_stub(
       event_stream_in_stream_out_methods=event_stream_in_stream_out_methods,
       multi_method=multi_method)
 
-  front = _base_implementations.front_link(
+  front = _tickets_implementations.front(
       front_work_pool, front_transmission_pool, front_utility_pool)
-  back = _base_implementations.back_link(
+  back = _tickets_implementations.back(
       servicer, back_work_pool, back_transmission_pool, back_utility_pool,
       default_timeout, _MAXIMUM_TIMEOUT)
   front.join_rear_link(back)

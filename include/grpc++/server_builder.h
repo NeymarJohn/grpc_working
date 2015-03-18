@@ -41,7 +41,6 @@
 
 namespace grpc {
 
-class AsyncGenericService;
 class AsynchronousService;
 class CompletionQueue;
 class RpcService;
@@ -65,13 +64,12 @@ class ServerBuilder {
   // instance returned by BuildAndStart().
   void RegisterAsyncService(AsynchronousService* service);
 
-  // Register a generic service.
-  void RegisterAsyncGenericService(AsyncGenericService* service);
-
   // Add a listening port. Can be called multiple times.
-  void AddPort(const grpc::string& addr,
-               std::shared_ptr<ServerCredentials> creds,
-               int* selected_port = nullptr);
+  void AddPort(const grpc::string& addr);
+
+  // Set a ServerCredentials. Can only be called once.
+  // TODO(yangg) move this to be part of AddPort
+  void SetCredentials(const std::shared_ptr<ServerCredentials>& creds);
 
   // Set the thread pool used for running appliation rpc handlers.
   // Does not take ownership.
@@ -81,17 +79,10 @@ class ServerBuilder {
   std::unique_ptr<Server> BuildAndStart();
 
  private:
-  struct Port {
-    grpc::string addr;
-    std::shared_ptr<ServerCredentials> creds;
-    int* selected_port;
-  };
-
   std::vector<RpcService*> services_;
   std::vector<AsynchronousService*> async_services_;
-  std::vector<Port> ports_;
+  std::vector<grpc::string> ports_;
   std::shared_ptr<ServerCredentials> creds_;
-  AsyncGenericService* generic_service_;
   ThreadPoolInterface* thread_pool_;
 };
 
