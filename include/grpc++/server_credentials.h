@@ -39,21 +39,24 @@
 
 #include <grpc++/config.h>
 
-struct grpc_server;
+struct grpc_server_credentials;
 
 namespace grpc {
-class Server;
 
 // grpc_server_credentials wrapper class.
-class ServerCredentials {
+class ServerCredentials GRPC_FINAL {
  public:
-  virtual ~ServerCredentials();
+  ~ServerCredentials();
 
  private:
-  friend class ::grpc::Server;
+  explicit ServerCredentials(grpc_server_credentials* c_creds);
 
-  virtual int AddPortToServer(const grpc::string& addr,
-                              grpc_server* server) = 0;
+  grpc_server_credentials* GetRawCreds();
+
+  friend class ServerCredentialsFactory;
+  friend class Server;
+
+  grpc_server_credentials* creds_;
 };
 
 // Options to create ServerCredentials with SSL
@@ -66,11 +69,13 @@ struct SslServerCredentialsOptions {
   std::vector<PemKeyCertPair> pem_key_cert_pairs;
 };
 
-// Builds SSL ServerCredentials given SSL specific options
-std::shared_ptr<ServerCredentials> SslServerCredentials(
-    const SslServerCredentialsOptions& options);
-
-std::shared_ptr<ServerCredentials> InsecureServerCredentials();
+// Factory for building different types of ServerCredentials
+class ServerCredentialsFactory {
+ public:
+  // Builds SSL ServerCredentials given SSL specific options
+  static std::shared_ptr<ServerCredentials> SslCredentials(
+      const SslServerCredentialsOptions& options);
+};
 
 }  // namespace grpc
 

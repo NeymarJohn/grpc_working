@@ -505,12 +505,12 @@ module GRPC
 
     # SingleReqView limits access to an ActiveCall's methods for use in server
     # handlers that receive just one request.
-    SingleReqView = view_class(:cancelled, :deadline, :metadata)
+    SingleReqView = view_class(:cancelled, :deadline)
 
     # MultiReqView limits access to an ActiveCall's methods for use in
     # server client_streamer handlers.
     MultiReqView = view_class(:cancelled, :deadline, :each_queued_msg,
-                              :each_remote_read, :metadata)
+                              :each_remote_read)
 
     # Operation limits access to an ActiveCall's methods for use as
     # a Operation on the client.

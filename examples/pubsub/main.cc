@@ -79,7 +79,8 @@ int main(int argc, char** argv) {
 
   ss << FLAGS_server_host << ":" << FLAGS_server_port;
 
-  std::unique_ptr<grpc::Credentials> creds = grpc::GoogleDefaultCredentials();
+  std::unique_ptr<grpc::Credentials> creds =
+      grpc::CredentialsFactory::GoogleDefaultCredentials();
   std::shared_ptr<grpc::ChannelInterface> channel =
       grpc::CreateChannel(ss.str(), creds, grpc::ChannelArguments());
 

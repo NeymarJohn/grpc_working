@@ -38,6 +38,8 @@ using Grpc.Core.Internal;
 
 namespace Grpc.Core
 {
+    // NOTE: this class is work-in-progress
+
     /// <summary>
     /// Helper methods for generated stubs to make RPC calls.
     /// </summary>
@@ -45,29 +47,30 @@ namespace Grpc.Core
     {
         public static TResponse BlockingUnaryCall<TRequest, TResponse>(Call<TRequest, TResponse> call, TRequest req, CancellationToken token)
         {
-            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
-            return asyncCall.UnaryCall(call.Channel, call.Name, req, call.Headers);
+            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestSerializer, call.ResponseDeserializer);
+            return asyncCall.UnaryCall(call.Channel, call.MethodName, req);
         }
 
         public static async Task<TResponse> AsyncUnaryCall<TRequest, TResponse>(Call<TRequest, TResponse> call, TRequest req, CancellationToken token)
         {
-            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
-            asyncCall.Initialize(call.Channel, GetCompletionQueue(), call.Name);
-            return await asyncCall.UnaryCallAsync(req, call.Headers);
+            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestSerializer, call.ResponseDeserializer);
+            asyncCall.Initialize(call.Channel, GetCompletionQueue(), call.MethodName);
+            return await asyncCall.UnaryCallAsync(req);
         }
 
         public static void AsyncServerStreamingCall<TRequest, TResponse>(Call<TRequest, TResponse> call, TRequest req, IObserver<TResponse> outputs, CancellationToken token)
         {
-            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
-            asyncCall.Initialize(call.Channel, GetCompletionQueue(), call.Name);
-            asyncCall.StartServerStreamingCall(req, outputs, call.Headers);
+            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestSerializer, call.ResponseDeserializer);
+
+            asyncCall.Initialize(call.Channel, GetCompletionQueue(), call.MethodName);
+            asyncCall.StartServerStreamingCall(req, outputs);
         }
 
         public static ClientStreamingAsyncResult<TRequest, TResponse> AsyncClientStreamingCall<TRequest, TResponse>(Call<TRequest, TResponse> call, CancellationToken token)
         {
-            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
-            asyncCall.Initialize(call.Channel, GetCompletionQueue(), call.Name);
-            var task = asyncCall.ClientStreamingCallAsync(call.Headers);
+            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestSerializer, call.ResponseDeserializer);
+            asyncCall.Initialize(call.Channel, GetCompletionQueue(), call.MethodName);
+            var task = asyncCall.ClientStreamingCallAsync();
             var inputs = new ClientStreamingInputObserver<TRequest, TResponse>(asyncCall);
             return new ClientStreamingAsyncResult<TRequest, TResponse>(task, inputs);
         }
@@ -79,15 +82,16 @@ namespace Grpc.Core
 
         public static IObserver<TRequest> DuplexStreamingCall<TRequest, TResponse>(Call<TRequest, TResponse> call, IObserver<TResponse> outputs, CancellationToken token)
         {
-            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
-            asyncCall.Initialize(call.Channel, GetCompletionQueue(), call.Name);
-            asyncCall.StartDuplexStreamingCall(outputs, call.Headers);
+            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestSerializer, call.ResponseDeserializer);
+            asyncCall.Initialize(call.Channel, GetCompletionQueue(), call.MethodName);
+
+            asyncCall.StartDuplexStreamingCall(outputs);
             return new ClientStreamingInputObserver<TRequest, TResponse>(asyncCall);
         }
 
-        private static CompletionQueueSafeHandle GetCompletionQueue()
-        {
+        private static CompletionQueueSafeHandle GetCompletionQueue() {
             return GrpcEnvironment.ThreadPool.CompletionQueue;
         }
     }
 }
+
