@@ -34,6 +34,7 @@ import unittest
 from grpc._adapter import _test_links
 from grpc._adapter import rear
 from grpc.framework.base import interfaces
+from grpc.framework.base.packets import packets
 from grpc.framework.foundation import logging_pool
 
 _IDENTITY = lambda x: x
@@ -67,7 +68,7 @@ class LonelyRearLinkTest(unittest.TestCase):
     rear_link.join_fore_link(fore_link)
     rear_link.start()
 
-    front_to_back_ticket = interfaces.FrontToBackTicket(
+    front_to_back_ticket = packets.FrontToBackPacket(
         test_operation_id, 0, front_to_back_ticket_kind, test_method,
         interfaces.ServicedSubscription.Kind.FULL, None, None, _TIMEOUT)
     rear_link.accept_front_to_back_ticket(front_to_back_ticket)
@@ -76,7 +77,7 @@ class LonelyRearLinkTest(unittest.TestCase):
       while True:
         if (fore_link.tickets and
             fore_link.tickets[-1].kind is not
-                interfaces.BackToFrontTicket.Kind.CONTINUATION):
+                packets.BackToFrontPacket.Kind.CONTINUATION):
           break
         fore_link.condition.wait()
 
@@ -85,15 +86,15 @@ class LonelyRearLinkTest(unittest.TestCase):
     with fore_link.condition:
       self.assertIsNot(
           fore_link.tickets[-1].kind,
-          interfaces.BackToFrontTicket.Kind.COMPLETION)
+          packets.BackToFrontPacket.Kind.COMPLETION)
 
-  def testLonelyClientCommencementTicket(self):
+  def testLonelyClientCommencementPacket(self):
     self._perform_lonely_client_test_with_ticket_kind(
-        interfaces.FrontToBackTicket.Kind.COMMENCEMENT)
+        packets.FrontToBackPacket.Kind.COMMENCEMENT)
 
-  def testLonelyClientEntireTicket(self):
+  def testLonelyClientEntirePacket(self):
     self._perform_lonely_client_test_with_ticket_kind(
-        interfaces.FrontToBackTicket.Kind.ENTIRE)
+        packets.FrontToBackPacket.Kind.ENTIRE)
 
 
 if __name__ == '__main__':

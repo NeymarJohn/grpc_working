@@ -65,6 +65,7 @@ _PACKAGES = (
     'grpc.early_adopter',
     'grpc.framework',
     'grpc.framework.base',
+    'grpc.framework.base.packets',
     'grpc.framework.common',
     'grpc.framework.face',
     'grpc.framework.face.testing',

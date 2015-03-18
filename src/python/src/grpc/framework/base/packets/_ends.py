@@ -27,30 +27,32 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Implementations of FrontLinks and BackLinks."""
+"""Implementations of Fronts and Backs."""
 
 import collections
 import threading
 import uuid
 
-# _interfaces is referenced from specification in this module.
-from grpc.framework.base import _cancellation
-from grpc.framework.base import _context
-from grpc.framework.base import _emission
-from grpc.framework.base import _expiration
-from grpc.framework.base import _ingestion
-from grpc.framework.base import _interfaces  # pylint: disable=unused-import
-from grpc.framework.base import _reception
-from grpc.framework.base import _termination
-from grpc.framework.base import _transmission
-from grpc.framework.base import interfaces
+# _interfaces and packets are referenced from specification in this module.
+from grpc.framework.base import interfaces as base_interfaces
+from grpc.framework.base.packets import _cancellation
+from grpc.framework.base.packets import _context
+from grpc.framework.base.packets import _emission
+from grpc.framework.base.packets import _expiration
+from grpc.framework.base.packets import _ingestion
+from grpc.framework.base.packets import _interfaces  # pylint: disable=unused-import
+from grpc.framework.base.packets import _reception
+from grpc.framework.base.packets import _termination
+from grpc.framework.base.packets import _transmission
+from grpc.framework.base.packets import interfaces
+from grpc.framework.base.packets import packets  # pylint: disable=unused-import
 from grpc.framework.foundation import callable_util
 
 _IDLE_ACTION_EXCEPTION_LOG_MESSAGE = 'Exception calling idle action!'
 
 
-class _EasyOperation(interfaces.Operation):
-  """A trivial implementation of interfaces.Operation."""
+class _EasyOperation(base_interfaces.Operation):
+  """A trivial implementation of base_interfaces.Operation."""
 
   def __init__(self, emission_manager, context, cancellation_manager):
     """Constructor.
@@ -58,7 +60,7 @@ class _EasyOperation(interfaces.Operation):
     Args:
       emission_manager: The _interfaces.EmissionManager for the operation that
         will accept values emitted by customer code.
-      context: The interfaces.OperationContext for use by the customer
+      context: The base_interfaces.OperationContext for use by the customer
         during the operation.
       cancellation_manager: The _interfaces.CancellationManager for the
         operation.
@@ -86,7 +88,7 @@ class _Endlette(object):
     # indicates an in-progress fire-and-forget operation for which the customer
     # has chosen to ignore results.
     self._operations = {}
-    self._stats = {outcome: 0 for outcome in interfaces.Outcome}
+    self._stats = {outcome: 0 for outcome in base_interfaces.Outcome}
     self._idle_actions = []
 
   def terminal_action(self, operation_id):
@@ -150,9 +152,9 @@ def _front_operate(
   """Constructs objects necessary for front-side operation management.
 
   Args:
-    callback: A callable that accepts interfaces.FrontToBackTickets and
-      delivers them to the other side of the operation. Execution of this
-      callable may take any arbitrary length of time.
+    callback: A callable that accepts packets.FrontToBackPackets and delivers
+      them to the other side of the operation. Execution of this callable may
+      take any arbitrary length of time.
     work_pool: A thread pool in which to execute customer code.
     transmission_pool: A thread pool to use for transmitting to the other side
       of the operation.
@@ -167,7 +169,7 @@ def _front_operate(
     complete: A boolean indicating whether or not additional payloads will be
       supplied by the customer.
     timeout: A length of time in seconds to allow for the operation.
-    subscription: A interfaces.ServicedSubscription describing the
+    subscription: A base_interfaces.ServicedSubscription describing the
       customer's interest in the results of the operation.
     trace_id: A uuid.UUID identifying a set of related operations to which this
       operation belongs. May be None.
@@ -186,7 +188,7 @@ def _front_operate(
         lock, transmission_pool, callback, operation_id, name,
         subscription.kind, trace_id, timeout, termination_manager)
     operation_context = _context.OperationContext(
-        lock, operation_id, interfaces.Outcome.SERVICED_FAILURE,
+        lock, operation_id, base_interfaces.Outcome.SERVICED_FAILURE,
         termination_manager, transmission_manager)
     emission_manager = _emission.front_emission_manager(
         lock, termination_manager, transmission_manager)
@@ -214,7 +216,7 @@ def _front_operate(
 
     transmission_manager.inmit(payload, complete)
 
-    if subscription.kind is interfaces.ServicedSubscription.Kind.NONE:
+    if subscription.kind is base_interfaces.ServicedSubscription.Kind.NONE:
       returned_reception_manager = None
     else:
       returned_reception_manager = reception_manager
@@ -224,8 +226,8 @@ def _front_operate(
         cancellation_manager)
 
 
-class FrontLink(interfaces.FrontLink):
-  """An implementation of interfaces.FrontLink."""
+class Front(interfaces.Front):
+  """An implementation of interfaces.Front."""
 
   def __init__(self, work_pool, transmission_pool, utility_pool):
     """Constructor.
@@ -250,16 +252,16 @@ class FrontLink(interfaces.FrontLink):
       self._callback = rear_link.accept_front_to_back_ticket
 
   def operation_stats(self):
-    """See interfaces.End.operation_stats for specification."""
+    """See base_interfaces.End.operation_stats for specification."""
     return self._endlette.operation_stats()
 
   def add_idle_action(self, action):
-    """See interfaces.End.add_idle_action for specification."""
+    """See base_interfaces.End.add_idle_action for specification."""
     self._endlette.add_idle_action(action)
 
   def operate(
       self, name, payload, complete, timeout, subscription, trace_id):
-    """See interfaces.Front.operate for specification."""
+    """See base_interfaces.Front.operate for specification."""
     operation_id = uuid.uuid4()
     with self._endlette:
       management = _front_operate(
@@ -276,7 +278,7 @@ class FrontLink(interfaces.FrontLink):
     with self._endlette:
       reception_manager = self._endlette.get_operation(ticket.operation_id)
     if reception_manager:
-      reception_manager.receive_ticket(ticket)
+      reception_manager.receive_packet(ticket)
 
 
 def _back_operate(
@@ -289,16 +291,16 @@ def _back_operate(
 
   Args:
     servicer: An interfaces.Servicer for servicing operations.
-    callback: A callable that accepts interfaces.BackToFrontTickets and
-      delivers them to the other side of the operation. Execution of this
-      callable may take any arbitrary length of time.
+    callback: A callable that accepts packets.BackToFrontPackets and delivers
+      them to the other side of the operation. Execution of this callable may
+      take any arbitrary length of time.
     work_pool: A thread pool in which to execute customer code.
     transmission_pool: A thread pool to use for transmitting to the other side
       of the operation.
     utility_pool: A thread pool for utility tasks.
     termination_action: A no-arg behavior to be called upon operation
       completion.
-    ticket: The first interfaces.FrontToBackTicket received for the operation.
+    ticket: The first packets.FrontToBackPacket received for the operation.
     default_timeout: A length of time in seconds to be used as the default
       time alloted for a single operation.
     maximum_timeout: A length of time in seconds to be used as the maximum
@@ -315,7 +317,7 @@ def _back_operate(
         lock, transmission_pool, callback, ticket.operation_id,
         termination_manager, ticket.subscription)
     operation_context = _context.OperationContext(
-        lock, ticket.operation_id, interfaces.Outcome.SERVICER_FAILURE,
+        lock, ticket.operation_id, base_interfaces.Outcome.SERVICER_FAILURE,
         termination_manager, transmission_manager)
     emission_manager = _emission.back_emission_manager(
         lock, termination_manager, transmission_manager)
@@ -338,13 +340,13 @@ def _back_operate(
         ingestion_manager, expiration_manager)
     ingestion_manager.set_expiration_manager(expiration_manager)
 
-  reception_manager.receive_ticket(ticket)
+  reception_manager.receive_packet(ticket)
 
   return reception_manager
 
 
-class BackLink(interfaces.BackLink):
-  """An implementation of interfaces.BackLink."""
+class Back(interfaces.Back):
+  """An implementation of interfaces.Back."""
 
   def __init__(
       self, servicer, work_pool, transmission_pool, utility_pool,
@@ -388,12 +390,12 @@ class BackLink(interfaces.BackLink):
             self._default_timeout, self._maximum_timeout)
         self._endlette.add_operation(ticket.operation_id, reception_manager)
       else:
-        reception_manager.receive_ticket(ticket)
+        reception_manager.receive_packet(ticket)
 
   def operation_stats(self):
-    """See interfaces.End.operation_stats for specification."""
+    """See base_interfaces.End.operation_stats for specification."""
     return self._endlette.operation_stats()
 
   def add_idle_action(self, action):
-    """See interfaces.End.add_idle_action for specification."""
+    """See base_interfaces.End.add_idle_action for specification."""
     self._endlette.add_idle_action(action)
