@@ -36,18 +36,13 @@
 #include <cctype>
 #include <cstring>
 #include <map>
-#include <memory>
 #include <ostream>
 #include <sstream>
-#include <string>
-#include <tuple>
 #include <vector>
 
 #include "src/compiler/generator_helpers.h"
 #include "src/compiler/python_generator.h"
-#include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/printer.h>
-#include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/descriptor.h>
@@ -58,11 +53,8 @@ using google::protobuf::Descriptor;
 using google::protobuf::FileDescriptor;
 using google::protobuf::MethodDescriptor;
 using google::protobuf::ServiceDescriptor;
-using google::protobuf::compiler::GeneratorContext;
-using google::protobuf::io::CodedOutputStream;
 using google::protobuf::io::Printer;
 using google::protobuf::io::StringOutputStream;
-using google::protobuf::io::ZeroCopyOutputStream;
 using std::initializer_list;
 using std::make_pair;
 using std::map;
@@ -71,41 +63,6 @@ using std::replace;
 using std::vector;
 
 namespace grpc_python_generator {
-
-PythonGrpcGenerator::PythonGrpcGenerator(const GeneratorConfiguration& config)
-    : config_(config) {}
-
-PythonGrpcGenerator::~PythonGrpcGenerator() {}
-
-bool PythonGrpcGenerator::Generate(
-    const FileDescriptor* file, const std::string& parameter,
-    GeneratorContext* context, std::string* error) const {
-  // Get output file name.
-  std::string file_name;
-  static const int proto_suffix_length = strlen(".proto");
-  if (file->name().size() > static_cast<size_t>(proto_suffix_length) &&
-      file->name().find_last_of(".proto") == file->name().size() - 1) {
-    file_name = file->name().substr(
-        0, file->name().size() - proto_suffix_length) + "_pb2.py";
-  } else {
-    *error = "Invalid proto file name. Proto file must end with .proto";
-    return false;
-  }
-
-  std::unique_ptr<ZeroCopyOutputStream> output(
-      context->OpenForInsert(file_name, "module_scope"));
-  CodedOutputStream coded_out(output.get());
-  bool success = false;
-  std::string code = "";
-  tie(success, code) = grpc_python_generator::GetServices(file, config_);
-  if (success) {
-    coded_out.WriteRaw(code.data(), code.size());
-    return true;
-  } else {
-    return false;
-  }
-}
-
 namespace {
 //////////////////////////////////
 // BEGIN FORMATTING BOILERPLATE //
@@ -113,8 +70,7 @@ namespace {
 
 // Converts an initializer list of the form { key0, value0, key1, value1, ... }
 // into a map of key* to value*. Is merely a readability helper for later code.
-map<std::string, std::string> ListToDict(
-    const initializer_list<std::string>& values) {
+map<std::string, std::string> ListToDict(const initializer_list<std::string>& values) {
   assert(values.size() % 2 == 0);
   map<std::string, std::string> value_map;
   auto value_iter = values.begin();
@@ -273,18 +229,15 @@ bool GetModuleAndMessagePath(const Descriptor* type,
   return true;
 }
 
-bool PrintServerFactory(const std::string& package_qualified_service_name,
-                        const ServiceDescriptor* service, Printer* out) {
+bool PrintServerFactory(const ServiceDescriptor* service, Printer* out) {
   out->Print("def early_adopter_create_$Service$_server(servicer, port, "
              "root_certificates, key_chain_pairs):\n",
              "Service", service->name());
   {
     IndentScope raii_create_server_indent(out);
     map<std::string, std::string> method_description_constructors;
-    map<std::string, pair<std::string, std::string>>
-        input_message_modules_and_classes;
-    map<std::string, pair<std::string, std::string>>
-        output_message_modules_and_classes;
+    map<std::string, pair<std::string, std::string>> input_message_modules_and_classes;
+    map<std::string, pair<std::string, std::string>> output_message_modules_and_classes;
     for (int i = 0; i < service->method_count(); ++i) {
       const MethodDescriptor* method = service->method(i);
       const std::string method_description_constructor =
@@ -340,18 +293,17 @@ bool PrintServerFactory(const std::string& package_qualified_service_name,
       out->Print("),\n");
     }
     out->Print("}\n");
+    // out->Print("return implementations.insecure_server("
+    //            "method_service_descriptions, port)\n");
     out->Print(
         "return implementations.secure_server("
-        "\"$PackageQualifiedServiceName$\","
-        " method_service_descriptions, port, root_certificates,"
-        " key_chain_pairs)\n",
-        "PackageQualifiedServiceName", package_qualified_service_name);
+        "method_service_descriptions, port, root_certificates,"
+        " key_chain_pairs)\n");
   }
   return true;
 }
 
-bool PrintStubFactory(const std::string& package_qualified_service_name,
-                      const ServiceDescriptor* service, Printer* out) {
+bool PrintStubFactory(const ServiceDescriptor* service, Printer* out) {
   map<std::string, std::string> dict = ListToDict({
         "Service", service->name(),
       });
@@ -359,10 +311,8 @@ bool PrintStubFactory(const std::string& package_qualified_service_name,
   {
     IndentScope raii_create_server_indent(out);
     map<std::string, std::string> method_description_constructors;
-    map<std::string, pair<std::string, std::string>>
-        input_message_modules_and_classes;
-    map<std::string, pair<std::string, std::string>>
-        output_message_modules_and_classes;
+    map<std::string, pair<std::string, std::string>> input_message_modules_and_classes;
+    map<std::string, pair<std::string, std::string>> output_message_modules_and_classes;
     for (int i = 0; i < service->method_count(); ++i) {
       const MethodDescriptor* method = service->method(i);
       const std::string method_description_constructor =
@@ -419,46 +369,36 @@ bool PrintStubFactory(const std::string& package_qualified_service_name,
     out->Print("}\n");
     out->Print(
         "return implementations.insecure_stub("
-        "\"$PackageQualifiedServiceName$\","
-        " method_invocation_descriptions, host, port)\n",
-        "PackageQualifiedServiceName", package_qualified_service_name);
+        "method_invocation_descriptions, host, port)\n");
   }
   return true;
 }
 
-bool PrintPreamble(const FileDescriptor* file,
-                   const GeneratorConfiguration& config, Printer* out) {
+bool PrintPreamble(const FileDescriptor* file, Printer* out) {
   out->Print("import abc\n");
-  out->Print("from $Package$ import implementations\n",
-             "Package", config.implementations_package_root);
-  out->Print("from grpc.framework.alpha import utilities\n");
+  out->Print("from grpc.early_adopter import implementations\n");
+  out->Print("from grpc.early_adopter import utilities\n");
   return true;
 }
 
 }  // namespace
 
-pair<bool, std::string> GetServices(const FileDescriptor* file,
-                                    const GeneratorConfiguration& config) {
+pair<bool, std::string> GetServices(const FileDescriptor* file) {
   std::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
     StringOutputStream output_stream(&output);
     Printer out(&output_stream, '$');
-    if (!PrintPreamble(file, config, &out)) {
+    if (!PrintPreamble(file, &out)) {
       return make_pair(false, "");
-    }
-    auto package = file->package();
-    if (!package.empty()) {
-      package = package.append(".");
     }
     for (int i = 0; i < file->service_count(); ++i) {
       auto service = file->service(i);
-      auto package_qualified_service_name = package + service->name();
       if (!(PrintServicer(service, &out) &&
             PrintServer(service, &out) &&
             PrintStub(service, &out) &&
-            PrintServerFactory(package_qualified_service_name, service, &out) &&
-            PrintStubFactory(package_qualified_service_name, service, &out))) {
+            PrintServerFactory(service, &out) &&
+            PrintStubFactory(service, &out))) {
         return make_pair(false, "");
       }
     }

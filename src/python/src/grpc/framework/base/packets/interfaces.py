@@ -27,54 +27,58 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Links suitable for use in tests."""
+"""Interfaces defined and used by the base layer of RPC Framework."""
 
-import threading
+import abc
 
-from grpc.framework.base.packets import interfaces
+# packets is referenced from specifications in this module.
+from grpc.framework.base import interfaces
+from grpc.framework.base.packets import packets  # pylint: disable=unused-import
 
 
-class ForeLink(interfaces.ForeLink):
-  """A ForeLink suitable for use in tests of RearLinks."""
+class ForeLink(object):
+  """Accepts back-to-front tickets and emits front-to-back tickets."""
+  __metaclass__ = abc.ABCMeta
 
-  def __init__(self, action, rear_link):
-    self.condition = threading.Condition()
-    self.tickets = []
-    self.action = action
-    self.rear_link = rear_link
-
+  @abc.abstractmethod
   def accept_back_to_front_ticket(self, ticket):
-    with self.condition:
-      self.tickets.append(ticket)
-      self.condition.notify_all()
-      action, rear_link = self.action, self.rear_link
+    """Accept a packets.BackToFrontPacket.
 
-    if action is not None:
-      action(ticket, rear_link)
+    Args:
+      ticket: Any packets.BackToFrontPacket.
+    """
+    raise NotImplementedError()
 
+  @abc.abstractmethod
   def join_rear_link(self, rear_link):
-    with self.condition:
-      self.rear_link = rear_link
+    """Mates this object with a peer with which it will exchange tickets."""
+    raise NotImplementedError()
 
 
-class RearLink(interfaces.RearLink):
-  """A RearLink suitable for use in tests of ForeLinks."""
+class RearLink(object):
+  """Accepts front-to-back tickets and emits back-to-front tickets."""
+  __metaclass__ = abc.ABCMeta
 
-  def __init__(self, action, fore_link):
-    self.condition = threading.Condition()
-    self.tickets = []
-    self.action = action
-    self.fore_link = fore_link
-
+  @abc.abstractmethod
   def accept_front_to_back_ticket(self, ticket):
-    with self.condition:
-      self.tickets.append(ticket)
-      self.condition.notify_all()
-      action, fore_link = self.action, self.fore_link
+    """Accepts a packets.FrontToBackPacket.
 
-    if action is not None:
-      action(ticket, fore_link)
+    Args:
+      ticket: Any packets.FrontToBackPacket.
+    """
+    raise NotImplementedError()
 
+  @abc.abstractmethod
   def join_fore_link(self, fore_link):
-    with self.condition:
-      self.fore_link = fore_link
+    """Mates this object with a peer with which it will exchange tickets."""
+    raise NotImplementedError()
+
+
+class Front(ForeLink, interfaces.Front):
+  """Clientish objects that operate by sending and receiving tickets."""
+  __metaclass__ = abc.ABCMeta
+
+
+class Back(RearLink, interfaces.Back):
+  """Serverish objects that operate by sending and receiving tickets."""
+  __metaclass__ = abc.ABCMeta
