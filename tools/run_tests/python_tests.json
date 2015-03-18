@@ -27,10 +27,7 @@
     "module": "grpc.early_adopter.implementations_test"
   },
   {
-    "module": "grpc.framework.assembly.implementations_test"
-  },
-  {
-    "module": "grpc.framework.base.packets.implementations_test"
+    "module": "grpc.framework.base.implementations_test"
   },
   {
     "module": "grpc.framework.face.blocking_invocation_inline_service_test"
@@ -46,5 +43,11 @@
   },
   {
     "module": "grpc.framework.foundation._logging_pool_test"
+  },
+  {
+    "module": "interop._insecure_interop_test"
+  },
+  {
+    "module": "interop._secure_interop_test"
   }
 ]
