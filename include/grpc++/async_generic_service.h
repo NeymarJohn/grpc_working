@@ -41,8 +41,7 @@ struct grpc_server;
 
 namespace grpc {
 
-typedef ServerAsyncReaderWriter<ByteBuffer, ByteBuffer>
-    GenericServerAsyncReaderWriter;
+typedef ServerAsyncReaderWriter<ByteBuffer, ByteBuffer> GenericServerAsyncReaderWriter;
 
 class GenericServerContext GRPC_FINAL : public ServerContext {
  public:
@@ -75,6 +74,6 @@ class AsyncGenericService GRPC_FINAL {
   Server* server_;
 };
 
-}  // namespace grpc
+} // namespace grpc
 
 #endif  // GRPCXX_ASYNC_GENERIC_SERVICE_H
