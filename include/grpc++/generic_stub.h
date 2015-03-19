@@ -39,7 +39,6 @@
 
 namespace grpc {
 
-class CompletionQueue;
 typedef ClientAsyncReaderWriter<ByteBuffer, ByteBuffer>
     GenericClientAsyncReaderWriter;
 
@@ -52,13 +51,12 @@ class GenericStub GRPC_FINAL {
 
   // begin a call to a named method
   std::unique_ptr<GenericClientAsyncReaderWriter> Call(
-      ClientContext* context, const grpc::string& method,
-      CompletionQueue* cq, void* tag);
+      ClientContext* context, const grpc::string& method);
 
  private:
   std::shared_ptr<ChannelInterface> channel_;
 };
 
-} // namespace grpc
+}  // namespace grpc
 
 #endif  // GRPCXX_GENERIC_STUB_H
