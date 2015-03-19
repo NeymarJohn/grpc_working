@@ -240,7 +240,7 @@ _CONFIGS = {
     }
 
 
-_DEFAULT = ['dbg', 'opt']
+_DEFAULT = ['opt']
 _LANGUAGES = {
     'c++': CLanguage('cxx', 'c++'),
     'c': CLanguage('c', 'c'),
@@ -379,7 +379,7 @@ test_cache.maybe_load()
 if forever:
   success = True
   while True:
-    dw = watch_dirs.DirWatcher(['src', 'include', 'test'])
+    dw = watch_dirs.DirWatcher(['src', 'include', 'test', 'examples'])
     initial_time = dw.most_recent_change()
     have_files_changed = lambda: dw.most_recent_change() != initial_time
     previous_success = success

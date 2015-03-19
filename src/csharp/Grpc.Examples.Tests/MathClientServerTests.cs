@@ -61,7 +61,14 @@ namespace math.Tests
             int port = server.AddPort(host + ":0");
             server.Start();
             channel = new Channel(host + ":" + port);
-            client = MathGrpc.NewStub(channel);
+
+            // TODO: get rid of the custom header here once we have dedicated tests
+            // for header support.
+            var stubConfig = new StubConfiguration((headerBuilder) =>
+            {
+                headerBuilder.Add(new Metadata.MetadataEntry("customHeader", "abcdef"));
+            });
+            client = MathGrpc.NewStub(channel, stubConfig);
         }
 
         [TestFixtureTearDown]
@@ -105,7 +112,7 @@ namespace math.Tests
             var recorder = new RecordingObserver<Num>();
             client.Fib(new FibArgs.Builder { Limit = 6 }.Build(), recorder);
 
-            CollectionAssert.AreEqual(new List<long>{1, 1, 2, 3, 5, 8},
+            CollectionAssert.AreEqual(new List<long> { 1, 1, 2, 3, 5, 8 },
                 recorder.ToList().Result.ConvertAll((n) => n.Num_));
         }
 
@@ -114,7 +121,8 @@ namespace math.Tests
         public void Sum()
         {
             var res = client.Sum();
-            foreach (var num in new long[] { 10, 20, 30 }) {
+            foreach (var num in new long[] { 10, 20, 30 })
+            {
                 res.Inputs.OnNext(Num.CreateBuilder().SetNum_(num).Build());
             }
             res.Inputs.OnCompleted();
@@ -125,7 +133,8 @@ namespace math.Tests
         [Test]
         public void DivMany()
         {
-            List<DivArgs> divArgsList = new List<DivArgs>{
+            List<DivArgs> divArgsList = new List<DivArgs>
+            {
                 new DivArgs.Builder { Dividend = 10, Divisor = 3 }.Build(),
                 new DivArgs.Builder { Dividend = 100, Divisor = 21 }.Build(),
                 new DivArgs.Builder { Dividend = 7, Divisor = 2 }.Build()
@@ -142,9 +151,8 @@ namespace math.Tests
 
             var result = recorder.ToList().Result;
 
-            CollectionAssert.AreEqual(new long[] {3, 4, 3}, result.ConvertAll((divReply) => divReply.Quotient));
-            CollectionAssert.AreEqual(new long[] {1, 16, 1}, result.ConvertAll((divReply) => divReply.Remainder));
+            CollectionAssert.AreEqual(new long[] { 3, 4, 3 }, result.ConvertAll((divReply) => divReply.Quotient));
+            CollectionAssert.AreEqual(new long[] { 1, 16, 1 }, result.ConvertAll((divReply) => divReply.Remainder));
         }
     }
 }
-
