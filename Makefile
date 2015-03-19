@@ -37,11 +37,37 @@ HOST_SYSTEM = $(shell uname | cut -f 1 -d_)
 ifeq ($(SYSTEM),)
 SYSTEM = $(HOST_SYSTEM)
 endif
+ifeq ($(SYSTEM),MSYS)
+SYSTEM = MINGW32
+endif
 
 
 ifndef BUILDDIR
 BUILDDIR = .
 endif
+
+HAS_GCC = $(shell which gcc > /dev/null 2> /dev/null && echo true || echo false)
+HAS_CC = $(shell which cc > /dev/null 2> /dev/null && echo true || echo false)
+HAS_CLANG = $(shell which clang > /dev/null 2> /dev/null && echo true || echo false)
+
+ifeq ($(HAS_CC),true)
+DEFAULT_CC = cc
+DEFAULT_CXX = c++
+else
+ifeq ($(HAS_GCC),true)
+DEFAULT_CC = gcc
+DEFAULT_CXX = g++
+else
+ifeq ($(HAS_CLANG),true)
+DEFAULT_CC = clang
+DEFAULT_CXX = clang++
+else
+DEFAULT_CC = no_c_compiler
+DEFAULT_CXX = no_c++_compiler
+endif
+endif
+endif
+
 
 BINDIR = $(BUILDDIR)/bins
 OBJDIR = $(BUILDDIR)/objs
@@ -51,29 +77,29 @@ GENDIR = $(BUILDDIR)/gens
 # Configurations
 
 VALID_CONFIG_opt = 1
-CC_opt = cc
-CXX_opt = c++
-LD_opt = cc
-LDXX_opt = c++
+CC_opt = $(DEFAULT_CC)
+CXX_opt = $(DEFAULT_CXX)
+LD_opt = $(DEFAULT_CC)
+LDXX_opt = $(DEFAULT_CXX)
 CPPFLAGS_opt = -O2
 LDFLAGS_opt =
 DEFINES_opt = NDEBUG
 
 VALID_CONFIG_dbg = 1
-CC_dbg = cc
-CXX_dbg = c++
-LD_dbg = cc
-LDXX_dbg = c++
+CC_dbg = $(DEFAULT_CC)
+CXX_dbg = $(DEFAULT_CXX)
+LD_dbg = $(DEFAULT_CC)
+LDXX_dbg = $(DEFAULT_CXX)
 CPPFLAGS_dbg = -O0
 LDFLAGS_dbg =
 DEFINES_dbg = _DEBUG DEBUG
 
 VALID_CONFIG_valgrind = 1
 REQUIRE_CUSTOM_LIBRARIES_valgrind = 1
-CC_valgrind = cc
-CXX_valgrind = c++
-LD_valgrind = cc
-LDXX_valgrind = c++
+CC_valgrind = $(DEFAULT_CC)
+CXX_valgrind = $(DEFAULT_CXX)
+LD_valgrind = $(DEFAULT_CC)
+LDXX_valgrind = $(DEFAULT_CXX)
 CPPFLAGS_valgrind = -O0
 OPENSSL_CFLAGS_valgrind = -DPURIFY
 LDFLAGS_valgrind =
@@ -194,8 +220,14 @@ else
 CXXFLAGS += -std=c++0x
 DEFINES += GRPC_OLD_CXX
 endif
-CPPFLAGS += -g -fPIC -Wall -Wextra -Werror -Wno-long-long -Wno-unused-parameter
-LDFLAGS += -g -fPIC
+CPPFLAGS += -g -Wall -Wextra -Werror -Wno-long-long -Wno-unused-parameter
+LDFLAGS += -g
+
+ifneq ($(SYSTEM),MINGW32)
+PIC_CPPFLAGS = -fPIC
+CPPFLAGS += -fPIC
+LDFLAGS += -fPIC
+endif
 
 INCLUDES = . include $(GENDIR)
 ifeq ($(SYSTEM),Darwin)
@@ -218,8 +250,15 @@ endif
 ifneq ($(wildcard /usr/local/lib),)
 LDFLAGS += -L/usr/local/lib
 endif
-else
+endif
+
+ifeq ($(SYSTEM),Linux)
 LIBS = rt m z pthread
+LDFLAGS += -pthread
+endif
+
+ifeq ($(SYSTEM),MINGW32)
+LIBS = m z pthread
 LDFLAGS += -pthread
 endif
 
@@ -272,12 +311,30 @@ else
 IS_GIT_FOLDER = true
 endif
 
-OPENSSL_ALPN_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/openssl-alpn.c -lssl -lcrypto -ldl $(LDFLAGS)
+ifeq ($(SYSTEM),Linux)
+OPENSSL_REQUIRES_DL = true
+endif
+
+ifeq ($(SYSTEM),Darwin)
+OPENSSL_REQUIRES_DL = true
+endif
+
+ifeq ($(SYSTEM),MINGW32)
+OPENSSL_LIBS = ssl32 eay32
+else
+OPENSSL_LIBS = ssl crypto
+endif
+
+OPENSSL_ALPN_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/openssl-alpn.c $(addprefix -l, $(OPENSSL_LIBS)) $(LDFLAGS)
 ZLIB_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/zlib.c -lz $(LDFLAGS)
 PERFTOOLS_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/perftools.c -lprofiler $(LDFLAGS)
 PROTOBUF_CHECK_CMD = $(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/protobuf.cc -lprotobuf $(LDFLAGS)
-PROTOC_CMD = which protoc
+PROTOC_CMD = which protoc > /dev/null
 PROTOC_CHECK_CMD = protoc --version | grep -q libprotoc.3
+
+ifeq ($(OPENSSL_REQUIRES_DL),true)
+OPENSSL_ALPN_CHECK_CMD += -ldl
+endif
 
 ifndef REQUIRE_CUSTOM_LIBRARIES_$(CONFIG)
 HAS_SYSTEM_PERFTOOLS = $(shell $(PERFTOOLS_CHECK_CMD) 2> /dev/null && echo true || echo false)
@@ -299,7 +356,7 @@ HAS_SYSTEM_ZLIB = false
 HAS_SYSTEM_PROTOBUF = false
 endif
 
-HAS_PROTOC = $(shell $(PROTOC_CMD) > /dev/null && echo true || echo false)
+HAS_PROTOC = $(shell $(PROTOC_CMD) 2> /dev/null && echo true || echo false)
 ifeq ($(HAS_PROTOC),true)
 HAS_VALID_PROTOC = $(shell $(PROTOC_CHECK_CMD) 2> /dev/null && echo true || echo false)
 else
@@ -344,12 +401,17 @@ OPENSSL_MERGE_LIBS += $(LIBDIR)/$(CONFIG)/openssl/libssl.a $(LIBDIR)/$(CONFIG)/o
 # need to prefix these to ensure overriding system libraries
 CPPFLAGS := -Ithird_party/openssl/include $(CPPFLAGS)
 LDFLAGS := -L$(LIBDIR)/$(CONFIG)/openssl $(LDFLAGS)
+ifeq ($(OPENSSL_REQUIRES_DL),true)
 LIBS_SECURE = dl
+endif
 else
 NO_SECURE = true
 endif
 else
-LIBS_SECURE = ssl crypto dl
+LIBS_SECURE = $(OPENSSL_LIBS)
+ifeq ($(OPENSSL_REQUIRES_DL),true)
+LIBS_SECURE += dl
+endif
 endif
 
 LDLIBS_SECURE += $(addprefix -l, $(LIBS_SECURE))
@@ -923,7 +985,7 @@ run_dep_checks:
 
 $(LIBDIR)/$(CONFIG)/zlib/libz.a:
 	$(E) "[MAKE]    Building zlib"
-	$(Q)(cd third_party/zlib ; CC="$(CC)" CFLAGS="-fPIC -fvisibility=hidden $(CPPFLAGS_$(CONFIG))" ./configure --static)
+	$(Q)(cd third_party/zlib ; CC="$(CC)" CFLAGS="$(PIC_CPPFLAGS) -fvisibility=hidden $(CPPFLAGS_$(CONFIG))" ./configure --static)
 	$(Q)$(MAKE) -C third_party/zlib clean
 	$(Q)$(MAKE) -C third_party/zlib
 	$(Q)mkdir -p $(LIBDIR)/$(CONFIG)/zlib
@@ -932,9 +994,29 @@ $(LIBDIR)/$(CONFIG)/zlib/libz.a:
 $(LIBDIR)/$(CONFIG)/openssl/libssl.a:
 	$(E) "[MAKE]    Building openssl for $(SYSTEM)"
 ifeq ($(SYSTEM),Darwin)
-	$(Q)(cd third_party/openssl ; CC="$(CC) -fPIC -fvisibility=hidden $(CPPFLAGS_$(CONFIG)) $(OPENSSL_CFLAGS_$(CONFIG))" ./Configure darwin64-x86_64-cc)
+	$(Q)(cd third_party/openssl ; CC="$(CC) $(PIC_CPPFLAGS) -fvisibility=hidden $(CPPFLAGS_$(CONFIG)) $(OPENSSL_CFLAGS_$(CONFIG))" ./Configure darwin64-x86_64-cc)
 else
-	$(Q)(cd third_party/openssl ; CC="$(CC) -fPIC -fvisibility=hidden $(CPPFLAGS_$(CONFIG)) $(OPENSSL_CFLAGS_$(CONFIG))" ./config no-asm $(OPENSSL_CONFIG_$(CONFIG)))
+ifeq ($(SYSTEM),MINGW32)
+	@echo "We currently don't have a good way to compile OpenSSL in-place under msys."
+	@echo "Please provide an ALPN-capable OpenSSL in your mingw32 system."
+	@echo
+	@echo "Note that you can find a compatible version of the libraries here:"
+	@echo
+	@echo "http://slproweb.com/products/Win32OpenSSL.html"
+	@echo
+	@echo "If you decide to install that one, take the full version. The light"
+	@echo "version only contains compiled DLLs, without the development files."
+	@echo
+	@echo "When installing, chose to copy the OpenSSL dlls to the OpenSSL binaries"
+	@echo "directory. This way we'll link to them directly."
+	@echo
+	@echo "You can then re-start the build the following way:"
+	@echo
+	@echo "  CPPFLAGS=-I/c/OpenSSL-Win64/include LDFLAGS=-L/c/OpenSSL-Win64 make"
+	@false
+else
+	$(Q)(cd third_party/openssl ; CC="$(CC) $(PIC_CPPFLAGS) -fvisibility=hidden $(CPPFLAGS_$(CONFIG)) $(OPENSSL_CFLAGS_$(CONFIG))" ./config no-asm $(OPENSSL_CONFIG_$(CONFIG)))
+endif
 endif
 	$(Q)$(MAKE) -C third_party/openssl clean
 	$(Q)$(MAKE) -C third_party/openssl build_crypto build_ssl
@@ -948,9 +1030,9 @@ third_party/protobuf/configure:
 $(LIBDIR)/$(CONFIG)/protobuf/libprotobuf.a: third_party/protobuf/configure
 	$(E) "[MAKE]    Building protobuf"
 ifeq ($(HAVE_CXX11),true)
-	$(Q)(cd third_party/protobuf ; CC="$(CC)" CXX="$(CXX)" LDFLAGS="$(LDFLAGS_$(CONFIG)) -g" CXXFLAGS="-DLANG_CXX11 -std=c++11" CPPFLAGS="-fPIC $(CPPFLAGS_$(CONFIG)) -g" ./configure --disable-shared --enable-static)
+	$(Q)(cd third_party/protobuf ; CC="$(CC)" CXX="$(CXX)" LDFLAGS="$(LDFLAGS_$(CONFIG)) -g" CXXFLAGS="-DLANG_CXX11 -std=c++11" CPPFLAGS="$(PIC_CPPFLAGS) $(CPPFLAGS_$(CONFIG)) -g" ./configure --disable-shared --enable-static)
 else
-	$(Q)(cd third_party/protobuf ; CC="$(CC)" CXX="$(CXX)" LDFLAGS="$(LDFLAGS_$(CONFIG)) -g" CXXFLAGS="-std=c++0x" CPPFLAGS="-fPIC $(CPPFLAGS_$(CONFIG)) -g" ./configure --disable-shared --enable-static)
+	$(Q)(cd third_party/protobuf ; CC="$(CC)" CXX="$(CXX)" LDFLAGS="$(LDFLAGS_$(CONFIG)) -g" CXXFLAGS="-std=c++0x" CPPFLAGS="$(PIC_CPPFLAGS) $(CPPFLAGS_$(CONFIG)) -g" ./configure --disable-shared --enable-static)
 endif
 	$(Q)$(MAKE) -C third_party/protobuf clean
 	$(Q)$(MAKE) -C third_party/protobuf
@@ -2210,6 +2292,7 @@ LIBGPR_SRC = \
     src/core/support/alloc.c \
     src/core/support/cancellable.c \
     src/core/support/cmdline.c \
+    src/core/support/cpu_iphone.c \
     src/core/support/cpu_linux.c \
     src/core/support/cpu_posix.c \
     src/core/support/cpu_windows.c \
@@ -2249,6 +2332,7 @@ PUBLIC_HEADERS_C += \
     include/grpc/support/atm_win32.h \
     include/grpc/support/cancellable_platform.h \
     include/grpc/support/cmdline.h \
+    include/grpc/support/cpu.h \
     include/grpc/support/histogram.h \
     include/grpc/support/host_port.h \
     include/grpc/support/log.h \
@@ -2302,6 +2386,7 @@ endif
 $(OBJDIR)/$(CONFIG)/src/core/support/alloc.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/cancellable.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/cmdline.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/cpu_iphone.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/cpu_linux.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/cpu_posix.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/cpu_windows.o: 
@@ -2503,6 +2588,7 @@ PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer.h \
     include/grpc/byte_buffer_reader.h \
     include/grpc/grpc.h \
+    include/grpc/grpc_http.h \
     include/grpc/status.h \
 
 LIBGRPC_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_SRC))))
@@ -2984,6 +3070,7 @@ PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer.h \
     include/grpc/byte_buffer_reader.h \
     include/grpc/grpc.h \
+    include/grpc/grpc_http.h \
     include/grpc/status.h \
 
 LIBGRPC_UNSECURE_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_UNSECURE_SRC))))
@@ -3128,7 +3215,6 @@ LIBGRPC++_SRC = \
     src/cpp/client/client_unary_call.cc \
     src/cpp/client/create_channel.cc \
     src/cpp/client/credentials.cc \
-    src/cpp/client/generic_stub.cc \
     src/cpp/client/insecure_credentials.cc \
     src/cpp/client/internal_stub.cc \
     src/cpp/common/call.cc \
@@ -3217,7 +3303,6 @@ src/cpp/client/client_context.cc: $(OPENSSL_DEP)
 src/cpp/client/client_unary_call.cc: $(OPENSSL_DEP)
 src/cpp/client/create_channel.cc: $(OPENSSL_DEP)
 src/cpp/client/credentials.cc: $(OPENSSL_DEP)
-src/cpp/client/generic_stub.cc: $(OPENSSL_DEP)
 src/cpp/client/insecure_credentials.cc: $(OPENSSL_DEP)
 src/cpp/client/internal_stub.cc: $(OPENSSL_DEP)
 src/cpp/common/call.cc: $(OPENSSL_DEP)
@@ -3284,7 +3369,6 @@ $(OBJDIR)/$(CONFIG)/src/cpp/client/client_context.o:
 $(OBJDIR)/$(CONFIG)/src/cpp/client/client_unary_call.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/client/create_channel.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/client/credentials.o: 
-$(OBJDIR)/$(CONFIG)/src/cpp/client/generic_stub.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/client/insecure_credentials.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/client/internal_stub.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/common/call.o: 
@@ -3376,7 +3460,6 @@ LIBGRPC++_UNSECURE_SRC = \
     src/cpp/client/client_unary_call.cc \
     src/cpp/client/create_channel.cc \
     src/cpp/client/credentials.cc \
-    src/cpp/client/generic_stub.cc \
     src/cpp/client/insecure_credentials.cc \
     src/cpp/client/internal_stub.cc \
     src/cpp/common/call.cc \
@@ -3480,7 +3563,6 @@ $(OBJDIR)/$(CONFIG)/src/cpp/client/client_context.o:
 $(OBJDIR)/$(CONFIG)/src/cpp/client/client_unary_call.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/client/create_channel.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/client/credentials.o: 
-$(OBJDIR)/$(CONFIG)/src/cpp/client/generic_stub.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/client/insecure_credentials.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/client/internal_stub.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/common/call.o: 
@@ -3498,6 +3580,44 @@ $(OBJDIR)/$(CONFIG)/src/cpp/util/byte_buffer.o:
 $(OBJDIR)/$(CONFIG)/src/cpp/util/slice.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/util/status.o: 
 $(OBJDIR)/$(CONFIG)/src/cpp/util/time.o: 
+
+
+LIBGRPC_PYTHON_PLUGIN_SUPPORT_SRC = \
+    src/compiler/python_generator.cc \
+
+PUBLIC_HEADERS_CXX += \
+    src/compiler/python_generator.h \
+
+LIBGRPC_PYTHON_PLUGIN_SUPPORT_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_PYTHON_PLUGIN_SUPPORT_SRC))))
+
+ifeq ($(NO_PROTOBUF),true)
+
+# You can't build a C++ library if you don't have protobuf - a bit overreached, but still okay.
+
+$(LIBDIR)/$(CONFIG)/libgrpc_python_plugin_support.a: protobuf_dep_error
+
+
+else
+
+$(LIBDIR)/$(CONFIG)/libgrpc_python_plugin_support.a: $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBGRPC_PYTHON_PLUGIN_SUPPORT_OBJS)
+	$(E) "[AR]      Creating $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libgrpc_python_plugin_support.a
+	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libgrpc_python_plugin_support.a $(LIBGRPC_PYTHON_PLUGIN_SUPPORT_OBJS)
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc_python_plugin_support.a
+endif
+
+
+
+
+endif
+
+ifneq ($(NO_DEPS),true)
+-include $(LIBGRPC_PYTHON_PLUGIN_SUPPORT_OBJS:.o=.dep)
+endif
+
+$(OBJDIR)/$(CONFIG)/src/compiler/python_generator.o: 
 
 
 LIBPUBSUB_CLIENT_LIB_SRC = \
@@ -8055,7 +8175,6 @@ endif
 
 
 GRPC_PYTHON_PLUGIN_SRC = \
-    src/compiler/python_generator.cc \
     src/compiler/python_plugin.cc \
 
 GRPC_PYTHON_PLUGIN_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_PYTHON_PLUGIN_SRC))))
@@ -8069,15 +8188,14 @@ $(BINDIR)/$(CONFIG)/grpc_python_plugin: protobuf_dep_error
 
 else
 
-$(BINDIR)/$(CONFIG)/grpc_python_plugin: $(PROTOBUF_DEP) $(GRPC_PYTHON_PLUGIN_OBJS)
+$(BINDIR)/$(CONFIG)/grpc_python_plugin: $(PROTOBUF_DEP) $(GRPC_PYTHON_PLUGIN_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_python_plugin_support.a
 	$(E) "[HOSTLD]  Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(HOST_LDXX) $(HOST_LDFLAGS) $(GRPC_PYTHON_PLUGIN_OBJS) $(HOST_LDLIBSXX) $(HOST_LDLIBS_PROTOC) $(HOST_LDLIBS) $(HOST_LDLIBS_PROTOC) -o $(BINDIR)/$(CONFIG)/grpc_python_plugin
+	$(Q) $(HOST_LDXX) $(HOST_LDFLAGS) $(GRPC_PYTHON_PLUGIN_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_python_plugin_support.a $(HOST_LDLIBSXX) $(HOST_LDLIBS_PROTOC) $(HOST_LDLIBS) $(HOST_LDLIBS_PROTOC) -o $(BINDIR)/$(CONFIG)/grpc_python_plugin
 
 endif
 
-$(OBJDIR)/$(CONFIG)/src/compiler/python_generator.o: 
-$(OBJDIR)/$(CONFIG)/src/compiler/python_plugin.o: 
+$(OBJDIR)/$(CONFIG)/src/compiler/python_plugin.o:  $(LIBDIR)/$(CONFIG)/libgrpc_python_plugin_support.a
 
 deps_grpc_python_plugin: $(GRPC_PYTHON_PLUGIN_OBJS:.o=.dep)
 
