@@ -37,9 +37,6 @@
 #include <string>
 #include <utility>
 
-#include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/descriptor.h>
-
 namespace google {
 namespace protobuf {
 class FileDescriptor;
@@ -48,28 +45,7 @@ class FileDescriptor;
 
 namespace grpc_python_generator {
 
-// Data pertaining to configuration of the generator with respect to anything
-// that may be used internally at Google.
-struct GeneratorConfiguration {
-  std::string implementations_package_root;
-};
-
-class PythonGrpcGenerator : public google::protobuf::compiler::CodeGenerator {
- public:
-  PythonGrpcGenerator(const GeneratorConfiguration& config);
-  ~PythonGrpcGenerator();
-
-  bool Generate(const google::protobuf::FileDescriptor* file,
-                const std::string& parameter,
-                google::protobuf::compiler::GeneratorContext* context,
-                std::string* error) const;
- private:
-  GeneratorConfiguration config_;
-};
-
-std::pair<bool, std::string> GetServices(
-    const google::protobuf::FileDescriptor* file,
-    const GeneratorConfiguration& config);
+std::pair<bool, std::string> GetServices(const google::protobuf::FileDescriptor* file);
 
 }  // namespace grpc_python_generator
 

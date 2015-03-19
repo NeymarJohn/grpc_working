@@ -43,7 +43,6 @@
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
 
-#include "src/core/support/string.h"
 #include "src/core/support/string_win32.h"
 
 void gpr_log(const char *file, int line, gpr_log_severity severity,
@@ -56,7 +55,7 @@ void gpr_log(const char *file, int line, gpr_log_severity severity,
   va_start(args, format);
   ret = _vscprintf(format, args);
   va_end(args);
-  if (ret < 0) {
+  if (!(0 <= ret && ret < ~(size_t)0)) {
     message = NULL;
   } else {
     /* Allocate a new buffer, with space for the NUL terminator. */
@@ -67,7 +66,7 @@ void gpr_log(const char *file, int line, gpr_log_severity severity,
     va_start(args, format);
     ret = vsnprintf_s(message, strp_buflen, _TRUNCATE, format, args);
     va_end(args);
-    if ((size_t)ret != strp_buflen - 1) {
+    if (ret != strp_buflen - 1) {
       /* This should never happen. */
       gpr_free(message);
       message = NULL;
@@ -91,7 +90,7 @@ void gpr_default_log(gpr_log_func_args *args) {
     strcpy(time_buffer, "error:strftime");
   }
 
-  fprintf(stderr, "%s%s.%09u %5lu %s:%d] %s\n",
+  fprintf(stderr, "%s%s.%09u %5u %s:%d] %s\n",
           gpr_log_severity_string(args->severity), time_buffer,
           (int)(now.tv_nsec), GetCurrentThreadId(),
           args->file, args->line, args->message);
@@ -106,7 +105,6 @@ char *gpr_format_message(DWORD messageid) {
                                NULL, messageid,
                                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                                (LPTSTR)(&tmessage), 0, NULL);
-  if (status == 0) return gpr_strdup("Unable to retreive error string");
   message = gpr_tchar_to_char(tmessage);
   LocalFree(tmessage);
   return message;

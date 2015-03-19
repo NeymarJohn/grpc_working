@@ -22,6 +22,7 @@
         "include/grpc++/config.h",
         "include/grpc++/create_channel.h",
         "include/grpc++/credentials.h",
+        "include/grpc++/generic_stub.h",
         "include/grpc++/impl/call.h",
         "include/grpc++/impl/client_unary_call.h",
         "include/grpc++/impl/internal_stub.h",
@@ -51,6 +52,7 @@
         "src/cpp/client/client_unary_call.cc",
         "src/cpp/client/create_channel.cc",
         "src/cpp/client/credentials.cc",
+        "src/cpp/client/generic_stub.cc",
         "src/cpp/client/insecure_credentials.cc",
         "src/cpp/client/internal_stub.cc",
         "src/cpp/common/call.cc",
@@ -489,19 +491,6 @@
       "filegroups": [
         "grpc++_base"
       ],
-      "secure": "no"
-    },
-    {
-      "name": "grpc_python_plugin_support",
-      "build": "protoc",
-      "language": "c++",
-      "public_headers": [
-        "src/compiler/python_generator.h"
-      ],
-      "src": [
-        "src/compiler/python_generator.cc"
-      ],
-      "deps": [],
       "secure": "no"
     },
     {
@@ -1752,12 +1741,14 @@
       "name": "grpc_python_plugin",
       "build": "protoc",
       "language": "c++",
+      "headers": [
+        "src/compiler/python_generator.h"
+      ],
       "src": [
+        "src/compiler/python_generator.cc",
         "src/compiler/python_plugin.cc"
       ],
-      "deps": [
-        "grpc_python_plugin_support"
-      ],
+      "deps": [],
       "secure": "no"
     },
     {
