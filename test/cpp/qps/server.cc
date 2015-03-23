@@ -73,8 +73,8 @@ using grpc::Status;
 
 // In some distros, gflags is in the namespace google, and in some others,
 // in gflags. This hack is enabling us to find both.
-namespace google {}
-namespace gflags {}
+namespace google { }
+namespace gflags { }
 using namespace google;
 using namespace gflags;
 
@@ -115,7 +115,7 @@ class TestServiceImpl GRPC_FINAL : public TestService::Service {
   }
   Status UnaryCall(ServerContext* context, const SimpleRequest* request,
                    SimpleResponse* response) {
-    if (request->has_response_size() && request->response_size() > 0) {
+    if (request->response_size() > 0) {
       if (!SetPayload(request->response_type(), request->response_size(),
                       response->mutable_payload())) {
         return Status(grpc::StatusCode::INTERNAL, "Error creating payload.");
@@ -137,7 +137,7 @@ static void RunServer() {
   SimpleResponse response;
 
   ServerBuilder builder;
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  builder.AddPort(server_address, grpc::InsecureServerCredentials());
   builder.RegisterService(&service);
 
   std::unique_ptr<ThreadPool> pool(new ThreadPool(FLAGS_server_threads));

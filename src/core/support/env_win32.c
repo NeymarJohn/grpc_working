@@ -36,7 +36,6 @@
 #ifdef GPR_WIN32
 
 #include "src/core/support/env.h"
-#include "src/core/support/string.h"
 
 #include <stdlib.h>
 
@@ -44,16 +43,14 @@
 #include <grpc/support/log.h>
 
 char *gpr_getenv(const char *name) {
-  size_t size;
+  size_t required_size;
   char *result = NULL;
-  char *duplicated;
-  errno_t err;
 
-  err = _dupenv_s(&result, &size, name);
-  if (err) return NULL;
-  duplicated = gpr_strdup(result);
-  free(result);
-  return duplicated;
+  getenv_s(&required_size, NULL, 0, name);
+  if (required_size == 0) return NULL;
+  result = gpr_malloc(required_size);
+  getenv_s(&required_size, result, required_size, name);
+  return result;
 }
 
 void gpr_setenv(const char *name, const char *value) {

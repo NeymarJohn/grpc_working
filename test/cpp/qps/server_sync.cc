@@ -62,12 +62,29 @@ class TestServiceImpl GRPC_FINAL : public TestService::Service {
  public:
   Status UnaryCall(ServerContext* context, const SimpleRequest* request,
                    SimpleResponse* response) GRPC_OVERRIDE {
-    if (request->has_response_size() && request->response_size() > 0) {
+    if (request->response_size() > 0) {
       if (!Server::SetPayload(request->response_type(),
                               request->response_size(),
                               response->mutable_payload())) {
         return Status(grpc::StatusCode::INTERNAL, "Error creating payload.");
       }
+    }
+    return Status::OK;
+  }
+  Status StreamingCall(ServerContext *context,
+		       ServerReaderWriter<SimpleResponse, SimpleRequest>*
+		       stream) GRPC_OVERRIDE {
+    SimpleRequest request;
+    while (stream->Read(&request)) {
+      SimpleResponse response;
+      if (request.response_size() > 0) {
+	if (!Server::SetPayload(request.response_type(),
+				request.response_size(),
+				response.mutable_payload())) {
+	  return Status(grpc::StatusCode::INTERNAL, "Error creating payload.");
+	}
+      }
+      stream->Write(response);
     }
     return Status::OK;
   }
@@ -84,7 +101,7 @@ class SynchronousServer GRPC_FINAL : public grpc::testing::Server {
 
     char* server_address = NULL;
     gpr_join_host_port(&server_address, "::", port);
-    builder.AddListeningPort(server_address, InsecureServerCredentials());
+    builder.AddPort(server_address, InsecureServerCredentials());
     gpr_free(server_address);
 
     builder.RegisterService(&service_);
