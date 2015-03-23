@@ -76,17 +76,17 @@ namespace Grpc.Core
         }
 
         // only call before Start()
-        public int AddListeningPort(string addr)
+        public int AddPort(string addr)
         {
-            return handle.AddListeningPort(addr);
+            return handle.AddPort(addr);
         }
 
         // only call before Start()
-        public int AddListeningPort(string addr, ServerCredentials credentials)
+        public int AddPort(string addr, ServerCredentials credentials)
         {
             using (var nativeCredentials = credentials.ToNativeCredentials())
             {
-                return handle.AddListeningPort(addr, nativeCredentials);
+                return handle.AddPort(addr, nativeCredentials);
             }
         }
 

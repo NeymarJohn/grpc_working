@@ -44,8 +44,6 @@
 
 #include <grpc/support/alloc.h>
 
-#include "src/core/support/string.h"
-
 int gpr_asprintf(char **strp, const char *format, ...) {
   va_list args;
   int ret;
@@ -55,7 +53,7 @@ int gpr_asprintf(char **strp, const char *format, ...) {
   va_start(args, format);
   ret = _vscprintf(format, args);
   va_end(args);
-  if (ret < 0) {
+  if (!(0 <= ret && ret < ~(size_t)0)) {
     *strp = NULL;
     return -1;
   }
@@ -71,7 +69,7 @@ int gpr_asprintf(char **strp, const char *format, ...) {
   va_start(args, format);
   ret = vsnprintf_s(*strp, strp_buflen, _TRUNCATE, format, args);
   va_end(args);
-  if ((size_t)ret == strp_buflen - 1) {
+  if (ret == strp_buflen - 1) {
     return ret;
   }
 
