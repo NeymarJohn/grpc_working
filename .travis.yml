@@ -4,13 +4,15 @@ before_install:
   - sudo add-apt-repository ppa:h-rayflood/llvm -y
   - sudo apt-get update -qq
   - sudo apt-get install -qq libgtest-dev libgflags-dev python-virtualenv clang-3.5
-  - sudo pip install cpp-coveralls mako simplejson
+  - sudo pip install cpp-coveralls
 env:
   global:
     - RUBY_VERSION=2.1
     - COVERALLS_PARALLEL=true
+    - CPPFLAGS=-I/tmp/prebuilt/include
+    - LDFLAGS=-L/tmp/prebuilt/lib
+    - PATH=/tmp/prebuilt/bin:$PATH
   matrix:
-    - CONFIG=opt TEST=sanity
     - CONFIG=dbg TEST=c
     - CONFIG=dbg TEST=c++
     - CONFIG=opt TEST=c
@@ -23,6 +25,7 @@ env:
 script:
   - rvm use $RUBY_VERSION
   - gem install bundler
+  - ./tools/run_tests/prepare_travis.sh
   - ./tools/run_tests/run_tests.py -l $TEST -t -j 16 -c $CONFIG -s 4.0
 after_success:
   - if [ "$CONFIG" = "gcov" ] ; then coveralls --exclude third_party --exclude gens -b. --gcov-options '\-p' ; fi
