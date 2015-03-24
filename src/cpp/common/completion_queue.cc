@@ -36,6 +36,7 @@
 
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
+#include <grpc/support/time.h>
 #include "src/cpp/util/time.h"
 
 namespace grpc {
@@ -56,32 +57,21 @@ class EventDeleter {
   }
 };
 
-CompletionQueue::NextStatus CompletionQueue::AsyncNextInternal(
-    void** tag, bool* ok, gpr_timespec deadline) {
+bool CompletionQueue::Next(void** tag, bool* ok) {
   std::unique_ptr<grpc_event, EventDeleter> ev;
 
   for (;;) {
-    ev.reset(grpc_completion_queue_next(cq_, deadline));
-    if (!ev) { /* got a NULL back because deadline passed */
-      return TIMEOUT;
-    }
+    ev.reset(grpc_completion_queue_next(cq_, gpr_inf_future));
     if (ev->type == GRPC_QUEUE_SHUTDOWN) {
-      return SHUTDOWN;
+      return false;
     }
     auto cq_tag = static_cast<CompletionQueueTag*>(ev->tag);
     *ok = ev->data.op_complete == GRPC_OP_OK;
     *tag = cq_tag;
     if (cq_tag->FinalizeResult(tag, ok)) {
-      return GOT_EVENT;
+      return true;
     }
   }
-}
-
-CompletionQueue::NextStatus CompletionQueue::AsyncNext(
-    void** tag, bool* ok, std::chrono::system_clock::time_point deadline) {
-  gpr_timespec gpr_deadline;
-  Timepoint2Timespec(deadline, &gpr_deadline);
-  return AsyncNextInternal(tag, ok, gpr_deadline);
 }
 
 bool CompletionQueue::Pluck(CompletionQueueTag* tag) {

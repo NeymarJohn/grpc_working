@@ -44,8 +44,6 @@ namespace grpc.testing
     /// </summary>
     public class TestServiceGrpc
     {
-        static readonly string ServiceName = "/grpc.testing.TestService";
-
         static readonly Marshaller<Empty> EmptyMarshaller = Marshallers.Create((arg) => arg.ToByteArray(), Empty.ParseFrom);
         static readonly Marshaller<SimpleRequest> SimpleRequestMarshaller = Marshallers.Create((arg) => arg.ToByteArray(), SimpleRequest.ParseFrom);
         static readonly Marshaller<SimpleResponse> SimpleResponseMarshaller = Marshallers.Create((arg) => arg.ToByteArray(), SimpleResponse.ParseFrom);
@@ -56,37 +54,37 @@ namespace grpc.testing
 
         static readonly Method<Empty, Empty> EmptyCallMethod = new Method<Empty, Empty>(
             MethodType.Unary,
-            "EmptyCall",
+            "/grpc.testing.TestService/EmptyCall",
             EmptyMarshaller,
             EmptyMarshaller);
 
         static readonly Method<SimpleRequest, SimpleResponse> UnaryCallMethod = new Method<SimpleRequest, SimpleResponse>(
             MethodType.Unary,
-            "UnaryCall",
+            "/grpc.testing.TestService/UnaryCall",
             SimpleRequestMarshaller,
             SimpleResponseMarshaller);
 
         static readonly Method<StreamingOutputCallRequest, StreamingOutputCallResponse> StreamingOutputCallMethod = new Method<StreamingOutputCallRequest, StreamingOutputCallResponse>(
             MethodType.ServerStreaming,
-            "StreamingOutputCall",
+            "/grpc.testing.TestService/StreamingOutputCall",
             StreamingOutputCallRequestMarshaller,
             StreamingOutputCallResponseMarshaller);
 
         static readonly Method<StreamingInputCallRequest, StreamingInputCallResponse> StreamingInputCallMethod = new Method<StreamingInputCallRequest, StreamingInputCallResponse>(
             MethodType.ClientStreaming,
-            "StreamingInputCall",
+            "/grpc.testing.TestService/StreamingInputCall",
             StreamingInputCallRequestMarshaller,
             StreamingInputCallResponseMarshaller);
 
         static readonly Method<StreamingOutputCallRequest, StreamingOutputCallResponse> FullDuplexCallMethod = new Method<StreamingOutputCallRequest, StreamingOutputCallResponse>(
             MethodType.DuplexStreaming,
-            "FullDuplexCall",
+            "/grpc.testing.TestService/FullDuplexCall",
             StreamingOutputCallRequestMarshaller,
             StreamingOutputCallResponseMarshaller);
 
         static readonly Method<StreamingOutputCallRequest, StreamingOutputCallResponse> HalfDuplexCallMethod = new Method<StreamingOutputCallRequest, StreamingOutputCallResponse>(
             MethodType.DuplexStreaming,
-            "HalfDuplexCall",
+            "/grpc.testing.TestService/HalfDuplexCall",
             StreamingOutputCallRequestMarshaller,
             StreamingOutputCallResponseMarshaller);
 
@@ -109,61 +107,60 @@ namespace grpc.testing
             IObserver<StreamingOutputCallRequest> HalfDuplexCall(IObserver<StreamingOutputCallResponse> responseObserver, CancellationToken token = default(CancellationToken));
         }
 
-        public class TestServiceClientStub : AbstractStub<TestServiceClientStub, StubConfiguration>, ITestServiceClient
+        public class TestServiceClientStub : ITestServiceClient
         {
-            public TestServiceClientStub(Channel channel) : base(channel, StubConfiguration.Default)
-            {
-            }
+            readonly Channel channel;
 
-            public TestServiceClientStub(Channel channel, StubConfiguration config) : base(channel, config)
+            public TestServiceClientStub(Channel channel)
             {
+                this.channel = channel;
             }
 
             public Empty EmptyCall(Empty request, CancellationToken token = default(CancellationToken))
             {
-                var call = CreateCall(ServiceName, EmptyCallMethod);
+                var call = new Grpc.Core.Call<Empty, Empty>(EmptyCallMethod, channel);
                 return Calls.BlockingUnaryCall(call, request, token);
             }
 
             public Task<Empty> EmptyCallAsync(Empty request, CancellationToken token = default(CancellationToken))
             {
-                var call = CreateCall(ServiceName, EmptyCallMethod);
+                var call = new Grpc.Core.Call<Empty, Empty>(EmptyCallMethod, channel);
                 return Calls.AsyncUnaryCall(call, request, token);
             }
 
             public SimpleResponse UnaryCall(SimpleRequest request, CancellationToken token = default(CancellationToken))
             {
-                var call = CreateCall(ServiceName, UnaryCallMethod);
+                var call = new Grpc.Core.Call<SimpleRequest, SimpleResponse>(UnaryCallMethod, channel);
                 return Calls.BlockingUnaryCall(call, request, token);
             }
 
             public Task<SimpleResponse> UnaryCallAsync(SimpleRequest request, CancellationToken token = default(CancellationToken))
             {
-                var call = CreateCall(ServiceName, UnaryCallMethod);
+                var call = new Grpc.Core.Call<SimpleRequest, SimpleResponse>(UnaryCallMethod, channel);
                 return Calls.AsyncUnaryCall(call, request, token);
             }
 
             public void StreamingOutputCall(StreamingOutputCallRequest request, IObserver<StreamingOutputCallResponse> responseObserver, CancellationToken token = default(CancellationToken))
             {
-                var call = CreateCall(ServiceName, StreamingOutputCallMethod);
+                var call = new Grpc.Core.Call<StreamingOutputCallRequest, StreamingOutputCallResponse>(StreamingOutputCallMethod, channel);
                 Calls.AsyncServerStreamingCall(call, request, responseObserver, token);
             }
 
             public ClientStreamingAsyncResult<StreamingInputCallRequest, StreamingInputCallResponse> StreamingInputCall(CancellationToken token = default(CancellationToken))
             {
-                var call = CreateCall(ServiceName, StreamingInputCallMethod);
+                var call = new Grpc.Core.Call<StreamingInputCallRequest, StreamingInputCallResponse>(StreamingInputCallMethod, channel);
                 return Calls.AsyncClientStreamingCall(call, token);
             }
 
             public IObserver<StreamingOutputCallRequest> FullDuplexCall(IObserver<StreamingOutputCallResponse> responseObserver, CancellationToken token = default(CancellationToken))
             {
-                var call = CreateCall(ServiceName, FullDuplexCallMethod);
+                var call = new Grpc.Core.Call<StreamingOutputCallRequest, StreamingOutputCallResponse>(FullDuplexCallMethod, channel);
                 return Calls.DuplexStreamingCall(call, responseObserver, token);
             }
 
             public IObserver<StreamingOutputCallRequest> HalfDuplexCall(IObserver<StreamingOutputCallResponse> responseObserver, CancellationToken token = default(CancellationToken))
             {
-                var call = CreateCall(ServiceName, HalfDuplexCallMethod);
+                var call = new Grpc.Core.Call<StreamingOutputCallRequest, StreamingOutputCallResponse>(HalfDuplexCallMethod, channel);
                 return Calls.DuplexStreamingCall(call, responseObserver, token);
             }
         }
@@ -186,7 +183,7 @@ namespace grpc.testing
 
         public static ServerServiceDefinition BindService(ITestService serviceImpl)
         {
-            return ServerServiceDefinition.CreateBuilder(ServiceName)
+            return ServerServiceDefinition.CreateBuilder("/grpc.testing.TestService/")
                 .AddMethod(EmptyCallMethod, serviceImpl.EmptyCall)
                 .AddMethod(UnaryCallMethod, serviceImpl.UnaryCall)
                 .AddMethod(StreamingOutputCallMethod, serviceImpl.StreamingOutputCall)

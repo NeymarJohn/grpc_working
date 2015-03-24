@@ -34,9 +34,7 @@
 #ifndef GRPCXX_COMPLETION_QUEUE_H
 #define GRPCXX_COMPLETION_QUEUE_H
 
-#include <chrono>
 #include <grpc++/impl/client_unary_call.h>
-#include <grpc/support/time.h>
 
 struct grpc_completion_queue;
 
@@ -67,36 +65,26 @@ class CompletionQueueTag {
   // to do)
   // If this function returns false, the tag is dropped and not returned
   // from the completion queue
-  virtual bool FinalizeResult(void** tag, bool* status) = 0;
+  virtual bool FinalizeResult(void **tag, bool *status) = 0;
 };
 
 // grpc_completion_queue wrapper class
 class CompletionQueue {
  public:
   CompletionQueue();
-  explicit CompletionQueue(grpc_completion_queue* take);
+  explicit CompletionQueue(grpc_completion_queue *take);
   ~CompletionQueue();
 
-  // Tri-state return for AsyncNext: SHUTDOWN, GOT_EVENT, TIMEOUT
-  enum NextStatus { SHUTDOWN, GOT_EVENT, TIMEOUT };
-
-  // Nonblocking (until deadline) read from queue.
-  // Cannot rely on result of tag or ok if return is TIMEOUT
-  NextStatus AsyncNext(void** tag, bool* ok,
-                       std::chrono::system_clock::time_point deadline);
-
-  // Blocking (until deadline) read from queue.
-  // Returns false if the queue is ready for destruction, true if event
-
-  bool Next(void** tag, bool* ok) {
-    return (AsyncNextInternal(tag, ok, gpr_inf_future) != SHUTDOWN);
-  }
+  // Blocking read from queue.
+  // Returns true if an event was received, false if the queue is ready
+  // for destruction.
+  bool Next(void **tag, bool *ok);
 
   // Shutdown has to be called, and the CompletionQueue can only be
   // destructed when false is returned from Next().
   void Shutdown();
 
-  grpc_completion_queue* cq() { return cq_; }
+  grpc_completion_queue *cq() { return cq_; }
 
  private:
   // Friend synchronous wrappers so that they can access Pluck(), which is
@@ -115,22 +103,20 @@ class CompletionQueue {
   friend class ::grpc::ServerReaderWriter;
   friend class ::grpc::Server;
   friend class ::grpc::ServerContext;
-  friend Status BlockingUnaryCall(ChannelInterface* channel,
-                                  const RpcMethod& method,
-                                  ClientContext* context,
-                                  const grpc::protobuf::Message& request,
-                                  grpc::protobuf::Message* result);
-
-  NextStatus AsyncNextInternal(void** tag, bool* ok, gpr_timespec deadline);
+  friend Status BlockingUnaryCall(ChannelInterface *channel,
+                                  const RpcMethod &method,
+                                  ClientContext *context,
+                                  const grpc::protobuf::Message &request,
+                                  grpc::protobuf::Message *result);
 
   // Wraps grpc_completion_queue_pluck.
   // Cannot be mixed with calls to Next().
-  bool Pluck(CompletionQueueTag* tag);
+  bool Pluck(CompletionQueueTag *tag);
 
   // Does a single polling pluck on tag
-  void TryPluck(CompletionQueueTag* tag);
+  void TryPluck(CompletionQueueTag *tag);
 
-  grpc_completion_queue* cq_;  // owned
+  grpc_completion_queue *cq_;  // owned
 };
 
 }  // namespace grpc

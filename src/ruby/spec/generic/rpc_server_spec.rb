@@ -62,15 +62,12 @@ end
 class EchoService
   include GRPC::GenericService
   rpc :an_rpc, EchoMsg, EchoMsg
-  attr_reader :received_md
 
   def initialize(_default_var = 'ignored')
-    @received_md = []
   end
 
-  def an_rpc(req, call)
+  def an_rpc(req, _call)
     logger.info('echo service received a request')
-    @received_md << call.metadata unless call.metadata.nil?
     req
   end
 end
@@ -81,17 +78,14 @@ EchoStub = EchoService.rpc_stub_class
 class SlowService
   include GRPC::GenericService
   rpc :an_rpc, EchoMsg, EchoMsg
-  attr_reader :received_md, :delay
 
   def initialize(_default_var = 'ignored')
-    @delay = 0.25
-    @received_md = []
   end
 
-  def an_rpc(req, call)
-    logger.info("starting a slow #{@delay} rpc")
-    sleep @delay
-    @received_md << call.metadata unless call.metadata.nil?
+  def an_rpc(req, _call)
+    delay = 0.25
+    logger.info("starting a slow #{delay} rpc")
+    sleep delay
     req  # send back the req as the response
   end
 end
@@ -339,69 +333,6 @@ describe GRPC::RpcServer do
         n = 5  # arbitrary
         stub = EchoStub.new(@host, **@client_opts)
         n.times { expect(stub.an_rpc(req)).to be_a(EchoMsg) }
-        @srv.stop
-        t.join
-      end
-
-      it 'should receive metadata sent as rpc keyword args', server: true do
-        service = EchoService.new
-        @srv.handle(service)
-        t = Thread.new { @srv.run }
-        @srv.wait_till_running
-        req = EchoMsg.new
-        stub = EchoStub.new(@host, **@client_opts)
-        expect(stub.an_rpc(req, k1: 'v1', k2: 'v2')).to be_a(EchoMsg)
-        wanted_md = [{ 'k1' => 'v1', 'k2' => 'v2' }]
-        expect(service.received_md).to eq(wanted_md)
-        @srv.stop
-        t.join
-      end
-
-      it 'should receive metadata when a deadline is specified', server: true do
-        service = SlowService.new
-        @srv.handle(service)
-        t = Thread.new { @srv.run }
-        @srv.wait_till_running
-        req = EchoMsg.new
-        stub = SlowStub.new(@host, **@client_opts)
-        deadline = service.delay + 0.5 # wait for long enough
-        expect(stub.an_rpc(req, deadline, k1: 'v1', k2: 'v2')).to be_a(EchoMsg)
-        wanted_md = [{ 'k1' => 'v1', 'k2' => 'v2' }]
-        expect(service.received_md).to eq(wanted_md)
-        @srv.stop
-        t.join
-      end
-
-      it 'should not receive metadata if the client times out', server: true do
-        service = SlowService.new
-        @srv.handle(service)
-        t = Thread.new { @srv.run }
-        @srv.wait_till_running
-        req = EchoMsg.new
-        stub = SlowStub.new(@host, **@client_opts)
-        deadline = 0.1  # too short for SlowService to respond
-        blk = proc { stub.an_rpc(req, deadline, k1: 'v1', k2: 'v2') }
-        expect(&blk).to raise_error GRPC::BadStatus
-        wanted_md = []
-        expect(service.received_md).to eq(wanted_md)
-        @srv.stop
-        t.join
-      end
-
-      it 'should receive updated metadata', server: true do
-        service = EchoService.new
-        @srv.handle(service)
-        t = Thread.new { @srv.run }
-        @srv.wait_till_running
-        req = EchoMsg.new
-        @client_opts[:update_metadata] = proc do |md|
-          md[:k1] = 'updated-v1'
-          md
-        end
-        stub = EchoStub.new(@host, **@client_opts)
-        expect(stub.an_rpc(req, k1: 'v1', k2: 'v2')).to be_a(EchoMsg)
-        wanted_md = [{ 'k1' => 'updated-v1', 'k2' => 'v2' }]
-        expect(service.received_md).to eq(wanted_md)
         @srv.stop
         t.join
       end
