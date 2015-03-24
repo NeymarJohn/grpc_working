@@ -148,7 +148,7 @@ void FillMetadataMap(grpc_metadata_array* arr,
     // TODO(yangg) handle duplicates?
     metadata->insert(std::pair<grpc::string, grpc::string>(
         arr->metadata[i].key,
-        grpc::string(arr->metadata[i].value, arr->metadata[i].value_length)));
+        {arr->metadata[i].value, arr->metadata[i].value_length}));
   }
   grpc_metadata_array_destroy(arr);
   grpc_metadata_array_init(arr);

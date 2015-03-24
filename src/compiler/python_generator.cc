@@ -309,20 +309,17 @@ bool PrintServerFactory(const grpc::string& package_qualified_service_name,
           make_pair(method->name(), output_message_module_and_class));
     }
     out->Print("method_service_descriptions = {\n");
-    for (auto name_and_description_constructor =
-	   method_description_constructors.begin();
-	 name_and_description_constructor !=
-	   method_description_constructors.end();
-	 name_and_description_constructor++) {
+    for (auto& name_and_description_constructor :
+         method_description_constructors) {
       IndentScope raii_descriptions_indent(out);
-      const grpc::string method_name = name_and_description_constructor->first;
+      const grpc::string method_name = name_and_description_constructor.first;
       auto input_message_module_and_class =
           input_message_modules_and_classes.find(method_name);
       auto output_message_module_and_class =
           output_message_modules_and_classes.find(method_name);
       out->Print("\"$Method$\": utilities.$Constructor$(\n", "Method",
                  method_name, "Constructor",
-                 name_and_description_constructor->second);
+                 name_and_description_constructor.second);
       {
         IndentScope raii_description_arguments_indent(out);
         out->Print("servicer.$Method$,\n", "Method", method_name);
@@ -390,20 +387,17 @@ bool PrintStubFactory(const grpc::string& package_qualified_service_name,
           make_pair(method->name(), output_message_module_and_class));
     }
     out->Print("method_invocation_descriptions = {\n");
-    for (auto name_and_description_constructor =
-	   method_description_constructors.begin();
-	 name_and_description_constructor !=
-	   method_description_constructors.end();
-	 name_and_description_constructor++) {
+    for (auto& name_and_description_constructor :
+         method_description_constructors) {
       IndentScope raii_descriptions_indent(out);
-      const grpc::string method_name = name_and_description_constructor->first;
+      const grpc::string method_name = name_and_description_constructor.first;
       auto input_message_module_and_class =
           input_message_modules_and_classes.find(method_name);
       auto output_message_module_and_class =
           output_message_modules_and_classes.find(method_name);
       out->Print("\"$Method$\": utilities.$Constructor$(\n", "Method",
                  method_name, "Constructor",
-                 name_and_description_constructor->second);
+                 name_and_description_constructor.second);
       {
         IndentScope raii_description_arguments_indent(out);
         out->Print(
