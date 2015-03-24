@@ -31,45 +31,22 @@
  *
  */
 
-#import "ViewController.h"
+#import "GRPCSecureChannel.h"
 
-#import <gRPC/GRPCCall.h>
-#import <gRPC/GRPCMethodName.h>
-#import <gRPC/GRXWriter+Immediate.h>
-#import <gRPC/GRXWriteable.h>
+#import <grpc/grpc_security.h>
 
-@interface ViewController ()
+@implementation GRPCSecureChannel
 
-@end
+- (instancetype)initWithHost:(NSString *)host {
+  // TODO(jcanizales): Load certs only once.
+  NSURL *certsURL = [[NSBundle mainBundle] URLForResource:@"gRPC.bundle/roots" withExtension:@"pem"];
+  NSData *certsData = [NSData dataWithContentsOfURL:certsURL];
+  NSString *certsString = [[NSString alloc] initWithData:certsData encoding:NSUTF8StringEncoding];
 
-@implementation ViewController
-
-- (void)viewDidLoad {
-  [super viewDidLoad];
-  // Do any additional setup after loading the view, typically from a nib.
-
-  GRPCMethodName *method = [[GRPCMethodName alloc] initWithPackage:@"grpc.testing"
-                                                         interface:@"TestService"
-                                                            method:@"EmptyCall"];
-
-  id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[NSData data]];
-
-  GRPCCall *call = [[GRPCCall alloc] initWithHost:@"grpc-test.sandbox.google.com"
-                                           method:method
-                                   requestsWriter:requestsWriter];
-
-  id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
-    NSLog(@"Received response: %@", value);
-  } completionHandler:^(NSError *errorOrNil) {
-    NSLog(@"Finished with error: %@", errorOrNil);
-  }];
-
-  [call startWithWriteable:responsesWriteable];
-}
-
-- (void)didReceiveMemoryWarning {
-  [super didReceiveMemoryWarning];
-  // Dispose of any resources that can be recreated.
+  grpc_credentials *credentials = grpc_ssl_credentials_create(certsString.UTF8String, NULL);
+  return (self = [super initWithChannel:grpc_secure_channel_create(credentials,
+                                                                   host.UTF8String,
+                                                                   NULL)]);
 }
 
 @end

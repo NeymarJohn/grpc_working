@@ -31,45 +31,8 @@
  *
  */
 
-#import "ViewController.h"
+#import "GRPCChannel.h"
 
-#import <gRPC/GRPCCall.h>
-#import <gRPC/GRPCMethodName.h>
-#import <gRPC/GRXWriter+Immediate.h>
-#import <gRPC/GRXWriteable.h>
-
-@interface ViewController ()
-
-@end
-
-@implementation ViewController
-
-- (void)viewDidLoad {
-  [super viewDidLoad];
-  // Do any additional setup after loading the view, typically from a nib.
-
-  GRPCMethodName *method = [[GRPCMethodName alloc] initWithPackage:@"grpc.testing"
-                                                         interface:@"TestService"
-                                                            method:@"EmptyCall"];
-
-  id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[NSData data]];
-
-  GRPCCall *call = [[GRPCCall alloc] initWithHost:@"grpc-test.sandbox.google.com"
-                                           method:method
-                                   requestsWriter:requestsWriter];
-
-  id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
-    NSLog(@"Received response: %@", value);
-  } completionHandler:^(NSError *errorOrNil) {
-    NSLog(@"Finished with error: %@", errorOrNil);
-  }];
-
-  [call startWithWriteable:responsesWriteable];
-}
-
-- (void)didReceiveMemoryWarning {
-  [super didReceiveMemoryWarning];
-  // Dispose of any resources that can be recreated.
-}
+@interface GRPCSecureChannel : GRPCChannel
 
 @end
