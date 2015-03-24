@@ -384,13 +384,7 @@ describe 'ClientStub' do
         th.join
       end
 
-      # disabled because an unresolved wire-protocol implementation feature
-      #
-      # - servers should be able initiate messaging, however, as it stand
-      # servers don't know if all the client metadata has been sent until
-      # they receive a message from the client.  Without receiving all the
-      # metadata, the server does not accept the call, so this test hangs.
-      xit 'supports a server-initiated ping pong', bidi: true do
+      it 'supports a server-initiated ping pong', bidi: true do
         server_port = create_test_server
         host = "localhost:#{server_port}"
         th = run_bidi_streamer_echo_ping_pong(@sent_msgs, @pass, false)
@@ -434,7 +428,7 @@ describe 'ClientStub' do
       end
       expect(c.remote_read).to eq(expected_input)
       replys.each { |r| c.remote_send(r) }
-      c.send_status(status, status == @pass ? 'OK' : 'NOK')
+      c.send_status(status, status == @pass ? 'OK' : 'NOK', true)
     end
   end
 
@@ -444,7 +438,7 @@ describe 'ClientStub' do
       c = expect_server_to_be_invoked(mtx, cnd)
       expected_inputs.each { |i| expect(c.remote_read).to eq(i) }
       replys.each { |r| c.remote_send(r) }
-      c.send_status(status, status == @pass ? 'OK' : 'NOK')
+      c.send_status(status, status == @pass ? 'OK' : 'NOK', true)
     end
   end
 
@@ -460,7 +454,7 @@ describe 'ClientStub' do
           expect(c.remote_read).to eq(i)
         end
       end
-      c.send_status(status, status == @pass ? 'OK' : 'NOK')
+      c.send_status(status, status == @pass ? 'OK' : 'NOK', true)
     end
   end
 
@@ -473,7 +467,7 @@ describe 'ClientStub' do
         expect(c.metadata[k.to_s]).to eq(v)
       end
       c.remote_send(resp)
-      c.send_status(status, status == @pass ? 'OK' : 'NOK')
+      c.send_status(status, status == @pass ? 'OK' : 'NOK', true)
     end
   end
 
@@ -486,7 +480,7 @@ describe 'ClientStub' do
         expect(c.metadata[k.to_s]).to eq(v)
       end
       c.remote_send(resp)
-      c.send_status(status, status == @pass ? 'OK' : 'NOK')
+      c.send_status(status, status == @pass ? 'OK' : 'NOK', true)
     end
   end
 
