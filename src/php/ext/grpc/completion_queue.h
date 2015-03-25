@@ -31,34 +31,32 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_COMPILER_CPP_GENERATOR_H
-#define GRPC_INTERNAL_COMPILER_CPP_GENERATOR_H
+#ifndef NET_GRPC_PHP_GRPC_COMPLETION_QUEUE_H_
+#define NET_GRPC_PHP_GRPC_COMPLETION_QUEUE_H_
 
-#include "src/compiler/config.h"
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-namespace grpc_cpp_generator {
+#include "php.h"
+#include "php_ini.h"
+#include "ext/standard/info.h"
+#include "php_grpc.h"
 
-// Contains all the parameters that are parsed from the command line.
-struct Parameters {
-  // Puts the service into a namespace
-  grpc::string services_namespace;
-};
+#include "grpc/grpc.h"
 
-// Return the includes needed for generated header file.
-grpc::string GetHeaderIncludes(const grpc::protobuf::FileDescriptor *file,
-                               const Parameters &params);
+/* Class entry for the PHP CompletionQueue class */
+extern zend_class_entry *grpc_ce_completion_queue;
 
-// Return the includes needed for generated source file.
-grpc::string GetSourceIncludes(const Parameters &params);
+/* Wrapper class for grpc_completion_queue that can be associated with a
+   PHP object */
+typedef struct wrapped_grpc_completion_queue {
+  zend_object std;
 
-// Return the services for generated header file.
-grpc::string GetHeaderServices(const grpc::protobuf::FileDescriptor *file,
-                               const Parameters &params);
+  grpc_completion_queue *wrapped;
+} wrapped_grpc_completion_queue;
 
-// Return the services for generated source file.
-grpc::string GetSourceServices(const grpc::protobuf::FileDescriptor *file,
-                               const Parameters &params);
+/* Initialize the CompletionQueue class */
+void grpc_init_completion_queue(TSRMLS_D);
 
-}  // namespace grpc_cpp_generator
-
-#endif  // GRPC_INTERNAL_COMPILER_CPP_GENERATOR_H
+#endif /* NET_GRPC_PHP_GRPC_COMPLETION_QUEUE_H_ */

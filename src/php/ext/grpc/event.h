@@ -31,34 +31,21 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_COMPILER_CPP_GENERATOR_H
-#define GRPC_INTERNAL_COMPILER_CPP_GENERATOR_H
+#ifndef NET_GRPC_PHP_GRPC_EVENT_H_
+#define NET_GRPC_PHP_GRPC_EVENT_H_
 
-#include "src/compiler/config.h"
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-namespace grpc_cpp_generator {
+#include "php.h"
+#include "php_ini.h"
+#include "ext/standard/info.h"
+#include "php_grpc.h"
 
-// Contains all the parameters that are parsed from the command line.
-struct Parameters {
-  // Puts the service into a namespace
-  grpc::string services_namespace;
-};
+#include "grpc/grpc.h"
 
-// Return the includes needed for generated header file.
-grpc::string GetHeaderIncludes(const grpc::protobuf::FileDescriptor *file,
-                               const Parameters &params);
+/* Create a new Event object that wraps an existing grpc_event struct */
+zval *grpc_php_convert_event(grpc_event *event);
 
-// Return the includes needed for generated source file.
-grpc::string GetSourceIncludes(const Parameters &params);
-
-// Return the services for generated header file.
-grpc::string GetHeaderServices(const grpc::protobuf::FileDescriptor *file,
-                               const Parameters &params);
-
-// Return the services for generated source file.
-grpc::string GetSourceServices(const grpc::protobuf::FileDescriptor *file,
-                               const Parameters &params);
-
-}  // namespace grpc_cpp_generator
-
-#endif  // GRPC_INTERNAL_COMPILER_CPP_GENERATOR_H
+#endif /* NET_GRPC_PHP_GRPC_COMPLETION_CHANNEL_H */

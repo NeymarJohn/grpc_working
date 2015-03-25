@@ -1,3 +1,4 @@
+<?php
 /*
  *
  * Copyright 2015, Google Inc.
@@ -30,35 +31,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+class CompletionQueueTest extends PHPUnit_Framework_TestCase{
+  public function testNextReturnsNullWithNoCall() {
+    $cq = new Grpc\CompletionQueue();
+    $event = $cq->next(Grpc\Timeval::zero());
+    $this->assertNull($event);
+  }
 
-#ifndef GRPC_INTERNAL_COMPILER_CPP_GENERATOR_H
-#define GRPC_INTERNAL_COMPILER_CPP_GENERATOR_H
-
-#include "src/compiler/config.h"
-
-namespace grpc_cpp_generator {
-
-// Contains all the parameters that are parsed from the command line.
-struct Parameters {
-  // Puts the service into a namespace
-  grpc::string services_namespace;
-};
-
-// Return the includes needed for generated header file.
-grpc::string GetHeaderIncludes(const grpc::protobuf::FileDescriptor *file,
-                               const Parameters &params);
-
-// Return the includes needed for generated source file.
-grpc::string GetSourceIncludes(const Parameters &params);
-
-// Return the services for generated header file.
-grpc::string GetHeaderServices(const grpc::protobuf::FileDescriptor *file,
-                               const Parameters &params);
-
-// Return the services for generated source file.
-grpc::string GetSourceServices(const grpc::protobuf::FileDescriptor *file,
-                               const Parameters &params);
-
-}  // namespace grpc_cpp_generator
-
-#endif  // GRPC_INTERNAL_COMPILER_CPP_GENERATOR_H
+  public function testPluckReturnsNullWithNoCall() {
+    $cq = new Grpc\CompletionQueue();
+    $event = $cq->pluck(0, Grpc\Timeval::zero());
+    $this->assertNull($event);
+  }
+}
