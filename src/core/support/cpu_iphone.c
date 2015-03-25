@@ -31,32 +31,23 @@
  *
  */
 
-#ifndef NET_GRPC_PHP_GRPC_COMPLETION_QUEUE_H_
-#define NET_GRPC_PHP_GRPC_COMPLETION_QUEUE_H_
+#include <grpc/support/port_platform.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#ifdef GPR_CPU_IPHONE
 
-#include "php.h"
-#include "php_ini.h"
-#include "ext/standard/info.h"
-#include "php_grpc.h"
+/* Probably 2 instead of 1, but see comment on gpr_cpu_current_cpu. */
+unsigned gpr_cpu_num_cores(void) {
+  return 1;
+}
 
-#include "grpc/grpc.h"
+/* Most code that's using this is using it to shard across work queues. So
+   unless profiling shows it's a problem or there appears a way to detect the
+   currently running CPU core, let's have it shard the default way.
+   Note that the interface in cpu.h lets gpr_cpu_num_cores return 0, but doing
+   it makes it impossible for gpr_cpu_current_cpu to satisfy its stated range,
+   and some code might be relying on it. */
+unsigned gpr_cpu_current_cpu(void) {
+  return 0;
+}
 
-/* Class entry for the PHP CompletionQueue class */
-extern zend_class_entry *grpc_ce_completion_queue;
-
-/* Wrapper class for grpc_completion_queue that can be associated with a
-   PHP object */
-typedef struct wrapped_grpc_completion_queue {
-  zend_object std;
-
-  grpc_completion_queue *wrapped;
-} wrapped_grpc_completion_queue;
-
-/* Initialize the CompletionQueue class */
-void grpc_init_completion_queue(TSRMLS_D);
-
-#endif /* NET_GRPC_PHP_GRPC_COMPLETION_QUEUE_H_ */
+#endif /* GPR_CPU_IPHONE */
