@@ -77,7 +77,7 @@ class ActiveCall {
    */
   public function read() {
     $read_event = $this->call->start_batch([OP_RECV_MESSAGE => true]);
-    return $read_event->message;
+    return $read_event->data;
   }
 
   /**
@@ -102,9 +102,7 @@ class ActiveCall {
    *     and array $metadata members
    */
   public function getStatus() {
-    $status_event = $this->call->start_batch([
-        OP_RECV_STATUS_ON_CLIENT => true
-                                              ]);
-    return $status_event->status;
+    $status_event = $this->call->start_batch([RECV_STATUS_ON_CLIENT => true]);
+    return $status_event->data;
   }
 }
