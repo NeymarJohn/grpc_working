@@ -1,3 +1,4 @@
+<?php
 /*
  *
  * Copyright 2015, Google Inc.
@@ -30,22 +31,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+class CompletionQueueTest extends PHPUnit_Framework_TestCase{
+  public function testNextReturnsNullWithNoCall() {
+    $cq = new Grpc\CompletionQueue();
+    $event = $cq->next(Grpc\Timeval::zero());
+    $this->assertNull($event);
+  }
 
-#ifndef GRPC_INTERNAL_COMPILER_RUBY_GENERATOR_H
-#define GRPC_INTERNAL_COMPILER_RUBY_GENERATOR_H
-
-#include <string>
-
-namespace google {
-namespace protobuf {
-class FileDescriptor;
-}  // namespace protobuf
-}  // namespace google
-
-namespace grpc_ruby_generator {
-
-std::string GetServices(const google::protobuf::FileDescriptor *file);
-
-}  // namespace grpc_ruby_generator
-
-#endif  // GRPC_INTERNAL_COMPILER_RUBY_GENERATOR_H
+  public function testPluckReturnsNullWithNoCall() {
+    $cq = new Grpc\CompletionQueue();
+    $event = $cq->pluck(0, Grpc\Timeval::zero());
+    $this->assertNull($event);
+  }
+}

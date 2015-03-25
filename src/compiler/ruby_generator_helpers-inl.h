@@ -34,13 +34,15 @@
 #ifndef GRPC_INTERNAL_COMPILER_RUBY_GENERATOR_HELPERS_INL_H
 #define GRPC_INTERNAL_COMPILER_RUBY_GENERATOR_HELPERS_INL_H
 
-#include "src/compiler/config.h"
+#include <string>
+
+#include <google/protobuf/descriptor.h>
 #include "src/compiler/ruby_generator_string-inl.h"
 
 namespace grpc_ruby_generator {
 
-inline bool ServicesFilename(const grpc::protobuf::FileDescriptor *file,
-                             grpc::string *file_name_or_error) {
+inline bool ServicesFilename(const google::protobuf::FileDescriptor *file,
+                             std::string *file_name_or_error) {
   // Get output file name.
   static const unsigned proto_suffix_length = 6;  // length of ".proto"
   if (file->name().size() > proto_suffix_length &&
@@ -55,8 +57,8 @@ inline bool ServicesFilename(const grpc::protobuf::FileDescriptor *file,
   }
 }
 
-inline grpc::string MessagesRequireName(
-    const grpc::protobuf::FileDescriptor *file) {
+inline std::string MessagesRequireName(
+    const google::protobuf::FileDescriptor *file) {
   return Replace(file->name(), ".proto", "");
 }
 

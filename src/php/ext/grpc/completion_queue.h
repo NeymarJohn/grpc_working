@@ -31,21 +31,32 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_COMPILER_RUBY_GENERATOR_H
-#define GRPC_INTERNAL_COMPILER_RUBY_GENERATOR_H
+#ifndef NET_GRPC_PHP_GRPC_COMPLETION_QUEUE_H_
+#define NET_GRPC_PHP_GRPC_COMPLETION_QUEUE_H_
 
-#include <string>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-namespace google {
-namespace protobuf {
-class FileDescriptor;
-}  // namespace protobuf
-}  // namespace google
+#include "php.h"
+#include "php_ini.h"
+#include "ext/standard/info.h"
+#include "php_grpc.h"
 
-namespace grpc_ruby_generator {
+#include "grpc/grpc.h"
 
-std::string GetServices(const google::protobuf::FileDescriptor *file);
+/* Class entry for the PHP CompletionQueue class */
+extern zend_class_entry *grpc_ce_completion_queue;
 
-}  // namespace grpc_ruby_generator
+/* Wrapper class for grpc_completion_queue that can be associated with a
+   PHP object */
+typedef struct wrapped_grpc_completion_queue {
+  zend_object std;
 
-#endif  // GRPC_INTERNAL_COMPILER_RUBY_GENERATOR_H
+  grpc_completion_queue *wrapped;
+} wrapped_grpc_completion_queue;
+
+/* Initialize the CompletionQueue class */
+void grpc_init_completion_queue(TSRMLS_D);
+
+#endif /* NET_GRPC_PHP_GRPC_COMPLETION_QUEUE_H_ */

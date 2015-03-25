@@ -31,21 +31,21 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_COMPILER_RUBY_GENERATOR_H
-#define GRPC_INTERNAL_COMPILER_RUBY_GENERATOR_H
+#ifndef NET_GRPC_PHP_GRPC_EVENT_H_
+#define NET_GRPC_PHP_GRPC_EVENT_H_
 
-#include <string>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-namespace google {
-namespace protobuf {
-class FileDescriptor;
-}  // namespace protobuf
-}  // namespace google
+#include "php.h"
+#include "php_ini.h"
+#include "ext/standard/info.h"
+#include "php_grpc.h"
 
-namespace grpc_ruby_generator {
+#include "grpc/grpc.h"
 
-std::string GetServices(const google::protobuf::FileDescriptor *file);
+/* Create a new Event object that wraps an existing grpc_event struct */
+zval *grpc_php_convert_event(grpc_event *event);
 
-}  // namespace grpc_ruby_generator
-
-#endif  // GRPC_INTERNAL_COMPILER_RUBY_GENERATOR_H
+#endif /* NET_GRPC_PHP_GRPC_COMPLETION_CHANNEL_H */

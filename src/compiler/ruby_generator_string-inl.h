@@ -34,9 +34,8 @@
 #ifndef GRPC_INTERNAL_COMPILER_RUBY_GENERATOR_STRING_INL_H
 #define GRPC_INTERNAL_COMPILER_RUBY_GENERATOR_STRING_INL_H
 
-#include "src/compiler/config.h"
-
 #include <algorithm>
+#include <string>
 #include <sstream>
 #include <vector>
 
@@ -46,10 +45,10 @@ using std::transform;
 namespace grpc_ruby_generator {
 
 // Split splits a string using char into elems.
-inline std::vector<grpc::string> &Split(const grpc::string &s, char delim,
-                                        std::vector<grpc::string> *elems) {
+inline std::vector<std::string> &Split(const std::string &s, char delim,
+                                       std::vector<std::string> *elems) {
   std::stringstream ss(s);
-  grpc::string item;
+  std::string item;
   while (getline(ss, item, delim)) {
     elems->push_back(item);
   }
@@ -57,17 +56,17 @@ inline std::vector<grpc::string> &Split(const grpc::string &s, char delim,
 }
 
 // Split splits a string using char, returning the result in a vector.
-inline std::vector<grpc::string> Split(const grpc::string &s, char delim) {
-  std::vector<grpc::string> elems;
+inline std::vector<std::string> Split(const std::string &s, char delim) {
+  std::vector<std::string> elems;
   Split(s, delim, &elems);
   return elems;
 }
 
 // Replace replaces from with to in s.
-inline grpc::string Replace(grpc::string s, const grpc::string &from,
-                            const grpc::string &to) {
+inline std::string Replace(std::string s, const std::string &from,
+                           const std::string &to) {
   size_t start_pos = s.find(from);
-  if (start_pos == grpc::string::npos) {
+  if (start_pos == std::string::npos) {
     return s;
   }
   s.replace(start_pos, from.length(), to);
@@ -75,10 +74,10 @@ inline grpc::string Replace(grpc::string s, const grpc::string &from,
 }
 
 // ReplaceAll replaces all instances of search with replace in s.
-inline grpc::string ReplaceAll(grpc::string s, const grpc::string &search,
-                               const grpc::string &replace) {
+inline std::string ReplaceAll(std::string s, const std::string &search,
+                              const std::string &replace) {
   size_t pos = 0;
-  while ((pos = s.find(search, pos)) != grpc::string::npos) {
+  while ((pos = s.find(search, pos)) != std::string::npos) {
     s.replace(pos, search.length(), replace);
     pos += replace.length();
   }
@@ -86,10 +85,10 @@ inline grpc::string ReplaceAll(grpc::string s, const grpc::string &search,
 }
 
 // ReplacePrefix replaces from with to in s if search is a prefix of s.
-inline bool ReplacePrefix(grpc::string *s, const grpc::string &from,
-                          const grpc::string &to) {
+inline bool ReplacePrefix(std::string *s, const std::string &from,
+                          const std::string &to) {
   size_t start_pos = s->find(from);
-  if (start_pos == grpc::string::npos || start_pos != 0) {
+  if (start_pos == std::string::npos || start_pos != 0) {
     return false;
   }
   s->replace(start_pos, from.length(), to);
@@ -97,7 +96,7 @@ inline bool ReplacePrefix(grpc::string *s, const grpc::string &from,
 }
 
 // CapitalizeFirst capitalizes the first char in a string.
-inline grpc::string CapitalizeFirst(grpc::string s) {
+inline std::string CapitalizeFirst(std::string s) {
   if (s.empty()) {
     return s;
   }
@@ -106,15 +105,15 @@ inline grpc::string CapitalizeFirst(grpc::string s) {
 }
 
 // RubyTypeOf updates a proto type to the required ruby equivalent.
-inline grpc::string RubyTypeOf(const grpc::string &a_type,
-                               const grpc::string &package) {
-  grpc::string res(a_type);
+inline std::string RubyTypeOf(const std::string &a_type,
+                              const std::string &package) {
+  std::string res(a_type);
   ReplacePrefix(&res, package, "");  // remove the leading package if present
   ReplacePrefix(&res, ".", "");      // remove the leading . (no package)
-  if (res.find('.') == grpc::string::npos) {
+  if (res.find('.') == std::string::npos) {
     return res;
   } else {
-    std::vector<grpc::string> prefixes_and_type = Split(res, '.');
+    std::vector<std::string> prefixes_and_type = Split(res, '.');
     for (unsigned int i = 0; i < prefixes_and_type.size(); ++i) {
       if (i != 0) {
         res += "::";  // switch '.' to the ruby module delim
