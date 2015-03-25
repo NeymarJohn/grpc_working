@@ -48,6 +48,7 @@ CallOpBuffer::CallOpBuffer()
       initial_metadata_count_(0),
       initial_metadata_(nullptr),
       recv_initial_metadata_(nullptr),
+      recv_initial_metadata_arr_{0, 0, nullptr},
       send_message_(nullptr),
       send_message_buffer_(nullptr),
       send_buf_(nullptr),
@@ -57,6 +58,7 @@ CallOpBuffer::CallOpBuffer()
       client_send_close_(false),
       recv_trailing_metadata_(nullptr),
       recv_status_(nullptr),
+      recv_trailing_metadata_arr_{0, 0, nullptr},
       status_code_(GRPC_STATUS_OK),
       status_details_(nullptr),
       status_details_capacity_(0),
@@ -64,12 +66,7 @@ CallOpBuffer::CallOpBuffer()
       trailing_metadata_count_(0),
       trailing_metadata_(nullptr),
       cancelled_buf_(0),
-      recv_closed_(nullptr) {
-  memset(&recv_trailing_metadata_arr_, 0, sizeof(recv_trailing_metadata_arr_));
-  memset(&recv_initial_metadata_arr_, 0, sizeof(recv_initial_metadata_arr_));
-  recv_trailing_metadata_arr_.metadata = nullptr;
-  recv_initial_metadata_arr_.metadata = nullptr;
-}
+      recv_closed_(nullptr) {}
 
 void CallOpBuffer::Reset(void* next_return_tag) {
   return_tag_ = next_return_tag;
@@ -186,6 +183,7 @@ void CallOpBuffer::AddRecvMessage(grpc::protobuf::Message* message) {
 
 void CallOpBuffer::AddRecvMessage(ByteBuffer* message) {
   recv_message_buffer_ = message;
+  recv_message_buffer_->Clear();
 }
 
 void CallOpBuffer::AddClientSendClose() { client_send_close_ = true; }

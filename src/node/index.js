@@ -56,7 +56,7 @@ function loadObject(value) {
     });
     return result;
   } else if (value.className === 'Service') {
-    return client.makeProtobufClientConstructor(value);
+    return client.makeClientConstructor(value);
   } else if (value.className === 'Message' || value.className === 'Enum') {
     return value.build();
   } else {
@@ -119,7 +119,7 @@ exports.load = load;
 /**
  * See docs for server.makeServerConstructor
  */
-exports.buildServer = server.makeProtobufServerConstructor;
+exports.buildServer = server.makeServerConstructor;
 
 /**
  * Status name to code number mapping
@@ -141,7 +141,3 @@ exports.Credentials = grpc.Credentials;
 exports.ServerCredentials = grpc.ServerCredentials;
 
 exports.getGoogleAuthDelegate = getGoogleAuthDelegate;
-
-exports.makeGenericClientConstructor = client.makeClientConstructor;
-
-exports.makeGenericServerConstructor = server.makeServerConstructor;
