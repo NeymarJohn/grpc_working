@@ -69,9 +69,11 @@ class BaseStub {
                                  $argument,
                                  callable $deserialize,
                                  $metadata = array()) {
-    $call = new UnaryCall($this->channel, $method, $deserialize);
-    $call->start($argument, $metadata);
-    return $call;
+    return new SimpleSurfaceActiveCall($this->channel,
+                                       $method,
+                                       $deserialize,
+                                       $argument,
+                                       $metadata);
   }
 
   /**
@@ -89,9 +91,11 @@ class BaseStub {
                                        $arguments,
                                        callable $deserialize,
                                        $metadata = array()) {
-    $call = new ClientStreamingCall($this->channel, $method, $deserialize);
-    $call->start($arguments, $metadata);
-    return $call;
+    return new ClientStreamingSurfaceActiveCall($this->channel,
+                                                $method,
+                                                $deserialize,
+                                                $arguments,
+                                                $metadata);
   }
 
   /**
@@ -108,9 +112,11 @@ class BaseStub {
                                        $argument,
                                        callable $deserialize,
                                        $metadata = array()) {
-    $call = new ServerStreamingCall($this->channel, $method, $deserialize);
-    $call->start($argument, $metadata);
-    return $call;
+    return new ServerStreamingSurfaceActiveCall($this->channel,
+                                                $method,
+                                                $deserialize,
+                                                $argument,
+                                                $metadata);
   }
 
   /**
@@ -124,8 +130,9 @@ class BaseStub {
   public function _bidiRequest($method,
                                callable $deserialize,
                                $metadata = array()) {
-    $call = new BidiStreamingCall($this->channel, $method, $deserialize);
-    $call->start($metadata);
-    return $call;
+    return new BidiStreamingSurfaceActiveCall($this->channel,
+                                              $method,
+                                              $deserialize,
+                                              $metadata);
   }
 }

@@ -1,3 +1,4 @@
+<?php
 /*
  *
  * Copyright 2015, Google Inc.
@@ -30,43 +31,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+namespace Grpc;
 
-#include "test/cpp/qps/timer.h"
+require_once realpath(dirname(__FILE__) . '/../autoload.php');
 
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <grpc/support/time.h>
-#include <grpc++/config.h>
+/**
+ * Represents an active call that sends a single message and then gets a stream
+ * of reponses
+ */
+class ServerStreamingSurfaceActiveCall extends AbstractSurfaceActiveCall {
+  /**
+   * Create a new simple (single request/single response) active call.
+   * @param Channel $channel The channel to communicate on
+   * @param string $method The method to call on the remote server
+   * @param callable $deserialize The function to deserialize a value
+   * @param $arg The argument to send
+   * @param array $metadata Metadata to send with the call, if applicable
+   */
+  public function __construct(Channel $channel,
+                              $method,
+                              callable $deserialize,
+                              $arg,
+                              $metadata = array()) {
+    parent::__construct($channel, $method, $deserialize, $metadata,
+                        \Grpc\WRITE_BUFFER_HINT);
+    $this->_write($arg);
+    $this->_writesDone();
+  }
 
-Timer::Timer() : start_(Sample()) {}
+  /**
+   * @return An iterator of response values
+   */
+  public function responses() {
+    while(($response = $this->_read()) !== null) {
+      yield $response;
+    }
+  }
 
-double Timer::Now() {
-  auto ts = gpr_now();
-  return ts.tv_sec + 1e-9 * ts.tv_nsec;
-}
-
-static double time_double(struct timeval* tv) {
-  return tv->tv_sec + 1e-6 * tv->tv_usec;
-}
-
-Timer::Result Timer::Sample() {
-  struct rusage usage;
-  struct timeval tv;
-  gettimeofday(&tv, nullptr);
-  getrusage(RUSAGE_SELF, &usage);
-
-  Result r;
-  r.wall = time_double(&tv);
-  r.user = time_double(&usage.ru_utime);
-  r.system = time_double(&usage.ru_stime);
-  return r;
-}
-
-Timer::Result Timer::Mark() {
-  Result s = Sample();
-  Result r;
-  r.wall = s.wall - start_.wall;
-  r.user = s.user - start_.user;
-  r.system = s.system - start_.system;
-  return r;
+  public function getStatus() {
+    return $this->_getStatus();
+  }
 }
