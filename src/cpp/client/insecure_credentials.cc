@@ -31,6 +31,8 @@
  *
  */
 
+#include <string>
+
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
 

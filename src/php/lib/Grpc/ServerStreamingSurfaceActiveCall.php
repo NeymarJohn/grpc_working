@@ -1,3 +1,4 @@
+<?php
 /*
  *
  * Copyright 2015, Google Inc.
@@ -30,28 +31,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+namespace Grpc;
 
-#ifndef GRPC_SUPPORT_CPU_H
-#define GRPC_SUPPORT_CPU_H
+require_once realpath(dirname(__FILE__) . '/../autoload.php');
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/**
+ * Represents an active call that sends a single message and then gets a stream
+ * of reponses
+ */
+class ServerStreamingSurfaceActiveCall extends AbstractSurfaceActiveCall {
+  /**
+   * Create a new simple (single request/single response) active call.
+   * @param Channel $channel The channel to communicate on
+   * @param string $method The method to call on the remote server
+   * @param callable $deserialize The function to deserialize a value
+   * @param $arg The argument to send
+   * @param array $metadata Metadata to send with the call, if applicable
+   */
+  public function __construct(Channel $channel,
+                              $method,
+                              callable $deserialize,
+                              $arg,
+                              $metadata = array()) {
+    parent::__construct($channel, $method, $deserialize, $metadata,
+                        \Grpc\WRITE_BUFFER_HINT);
+    $this->_write($arg);
+    $this->_writesDone();
+  }
 
-/* Interface providing CPU information for currently running system */
+  /**
+   * @return An iterator of response values
+   */
+  public function responses() {
+    while(($response = $this->_read()) !== null) {
+      yield $response;
+    }
+  }
 
-/* Return the number of CPU cores on the current system. Will return 0 if
-   if information is not available. */
-unsigned gpr_cpu_num_cores(void);
-
-/* Return the CPU on which the current thread is executing; N.B. This should
-   be considered advisory only - it is possible that the thread is switched
-   to a different CPU at any time. Returns a value in range
-   [0, gpr_cpu_num_cores() - 1] */
-unsigned gpr_cpu_current_cpu(void);
-
-#ifdef __cplusplus
-}  // extern "C"
-#endif
-
-#endif  /* GRPC_SUPPORT_CPU_H */
+  public function getStatus() {
+    return $this->_getStatus();
+  }
+}

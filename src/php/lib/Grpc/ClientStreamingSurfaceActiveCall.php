@@ -1,3 +1,4 @@
+<?php
 /*
  *
  * Copyright 2015, Google Inc.
@@ -30,28 +31,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+namespace Grpc;
+require_once realpath(dirname(__FILE__) . '/../autoload.php');
 
-#ifndef GRPC_SUPPORT_CPU_H
-#define GRPC_SUPPORT_CPU_H
+/**
+ * Represents an active call that sends a stream of messages and then gets a
+ * single response.
+ */
+class ClientStreamingSurfaceActiveCall extends AbstractSurfaceActiveCall {
+  /**
+   * Create a new simple (single request/single response) active call.
+   * @param Channel $channel The channel to communicate on
+   * @param string $method The method to call on the remote server
+   * @param callable $deserialize The function to deserialize a value
+   * @param Traversable $arg_iter The iterator of arguments to send
+   * @param array $metadata Metadata to send with the call, if applicable
+   */
+  public function __construct(Channel $channel,
+                              $method,
+                              callable $deserialize,
+                              $arg_iter,
+                              $metadata = array()) {
+    parent::__construct($channel, $method, $deserialize, $metadata, 0);
+    foreach($arg_iter as $arg) {
+      $this->_write($arg);
+    }
+    $this->_writesDone();
+  }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* Interface providing CPU information for currently running system */
-
-/* Return the number of CPU cores on the current system. Will return 0 if
-   if information is not available. */
-unsigned gpr_cpu_num_cores(void);
-
-/* Return the CPU on which the current thread is executing; N.B. This should
-   be considered advisory only - it is possible that the thread is switched
-   to a different CPU at any time. Returns a value in range
-   [0, gpr_cpu_num_cores() - 1] */
-unsigned gpr_cpu_current_cpu(void);
-
-#ifdef __cplusplus
-}  // extern "C"
-#endif
-
-#endif  /* GRPC_SUPPORT_CPU_H */
+  /**
+   * Wait for the server to respond with data and a status
+   * @return [response data, status]
+   */
+  public function wait() {
+    $response = $this->_read();
+    $status = $this->_getStatus();
+    return array($response, $status);
+  }
+}

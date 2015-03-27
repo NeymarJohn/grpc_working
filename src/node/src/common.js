@@ -36,7 +36,6 @@
 var _ = require('underscore');
 
 var capitalize = require('underscore.string/capitalize');
-var decapitalize = require('underscore.string/decapitalize');
 
 /**
  * Get a function that deserializes a specific type of protobuf.
@@ -111,26 +110,6 @@ function wrapIgnoreNull(func) {
 }
 
 /**
- * Return a map from method names to method attributes for the service.
- * @param {ProtoBuf.Reflect.Service} service The service to get attributes for
- * @return {Object} The attributes map
- */
-function getProtobufServiceAttrs(service) {
-  var prefix = '/' + fullyQualifiedName(service) + '/';
-  return _.object(_.map(service.children, function(method) {
-    return [decapitalize(method.name), {
-      path: prefix + capitalize(method.name),
-      requestStream: method.requestStream,
-      responseStream: method.responseStream,
-      requestSerialize: serializeCls(method.resolvedRequestType.build()),
-      requestDeserialize: deserializeCls(method.resolvedRequestType.build()),
-      responseSerialize: serializeCls(method.resolvedResponseType.build()),
-      responseDeserialize: deserializeCls(method.resolvedResponseType.build())
-    }];
-  }));
-}
-
-/**
  * See docs for deserializeCls
  */
 exports.deserializeCls = deserializeCls;
@@ -149,5 +128,3 @@ exports.fullyQualifiedName = fullyQualifiedName;
  * See docs for wrapIgnoreNull
  */
 exports.wrapIgnoreNull = wrapIgnoreNull;
-
-exports.getProtobufServiceAttrs = getProtobufServiceAttrs;

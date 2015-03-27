@@ -31,27 +31,21 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_CPU_H
-#define GRPC_SUPPORT_CPU_H
+#ifndef NET_GRPC_PHP_GRPC_EVENT_H_
+#define NET_GRPC_PHP_GRPC_EVENT_H_
 
-#ifdef __cplusplus
-extern "C" {
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #endif
 
-/* Interface providing CPU information for currently running system */
+#include "php.h"
+#include "php_ini.h"
+#include "ext/standard/info.h"
+#include "php_grpc.h"
 
-/* Return the number of CPU cores on the current system. Will return 0 if
-   if information is not available. */
-unsigned gpr_cpu_num_cores(void);
+#include "grpc/grpc.h"
 
-/* Return the CPU on which the current thread is executing; N.B. This should
-   be considered advisory only - it is possible that the thread is switched
-   to a different CPU at any time. Returns a value in range
-   [0, gpr_cpu_num_cores() - 1] */
-unsigned gpr_cpu_current_cpu(void);
+/* Create a new Event object that wraps an existing grpc_event struct */
+zval *grpc_php_convert_event(grpc_event *event);
 
-#ifdef __cplusplus
-}  // extern "C"
-#endif
-
-#endif  /* GRPC_SUPPORT_CPU_H */
+#endif /* NET_GRPC_PHP_GRPC_COMPLETION_CHANNEL_H */

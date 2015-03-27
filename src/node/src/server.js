@@ -35,6 +35,9 @@
 
 var _ = require('underscore');
 
+var capitalize = require('underscore.string/capitalize');
+var decapitalize = require('underscore.string/decapitalize');
+
 var grpc = require('bindings')('grpc.node');
 
 var common = require('./common');
@@ -70,9 +73,6 @@ function handleError(call, error) {
       status.details = error.details;
     }
   }
-  if (error.hasOwnProperty('metadata')) {
-    status.metadata = error.metadata;
-  }
   var error_batch = {};
   error_batch[grpc.opType.SEND_STATUS_FROM_SERVER] = status;
   call.startBatch(error_batch, function(){});
@@ -105,20 +105,15 @@ function waitForCancel(call, emitter) {
  * @param {*} value The value to respond with
  * @param {function(*):Buffer=} serialize Serialization function for the
  *     response
- * @param {Object=} metadata Optional trailing metadata to send with status
  */
-function sendUnaryResponse(call, value, serialize, metadata) {
+function sendUnaryResponse(call, value, serialize) {
   var end_batch = {};
-  var status = {
+  end_batch[grpc.opType.SEND_MESSAGE] = serialize(value);
+  end_batch[grpc.opType.SEND_STATUS_FROM_SERVER] = {
     code: grpc.status.OK,
     details: 'OK',
     metadata: {}
   };
-  if (metadata) {
-    status.metadata = metadata;
-  }
-  end_batch[grpc.opType.SEND_MESSAGE] = serialize(value);
-  end_batch[grpc.opType.SEND_STATUS_FROM_SERVER] = status;
   call.startBatch(end_batch, function (){});
 }
 
@@ -151,7 +146,6 @@ function setUpWritable(stream, serialize) {
   function setStatus(err) {
     var code = grpc.status.INTERNAL;
     var details = 'Unknown Error';
-    var metadata = {};
     if (err.hasOwnProperty('message')) {
       details = err.message;
     }
@@ -161,10 +155,7 @@ function setUpWritable(stream, serialize) {
         details = err.details;
       }
     }
-    if (err.hasOwnProperty('metadata')) {
-      metadata = err.metadata;
-    }
-    stream.status = {code: code, details: details, metadata: metadata};
+    stream.status = {code: code, details: details, metadata: {}};
   }
   /**
    * Terminate the call. This includes indicating that reads are done, draining
@@ -178,17 +169,6 @@ function setUpWritable(stream, serialize) {
     stream.end();
   }
   stream.on('error', terminateCall);
-  /**
-   * Override of Writable#end method that allows for sending metadata with a
-   * success status.
-   * @param {Object=} metadata Metadata to send with the status
-   */
-  stream.end = function(metadata) {
-    if (metadata) {
-      stream.status.metadata = metadata;
-    }
-    Writable.prototype.end.call(this);
-  };
 }
 
 /**
@@ -358,13 +338,11 @@ function handleUnary(call, handler, metadata) {
     if (emitter.cancelled) {
       return;
     }
-    handler.func(emitter, function sendUnaryData(err, value, trailer) {
+    handler.func(emitter, function sendUnaryData(err, value) {
       if (err) {
-        err.metadata = trailer;
         handleError(call, err);
-      } else {
-        sendUnaryResponse(call, value, handler.serialize, trailer);
       }
+      sendUnaryResponse(call, value, handler.serialize);
     });
   });
 }
@@ -403,14 +381,12 @@ function handleClientStreaming(call, handler, metadata) {
   var metadata_batch = {};
   metadata_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
   call.startBatch(metadata_batch, function() {});
-  handler.func(stream, function(err, value, trailer) {
+  handler.func(stream, function(err, value) {
     stream.terminate();
     if (err) {
-      err.metadata = trailer;
       handleError(call, err);
-    } else {
-      sendUnaryResponse(call, value, handler.serialize, trailer);
     }
+    sendUnaryResponse(call, value, handler.serialize);
   });
 }
 
@@ -556,20 +532,26 @@ Server.prototype.bind = function(port, creds) {
 };
 
 /**
- * Create a constructor for servers with services defined by service_attr_map.
- * That is an object that maps (namespaced) service names to objects that in
- * turn map method names to objects with the following keys:
- * path: The path on the server for accessing the method. For example, for
- *     protocol buffers, we use "/service_name/method_name"
- * requestStream: bool indicating whether the client sends a stream
- * resonseStream: bool indicating whether the server sends a stream
- * requestDeserialize: function to deserialize request objects
- * responseSerialize: function to serialize response objects
- * @param {Object} service_attr_map An object mapping service names to method
- *     attribute map objects
- * @return {function(Object, function, Object=)} New server constructor
+ * Creates a constructor for servers with a service defined by the methods
+ * object. The methods object has string keys and values of this form:
+ * {serialize: function, deserialize: function, client_stream: bool,
+ *  server_stream: bool}
+ * @param {Object} methods Method descriptor for each method the server should
+ *     expose
+ * @param {string} prefix The prefex to prepend to each method name
+ * @return {function(Object, Object)} New server constructor
  */
-function makeServerConstructor(service_attr_map) {
+function makeServerConstructor(services) {
+  var qual_names = [];
+  _.each(services, function(service) {
+    _.each(service.children, function(method) {
+      var name = common.fullyQualifiedName(method);
+      if (_.indexOf(qual_names, name) !== -1) {
+        throw new Error('Method ' + name + ' exposed by more than one service');
+      }
+      qual_names.push(name);
+    });
+  });
   /**
    * Create a server with the given handlers for all of the methods.
    * @constructor
@@ -583,34 +565,41 @@ function makeServerConstructor(service_attr_map) {
   function SurfaceServer(service_handlers, getMetadata, options) {
     var server = new Server(getMetadata, options);
     this.inner_server = server;
-    _.each(service_attr_map, function(service_attrs, service_name) {
+    _.each(services, function(service) {
+      var service_name = common.fullyQualifiedName(service);
       if (service_handlers[service_name] === undefined) {
         throw new Error('Handlers for service ' +
             service_name + ' not provided.');
       }
-      _.each(service_attrs, function(attrs, name) {
+      var prefix = '/' + common.fullyQualifiedName(service) + '/';
+      _.each(service.children, function(method) {
         var method_type;
-        if (attrs.requestStream) {
-          if (attrs.responseStream) {
+        if (method.requestStream) {
+          if (method.responseStream) {
             method_type = 'bidi';
           } else {
             method_type = 'client_stream';
           }
         } else {
-          if (attrs.responseStream) {
+          if (method.responseStream) {
             method_type = 'server_stream';
           } else {
             method_type = 'unary';
           }
         }
-        if (service_handlers[service_name][name] === undefined) {
-          throw new Error('Method handler for ' + attrs.path +
-              ' not provided.');
+        if (service_handlers[service_name][decapitalize(method.name)] ===
+            undefined) {
+          throw new Error('Method handler for ' +
+              common.fullyQualifiedName(method) + ' not provided.');
         }
-        var serialize = attrs.responseSerialize;
-        var deserialize = attrs.requestDeserialize;
-        server.register(attrs.path, service_handlers[service_name][name],
-                        serialize, deserialize, method_type);
+        var serialize = common.serializeCls(
+            method.resolvedResponseType.build());
+        var deserialize = common.deserializeCls(
+            method.resolvedRequestType.build());
+        server.register(
+            prefix + capitalize(method.name),
+            service_handlers[service_name][decapitalize(method.name)],
+            serialize, deserialize, method_type);
       });
     }, this);
   }
@@ -647,39 +636,6 @@ function makeServerConstructor(service_attr_map) {
 }
 
 /**
- * Create a constructor for servers that serve the given services.
- * @param {Array<ProtoBuf.Reflect.Service>} services The services that the
- *     servers will serve
- * @return {function(Object, function, Object=)} New server constructor
- */
-function makeProtobufServerConstructor(services) {
-  var qual_names = [];
-  var service_attr_map = {};
-  _.each(services, function(service) {
-    var service_name = common.fullyQualifiedName(service);
-    _.each(service.children, function(method) {
-      var name = common.fullyQualifiedName(method);
-      if (_.indexOf(qual_names, name) !== -1) {
-        throw new Error('Method ' + name + ' exposed by more than one service');
-      }
-      qual_names.push(name);
-    });
-    var method_attrs = common.getProtobufServiceAttrs(service);
-    if (!service_attr_map.hasOwnProperty(service_name)) {
-      service_attr_map[service_name] = {};
-    }
-    service_attr_map[service_name] = _.extend(service_attr_map[service_name],
-                                              method_attrs);
-  });
-  return makeServerConstructor(service_attr_map);
-}
-
-/**
  * See documentation for makeServerConstructor
  */
 exports.makeServerConstructor = makeServerConstructor;
-
-/**
- * See documentation for makeProtobufServerConstructor
- */
-exports.makeProtobufServerConstructor = makeProtobufServerConstructor;
