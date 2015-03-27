@@ -31,23 +31,31 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_TLS_PTHREAD_H
-#define GRPC_SUPPORT_TLS_PTHREAD_H
+#ifndef GRPC_INTERNAL_CPP_CLIENT_SECURE_CREDENTIALS_H
+#define GRPC_INTERNAL_CPP_CLIENT_SECURE_CREDENTIALS_H
 
-/* Thread local storage based on pthread library calls.
-   #include tls.h to use this - and see that file for documentation */
+#include <grpc/grpc_security.h>
 
-struct gpr_pthread_thread_local {
-  pthread_key_t key;
+#include <grpc++/config.h>
+#include <grpc++/credentials.h>
+
+namespace grpc {
+
+class SecureCredentials GRPC_FINAL : public Credentials {
+ public:
+  explicit SecureCredentials(grpc_credentials* c_creds) : c_creds_(c_creds) {}
+  ~SecureCredentials() GRPC_OVERRIDE { grpc_credentials_release(c_creds_); }
+  grpc_credentials* GetRawCreds() { return c_creds_; }
+
+  std::shared_ptr<grpc::ChannelInterface> CreateChannel(
+      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE;
+  SecureCredentials* AsSecureCredentials() GRPC_OVERRIDE { return this; }
+
+ private:
+  grpc_credentials* const c_creds_;
 };
 
-#define GPR_TLS_DECL(name) \
-    static struct gpr_pthread_thread_local name = {0}
+}  // namespace grpc
 
-#define gpr_tls_init(tls) GPR_ASSERT(0 == pthread_key_create(&(tls)->key, NULL))
-#define gpr_tls_destroy(tls) pthread_key_delete((tls)->key)
-#define gpr_tls_set(tls, new_value) \
-    GPR_ASSERT(pthread_setspecific((tls)->key, (void*)(new_value)) == 0)
-#define gpr_tls_get(tls) ((gpr_intptr)pthread_getspecific((tls)->key))
+#endif  // GRPC_INTERNAL_CPP_CLIENT_SECURE_CREDENTIALS_H
 
-#endif

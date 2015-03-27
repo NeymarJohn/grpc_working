@@ -31,47 +31,27 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_TLS_H
-#define GRPC_SUPPORT_TLS_H
+#ifndef TEST_QPS_REPORT_H
+#define TEST_QPS_REPORT_H
 
-#include "port_platform.h"
+#include "test/cpp/qps/driver.h"
 
-/* Thread local storage.
+namespace grpc {
+namespace testing {
 
-   A minimal wrapper that should be implementable across many compilers,
-   and implementable efficiently across most modern compilers.
+// QPS: XXX
+void ReportQPS(const ScenarioResult& result);
+// QPS: XXX (YYY/server core)
+void ReportQPSPerCore(const ScenarioResult& result, const ServerConfig& config);
+// Latency (50/90/95/99/99.9%-ile): AA/BB/CC/DD/EE us
+void ReportLatency(const ScenarioResult& result);
+// Server system time: XX%
+// Server user time: XX%
+// Client system time: XX%
+// Client user time: XX%
+void ReportTimes(const ScenarioResult& result);
 
-   Thread locals have type gpr_intptr.
-
-   Declaring a thread local variable 'foo':
-     GPR_TLS_DECL(foo, initial_value);
-   Thread locals always have static scope.
-
-   Initializing a thread local (must be done at library initialization 
-   time):
-     gpr_tls_init(&foo);
-
-   Destroying a thread local:
-     gpr_tls_destroy(&foo);
-
-   Setting a thread local:
-     gpr_tls_set(&foo, new_value);
-
-   Accessing a thread local:
-     current_value = gpr_tls_get(&foo, value); 
-
-   ALL functions here may be implemented as macros. */
-
-#ifdef GPR_GCC_TLS
-#include "tls_gcc.h"
-#endif
-
-#ifdef GPR_MSVC_TLS
-#include "tls_msvc.h"
-#endif
-
-#ifdef GPR_PTHREAD_TLS
-#include "tls_pthread.h"
-#endif
+}  // namespace testing
+}  // namespace grpc
 
 #endif

@@ -31,52 +31,30 @@
  *
  */
 
-/* Test of gpr thread local storage support. */
+#ifndef GRPC_INTERNAL_CPP_SERVER_SECURE_SERVER_CREDENTIALS_H
+#define GRPC_INTERNAL_CPP_SERVER_SECURE_SERVER_CREDENTIALS_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <grpc/support/log.h>
-#include <grpc/support/sync.h>
-#include <grpc/support/thd.h>
-#include <grpc/support/tls.h>
-#include "test/core/util/test_config.h"
+#include <grpc/grpc_security.h>
 
-#define NUM_THREADS 100
+#include <grpc++/server_credentials.h>
 
-GPR_TLS_DECL(test_var);
+namespace grpc {
 
-static void thd_body(void *arg) {
-  gpr_intptr i;
-
-  GPR_ASSERT(gpr_tls_get(&test_var) == 0);
-
-  for (i = 0; i < 10000000; i++) {
-    gpr_tls_set(&test_var, i);
-    GPR_ASSERT(gpr_tls_get(&test_var) == i);
-  }
-}
-
-/* ------------------------------------------------- */
-
-int main(int argc, char *argv[]) {
-  gpr_thd_options opt = gpr_thd_options_default();
-  int i;
-  gpr_thd_id threads[NUM_THREADS];
-
-  grpc_test_init(argc, argv);
-
-  gpr_tls_init(&test_var);
-
-  gpr_thd_options_set_joinable(&opt);
-
-  for (i = 0; i < NUM_THREADS; i++) {
-    gpr_thd_new(&threads[i], thd_body, NULL, &opt);
-  }
-  for (i = 0; i < NUM_THREADS; i++) {
-    gpr_thd_join(threads[i]);
+class SecureServerCredentials GRPC_FINAL : public ServerCredentials {
+ public:
+  explicit SecureServerCredentials(grpc_server_credentials* creds)
+      : creds_(creds) {}
+  ~SecureServerCredentials() GRPC_OVERRIDE {
+    grpc_server_credentials_release(creds_);
   }
 
-  gpr_tls_destroy(&test_var);
+  int AddPortToServer(const grpc::string& addr,
+                      grpc_server* server) GRPC_OVERRIDE;
 
-  return 0;
-}
+ private:
+  grpc_server_credentials* const creds_;
+};
+
+}  // namespace grpc
+
+#endif  // GRPC_INTERNAL_CPP_SERVER_SECURE_SERVER_CREDENTIALS_H
