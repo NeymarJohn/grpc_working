@@ -186,7 +186,6 @@ void CallOpBuffer::AddRecvMessage(grpc::protobuf::Message* message) {
 
 void CallOpBuffer::AddRecvMessage(ByteBuffer* message) {
   recv_message_buffer_ = message;
-  recv_message_buffer_->Clear();
 }
 
 void CallOpBuffer::AddClientSendClose() { client_send_close_ = true; }
