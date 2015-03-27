@@ -31,16 +31,49 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-class CompletionQueueTest extends PHPUnit_Framework_TestCase{
-  public function testNextReturnsNullWithNoCall() {
-    $cq = new Grpc\CompletionQueue();
-    $event = $cq->next(Grpc\Timeval::zero());
-    $this->assertNull($event);
+namespace Grpc;
+
+require_once realpath(dirname(__FILE__) . '/../autoload.php');
+
+abstract class AbstractCall {
+
+  protected $call;
+  protected $deserialize;
+  protected $metadata;
+
+  /**
+   * Create a new Call wrapper object.
+   * @param Channel $channel The channel to communicate on
+   * @param string $method The method to call on the remote server
+   */
+  public function __construct(Channel $channel, $method, $deserialize) {
+    $this->call = new Call($channel, $method, Timeval::inf_future());
+    $this->deserialize = $deserialize;
   }
 
-  public function testPluckReturnsNullWithNoCall() {
-    $cq = new Grpc\CompletionQueue();
-    $event = $cq->pluck(0, Grpc\Timeval::zero());
-    $this->assertNull($event);
+  /**
+   * @return The metadata sent by the server.
+   */
+  public function getMetadata() {
+    return $this->metadata;
+  }
+
+  /**
+   * Cancels the call
+   */
+  public function cancel() {
+    $this->call->cancel();
+  }
+
+  /**
+   * Deserialize a response value to an object.
+   * @param string $value The binary value to deserialize
+   * @return The deserialized value
+   */
+  protected function deserializeResponse($value) {
+    if ($value === null) {
+      return null;
+    }
+    return call_user_func($this->deserialize, $value);
   }
 }

@@ -115,7 +115,7 @@ class TestServiceImpl GRPC_FINAL : public TestService::Service {
   }
   Status UnaryCall(ServerContext* context, const SimpleRequest* request,
                    SimpleResponse* response) {
-    if (request->has_response_size() && request->response_size() > 0) {
+    if (request->response_size() > 0) {
       if (!SetPayload(request->response_type(), request->response_size(),
                       response->mutable_payload())) {
         return Status(grpc::StatusCode::INTERNAL, "Error creating payload.");
@@ -137,7 +137,7 @@ static void RunServer() {
   SimpleResponse response;
 
   ServerBuilder builder;
-  builder.AddPort(server_address, grpc::InsecureServerCredentials());
+  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
   builder.RegisterService(&service);
 
   std::unique_ptr<ThreadPool> pool(new ThreadPool(FLAGS_server_threads));

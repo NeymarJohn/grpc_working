@@ -77,9 +77,12 @@ namespace testing {
 std::unique_ptr<Client> CreateClient(const ClientConfig& config) {
   switch (config.client_type()) {
     case ClientType::SYNCHRONOUS_CLIENT:
-      return CreateSynchronousClient(config);
+      return (config.rpc_type() == RpcType::UNARY) ?
+	CreateSynchronousUnaryClient(config) :
+	CreateSynchronousStreamingClient(config);
     case ClientType::ASYNC_CLIENT:
-      return CreateAsyncClient(config);
+      return (config.rpc_type() == RpcType::UNARY) ?
+	CreateAsyncUnaryClient(config) : CreateAsyncStreamingClient(config);
   }
   abort();
 }
@@ -210,7 +213,7 @@ static void RunServer() {
   WorkerImpl service;
 
   ServerBuilder builder;
-  builder.AddPort(server_address, InsecureServerCredentials());
+  builder.AddListeningPort(server_address, InsecureServerCredentials());
   builder.RegisterService(&service);
 
   gpr_free(server_address);

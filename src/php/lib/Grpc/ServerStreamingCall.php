@@ -1,3 +1,4 @@
+<?php
 /*
  *
  * Copyright 2015, Google Inc.
@@ -30,22 +31,49 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+namespace Grpc;
 
-#include <grpc++/generic_stub.h>
+require_once realpath(dirname(__FILE__) . '/../autoload.php');
 
-#include <grpc++/impl/rpc_method.h>
+/**
+ * Represents an active call that sends a single message and then gets a stream
+ * of reponses
+ */
+class ServerStreamingCall extends AbstractCall {
+  /**
+   * Start the call
+   * @param $arg The argument to send
+   * @param array $metadata Metadata to send with the call, if applicable
+   */
+  public function start($arg, $metadata = array()) {
+    $event = $this->call->start_batch([
+        OP_SEND_INITIAL_METADATA => $metadata,
+        OP_RECV_INITIAL_METADATA => true,
+        OP_SEND_MESSAGE => $arg->serialize(),
+        OP_SEND_CLOSE_FROM_CLIENT => true]);
+    $this->metadata = $event->metadata;
+  }
 
-namespace grpc {
+  /**
+   * @return An iterator of response values
+   */
+  public function responses() {
+    $response = $this->call->start_batch([OP_RECV_MESSAGE => true])->message;
+    while($response !== null) {
+      yield $this->deserializeResponse($response);
+      $response = $this->call->start_batch([OP_RECV_MESSAGE => true])->message;
+    }
+  }
 
-// begin a call to a named method
-std::unique_ptr<GenericClientAsyncReaderWriter> GenericStub::Call(
-    ClientContext* context, const grpc::string& method,
-    CompletionQueue* cq, void* tag) {
-  return std::unique_ptr<GenericClientAsyncReaderWriter>(
-      new GenericClientAsyncReaderWriter(
-          channel_.get(), cq, RpcMethod(method.c_str()), context, tag));
+  /**
+   * Wait for the server to send the status, and return it.
+   * @return object The status object, with integer $code, string $details,
+   *     and array $metadata members
+   */
+  public function getStatus() {
+    $status_event = $this->call->start_batch([
+        OP_RECV_STATUS_ON_CLIENT => true
+                                              ]);
+    return $status_event->status;
+  }
 }
-
-
-} // namespace grpc
-
