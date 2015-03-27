@@ -45,5 +45,3 @@ RUN cd /var/local/git/grpc/src/php/ext/grpc && git pull && phpize
 RUN cd /var/local/git/grpc/src/php/ext/grpc \
   && ./configure \
   && make
-
-RUN cd /var/local/git/grpc/src/php && ./bin/run_tests.sh
