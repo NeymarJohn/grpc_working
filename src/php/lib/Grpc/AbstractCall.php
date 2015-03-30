@@ -33,6 +33,8 @@
  */
 namespace Grpc;
 
+require_once realpath(dirname(__FILE__) . '/../autoload.php');
+
 abstract class AbstractCall {
 
   protected $call;
