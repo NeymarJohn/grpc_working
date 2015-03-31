@@ -1710,8 +1710,6 @@ static int process_read(transport *t, gpr_slice slice) {
 
   gpr_log(GPR_ERROR, "should never reach here");
   abort();
-
-  return 0;
 }
 
 /* tcp read callback */

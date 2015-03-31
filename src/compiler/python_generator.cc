@@ -271,7 +271,7 @@ bool GetModuleAndMessagePath(const Descriptor* type,
 bool PrintServerFactory(const grpc::string& package_qualified_service_name,
                         const ServiceDescriptor* service, Printer* out) {
   out->Print("def early_adopter_create_$Service$_server(servicer, port, "
-             "private_key=None, certificate_chain=None):\n",
+             "root_certificates, key_chain_pairs):\n",
              "Service", service->name());
   {
     IndentScope raii_create_server_indent(out);
@@ -339,10 +339,10 @@ bool PrintServerFactory(const grpc::string& package_qualified_service_name,
     }
     out->Print("}\n");
     out->Print(
-        "return implementations.server("
+        "return implementations.secure_server("
         "\"$PackageQualifiedServiceName$\","
-        " method_service_descriptions, port, private_key=private_key,"
-        " certificate_chain=certificate_chain)\n",
+        " method_service_descriptions, port, root_certificates,"
+        " key_chain_pairs)\n",
         "PackageQualifiedServiceName", package_qualified_service_name);
   }
   return true;
@@ -353,10 +353,7 @@ bool PrintStubFactory(const grpc::string& package_qualified_service_name,
   map<grpc::string, grpc::string> dict = ListToDict({
         "Service", service->name(),
       });
-  out->Print(dict, "def early_adopter_create_$Service$_stub(host, port,"
-             " metadata_transformer=None,"
-             " secure=False, root_certificates=None, private_key=None,"
-             " certificate_chain=None, server_host_override=None):\n");
+  out->Print(dict, "def early_adopter_create_$Service$_stub(host, port):\n");
   {
     IndentScope raii_create_server_indent(out);
     map<grpc::string, grpc::string> method_description_constructors;
@@ -422,13 +419,9 @@ bool PrintStubFactory(const grpc::string& package_qualified_service_name,
     }
     out->Print("}\n");
     out->Print(
-        "return implementations.stub("
+        "return implementations.insecure_stub("
         "\"$PackageQualifiedServiceName$\","
-        " method_invocation_descriptions, host, port,"
-        " metadata_transformer=metadata_transformer, secure=secure,"
-        " root_certificates=root_certificates, private_key=private_key,"
-        " certificate_chain=certificate_chain,"
-        " server_host_override=server_host_override)\n",
+        " method_invocation_descriptions, host, port)\n",
         "PackageQualifiedServiceName", package_qualified_service_name);
   }
   return true;

@@ -177,7 +177,7 @@ def _CreateService(test_pb2, delay):
 
   servicer = Servicer()
   server = getattr(
-      test_pb2, SERVER_FACTORY_IDENTIFIER)(servicer, 0)
+      test_pb2, SERVER_FACTORY_IDENTIFIER)(servicer, 0, None, None)
   with server:
     port = server.port()
     stub = getattr(test_pb2, STUB_FACTORY_IDENTIFIER)('localhost', port)
