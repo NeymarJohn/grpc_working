@@ -43,7 +43,10 @@ class BidiStreamingCall extends AbstractCall {
    * @param array $metadata Metadata to send with the call, if applicable
    */
   public function start($metadata) {
-    $this->call->start_batch([OP_SEND_INITIAL_METADATA => $metadata]);
+    $event = $this->call->start_batch([
+        OP_SEND_INITIAL_METADATA => $metadata,
+        OP_RECV_INITIAL_METADATA => true]);
+    $this->metadata = $event->metadata;
   }
 
   /**
@@ -51,14 +54,7 @@ class BidiStreamingCall extends AbstractCall {
    * @return The next value from the server, or null if there is none
    */
   public function read() {
-    $batch = [OP_RECV_MESSAGE => true];
-    if ($this->metadata === null) {
-      $batch[OP_RECV_INITIAL_METADATA] = true;
-    }
-    $read_event = $this->call->start_batch($batch);
-    if ($this->metadata === null) {
-      $this->metadata = $read_event->metadata;
-    }
+    $read_event = $this->call->start_batch([OP_RECV_MESSAGE => true]);
     return $this->deserializeResponse($read_event->message);
   }
 
