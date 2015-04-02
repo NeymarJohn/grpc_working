@@ -1,4 +1,3 @@
-#!/bin/sh
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,21 +27,21 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Loads the local shared library, and runs all of the test cases in tests/
-# against it
-set -e
-cd $(dirname $0)
-default_extension_dir=`php -i | grep extension_dir | sed 's/.*=> //g'`
+FROM grpc/clang:latest
 
-module_dir=`php --version | grep -q 'PHP 5.6' && echo '../ext/grpc' || echo '../ext/grpc/modules'`
+RUN apt-get update && apt-get install -y \
+  autoconf \
+  libtool \
+  libgflags-dev \
+  libgtest-dev \
+  && apt-get clean
 
-# sym-link in system supplied extensions
-for f in $default_extension_dir/*.so
-do
-  ln -s $f $module_dir/$(basename $f) &> /dev/null || true
-done
+RUN git clone --recursive https://github.com/grpc/grpc.git
 
-php \
-  -d extension_dir=$module_dir \
-  -d extension=grpc.so \
-  `which phpunit` -v --debug --strict ../tests/unit_tests
+EXPOSE 8181
+
+CMD \
+  (cd grpc ; git pull) && \
+  (cd grpc ; git submodule update --init --recursive) && \
+  llvm/tools/clang/tools/scan-build/scan-build -o /tmp/grpc --use-analyzer=/usr/local/bin/clang make -C grpc buildtests && \
+  llvm/tools/clang/tools/scan-view/scan-view /tmp/grpc/`ls /tmp/grpc` --host 0.0.0.0 --no-browser --allow-all-hosts
