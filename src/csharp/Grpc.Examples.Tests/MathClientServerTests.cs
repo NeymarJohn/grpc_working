@@ -33,7 +33,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
@@ -121,12 +120,14 @@ namespace math.Tests
         [Test]
         public void Sum()
         {
-            var clientStreamingResult = client.Sum();
-            var numList = new List<long> { 10, 20, 30 }.ConvertAll(
-                     n => Num.CreateBuilder().SetNum_(n).Build());
-            numList.Subscribe(clientStreamingResult.Inputs);
+            var res = client.Sum();
+            foreach (var num in new long[] { 10, 20, 30 })
+            {
+                res.Inputs.OnNext(Num.CreateBuilder().SetNum_(num).Build());
+            }
+            res.Inputs.OnCompleted();
 
-            Assert.AreEqual(60, clientStreamingResult.Task.Result.Num_);
+            Assert.AreEqual(60, res.Task.Result.Num_);
         }
 
         [Test]
@@ -141,7 +142,13 @@ namespace math.Tests
 
             var recorder = new RecordingObserver<DivReply>();
             var requestObserver = client.DivMany(recorder);
-            divArgsList.Subscribe(requestObserver);
+
+            foreach (var arg in divArgsList)
+            {
+                requestObserver.OnNext(arg);
+            }
+            requestObserver.OnCompleted();
+
             var result = recorder.ToList().Result;
 
             CollectionAssert.AreEqual(new long[] { 3, 4, 3 }, result.ConvertAll((divReply) => divReply.Quotient));
