@@ -32,8 +32,7 @@
  */
 
 #include <grpc/support/port_platform.h>
-#include "test/core/util/test_config.h"
-#if defined(GPR_POSIX_SOCKET) && defined(GRPC_TEST_PICK_PORT)
+#ifdef GPR_POSIX_SOCKET
 
 #include "test/core/util/port.h"
 
@@ -126,7 +125,7 @@ int grpc_pick_unused_port(void) {
     } else {
       port = 0;
     }
-
+    
     if (!is_port_available(&port, is_tcp)) {
       continue;
     }
@@ -156,4 +155,4 @@ int grpc_pick_unused_port_or_die(void) {
   return port;
 }
 
-#endif /* GPR_POSIX_SOCKET && GRPC_TEST_PICK_PORT */
+#endif /* GPR_POSIX_SOCKET */
