@@ -45,9 +45,8 @@ abstract class AbstractCall {
    * @param string $method The method to call on the remote server
    */
   public function __construct(Channel $channel, $method, $deserialize) {
-    $this->call = new Call($channel, $method, Timeval::infFuture());
+    $this->call = new Call($channel, $method, Timeval::inf_future());
     $this->deserialize = $deserialize;
-    $this->metadata = null;
   }
 
   /**
