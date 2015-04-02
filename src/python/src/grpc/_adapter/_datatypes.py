@@ -70,7 +70,7 @@ class Event(
     collections.namedtuple(
         'Event',
         ['kind', 'tag', 'write_accepted', 'complete_accepted',
-         'service_acceptance', 'bytes', 'status', 'metadata'])):
+         'service_acceptance', 'bytes', 'status'])):
   """Describes an event emitted from a completion queue."""
 
   @enum.unique
