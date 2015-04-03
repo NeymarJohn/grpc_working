@@ -71,20 +71,15 @@ using namespace gflags;
 
 static bool got_sigint = false;
 
-static void sigint_handler(int x) {got_sigint = true;}
-
 namespace grpc {
 namespace testing {
 
 std::unique_ptr<Client> CreateClient(const ClientConfig& config) {
   switch (config.client_type()) {
     case ClientType::SYNCHRONOUS_CLIENT:
-      return (config.rpc_type() == RpcType::UNARY) ?
-	CreateSynchronousUnaryClient(config) :
-	CreateSynchronousStreamingClient(config);
+      return CreateSynchronousClient(config);
     case ClientType::ASYNC_CLIENT:
-      return (config.rpc_type() == RpcType::UNARY) ?
-	CreateAsyncUnaryClient(config) : CreateAsyncStreamingClient(config);
+      return CreateAsyncClient(config);
   }
   abort();
 }
@@ -111,10 +106,30 @@ class WorkerImpl GRPC_FINAL : public Worker::Service {
       return Status(RESOURCE_EXHAUSTED);
     }
 
-    grpc_profiler_start("qps_client.prof");
-    Status ret = RunTestBody(ctx,stream);
-    grpc_profiler_stop();
-    return ret;
+    ClientArgs args;
+    if (!stream->Read(&args)) {
+      return Status(INVALID_ARGUMENT);
+    }
+    if (!args.has_setup()) {
+      return Status(INVALID_ARGUMENT);
+    }
+    auto client = CreateClient(args.setup());
+    if (!client) {
+      return Status(INVALID_ARGUMENT);
+    }
+    ClientStatus status;
+    if (!stream->Write(status)) {
+      return Status(UNKNOWN);
+    }
+    while (stream->Read(&args)) {
+      if (!args.has_mark()) {
+        return Status(INVALID_ARGUMENT);
+      }
+      *status.mutable_stats() = client->Mark();
+      stream->Write(status);
+    }
+
+    return Status::OK;
   }
 
   Status RunServer(ServerContext* ctx,
@@ -125,10 +140,31 @@ class WorkerImpl GRPC_FINAL : public Worker::Service {
       return Status(RESOURCE_EXHAUSTED);
     }
 
-    grpc_profiler_start("qps_server.prof");
-    Status ret = RunServerBody(ctx,stream);
-    grpc_profiler_stop();
-    return ret;
+    ServerArgs args;
+    if (!stream->Read(&args)) {
+      return Status(INVALID_ARGUMENT);
+    }
+    if (!args.has_setup()) {
+      return Status(INVALID_ARGUMENT);
+    }
+    auto server = CreateServer(args.setup());
+    if (!server) {
+      return Status(INVALID_ARGUMENT);
+    }
+    ServerStatus status;
+    status.set_port(FLAGS_server_port);
+    if (!stream->Write(status)) {
+      return Status(UNKNOWN);
+    }
+    while (stream->Read(&args)) {
+      if (!args.has_mark()) {
+        return Status(INVALID_ARGUMENT);
+      }
+      *status.mutable_stats() = server->Mark();
+      stream->Write(status);
+    }
+
+    return Status::OK;
   }
 
  private:
@@ -163,63 +199,6 @@ class WorkerImpl GRPC_FINAL : public Worker::Service {
     acquired_ = false;
   }
 
-  Status RunTestBody(ServerContext* ctx,
-                     ServerReaderWriter<ClientStatus, ClientArgs>* stream) {
-    ClientArgs args;
-    if (!stream->Read(&args)) {
-      return Status(INVALID_ARGUMENT);
-    }
-    if (!args.has_setup()) {
-      return Status(INVALID_ARGUMENT);
-    }
-    auto client = CreateClient(args.setup());
-    if (!client) {
-      return Status(INVALID_ARGUMENT);
-    }
-    ClientStatus status;
-    if (!stream->Write(status)) {
-      return Status(UNKNOWN);
-    }
-    while (stream->Read(&args)) {
-      if (!args.has_mark()) {
-        return Status(INVALID_ARGUMENT);
-      }
-      *status.mutable_stats() = client->Mark();
-      stream->Write(status);
-    }
-
-    return Status::OK;
-  }
-
-  Status RunServerBody(ServerContext* ctx,
-                       ServerReaderWriter<ServerStatus, ServerArgs>* stream) {
-    ServerArgs args;
-    if (!stream->Read(&args)) {
-      return Status(INVALID_ARGUMENT);
-    }
-    if (!args.has_setup()) {
-      return Status(INVALID_ARGUMENT);
-    }
-    auto server = CreateServer(args.setup());
-    if (!server) {
-      return Status(INVALID_ARGUMENT);
-    }
-    ServerStatus status;
-    status.set_port(FLAGS_server_port);
-    if (!stream->Write(status)) {
-      return Status(UNKNOWN);
-    }
-    while (stream->Read(&args)) {
-      if (!args.has_mark()) {
-        return Status(INVALID_ARGUMENT);
-      }
-      *status.mutable_stats() = server->Mark();
-      stream->Write(status);
-    }
-
-    return Status::OK;
-  }
-
   std::mutex mu_;
   bool acquired_;
 };
@@ -249,8 +228,6 @@ static void RunServer() {
 int main(int argc, char** argv) {
   grpc_init();
   ParseCommandLineFlags(&argc, &argv, true);
-
-  signal(SIGINT, sigint_handler);
 
   grpc::testing::RunServer();
 

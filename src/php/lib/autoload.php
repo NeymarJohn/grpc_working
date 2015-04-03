@@ -1,3 +1,4 @@
+<?php
 /*
  *
  * Copyright 2015, Google Inc.
@@ -30,22 +31,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+function grpcAutoloader($class) {
+  $prefix = 'Grpc\\';
 
-#include <grpc++/generic_stub.h>
+  $base_dir = __DIR__ . '/Grpc/';
 
-#include <grpc++/impl/rpc_method.h>
+  $len = strlen($prefix);
+  if (strncmp($prefix, $class, $len) !== 0) {
+    return;
+  }
 
-namespace grpc {
+  $relative_class = substr($class, $len);
 
-// begin a call to a named method
-std::unique_ptr<GenericClientAsyncReaderWriter> GenericStub::Call(
-    ClientContext* context, const grpc::string& method,
-    CompletionQueue* cq, void* tag) {
-  return std::unique_ptr<GenericClientAsyncReaderWriter>(
-      new GenericClientAsyncReaderWriter(
-          channel_.get(), cq, RpcMethod(method.c_str()), context, tag));
+  $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+
+  if (file_exists($file)) {
+    include $file;
+  }
 }
 
-
-} // namespace grpc
-
+spl_autoload_register('grpcAutoloader');
