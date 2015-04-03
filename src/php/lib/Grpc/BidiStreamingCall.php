@@ -43,7 +43,7 @@ class BidiStreamingCall extends AbstractCall {
    * @param array $metadata Metadata to send with the call, if applicable
    */
   public function start($metadata) {
-    $this->call->startBatch([OP_SEND_INITIAL_METADATA => $metadata]);
+    $this->call->start_batch([OP_SEND_INITIAL_METADATA => $metadata]);
   }
 
   /**
@@ -55,7 +55,7 @@ class BidiStreamingCall extends AbstractCall {
     if ($this->metadata === null) {
       $batch[OP_RECV_INITIAL_METADATA] = true;
     }
-    $read_event = $this->call->startBatch($batch);
+    $read_event = $this->call->start_batch($batch);
     if ($this->metadata === null) {
       $this->metadata = $read_event->metadata;
     }
@@ -68,14 +68,14 @@ class BidiStreamingCall extends AbstractCall {
    * @param ByteBuffer $data The data to write
    */
   public function write($data) {
-    $this->call->startBatch([OP_SEND_MESSAGE => $data->serialize()]);
+    $this->call->start_batch([OP_SEND_MESSAGE => $data->serialize()]);
   }
 
   /**
    * Indicate that no more writes will be sent.
    */
   public function writesDone() {
-    $this->call->startBatch([OP_SEND_CLOSE_FROM_CLIENT => true]);
+    $this->call->start_batch([OP_SEND_CLOSE_FROM_CLIENT => true]);
   }
 
   /**
@@ -84,7 +84,7 @@ class BidiStreamingCall extends AbstractCall {
    *     and array $metadata members
    */
   public function getStatus() {
-    $status_event = $this->call->startBatch([
+    $status_event = $this->call->start_batch([
         OP_RECV_STATUS_ON_CLIENT => true
                                               ]);
     return $status_event->status;

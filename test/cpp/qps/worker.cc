@@ -71,8 +71,6 @@ using namespace gflags;
 
 static bool got_sigint = false;
 
-static void sigint_handler(int x) {got_sigint = true;}
-
 namespace grpc {
 namespace testing {
 
@@ -249,8 +247,6 @@ static void RunServer() {
 int main(int argc, char** argv) {
   grpc_init();
   ParseCommandLineFlags(&argc, &argv, true);
-
-  signal(SIGINT, sigint_handler);
 
   grpc::testing::RunServer();
 
