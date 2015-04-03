@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-require_once realpath(dirname(__FILE__) . '/../../lib/autoload.php');
+require_once realpath(dirname(__FILE__) . '/../../vendor/autoload.php');
 require 'DrSlump/Protobuf.php';
 \DrSlump\Protobuf::autoload();
 require 'empty.php';
@@ -241,6 +241,7 @@ switch($args['test_case']) {
     break;
   case 'cancel_after_first_response':
     cancelAfterFirstResponse($stub);
+    break;
   default:
     exit(1);
 }
