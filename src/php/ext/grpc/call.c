@@ -37,20 +37,20 @@
 #include "config.h"
 #endif
 
-#include "php.h"
-#include "php_ini.h"
-#include "ext/standard/info.h"
-#include "ext/spl/spl_exceptions.h"
+#include <php.h>
+#include <php_ini.h>
+#include <ext/standard/info.h>
+#include <ext/spl/spl_exceptions.h>
 #include "php_grpc.h"
 
-#include "zend_exceptions.h"
-#include "zend_hash.h"
+#include <zend_exceptions.h>
+#include <zend_hash.h>
 
 #include <stdbool.h>
 
-#include "grpc/support/log.h"
-#include "grpc/support/alloc.h"
-#include "grpc/grpc.h"
+#include <grpc/support/log.h>
+#include <grpc/support/alloc.h>
+#include <grpc/grpc.h>
 
 #include "timeval.h"
 #include "channel.h"
@@ -263,7 +263,7 @@ PHP_METHOD(Call, __construct) {
  * @param array batch Array of actions to take
  * @return object Object with results of all actions
  */
-PHP_METHOD(Call, start_batch) {
+PHP_METHOD(Call, startBatch) {
   wrapped_grpc_call *call =
       (wrapped_grpc_call *)zend_object_store_get_object(getThis() TSRMLS_CC);
   grpc_op ops[8];
@@ -494,7 +494,7 @@ PHP_METHOD(Call, cancel) {
 
 static zend_function_entry call_methods[] = {
     PHP_ME(Call, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-    PHP_ME(Call, start_batch, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Call, startBatch, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Call, cancel, NULL, ZEND_ACC_PUBLIC) PHP_FE_END};
 
 void grpc_init_call(TSRMLS_D) {
