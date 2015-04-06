@@ -28,6 +28,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
+
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -35,28 +36,25 @@ using Grpc.Core;
 
 namespace math
 {
-    class MathClient
+    class MainClass
     {
         public static void Main(string[] args)
         {
+            String host = "0.0.0.0";
+
             GrpcEnvironment.Initialize();
 
-            using (Channel channel = new Channel("127.0.0.1:23456"))
-            {
-                MathGrpc.IMathServiceClient stub = new MathGrpc.MathServiceClientStub(channel);
-                MathExamples.DivExample(stub);
+            Server server = new Server();
+            server.AddServiceDefinition(MathGrpc.BindService(new MathServiceImpl()));
+            int port = server.AddListeningPort(host + ":0");
+            server.Start();
 
-                MathExamples.DivAsyncExample(stub).Wait();
+            Console.WriteLine("MathServer listening on port " + port);
 
-                MathExamples.FibExample(stub).Wait();
+            Console.WriteLine("Press any key to stop the server...");
+            Console.ReadKey();
 
-                MathExamples.SumExample(stub).Wait();
-
-                MathExamples.DivManyExample(stub).Wait();
-
-                MathExamples.DependendRequestsExample(stub).Wait();
-            }
-
+            server.ShutdownAsync().Wait();
             GrpcEnvironment.Shutdown();
         }
     }
