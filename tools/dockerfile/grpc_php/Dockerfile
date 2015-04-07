@@ -46,4 +46,8 @@ RUN cd /var/local/git/grpc/src/php/ext/grpc \
   && ./configure \
   && make
 
+RUN cd /var/local/git/grpc/src/php && composer install
+
+RUN cd /var/local/git/grpc/src/php && protoc-gen-php -i tests/interop/ -o tests/interop/ tests/interop/test.proto
+
 RUN cd /var/local/git/grpc/src/php && ./bin/run_tests.sh

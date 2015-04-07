@@ -94,6 +94,15 @@ CPPFLAGS_dbg = -O0
 LDFLAGS_dbg =
 DEFINES_dbg = _DEBUG DEBUG
 
+VALID_CONFIG_mutrace = 1
+CC_mutrace = $(DEFAULT_CC)
+CXX_mutrace = $(DEFAULT_CXX)
+LD_mutrace = $(DEFAULT_CC)
+LDXX_mutrace = $(DEFAULT_CXX)
+CPPFLAGS_mutrace = -O0
+LDFLAGS_mutrace = -rdynamic
+DEFINES_mutrace = _DEBUG DEBUG
+
 VALID_CONFIG_valgrind = 1
 REQUIRE_CUSTOM_LIBRARIES_valgrind = 1
 CC_valgrind = $(DEFAULT_CC)
@@ -218,7 +227,6 @@ ifeq ($(HAS_CXX11),true)
 CXXFLAGS += -std=c++11
 else
 CXXFLAGS += -std=c++0x
-DEFINES += GRPC_OLD_CXX
 endif
 CPPFLAGS += -g -Wall -Wextra -Werror -Wno-long-long -Wno-unused-parameter
 LDFLAGS += -g
@@ -276,7 +284,7 @@ E = @echo
 Q = @
 endif
 
-VERSION = 0.5.0.0
+VERSION = 0.6.0.0
 
 CPPFLAGS_NO_ARCH += $(addprefix -I, $(INCLUDES)) $(addprefix -D, $(DEFINES))
 CPPFLAGS += $(CPPFLAGS_NO_ARCH) $(ARCH_FLAGS)
@@ -2325,6 +2333,7 @@ LIBGPR_SRC = \
     src/core/support/sync.c \
     src/core/support/sync_posix.c \
     src/core/support/sync_win32.c \
+    src/core/support/thd.c \
     src/core/support/thd_posix.c \
     src/core/support/thd_win32.c \
     src/core/support/time.c \
@@ -2419,6 +2428,7 @@ $(OBJDIR)/$(CONFIG)/src/core/support/string_win32.o:
 $(OBJDIR)/$(CONFIG)/src/core/support/sync.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/sync_posix.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/sync_win32.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/thd.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/thd_posix.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/thd_win32.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/time.o: 
