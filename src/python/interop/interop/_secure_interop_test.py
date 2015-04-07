@@ -45,15 +45,14 @@ class SecureInteropTest(
     unittest.TestCase):
 
   def setUp(self):
-    self.server = implementations.server(
+    self.server = implementations.secure_server(
         methods.SERVICE_NAME, methods.SERVER_METHODS, 0,
-        private_key=resources.private_key(),
-        certificate_chain=resources.certificate_chain())
+        resources.private_key(), resources.certificate_chain())
     self.server.start()
     port = self.server.port()
-    self.stub = implementations.stub(
+    self.stub = implementations.secure_stub(
         methods.SERVICE_NAME, methods.CLIENT_METHODS, 'localhost', port,
-        secure=True, root_certificates=resources.test_root_certificates(),
+        resources.test_root_certificates(), None, None,
         server_host_override=_SERVER_HOST_OVERRIDE)
 
   def tearDown(self):

@@ -34,7 +34,7 @@
 class EndToEndTest extends PHPUnit_Framework_TestCase{
   public function setUp() {
     $this->server = new Grpc\Server([]);
-    $port = $this->server->addHttp2Port('0.0.0.0:0');
+    $port = $this->server->add_http2_port('0.0.0.0:0');
     $this->channel = new Grpc\Channel('localhost:' . $port, []);
     $this->server->start();
   }
@@ -45,13 +45,13 @@ class EndToEndTest extends PHPUnit_Framework_TestCase{
   }
 
   public function testSimpleRequestBody() {
-    $deadline = Grpc\Timeval::infFuture();
+    $deadline = Grpc\Timeval::inf_future();
     $status_text = 'xyz';
     $call = new Grpc\Call($this->channel,
                           'dummy_method',
                           $deadline);
 
-    $event = $call->startBatch([
+    $event = $call->start_batch([
         Grpc\OP_SEND_INITIAL_METADATA => [],
         Grpc\OP_SEND_CLOSE_FROM_CLIENT => true
                                        ]);
@@ -59,12 +59,12 @@ class EndToEndTest extends PHPUnit_Framework_TestCase{
     $this->assertTrue($event->send_metadata);
     $this->assertTrue($event->send_close);
 
-    $event = $this->server->requestCall();
+    $event = $this->server->request_call();
     $this->assertSame('dummy_method', $event->method);
     $this->assertSame([], $event->metadata);
     $server_call = $event->call;
 
-    $event = $server_call->startBatch([
+    $event = $server_call->start_batch([
         Grpc\OP_SEND_INITIAL_METADATA => [],
         Grpc\OP_SEND_STATUS_FROM_SERVER => [
             'metadata' => [],
@@ -78,7 +78,7 @@ class EndToEndTest extends PHPUnit_Framework_TestCase{
     $this->assertTrue($event->send_status);
     $this->assertFalse($event->cancelled);
 
-    $event = $call->startBatch([
+    $event = $call->start_batch([
         Grpc\OP_RECV_INITIAL_METADATA => true,
         Grpc\OP_RECV_STATUS_ON_CLIENT => true
                                  ]);
@@ -94,7 +94,7 @@ class EndToEndTest extends PHPUnit_Framework_TestCase{
   }
 
   public function testClientServerFullRequestResponse() {
-    $deadline = Grpc\Timeval::infFuture();
+    $deadline = Grpc\Timeval::inf_future();
     $req_text = 'client_server_full_request_response';
     $reply_text = 'reply:client_server_full_request_response';
     $status_text = 'status:client_server_full_response_text';
@@ -103,7 +103,7 @@ class EndToEndTest extends PHPUnit_Framework_TestCase{
                           'dummy_method',
                           $deadline);
 
-    $event = $call->startBatch([
+    $event = $call->start_batch([
         Grpc\OP_SEND_INITIAL_METADATA => [],
         Grpc\OP_SEND_CLOSE_FROM_CLIENT => true,
         Grpc\OP_SEND_MESSAGE => $req_text
@@ -113,11 +113,11 @@ class EndToEndTest extends PHPUnit_Framework_TestCase{
     $this->assertTrue($event->send_close);
     $this->assertTrue($event->send_message);
 
-    $event = $this->server->requestCall();
+    $event = $this->server->request_call();
     $this->assertSame('dummy_method', $event->method);
     $server_call = $event->call;
 
-    $event = $server_call->startBatch([
+    $event = $server_call->start_batch([
         Grpc\OP_SEND_INITIAL_METADATA => [],
         Grpc\OP_SEND_MESSAGE => $reply_text,
         Grpc\OP_SEND_STATUS_FROM_SERVER => [
@@ -135,7 +135,7 @@ class EndToEndTest extends PHPUnit_Framework_TestCase{
     $this->assertFalse($event->cancelled);
     $this->assertSame($req_text, $event->message);
 
-    $event = $call->startBatch([
+    $event = $call->start_batch([
         Grpc\OP_RECV_INITIAL_METADATA => true,
         Grpc\OP_RECV_MESSAGE => true,
         Grpc\OP_RECV_STATUS_ON_CLIENT => true,

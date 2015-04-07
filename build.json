@@ -337,7 +337,6 @@
         "src/core/support/sync.c",
         "src/core/support/sync_posix.c",
         "src/core/support/sync_win32.c",
-        "src/core/support/thd.c",
         "src/core/support/thd_posix.c",
         "src/core/support/thd_win32.c",
         "src/core/support/time.c",
@@ -351,9 +350,6 @@
       "name": "gpr_test_util",
       "build": "private",
       "language": "c",
-      "headers": [
-        "test/core/util/test_config.h"
-      ],
       "src": [
         "test/core/util/test_config.c"
       ],
@@ -438,7 +434,6 @@
       ],
       "deps": [
         "gpr",
-        "gpr_test_util",
         "grpc"
       ],
       "vs_project_guid": "{17BCAFC0-5FDC-4C94-AEB9-95F3E220614B}"

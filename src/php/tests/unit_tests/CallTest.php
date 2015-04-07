@@ -37,21 +37,21 @@ class CallTest extends PHPUnit_Framework_TestCase{
 
   public static function setUpBeforeClass() {
     self::$server = new Grpc\Server([]);
-    self::$port = self::$server->addHttp2Port('0.0.0.0:0');
+    self::$port = self::$server->add_http2_port('0.0.0.0:0');
   }
 
   public function setUp() {
     $this->channel = new Grpc\Channel('localhost:' . self::$port, []);
     $this->call = new Grpc\Call($this->channel,
                                 '/foo',
-                                Grpc\Timeval::infFuture());
+                                Grpc\Timeval::inf_future());
   }
 
   public function testAddEmptyMetadata() {
     $batch = [
         Grpc\OP_SEND_INITIAL_METADATA => []
               ];
-    $result = $this->call->startBatch($batch);
+    $result = $this->call->start_batch($batch);
     $this->assertTrue($result->send_metadata);
   }
 
@@ -59,7 +59,7 @@ class CallTest extends PHPUnit_Framework_TestCase{
     $batch = [
         Grpc\OP_SEND_INITIAL_METADATA => ['key' => ['value']]
               ];
-    $result = $this->call->startBatch($batch);
+    $result = $this->call->start_batch($batch);
     $this->assertTrue($result->send_metadata);
   }
 
@@ -67,7 +67,7 @@ class CallTest extends PHPUnit_Framework_TestCase{
     $batch = [
         Grpc\OP_SEND_INITIAL_METADATA => ['key' => ['value1', 'value2']]
               ];
-    $result = $this->call->startBatch($batch);
+    $result = $this->call->start_batch($batch);
     $this->assertTrue($result->send_metadata);
   }
 
@@ -76,7 +76,7 @@ class CallTest extends PHPUnit_Framework_TestCase{
         Grpc\OP_SEND_INITIAL_METADATA => ['key1' => ['value1'],
                                           'key2' => ['value2', 'value3']]
               ];
-    $result = $this->call->startBatch($batch);
+    $result = $this->call->start_batch($batch);
     $this->assertTrue($result->send_metadata);
   }
 }

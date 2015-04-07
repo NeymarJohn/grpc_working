@@ -107,7 +107,6 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
           request_payload_(mrd->request_payload_),
           method_(mrd->method_) {
       ctx_.call_ = mrd->call_;
-      ctx_.cq_ = &cq_;
       GPR_ASSERT(mrd->in_flight_);
       mrd->in_flight_ = false;
       mrd->request_metadata_.count = 0;
@@ -183,7 +182,7 @@ Server::Server(ThreadPoolInterface* thread_pool, bool thread_pool_owned)
 
 Server::~Server() {
   {
-    grpc::unique_lock<grpc::mutex> lock(mu_);
+    std::unique_lock<std::mutex> lock(mu_);
     if (started_ && !shutdown_) {
       lock.unlock();
       Shutdown();
@@ -259,7 +258,7 @@ bool Server::Start() {
 }
 
 void Server::Shutdown() {
-  grpc::unique_lock<grpc::mutex> lock(mu_);
+  std::unique_lock<std::mutex> lock(mu_);
   if (started_ && !shutdown_) {
     shutdown_ = true;
     grpc_server_shutdown(server_);
@@ -273,7 +272,7 @@ void Server::Shutdown() {
 }
 
 void Server::Wait() {
-  grpc::unique_lock<grpc::mutex> lock(mu_);
+  std::unique_lock<std::mutex> lock(mu_);
   while (num_running_cb_ != 0) {
     callback_cv_.wait(lock);
   }
@@ -365,7 +364,6 @@ class Server::AsyncRequest GRPC_FINAL : public CompletionQueueTag {
       }
     }
     ctx->call_ = call_;
-    ctx->cq_ = cq_;
     Call call(call_, server_, cq_);
     if (orig_status && call_) {
       ctx->BeginCompletionOp(&call);
@@ -405,7 +403,7 @@ void Server::RequestAsyncGenericCall(GenericServerContext* context,
 
 void Server::ScheduleCallback() {
   {
-    grpc::unique_lock<grpc::mutex> lock(mu_);
+    std::unique_lock<std::mutex> lock(mu_);
     num_running_cb_++;
   }
   thread_pool_->ScheduleCallback(std::bind(&Server::RunRpc, this));
@@ -426,7 +424,7 @@ void Server::RunRpc() {
   }
 
   {
-    grpc::unique_lock<grpc::mutex> lock(mu_);
+    std::unique_lock<std::mutex> lock(mu_);
     num_running_cb_--;
     if (shutdown_) {
       callback_cv_.notify_all();

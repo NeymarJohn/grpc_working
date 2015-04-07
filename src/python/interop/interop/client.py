@@ -66,14 +66,14 @@ def _stub(args):
     else:
       root_certificates = resources.prod_root_certificates()
 
-    stub = implementations.stub(
+    stub = implementations.secure_stub(
         methods.SERVICE_NAME, methods.CLIENT_METHODS, args.server_host,
-        args.server_port, secure=True, root_certificates=root_certificates,
+        args.server_port, root_certificates, None, None,
         server_host_override=args.server_host_override)
   else:
-    stub = implementations.stub(
+    stub = implementations.insecure_stub(
         methods.SERVICE_NAME, methods.CLIENT_METHODS, args.server_host,
-        args.server_port, secure=False)
+        args.server_port)
   return stub
 
 
