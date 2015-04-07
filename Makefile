@@ -227,6 +227,7 @@ ifeq ($(HAS_CXX11),true)
 CXXFLAGS += -std=c++11
 else
 CXXFLAGS += -std=c++0x
+DEFINES += GRPC_OLD_CXX
 endif
 CPPFLAGS += -g -Wall -Wextra -Werror -Wno-long-long -Wno-unused-parameter
 LDFLAGS += -g
@@ -284,7 +285,7 @@ E = @echo
 Q = @
 endif
 
-VERSION = 0.6.0.0
+VERSION = 0.5.0.0
 
 CPPFLAGS_NO_ARCH += $(addprefix -I, $(INCLUDES)) $(addprefix -D, $(DEFINES))
 CPPFLAGS += $(CPPFLAGS_NO_ARCH) $(ARCH_FLAGS)
