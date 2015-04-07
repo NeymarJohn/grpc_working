@@ -31,37 +31,36 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
-#define GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
+/* Posix implementation for gpr threads. */
 
-#include <grpc++/config.h>
+#include <memory.h>
 
-#include <grpc++/impl/sync.h>
-#include <grpc++/impl/thd.h>
-#include <grpc++/thread_pool_interface.h>
+#include <grpc/support/thd.h>
 
-#include <queue>
-#include <vector>
-
-namespace grpc {
-
-class ThreadPool GRPC_FINAL : public ThreadPoolInterface {
- public:
-  explicit ThreadPool(int num_threads);
-  ~ThreadPool();
-
-  void ScheduleCallback(const std::function<void()>& callback) GRPC_OVERRIDE;
-
- private:
-  grpc::mutex mu_;
-  grpc::condition_variable cv_;
-  bool shutdown_;
-  std::queue<std::function<void()>> callbacks_;
-  std::vector<grpc::thread> threads_;
-
-  void ThreadFunc();
+enum {
+  GPR_THD_JOINABLE = 1
 };
 
-}  // namespace grpc
+gpr_thd_options gpr_thd_options_default(void) {
+  gpr_thd_options options;
+  memset(&options, 0, sizeof(options));
+  return options;
+}
 
-#endif  // GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
+void gpr_thd_options_set_detached(gpr_thd_options *options) {
+  options->flags &= ~GPR_THD_JOINABLE;
+}
+
+void gpr_thd_options_set_joinable(gpr_thd_options *options) {
+  options->flags |= GPR_THD_JOINABLE;
+}
+
+int gpr_thd_options_is_detached(const gpr_thd_options *options) {
+  if (!options) return 1;
+  return (options->flags & GPR_THD_JOINABLE) == 0;
+}
+
+int gpr_thd_options_is_joinable(const gpr_thd_options *options) {
+  if (!options) return 0;
+  return (options->flags & GPR_THD_JOINABLE) == GPR_THD_JOINABLE;
+}
