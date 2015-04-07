@@ -31,15 +31,28 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_THD_CXX11_H
-#define GRPCXX_IMPL_THD_CXX11_H
+#ifndef GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_HELPERS_H
+#define GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_HELPERS_H
 
-#include <thread>
+#include <map>
+#include "src/compiler/config.h"
+#include "src/compiler/generator_helpers.h"
 
-namespace grpc {
+namespace grpc_objective_c_generator {
 
-using std::thread;
+const grpc::string prefix = "PBG";
 
-}  // namespace grpc
+inline grpc::string MessageHeaderName(const grpc::protobuf::FileDescriptor *file) {
+  return grpc_generator::FileNameInUpperCamel(file) + ".pb.h";
+}
 
-#endif  // GRPCXX_IMPL_THD_CXX11_H
+inline grpc::string StubFileName(grpc::string service_name) {
+  return prefix + service_name + "Stub";
+}
+
+inline grpc::string PrefixedName(grpc::string name) {
+  return prefix + name;
+}
+
+}
+#endif  // GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_HELPERS_H

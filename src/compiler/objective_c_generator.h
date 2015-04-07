@@ -31,15 +31,18 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_SYNC_H
-#define GRPCXX_IMPL_SYNC_H
+#ifndef GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_H
+#define GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_H
 
-#include <grpc++/config.h>
+#include "src/compiler/config.h"
 
-#ifdef GRPC_CXX0X_NO_THREAD
-#include <grpc++/impl/sync_no_cxx11.h>
-#else
-#include <grpc++/impl/sync_cxx11.h>
-#endif
+namespace grpc_objective_c_generator {
 
-#endif  // GRPCXX_IMPL_SYNC_H
+grpc::string GetHeader(const grpc::protobuf::ServiceDescriptor *service,
+                       const grpc::string message_header);
+
+grpc::string GetSource(const grpc::protobuf::ServiceDescriptor *service);
+
+}  // namespace grpc_objective_c_generator
+
+#endif  // GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_H
