@@ -31,6 +31,7 @@
  *
  */
 
+#include <chrono>
 #include <fstream>
 #include <memory>
 #include <sstream>
@@ -137,7 +138,8 @@ std::shared_ptr<ChannelInterface> CreateChannelForTestCase(
     std::unique_ptr<Credentials> creds;
     GPR_ASSERT(FLAGS_enable_ssl);
     grpc::string json_key = GetServiceAccountJsonKey();
-    creds = ServiceAccountCredentials(json_key, FLAGS_oauth_scope, 3600);
+    creds = ServiceAccountCredentials(json_key, FLAGS_oauth_scope,
+                                      std::chrono::hours(1));
     return CreateTestChannel(host_port, FLAGS_server_host_override,
                              FLAGS_enable_ssl, FLAGS_use_prod_roots, creds);
   } else if (test_case == "compute_engine_creds") {
@@ -150,7 +152,7 @@ std::shared_ptr<ChannelInterface> CreateChannelForTestCase(
     std::unique_ptr<Credentials> creds;
     GPR_ASSERT(FLAGS_enable_ssl);
     grpc::string json_key = GetServiceAccountJsonKey();
-    creds = JWTCredentials(json_key, 3600);
+    creds = JWTCredentials(json_key, std::chrono::hours(1));
     return CreateTestChannel(host_port, FLAGS_server_host_override,
                              FLAGS_enable_ssl, FLAGS_use_prod_roots, creds);
   } else {

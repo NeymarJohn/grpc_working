@@ -36,7 +36,7 @@
 
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
-#include <grpc++/time.h>
+#include "src/cpp/util/time.h"
 
 namespace grpc {
 
@@ -75,6 +75,13 @@ CompletionQueue::NextStatus CompletionQueue::AsyncNextInternal(
       return GOT_EVENT;
     }
   }
+}
+
+CompletionQueue::NextStatus CompletionQueue::AsyncNext(
+    void** tag, bool* ok, std::chrono::system_clock::time_point deadline) {
+  gpr_timespec gpr_deadline;
+  Timepoint2Timespec(deadline, &gpr_deadline);
+  return AsyncNextInternal(tag, ok, gpr_deadline);
 }
 
 bool CompletionQueue::Pluck(CompletionQueueTag* tag) {
