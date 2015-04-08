@@ -31,7 +31,6 @@
  *
  */
 
-#include <chrono>
 #include <fstream>
 #include <memory>
 #include <sstream>
@@ -51,9 +50,9 @@
 #include <grpc++/status.h>
 #include <grpc++/stream.h>
 #include "test/cpp/util/create_test_channel.h"
-#include "test/cpp/interop/test.grpc.pb.h"
-#include "test/cpp/interop/empty.grpc.pb.h"
-#include "test/cpp/interop/messages.grpc.pb.h"
+#include "test/cpp/interop/test.pb.h"
+#include "test/cpp/interop/empty.pb.h"
+#include "test/cpp/interop/messages.pb.h"
 
 DEFINE_bool(enable_ssl, false, "Whether to use ssl/tls.");
 DEFINE_bool(use_prod_roots, false, "True to use SSL roots for google");
@@ -138,8 +137,7 @@ std::shared_ptr<ChannelInterface> CreateChannelForTestCase(
     std::unique_ptr<Credentials> creds;
     GPR_ASSERT(FLAGS_enable_ssl);
     grpc::string json_key = GetServiceAccountJsonKey();
-    creds = ServiceAccountCredentials(json_key, FLAGS_oauth_scope,
-                                      std::chrono::hours(1));
+    creds = ServiceAccountCredentials(json_key, FLAGS_oauth_scope, 3600);
     return CreateTestChannel(host_port, FLAGS_server_host_override,
                              FLAGS_enable_ssl, FLAGS_use_prod_roots, creds);
   } else if (test_case == "compute_engine_creds") {
@@ -152,7 +150,7 @@ std::shared_ptr<ChannelInterface> CreateChannelForTestCase(
     std::unique_ptr<Credentials> creds;
     GPR_ASSERT(FLAGS_enable_ssl);
     grpc::string json_key = GetServiceAccountJsonKey();
-    creds = JWTCredentials(json_key, std::chrono::hours(1));
+    creds = JWTCredentials(json_key, 3600);
     return CreateTestChannel(host_port, FLAGS_server_host_override,
                              FLAGS_enable_ssl, FLAGS_use_prod_roots, creds);
   } else {

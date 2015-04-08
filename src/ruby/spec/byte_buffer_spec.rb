@@ -29,33 +29,39 @@
 
 require 'grpc'
 
-# GRPC contains the General RPC module.
-module GRPC
-  # OutOfTime is an exception class that indicates that an RPC exceeded its
-  # deadline.
-  OutOfTime = Class.new(StandardError)
-
-  # BadStatus is an exception class that indicates that an error occurred at
-  # either end of a GRPC connection.  When raised, it indicates that a status
-  # error should be returned to the other end of a GRPC connection; when
-  # caught it means that this end received a status error.
-  class BadStatus < StandardError
-    attr_reader :code, :details
-
-    # @param code [Numeric] the status code
-    # @param details [String] the details of the exception
-    def initialize(code, details = 'unknown cause')
-      super("#{code}:#{details}")
-      @code = code
-      @details = details
+describe GRPC::Core::ByteBuffer do
+  describe '#new' do
+    it 'is constructed from a string' do
+      expect { GRPC::Core::ByteBuffer.new('#new') }.not_to raise_error
     end
 
-    # Converts the exception to a GRPC::Status for use in the networking
-    # wrapper layer.
-    #
-    # @return [Status] with the same code and details
-    def to_status
-      Status.new(code, details)
+    it 'can be constructed from the empty string' do
+      expect { GRPC::Core::ByteBuffer.new('') }.not_to raise_error
+    end
+
+    it 'cannot be constructed from nil' do
+      expect { GRPC::Core::ByteBuffer.new(nil) }.to raise_error TypeError
+    end
+
+    it 'cannot be constructed from non-strings' do
+      [1, Object.new, :a_symbol].each do |x|
+        expect { GRPC::Core::ByteBuffer.new(x) }.to raise_error TypeError
+      end
+    end
+  end
+
+  describe '#to_s' do
+    it 'is the string value the ByteBuffer was constructed with' do
+      expect(GRPC::Core::ByteBuffer.new('#to_s').to_s).to eq('#to_s')
+    end
+  end
+
+  describe '#dup' do
+    it 'makes an instance whose #to_s is the original string value' do
+      bb = GRPC::Core::ByteBuffer.new('#dup')
+      a_copy = bb.dup
+      expect(a_copy.to_s).to eq('#dup')
+      expect(a_copy.dup.to_s).to eq('#dup')
     end
   end
 end

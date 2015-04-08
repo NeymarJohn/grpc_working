@@ -29,33 +29,16 @@
 
 require 'grpc'
 
-# GRPC contains the General RPC module.
-module GRPC
-  # OutOfTime is an exception class that indicates that an RPC exceeded its
-  # deadline.
-  OutOfTime = Class.new(StandardError)
-
-  # BadStatus is an exception class that indicates that an error occurred at
-  # either end of a GRPC connection.  When raised, it indicates that a status
-  # error should be returned to the other end of a GRPC connection; when
-  # caught it means that this end received a status error.
-  class BadStatus < StandardError
-    attr_reader :code, :details
-
-    # @param code [Numeric] the status code
-    # @param details [String] the details of the exception
-    def initialize(code, details = 'unknown cause')
-      super("#{code}:#{details}")
-      @code = code
-      @details = details
+describe 'Wrapped classes where .new cannot create an instance' do
+  describe GRPC::Core::Event do
+    it 'should fail .new fail with a runtime error' do
+      expect { GRPC::Core::Event.new }.to raise_error(TypeError)
     end
+  end
 
-    # Converts the exception to a GRPC::Status for use in the networking
-    # wrapper layer.
-    #
-    # @return [Status] with the same code and details
-    def to_status
-      Status.new(code, details)
+  describe GRPC::Core::Call do
+    it 'should fail .new fail with a runtime error' do
+      expect { GRPC::Core::Event.new }.to raise_error(TypeError)
     end
   end
 end

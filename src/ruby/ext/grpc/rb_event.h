@@ -31,28 +31,23 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_HELPERS_H
-#define GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_HELPERS_H
+#ifndef GRPC_RB_EVENT_H_
+#define GRPC_RB_EVENT_H_
 
-#include <map>
-#include "src/compiler/config.h"
-#include "src/compiler/generator_helpers.h"
+#include <ruby.h>
+#include <grpc/grpc.h>
 
-namespace grpc_objective_c_generator {
+/* rb_cEvent is the Event class whose instances proxy grpc_event. */
+extern VALUE rb_cEvent;
 
-const grpc::string prefix = "PBG";
+/* rb_cEventError is the ruby class that acts the exception thrown during rpc
+   event processing. */
+extern VALUE rb_eEventError;
 
-inline grpc::string MessageHeaderName(const grpc::protobuf::FileDescriptor *file) {
-  return grpc_generator::FileNameInUpperCamel(file) + ".pb.h";
-}
+/* Used to create new ruby event objects */
+VALUE grpc_rb_new_event(grpc_event *ev);
 
-inline grpc::string StubFileName(grpc::string service_name) {
-  return prefix + service_name + "Stub";
-}
+/* Initializes the Event and EventError classes. */
+void Init_grpc_event();
 
-inline grpc::string PrefixedName(grpc::string name) {
-  return prefix + name;
-}
-
-}
-#endif  // GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_HELPERS_H
+#endif /* GRPC_RB_EVENT_H_ */

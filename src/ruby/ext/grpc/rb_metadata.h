@@ -31,27 +31,23 @@
  *
  */
 
-#ifndef TEST_QPS_REPORT_H
-#define TEST_QPS_REPORT_H
+#ifndef GRPC_RB_METADATA_H_
+#define GRPC_RB_METADATA_H_
 
-#include "test/cpp/qps/driver.h"
+#include <grpc/grpc.h>
+#include <ruby.h>
 
-namespace grpc {
-namespace testing {
+/* rb_cMetadata is the Metadata class whose instances proxy grpc_metadata. */
+extern VALUE rb_cMetadata;
 
-// QPS: XXX
-void ReportQPS(const ScenarioResult& result);
-// QPS: XXX (YYY/server core)
-void ReportQPSPerCore(const ScenarioResult& result, const ServerConfig& config);
-// Latency (50/90/95/99/99.9%-ile): AA/BB/CC/DD/EE us
-void ReportLatency(const ScenarioResult& result);
-// Server system time: XX%
-// Server user time: XX%
-// Client system time: XX%
-// Client user time: XX%
-void ReportTimes(const ScenarioResult& result);
+/* grpc_rb_metadata_create_with_mark creates a grpc_rb_metadata with a ruby mark
+ * object that will be kept alive while the metadata is alive. */
+extern VALUE grpc_rb_metadata_create_with_mark(VALUE mark, grpc_metadata* md);
 
-}  // namespace testing
-}  // namespace grpc
+/* Gets the wrapped metadata from the ruby wrapper */
+grpc_metadata* grpc_rb_get_wrapped_metadata(VALUE v);
 
-#endif
+/* Initializes the Metadata class. */
+void Init_grpc_metadata();
+
+#endif /* GRPC_RB_METADATA_H_ */
