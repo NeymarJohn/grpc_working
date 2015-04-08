@@ -227,6 +227,7 @@ ifeq ($(HAS_CXX11),true)
 CXXFLAGS += -std=c++11
 else
 CXXFLAGS += -std=c++0x
+DEFINES += GRPC_OLD_CXX
 endif
 CPPFLAGS += -g -Wall -Wextra -Werror -Wno-long-long -Wno-unused-parameter
 LDFLAGS += -g
@@ -284,7 +285,7 @@ E = @echo
 Q = @
 endif
 
-VERSION = 0.6.0.0
+VERSION = 0.5.0.0
 
 CPPFLAGS_NO_ARCH += $(addprefix -I, $(INCLUDES)) $(addprefix -D, $(DEFINES))
 CPPFLAGS += $(CPPFLAGS_NO_ARCH) $(ARCH_FLAGS)
@@ -455,7 +456,7 @@ endif
 
 .SECONDARY = %.pb.h %.pb.cc
 
-PROTOC_PLUGINS = $(BINDIR)/$(CONFIG)/grpc_cpp_plugin $(BINDIR)/$(CONFIG)/grpc_objective_c_plugin $(BINDIR)/$(CONFIG)/grpc_python_plugin $(BINDIR)/$(CONFIG)/grpc_ruby_plugin
+PROTOC_PLUGINS = $(BINDIR)/$(CONFIG)/grpc_cpp_plugin $(BINDIR)/$(CONFIG)/grpc_python_plugin $(BINDIR)/$(CONFIG)/grpc_ruby_plugin
 ifeq ($(DEP_MISSING),)
 all: static shared plugins
 dep_error:
@@ -631,7 +632,6 @@ end2end_test: $(BINDIR)/$(CONFIG)/end2end_test
 generic_end2end_test: $(BINDIR)/$(CONFIG)/generic_end2end_test
 grpc_cli: $(BINDIR)/$(CONFIG)/grpc_cli
 grpc_cpp_plugin: $(BINDIR)/$(CONFIG)/grpc_cpp_plugin
-grpc_objective_c_plugin: $(BINDIR)/$(CONFIG)/grpc_objective_c_plugin
 grpc_python_plugin: $(BINDIR)/$(CONFIG)/grpc_python_plugin
 grpc_ruby_plugin: $(BINDIR)/$(CONFIG)/grpc_ruby_plugin
 interop_client: $(BINDIR)/$(CONFIG)/interop_client
@@ -2163,10 +2163,10 @@ ifeq ($(SYSTEM),MINGW32)
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/gpr.$(SHARED_EXT) $(prefix)/lib/gpr.$(SHARED_EXT)
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/libgpr-imp.a $(prefix)/lib/libgpr-imp.a
 else
+ifneq ($(SYSTEM),Darwin)
 	$(E) "[INSTALL] Installing libgpr.$(SHARED_EXT)"
 	$(Q) $(INSTALL) -d $(prefix)/lib
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/libgpr.$(SHARED_EXT) $(prefix)/lib/libgpr.$(SHARED_EXT)
-ifneq ($(SYSTEM),Darwin)
 	$(Q) ln -sf libgpr.$(SHARED_EXT) $(prefix)/lib/libgpr.so
 endif
 endif
@@ -2176,10 +2176,10 @@ ifeq ($(SYSTEM),MINGW32)
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/grpc.$(SHARED_EXT) $(prefix)/lib/grpc.$(SHARED_EXT)
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/libgrpc-imp.a $(prefix)/lib/libgrpc-imp.a
 else
+ifneq ($(SYSTEM),Darwin)
 	$(E) "[INSTALL] Installing libgrpc.$(SHARED_EXT)"
 	$(Q) $(INSTALL) -d $(prefix)/lib
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/libgrpc.$(SHARED_EXT) $(prefix)/lib/libgrpc.$(SHARED_EXT)
-ifneq ($(SYSTEM),Darwin)
 	$(Q) ln -sf libgrpc.$(SHARED_EXT) $(prefix)/lib/libgrpc.so
 endif
 endif
@@ -2189,10 +2189,10 @@ ifeq ($(SYSTEM),MINGW32)
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/grpc_unsecure.$(SHARED_EXT) $(prefix)/lib/grpc_unsecure.$(SHARED_EXT)
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/libgrpc_unsecure-imp.a $(prefix)/lib/libgrpc_unsecure-imp.a
 else
+ifneq ($(SYSTEM),Darwin)
 	$(E) "[INSTALL] Installing libgrpc_unsecure.$(SHARED_EXT)"
 	$(Q) $(INSTALL) -d $(prefix)/lib
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.$(SHARED_EXT) $(prefix)/lib/libgrpc_unsecure.$(SHARED_EXT)
-ifneq ($(SYSTEM),Darwin)
 	$(Q) ln -sf libgrpc_unsecure.$(SHARED_EXT) $(prefix)/lib/libgrpc_unsecure.so
 endif
 endif
@@ -2210,10 +2210,10 @@ ifeq ($(SYSTEM),MINGW32)
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/grpc++.$(SHARED_EXT) $(prefix)/lib/grpc++.$(SHARED_EXT)
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/libgrpc++-imp.a $(prefix)/lib/libgrpc++-imp.a
 else
+ifneq ($(SYSTEM),Darwin)
 	$(E) "[INSTALL] Installing libgrpc++.$(SHARED_EXT)"
 	$(Q) $(INSTALL) -d $(prefix)/lib
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/libgrpc++.$(SHARED_EXT) $(prefix)/lib/libgrpc++.$(SHARED_EXT)
-ifneq ($(SYSTEM),Darwin)
 	$(Q) ln -sf libgrpc++.$(SHARED_EXT) $(prefix)/lib/libgrpc++.so
 endif
 endif
@@ -2223,10 +2223,10 @@ ifeq ($(SYSTEM),MINGW32)
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/grpc++_unsecure.$(SHARED_EXT) $(prefix)/lib/grpc++_unsecure.$(SHARED_EXT)
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure-imp.a $(prefix)/lib/libgrpc++_unsecure-imp.a
 else
+ifneq ($(SYSTEM),Darwin)
 	$(E) "[INSTALL] Installing libgrpc++_unsecure.$(SHARED_EXT)"
 	$(Q) $(INSTALL) -d $(prefix)/lib
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure.$(SHARED_EXT) $(prefix)/lib/libgrpc++_unsecure.$(SHARED_EXT)
-ifneq ($(SYSTEM),Darwin)
 	$(Q) ln -sf libgrpc++_unsecure.$(SHARED_EXT) $(prefix)/lib/libgrpc++_unsecure.so
 endif
 endif
@@ -2244,10 +2244,10 @@ ifeq ($(SYSTEM),MINGW32)
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/grpc_csharp_ext.$(SHARED_EXT) $(prefix)/lib/grpc_csharp_ext.$(SHARED_EXT)
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext-imp.a $(prefix)/lib/libgrpc_csharp_ext-imp.a
 else
+ifneq ($(SYSTEM),Darwin)
 	$(E) "[INSTALL] Installing libgrpc_csharp_ext.$(SHARED_EXT)"
 	$(Q) $(INSTALL) -d $(prefix)/lib
 	$(Q) $(INSTALL) $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext.$(SHARED_EXT) $(prefix)/lib/libgrpc_csharp_ext.$(SHARED_EXT)
-ifneq ($(SYSTEM),Darwin)
 	$(Q) ln -sf libgrpc_csharp_ext.$(SHARED_EXT) $(prefix)/lib/libgrpc_csharp_ext.so
 endif
 endif
@@ -2265,8 +2265,6 @@ else
 	$(E) "[INSTALL] Installing grpc protoc plugins"
 	$(Q) $(INSTALL) -d $(prefix)/bin
 	$(Q) $(INSTALL) $(BINDIR)/$(CONFIG)/grpc_cpp_plugin $(prefix)/bin/grpc_cpp_plugin
-	$(Q) $(INSTALL) -d $(prefix)/bin
-	$(Q) $(INSTALL) $(BINDIR)/$(CONFIG)/grpc_objective_c_plugin $(prefix)/bin/grpc_objective_c_plugin
 	$(Q) $(INSTALL) -d $(prefix)/bin
 	$(Q) $(INSTALL) $(BINDIR)/$(CONFIG)/grpc_python_plugin $(prefix)/bin/grpc_python_plugin
 	$(Q) $(INSTALL) -d $(prefix)/bin
@@ -2336,7 +2334,6 @@ LIBGPR_SRC = \
     src/core/support/sync.c \
     src/core/support/sync_posix.c \
     src/core/support/sync_win32.c \
-    src/core/support/thd.c \
     src/core/support/thd_posix.c \
     src/core/support/thd_win32.c \
     src/core/support/time.c \
@@ -2390,7 +2387,7 @@ $(LIBDIR)/$(CONFIG)/libgpr.$(SHARED_EXT): $(LIBGPR_OBJS)  $(ZLIB_DEP)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 ifeq ($(SYSTEM),Darwin)
-	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name libgpr.$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgpr.$(SHARED_EXT) $(LIBGPR_OBJS) $(LDLIBS)
+	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgpr.$(SHARED_EXT) $(LIBGPR_OBJS) $(LDLIBS)
 else
 	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgpr.so.0 -o $(LIBDIR)/$(CONFIG)/libgpr.$(SHARED_EXT) $(LIBGPR_OBJS) $(LDLIBS)
 	$(Q) ln -sf libgpr.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgpr.so.0
@@ -2431,7 +2428,6 @@ $(OBJDIR)/$(CONFIG)/src/core/support/string_win32.o:
 $(OBJDIR)/$(CONFIG)/src/core/support/sync.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/sync_posix.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/sync_win32.o: 
-$(OBJDIR)/$(CONFIG)/src/core/support/thd.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/thd_posix.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/thd_win32.o: 
 $(OBJDIR)/$(CONFIG)/src/core/support/time.o: 
@@ -2780,7 +2776,7 @@ $(LIBDIR)/$(CONFIG)/libgrpc.$(SHARED_EXT): $(LIBGRPC_OBJS)  $(ZLIB_DEP) $(LIBDIR
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 ifeq ($(SYSTEM),Darwin)
-	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name libgrpc.$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc.$(SHARED_EXT) $(LIBGRPC_OBJS) $(LDLIBS) $(LDLIBS_SECURE) $(OPENSSL_MERGE_LIBS) -lgpr
+	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc.$(SHARED_EXT) $(LIBGRPC_OBJS) $(LDLIBS) $(LDLIBS_SECURE) $(OPENSSL_MERGE_LIBS) -lgpr
 else
 	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc.$(SHARED_EXT) $(LIBGRPC_OBJS) $(LDLIBS) $(LDLIBS_SECURE) $(OPENSSL_MERGE_LIBS) -lgpr
 	$(Q) ln -sf libgrpc.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc.so.0
@@ -3120,7 +3116,7 @@ $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.$(SHARED_EXT): $(LIBGRPC_UNSECURE_OBJS)  $(
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 ifeq ($(SYSTEM),Darwin)
-	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name libgrpc_unsecure.$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.$(SHARED_EXT) $(LIBGRPC_UNSECURE_OBJS) $(LDLIBS) -lgpr
+	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.$(SHARED_EXT) $(LIBGRPC_UNSECURE_OBJS) $(LDLIBS) -lgpr
 else
 	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc_unsecure.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.$(SHARED_EXT) $(LIBGRPC_UNSECURE_OBJS) $(LDLIBS) -lgpr
 	$(Q) ln -sf libgrpc_unsecure.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.so.0
@@ -3370,7 +3366,7 @@ $(LIBDIR)/$(CONFIG)/libgrpc++.$(SHARED_EXT): $(LIBGRPC++_OBJS)  $(ZLIB_DEP) $(LI
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 ifeq ($(SYSTEM),Darwin)
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name libgrpc++.$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc++.$(SHARED_EXT) $(LIBGRPC++_OBJS) $(LDLIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc++.$(SHARED_EXT) $(LIBGRPC++_OBJS) $(LDLIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc
 else
 	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc++.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc++.$(SHARED_EXT) $(LIBGRPC++_OBJS) $(LDLIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc
 	$(Q) ln -sf libgrpc++.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc++.so.0
@@ -3575,7 +3571,7 @@ $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure.$(SHARED_EXT): $(LIBGRPC++_UNSECURE_OBJS)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 ifeq ($(SYSTEM),Darwin)
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name libgrpc++_unsecure.$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure.$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc_unsecure
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure.$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc_unsecure
 else
 	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc++_unsecure.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure.$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc_unsecure
 	$(Q) ln -sf libgrpc++_unsecure.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure.so.0
@@ -3617,7 +3613,6 @@ $(OBJDIR)/$(CONFIG)/src/cpp/util/time.o:
 
 LIBGRPC_PLUGIN_SUPPORT_SRC = \
     src/compiler/cpp_generator.cc \
-    src/compiler/objective_c_generator.cc \
     src/compiler/python_generator.cc \
     src/compiler/ruby_generator.cc \
 
@@ -3652,7 +3647,6 @@ ifneq ($(NO_DEPS),true)
 endif
 
 $(OBJDIR)/$(CONFIG)/src/compiler/cpp_generator.o: 
-$(OBJDIR)/$(CONFIG)/src/compiler/objective_c_generator.o: 
 $(OBJDIR)/$(CONFIG)/src/compiler/python_generator.o: 
 $(OBJDIR)/$(CONFIG)/src/compiler/ruby_generator.o: 
 
@@ -3836,7 +3830,7 @@ $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext.$(SHARED_EXT): $(LIBGRPC_CSHARP_EXT_OBJS)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 ifeq ($(SYSTEM),Darwin)
-	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name libgrpc_csharp_ext.$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext.$(SHARED_EXT) $(LIBGRPC_CSHARP_EXT_OBJS) $(LDLIBS) -lgpr -lgrpc
+	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext.$(SHARED_EXT) $(LIBGRPC_CSHARP_EXT_OBJS) $(LDLIBS) -lgpr -lgrpc
 else
 	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc_csharp_ext.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext.$(SHARED_EXT) $(LIBGRPC_CSHARP_EXT_OBJS) $(LDLIBS) -lgpr -lgrpc
 	$(Q) ln -sf libgrpc_csharp_ext.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext.so.0
@@ -8332,36 +8326,6 @@ deps_grpc_cpp_plugin: $(GRPC_CPP_PLUGIN_OBJS:.o=.dep)
 
 ifneq ($(NO_DEPS),true)
 -include $(GRPC_CPP_PLUGIN_OBJS:.o=.dep)
-endif
-
-
-GRPC_OBJECTIVE_C_PLUGIN_SRC = \
-    src/compiler/objective_c_plugin.cc \
-
-GRPC_OBJECTIVE_C_PLUGIN_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPC_OBJECTIVE_C_PLUGIN_SRC))))
-
-
-ifeq ($(NO_PROTOBUF),true)
-
-# You can't build the protoc plugins or protobuf-enabled targets if you don't have protobuf 3.0.0+.
-
-$(BINDIR)/$(CONFIG)/grpc_objective_c_plugin: protobuf_dep_error
-
-else
-
-$(BINDIR)/$(CONFIG)/grpc_objective_c_plugin: $(PROTOBUF_DEP) $(GRPC_OBJECTIVE_C_PLUGIN_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_plugin_support.a
-	$(E) "[HOSTLD]  Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(HOST_LDXX) $(HOST_LDFLAGS) $(GRPC_OBJECTIVE_C_PLUGIN_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_plugin_support.a $(HOST_LDLIBSXX) $(HOST_LDLIBS_PROTOC) $(HOST_LDLIBS) $(HOST_LDLIBS_PROTOC) -o $(BINDIR)/$(CONFIG)/grpc_objective_c_plugin
-
-endif
-
-$(OBJDIR)/$(CONFIG)/src/compiler/objective_c_plugin.o:  $(LIBDIR)/$(CONFIG)/libgrpc_plugin_support.a
-
-deps_grpc_objective_c_plugin: $(GRPC_OBJECTIVE_C_PLUGIN_OBJS:.o=.dep)
-
-ifneq ($(NO_DEPS),true)
--include $(GRPC_OBJECTIVE_C_PLUGIN_OBJS:.o=.dep)
 endif
 
 

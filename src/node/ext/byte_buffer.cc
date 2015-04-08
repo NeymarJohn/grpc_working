@@ -32,6 +32,7 @@
  */
 
 #include <string.h>
+#include <malloc.h>
 
 #include <node.h>
 #include <nan.h>
