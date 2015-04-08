@@ -31,56 +31,55 @@
  *
  */
 
-/* Posix implementation for gpr threads. */
-
 #include <grpc/support/port_platform.h>
 
-#ifdef GPR_WIN32
+#ifdef GPR_WINSOCK_SOCKET
+#include "src/core/iomgr/sockaddr_utils.h"
+#include "src/core/iomgr/endpoint_pair.h"
 
-#include <windows.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <string.h>
-#include <grpc/support/alloc.h>
-#include <grpc/support/thd.h>
 
-struct thd_arg {
-  void (*body)(void *arg); /* body of a thread */
-  void *arg;               /* argument to a thread */
-};
+#include "src/core/iomgr/tcp_windows.h"
+#include "src/core/iomgr/socket_windows.h"
+#include <grpc/support/log.h>
 
-/* Body of every thread started via gpr_thd_new. */
-static DWORD WINAPI thread_body(void *v) {
-  struct thd_arg a = *(struct thd_arg *)v;
-  gpr_free(v);
-  (*a.body)(a.arg);
-  return 0;
+static void create_sockets(SOCKET sv[2]) {
+  SOCKET svr_sock = INVALID_SOCKET;
+  SOCKET lst_sock = INVALID_SOCKET;
+  SOCKET cli_sock = INVALID_SOCKET;
+  SOCKADDR_IN addr;
+  int addr_len;
+
+  lst_sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+  GPR_ASSERT(lst_sock != INVALID_SOCKET);
+
+  memset(&addr, 0, sizeof(addr));
+  GPR_ASSERT(bind(lst_sock, (struct sockaddr*)&addr, sizeof(addr)) != SOCKET_ERROR);
+  GPR_ASSERT(listen(lst_sock, SOMAXCONN) != SOCKET_ERROR);
+  GPR_ASSERT(getsockname(lst_sock, (struct sockaddr*)&addr, &addr_len) != SOCKET_ERROR);
+
+  cli_sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+  GPR_ASSERT(cli_sock != INVALID_SOCKET);
+
+  GPR_ASSERT(WSAConnect(cli_sock, (struct sockaddr*)&addr, addr_len, NULL, NULL, NULL, NULL) == 0);
+  svr_sock = accept(lst_sock, (struct sockaddr*)&addr, &addr_len);
+  GPR_ASSERT(svr_sock != INVALID_SOCKET);
+
+  closesocket(lst_sock);
+
+  sv[1] = cli_sock;
+  sv[0] = svr_sock;
 }
 
-int gpr_thd_new(gpr_thd_id *t, void (*thd_body)(void *arg), void *arg,
-                const gpr_thd_options *options) {
-  HANDLE handle;
-  DWORD thread_id;
-  struct thd_arg *a = gpr_malloc(sizeof(*a));
-  a->body = thd_body;
-  a->arg = arg;
-  *t = 0;
-  handle = CreateThread(NULL, 64 * 1024, thread_body, a, 0, &thread_id);
-  if (handle == NULL) {
-    gpr_free(a);
-  } else {
-    CloseHandle(handle); /* threads are "detached" */
-  }
-  *t = (gpr_thd_id)thread_id;
-  return handle != NULL;
+grpc_endpoint_pair grpc_iomgr_create_endpoint_pair(size_t read_slice_size) {
+  SOCKET sv[2];
+  grpc_endpoint_pair p;
+  create_sockets(sv);
+  p.client = grpc_tcp_create(grpc_winsocket_create(sv[1]));
+  p.server = grpc_tcp_create(grpc_winsocket_create(sv[0]));
+  return p;
 }
 
-gpr_thd_options gpr_thd_options_default(void) {
-  gpr_thd_options options;
-  memset(&options, 0, sizeof(options));
-  return options;
-}
-
-gpr_thd_id gpr_thd_currentid(void) {
-  return (gpr_thd_id)GetCurrentThreadId();
-}
-
-#endif /* GPR_WIN32 */
+#endif

@@ -43,14 +43,6 @@ _IDENTITY = lambda x: x
 _TIMEOUT = 2
 
 
-# TODO(nathaniel): End-to-end metadata testing.
-def _transform_metadata(unused_metadata):
-  return (
-      ('one unused key', 'one unused value'),
-      ('another unused key', 'another unused value'),
-)
-
-
 class RoundTripTest(unittest.TestCase):
 
   def setUp(self):
@@ -84,8 +76,7 @@ class RoundTripTest(unittest.TestCase):
 
     rear_link = rear.RearLink(
         'localhost', port, self.rear_link_pool, {test_method: None},
-        {test_method: None}, False, None, None, None,
-        metadata_transformer=_transform_metadata)
+        {test_method: None}, False, None, None, None)
     rear_link.join_fore_link(test_fore_link)
     test_fore_link.join_rear_link(rear_link)
     rear_link.start()

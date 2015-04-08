@@ -29,7 +29,7 @@
 
 """A setup module for the GRPC Python interop testing package."""
 
-import setuptools
+from distutils import core as _core
 
 _PACKAGES = (
     'interop',
@@ -45,13 +45,9 @@ _PACKAGE_DATA = {
         'credentials/server1.pem',]
 }
 
-_INSTALL_REQUIRES = ['grpcio>=0.4.0a4']
+_INSTALL_REQUIRES = ['grpc-2015>=0.0.1']
 
-setuptools.setup(
-    name='interop',
-    version='0.0.1',
-    packages=_PACKAGES,
-    package_dir=_PACKAGE_DIRECTORIES,
-    package_data=_PACKAGE_DATA,
-    install_requires=_INSTALL_REQUIRES
-)
+_core.setup(
+    name='interop', version='0.0.1', packages=_PACKAGES,
+    package_dir=_PACKAGE_DIRECTORIES, package_data=_PACKAGE_DATA,
+    install_requires=_INSTALL_REQUIRES)

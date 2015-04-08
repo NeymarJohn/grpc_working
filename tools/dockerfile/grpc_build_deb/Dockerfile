@@ -30,9 +30,6 @@
 # Dockerfile to build Debian packages for gRPC C core.
 FROM grpc/base
 
-# Add the file containing the gRPC version
-ADD version.txt version.txt
-
 # Install dependencies
 RUN apt-get update && apt-get install -y lintian
 
