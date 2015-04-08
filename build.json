@@ -3,7 +3,7 @@
     "#": "The public version number of the library.",
     "version": {
       "major": 0,
-      "minor": 5,
+      "minor": 6,
       "micro": 0,
       "build": 0
     }
@@ -191,7 +191,6 @@
         "src/core/iomgr/alarm_heap.c",
         "src/core/iomgr/endpoint.c",
         "src/core/iomgr/endpoint_pair_posix.c",
-        "src/core/iomgr/endpoint_pair_windows.c",
         "src/core/iomgr/fd_posix.c",
         "src/core/iomgr/iocp_windows.c",
         "src/core/iomgr/iomgr.c",
@@ -338,6 +337,7 @@
         "src/core/support/sync.c",
         "src/core/support/sync_posix.c",
         "src/core/support/sync_win32.c",
+        "src/core/support/thd.c",
         "src/core/support/thd_posix.c",
         "src/core/support/thd_win32.c",
         "src/core/support/time.c",
@@ -434,7 +434,6 @@
         "test/core/util/grpc_profiler.c",
         "test/core/util/parse_hexstring.c",
         "test/core/util/port_posix.c",
-        "test/core/util/port_windows.c",
         "test/core/util/slice_splitter.c"
       ],
       "deps": [
@@ -855,9 +854,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {

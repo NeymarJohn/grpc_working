@@ -38,6 +38,8 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #include "test/core/util/test_config.h"
 #include "src/core/iomgr/iomgr.h"
