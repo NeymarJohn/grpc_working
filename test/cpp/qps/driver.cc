@@ -74,9 +74,7 @@ static vector<string> get_hosts(const string& name) {
 ScenarioResult RunScenario(const ClientConfig& initial_client_config,
                            size_t num_clients,
                            const ServerConfig& server_config,
-                           size_t num_servers,
-                           int warmup_seconds,
-                           int benchmark_seconds) {
+                           size_t num_servers) {
   // ClientContext allocator (all are destroyed at scope exit)
   list<ClientContext> contexts;
   auto alloc_context = [&contexts]() {
@@ -148,7 +146,7 @@ ScenarioResult RunScenario(const ClientConfig& initial_client_config,
   // Let everything warmup
   gpr_log(GPR_INFO, "Warming up");
   gpr_timespec start = gpr_now();
-  gpr_sleep_until(gpr_time_add(start, gpr_time_from_seconds(warmup_seconds)));
+  gpr_sleep_until(gpr_time_add(start, gpr_time_from_seconds(5)));
 
   // Start a run
   gpr_log(GPR_INFO, "Starting");
@@ -173,7 +171,7 @@ ScenarioResult RunScenario(const ClientConfig& initial_client_config,
 
   // Wait some time
   gpr_log(GPR_INFO, "Running");
-  gpr_sleep_until(gpr_time_add(start, gpr_time_from_seconds(benchmark_seconds)));
+  gpr_sleep_until(gpr_time_add(start, gpr_time_from_seconds(15)));
 
   // Finish a run
   ScenarioResult result;
