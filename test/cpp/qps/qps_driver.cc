@@ -40,9 +40,6 @@
 DEFINE_int32(num_clients, 1, "Number of client binaries");
 DEFINE_int32(num_servers, 1, "Number of server binaries");
 
-DEFINE_int32(warmup_seconds, 5, "Warmup time (in seconds)");
-DEFINE_int32(benchmark_seconds, 30, "Benchmark time (in seconds)");
-
 // Common config
 DEFINE_bool(enable_ssl, false, "Use SSL");
 DEFINE_string(rpc_type, "UNARY", "Type of RPC: UNARY or STREAMING");
@@ -101,9 +98,8 @@ int main(int argc, char** argv) {
   server_config.set_threads(FLAGS_server_threads);
   server_config.set_enable_ssl(FLAGS_enable_ssl);
 
-  auto result = RunScenario(client_config, FLAGS_num_clients,
-                            server_config, FLAGS_num_servers,
-                            FLAGS_warmup_seconds, FLAGS_benchmark_seconds);
+  auto result = RunScenario(client_config, FLAGS_num_clients, server_config,
+                            FLAGS_num_servers);
 
   gpr_log(GPR_INFO, "QPS: %.1f",
           result.latencies.Count() /
