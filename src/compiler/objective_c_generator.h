@@ -31,34 +31,18 @@
  *
  */
 
-#ifndef TEST_QPS_DRIVER_H
-#define TEST_QPS_DRIVER_H
+#ifndef GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_H
+#define GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_H
 
-#include "test/cpp/qps/histogram.h"
-#include "test/cpp/qps/qpstest.pb.h"
+#include "src/compiler/config.h"
 
-namespace grpc {
-namespace testing {
-struct ResourceUsage {
-  double wall_time;
-  double user_time;
-  double system_time;
-};
+namespace grpc_objective_c_generator {
 
-struct ScenarioResult {
-  Histogram latencies;
-  std::vector<ResourceUsage> client_resources;
-  std::vector<ResourceUsage> server_resources;
-};
+grpc::string GetHeader(const grpc::protobuf::ServiceDescriptor *service,
+                       const grpc::string message_header);
 
-ScenarioResult RunScenario(const grpc::testing::ClientConfig& client_config,
-                           size_t num_clients,
-                           const grpc::testing::ServerConfig& server_config,
-                           size_t num_servers,
-                           int warmup_seconds,
-                           int benchmark_seconds);
+grpc::string GetSource(const grpc::protobuf::ServiceDescriptor *service);
 
-}  // namespace testing
-}  // namespace grpc
+}  // namespace grpc_objective_c_generator
 
-#endif
+#endif  // GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_H

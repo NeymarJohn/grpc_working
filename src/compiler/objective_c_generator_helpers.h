@@ -31,34 +31,28 @@
  *
  */
 
-#ifndef TEST_QPS_DRIVER_H
-#define TEST_QPS_DRIVER_H
+#ifndef GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_HELPERS_H
+#define GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_HELPERS_H
 
-#include "test/cpp/qps/histogram.h"
-#include "test/cpp/qps/qpstest.pb.h"
+#include <map>
+#include "src/compiler/config.h"
+#include "src/compiler/generator_helpers.h"
 
-namespace grpc {
-namespace testing {
-struct ResourceUsage {
-  double wall_time;
-  double user_time;
-  double system_time;
-};
+namespace grpc_objective_c_generator {
 
-struct ScenarioResult {
-  Histogram latencies;
-  std::vector<ResourceUsage> client_resources;
-  std::vector<ResourceUsage> server_resources;
-};
+const grpc::string prefix = "PBG";
 
-ScenarioResult RunScenario(const grpc::testing::ClientConfig& client_config,
-                           size_t num_clients,
-                           const grpc::testing::ServerConfig& server_config,
-                           size_t num_servers,
-                           int warmup_seconds,
-                           int benchmark_seconds);
+inline grpc::string MessageHeaderName(const grpc::protobuf::FileDescriptor *file) {
+  return grpc_generator::FileNameInUpperCamel(file) + ".pb.h";
+}
 
-}  // namespace testing
-}  // namespace grpc
+inline grpc::string StubFileName(grpc::string service_name) {
+  return prefix + service_name + "Stub";
+}
 
-#endif
+inline grpc::string PrefixedName(grpc::string name) {
+  return prefix + name;
+}
+
+}
+#endif  // GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_HELPERS_H
