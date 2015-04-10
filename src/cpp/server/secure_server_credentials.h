@@ -31,23 +31,30 @@
  *
  */
 
-#ifndef GRPC_RB_EVENT_H_
-#define GRPC_RB_EVENT_H_
+#ifndef GRPC_INTERNAL_CPP_SERVER_SECURE_SERVER_CREDENTIALS_H
+#define GRPC_INTERNAL_CPP_SERVER_SECURE_SERVER_CREDENTIALS_H
 
-#include <ruby.h>
-#include <grpc/grpc.h>
+#include <grpc/grpc_security.h>
 
-/* rb_cEvent is the Event class whose instances proxy grpc_event. */
-extern VALUE rb_cEvent;
+#include <grpc++/server_credentials.h>
 
-/* rb_cEventError is the ruby class that acts the exception thrown during rpc
-   event processing. */
-extern VALUE rb_eEventError;
+namespace grpc {
 
-/* Used to create new ruby event objects */
-VALUE grpc_rb_new_event(grpc_event *ev);
+class SecureServerCredentials GRPC_FINAL : public ServerCredentials {
+ public:
+  explicit SecureServerCredentials(grpc_server_credentials* creds)
+      : creds_(creds) {}
+  ~SecureServerCredentials() GRPC_OVERRIDE {
+    grpc_server_credentials_release(creds_);
+  }
 
-/* Initializes the Event and EventError classes. */
-void Init_grpc_event();
+  int AddPortToServer(const grpc::string& addr,
+                      grpc_server* server) GRPC_OVERRIDE;
 
-#endif /* GRPC_RB_EVENT_H_ */
+ private:
+  grpc_server_credentials* const creds_;
+};
+
+}  // namespace grpc
+
+#endif  // GRPC_INTERNAL_CPP_SERVER_SECURE_SERVER_CREDENTIALS_H

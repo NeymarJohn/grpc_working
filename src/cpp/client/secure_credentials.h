@@ -31,23 +31,31 @@
  *
  */
 
-#ifndef GRPC_RB_METADATA_H_
-#define GRPC_RB_METADATA_H_
+#ifndef GRPC_INTERNAL_CPP_CLIENT_SECURE_CREDENTIALS_H
+#define GRPC_INTERNAL_CPP_CLIENT_SECURE_CREDENTIALS_H
 
-#include <grpc/grpc.h>
-#include <ruby.h>
+#include <grpc/grpc_security.h>
 
-/* rb_cMetadata is the Metadata class whose instances proxy grpc_metadata. */
-extern VALUE rb_cMetadata;
+#include <grpc++/config.h>
+#include <grpc++/credentials.h>
 
-/* grpc_rb_metadata_create_with_mark creates a grpc_rb_metadata with a ruby mark
- * object that will be kept alive while the metadata is alive. */
-extern VALUE grpc_rb_metadata_create_with_mark(VALUE mark, grpc_metadata* md);
+namespace grpc {
 
-/* Gets the wrapped metadata from the ruby wrapper */
-grpc_metadata* grpc_rb_get_wrapped_metadata(VALUE v);
+class SecureCredentials GRPC_FINAL : public Credentials {
+ public:
+  explicit SecureCredentials(grpc_credentials* c_creds) : c_creds_(c_creds) {}
+  ~SecureCredentials() GRPC_OVERRIDE { grpc_credentials_release(c_creds_); }
+  grpc_credentials* GetRawCreds() { return c_creds_; }
 
-/* Initializes the Metadata class. */
-void Init_grpc_metadata();
+  std::shared_ptr<grpc::ChannelInterface> CreateChannel(
+      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE;
+  SecureCredentials* AsSecureCredentials() GRPC_OVERRIDE { return this; }
 
-#endif /* GRPC_RB_METADATA_H_ */
+ private:
+  grpc_credentials* const c_creds_;
+};
+
+}  // namespace grpc
+
+#endif  // GRPC_INTERNAL_CPP_CLIENT_SECURE_CREDENTIALS_H
+

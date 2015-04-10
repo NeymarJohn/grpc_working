@@ -464,6 +464,10 @@
       "name": "grpc++",
       "build": "all",
       "language": "c++",
+      "headers": [
+        "src/cpp/client/secure_credentials.h",
+        "src/cpp/server/secure_server_credentials.h"
+      ],
       "src": [
         "src/cpp/client/secure_credentials.cc",
         "src/cpp/server/secure_server_credentials.cc"
@@ -554,19 +558,13 @@
       "language": "c++",
       "headers": [
         "test/cpp/qps/driver.h",
-        "test/cpp/qps/qps_worker.h",
         "test/cpp/qps/report.h",
         "test/cpp/qps/timer.h"
       ],
       "src": [
         "test/cpp/qps/qpstest.proto",
-        "test/cpp/qps/client_async.cc",
-        "test/cpp/qps/client_sync.cc",
         "test/cpp/qps/driver.cc",
-        "test/cpp/qps/qps_worker.cc",
         "test/cpp/qps/report.cc",
-        "test/cpp/qps/server_async.cc",
-        "test/cpp/qps/server_sync.cc",
         "test/cpp/qps/timer.cc"
       ]
     },
@@ -2015,6 +2013,10 @@
         "test/cpp/qps/server.h"
       ],
       "src": [
+        "test/cpp/qps/client_async.cc",
+        "test/cpp/qps/client_sync.cc",
+        "test/cpp/qps/server_async.cc",
+        "test/cpp/qps/server_sync.cc",
         "test/cpp/qps/worker.cc"
       ],
       "deps": [
