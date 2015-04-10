@@ -31,37 +31,22 @@
  *
  */
 
-#ifndef GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
-#define GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+#ifndef GRPC_SUPPORT_TLS_GCC_H
+#define GRPC_SUPPORT_TLS_GCC_H
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+/* Thread local storage based on ms visual c compiler primitives.
+   #include tls.h to use this - and see that file for documentation */
 
-#include "examples/pubsub/pubsub.grpc.pb.h"
-
-namespace grpc {
-namespace examples {
-namespace pubsub {
-
-class Publisher {
- public:
-  Publisher(std::shared_ptr<ChannelInterface> channel);
-  void Shutdown();
-
-  Status CreateTopic(const grpc::string& topic);
-  Status GetTopic(const grpc::string& topic);
-  Status DeleteTopic(const grpc::string& topic);
-  Status ListTopics(const grpc::string& project_id,
-                    std::vector<grpc::string>* topics);
-
-  Status Publish(const grpc::string& topic, const grpc::string& data);
-
- private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
+struct gpr_msvc_thread_local {
+  gpr_intptr value;
 };
 
-}  // namespace pubsub
-}  // namespace examples
-}  // namespace grpc
+#define GPR_TLS_DECL(name) \
+    static __thread struct gpr_msvc_thread_local name = {0}
 
-#endif  // GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+#define gpr_tls_init(tls) do {} while (0)
+#define gpr_tls_destroy(tls) do {} while (0)
+#define gpr_tls_set(tls, new_value) (((tls)->value) = (new_value))
+#define gpr_tls_get(tls) ((tls)->value)
+
+#endif

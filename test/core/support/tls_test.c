@@ -31,37 +31,52 @@
  *
  */
 
-#ifndef GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
-#define GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+/* Test of gpr thread local storage support. */
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <grpc/support/log.h>
+#include <grpc/support/sync.h>
+#include <grpc/support/thd.h>
+#include <grpc/support/tls.h>
+#include "test/core/util/test_config.h"
 
-#include "examples/pubsub/pubsub.grpc.pb.h"
+#define NUM_THREADS 100
 
-namespace grpc {
-namespace examples {
-namespace pubsub {
+GPR_TLS_DECL(test_var);
 
-class Publisher {
- public:
-  Publisher(std::shared_ptr<ChannelInterface> channel);
-  void Shutdown();
+static void thd_body(void *arg) {
+  gpr_intptr i;
 
-  Status CreateTopic(const grpc::string& topic);
-  Status GetTopic(const grpc::string& topic);
-  Status DeleteTopic(const grpc::string& topic);
-  Status ListTopics(const grpc::string& project_id,
-                    std::vector<grpc::string>* topics);
+  GPR_ASSERT(gpr_tls_get(&test_var) == 0);
 
-  Status Publish(const grpc::string& topic, const grpc::string& data);
+  for (i = 0; i < 10000000; i++) {
+    gpr_tls_set(&test_var, i);
+    GPR_ASSERT(gpr_tls_get(&test_var) == i);
+  }
+}
 
- private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
-};
+/* ------------------------------------------------- */
 
-}  // namespace pubsub
-}  // namespace examples
-}  // namespace grpc
+int main(int argc, char *argv[]) {
+  gpr_thd_options opt = gpr_thd_options_default();
+  int i;
+  gpr_thd_id threads[NUM_THREADS];
 
-#endif  // GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+  grpc_test_init(argc, argv);
+
+  gpr_tls_init(&test_var);
+
+  gpr_thd_options_set_joinable(&opt);
+
+  for (i = 0; i < NUM_THREADS; i++) {
+    gpr_thd_new(&threads[i], thd_body, NULL, &opt);
+  }
+  for (i = 0; i < NUM_THREADS; i++) {
+    gpr_thd_join(threads[i]);
+  }
+
+  gpr_tls_destroy(&test_var);
+
+  return 0;
+}

@@ -31,37 +31,47 @@
  *
  */
 
-#ifndef GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
-#define GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+#ifndef GRPC_SUPPORT_TLS_H
+#define GRPC_SUPPORT_TLS_H
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+#include "port_platform.h"
 
-#include "examples/pubsub/pubsub.grpc.pb.h"
+/* Thread local storage.
 
-namespace grpc {
-namespace examples {
-namespace pubsub {
+   A minimal wrapper that should be implementable across many compilers,
+   and implementable efficiently across most modern compilers.
 
-class Publisher {
- public:
-  Publisher(std::shared_ptr<ChannelInterface> channel);
-  void Shutdown();
+   Thread locals have type gpr_intptr.
 
-  Status CreateTopic(const grpc::string& topic);
-  Status GetTopic(const grpc::string& topic);
-  Status DeleteTopic(const grpc::string& topic);
-  Status ListTopics(const grpc::string& project_id,
-                    std::vector<grpc::string>* topics);
+   Declaring a thread local variable 'foo':
+     GPR_TLS_DECL(foo, initial_value);
+   Thread locals always have static scope.
 
-  Status Publish(const grpc::string& topic, const grpc::string& data);
+   Initializing a thread local (must be done at library initialization 
+   time):
+     gpr_tls_init(&foo);
 
- private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
-};
+   Destroying a thread local:
+     gpr_tls_destroy(&foo);
 
-}  // namespace pubsub
-}  // namespace examples
-}  // namespace grpc
+   Setting a thread local:
+     gpr_tls_set(&foo, new_value);
 
-#endif  // GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+   Accessing a thread local:
+     current_value = gpr_tls_get(&foo, value); 
+
+   ALL functions here may be implemented as macros. */
+
+#ifdef GPR_GCC_TLS
+#include "tls_gcc.h"
+#endif
+
+#ifdef GPR_MSVC_TLS
+#include "tls_msvc.h"
+#endif
+
+#ifdef GPR_PTHREAD_TLS
+#include "tls_pthread.h"
+#endif
+
+#endif
