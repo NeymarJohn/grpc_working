@@ -31,37 +31,39 @@
  *
  */
 
-#ifndef GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
-#define GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+#include "test/cpp/interop/server_helper.h"
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+#include <memory>
 
-#include "examples/pubsub/pubsub.grpc.pb.h"
+#include <gflags/gflags.h>
+#include "test/core/end2end/data/ssl_test_data.h"
+#include <grpc++/config.h>
+#include <grpc++/server_credentials.h>
+
+DECLARE_bool(enable_ssl);
+
+// In some distros, gflags is in the namespace google, and in some others,
+// in gflags. This hack is enabling us to find both.
+namespace google {}
+namespace gflags {}
+using namespace google;
+using namespace gflags;
 
 namespace grpc {
-namespace examples {
-namespace pubsub {
+namespace testing {
 
-class Publisher {
- public:
-  Publisher(std::shared_ptr<ChannelInterface> channel);
-  void Shutdown();
+std::shared_ptr<ServerCredentials> CreateInteropServerCredentials() {
+  if (FLAGS_enable_ssl) {
+    SslServerCredentialsOptions::PemKeyCertPair pkcp = {test_server1_key,
+                                                        test_server1_cert};
+    SslServerCredentialsOptions ssl_opts;
+    ssl_opts.pem_root_certs = "";
+    ssl_opts.pem_key_cert_pairs.push_back(pkcp);
+    return SslServerCredentials(ssl_opts);
+  } else {
+    return InsecureServerCredentials();
+  }
+}
 
-  Status CreateTopic(const grpc::string& topic);
-  Status GetTopic(const grpc::string& topic);
-  Status DeleteTopic(const grpc::string& topic);
-  Status ListTopics(const grpc::string& project_id,
-                    std::vector<grpc::string>* topics);
-
-  Status Publish(const grpc::string& topic, const grpc::string& data);
-
- private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
-};
-
-}  // namespace pubsub
-}  // namespace examples
+}  // namespace testing
 }  // namespace grpc
-
-#endif  // GRPC_EXAMPLES_PUBSUB_PUBLISHER_H

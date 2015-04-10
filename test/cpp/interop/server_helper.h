@@ -31,37 +31,19 @@
  *
  */
 
-#ifndef GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
-#define GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+#ifndef GRPC_TEST_CPP_INTEROP_SERVER_HELPER_H
+#define GRPC_TEST_CPP_INTEROP_SERVER_HELPER_H
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+#include <memory>
 
-#include "examples/pubsub/pubsub.grpc.pb.h"
+#include <grpc++/server_credentials.h>
 
 namespace grpc {
-namespace examples {
-namespace pubsub {
+namespace testing {
 
-class Publisher {
- public:
-  Publisher(std::shared_ptr<ChannelInterface> channel);
-  void Shutdown();
+std::shared_ptr<ServerCredentials> CreateInteropServerCredentials();
 
-  Status CreateTopic(const grpc::string& topic);
-  Status GetTopic(const grpc::string& topic);
-  Status DeleteTopic(const grpc::string& topic);
-  Status ListTopics(const grpc::string& project_id,
-                    std::vector<grpc::string>* topics);
-
-  Status Publish(const grpc::string& topic, const grpc::string& data);
-
- private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
-};
-
-}  // namespace pubsub
-}  // namespace examples
+}  // namespace testing
 }  // namespace grpc
 
-#endif  // GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+#endif  // GRPC_TEST_CPP_INTEROP_SERVER_HELPER_H

@@ -31,37 +31,49 @@
  *
  */
 
-#ifndef GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
-#define GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+#ifndef GRPC_TEST_CPP_INTEROP_INTEROP_CLIENT_H
+#define GRPC_TEST_CPP_INTEROP_INTEROP_CLIENT_H
+#include <memory>
 
+#include <grpc/grpc.h>
 #include <grpc++/channel_interface.h>
 #include <grpc++/status.h>
-
-#include "examples/pubsub/pubsub.grpc.pb.h"
+#include "test/cpp/interop/messages.grpc.pb.h"
 
 namespace grpc {
-namespace examples {
-namespace pubsub {
+namespace testing {
 
-class Publisher {
+class InteropClient {
  public:
-  Publisher(std::shared_ptr<ChannelInterface> channel);
-  void Shutdown();
+  explicit InteropClient(std::shared_ptr<ChannelInterface> channel);
+  ~InteropClient() {}
 
-  Status CreateTopic(const grpc::string& topic);
-  Status GetTopic(const grpc::string& topic);
-  Status DeleteTopic(const grpc::string& topic);
-  Status ListTopics(const grpc::string& project_id,
-                    std::vector<grpc::string>* topics);
+  void Reset(std::shared_ptr<ChannelInterface> channel) { channel_ = channel; }
 
-  Status Publish(const grpc::string& topic, const grpc::string& data);
+  void DoEmpty();
+  void DoLargeUnary();
+  void DoPingPong();
+  void DoHalfDuplex();
+  void DoRequestStreaming();
+  void DoResponseStreaming();
+  void DoResponseStreamingWithSlowConsumer();
+  // Auth tests.
+  // username is a string containing the user email
+  void DoJwtTokenCreds(const grpc::string& username);
+  void DoComputeEngineCreds(const grpc::string& default_service_account,
+                            const grpc::string& oauth_scope);
+  // username is a string containing the user email
+  void DoServiceAccountCreds(const grpc::string& username,
+                             const grpc::string& oauth_scope);
 
  private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
+  void PerformLargeUnary(SimpleRequest* request, SimpleResponse* response);
+  void AssertOkOrPrintErrorStatus(const Status& s);
+
+  std::shared_ptr<ChannelInterface> channel_;
 };
 
-}  // namespace pubsub
-}  // namespace examples
+}  // namespace testing
 }  // namespace grpc
 
-#endif  // GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+#endif  // GRPC_TEST_CPP_INTEROP_INTEROP_CLIENT_H
