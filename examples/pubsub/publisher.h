@@ -37,7 +37,7 @@
 #include <grpc++/channel_interface.h>
 #include <grpc++/status.h>
 
-#include "examples/pubsub/pubsub.grpc.pb.h"
+#include "examples/pubsub/pubsub.pb.h"
 
 namespace grpc {
 namespace examples {

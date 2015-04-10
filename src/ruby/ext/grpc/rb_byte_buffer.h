@@ -37,9 +37,9 @@
 #include <grpc/grpc.h>
 #include <ruby.h>
 
-/* grpc_cByteBuffer is the ByteBuffer class whose instances proxy
+/* rb_cByteBuffer is the ByteBuffer class whose instances proxy
    grpc_byte_buffer. */
-extern VALUE grpc_cByteBuffer;
+extern VALUE rb_cByteBuffer;
 
 /* Initializes the ByteBuffer class. */
 void Init_grpc_byte_buffer();

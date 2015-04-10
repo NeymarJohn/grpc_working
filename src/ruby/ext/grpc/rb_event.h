@@ -37,12 +37,12 @@
 #include <ruby.h>
 #include <grpc/grpc.h>
 
-/* grpc_cEvent is the Event class whose instances proxy grpc_event. */
-extern VALUE grpc_cEvent;
+/* rb_cEvent is the Event class whose instances proxy grpc_event. */
+extern VALUE rb_cEvent;
 
-/* grpc_eEventError is the ruby class that acts the exception thrown during rpc
+/* rb_cEventError is the ruby class that acts the exception thrown during rpc
    event processing. */
-extern VALUE grpc_eEventError;
+extern VALUE rb_eEventError;
 
 /* Used to create new ruby event objects */
 VALUE grpc_rb_new_event(grpc_event *ev);
