@@ -35,7 +35,7 @@
 #define TEST_QPS_DRIVER_H
 
 #include "test/cpp/qps/histogram.h"
-#include "test/cpp/qps/qpstest.pb.h"
+#include "test/cpp/qps/qpstest.grpc.pb.h"
 
 namespace grpc {
 namespace testing {
@@ -56,8 +56,7 @@ ScenarioResult RunScenario(const grpc::testing::ClientConfig& client_config,
                            const grpc::testing::ServerConfig& server_config,
                            size_t num_servers,
                            int warmup_seconds,
-                           int benchmark_seconds,
-                           int spawn_local_worker_count);
+                           int benchmark_seconds);
 
 }  // namespace testing
 }  // namespace grpc

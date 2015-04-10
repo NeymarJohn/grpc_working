@@ -31,30 +31,27 @@
  *
  */
 
-#ifndef QPS_WORKER_H
-#define QPS_WORKER_H
+#include <grpc/grpc_security.h>
 
-#include <memory>
+#include <grpc++/config.h>
+#include <grpc++/credentials.h>
 
 namespace grpc {
 
-class Server;
-
-namespace testing {
-
-class WorkerImpl;
-
-class QpsWorker {
+class SecureCredentials GRPC_FINAL : public Credentials {
  public:
-  QpsWorker(int driver_port, int server_port);
-  ~QpsWorker();
+  explicit SecureCredentials(grpc_credentials* c_creds) : c_creds_(c_creds) {}
+  ~SecureCredentials() GRPC_OVERRIDE { grpc_credentials_release(c_creds_); }
+  grpc_credentials* GetRawCreds() { return c_creds_; }
+
+  std::shared_ptr<grpc::ChannelInterface> CreateChannel(
+      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE;
+  SecureCredentials* AsSecureCredentials() GRPC_OVERRIDE { return this; }
 
  private:
-  std::unique_ptr<WorkerImpl> impl_;
-  std::unique_ptr<Server> server_;
+  grpc_credentials* const c_creds_;
 };
 
-}  // namespace testing
 }  // namespace grpc
 
-#endif
+
