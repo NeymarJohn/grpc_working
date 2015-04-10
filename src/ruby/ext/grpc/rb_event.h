@@ -31,31 +31,23 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_CLIENT_SECURE_CREDENTIALS_H
-#define GRPC_INTERNAL_CPP_CLIENT_SECURE_CREDENTIALS_H
+#ifndef GRPC_RB_EVENT_H_
+#define GRPC_RB_EVENT_H_
 
-#include <grpc/grpc_security.h>
+#include <ruby.h>
+#include <grpc/grpc.h>
 
-#include <grpc++/config.h>
-#include <grpc++/credentials.h>
+/* rb_cEvent is the Event class whose instances proxy grpc_event. */
+extern VALUE rb_cEvent;
 
-namespace grpc {
+/* rb_cEventError is the ruby class that acts the exception thrown during rpc
+   event processing. */
+extern VALUE rb_eEventError;
 
-class SecureCredentials GRPC_FINAL : public Credentials {
- public:
-  explicit SecureCredentials(grpc_credentials* c_creds) : c_creds_(c_creds) {}
-  ~SecureCredentials() GRPC_OVERRIDE { grpc_credentials_release(c_creds_); }
-  grpc_credentials* GetRawCreds() { return c_creds_; }
+/* Used to create new ruby event objects */
+VALUE grpc_rb_new_event(grpc_event *ev);
 
-  std::shared_ptr<grpc::ChannelInterface> CreateChannel(
-      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE;
-  SecureCredentials* AsSecureCredentials() GRPC_OVERRIDE { return this; }
+/* Initializes the Event and EventError classes. */
+void Init_grpc_event();
 
- private:
-  grpc_credentials* const c_creds_;
-};
-
-}  // namespace grpc
-
-#endif  // GRPC_INTERNAL_CPP_CLIENT_SECURE_CREDENTIALS_H
-
+#endif /* GRPC_RB_EVENT_H_ */
