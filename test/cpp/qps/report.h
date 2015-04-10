@@ -31,39 +31,27 @@
  *
  */
 
-#include "test/cpp/interop/server_helper.h"
+#ifndef TEST_QPS_REPORT_H
+#define TEST_QPS_REPORT_H
 
-#include <memory>
-
-#include <gflags/gflags.h>
-#include "test/core/end2end/data/ssl_test_data.h"
-#include <grpc++/config.h>
-#include <grpc++/server_credentials.h>
-
-DECLARE_bool(enable_ssl);
-
-// In some distros, gflags is in the namespace google, and in some others,
-// in gflags. This hack is enabling us to find both.
-namespace google {}
-namespace gflags {}
-using namespace google;
-using namespace gflags;
+#include "test/cpp/qps/driver.h"
 
 namespace grpc {
 namespace testing {
 
-std::shared_ptr<ServerCredentials> CreateInteropServerCredentials() {
-  if (FLAGS_enable_ssl) {
-    SslServerCredentialsOptions::PemKeyCertPair pkcp = {test_server1_key,
-                                                        test_server1_cert};
-    SslServerCredentialsOptions ssl_opts;
-    ssl_opts.pem_root_certs = "";
-    ssl_opts.pem_key_cert_pairs.push_back(pkcp);
-    return SslServerCredentials(ssl_opts);
-  } else {
-    return InsecureServerCredentials();
-  }
-}
+// QPS: XXX
+void ReportQPS(const ScenarioResult& result);
+// QPS: XXX (YYY/server core)
+void ReportQPSPerCore(const ScenarioResult& result, const ServerConfig& config);
+// Latency (50/90/95/99/99.9%-ile): AA/BB/CC/DD/EE us
+void ReportLatency(const ScenarioResult& result);
+// Server system time: XX%
+// Server user time: XX%
+// Client system time: XX%
+// Client user time: XX%
+void ReportTimes(const ScenarioResult& result);
 
 }  // namespace testing
 }  // namespace grpc
+
+#endif
