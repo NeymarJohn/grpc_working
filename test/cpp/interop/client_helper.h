@@ -31,26 +31,23 @@
  *
  */
 
-#include <grpc/grpc_security.h>
+#ifndef GRPC_TEST_CPP_INTEROP_CLIENT_HELPER_H
+#define GRPC_TEST_CPP_INTEROP_CLIENT_HELPER_H
 
-#include <grpc++/server_credentials.h>
+#include <memory>
+
+#include <grpc++/config.h>
+#include <grpc++/channel_interface.h>
 
 namespace grpc {
+namespace testing {
 
-class SecureServerCredentials GRPC_FINAL : public ServerCredentials {
- public:
-  explicit SecureServerCredentials(grpc_server_credentials* creds)
-      : creds_(creds) {}
-  ~SecureServerCredentials() GRPC_OVERRIDE {
-    grpc_server_credentials_release(creds_);
-  }
+grpc::string GetServiceAccountJsonKey();
 
-  int AddPortToServer(const grpc::string& addr,
-                      grpc_server* server) GRPC_OVERRIDE;
+std::shared_ptr<ChannelInterface> CreateChannelForTestCase(
+    const grpc::string& test_case);
 
- private:
-  grpc_server_credentials* const creds_;
-};
-
+}  // namespace testing
 }  // namespace grpc
 
+#endif  // GRPC_TEST_CPP_INTEROP_CLIENT_HELPER_H

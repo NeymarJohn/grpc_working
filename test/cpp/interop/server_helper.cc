@@ -31,27 +31,39 @@
  *
  */
 
-#include <grpc/grpc_security.h>
+#include "test/cpp/interop/server_helper.h"
 
+#include <memory>
+
+#include <gflags/gflags.h>
+#include "test/core/end2end/data/ssl_test_data.h"
 #include <grpc++/config.h>
-#include <grpc++/credentials.h>
+#include <grpc++/server_credentials.h>
+
+DECLARE_bool(enable_ssl);
+
+// In some distros, gflags is in the namespace google, and in some others,
+// in gflags. This hack is enabling us to find both.
+namespace google {}
+namespace gflags {}
+using namespace google;
+using namespace gflags;
 
 namespace grpc {
+namespace testing {
 
-class SecureCredentials GRPC_FINAL : public Credentials {
- public:
-  explicit SecureCredentials(grpc_credentials* c_creds) : c_creds_(c_creds) {}
-  ~SecureCredentials() GRPC_OVERRIDE { grpc_credentials_release(c_creds_); }
-  grpc_credentials* GetRawCreds() { return c_creds_; }
+std::shared_ptr<ServerCredentials> CreateInteropServerCredentials() {
+  if (FLAGS_enable_ssl) {
+    SslServerCredentialsOptions::PemKeyCertPair pkcp = {test_server1_key,
+                                                        test_server1_cert};
+    SslServerCredentialsOptions ssl_opts;
+    ssl_opts.pem_root_certs = "";
+    ssl_opts.pem_key_cert_pairs.push_back(pkcp);
+    return SslServerCredentials(ssl_opts);
+  } else {
+    return InsecureServerCredentials();
+  }
+}
 
-  std::shared_ptr<grpc::ChannelInterface> CreateChannel(
-      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE;
-  SecureCredentials* AsSecureCredentials() GRPC_OVERRIDE { return this; }
-
- private:
-  grpc_credentials* const c_creds_;
-};
-
+}  // namespace testing
 }  // namespace grpc
-
-
