@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,40 +27,38 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-thisfile=$(readlink -ne "${BASH_SOURCE[0]}")
-current_time=$(date "+%Y-%m-%d-%H-%M-%S")
-result_file_name=interop_result.$current_time.html
-echo $result_file_name
+require 'grpc'
 
-main() {
-  source grpc_docker.sh
-  test_cases=(large_unary empty_unary ping_pong client_streaming server_streaming cancel_after_begin cancel_after_first_response)
-  clients=(cxx java go ruby node python csharp_mono php)
-  servers=(cxx java go ruby node python csharp_mono)
-  for test_case in "${test_cases[@]}"
-  do
-    for client in "${clients[@]}"
-    do
-      for server in "${servers[@]}"
-      do
-        if grpc_interop_test $test_case grpc-docker-testclients $client grpc-docker-server $server
-        then
-          echo "          ['$test_case', '$client', '$server', true]," >> /tmp/interop_result.txt
-        else
-          echo "          ['$test_case', '$client', '$server', false]," >> /tmp/interop_result.txt
-        fi
-      done
-    done
-  done
-  if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    cat pre.html /tmp/interop_result.txt post.html > /tmp/interop_result.html
-    gsutil cp /tmp/interop_result.txt gs://stoked-keyword-656-output/interop_result.txt
-    gsutil cp /tmp/interop_result.html gs://stoked-keyword-656-output/interop_result.html
-    gsutil cp /tmp/interop_result.html gs://stoked-keyword-656-output/result_history/$result_file_name
-    rm /tmp/interop_result.txt
-    rm /tmp/interop_result.html
-  fi
-}
+describe GRPC::Core::Metadata do
+  describe '#new' do
+    it 'should create instances' do
+      expect { GRPC::Core::Metadata.new('a key', 'a value') }.to_not raise_error
+    end
+  end
 
-set -x
-main "$@"
+  describe '#key' do
+    md = GRPC::Core::Metadata.new('a key', 'a value')
+    it 'should be the constructor value' do
+      expect(md.key).to eq('a key')
+    end
+  end
+
+  describe '#value' do
+    md = GRPC::Core::Metadata.new('a key', 'a value')
+    it 'should be the constuctor value' do
+      expect(md.value).to eq('a value')
+    end
+  end
+
+  describe '#dup' do
+    it 'should create a copy that returns the correct key' do
+      md = GRPC::Core::Metadata.new('a key', 'a value')
+      expect(md.dup.key).to eq('a key')
+    end
+
+    it 'should create a copy that returns the correct value' do
+      md = GRPC::Core::Metadata.new('a key', 'a value')
+      expect(md.dup.value).to eq('a value')
+    end
+  end
+end

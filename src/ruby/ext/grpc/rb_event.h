@@ -31,20 +31,23 @@
  *
  */
 
-#ifndef GRPC_RB_COMPLETION_QUEUE_H_
-#define GRPC_RB_COMPLETION_QUEUE_H_
+#ifndef GRPC_RB_EVENT_H_
+#define GRPC_RB_EVENT_H_
 
-#include <grpc/grpc.h>
 #include <ruby.h>
+#include <grpc/grpc.h>
 
-/* Gets the wrapped completion queue from the ruby wrapper */
-grpc_completion_queue *grpc_rb_get_wrapped_completion_queue(VALUE v);
+/* rb_cEvent is the Event class whose instances proxy grpc_event. */
+extern VALUE rb_cEvent;
 
-/* rb_cCompletionQueue is the CompletionQueue class whose instances proxy
-   grpc_completion_queue. */
-extern VALUE rb_cCompletionQueue;
+/* rb_cEventError is the ruby class that acts the exception thrown during rpc
+   event processing. */
+extern VALUE rb_eEventError;
 
-/* Initializes the CompletionQueue class. */
-void Init_grpc_completion_queue();
+/* Used to create new ruby event objects */
+VALUE grpc_rb_new_event(grpc_event *ev);
 
-#endif /* GRPC_RB_COMPLETION_QUEUE_H_ */
+/* Initializes the Event and EventError classes. */
+void Init_grpc_event();
+
+#endif /* GRPC_RB_EVENT_H_ */

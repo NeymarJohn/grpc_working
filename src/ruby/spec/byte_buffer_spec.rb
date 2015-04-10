@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,40 +27,41 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-thisfile=$(readlink -ne "${BASH_SOURCE[0]}")
-current_time=$(date "+%Y-%m-%d-%H-%M-%S")
-result_file_name=interop_result.$current_time.html
-echo $result_file_name
+require 'grpc'
 
-main() {
-  source grpc_docker.sh
-  test_cases=(large_unary empty_unary ping_pong client_streaming server_streaming cancel_after_begin cancel_after_first_response)
-  clients=(cxx java go ruby node python csharp_mono php)
-  servers=(cxx java go ruby node python csharp_mono)
-  for test_case in "${test_cases[@]}"
-  do
-    for client in "${clients[@]}"
-    do
-      for server in "${servers[@]}"
-      do
-        if grpc_interop_test $test_case grpc-docker-testclients $client grpc-docker-server $server
-        then
-          echo "          ['$test_case', '$client', '$server', true]," >> /tmp/interop_result.txt
-        else
-          echo "          ['$test_case', '$client', '$server', false]," >> /tmp/interop_result.txt
-        fi
-      done
-    done
-  done
-  if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    cat pre.html /tmp/interop_result.txt post.html > /tmp/interop_result.html
-    gsutil cp /tmp/interop_result.txt gs://stoked-keyword-656-output/interop_result.txt
-    gsutil cp /tmp/interop_result.html gs://stoked-keyword-656-output/interop_result.html
-    gsutil cp /tmp/interop_result.html gs://stoked-keyword-656-output/result_history/$result_file_name
-    rm /tmp/interop_result.txt
-    rm /tmp/interop_result.html
-  fi
-}
+describe GRPC::Core::ByteBuffer do
+  describe '#new' do
+    it 'is constructed from a string' do
+      expect { GRPC::Core::ByteBuffer.new('#new') }.not_to raise_error
+    end
 
-set -x
-main "$@"
+    it 'can be constructed from the empty string' do
+      expect { GRPC::Core::ByteBuffer.new('') }.not_to raise_error
+    end
+
+    it 'cannot be constructed from nil' do
+      expect { GRPC::Core::ByteBuffer.new(nil) }.to raise_error TypeError
+    end
+
+    it 'cannot be constructed from non-strings' do
+      [1, Object.new, :a_symbol].each do |x|
+        expect { GRPC::Core::ByteBuffer.new(x) }.to raise_error TypeError
+      end
+    end
+  end
+
+  describe '#to_s' do
+    it 'is the string value the ByteBuffer was constructed with' do
+      expect(GRPC::Core::ByteBuffer.new('#to_s').to_s).to eq('#to_s')
+    end
+  end
+
+  describe '#dup' do
+    it 'makes an instance whose #to_s is the original string value' do
+      bb = GRPC::Core::ByteBuffer.new('#dup')
+      a_copy = bb.dup
+      expect(a_copy.to_s).to eq('#dup')
+      expect(a_copy.dup.to_s).to eq('#dup')
+    end
+  end
+end

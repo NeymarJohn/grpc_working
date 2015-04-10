@@ -31,20 +31,39 @@
  *
  */
 
-#ifndef GRPC_RB_COMPLETION_QUEUE_H_
-#define GRPC_RB_COMPLETION_QUEUE_H_
+#include "test/cpp/interop/server_helper.h"
 
-#include <grpc/grpc.h>
-#include <ruby.h>
+#include <memory>
 
-/* Gets the wrapped completion queue from the ruby wrapper */
-grpc_completion_queue *grpc_rb_get_wrapped_completion_queue(VALUE v);
+#include <gflags/gflags.h>
+#include "test/core/end2end/data/ssl_test_data.h"
+#include <grpc++/config.h>
+#include <grpc++/server_credentials.h>
 
-/* rb_cCompletionQueue is the CompletionQueue class whose instances proxy
-   grpc_completion_queue. */
-extern VALUE rb_cCompletionQueue;
+DECLARE_bool(enable_ssl);
 
-/* Initializes the CompletionQueue class. */
-void Init_grpc_completion_queue();
+// In some distros, gflags is in the namespace google, and in some others,
+// in gflags. This hack is enabling us to find both.
+namespace google {}
+namespace gflags {}
+using namespace google;
+using namespace gflags;
 
-#endif /* GRPC_RB_COMPLETION_QUEUE_H_ */
+namespace grpc {
+namespace testing {
+
+std::shared_ptr<ServerCredentials> CreateInteropServerCredentials() {
+  if (FLAGS_enable_ssl) {
+    SslServerCredentialsOptions::PemKeyCertPair pkcp = {test_server1_key,
+                                                        test_server1_cert};
+    SslServerCredentialsOptions ssl_opts;
+    ssl_opts.pem_root_certs = "";
+    ssl_opts.pem_key_cert_pairs.push_back(pkcp);
+    return SslServerCredentials(ssl_opts);
+  } else {
+    return InsecureServerCredentials();
+  }
+}
+
+}  // namespace testing
+}  // namespace grpc

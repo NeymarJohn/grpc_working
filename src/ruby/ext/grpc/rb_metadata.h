@@ -31,20 +31,23 @@
  *
  */
 
-#ifndef GRPC_RB_COMPLETION_QUEUE_H_
-#define GRPC_RB_COMPLETION_QUEUE_H_
+#ifndef GRPC_RB_METADATA_H_
+#define GRPC_RB_METADATA_H_
 
 #include <grpc/grpc.h>
 #include <ruby.h>
 
-/* Gets the wrapped completion queue from the ruby wrapper */
-grpc_completion_queue *grpc_rb_get_wrapped_completion_queue(VALUE v);
+/* rb_cMetadata is the Metadata class whose instances proxy grpc_metadata. */
+extern VALUE rb_cMetadata;
 
-/* rb_cCompletionQueue is the CompletionQueue class whose instances proxy
-   grpc_completion_queue. */
-extern VALUE rb_cCompletionQueue;
+/* grpc_rb_metadata_create_with_mark creates a grpc_rb_metadata with a ruby mark
+ * object that will be kept alive while the metadata is alive. */
+extern VALUE grpc_rb_metadata_create_with_mark(VALUE mark, grpc_metadata* md);
 
-/* Initializes the CompletionQueue class. */
-void Init_grpc_completion_queue();
+/* Gets the wrapped metadata from the ruby wrapper */
+grpc_metadata* grpc_rb_get_wrapped_metadata(VALUE v);
 
-#endif /* GRPC_RB_COMPLETION_QUEUE_H_ */
+/* Initializes the Metadata class. */
+void Init_grpc_metadata();
+
+#endif /* GRPC_RB_METADATA_H_ */

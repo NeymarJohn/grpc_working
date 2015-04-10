@@ -31,20 +31,19 @@
  *
  */
 
-#ifndef GRPC_RB_COMPLETION_QUEUE_H_
-#define GRPC_RB_COMPLETION_QUEUE_H_
+#ifndef GRPC_TEST_CPP_INTEROP_SERVER_HELPER_H
+#define GRPC_TEST_CPP_INTEROP_SERVER_HELPER_H
 
-#include <grpc/grpc.h>
-#include <ruby.h>
+#include <memory>
 
-/* Gets the wrapped completion queue from the ruby wrapper */
-grpc_completion_queue *grpc_rb_get_wrapped_completion_queue(VALUE v);
+#include <grpc++/server_credentials.h>
 
-/* rb_cCompletionQueue is the CompletionQueue class whose instances proxy
-   grpc_completion_queue. */
-extern VALUE rb_cCompletionQueue;
+namespace grpc {
+namespace testing {
 
-/* Initializes the CompletionQueue class. */
-void Init_grpc_completion_queue();
+std::shared_ptr<ServerCredentials> CreateInteropServerCredentials();
 
-#endif /* GRPC_RB_COMPLETION_QUEUE_H_ */
+}  // namespace testing
+}  // namespace grpc
+
+#endif  // GRPC_TEST_CPP_INTEROP_SERVER_HELPER_H
