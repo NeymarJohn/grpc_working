@@ -29,12 +29,6 @@
         "include/grpc++/impl/rpc_method.h",
         "include/grpc++/impl/rpc_service_method.h",
         "include/grpc++/impl/service_type.h",
-        "include/grpc++/impl/sync.h",
-        "include/grpc++/impl/sync_cxx11.h",
-        "include/grpc++/impl/sync_no_cxx11.h",
-        "include/grpc++/impl/thd.h",
-        "include/grpc++/impl/thd_cxx11.h",
-        "include/grpc++/impl/thd_no_cxx11.h",
         "include/grpc++/server.h",
         "include/grpc++/server_builder.h",
         "include/grpc++/server_context.h",
@@ -540,38 +534,6 @@
       ],
       "deps": [],
       "secure": "no"
-    },
-    {
-      "name": "interop_client_lib",
-      "build": "private",
-      "language": "c++",
-      "src": [
-        "test/cpp/interop/empty.proto",
-        "test/cpp/interop/messages.proto",
-        "test/cpp/interop/test.proto",
-        "test/cpp/interop/client_helper.cc",
-        "test/cpp/interop/interop_client.cc"
-      ],
-      "deps": [
-        "grpc++_test_util",
-        "grpc++",
-        "grpc",
-        "gpr"
-      ]
-    },
-    {
-      "name": "interop_server_lib",
-      "build": "private",
-      "language": "c++",
-      "src": [
-        "test/cpp/interop/server_helper.cc"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr"
-      ]
     },
     {
       "name": "pubsub_client_lib",
@@ -1906,10 +1868,12 @@
       "run": false,
       "language": "c++",
       "src": [
+        "test/cpp/interop/empty.proto",
+        "test/cpp/interop/messages.proto",
+        "test/cpp/interop/test.proto",
         "test/cpp/interop/client.cc"
       ],
       "deps": [
-        "interop_client_lib",
         "grpc++_test_util",
         "grpc_test_util",
         "grpc++",
@@ -1930,7 +1894,6 @@
         "test/cpp/interop/server.cc"
       ],
       "deps": [
-        "interop_server_lib",
         "grpc++_test_util",
         "grpc_test_util",
         "grpc++",
