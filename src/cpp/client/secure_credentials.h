@@ -31,27 +31,31 @@
  *
  */
 
-#ifndef TEST_QPS_REPORT_H
-#define TEST_QPS_REPORT_H
+#ifndef GRPC_INTERNAL_CPP_CLIENT_SECURE_CREDENTIALS_H
+#define GRPC_INTERNAL_CPP_CLIENT_SECURE_CREDENTIALS_H
 
-#include "test/cpp/qps/driver.h"
+#include <grpc/grpc_security.h>
+
+#include <grpc++/config.h>
+#include <grpc++/credentials.h>
 
 namespace grpc {
-namespace testing {
 
-// QPS: XXX
-void ReportQPS(const ScenarioResult& result);
-// QPS: XXX (YYY/server core)
-void ReportQPSPerCore(const ScenarioResult& result, const ServerConfig& config);
-// Latency (50/90/95/99/99.9%-ile): AA/BB/CC/DD/EE us
-void ReportLatency(const ScenarioResult& result);
-// Server system time: XX%
-// Server user time: XX%
-// Client system time: XX%
-// Client user time: XX%
-void ReportTimes(const ScenarioResult& result);
+class SecureCredentials GRPC_FINAL : public Credentials {
+ public:
+  explicit SecureCredentials(grpc_credentials* c_creds) : c_creds_(c_creds) {}
+  ~SecureCredentials() GRPC_OVERRIDE { grpc_credentials_release(c_creds_); }
+  grpc_credentials* GetRawCreds() { return c_creds_; }
 
-}  // namespace testing
+  std::shared_ptr<grpc::ChannelInterface> CreateChannel(
+      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE;
+  SecureCredentials* AsSecureCredentials() GRPC_OVERRIDE { return this; }
+
+ private:
+  grpc_credentials* const c_creds_;
+};
+
 }  // namespace grpc
 
-#endif
+#endif  // GRPC_INTERNAL_CPP_CLIENT_SECURE_CREDENTIALS_H
+

@@ -31,37 +31,30 @@
  *
  */
 
-#ifndef GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
-#define GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+#ifndef GRPC_INTERNAL_CPP_SERVER_SECURE_SERVER_CREDENTIALS_H
+#define GRPC_INTERNAL_CPP_SERVER_SECURE_SERVER_CREDENTIALS_H
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/status.h>
+#include <grpc/grpc_security.h>
 
-#include "examples/pubsub/pubsub.grpc.pb.h"
+#include <grpc++/server_credentials.h>
 
 namespace grpc {
-namespace examples {
-namespace pubsub {
 
-class Publisher {
+class SecureServerCredentials GRPC_FINAL : public ServerCredentials {
  public:
-  Publisher(std::shared_ptr<ChannelInterface> channel);
-  void Shutdown();
+  explicit SecureServerCredentials(grpc_server_credentials* creds)
+      : creds_(creds) {}
+  ~SecureServerCredentials() GRPC_OVERRIDE {
+    grpc_server_credentials_release(creds_);
+  }
 
-  Status CreateTopic(const grpc::string& topic);
-  Status GetTopic(const grpc::string& topic);
-  Status DeleteTopic(const grpc::string& topic);
-  Status ListTopics(const grpc::string& project_id,
-                    std::vector<grpc::string>* topics);
-
-  Status Publish(const grpc::string& topic, const grpc::string& data);
+  int AddPortToServer(const grpc::string& addr,
+                      grpc_server* server) GRPC_OVERRIDE;
 
  private:
-  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
+  grpc_server_credentials* const creds_;
 };
 
-}  // namespace pubsub
-}  // namespace examples
 }  // namespace grpc
 
-#endif  // GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+#endif  // GRPC_INTERNAL_CPP_SERVER_SECURE_SERVER_CREDENTIALS_H
