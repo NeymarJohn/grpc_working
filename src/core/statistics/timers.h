@@ -31,27 +31,33 @@
  *
  */
 
-#ifndef TEST_QPS_REPORT_H
-#define TEST_QPS_REPORT_H
+#ifndef GRPC_TIMERS_H
+#define GRPC_TIMERS_H
 
-#include "test/cpp/qps/driver.h"
+#include <stdio.h>
 
-namespace grpc {
-namespace testing {
-
-// QPS: XXX
-void ReportQPS(const ScenarioResult& result);
-// QPS: XXX (YYY/server core)
-void ReportQPSPerCore(const ScenarioResult& result, const ServerConfig& config);
-// Latency (50/90/95/99/99.9%-ile): AA/BB/CC/DD/EE us
-void ReportLatency(const ScenarioResult& result);
-// Server system time: XX%
-// Server user time: XX%
-// Client system time: XX%
-// Client user time: XX%
-void ReportTimes(const ScenarioResult& result);
-
-}  // namespace testing
-}  // namespace grpc
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+typedef struct grpc_timers_log grpc_timers_log;
+
+void grpc_timers_log_global_init(void);
+void grpc_timers_log_global_destroy(void);
+grpc_timers_log* grpc_timers_log_create(int capacity_limit, FILE *dump,
+                                        const char *fmt);
+void grpc_timers_log_add(grpc_timers_log *, const char *tag, int seq,
+                        const char *file, int line);
+void grpc_timers_log_destroy(grpc_timers_log *);
+
+extern grpc_timers_log *grpc_timers_log_global;
+
+#define GRPC_TIMER_MARK(x, s) grpc_timers_log_add(grpc_timers_log_global, #x, \
+    s, __FILE__, __LINE__);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* GRPC_TIMERS_H */

@@ -172,9 +172,6 @@ static int multipoll_with_poll_pollset_maybe_work(
   }
 
   r = poll(h->pfds, h->pfd_count, timeout);
-
-  end_polling(pollset);
-
   if (r < 0) {
     if (errno != EINTR) {
       gpr_log(GPR_ERROR, "poll() failed: %s", strerror(errno));
@@ -195,6 +192,7 @@ static int multipoll_with_poll_pollset_maybe_work(
     }
   }
   grpc_pollset_kick_post_poll(&pollset->kick_state);
+  end_polling(pollset);
 
   gpr_mu_lock(&pollset->mu);
   pollset->counter = 0;

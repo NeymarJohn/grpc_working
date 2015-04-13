@@ -179,11 +179,6 @@
   {
     "flaky": false, 
     "language": "c", 
-    "name": "gpr_tls_test"
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
     "name": "gpr_useful_test"
   }, 
   {

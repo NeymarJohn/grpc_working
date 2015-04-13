@@ -31,39 +31,53 @@
  *
  */
 
-#include "test/cpp/interop/server_helper.h"
+#include "src/core/statistics/timers.h"
+#include <stdlib.h>
+#include "test/core/util/test_config.h"
 
-#include <memory>
+void test_log_events(int num_seqs) {
+  int start = 0;
+  int *state;
+  state = calloc(num_seqs,sizeof(state[0]));
+  while (start < num_seqs) {
+    int i;
+    int row;
+    if (state[start] == 3) { /* Already done with this posn */
+      start++;
+      continue;
+    }
 
-#include <gflags/gflags.h>
-#include "test/core/end2end/data/ssl_test_data.h"
-#include <grpc++/config.h>
-#include <grpc++/server_credentials.h>
-
-DECLARE_bool(enable_ssl);
-
-// In some distros, gflags is in the namespace google, and in some others,
-// in gflags. This hack is enabling us to find both.
-namespace google {}
-namespace gflags {}
-using namespace google;
-using namespace gflags;
-
-namespace grpc {
-namespace testing {
-
-std::shared_ptr<ServerCredentials> CreateInteropServerCredentials() {
-  if (FLAGS_enable_ssl) {
-    SslServerCredentialsOptions::PemKeyCertPair pkcp = {test_server1_key,
-                                                        test_server1_cert};
-    SslServerCredentialsOptions ssl_opts;
-    ssl_opts.pem_root_certs = "";
-    ssl_opts.pem_key_cert_pairs.push_back(pkcp);
-    return SslServerCredentials(ssl_opts);
-  } else {
-    return InsecureServerCredentials();
+    row = rand() % 10; /* how many in a row */
+    for (i = start; (i < start+row) && (i < num_seqs); i++) {
+      int j;
+      int advance = 1 + rand() % 3; /* how many to advance by */
+      for (j=0; j<advance; j++) {
+        switch (state[i]) {
+          case 0:
+            GRPC_TIMER_MARK(STATE_0, i);
+            state[i]++;
+            break;
+          case 1:
+            GRPC_TIMER_MARK(STATE_1, i);
+            state[i]++;
+            break;
+          case 2:
+            GRPC_TIMER_MARK(STATE_2, i);
+            state[i]++;
+            break;
+          case 3:
+            break;
+        }
+      }
+    }
   }
+  free(state);
 }
 
-}  // namespace testing
-}  // namespace grpc
+int main(int argc, char **argv) {
+  grpc_test_init(argc, argv);
+  grpc_timers_log_global_init();
+  test_log_events(1000000);
+  grpc_timers_log_global_destroy();
+  return 0;
+}

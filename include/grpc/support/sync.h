@@ -60,7 +60,7 @@
 #include <grpc/support/sync_posix.h>
 #elif defined(GPR_WIN32)
 #include <grpc/support/sync_win32.h>
-#elif !defined(GPR_CUSTOM_SYNC)
+#else
 #error Unable to determine platform for sync
 #endif
 

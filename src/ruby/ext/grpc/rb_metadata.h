@@ -31,47 +31,23 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_TLS_H
-#define GRPC_SUPPORT_TLS_H
+#ifndef GRPC_RB_METADATA_H_
+#define GRPC_RB_METADATA_H_
 
-#include "port_platform.h"
+#include <grpc/grpc.h>
+#include <ruby.h>
 
-/* Thread local storage.
+/* rb_cMetadata is the Metadata class whose instances proxy grpc_metadata. */
+extern VALUE rb_cMetadata;
 
-   A minimal wrapper that should be implementable across many compilers,
-   and implementable efficiently across most modern compilers.
+/* grpc_rb_metadata_create_with_mark creates a grpc_rb_metadata with a ruby mark
+ * object that will be kept alive while the metadata is alive. */
+extern VALUE grpc_rb_metadata_create_with_mark(VALUE mark, grpc_metadata* md);
 
-   Thread locals have type gpr_intptr.
+/* Gets the wrapped metadata from the ruby wrapper */
+grpc_metadata* grpc_rb_get_wrapped_metadata(VALUE v);
 
-   Declaring a thread local variable 'foo':
-     GPR_TLS_DECL(foo, initial_value);
-   Thread locals always have static scope.
+/* Initializes the Metadata class. */
+void Init_grpc_metadata();
 
-   Initializing a thread local (must be done at library initialization 
-   time):
-     gpr_tls_init(&foo);
-
-   Destroying a thread local:
-     gpr_tls_destroy(&foo);
-
-   Setting a thread local:
-     gpr_tls_set(&foo, new_value);
-
-   Accessing a thread local:
-     current_value = gpr_tls_get(&foo, value); 
-
-   ALL functions here may be implemented as macros. */
-
-#ifdef GPR_GCC_TLS
-#include "tls_gcc.h"
-#endif
-
-#ifdef GPR_MSVC_TLS
-#include "tls_msvc.h"
-#endif
-
-#ifdef GPR_PTHREAD_TLS
-#include "tls_pthread.h"
-#endif
-
-#endif
+#endif /* GRPC_RB_METADATA_H_ */
