@@ -29,33 +29,36 @@
 
 require 'grpc'
 
-# GRPC contains the General RPC module.
-module GRPC
-  # OutOfTime is an exception class that indicates that an RPC exceeded its
-  # deadline.
-  OutOfTime = Class.new(StandardError)
+describe GRPC::Core::Metadata do
+  describe '#new' do
+    it 'should create instances' do
+      expect { GRPC::Core::Metadata.new('a key', 'a value') }.to_not raise_error
+    end
+  end
 
-  # BadStatus is an exception class that indicates that an error occurred at
-  # either end of a GRPC connection.  When raised, it indicates that a status
-  # error should be returned to the other end of a GRPC connection; when
-  # caught it means that this end received a status error.
-  class BadStatus < StandardError
-    attr_reader :code, :details
+  describe '#key' do
+    md = GRPC::Core::Metadata.new('a key', 'a value')
+    it 'should be the constructor value' do
+      expect(md.key).to eq('a key')
+    end
+  end
 
-    # @param code [Numeric] the status code
-    # @param details [String] the details of the exception
-    def initialize(code, details = 'unknown cause')
-      super("#{code}:#{details}")
-      @code = code
-      @details = details
+  describe '#value' do
+    md = GRPC::Core::Metadata.new('a key', 'a value')
+    it 'should be the constuctor value' do
+      expect(md.value).to eq('a value')
+    end
+  end
+
+  describe '#dup' do
+    it 'should create a copy that returns the correct key' do
+      md = GRPC::Core::Metadata.new('a key', 'a value')
+      expect(md.dup.key).to eq('a key')
     end
 
-    # Converts the exception to a GRPC::Status for use in the networking
-    # wrapper layer.
-    #
-    # @return [Status] with the same code and details
-    def to_status
-      Status.new(code, details)
+    it 'should create a copy that returns the correct value' do
+      md = GRPC::Core::Metadata.new('a key', 'a value')
+      expect(md.dup.value).to eq('a value')
     end
   end
 end

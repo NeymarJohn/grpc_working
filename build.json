@@ -137,7 +137,6 @@
         "src/core/json/json_common.h",
         "src/core/json/json_reader.h",
         "src/core/json/json_writer.h",
-        "src/core/profiling/timers.h",
         "src/core/statistics/census_interface.h",
         "src/core/statistics/census_log.h",
         "src/core/statistics/census_rpc_stats.h",
@@ -230,7 +229,6 @@
         "src/core/json/json_reader.c",
         "src/core/json/json_string.c",
         "src/core/json/json_writer.c",
-        "src/core/profiling/timers.c",
         "src/core/statistics/census_init.c",
         "src/core/statistics/census_log.c",
         "src/core/statistics/census_rpc_stats.c",
@@ -305,10 +303,6 @@
         "include/grpc/support/sync_win32.h",
         "include/grpc/support/thd.h",
         "include/grpc/support/time.h",
-        "include/grpc/support/tls.h",
-        "include/grpc/support/tls_gcc.h",
-        "include/grpc/support/tls_msvc.h",
-        "include/grpc/support/tls_pthread.h",
         "include/grpc/support/useful.h"
       ],
       "headers": [
@@ -1196,18 +1190,6 @@
       ]
     },
     {
-      "name": "gpr_tls_test",
-      "build": "test",
-      "language": "c",
-      "src": [
-        "test/core/support/tls_test.c"
-      ],
-      "deps": [
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
       "name": "gpr_useful_test",
       "build": "test",
       "language": "c",
@@ -1713,20 +1695,6 @@
       "language": "c",
       "src": [
         "test/core/transport/chttp2/timeout_encoding_test.c"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "timers_test",
-      "build": "test",
-      "language": "c",
-      "src": [
-        "test/core/profiling/timers_test.c"
       ],
       "deps": [
         "grpc_test_util",

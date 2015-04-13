@@ -179,11 +179,6 @@
   {
     "flaky": false, 
     "language": "c", 
-    "name": "gpr_tls_test"
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
     "name": "gpr_useful_test"
   }, 
   {
@@ -330,11 +325,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "timeout_encoding_test"
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "timers_test"
   }, 
   {
     "flaky": false, 
