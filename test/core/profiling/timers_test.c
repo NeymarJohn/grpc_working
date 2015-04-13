@@ -31,36 +31,53 @@
  *
  */
 
-#ifndef GRPC_RB_CALL_H_
-#define GRPC_RB_CALL_H_
+#include "src/core/profiling/timers.h"
+#include <stdlib.h>
+#include "test/core/util/test_config.h"
 
-#include <grpc/grpc.h>
-#include <ruby.h>
+void test_log_events(int num_seqs) {
+  int start = 0;
+  int *state;
+  state = calloc(num_seqs,sizeof(state[0]));
+  while (start < num_seqs) {
+    int i;
+    int row;
+    if (state[start] == 3) { /* Already done with this posn */
+      start++;
+      continue;
+    }
 
-/* Gets the wrapped call from a VALUE. */
-grpc_call* grpc_rb_get_wrapped_call(VALUE v);
+    row = rand() % 10; /* how many in a row */
+    for (i = start; (i < start+row) && (i < num_seqs); i++) {
+      int j;
+      int advance = 1 + rand() % 3; /* how many to advance by */
+      for (j=0; j<advance; j++) {
+        switch (state[i]) {
+          case 0:
+            GRPC_TIMER_MARK(STATE_0, i);
+            state[i]++;
+            break;
+          case 1:
+            GRPC_TIMER_MARK(STATE_1, i);
+            state[i]++;
+            break;
+          case 2:
+            GRPC_TIMER_MARK(STATE_2, i);
+            state[i]++;
+            break;
+          case 3:
+            break;
+        }
+      }
+    }
+  }
+  free(state);
+}
 
-/* Gets the VALUE corresponding to given grpc_call. */
-VALUE grpc_rb_wrap_call(grpc_call* c);
-
-/* Provides the details of an call error */
-const char* grpc_call_error_detail_of(grpc_call_error err);
-
-/* Converts a metadata array to a hash. */
-VALUE grpc_rb_md_ary_to_h(grpc_metadata_array *md_ary);
-
-/* rb_cCall is the Call class whose instances proxy grpc_call. */
-extern VALUE rb_cCall;
-
-/* rb_eCallError is the ruby class of the exception thrown during call
-   operations. */
-extern VALUE rb_eCallError;
-
-/* rb_eOutOfTime is the ruby class of the exception thrown to indicate
-   a timeout. */
-extern VALUE rb_eOutOfTime;
-
-/* Initializes the Call class. */
-void Init_grpc_call();
-
-#endif /* GRPC_RB_CALL_H_ */
+int main(int argc, char **argv) {
+  grpc_test_init(argc, argv);
+  grpc_timers_log_global_init();
+  test_log_events(1000000);
+  grpc_timers_log_global_destroy();
+  return 0;
+}

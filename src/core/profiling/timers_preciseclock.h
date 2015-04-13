@@ -31,36 +31,27 @@
  *
  */
 
-#ifndef GRPC_RB_CALL_H_
-#define GRPC_RB_CALL_H_
+#ifndef GRPC_CORE_PROFILING_TIMERS_PRECISECLOCK_H
+#define GRPC_CORE_PROFILING_TIMERS_PRECISECLOCK_H
 
-#include <grpc/grpc.h>
-#include <ruby.h>
+#include <grpc/support/time.h>
+#include <stdio.h>
 
-/* Gets the wrapped call from a VALUE. */
-grpc_call* grpc_rb_get_wrapped_call(VALUE v);
+typedef struct grpc_precise_clock grpc_precise_clock;
 
-/* Gets the VALUE corresponding to given grpc_call. */
-VALUE grpc_rb_wrap_call(grpc_call* c);
+#ifdef GRPC_TIMERS_RDTSC
+#error RDTSC timers not currently supported
+#else
+struct grpc_precise_clock {
+  gpr_timespec clock;
+};
+static void grpc_precise_clock_now(grpc_precise_clock* clk) {
+  clk->clock = gpr_now();
+}
+static void grpc_precise_clock_print(const grpc_precise_clock* clk, FILE* fp) {
+  fprintf(fp, "%ld.%09d", clk->clock.tv_sec, clk->clock.tv_nsec);
+}
+#endif /* GRPC_TIMERS_RDTSC */
 
-/* Provides the details of an call error */
-const char* grpc_call_error_detail_of(grpc_call_error err);
 
-/* Converts a metadata array to a hash. */
-VALUE grpc_rb_md_ary_to_h(grpc_metadata_array *md_ary);
-
-/* rb_cCall is the Call class whose instances proxy grpc_call. */
-extern VALUE rb_cCall;
-
-/* rb_eCallError is the ruby class of the exception thrown during call
-   operations. */
-extern VALUE rb_eCallError;
-
-/* rb_eOutOfTime is the ruby class of the exception thrown to indicate
-   a timeout. */
-extern VALUE rb_eOutOfTime;
-
-/* Initializes the Call class. */
-void Init_grpc_call();
-
-#endif /* GRPC_RB_CALL_H_ */
+#endif /* GRPC_CORE_PROFILING_TIMERS_PRECISECLOCK_H */

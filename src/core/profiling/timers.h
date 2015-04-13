@@ -31,36 +31,38 @@
  *
  */
 
-#ifndef GRPC_RB_CALL_H_
-#define GRPC_RB_CALL_H_
+#ifndef GRPC_CORE_PROFILING_TIMERS_H
+#define GRPC_CORE_PROFILING_TIMERS_H
 
-#include <grpc/grpc.h>
-#include <ruby.h>
+#include <stdio.h>
 
-/* Gets the wrapped call from a VALUE. */
-grpc_call* grpc_rb_get_wrapped_call(VALUE v);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/* Gets the VALUE corresponding to given grpc_call. */
-VALUE grpc_rb_wrap_call(grpc_call* c);
+#ifdef GRPC_LATENCY_PROFILER
 
-/* Provides the details of an call error */
-const char* grpc_call_error_detail_of(grpc_call_error err);
+typedef struct grpc_timers_log grpc_timers_log;
 
-/* Converts a metadata array to a hash. */
-VALUE grpc_rb_md_ary_to_h(grpc_metadata_array *md_ary);
+grpc_timers_log* grpc_timers_log_create(int capacity_limit, FILE *dump);
+void grpc_timers_log_add(grpc_timers_log *, const char *tag, int seq,
+                        const char *file, int line);
+void grpc_timers_log_destroy(grpc_timers_log *);
 
-/* rb_cCall is the Call class whose instances proxy grpc_call. */
-extern VALUE rb_cCall;
+extern grpc_timers_log *grpc_timers_log_global;
 
-/* rb_eCallError is the ruby class of the exception thrown during call
-   operations. */
-extern VALUE rb_eCallError;
+#define GRPC_TIMER_MARK(x, s) grpc_timers_log_add(grpc_timers_log_global, #x, \
+    s, __FILE__, __LINE__)
 
-/* rb_eOutOfTime is the ruby class of the exception thrown to indicate
-   a timeout. */
-extern VALUE rb_eOutOfTime;
+#else /* !GRPC_LATENCY_PROFILER */
+#define GRPC_TIMER_MARK(x, s) do {} while (0)
+#endif /* GRPC_LATENCY_PROFILER */
 
-/* Initializes the Call class. */
-void Init_grpc_call();
+void grpc_timers_log_global_init(void);
+void grpc_timers_log_global_destroy(void);
 
-#endif /* GRPC_RB_CALL_H_ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* GRPC_CORE_PROFILING_TIMERS_H */
