@@ -334,11 +334,6 @@
   {
     "flaky": false, 
     "language": "c", 
-    "name": "timers_test"
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
     "name": "transport_metadata_test"
   }, 
   {
