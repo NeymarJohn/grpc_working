@@ -33,6 +33,10 @@
 
 'use strict';
 
+var util = require('util');
+
+var Transform = require('stream').Transform;
+
 var grpc = require('..');
 var math = grpc.load(__dirname + '/math.proto').math;
 
@@ -50,12 +54,11 @@ function mathDiv(call, cb) {
   // Unary + is explicit coersion to integer
   if (+req.divisor === 0) {
     cb(new Error('cannot divide by zero'));
-  } else {
-    cb(null, {
-      quotient: req.dividend / req.divisor,
-      remainder: req.dividend % req.divisor
-    });
   }
+  cb(null, {
+    quotient: req.dividend / req.divisor,
+    remainder: req.dividend % req.divisor
+  });
 }
 
 /**
@@ -94,19 +97,24 @@ function mathSum(call, cb) {
 }
 
 function mathDivMany(stream) {
-  stream.on('data', function(div_args) {
+  // Here, call is a standard duplex Node object Stream
+  util.inherits(DivTransform, Transform);
+  function DivTransform() {
+    var options = {objectMode: true};
+    Transform.call(this, options);
+  }
+  DivTransform.prototype._transform = function(div_args, encoding, callback) {
     if (+div_args.divisor === 0) {
-      stream.emit('error', new Error('cannot divide by zero'));
-    } else {
-      stream.write({
-        quotient: div_args.dividend / div_args.divisor,
-        remainder: div_args.dividend % div_args.divisor
-      });
+      callback(new Error('cannot divide by zero'));
     }
-  });
-  stream.on('end', function() {
-    stream.end();
-  });
+    callback(null, {
+      quotient: div_args.dividend / div_args.divisor,
+      remainder: div_args.dividend % div_args.divisor
+    });
+  };
+  var transform = new DivTransform();
+  stream.pipe(transform);
+  transform.pipe(stream);
 }
 
 var server = new Server({
