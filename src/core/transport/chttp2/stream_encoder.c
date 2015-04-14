@@ -171,15 +171,13 @@ static gpr_uint8 *add_tiny_header_data(framer_state *st, int len) {
   return gpr_slice_buffer_tiny_add(st->output, len);
 }
 
-/* add an element to the decoder table: returns metadata element to unref */
-static grpc_mdelem *add_elem(grpc_chttp2_hpack_compressor *c,
-                             grpc_mdelem *elem) {
+static void add_elem(grpc_chttp2_hpack_compressor *c, grpc_mdelem *elem) {
   gpr_uint32 key_hash = elem->key->hash;
   gpr_uint32 elem_hash = GRPC_MDSTR_KV_HASH(key_hash, elem->value->hash);
   gpr_uint32 new_index = c->tail_remote_index + c->table_elems + 1;
   gpr_uint32 elem_size = 32 + GPR_SLICE_LENGTH(elem->key->slice) +
                          GPR_SLICE_LENGTH(elem->value->slice);
-  grpc_mdelem *elem_to_unref = (void *)1;
+  int drop_ref;
 
   /* Reserve space for this element in the remote table: if this overflows
      the current table, drop elements until it fits, matching the decompressor
@@ -206,32 +204,34 @@ static grpc_mdelem *add_elem(grpc_chttp2_hpack_compressor *c,
   if (c->entries_elems[HASH_FRAGMENT_2(elem_hash)] == elem) {
     /* already there: update with new index */
     c->indices_elems[HASH_FRAGMENT_2(elem_hash)] = new_index;
-    elem_to_unref = elem;
+    drop_ref = 1;
   } else if (c->entries_elems[HASH_FRAGMENT_3(elem_hash)] == elem) {
     /* already there (cuckoo): update with new index */
     c->indices_elems[HASH_FRAGMENT_3(elem_hash)] = new_index;
-    elem_to_unref = elem;
+    drop_ref = 1;
   } else if (c->entries_elems[HASH_FRAGMENT_2(elem_hash)] == NULL) {
     /* not there, but a free element: add */
     c->entries_elems[HASH_FRAGMENT_2(elem_hash)] = elem;
     c->indices_elems[HASH_FRAGMENT_2(elem_hash)] = new_index;
-    elem_to_unref = NULL;
+    drop_ref = 0;
   } else if (c->entries_elems[HASH_FRAGMENT_3(elem_hash)] == NULL) {
     /* not there (cuckoo), but a free element: add */
     c->entries_elems[HASH_FRAGMENT_3(elem_hash)] = elem;
     c->indices_elems[HASH_FRAGMENT_3(elem_hash)] = new_index;
-    elem_to_unref = NULL;
+    drop_ref = 0;
   } else if (c->indices_elems[HASH_FRAGMENT_2(elem_hash)] <
              c->indices_elems[HASH_FRAGMENT_3(elem_hash)]) {
     /* not there: replace oldest */
-    elem_to_unref = c->entries_elems[HASH_FRAGMENT_2(elem_hash)];
+    grpc_mdelem_unref(c->entries_elems[HASH_FRAGMENT_2(elem_hash)]);
     c->entries_elems[HASH_FRAGMENT_2(elem_hash)] = elem;
     c->indices_elems[HASH_FRAGMENT_2(elem_hash)] = new_index;
+    drop_ref = 0;
   } else {
     /* not there: replace oldest */
-    elem_to_unref = c->entries_elems[HASH_FRAGMENT_3(elem_hash)];
+    grpc_mdelem_unref(c->entries_elems[HASH_FRAGMENT_3(elem_hash)]);
     c->entries_elems[HASH_FRAGMENT_3(elem_hash)] = elem;
     c->indices_elems[HASH_FRAGMENT_3(elem_hash)] = new_index;
+    drop_ref = 0;
   }
 
   /* do exactly the same for the key (so we can find by that again too) */
@@ -257,7 +257,9 @@ static grpc_mdelem *add_elem(grpc_chttp2_hpack_compressor *c,
     c->indices_keys[HASH_FRAGMENT_3(key_hash)] = new_index;
   }
 
-  return elem_to_unref;
+  if (drop_ref) {
+    grpc_mdelem_unref(elem);
+  }
 }
 
 static void emit_indexed(grpc_chttp2_hpack_compressor *c, gpr_uint32 index,
@@ -346,9 +348,9 @@ static gpr_uint32 dynidx(grpc_chttp2_hpack_compressor *c, gpr_uint32 index) {
          c->table_elems - index;
 }
 
-/* encode an mdelem; returns metadata element to unref */
-static grpc_mdelem *hpack_enc(grpc_chttp2_hpack_compressor *c,
-                              grpc_mdelem *elem, framer_state *st) {
+/* encode an mdelem, taking ownership of it */
+static void hpack_enc(grpc_chttp2_hpack_compressor *c, grpc_mdelem *elem,
+                      framer_state *st) {
   gpr_uint32 key_hash = elem->key->hash;
   gpr_uint32 elem_hash = GRPC_MDSTR_KV_HASH(key_hash, elem->value->hash);
   size_t decoder_space_usage;
@@ -364,7 +366,8 @@ static grpc_mdelem *hpack_enc(grpc_chttp2_hpack_compressor *c,
     /* HIT: complete element (first cuckoo hash) */
     emit_indexed(c, dynidx(c, c->indices_elems[HASH_FRAGMENT_2(elem_hash)]),
                  st);
-    return elem;
+    grpc_mdelem_unref(elem);
+    return;
   }
 
   if (c->entries_elems[HASH_FRAGMENT_3(elem_hash)] == elem &&
@@ -372,7 +375,8 @@ static grpc_mdelem *hpack_enc(grpc_chttp2_hpack_compressor *c,
     /* HIT: complete element (second cuckoo hash) */
     emit_indexed(c, dynidx(c, c->indices_elems[HASH_FRAGMENT_3(elem_hash)]),
                  st);
-    return elem;
+    grpc_mdelem_unref(elem);
+    return;
   }
 
   /* should this elem be in the table? */
@@ -390,12 +394,12 @@ static grpc_mdelem *hpack_enc(grpc_chttp2_hpack_compressor *c,
     /* HIT: key (first cuckoo hash) */
     if (should_add_elem) {
       emit_lithdr_incidx(c, dynidx(c, indices_key), elem, st);
-      return add_elem(c, elem);
+      add_elem(c, elem);
     } else {
       emit_lithdr_noidx(c, dynidx(c, indices_key), elem, st);
-      return elem;
+      grpc_mdelem_unref(elem);
     }
-    abort();
+    return;
   }
 
   indices_key = c->indices_keys[HASH_FRAGMENT_3(key_hash)];
@@ -404,24 +408,23 @@ static grpc_mdelem *hpack_enc(grpc_chttp2_hpack_compressor *c,
     /* HIT: key (first cuckoo hash) */
     if (should_add_elem) {
       emit_lithdr_incidx(c, dynidx(c, indices_key), elem, st);
-      return add_elem(c, elem);
+      add_elem(c, elem);
     } else {
       emit_lithdr_noidx(c, dynidx(c, indices_key), elem, st);
-      return elem;
+      grpc_mdelem_unref(elem);
     }
-    abort();
+    return;
   }
 
   /* no elem, key in the table... fall back to literal emission */
 
   if (should_add_elem) {
     emit_lithdr_incidx_v(c, elem, st);
-    return add_elem(c, elem);
+    add_elem(c, elem);
   } else {
     emit_lithdr_noidx_v(c, elem, st);
-    return elem;
+    grpc_mdelem_unref(elem);
   }
-  abort();
 }
 
 #define STRLEN_LIT(x) (sizeof(x) - 1)
@@ -430,13 +433,11 @@ static grpc_mdelem *hpack_enc(grpc_chttp2_hpack_compressor *c,
 static void deadline_enc(grpc_chttp2_hpack_compressor *c, gpr_timespec deadline,
                          framer_state *st) {
   char timeout_str[GRPC_CHTTP2_TIMEOUT_ENCODE_MIN_BUFSIZE];
-  grpc_mdelem *mdelem;
   grpc_chttp2_encode_timeout(gpr_time_sub(deadline, gpr_now()), timeout_str);
-  mdelem = grpc_mdelem_from_metadata_strings(
-      c->mdctx, grpc_mdstr_ref(c->timeout_key_str),
-      grpc_mdstr_from_string(c->mdctx, timeout_str));
-  mdelem = hpack_enc(c, mdelem, st);
-  if (mdelem) grpc_mdelem_unref(mdelem);
+  hpack_enc(c, grpc_mdelem_from_metadata_strings(
+                   c->mdctx, grpc_mdstr_ref(c->timeout_key_str),
+                   grpc_mdstr_from_string(c->mdctx, timeout_str)),
+            st);
 }
 
 gpr_slice grpc_chttp2_data_frame_create_empty_close(gpr_uint32 id) {
@@ -541,9 +542,6 @@ void grpc_chttp2_encode(grpc_stream_op *ops, size_t ops_count, int eof,
   grpc_stream_op *op;
   gpr_uint32 max_take_size;
   gpr_uint32 curop = 0;
-  gpr_uint32 unref_op;
-  grpc_mdctx *mdctx = compressor->mdctx;
-  int need_unref = 0;
 
   GPR_ASSERT(stream_id != 0);
 
@@ -566,12 +564,7 @@ void grpc_chttp2_encode(grpc_stream_op *ops, size_t ops_count, int eof,
         curop++;
         break;
       case GRPC_OP_METADATA:
-        /* Encode a metadata element; store the returned value, representing
-           a metadata element that needs to be unreffed back into the metadata
-           slot. THIS MAY NOT BE THE SAME ELEMENT (if a decoder table slot got
-           updated). After this loop, we'll do a batch unref of elements. */
-        op->data.metadata = hpack_enc(compressor, op->data.metadata, &st);
-        need_unref |= op->data.metadata != NULL;
+        hpack_enc(compressor, op->data.metadata, &st);
         curop++;
         break;
       case GRPC_OP_DEADLINE:
@@ -608,15 +601,4 @@ void grpc_chttp2_encode(grpc_stream_op *ops, size_t ops_count, int eof,
     begin_frame(&st, DATA);
   }
   finish_frame(&st, 1, eof);
-
-  if (need_unref) {
-    grpc_mdctx_lock(mdctx);
-    for (unref_op = 0; unref_op < curop; unref_op++) {
-      op = &ops[unref_op];
-      if (op->type != GRPC_OP_METADATA) continue;
-      if (!op->data.metadata) continue;
-      grpc_mdctx_locked_mdelem_unref(mdctx, op->data.metadata);
-    }
-    grpc_mdctx_unlock(mdctx);
-  }
 }
