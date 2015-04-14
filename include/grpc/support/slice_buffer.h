@@ -40,8 +40,6 @@
 extern "C" {
 #endif
 
-#define GRPC_SLICE_BUFFER_INLINE_ELEMENTS 8
-
 /* Represents an expandable array of slices, to be interpreted as a single item
    TODO(ctiller): inline some small number of elements into the struct, to
                   avoid per-call allocations */
@@ -54,8 +52,6 @@ typedef struct {
   size_t capacity;
   /* the combined length of all slices in the array */
   size_t length;
-  /* inlined elements to avoid allocations */
-  gpr_slice inlined[GRPC_SLICE_BUFFER_INLINE_ELEMENTS];
 } gpr_slice_buffer;
 
 /* initialize a slice buffer */
@@ -82,11 +78,9 @@ gpr_uint8 *gpr_slice_buffer_tiny_add(gpr_slice_buffer *sb, unsigned len);
 void gpr_slice_buffer_pop(gpr_slice_buffer *sb);
 /* clear a slice buffer, unref all elements */
 void gpr_slice_buffer_reset_and_unref(gpr_slice_buffer *sb);
-/* swap the contents of two slice buffers */
-void gpr_slice_buffer_swap(gpr_slice_buffer *a, gpr_slice_buffer *b);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* GRPC_SUPPORT_SLICE_BUFFER_H */
+#endif  /* GRPC_SUPPORT_SLICE_BUFFER_H */

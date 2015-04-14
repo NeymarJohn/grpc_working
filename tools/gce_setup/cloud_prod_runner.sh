@@ -32,7 +32,6 @@ thisfile=$(readlink -ne "${BASH_SOURCE[0]}")
 current_time=$(date "+%Y-%m-%d-%H-%M-%S")
 result_file_name=cloud_prod_result.$current_time.html
 echo $result_file_name
-log_link=https://pantheon.corp.google.com/m/cloudstorage/b/stoked-keyword-656-output/o/log_history
 
 main() {
   source grpc_docker.sh
@@ -43,14 +42,11 @@ main() {
   do
     for client in "${clients[@]}"
     do
-      log_file_name=cloud_{$test_case}_{$client}.txt 
-      if grpc_cloud_prod_test $test_case grpc-docker-testclients $client > /tmp/$log_file_name 2>&1
+      if grpc_cloud_prod_test $test_case grpc-docker-testclients $client
       then
-        gsutil cp /tmp/$log_file_name gs://stoked-keyword-656-output/log_history/$log_file_name
-        echo "          ['$test_case', '$client', 'prod', true, '<a href="$log_link/$log_file_name">log</a>']," >> /tmp/cloud_prod_result.txt
+        echo "          ['$test_case', '$client', 'prod', true]," >> /tmp/cloud_prod_result.txt
       else
-        gsutil cp /tmp/$log_file_name gs://stoked-keyword-656-output/log_history/$log_file_name
-        echo "          ['$test_case', '$client', 'prod', false, '<a href="$log_link/$log_file_name">log</a>']," >> /tmp/cloud_prod_result.txt
+        echo "          ['$test_case', '$client', 'prod', false]," >> /tmp/cloud_prod_result.txt
       fi
     done
   done
@@ -58,14 +54,11 @@ main() {
   do
     for client in "${clients[@]}"
     do
-      log_file_name=cloud_{$test_case}_{$client}.txt 
-      if grpc_cloud_prod_auth_test $test_case grpc-docker-testclients $client > /tmp/$log_file_name 2>&1
+      if grpc_cloud_prod_auth_test $test_case grpc-docker-testclients $client
       then
-        gsutil cp /tmp/$log_file_name gs://stoked-keyword-656-output/log_history/$log_file_name
-        echo "          ['$test_case', '$client', 'prod', true, '<a href="$log_link/$log_file_name">log</a>']," >> /tmp/cloud_prod_result.txt
+        echo "          ['$test_case', '$client', 'prod', true]," >> /tmp/cloud_prod_result.txt
       else
-        gsutil cp /tmp/$log_file_name gs://stoked-keyword-656-output/log_history/$log_file_name    
-        echo "          ['$test_case', '$client', 'prod', false, '<a href="$log_link/$log_file_name">log</a>']," >> /tmp/cloud_prod_result.txt
+        echo "          ['$test_case', '$client', 'prod', false]," >> /tmp/cloud_prod_result.txt
       fi
     done
   done
@@ -76,7 +69,6 @@ main() {
     gsutil cp /tmp/cloud_prod_result.html gs://stoked-keyword-656-output/result_history/$result_file_name
     rm /tmp/cloud_prod_result.txt
     rm /tmp/cloud_prod_result.html
-    rm /tmp/cloud*.txt
   fi
 }
 
