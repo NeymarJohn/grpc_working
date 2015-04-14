@@ -31,22 +31,40 @@
  *
  */
 
-#include <string.h>
+#ifndef GRPC_CORE_PROFILING_TIMERS_H
+#define GRPC_CORE_PROFILING_TIMERS_H
 
-#include <grpc/grpc.h>
-#include "src/core/security/credentials.h"
-#include "src/core/security/security_context.h"
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
-#include <grpc/support/useful.h>
+#include <stdio.h>
 
-grpc_channel *grpc_secure_channel_create(grpc_credentials *creds,
-                                         const char *target,
-                                         const grpc_channel_args *args) {
-  grpc_secure_channel_factory factories[] = {
-      {GRPC_CREDENTIALS_TYPE_SSL, grpc_ssl_channel_create},
-      {GRPC_CREDENTIALS_TYPE_FAKE_TRANSPORT_SECURITY,
-       grpc_fake_transport_security_channel_create}};
-  return grpc_secure_channel_create_with_factories(
-      factories, GPR_ARRAY_SIZE(factories), creds, target, args);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef GRPC_LATENCY_PROFILER
+
+typedef struct grpc_timers_log grpc_timers_log;
+
+grpc_timers_log *grpc_timers_log_create(int capacity_limit, FILE *dump);
+void grpc_timers_log_add(grpc_timers_log *, const char *tag, int seq,
+                         const char *file, int line);
+void grpc_timers_log_destroy(grpc_timers_log *);
+
+extern grpc_timers_log *grpc_timers_log_global;
+
+#define GRPC_TIMER_MARK(x, s) \
+  grpc_timers_log_add(grpc_timers_log_global, #x, s, __FILE__, __LINE__)
+
+#else /* !GRPC_LATENCY_PROFILER */
+#define GRPC_TIMER_MARK(x, s) \
+  do {                        \
+  } while (0)
+#endif /* GRPC_LATENCY_PROFILER */
+
+void grpc_timers_log_global_init(void);
+void grpc_timers_log_global_destroy(void);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* GRPC_CORE_PROFILING_TIMERS_H */

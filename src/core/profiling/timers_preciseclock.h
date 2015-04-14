@@ -31,22 +31,26 @@
  *
  */
 
-#include <string.h>
+#ifndef GRPC_CORE_PROFILING_TIMERS_PRECISECLOCK_H
+#define GRPC_CORE_PROFILING_TIMERS_PRECISECLOCK_H
 
-#include <grpc/grpc.h>
-#include "src/core/security/credentials.h"
-#include "src/core/security/security_context.h"
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
-#include <grpc/support/useful.h>
+#include <grpc/support/time.h>
+#include <stdio.h>
 
-grpc_channel *grpc_secure_channel_create(grpc_credentials *creds,
-                                         const char *target,
-                                         const grpc_channel_args *args) {
-  grpc_secure_channel_factory factories[] = {
-      {GRPC_CREDENTIALS_TYPE_SSL, grpc_ssl_channel_create},
-      {GRPC_CREDENTIALS_TYPE_FAKE_TRANSPORT_SECURITY,
-       grpc_fake_transport_security_channel_create}};
-  return grpc_secure_channel_create_with_factories(
-      factories, GPR_ARRAY_SIZE(factories), creds, target, args);
+typedef struct grpc_precise_clock grpc_precise_clock;
+
+#ifdef GRPC_TIMERS_RDTSC
+#error RDTSC timers not currently supported
+#else
+struct grpc_precise_clock {
+  gpr_timespec clock;
+};
+static void grpc_precise_clock_now(grpc_precise_clock* clk) {
+  clk->clock = gpr_now();
 }
+static void grpc_precise_clock_print(const grpc_precise_clock* clk, FILE* fp) {
+  fprintf(fp, "%ld.%09d", clk->clock.tv_sec, clk->clock.tv_nsec);
+}
+#endif /* GRPC_TIMERS_RDTSC */
+
+#endif /* GRPC_CORE_PROFILING_TIMERS_PRECISECLOCK_H */

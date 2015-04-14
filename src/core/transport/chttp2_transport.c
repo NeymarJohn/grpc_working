@@ -834,10 +834,13 @@ static void push_setting(transport *t, grpc_chttp2_setting_id id,
 
 static int prepare_write(transport *t) {
   stream *s;
+  gpr_slice_buffer tempbuf;
   gpr_uint32 window_delta;
 
   /* simple writes are queued to qbuf, and flushed here */
-  gpr_slice_buffer_swap(&t->qbuf, &t->outbuf);
+  tempbuf = t->qbuf;
+  t->qbuf = t->outbuf;
+  t->outbuf = tempbuf;
   GPR_ASSERT(t->qbuf.count == 0);
 
   if (t->dirtied_local_settings && !t->sent_local_settings) {
