@@ -548,29 +548,14 @@
       "secure": "no"
     },
     {
-      "name": "interop_client_helper",
-      "build": "private",
-      "language": "c++",
-      "src": [
-        "test/cpp/interop/client_helper.cc"
-      ],
-      "deps": [
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr"
-      ]
-    },
-    {
-      "name": "interop_client_main",
+      "name": "interop_client_lib",
       "build": "private",
       "language": "c++",
       "src": [
         "test/cpp/interop/empty.proto",
         "test/cpp/interop/messages.proto",
         "test/cpp/interop/test.proto",
-        "test/cpp/interop/client.cc",
+        "test/cpp/interop/client_helper.cc",
         "test/cpp/interop/interop_client.cc"
       ],
       "deps": [
@@ -578,12 +563,11 @@
         "grpc_test_util",
         "grpc++",
         "grpc",
-        "gpr_test_util",
         "gpr"
       ]
     },
     {
-      "name": "interop_server_helper",
+      "name": "interop_server_lib",
       "build": "private",
       "language": "c++",
       "src": [
@@ -593,25 +577,6 @@
         "grpc_test_util",
         "grpc++",
         "grpc",
-        "gpr"
-      ]
-    },
-    {
-      "name": "interop_server_main",
-      "build": "private",
-      "language": "c++",
-      "src": [
-        "test/cpp/interop/empty.proto",
-        "test/cpp/interop/messages.proto",
-        "test/cpp/interop/test.proto",
-        "test/cpp/interop/server.cc"
-      ],
-      "deps": [
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
         "gpr"
       ]
     },
@@ -1962,10 +1927,11 @@
       "build": "test",
       "run": false,
       "language": "c++",
-      "src": [],
+      "src": [
+        "test/cpp/interop/client.cc"
+      ],
       "deps": [
-        "interop_client_main",
-        "interop_client_helper",
+        "interop_client_lib",
         "grpc++_test_util",
         "grpc_test_util",
         "grpc++",
@@ -1979,10 +1945,14 @@
       "build": "test",
       "run": false,
       "language": "c++",
-      "src": [],
+      "src": [
+        "test/cpp/interop/empty.proto",
+        "test/cpp/interop/messages.proto",
+        "test/cpp/interop/test.proto",
+        "test/cpp/interop/server.cc"
+      ],
       "deps": [
-        "interop_server_main",
-        "interop_server_helper",
+        "interop_server_lib",
         "grpc++_test_util",
         "grpc_test_util",
         "grpc++",
