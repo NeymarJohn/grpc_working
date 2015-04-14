@@ -597,15 +597,6 @@
   {
     "flaky": false, 
     "language": "c", 
-    "name": "timers_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
     "name": "transport_metadata_test", 
     "platforms": [
       "windows", 
