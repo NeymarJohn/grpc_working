@@ -620,7 +620,7 @@
     },
     {
       "name": "pubsub_client_lib",
-      "build": "do_not_build",
+      "build": "private",
       "language": "c++",
       "src": [
         "examples/pubsub/label.proto",
@@ -2030,7 +2030,7 @@
     },
     {
       "name": "pubsub_client",
-      "build": "do_not_build",
+      "build": "test",
       "run": false,
       "language": "c++",
       "src": [
@@ -2047,7 +2047,7 @@
     },
     {
       "name": "pubsub_publisher_test",
-      "build": "do_not_build",
+      "build": "test",
       "language": "c++",
       "src": [
         "examples/pubsub/publisher_test.cc"
@@ -2064,7 +2064,7 @@
     },
     {
       "name": "pubsub_subscriber_test",
-      "build": "do_not_build",
+      "build": "test",
       "language": "c++",
       "src": [
         "examples/pubsub/subscriber_test.cc"

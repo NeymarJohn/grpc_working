@@ -46,11 +46,13 @@ end2end_test_build=`mktemp /tmp/genXXXXXX`
 $gen_build_json > $end2end_test_build
 
 global_plugins=`find ./tools/buildgen/plugins -name '*.py' |
-  sort | grep -v __init__ | awk ' { printf "-p %s ", $0 } '`
+  sort | grep -v __init__ |
+  while read p ; do echo -n "-p $p " ; done`
 
 for dir in . ; do
   local_plugins=`find $dir/templates -name '*.py' |
-    sort | grep -v __init__ | awk ' { printf "-p %s ", $0 } '`
+    sort | grep -v __init__ |
+    while read p ; do echo -n "-p $p " ; done`
 
   plugins="$global_plugins $local_plugins"
 
@@ -58,7 +60,7 @@ for dir in . ; do
     out=${dir}/${file#$dir/templates/}  # strip templates dir prefix
     out=${out%.*}  # strip template extension
     json_files="build.json $end2end_test_build"
-    data=`for i in $json_files ; do echo $i ; done | awk ' { printf "-d %s ", $0 } '`
+    data=`for i in $json_files; do echo -n "-d $i "; done`
     if [ "x$TEST" = "xtrue" ] ; then
       actual_out=$out
       out=`mktemp /tmp/gentXXXXXX`

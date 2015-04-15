@@ -165,16 +165,6 @@ static int check_request_metadata_creds(grpc_credentials *creds) {
   return 1;
 }
 
-static grpc_mdctx *get_or_create_mdctx(grpc_credentials *creds) {
-  grpc_mdctx *mdctx = grpc_credentials_get_metadata_context(creds);
-  if (mdctx == NULL) {
-    mdctx = grpc_mdctx_create();
-  } else {
-    grpc_mdctx_ref(mdctx);
-  }
-  return mdctx;
-}
-
 /* -- Fake implementation. -- */
 
 typedef struct {
@@ -359,6 +349,7 @@ static int ssl_host_matches_name(const tsi_peer *peer,
     peer_name = allocated_name;
     if (!peer_name) return 0;
   }
+  
   r = tsi_ssl_peer_matches_name(peer, peer_name);
   gpr_free(allocated_name);
   return r;
@@ -452,13 +443,13 @@ static void init_default_pem_root_certs(void) {
   if (default_root_certs_path == NULL) {
     default_pem_root_certs = gpr_empty_slice();
   } else {
-    default_pem_root_certs = gpr_load_file(default_root_certs_path, 0, NULL);
+    default_pem_root_certs = gpr_load_file(default_root_certs_path, NULL);
     gpr_free(default_root_certs_path);
   }
 
   /* Fall back to installed certs if needed. */
   if (GPR_SLICE_IS_EMPTY(default_pem_root_certs)) {
-    default_pem_root_certs = gpr_load_file(installed_roots_path, 0, NULL);
+    default_pem_root_certs = gpr_load_file(installed_roots_path, NULL);
   }
 }
 
@@ -635,8 +626,7 @@ grpc_channel *grpc_ssl_channel_create(grpc_credentials *ssl_creds,
   arg.key = GRPC_ARG_HTTP2_SCHEME;
   arg.value.string = "https";
   new_args = grpc_channel_args_copy_and_add(args, &arg);
-  channel = grpc_secure_channel_create_internal(
-      target, new_args, ctx, get_or_create_mdctx(request_metadata_creds));
+  channel = grpc_secure_channel_create_internal(target, new_args, ctx);
   grpc_security_context_unref(&ctx->base);
   grpc_channel_args_destroy(new_args);
   return channel;
@@ -647,8 +637,8 @@ grpc_channel *grpc_fake_transport_security_channel_create(
     const char *target, const grpc_channel_args *args) {
   grpc_channel_security_context *ctx =
       grpc_fake_channel_security_context_create(request_metadata_creds, 1);
-  grpc_channel *channel = grpc_secure_channel_create_internal(
-      target, args, ctx, get_or_create_mdctx(request_metadata_creds));
+  grpc_channel *channel =
+      grpc_secure_channel_create_internal(target, args, ctx);
   grpc_security_context_unref(&ctx->base);
   return channel;
 }
