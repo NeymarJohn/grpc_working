@@ -186,8 +186,6 @@ cc_library(
     "src/core/json/json_common.h",
     "src/core/json/json_reader.h",
     "src/core/json/json_writer.h",
-    "src/core/profiling/timers.h",
-    "src/core/profiling/timers_preciseclock.h",
     "src/core/statistics/census_interface.h",
     "src/core/statistics/census_log.h",
     "src/core/statistics/census_rpc_stats.h",
@@ -267,7 +265,6 @@ cc_library(
     "src/core/iomgr/alarm_heap.c",
     "src/core/iomgr/endpoint.c",
     "src/core/iomgr/endpoint_pair_posix.c",
-    "src/core/iomgr/endpoint_pair_windows.c",
     "src/core/iomgr/fd_posix.c",
     "src/core/iomgr/iocp_windows.c",
     "src/core/iomgr/iomgr.c",
@@ -300,7 +297,6 @@ cc_library(
     "src/core/json/json_reader.c",
     "src/core/json/json_string.c",
     "src/core/json/json_writer.c",
-    "src/core/profiling/timers.c",
     "src/core/statistics/census_init.c",
     "src/core/statistics/census_log.c",
     "src/core/statistics/census_rpc_stats.c",
@@ -417,8 +413,6 @@ cc_library(
     "src/core/json/json_common.h",
     "src/core/json/json_reader.h",
     "src/core/json/json_writer.h",
-    "src/core/profiling/timers.h",
-    "src/core/profiling/timers_preciseclock.h",
     "src/core/statistics/census_interface.h",
     "src/core/statistics/census_log.h",
     "src/core/statistics/census_rpc_stats.h",
@@ -478,7 +472,6 @@ cc_library(
     "src/core/iomgr/alarm_heap.c",
     "src/core/iomgr/endpoint.c",
     "src/core/iomgr/endpoint_pair_posix.c",
-    "src/core/iomgr/endpoint_pair_windows.c",
     "src/core/iomgr/fd_posix.c",
     "src/core/iomgr/iocp_windows.c",
     "src/core/iomgr/iomgr.c",
@@ -511,7 +504,6 @@ cc_library(
     "src/core/json/json_reader.c",
     "src/core/json/json_string.c",
     "src/core/json/json_writer.c",
-    "src/core/profiling/timers.c",
     "src/core/statistics/census_init.c",
     "src/core/statistics/census_log.c",
     "src/core/statistics/census_rpc_stats.c",
@@ -761,6 +753,29 @@ cc_library(
   ],
   deps = [
     "//external:protobuf_compiler",
+  ],
+)
+
+
+cc_library(
+  name = "pubsub_client_lib",
+  srcs = [
+    "examples/pubsub/label.proto",
+    "examples/pubsub/empty.proto",
+    "examples/pubsub/pubsub.proto",
+    "examples/pubsub/publisher.cc",
+    "examples/pubsub/subscriber.cc",
+  ],
+  hdrs = [
+  ],
+  includes = [
+    "include",
+    ".",
+  ],
+  deps = [
+    ":grpc++",
+    ":grpc",
+    ":gpr",
   ],
 )
 
