@@ -400,8 +400,7 @@ describe GRPC::RpcServer do
         end
         stub = EchoStub.new(@host, **@client_opts)
         expect(stub.an_rpc(req, k1: 'v1', k2: 'v2')).to be_a(EchoMsg)
-        wanted_md = [{ 'k1' => 'updated-v1', 'k2' => 'v2',
-                       'jwt_aud_uri' => "https://#{@host}/EchoService" }]
+        wanted_md = [{ 'k1' => 'updated-v1', 'k2' => 'v2' }]
         expect(service.received_md).to eq(wanted_md)
         @srv.stop
         t.join
