@@ -31,30 +31,38 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_INTERNAL_STUB_H
-#define GRPCXX_IMPL_INTERNAL_STUB_H
+#ifndef GRPC_TEST_CORE_TRANSPORT_TRANSPORT_END2END_TESTS_H
+#define GRPC_TEST_CORE_TRANSPORT_TRANSPORT_END2END_TESTS_H
 
-#include <memory>
+#include "src/core/transport/transport.h"
 
-#include <grpc++/channel_interface.h>
+/* Defines a suite of tests that all GRPC transports should be able to pass */
 
-namespace grpc {
+/* A test configuration has a name and a factory method */
+typedef struct grpc_transport_test_config {
+  /* The name of this configuration */
+  char *name;
+  /* Create a transport
+     Returns 0 on success
 
-class InternalStub {
- public:
-  InternalStub() {}
-  virtual ~InternalStub() {}
+     Arguments:
+       OUT: client           - the created client half of the transport
+       IN:  client_callbacks - callback structure to be used by the client
+                               transport
+       IN:  client_user_data - user data pointer to be passed into each client
+                               callback
+       OUT: server           - the created server half of the transport
+       IN:  server_callbacks - callback structure to be used by the server
+                               transport
+       IN:  server_user_data - user data pointer to be passed into each
+                               server */
+  int (*create_transport)(grpc_transport_setup_callback client_setup,
+                          void *client_arg,
+                          grpc_transport_setup_callback server_setup,
+                          void *server_arg, grpc_mdctx *mdctx);
+} grpc_transport_test_config;
 
-  void set_channel(const std::shared_ptr<ChannelInterface>& channel) {
-    channel_ = channel;
-  }
+/* Run the test suite on one configuration */
+void grpc_transport_end2end_tests(grpc_transport_test_config *config);
 
-  ChannelInterface* channel() { return channel_.get(); }
-
- private:
-  std::shared_ptr<ChannelInterface> channel_;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_IMPL_INTERNAL_STUB_H
+#endif  /* GRPC_TEST_CORE_TRANSPORT_TRANSPORT_END2END_TESTS_H */
