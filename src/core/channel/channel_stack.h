@@ -62,8 +62,6 @@ typedef struct grpc_call_element grpc_call_element;
 typedef enum {
   /* send metadata to the channels peer */
   GRPC_SEND_METADATA,
-  /* send a deadline */
-  GRPC_SEND_DEADLINE,
   /* start a connection (corresponds to start_invoke/accept) */
   GRPC_SEND_START,
   /* send a message to the channels peer */
@@ -76,10 +74,6 @@ typedef enum {
   GRPC_REQUEST_DATA,
   /* metadata was received from the channels peer */
   GRPC_RECV_METADATA,
-  /* receive a deadline */
-  GRPC_RECV_DEADLINE,
-  /* the end of the first batch of metadata was received */
-  GRPC_RECV_END_OF_INITIAL_METADATA,
   /* a message was received from the channels peer */
   GRPC_RECV_MESSAGE,
   /* half-close was received from the channels peer */
@@ -113,8 +107,7 @@ typedef struct {
       grpc_pollset *pollset;
     } start;
     grpc_byte_buffer *message;
-    grpc_mdelem *metadata;
-    gpr_timespec deadline;
+    grpc_metadata_batch metadata;
   } data;
 
   /* Must be called when processing of this call-op is complete.
@@ -291,16 +284,15 @@ grpc_call_stack *grpc_call_stack_from_top_element(grpc_call_element *elem);
 void grpc_call_log_op(char *file, int line, gpr_log_severity severity,
                       grpc_call_element *elem, grpc_call_op *op);
 
-void grpc_call_element_send_metadata(grpc_call_element *cur_elem,
-                                     grpc_mdelem *elem);
-void grpc_call_element_recv_metadata(grpc_call_element *cur_elem,
-                                     grpc_mdelem *elem);
 void grpc_call_element_send_cancel(grpc_call_element *cur_elem);
 void grpc_call_element_send_finish(grpc_call_element *cur_elem);
+void grpc_call_element_recv_status(grpc_call_element *cur_elem,
+                                   grpc_status_code status,
+                                   const char *message);
 
 extern int grpc_trace_channel;
 
 #define GRPC_CALL_LOG_OP(sev, elem, op) \
   if (grpc_trace_channel) grpc_call_log_op(sev, elem, op)
 
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_CHANNEL_STACK_H */
+#endif /* GRPC_INTERNAL_CORE_CHANNEL_CHANNEL_STACK_H */
