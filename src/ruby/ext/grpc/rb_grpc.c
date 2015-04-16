@@ -34,8 +34,7 @@
 #include "rb_grpc.h"
 
 #include <math.h>
-#include <ruby/ruby.h>
-#include <ruby/vm.h>
+#include <ruby.h>
 #include <sys/time.h>
 
 #include <grpc/grpc.h>
@@ -245,7 +244,7 @@ void Init_grpc_time_consts() {
   id_tv_nsec = rb_intern("tv_nsec");
 }
 
-void grpc_rb_shutdown(ruby_vm_t *vm) { grpc_shutdown(); }
+void grpc_rb_shutdown(void *vm) { grpc_shutdown(); }
 
 /* Initialize the GRPC module structs */
 

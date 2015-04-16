@@ -33,8 +33,7 @@
 
 #include "rb_completion_queue.h"
 
-#include <ruby/ruby.h>
-#include <ruby/thread.h>
+#include <ruby.h>
 
 #include <grpc/grpc.h>
 #include <grpc/support/time.h>
@@ -49,16 +48,14 @@ typedef struct next_call_stack {
 } next_call_stack;
 
 /* Calls grpc_completion_queue_next without holding the ruby GIL */
-static void *grpc_rb_completion_queue_next_no_gil(void *param) {
-  next_call_stack *const next_call = (next_call_stack*)param;
+static void *grpc_rb_completion_queue_next_no_gil(next_call_stack *next_call) {
   next_call->event =
       grpc_completion_queue_next(next_call->cq, next_call->timeout);
   return NULL;
 }
 
 /* Calls grpc_completion_queue_pluck without holding the ruby GIL */
-static void *grpc_rb_completion_queue_pluck_no_gil(void *param) {
-  next_call_stack *const next_call = (next_call_stack*)param;
+static void *grpc_rb_completion_queue_pluck_no_gil(next_call_stack *next_call) {
   next_call->event = grpc_completion_queue_pluck(next_call->cq, next_call->tag,
                                                  next_call->timeout);
   return NULL;
