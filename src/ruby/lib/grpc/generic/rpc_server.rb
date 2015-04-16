@@ -33,108 +33,8 @@ require 'grpc/generic/service'
 require 'thread'
 require 'xray/thread_dump_signal_handler'
 
-# A global that contains signals the gRPC servers should respond to.
-$grpc_signals = []
-
 # GRPC contains the General RPC module.
 module GRPC
-  # Pool is a simple thread pool.
-  class Pool
-    # Default keep alive period is 1s
-    DEFAULT_KEEP_ALIVE = 1
-
-    def initialize(size, keep_alive: DEFAULT_KEEP_ALIVE)
-      fail 'pool size must be positive' unless size > 0
-      @jobs = Queue.new
-      @size = size
-      @stopped = false
-      @stop_mutex = Mutex.new
-      @stop_cond = ConditionVariable.new
-      @workers = []
-      @keep_alive = keep_alive
-    end
-
-    # Returns the number of jobs waiting
-    def jobs_waiting
-      @jobs.size
-    end
-
-    # Runs the given block on the queue with the provided args.
-    #
-    # @param args the args passed blk when it is called
-    # @param blk the block to call
-    def schedule(*args, &blk)
-      fail 'already stopped' if @stopped
-      return if blk.nil?
-      logger.info('schedule another job')
-      @jobs << [blk, args]
-    end
-
-    # Starts running the jobs in the thread pool.
-    def start
-      fail 'already stopped' if @stopped
-      until @workers.size == @size.to_i
-        next_thread = Thread.new do
-          catch(:exit) do  # allows { throw :exit } to kill a thread
-            loop_execute_jobs
-          end
-          remove_current_thread
-        end
-        @workers << next_thread
-      end
-    end
-
-    # Stops the jobs in the pool
-    def stop
-      logger.info('stopping, will wait for all the workers to exit')
-      @workers.size.times { schedule { throw :exit } }
-      @stopped = true
-      @stop_mutex.synchronize do  # wait @keep_alive for works to stop
-        @stop_cond.wait(@stop_mutex, @keep_alive) if @workers.size > 0
-      end
-      forcibly_stop_workers
-      logger.info('stopped, all workers are shutdown')
-    end
-
-    protected
-
-    # Forcibly shutdown any threads that are still alive.
-    def forcibly_stop_workers
-      return unless @workers.size > 0
-      logger.info("forcibly terminating #{@workers.size} worker(s)")
-      @workers.each do |t|
-        next unless t.alive?
-        begin
-          t.exit
-        rescue StandardError => e
-          logger.warn('error while terminating a worker')
-          logger.warn(e)
-        end
-      end
-    end
-
-    # removes the threads from workers, and signal when all the
-    # threads are complete.
-    def remove_current_thread
-      @stop_mutex.synchronize do
-        @workers.delete(Thread.current)
-        @stop_cond.signal if @workers.size == 0
-      end
-    end
-
-    def loop_execute_jobs
-      loop do
-        begin
-          blk, args = @jobs.pop
-          blk.call(*args)
-        rescue StandardError => e
-          logger.warn('Error in worker thread')
-          logger.warn(e)
-        end
-      end
-    end
-  end
-
   # RpcServer hosts a number of services and makes them available on the
   # network.
   class RpcServer
@@ -149,23 +49,6 @@ module GRPC
 
     # Default max_waiting_requests size is 20
     DEFAULT_MAX_WAITING_REQUESTS = 20
-
-    # Default poll period is 1s
-    DEFAULT_POLL_PERIOD = 1
-
-    # Signal check period is 0.25s
-    SIGNAL_CHECK_PERIOD = 0.25
-
-    # Sets up a signal handler that adds signals to the signal handling global.
-    #
-    # Signal handlers should do as little as humanly possible.
-    # Here, they just add themselves to $grpc_signals
-    #
-    # RpcServer (and later other parts of gRPC) monitors the signals
-    # $grpc_signals in its own non-signal context.
-    def self.trap_signals
-      %w(INT TERM).each { |sig| trap(sig) { $grpc_signals << sig } }
-    end
 
     # Creates a new RpcServer.
     #
@@ -196,7 +79,7 @@ module GRPC
     # with not available to new requests
     def initialize(pool_size:DEFAULT_POOL_SIZE,
                    max_waiting_requests:DEFAULT_MAX_WAITING_REQUESTS,
-                   poll_period:DEFAULT_POLL_PERIOD,
+                   poll_period:INFINITE_FUTURE,
                    completion_queue_override:nil,
                    server_override:nil,
                    **kw)
@@ -234,13 +117,6 @@ module GRPC
       return unless @running
       @stopped = true
       @pool.stop
-
-      # TODO: uncomment this:
-      #
-      # This segfaults in the c layer, so its commented out for now.  Shutdown
-      # still occurs, but the c layer has to do the cleanup.
-      #
-      # @server.close
     end
 
     # determines if the server is currently running
@@ -263,37 +139,7 @@ module GRPC
       running?
     end
 
-    # Runs the server in its own thread, then waits for signal INT or TERM on
-    # the current thread to terminate it.
-    def run_till_terminated
-      self.class.trap_signals
-      t = Thread.new { run }
-      wait_till_running
-      loop do
-        sleep SIGNAL_CHECK_PERIOD
-        break unless handle_signals
-      end
-      stop
-      t.join
-    end
-
-    # Handles the signals in $grpc_signals.
-    #
-    # @return false if the server should exit, true if not.
-    def handle_signals
-      loop do
-        sig = $grpc_signals.shift
-        case sig
-        when 'INT'
-          return false
-        when 'TERM'
-          return false
-        end
-      end
-      true
-    end
-
-    # Determines if the server is currently stopped
+    # determines if the server is currently stopped
     def stopped?
       @stopped ||= false
     end
@@ -415,6 +261,92 @@ module GRPC
       ActiveCall.new(an_rpc.call, @cq,
                      rpc_desc.marshal_proc, rpc_desc.unmarshal_proc(:input),
                      an_rpc.deadline)
+    end
+
+    # Pool is a simple thread pool for running server requests.
+    class Pool
+      def initialize(size)
+        fail 'pool size must be positive' unless size > 0
+        @jobs = Queue.new
+        @size = size
+        @stopped = false
+        @stop_mutex = Mutex.new
+        @stop_cond = ConditionVariable.new
+        @workers = []
+      end
+
+      # Returns the number of jobs waiting
+      def jobs_waiting
+        @jobs.size
+      end
+
+      # Runs the given block on the queue with the provided args.
+      #
+      # @param args the args passed blk when it is called
+      # @param blk the block to call
+      def schedule(*args, &blk)
+        fail 'already stopped' if @stopped
+        return if blk.nil?
+        logger.info('schedule another job')
+        @jobs << [blk, args]
+      end
+
+      # Starts running the jobs in the thread pool.
+      def start
+        fail 'already stopped' if @stopped
+        until @workers.size == @size.to_i
+          next_thread = Thread.new do
+            catch(:exit) do  # allows { throw :exit } to kill a thread
+              loop do
+                begin
+                  blk, args = @jobs.pop
+                  blk.call(*args)
+                rescue StandardError => e
+                  logger.warn('Error in worker thread')
+                  logger.warn(e)
+                end
+              end
+            end
+
+            # removes the threads from workers, and signal when all the
+            # threads are complete.
+            @stop_mutex.synchronize do
+              @workers.delete(Thread.current)
+              @stop_cond.signal if @workers.size == 0
+            end
+          end
+          @workers << next_thread
+        end
+      end
+
+      # Stops the jobs in the pool
+      def stop
+        logger.info('stopping, will wait for all the workers to exit')
+        @workers.size.times { schedule { throw :exit } }
+        @stopped = true
+
+        # TODO: allow configuration of the keepalive period
+        keep_alive = 5
+        @stop_mutex.synchronize do
+          @stop_cond.wait(@stop_mutex, keep_alive) if @workers.size > 0
+        end
+
+        # Forcibly shutdown any threads that are still alive.
+        if @workers.size > 0
+          logger.warn("forcibly terminating #{@workers.size} worker(s)")
+          @workers.each do |t|
+            next unless t.alive?
+            begin
+              t.exit
+            rescue StandardError => e
+              logger.warn('error while terminating a worker')
+              logger.warn(e)
+            end
+          end
+        end
+
+        logger.info('stopped, all workers are shutdown')
+      end
     end
 
     protected

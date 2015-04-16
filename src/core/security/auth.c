@@ -44,12 +44,15 @@
 #include "src/core/security/credentials.h"
 #include "src/core/surface/call.h"
 
+#define MAX_CREDENTIAL_METADATA_COUNT 4
+
 /* We can have a per-call credentials. */
 typedef struct {
   grpc_credentials *creds;
   grpc_mdstr *host;
   grpc_mdstr *method;
   grpc_call_op op;
+  grpc_linked_mdelem md_links[MAX_CREDENTIAL_METADATA_COUNT];
 } call_data;
 
 /* We can have a per-channel credentials. */
@@ -62,30 +65,8 @@ typedef struct {
   grpc_mdstr *status_key;
 } channel_data;
 
-static void do_nothing(void *ignored, grpc_op_error error) {}
-
 static void bubbleup_error(grpc_call_element *elem, const char *error_msg) {
-  grpc_call_op finish_op;
-  channel_data *channeld = elem->channel_data;
-  char status[GPR_LTOA_MIN_BUFSIZE];
-
-  gpr_log(GPR_ERROR, "%s", error_msg);
-  finish_op.type = GRPC_RECV_METADATA;
-  finish_op.dir = GRPC_CALL_UP;
-  finish_op.flags = 0;
-  finish_op.data.metadata = grpc_mdelem_from_metadata_strings(
-      channeld->md_ctx, grpc_mdstr_ref(channeld->error_msg_key),
-      grpc_mdstr_from_string(channeld->md_ctx, error_msg));
-  finish_op.done_cb = do_nothing;
-  finish_op.user_data = NULL;
-  grpc_call_next_op(elem, &finish_op);
-
-  gpr_ltoa(GRPC_STATUS_UNAUTHENTICATED, status);
-  finish_op.data.metadata = grpc_mdelem_from_metadata_strings(
-      channeld->md_ctx, grpc_mdstr_ref(channeld->status_key),
-      grpc_mdstr_from_string(channeld->md_ctx, status));
-  grpc_call_next_op(elem, &finish_op);
-
+  grpc_call_element_recv_status(elem, GRPC_STATUS_UNAUTHENTICATED, error_msg);
   grpc_call_element_send_cancel(elem);
 }
 
@@ -93,11 +74,15 @@ static void on_credentials_metadata(void *user_data, grpc_mdelem **md_elems,
                                     size_t num_md,
                                     grpc_credentials_status status) {
   grpc_call_element *elem = (grpc_call_element *)user_data;
+  call_data *calld = elem->call_data;
+  grpc_call_op op = calld->op;
   size_t i;
+  GPR_ASSERT(num_md <= MAX_CREDENTIAL_METADATA_COUNT);
   for (i = 0; i < num_md; i++) {
-    grpc_call_element_send_metadata(elem, grpc_mdelem_ref(md_elems[i]));
+    grpc_call_op_metadata_add_tail(&op.data.metadata, &calld->md_links[i],
+                                   grpc_mdelem_ref(md_elems[i]));
   }
-  grpc_call_next_op(elem, &((call_data *)elem->call_data)->op);
+  grpc_call_next_op(elem, &op);
 }
 
 static char *build_service_url(const char *url_scheme, call_data *calld) {
@@ -174,16 +159,21 @@ static void call_op(grpc_call_element *elem, grpc_call_element *from_elem,
   /* grab pointers to our data from the call element */
   call_data *calld = elem->call_data;
   channel_data *channeld = elem->channel_data;
+  grpc_linked_mdelem *l;
 
   switch (op->type) {
     case GRPC_SEND_METADATA:
-      /* Pointer comparison is OK for md_elems created from the same context. */
-      if (op->data.metadata->key == channeld->authority_string) {
-        if (calld->host != NULL) grpc_mdstr_unref(calld->host);
-        calld->host = grpc_mdstr_ref(op->data.metadata->value);
-      } else if (op->data.metadata->key == channeld->path_string) {
-        if (calld->method != NULL) grpc_mdstr_unref(calld->method);
-        calld->method = grpc_mdstr_ref(op->data.metadata->value);
+      for (l = op->data.metadata.list.head; l; l = l->next) {
+        grpc_mdelem *md = l->md;
+        /* Pointer comparison is OK for md_elems created from the same context.
+         */
+        if (md->key == channeld->authority_string) {
+          if (calld->host != NULL) grpc_mdstr_unref(calld->host);
+          calld->host = grpc_mdstr_ref(md->value);
+        } else if (md->key == channeld->path_string) {
+          if (calld->method != NULL) grpc_mdstr_unref(calld->method);
+          calld->method = grpc_mdstr_ref(md->value);
+        }
       }
       grpc_call_next_op(elem, op);
       break;
@@ -276,7 +266,8 @@ static void init_channel_elem(grpc_channel_element *elem,
   channeld->path_string = grpc_mdstr_from_string(channeld->md_ctx, ":path");
   channeld->error_msg_key =
       grpc_mdstr_from_string(channeld->md_ctx, "grpc-message");
-  channeld->status_key = grpc_mdstr_from_string(channeld->md_ctx, "grpc-status");
+  channeld->status_key =
+      grpc_mdstr_from_string(channeld->md_ctx, "grpc-status");
 }
 
 /* Destructor for channel data */
@@ -300,6 +291,5 @@ static void destroy_channel_elem(grpc_channel_element *elem) {
 }
 
 const grpc_channel_filter grpc_client_auth_filter = {
-    call_op,           channel_op,           sizeof(call_data),
-    init_call_elem,    destroy_call_elem,    sizeof(channel_data),
-    init_channel_elem, destroy_channel_elem, "auth"};
+    call_op, channel_op, sizeof(call_data), init_call_elem, destroy_call_elem,
+    sizeof(channel_data), init_channel_elem, destroy_channel_elem, "auth"};
