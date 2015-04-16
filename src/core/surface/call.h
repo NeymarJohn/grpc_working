@@ -35,6 +35,7 @@
 #define GRPC_INTERNAL_CORE_SURFACE_CALL_H
 
 #include "src/core/channel/channel_stack.h"
+#include "src/core/channel/metadata_buffer.h"
 #include <grpc/grpc.h>
 
 /* Primitive operation types - grpc_op's get rewritten into these */
@@ -66,7 +67,7 @@ typedef union {
   } recv_status_details;
   struct {
     size_t count;
-    grpc_metadata *metadata;
+    const grpc_metadata *metadata;
   } send_metadata;
   grpc_byte_buffer *send_message;
   struct {
@@ -85,8 +86,7 @@ typedef void (*grpc_ioreq_completion_func)(grpc_call *call,
                                            void *user_data);
 
 grpc_call *grpc_call_create(grpc_channel *channel, grpc_completion_queue *cq,
-                            const void *server_transport_data, grpc_mdelem **add_initial_metadata,
-                            size_t add_initial_metadata_count, gpr_timespec send_deadline);
+                            const void *server_transport_data);
 
 void grpc_call_set_completion_queue(grpc_call *call, grpc_completion_queue *cq);
 grpc_completion_queue *grpc_call_get_completion_queue(grpc_call *call);
@@ -96,9 +96,8 @@ void grpc_call_internal_unref(grpc_call *call, int allow_immediate_deletion);
 
 /* Helpers for grpc_client, grpc_server filters to publish received data to
    the completion queue/surface layer */
-/* receive metadata - returns 1 if this was initial metadata */
-int grpc_call_recv_metadata(grpc_call_element *surface_element,
-                             grpc_call_op_metadata *md);
+void grpc_call_recv_metadata(grpc_call_element *surface_element,
+                             grpc_mdelem *md);
 void grpc_call_recv_message(grpc_call_element *surface_element,
                             grpc_byte_buffer *message);
 void grpc_call_read_closed(grpc_call_element *surface_element);
@@ -108,6 +107,12 @@ void grpc_call_execute_op(grpc_call *call, grpc_call_op *op);
 grpc_call_error grpc_call_start_ioreq_and_call_back(
     grpc_call *call, const grpc_ioreq *reqs, size_t nreqs,
     grpc_ioreq_completion_func on_complete, void *user_data);
+
+/* Called when it's known that the initial batch of metadata is complete */
+void grpc_call_initial_metadata_complete(grpc_call_element *surface_element);
+
+void grpc_call_set_deadline(grpc_call_element *surface_element,
+                            gpr_timespec deadline);
 
 grpc_call_stack *grpc_call_get_call_stack(grpc_call *call);
 
