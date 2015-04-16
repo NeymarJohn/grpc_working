@@ -41,9 +41,6 @@
 /* grpc_rb_mGrpcCore is the module containing the ruby wrapper GRPC classes. */
 extern VALUE grpc_rb_mGrpcCore;
 
-/* Class used to wrap timeval structs. */
-extern VALUE grpc_rb_cTimeVal;
-
 /* grpc_rb_sNewServerRpc is the struct that holds new server rpc details. */
 extern VALUE grpc_rb_sNewServerRpc;
 
@@ -61,16 +58,12 @@ VALUE sym_metadata;
 
 /* GC_NOT_MARKED is used in calls to Data_Wrap_Struct to indicate that the
    wrapped struct does not need to participate in ruby gc. */
-#define GRPC_RB_GC_NOT_MARKED (RUBY_DATA_FUNC)(NULL)
+extern const RUBY_DATA_FUNC GC_NOT_MARKED;
 
 /* GC_DONT_FREED is used in calls to Data_Wrap_Struct to indicate that the
    wrapped struct should not be freed the wrapped ruby object is released by
    the garbage collector. */
-#define GRPC_RB_GC_DONT_FREE (RUBY_DATA_FUNC)(NULL)
-
-/* GRPC_RB_MEMSIZE_UNAVAILABLE is used in rb_data_type_t to indicate that the
- * number of bytes used by the wrapped struct is not available. */
-#define GRPC_RB_MEMSIZE_UNAVAILABLE (size_t (*)(const void*))(NULL)
+extern const RUBY_DATA_FUNC GC_DONT_FREE;
 
 /* A ruby object alloc func that fails by raising an exception. */
 VALUE grpc_rb_cannot_alloc(VALUE cls);
