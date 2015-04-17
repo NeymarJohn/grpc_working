@@ -31,24 +31,15 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H
-#define GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H
+#ifndef GRPC_TEST_CPP_UTIL_TEST_CONFIG_H
+#define GRPC_TEST_CPP_UTIL_TEST_CONFIG_H
 
-typedef struct {
-  const char *name;
-  grpc_call_error (*initiate_cancel)(grpc_call *call);
-  grpc_status_code expect_status;
-  const char *expect_details;
-} cancellation_mode;
+namespace grpc {
+namespace testing {
 
-static grpc_call_error wait_for_deadline(grpc_call *call) {
-  return GRPC_CALL_OK;
-}
+void InitTest(int* argc, char*** argv, bool remove_flags);
 
-static const cancellation_mode cancellation_modes[] = {
-    {"cancel", grpc_call_cancel, GRPC_STATUS_CANCELLED, ""},
-    {"deadline", wait_for_deadline, GRPC_STATUS_DEADLINE_EXCEEDED,
-     "Deadline Exceeded"},
-};
+}  // namespace testing
+}  // namespace grpc
 
-#endif /* GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H */
+#endif  // GRPC_TEST_CPP_UTIL_TEST_CONFIG_H

@@ -147,6 +147,7 @@ cc_library(
     "src/core/channel/http_client_filter.h",
     "src/core/channel/http_filter.h",
     "src/core/channel/http_server_filter.h",
+    "src/core/channel/metadata_buffer.h",
     "src/core/channel/noop_filter.h",
     "src/core/compression/algorithm.h",
     "src/core/compression/message_compress.h",
@@ -257,6 +258,7 @@ cc_library(
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_filter.c",
     "src/core/channel/http_server_filter.c",
+    "src/core/channel/metadata_buffer.c",
     "src/core/channel/noop_filter.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
@@ -376,6 +378,7 @@ cc_library(
     "src/core/channel/http_client_filter.h",
     "src/core/channel/http_filter.h",
     "src/core/channel/http_server_filter.h",
+    "src/core/channel/metadata_buffer.h",
     "src/core/channel/noop_filter.h",
     "src/core/compression/algorithm.h",
     "src/core/compression/message_compress.h",
@@ -466,6 +469,7 @@ cc_library(
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_filter.c",
     "src/core/channel/http_server_filter.c",
+    "src/core/channel/metadata_buffer.c",
     "src/core/channel/noop_filter.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
@@ -757,29 +761,6 @@ cc_library(
   ],
   deps = [
     "//external:protobuf_compiler",
-  ],
-)
-
-
-cc_library(
-  name = "pubsub_client_lib",
-  srcs = [
-    "examples/pubsub/label.proto",
-    "examples/pubsub/empty.proto",
-    "examples/pubsub/pubsub.proto",
-    "examples/pubsub/publisher.cc",
-    "examples/pubsub/subscriber.cc",
-  ],
-  hdrs = [
-  ],
-  includes = [
-    "include",
-    ".",
-  ],
-  deps = [
-    ":grpc++",
-    ":grpc",
-    ":gpr",
   ],
 )
 
