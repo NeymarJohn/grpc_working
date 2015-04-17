@@ -31,33 +31,38 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SUPPORT_FILE_H
-#define GRPC_INTERNAL_CORE_SUPPORT_FILE_H
+#ifndef GRPC_TEST_CORE_TRANSPORT_TRANSPORT_END2END_TESTS_H
+#define GRPC_TEST_CORE_TRANSPORT_TRANSPORT_END2END_TESTS_H
 
-#include <stdio.h>
+#include "src/core/transport/transport.h"
 
-#include <grpc/support/slice.h>
+/* Defines a suite of tests that all GRPC transports should be able to pass */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* A test configuration has a name and a factory method */
+typedef struct grpc_transport_test_config {
+  /* The name of this configuration */
+  char *name;
+  /* Create a transport
+     Returns 0 on success
 
-/* File utility functions */
+     Arguments:
+       OUT: client           - the created client half of the transport
+       IN:  client_callbacks - callback structure to be used by the client
+                               transport
+       IN:  client_user_data - user data pointer to be passed into each client
+                               callback
+       OUT: server           - the created server half of the transport
+       IN:  server_callbacks - callback structure to be used by the server
+                               transport
+       IN:  server_user_data - user data pointer to be passed into each
+                               server */
+  int (*create_transport)(grpc_transport_setup_callback client_setup,
+                          void *client_arg,
+                          grpc_transport_setup_callback server_setup,
+                          void *server_arg, grpc_mdctx *mdctx);
+} grpc_transport_test_config;
 
-/* Loads the content of a file into a slice. add_null_terminator will add
-   a NULL terminator if non-zero. The success parameter, if not NULL,
-   will be set to 1 in case of success and 0 in case of failure. */
-gpr_slice gpr_load_file(const char *filename, int add_null_terminator,
-                        int *success);
+/* Run the test suite on one configuration */
+void grpc_transport_end2end_tests(grpc_transport_test_config *config);
 
-/* Creates a temporary file from a prefix.
-   If tmp_filename is not NULL, *tmp_filename is assigned the name of the
-   created file and it is the responsibility of the caller to gpr_free it
-   unless an error occurs in which case it will be set to NULL. */
-FILE *gpr_tmpfile(const char *prefix, char **tmp_filename);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif  /* GRPC_INTERNAL_CORE_SUPPORT_FILE_H */
+#endif  /* GRPC_TEST_CORE_TRANSPORT_TRANSPORT_END2END_TESTS_H */
