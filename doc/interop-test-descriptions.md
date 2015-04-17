@@ -2,7 +2,7 @@ Interoperability Test Case Descriptions
 =======================================
 
 Client and server use
-[test.proto](https://github.com/grpc/grpc/blob/master/test/proto/test.proto)
+[test.proto](https://github.com/grpc/grpc/blob/master/test/cpp/interop/test.proto)
 and the [gRPC over HTTP/2 v2
 protocol](https://github.com/grpc/grpc-common/blob/master/PROTOCOL-HTTP2.md).
 
@@ -30,12 +30,6 @@ Clients should accept these arguments:
     * Whether to replace platform root CAs with
       [ca.pem](https://github.com/grpc/grpc/blob/master/src/core/tsi/test_creds/ca.pem)
       as the CA root
-* --default_service_account=ACCOUNT_EMAIL
-    * Email of the GCE default service account. Only applicable when running in GCE.
-* --oauth_scope=SCOPE
-    * OAuth scope. For example, "https://www.googleapis.com/auth/xapi.zoo"
-* --service_account_key_file=PATH
-    * The path to the service account JSON key file generated from GCE developer console.
 
 Clients must support TLS with ALPN. Clients must not disable certificate
 checking.
@@ -265,6 +259,8 @@ Asserts:
 
 ### compute_engine_creds
 
+Status: Not yet implementable
+
 This test is only for cloud-to-prod path.
 
 This test verifies unary calls succeed in sending messages while using Service
@@ -274,12 +270,12 @@ with desired oauth scope.
 Server features:
 * [UnaryCall][]
 * [Compressable Payload][]
-* Echoes authenticated username in SimpeResponse.username
-* Echoes OAuth scope in SimpleResponse.oauth_scope
+* SimpeResponse.username
+* SimpleResponse.oauth_scope
 
 Procedure:
- 1. Client sets --default_service_account with GCE service account email and
-    --oauth_scope with the OAuth scope to use. For testing against https://grpc-test.sandbox.google.com, "https://www.googleapis.com/auth/xapi.zoo" should be passed in as --oauth_scope.
+ 1. Client sets flags default_service_account with GCE service account name and
+    oauth_scope with the oauth scope to use.
  2. Client configures channel to use GCECredentials
  3. Client calls UnaryCall on the channel with:
 
@@ -297,13 +293,15 @@ Procedure:
 
 Asserts:
 * call was successful
-* received SimpleResponse.username equals --default_service_account
-* received SimpleResponse.oauth_scope is in --oauth_scope
+* received SimpleResponse.username equals FLAGS_default_service_account
+* received SimpleResponse.oauth_scope is in FLAGS_oauth_scope
 * response payload body is 314159 bytes in size
 * clients are free to assert that the response payload body contents are zero
   and comparing the entire response message against a golden response
 
 ### service_account_creds
+
+Status: Not yet implementable
 
 This test is only for cloud-to-prod path.
 
@@ -313,11 +311,12 @@ signing keys (redeemed for OAuth2 access tokens by the auth implementation)
 Server features:
 * [UnaryCall][]
 * [Compressable Payload][]
-* Echoes authenticated username in SimpeResponse.username
-* Echoes OAuth scope in SimpleResponse.oauth_scope
+* SimpleResponse.username
+* SimpleResponse.oauth_scope
 
 Procedure:
- 1. Client sets --service_account_key_file with the path to a json key file downloaded from https://console.developers.google.com, and --oauth_scope to the oauth scope. For testing against https://grpc-test.sandbox.google.com, "https://www.googleapis.com/auth/xapi.zoo" should be passed in as --oauth_scope.
+ 1. Client sets flags service_account_key_file with the path to json key file,
+    oauth_scope to the oauth scope.
  2. Client configures the channel to use ServiceAccountCredentials.
  3. Client calls UnaryCall with:
 
@@ -336,13 +335,15 @@ Procedure:
 Asserts:
 * call was successful
 * received SimpleResponse.username is in the json key file read from
-  --service_account_key_file
-* received SimpleResponse.oauth_scope is in --oauth_scope
+  FLAGS_service_account_key_file
+* received SimpleResponse.oauth_scope is in FLAGS_oauth_scope
 * response payload body is 314159 bytes in size
 * clients are free to assert that the response payload body contents are zero
   and comparing the entire response message against a golden response
 
 ### jwt_token_creds
+
+Status: Not yet implementable
 
 This test is only for cloud-to-prod path.
 
@@ -356,7 +357,7 @@ Server features:
 * SimpleResponse.oauth_scope
 
 Procedure:
- 1. Client sets flags --service_account_key_file with the path to json key file downloaded from https://console.developers.google.com.
+ 1. Client sets flags service_account_key_file with the path to json key file
  2. Client configures the channel to use JWTTokenCredentials.
  3. Client calls UnaryCall with:
 
@@ -374,7 +375,7 @@ Procedure:
 Asserts:
 * call was successful
 * received SimpleResponse.username is in the json key file read from
-  --service_account_key_file
+  FLAGS_service_account_key_file
 * response payload body is 314159 bytes in size
 * clients are free to assert that the response payload body contents are zero
   and comparing the entire response message against a golden response
@@ -620,7 +621,7 @@ response_type, then it should fail the RPC with INVALID_ARGUMENT.
 
 If the request sets fill_username, the server should return the client username
 it sees in field SimpleResponse.username. If the request sets fill_oauth_scope,
-the server should return the oauth scope of the rpc in the form of "xapi.zoo"
+the server should return the oauth scope of the rpc in the form of "xapi_zoo"
 in field SimpleResponse.oauth_scope.
 
 ### StreamingInputCall
@@ -677,12 +678,8 @@ canonical form of the authenticated source. The canonical form is dependent on
 the authentication method, but is likely to be a base 10 integer identifier or
 an email address.
 
-If a SimpleRequest has fill_oauth_scope=true and that request was successfully authenticated via OAuth, then the SimpleResponse should have oauth_scope filled with the scope of the method being invoked.
-
 Discussion:
 
 Ideally, this would be communicated via metadata and not in the
 request/response, but we want to use this test in code paths that don't yet
 fully communicate metadata.
-
-The server side auth echoing is only implemented in the server sitting behind https://grpc-test.sandbox.google.com and is enabled only for UnaryCall. In this case the expected OAuth scope is "https://www.googleapis.com/auth/xapi.zoo".
