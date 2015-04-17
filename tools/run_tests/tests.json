@@ -148,6 +148,15 @@
   {
     "flaky": false, 
     "language": "c", 
+    "name": "chttp2_transport_end2end_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
     "name": "dualstack_socket_test", 
     "platforms": [
       "posix"
@@ -454,6 +463,15 @@
     "flaky": false, 
     "language": "c", 
     "name": "message_compress_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
+    "name": "metadata_buffer_test", 
     "platforms": [
       "windows", 
       "posix"
