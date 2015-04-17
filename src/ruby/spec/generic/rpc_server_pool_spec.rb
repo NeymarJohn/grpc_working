@@ -30,9 +30,9 @@
 require 'grpc'
 require 'xray/thread_dump_signal_handler'
 
-describe GRPC::Pool do
-  Pool = GRPC::Pool
+Pool = GRPC::RpcServer::Pool
 
+describe Pool do
   describe '#new' do
     it 'raises if a non-positive size is used' do
       expect { Pool.new(0) }.to raise_error
