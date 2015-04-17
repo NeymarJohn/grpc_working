@@ -51,7 +51,6 @@ class ChannelInterface : public CallHook {
  public:
   virtual ~ChannelInterface() {}
 
-  virtual void *RegisterMethod(const char *method_name) = 0;
   virtual Call CreateCall(const RpcMethod& method, ClientContext* context,
                           CompletionQueue* cq) = 0;
 };
