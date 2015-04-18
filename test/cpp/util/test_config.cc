@@ -31,21 +31,22 @@
  *
  */
 
-#include <grpc++/generic_stub.h>
+#include <gflags/gflags.h>
+#include "test/cpp/util/test_config.h"
 
-#include <grpc++/impl/rpc_method.h>
+// In some distros, gflags is in the namespace google, and in some others,
+// in gflags. This hack is enabling us to find both.
+namespace google {}
+namespace gflags {}
+using namespace google;
+using namespace gflags;
 
 namespace grpc {
+namespace testing {
 
-// begin a call to a named method
-std::unique_ptr<GenericClientAsyncReaderWriter> GenericStub::Call(
-    ClientContext* context, const grpc::string& method, CompletionQueue* cq,
-    void* tag) {
-  return std::unique_ptr<GenericClientAsyncReaderWriter>(
-      new GenericClientAsyncReaderWriter(
-          channel_.get(), cq,
-          RpcMethod(method.c_str(), RpcMethod::BIDI_STREAMING, nullptr),
-          context, tag));
+void InitTest(int* argc, char*** argv, bool remove_flags) {
+  ParseCommandLineFlags(argc, argv, remove_flags);
 }
 
+}  // namespace testing
 }  // namespace grpc

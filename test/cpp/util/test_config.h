@@ -31,21 +31,15 @@
  *
  */
 
-#include <grpc++/generic_stub.h>
-
-#include <grpc++/impl/rpc_method.h>
+#ifndef GRPC_TEST_CPP_UTIL_TEST_CONFIG_H
+#define GRPC_TEST_CPP_UTIL_TEST_CONFIG_H
 
 namespace grpc {
+namespace testing {
 
-// begin a call to a named method
-std::unique_ptr<GenericClientAsyncReaderWriter> GenericStub::Call(
-    ClientContext* context, const grpc::string& method, CompletionQueue* cq,
-    void* tag) {
-  return std::unique_ptr<GenericClientAsyncReaderWriter>(
-      new GenericClientAsyncReaderWriter(
-          channel_.get(), cq,
-          RpcMethod(method.c_str(), RpcMethod::BIDI_STREAMING, nullptr),
-          context, tag));
-}
+void InitTest(int* argc, char*** argv, bool remove_flags);
 
+}  // namespace testing
 }  // namespace grpc
+
+#endif  // GRPC_TEST_CPP_UTIL_TEST_CONFIG_H
