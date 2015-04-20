@@ -31,23 +31,13 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_SECURE_TRANSPORT_SETUP_H
-#define GRPC_INTERNAL_CORE_SECURITY_SECURE_TRANSPORT_SETUP_H
+#ifndef GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONTEXT_H
+#define GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONTEXT_H
 
-#include "src/core/iomgr/endpoint.h"
 #include "src/core/security/security_context.h"
 
-/* --- Secure transport setup --- */
+grpc_security_status grpc_httpcli_ssl_channel_security_context_create(
+    const unsigned char *pem_root_certs, size_t pem_root_certs_size,
+    const char *secure_peer_name, grpc_channel_security_context **ctx);
 
-/* Ownership of the secure_endpoint is transfered. */
-typedef void (*grpc_secure_transport_setup_done_cb)(
-    void *user_data, grpc_security_status status,
-    grpc_endpoint *secure_endpoint);
-
-/* Calls the callback upon completion. */
-void grpc_setup_secure_transport(grpc_security_context *ctx,
-                                 grpc_endpoint *nonsecure_endpoint,
-                                 grpc_secure_transport_setup_done_cb cb,
-                                 void *user_data);
-
-#endif  /* GRPC_INTERNAL_CORE_SECURITY_SECURE_TRANSPORT_SETUP_H */
+#endif  /* GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONTEXT_H */
