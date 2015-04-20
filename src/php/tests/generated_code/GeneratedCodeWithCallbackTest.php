@@ -1,3 +1,4 @@
+<?php
 /*
  *
  * Copyright 2015, Google Inc.
@@ -30,25 +31,18 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+require 'AbstractGeneratedCodeTest.php';
 
-#ifndef GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H
-#define GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H
-
-typedef struct {
-  const char *name;
-  grpc_call_error (*initiate_cancel)(grpc_call *call);
-  grpc_status_code expect_status;
-  const char *expect_details;
-} cancellation_mode;
-
-static grpc_call_error wait_for_deadline(grpc_call *call) {
-  return GRPC_CALL_OK;
+class GeneratedCodeWithAuthTest extends AbstractGeneratedCodeTest {
+  public static function setUpBeforeClass() {
+    self::$client = new math\MathClient(new Grpc\BaseStub(
+        getenv('GRPC_TEST_HOST'), ['update_metadata' =>
+                                   function($a_hash,
+                                            $opts = array(),
+                                            $client = array()) {
+                                     $a_copy = $a_hash;
+                                     $a_copy['foo'] = ['bar'];
+                                     return $a_copy;
+                                   }]));
+  }
 }
-
-static const cancellation_mode cancellation_modes[] = {
-    {"cancel", grpc_call_cancel, GRPC_STATUS_CANCELLED, ""},
-    {"deadline", wait_for_deadline, GRPC_STATUS_DEADLINE_EXCEEDED,
-     "Deadline Exceeded"},
-};
-
-#endif /* GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H */
