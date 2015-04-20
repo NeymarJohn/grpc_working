@@ -31,13 +31,22 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONTEXT_H
-#define GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONTEXT_H
+#include <gflags/gflags.h>
+#include "test/cpp/util/test_config.h"
 
-#include "src/core/security/security_context.h"
+// In some distros, gflags is in the namespace google, and in some others,
+// in gflags. This hack is enabling us to find both.
+namespace google {}
+namespace gflags {}
+using namespace google;
+using namespace gflags;
 
-grpc_security_status grpc_httpcli_ssl_channel_security_context_create(
-    const unsigned char *pem_root_certs, size_t pem_root_certs_size,
-    const char *secure_peer_name, grpc_channel_security_context **ctx);
+namespace grpc {
+namespace testing {
 
-#endif  /* GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONTEXT_H */
+void InitTest(int* argc, char*** argv, bool remove_flags) {
+  ParseCommandLineFlags(argc, argv, remove_flags);
+}
+
+}  // namespace testing
+}  // namespace grpc
