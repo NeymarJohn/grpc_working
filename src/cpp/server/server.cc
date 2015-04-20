@@ -46,7 +46,6 @@
 #include <grpc++/server_credentials.h>
 #include <grpc++/thread_pool_interface.h>
 
-#include "src/core/profiling/timers.h"
 #include "src/cpp/proto/proto_utils.h"
 #include "src/cpp/util/time.h"
 
@@ -124,12 +123,10 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
       std::unique_ptr<grpc::protobuf::Message> req;
       std::unique_ptr<grpc::protobuf::Message> res;
       if (has_request_payload_) {
-        GRPC_TIMER_MARK(DESER_PROTO_BEGIN, call_.call());
         req.reset(method_->AllocateRequestProto());
         if (!DeserializeProto(request_payload_, req.get())) {
           abort();  // for now
         }
-        GRPC_TIMER_MARK(DESER_PROTO_END, call_.call());
       }
       if (has_response_payload_) {
         res.reset(method_->AllocateResponseProto());
@@ -343,9 +340,7 @@ class Server::AsyncRequest GRPC_FINAL : public CompletionQueueTag {
     bool orig_status = *status;
     if (*status && request_) {
       if (payload_) {
-        GRPC_TIMER_MARK(DESER_PROTO_BEGIN, call_);
         *status = DeserializeProto(payload_, request_);
-        GRPC_TIMER_MARK(DESER_PROTO_END, call_);
       } else {
         *status = false;
       }

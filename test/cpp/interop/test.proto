@@ -30,11 +30,10 @@
 
 // An integration test service that covers all the method signature permutations
 // of unary/streaming requests/responses.
-
 syntax = "proto2";
 
-import "test/proto/empty.proto";
-import "test/proto/messages.proto";
+import "test/cpp/interop/empty.proto";
+import "test/cpp/interop/messages.proto";
 
 package grpc.testing;
 

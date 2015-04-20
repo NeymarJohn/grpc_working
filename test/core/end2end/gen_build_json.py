@@ -69,7 +69,6 @@ END2END_TESTS = [
     'request_with_payload',
     'simple_delayed_request',
     'simple_request',
-    'registered_call',
     'thread_stress',
     'writes_done_hangs_with_pending_read',
 
@@ -138,7 +137,6 @@ def main():
               'build': 'test',
               'language': 'c',
               'src': [],
-              'flaky': 'invoke_large_request' in t,
               'deps': [
                   'end2end_fixture_%s' % f,
                   'end2end_test_%s' % t,

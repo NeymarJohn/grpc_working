@@ -148,6 +148,15 @@
   {
     "flaky": false, 
     "language": "c", 
+    "name": "chttp2_transport_end2end_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
     "name": "dualstack_socket_test", 
     "platforms": [
       "posix"
@@ -462,6 +471,15 @@
   {
     "flaky": false, 
     "language": "c", 
+    "name": "metadata_buffer_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
     "name": "multi_init_test", 
     "platforms": [
       "windows", 
@@ -678,6 +696,24 @@
   {
     "flaky": false, 
     "language": "c++", 
+    "name": "pubsub_publisher_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c++", 
+    "name": "pubsub_subscriber_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c++", 
     "name": "status_test", 
     "platforms": [
       "windows", 
@@ -802,7 +838,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fake_security_invoke_large_request_test", 
     "platforms": [
@@ -895,15 +931,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_fake_security_simple_request_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_fake_security_registered_call_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -1018,7 +1045,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fake_security_invoke_large_request_legacy_test", 
     "platforms": [
@@ -1252,7 +1279,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_invoke_large_request_test", 
     "platforms": [
@@ -1345,15 +1372,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_simple_request_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_fullstack_registered_call_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -1468,7 +1486,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_invoke_large_request_legacy_test", 
     "platforms": [
@@ -1702,7 +1720,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_uds_invoke_large_request_test", 
     "platforms": [
@@ -1795,15 +1813,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_uds_simple_request_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_registered_call_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -1918,7 +1927,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_uds_invoke_large_request_legacy_test", 
     "platforms": [
@@ -2152,7 +2161,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_invoke_large_request_test", 
     "platforms": [
@@ -2245,15 +2254,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_simple_request_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_simple_ssl_fullstack_registered_call_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -2368,7 +2368,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_invoke_large_request_legacy_test", 
     "platforms": [
@@ -2602,7 +2602,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test", 
     "platforms": [
@@ -2695,15 +2695,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_simple_request_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_simple_ssl_with_oauth2_fullstack_registered_call_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -2818,7 +2809,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_legacy_test", 
     "platforms": [
@@ -3052,7 +3043,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_invoke_large_request_test", 
     "platforms": [
@@ -3145,15 +3136,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_simple_request_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_socket_pair_registered_call_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -3268,7 +3250,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_invoke_large_request_legacy_test", 
     "platforms": [
@@ -3502,7 +3484,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test", 
     "platforms": [
@@ -3595,15 +3577,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_simple_request_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_socket_pair_one_byte_at_a_time_registered_call_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -3718,7 +3691,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_legacy_test", 
     "platforms": [

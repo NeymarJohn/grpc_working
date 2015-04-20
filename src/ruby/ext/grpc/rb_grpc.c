@@ -34,8 +34,7 @@
 #include "rb_grpc.h"
 
 #include <math.h>
-#include <ruby/ruby.h>
-#include <ruby/vm.h>
+#include <ruby.h>
 #include <sys/time.h>
 
 #include <grpc/grpc.h>
@@ -47,14 +46,11 @@
 #include "rb_credentials.h"
 #include "rb_server_credentials.h"
 
-static VALUE grpc_rb_cTimeVal = Qnil;
+/* Define common vars and funcs declared in rb.h */
+const RUBY_DATA_FUNC GC_NOT_MARKED = NULL;
+const RUBY_DATA_FUNC GC_DONT_FREE = NULL;
 
-static rb_data_type_t grpc_rb_timespec_data_type = {
-    "gpr_timespec",
-    {GRPC_RB_GC_NOT_MARKED, GRPC_RB_GC_DONT_FREE, GRPC_RB_MEMSIZE_UNAVAILABLE},
-    NULL,
-    NULL,
-    RUBY_TYPED_FREE_IMMEDIATELY};
+VALUE grpc_rb_cTimeVal = Qnil;
 
 /* Alloc func that blocks allocation of a given object by raising an
  * exception. */
@@ -101,8 +97,7 @@ gpr_timespec grpc_rb_time_timeval(VALUE time, int interval) {
   switch (TYPE(time)) {
     case T_DATA:
       if (CLASS_OF(time) == grpc_rb_cTimeVal) {
-        TypedData_Get_Struct(time, gpr_timespec, &grpc_rb_timespec_data_type,
-                             time_const);
+        Data_Get_Struct(time, gpr_timespec, time_const);
         t = *time_const;
       } else if (CLASS_OF(time) == rb_cTime) {
         t.tv_sec = NUM2INT(rb_funcall(time, id_tv_sec, 0));
@@ -155,7 +150,7 @@ gpr_timespec grpc_rb_time_timeval(VALUE time, int interval) {
   return t;
 }
 
-static void Init_grpc_status_codes() {
+void Init_grpc_status_codes() {
   /* Constants representing the status codes or grpc_status_code in status.h */
   VALUE grpc_rb_mStatusCodes =
       rb_define_module_under(grpc_rb_mGrpcCore, "StatusCodes");
@@ -204,42 +199,41 @@ static ID id_inspect;
 static ID id_to_s;
 
 /* Converts a wrapped time constant to a standard time. */
-static VALUE grpc_rb_time_val_to_time(VALUE self) {
+VALUE grpc_rb_time_val_to_time(VALUE self) {
   gpr_timespec *time_const = NULL;
-  TypedData_Get_Struct(self, gpr_timespec, &grpc_rb_timespec_data_type,
-                       time_const);
+  Data_Get_Struct(self, gpr_timespec, time_const);
   return rb_funcall(rb_cTime, id_at, 2, INT2NUM(time_const->tv_sec),
                     INT2NUM(time_const->tv_nsec));
 }
 
 /* Invokes inspect on the ctime version of the time val. */
-static VALUE grpc_rb_time_val_inspect(VALUE self) {
+VALUE grpc_rb_time_val_inspect(VALUE self) {
   return rb_funcall(grpc_rb_time_val_to_time(self), id_inspect, 0);
 }
 
 /* Invokes to_s on the ctime version of the time val. */
-static VALUE grpc_rb_time_val_to_s(VALUE self) {
+VALUE grpc_rb_time_val_to_s(VALUE self) {
   return rb_funcall(grpc_rb_time_val_to_time(self), id_to_s, 0);
 }
 
 /* Adds a module with constants that map to gpr's static timeval structs. */
-static void Init_grpc_time_consts() {
+void Init_grpc_time_consts() {
   VALUE grpc_rb_mTimeConsts =
       rb_define_module_under(grpc_rb_mGrpcCore, "TimeConsts");
   grpc_rb_cTimeVal =
       rb_define_class_under(grpc_rb_mGrpcCore, "TimeSpec", rb_cObject);
-  rb_define_const(
-      grpc_rb_mTimeConsts, "ZERO",
-      TypedData_Wrap_Struct(grpc_rb_cTimeVal, &grpc_rb_timespec_data_type,
-                            (void *)&gpr_time_0));
-  rb_define_const(
-      grpc_rb_mTimeConsts, "INFINITE_FUTURE",
-      TypedData_Wrap_Struct(grpc_rb_cTimeVal, &grpc_rb_timespec_data_type,
-                            (void *)&gpr_inf_future));
-  rb_define_const(
-      grpc_rb_mTimeConsts, "INFINITE_PAST",
-      TypedData_Wrap_Struct(grpc_rb_cTimeVal, &grpc_rb_timespec_data_type,
-                            (void *)&gpr_inf_past));
+  rb_define_const(grpc_rb_mTimeConsts, "ZERO",
+                  Data_Wrap_Struct(grpc_rb_cTimeVal,
+                                   GC_NOT_MARKED, GC_DONT_FREE,
+                                   (void *)&gpr_time_0));
+  rb_define_const(grpc_rb_mTimeConsts, "INFINITE_FUTURE",
+                  Data_Wrap_Struct(grpc_rb_cTimeVal,
+                                   GC_NOT_MARKED, GC_DONT_FREE,
+                                   (void *)&gpr_inf_future));
+  rb_define_const(grpc_rb_mTimeConsts, "INFINITE_PAST",
+                  Data_Wrap_Struct(grpc_rb_cTimeVal,
+                                   GC_NOT_MARKED, GC_DONT_FREE,
+                                   (void *)&gpr_inf_past));
   rb_define_method(grpc_rb_cTimeVal, "to_time", grpc_rb_time_val_to_time, 0);
   rb_define_method(grpc_rb_cTimeVal, "inspect", grpc_rb_time_val_inspect, 0);
   rb_define_method(grpc_rb_cTimeVal, "to_s", grpc_rb_time_val_to_s, 0);
@@ -250,7 +244,7 @@ static void Init_grpc_time_consts() {
   id_tv_nsec = rb_intern("tv_nsec");
 }
 
-static void grpc_rb_shutdown(ruby_vm_t *vm) { grpc_shutdown(); }
+void grpc_rb_shutdown(void *vm) { grpc_shutdown(); }
 
 /* Initialize the GRPC module structs */
 
@@ -262,11 +256,6 @@ VALUE grpc_rb_sStatus = Qnil;
 /* Initialize the GRPC module. */
 VALUE grpc_rb_mGRPC = Qnil;
 VALUE grpc_rb_mGrpcCore = Qnil;
-
-/* cached Symbols for members in Status struct */
-VALUE sym_code = Qundef;
-VALUE sym_details = Qundef;
-VALUE sym_metadata = Qundef;
 
 void Init_grpc() {
   grpc_init();
