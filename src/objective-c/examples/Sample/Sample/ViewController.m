@@ -32,11 +32,10 @@
  */
 
 #import "ViewController.h"
-
-#import <gRPC/GRPCCall.h>
-#import <gRPC/GRPCMethodName.h>
-#import <gRPC/GRXWriter+Immediate.h>
-#import <gRPC/GRXWriteable.h>
+#import <GRPCClient/GRPCCall.h>
+#import <GRPCClient/GRPCMethodName.h>
+#import <RxLibrary/GRXWriter+Immediate.h>
+#import <RxLibrary/GRXWriteable.h>
 
 @interface ViewController ()
 
@@ -52,19 +51,15 @@
                                                          interface:@"TestService"
                                                             method:@"EmptyCall"];
 
-  id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[NSData data]];
-
-  GRPCCall *call = [[GRPCCall alloc] initWithHost:@"grpc-test.sandbox.google.com:443"
+  GRPCCall *call = [[GRPCCall alloc] initWithHost:@"localhost"
                                            method:method
-                                   requestsWriter:requestsWriter];
+                                   requestsWriter:[GRXWriter writerWithValue:[NSData data]]];
 
-  id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
+  [call startWithWriteable:[[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
     NSLog(@"Received response: %@", value);
   } completionHandler:^(NSError *errorOrNil) {
     NSLog(@"Finished with error: %@", errorOrNil);
-  }];
-
-  [call startWithWriteable:responsesWriteable];
+  }]];
 }
 
 - (void)didReceiveMemoryWarning {

@@ -144,7 +144,7 @@ def which(filename):
 class JobSpec(object):
   """Specifies what to run for a job."""
 
-  def __init__(self, cmdline, shortname=None, environ=None, hash_targets=None, cwd=None, shell=False):
+  def __init__(self, cmdline, shortname=None, environ=None, hash_targets=None, cwd=None):
     """
     Arguments:
       cmdline: a list of arguments to pass as the command line
@@ -161,7 +161,6 @@ class JobSpec(object):
     self.shortname = cmdline[0] if shortname is None else shortname
     self.hash_targets = hash_targets or []
     self.cwd = cwd
-    self.shell = shell
 
   def identity(self):
     return '%r %r %r' % (self.cmdline, self.environ, self.hash_targets)
@@ -188,7 +187,6 @@ class Job(object):
                                      stderr=subprocess.STDOUT,
                                      stdout=self._tempfile,
                                      cwd=spec.cwd,
-                                     shell=spec.shell,
                                      env=env)
     self._state = _RUNNING
     self._newline_on_success = newline_on_success
