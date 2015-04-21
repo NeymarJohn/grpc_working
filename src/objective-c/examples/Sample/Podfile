@@ -1,13 +1,13 @@
 source 'https://github.com/CocoaPods/Specs.git'
 platform :ios, '8.0'
 
-pod 'gRPC', :path => "../../../.."
-pod 'RxLibrary', :path => "../../../.."
-
-link_with 'Sample', 'SampleTests'
+pod 'RxLibrary', :path => "../../RxLibrary"
+pod 'GRPCClient', :path => "../../GRPCClient"
 
 target 'Sample' do
+
 end
 
 target 'SampleTests' do
+
 end
