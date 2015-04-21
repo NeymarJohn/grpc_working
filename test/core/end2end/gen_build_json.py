@@ -140,7 +140,6 @@ def main():
               'build': 'test',
               'language': 'c',
               'src': [],
-              'flaky': 'invoke_large_request' in t,
               'deps': [
                   'end2end_fixture_%s' % f,
                   'end2end_test_%s' % t,
