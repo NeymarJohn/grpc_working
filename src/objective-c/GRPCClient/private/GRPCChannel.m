@@ -33,7 +33,7 @@
 
 #import "GRPCChannel.h"
 
-#import <grpc/grpc.h>
+#import <grpc.h>
 
 @implementation GRPCChannel
 
