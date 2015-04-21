@@ -1,5 +1,7 @@
 # GRPC Bazel BUILD file.
 # This currently builds C and C++ code.
+# This file has been automatically generated from a template file.
+# Please look at the templates directory instead.
 
 # Copyright 2015, Google Inc.
 # All rights reserved.
@@ -145,7 +147,9 @@ cc_library(
     "src/core/channel/client_setup.h",
     "src/core/channel/connected_channel.h",
     "src/core/channel/http_client_filter.h",
+    "src/core/channel/http_filter.h",
     "src/core/channel/http_server_filter.h",
+    "src/core/channel/metadata_buffer.h",
     "src/core/channel/noop_filter.h",
     "src/core/compression/algorithm.h",
     "src/core/compression/message_compress.h",
@@ -244,6 +248,7 @@ cc_library(
     "src/core/tsi/fake_transport_security.c",
     "src/core/tsi/ssl_transport_security.c",
     "src/core/tsi/transport_security.c",
+    "src/core/channel/call_op_string.c",
     "src/core/channel/census_filter.c",
     "src/core/channel/channel_args.c",
     "src/core/channel/channel_stack.c",
@@ -252,7 +257,9 @@ cc_library(
     "src/core/channel/client_setup.c",
     "src/core/channel/connected_channel.c",
     "src/core/channel/http_client_filter.c",
+    "src/core/channel/http_filter.c",
     "src/core/channel/http_server_filter.c",
+    "src/core/channel/metadata_buffer.c",
     "src/core/channel/noop_filter.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
@@ -339,7 +346,6 @@ cc_library(
     "src/core/transport/metadata.c",
     "src/core/transport/stream_op.c",
     "src/core/transport/transport.c",
-    "src/core/transport/transport_op_string.c",
   ],
   hdrs = [
     "include/grpc/grpc_security.h",
@@ -371,7 +377,9 @@ cc_library(
     "src/core/channel/client_setup.h",
     "src/core/channel/connected_channel.h",
     "src/core/channel/http_client_filter.h",
+    "src/core/channel/http_filter.h",
     "src/core/channel/http_server_filter.h",
+    "src/core/channel/metadata_buffer.h",
     "src/core/channel/noop_filter.h",
     "src/core/compression/algorithm.h",
     "src/core/compression/message_compress.h",
@@ -451,6 +459,7 @@ cc_library(
     "src/core/transport/transport.h",
     "src/core/transport/transport_impl.h",
     "src/core/surface/init_unsecure.c",
+    "src/core/channel/call_op_string.c",
     "src/core/channel/census_filter.c",
     "src/core/channel/channel_args.c",
     "src/core/channel/channel_stack.c",
@@ -459,7 +468,9 @@ cc_library(
     "src/core/channel/client_setup.c",
     "src/core/channel/connected_channel.c",
     "src/core/channel/http_client_filter.c",
+    "src/core/channel/http_filter.c",
     "src/core/channel/http_server_filter.c",
+    "src/core/channel/metadata_buffer.c",
     "src/core/channel/noop_filter.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
@@ -546,7 +557,6 @@ cc_library(
     "src/core/transport/metadata.c",
     "src/core/transport/stream_op.c",
     "src/core/transport/transport.c",
-    "src/core/transport/transport_op_string.c",
   ],
   hdrs = [
     "include/grpc/byte_buffer.h",
