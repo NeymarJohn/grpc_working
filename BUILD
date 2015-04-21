@@ -1,7 +1,5 @@
 # GRPC Bazel BUILD file.
 # This currently builds C and C++ code.
-# This file has been automatically generated from a template file.
-# Please look at the templates directory instead.
 
 # Copyright 2015, Google Inc.
 # All rights reserved.
@@ -149,7 +147,6 @@ cc_library(
     "src/core/channel/http_client_filter.h",
     "src/core/channel/http_filter.h",
     "src/core/channel/http_server_filter.h",
-    "src/core/channel/metadata_buffer.h",
     "src/core/channel/noop_filter.h",
     "src/core/compression/algorithm.h",
     "src/core/compression/message_compress.h",
@@ -259,7 +256,6 @@ cc_library(
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_filter.c",
     "src/core/channel/http_server_filter.c",
-    "src/core/channel/metadata_buffer.c",
     "src/core/channel/noop_filter.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
@@ -379,7 +375,6 @@ cc_library(
     "src/core/channel/http_client_filter.h",
     "src/core/channel/http_filter.h",
     "src/core/channel/http_server_filter.h",
-    "src/core/channel/metadata_buffer.h",
     "src/core/channel/noop_filter.h",
     "src/core/compression/algorithm.h",
     "src/core/compression/message_compress.h",
@@ -470,7 +465,6 @@ cc_library(
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_filter.c",
     "src/core/channel/http_server_filter.c",
-    "src/core/channel/metadata_buffer.c",
     "src/core/channel/noop_filter.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
