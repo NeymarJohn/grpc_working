@@ -80,12 +80,12 @@ module GRPC
       else  # is a bidi_stream
         active_call.run_server_bidi(mth)
       end
-      send_status(active_call, OK, 'OK', **active_call.output_metadata)
+      send_status(active_call, OK, 'OK')
     rescue BadStatus => e
-      # this is raised by handlers that want GRPC to send an application error
-      # code and detail message and some additional app-specific metadata.
+      # this is raised by handlers that want GRPC to send an application
+      # error code and detail message.
       logger.debug("app err: #{active_call}, status:#{e.code}:#{e.details}")
-      send_status(active_call, e.code, e.details, **e.metadata)
+      send_status(active_call, e.code, e.details)
     rescue Core::CallError => e
       # This is raised by GRPC internals but should rarely, if ever happen.
       # Log it, but don't notify the other endpoint..
@@ -135,9 +135,9 @@ module GRPC
       "##{mth.name}: bad arg count; got:#{mth.arity}, want:#{want}, #{msg}"
     end
 
-    def send_status(active_client, code, details, **kw)
+    def send_status(active_client, code, details)
       details = 'Not sure why' if details.nil?
-      active_client.send_status(code, details, code == OK, **kw)
+      active_client.send_status(code, details, code == OK)
     rescue StandardError => e
       logger.warn("Could not send status #{code}:#{details}")
       logger.warn(e)
