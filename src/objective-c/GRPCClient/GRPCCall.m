@@ -33,8 +33,8 @@
 
 #import "GRPCCall.h"
 
-#include <grpc/grpc.h>
-#include <grpc/support/grpc_time.h>
+#include <grpc.h>
+#include <support/time.h>
 
 #import "GRPCMethodName.h"
 #import "private/GRPCChannel.h"
