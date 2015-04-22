@@ -3205,6 +3205,7 @@ LIBGRPC_SRC = \
     src/core/tsi/fake_transport_security.c \
     src/core/tsi/ssl_transport_security.c \
     src/core/tsi/transport_security.c \
+    src/core/channel/call_op_string.c \
     src/core/channel/census_filter.c \
     src/core/channel/channel_args.c \
     src/core/channel/channel_stack.c \
@@ -3213,6 +3214,7 @@ LIBGRPC_SRC = \
     src/core/channel/client_setup.c \
     src/core/channel/connected_channel.c \
     src/core/channel/http_client_filter.c \
+    src/core/channel/http_filter.c \
     src/core/channel/http_server_filter.c \
     src/core/channel/noop_filter.c \
     src/core/compression/algorithm.c \
@@ -3300,7 +3302,6 @@ LIBGRPC_SRC = \
     src/core/transport/metadata.c \
     src/core/transport/stream_op.c \
     src/core/transport/transport.c \
-    src/core/transport/transport_op_string.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/grpc_security.h \
@@ -3351,6 +3352,7 @@ src/core/surface/secure_channel_create.c: $(OPENSSL_DEP)
 src/core/tsi/fake_transport_security.c: $(OPENSSL_DEP)
 src/core/tsi/ssl_transport_security.c: $(OPENSSL_DEP)
 src/core/tsi/transport_security.c: $(OPENSSL_DEP)
+src/core/channel/call_op_string.c: $(OPENSSL_DEP)
 src/core/channel/census_filter.c: $(OPENSSL_DEP)
 src/core/channel/channel_args.c: $(OPENSSL_DEP)
 src/core/channel/channel_stack.c: $(OPENSSL_DEP)
@@ -3359,6 +3361,7 @@ src/core/channel/client_channel.c: $(OPENSSL_DEP)
 src/core/channel/client_setup.c: $(OPENSSL_DEP)
 src/core/channel/connected_channel.c: $(OPENSSL_DEP)
 src/core/channel/http_client_filter.c: $(OPENSSL_DEP)
+src/core/channel/http_filter.c: $(OPENSSL_DEP)
 src/core/channel/http_server_filter.c: $(OPENSSL_DEP)
 src/core/channel/noop_filter.c: $(OPENSSL_DEP)
 src/core/compression/algorithm.c: $(OPENSSL_DEP)
@@ -3446,7 +3449,6 @@ src/core/transport/chttp2_transport.c: $(OPENSSL_DEP)
 src/core/transport/metadata.c: $(OPENSSL_DEP)
 src/core/transport/stream_op.c: $(OPENSSL_DEP)
 src/core/transport/transport.c: $(OPENSSL_DEP)
-src/core/transport/transport_op_string.c: $(OPENSSL_DEP)
 endif
 
 $(LIBDIR)/$(CONFIG)/libgrpc.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC_OBJS)
@@ -3513,6 +3515,7 @@ $(OBJDIR)/$(CONFIG)/src/core/surface/secure_channel_create.o:
 $(OBJDIR)/$(CONFIG)/src/core/tsi/fake_transport_security.o: 
 $(OBJDIR)/$(CONFIG)/src/core/tsi/ssl_transport_security.o: 
 $(OBJDIR)/$(CONFIG)/src/core/tsi/transport_security.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/call_op_string.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/census_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/channel_args.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/channel_stack.o: 
@@ -3521,6 +3524,7 @@ $(OBJDIR)/$(CONFIG)/src/core/channel/client_channel.o:
 $(OBJDIR)/$(CONFIG)/src/core/channel/client_setup.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/connected_channel.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/http_client_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/http_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/http_server_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/noop_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/compression/algorithm.o: 
@@ -3608,7 +3612,6 @@ $(OBJDIR)/$(CONFIG)/src/core/transport/chttp2_transport.o:
 $(OBJDIR)/$(CONFIG)/src/core/transport/metadata.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/stream_op.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/transport.o: 
-$(OBJDIR)/$(CONFIG)/src/core/transport/transport_op_string.o: 
 
 
 LIBGRPC_TEST_UTIL_SRC = \
@@ -3689,6 +3692,7 @@ $(OBJDIR)/$(CONFIG)/test/core/util/slice_splitter.o:
 
 LIBGRPC_UNSECURE_SRC = \
     src/core/surface/init_unsecure.c \
+    src/core/channel/call_op_string.c \
     src/core/channel/census_filter.c \
     src/core/channel/channel_args.c \
     src/core/channel/channel_stack.c \
@@ -3697,6 +3701,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/channel/client_setup.c \
     src/core/channel/connected_channel.c \
     src/core/channel/http_client_filter.c \
+    src/core/channel/http_filter.c \
     src/core/channel/http_server_filter.c \
     src/core/channel/noop_filter.c \
     src/core/compression/algorithm.c \
@@ -3784,7 +3789,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/transport/metadata.c \
     src/core/transport/stream_op.c \
     src/core/transport/transport.c \
-    src/core/transport/transport_op_string.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer.h \
@@ -3829,6 +3833,7 @@ ifneq ($(NO_DEPS),true)
 endif
 
 $(OBJDIR)/$(CONFIG)/src/core/surface/init_unsecure.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/call_op_string.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/census_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/channel_args.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/channel_stack.o: 
@@ -3837,6 +3842,7 @@ $(OBJDIR)/$(CONFIG)/src/core/channel/client_channel.o:
 $(OBJDIR)/$(CONFIG)/src/core/channel/client_setup.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/connected_channel.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/http_client_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/http_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/http_server_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/noop_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/compression/algorithm.o: 
@@ -3924,7 +3930,6 @@ $(OBJDIR)/$(CONFIG)/src/core/transport/chttp2_transport.o:
 $(OBJDIR)/$(CONFIG)/src/core/transport/metadata.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/stream_op.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/transport.o: 
-$(OBJDIR)/$(CONFIG)/src/core/transport/transport_op_string.o: 
 
 
 LIBGRPC++_SRC = \
@@ -20089,28 +20094,16 @@ CHTTP2_FULLSTACK_BAD_HOSTNAME_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_BAD_HOSTNAME_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_BAD_HOSTNAME_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_bad_hostname_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_bad_hostname_unsecure_test: $(CHTTP2_FULLSTACK_BAD_HOSTNAME_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_bad_hostname.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_BAD_HOSTNAME_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_bad_hostname.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_bad_hostname_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_BAD_HOSTNAME_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_bad_hostname.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_bad_hostname_unsecure_test
 
 
 deps_chttp2_fullstack_bad_hostname_unsecure_test: $(CHTTP2_FULLSTACK_BAD_HOSTNAME_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_BAD_HOSTNAME_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20118,28 +20111,16 @@ CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_unsecure_test
 
 
 deps_chttp2_fullstack_cancel_after_accept_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20147,28 +20128,16 @@ CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_unsecure_test
 
 
 deps_chttp2_fullstack_cancel_after_accept_and_writes_closed_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20176,28 +20145,16 @@ CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_SRC 
 
 CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_legacy_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_cancel_after_accept_and_writes_closed_legacy_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20205,28 +20162,16 @@ CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_legacy_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_cancel_after_accept_legacy_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20234,28 +20179,16 @@ CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_invoke_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_invoke_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_invoke_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_invoke_unsecure_test
 
 
 deps_chttp2_fullstack_cancel_after_invoke_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20263,28 +20196,16 @@ CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_invoke_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_invoke_legacy_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_invoke_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_invoke_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_cancel_after_invoke_legacy_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20292,28 +20213,16 @@ CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_before_invoke_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_before_invoke_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_before_invoke_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_before_invoke_unsecure_test
 
 
 deps_chttp2_fullstack_cancel_before_invoke_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20321,28 +20230,16 @@ CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_before_invoke_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_before_invoke_legacy_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_before_invoke_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_before_invoke_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_cancel_before_invoke_legacy_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20350,28 +20247,16 @@ CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_in_a_vacuum_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_in_a_vacuum_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_in_a_vacuum_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_in_a_vacuum_unsecure_test
 
 
 deps_chttp2_fullstack_cancel_in_a_vacuum_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20379,28 +20264,16 @@ CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_in_a_vacuum_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_in_a_vacuum_legacy_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_in_a_vacuum_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_in_a_vacuum_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_cancel_in_a_vacuum_legacy_unsecure_test: $(CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20408,28 +20281,16 @@ CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_census_simple_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_census_simple_request_unsecure_test: $(CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_census_simple_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_census_simple_request_unsecure_test
 
 
 deps_chttp2_fullstack_census_simple_request_unsecure_test: $(CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20437,28 +20298,16 @@ CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_census_simple_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_census_simple_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_census_simple_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_census_simple_request_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_census_simple_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20466,28 +20315,16 @@ CHTTP2_FULLSTACK_DISAPPEARING_SERVER_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_DISAPPEARING_SERVER_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_disappearing_server_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_disappearing_server_unsecure_test: $(CHTTP2_FULLSTACK_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_disappearing_server_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_disappearing_server_unsecure_test
 
 
 deps_chttp2_fullstack_disappearing_server_unsecure_test: $(CHTTP2_FULLSTACK_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20495,28 +20332,16 @@ CHTTP2_FULLSTACK_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_disappearing_server_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_disappearing_server_legacy_unsecure_test: $(CHTTP2_FULLSTACK_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_disappearing_server_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_disappearing_server_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_disappearing_server_legacy_unsecure_test: $(CHTTP2_FULLSTACK_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20524,28 +20349,16 @@ CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_SRC
 
 CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_unsecure_test: $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_unsecure_test
 
 
 deps_chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_unsecure_test: $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20553,28 +20366,16 @@ CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_T
 
 CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test: $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test: $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20582,28 +20383,16 @@ CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_unsecure_test: $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_unsecure_test
 
 
 deps_chttp2_fullstack_early_server_shutdown_finishes_tags_unsecure_test: $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20611,28 +20400,16 @@ CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_SRC = 
 
 CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_legacy_unsecure_test: $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_early_server_shutdown_finishes_tags_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_early_server_shutdown_finishes_tags_legacy_unsecure_test: $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20640,28 +20417,16 @@ CHTTP2_FULLSTACK_EMPTY_BATCH_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_EMPTY_BATCH_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_EMPTY_BATCH_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_empty_batch_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_empty_batch_unsecure_test: $(CHTTP2_FULLSTACK_EMPTY_BATCH_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_EMPTY_BATCH_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_empty_batch_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_EMPTY_BATCH_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_empty_batch_unsecure_test
 
 
 deps_chttp2_fullstack_empty_batch_unsecure_test: $(CHTTP2_FULLSTACK_EMPTY_BATCH_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_EMPTY_BATCH_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20669,28 +20434,16 @@ CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_unsecure_test: $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_unsecure_test
 
 
 deps_chttp2_fullstack_graceful_server_shutdown_unsecure_test: $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20698,28 +20451,16 @@ CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_legacy_unsecure_test: $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_graceful_server_shutdown_legacy_unsecure_test: $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20727,28 +20468,16 @@ CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_invoke_large_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_invoke_large_request_unsecure_test: $(CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_invoke_large_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_invoke_large_request_unsecure_test
 
 
 deps_chttp2_fullstack_invoke_large_request_unsecure_test: $(CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20756,28 +20485,16 @@ CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_invoke_large_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_invoke_large_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_invoke_large_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_invoke_large_request_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_invoke_large_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20785,28 +20502,16 @@ CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_unsecure_test: $(CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_unsecure_test
 
 
 deps_chttp2_fullstack_max_concurrent_streams_unsecure_test: $(CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20814,28 +20519,16 @@ CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_legacy_unsecure_test: $(CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_max_concurrent_streams_legacy_unsecure_test: $(CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20843,28 +20536,16 @@ CHTTP2_FULLSTACK_NO_OP_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_NO_OP_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_NO_OP_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_no_op_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_no_op_unsecure_test: $(CHTTP2_FULLSTACK_NO_OP_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_NO_OP_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_no_op_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_NO_OP_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_no_op_unsecure_test
 
 
 deps_chttp2_fullstack_no_op_unsecure_test: $(CHTTP2_FULLSTACK_NO_OP_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_NO_OP_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20872,28 +20553,16 @@ CHTTP2_FULLSTACK_NO_OP_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_NO_OP_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_NO_OP_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_no_op_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_no_op_legacy_unsecure_test: $(CHTTP2_FULLSTACK_NO_OP_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_NO_OP_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_no_op_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_NO_OP_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_no_op_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_no_op_legacy_unsecure_test: $(CHTTP2_FULLSTACK_NO_OP_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_NO_OP_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20901,28 +20570,16 @@ CHTTP2_FULLSTACK_PING_PONG_STREAMING_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_PING_PONG_STREAMING_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_PING_PONG_STREAMING_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_ping_pong_streaming_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_ping_pong_streaming_unsecure_test: $(CHTTP2_FULLSTACK_PING_PONG_STREAMING_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_PING_PONG_STREAMING_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_ping_pong_streaming_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_PING_PONG_STREAMING_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_ping_pong_streaming_unsecure_test
 
 
 deps_chttp2_fullstack_ping_pong_streaming_unsecure_test: $(CHTTP2_FULLSTACK_PING_PONG_STREAMING_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_PING_PONG_STREAMING_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20930,28 +20587,16 @@ CHTTP2_FULLSTACK_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_ping_pong_streaming_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_ping_pong_streaming_legacy_unsecure_test: $(CHTTP2_FULLSTACK_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_ping_pong_streaming_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_ping_pong_streaming_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_ping_pong_streaming_legacy_unsecure_test: $(CHTTP2_FULLSTACK_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20959,28 +20604,16 @@ CHTTP2_FULLSTACK_REGISTERED_CALL_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_REGISTERED_CALL_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REGISTERED_CALL_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_registered_call_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_registered_call_unsecure_test: $(CHTTP2_FULLSTACK_REGISTERED_CALL_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_registered_call.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REGISTERED_CALL_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_registered_call.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_registered_call_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REGISTERED_CALL_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_registered_call.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_registered_call_unsecure_test
 
 
 deps_chttp2_fullstack_registered_call_unsecure_test: $(CHTTP2_FULLSTACK_REGISTERED_CALL_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_REGISTERED_CALL_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -20988,28 +20621,16 @@ CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST
 
 CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_binary_metadata_and_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_binary_metadata_and_payload_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_binary_metadata_and_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_binary_metadata_and_payload_unsecure_test
 
 
 deps_chttp2_fullstack_request_response_with_binary_metadata_and_payload_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21017,28 +20638,16 @@ CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECU
 
 CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_binary_metadata_and_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_binary_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_binary_metadata_and_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_binary_metadata_and_payload_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_request_response_with_binary_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21046,28 +20655,16 @@ CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_SRC = 
 
 CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_metadata_and_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_metadata_and_payload_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_metadata_and_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_metadata_and_payload_unsecure_test
 
 
 deps_chttp2_fullstack_request_response_with_metadata_and_payload_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21075,28 +20672,16 @@ CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST
 
 CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_metadata_and_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_metadata_and_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_metadata_and_payload_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_request_response_with_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21104,28 +20689,16 @@ CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_payload_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_payload_unsecure_test
 
 
 deps_chttp2_fullstack_request_response_with_payload_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21133,28 +20706,16 @@ CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_payload_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_request_response_with_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21162,28 +20723,16 @@ CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSE
 
 CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21191,28 +20740,16 @@ CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_large_metadata_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_large_metadata_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_large_metadata_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_large_metadata_unsecure_test
 
 
 deps_chttp2_fullstack_request_with_large_metadata_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21220,28 +20757,16 @@ CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_large_metadata_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_large_metadata_legacy_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_large_metadata_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_large_metadata_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_request_with_large_metadata_legacy_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21249,28 +20774,16 @@ CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_payload_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_payload_unsecure_test
 
 
 deps_chttp2_fullstack_request_with_payload_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21278,28 +20791,16 @@ CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_request_with_payload_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_request_with_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21307,28 +20808,16 @@ CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_delayed_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_delayed_request_unsecure_test: $(CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_delayed_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_delayed_request_unsecure_test
 
 
 deps_chttp2_fullstack_simple_delayed_request_unsecure_test: $(CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21336,28 +20825,16 @@ CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_delayed_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_delayed_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_delayed_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_delayed_request_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_simple_delayed_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21365,28 +20842,16 @@ CHTTP2_FULLSTACK_SIMPLE_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_SIMPLE_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_SIMPLE_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_request_unsecure_test: $(CHTTP2_FULLSTACK_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_request_unsecure_test
 
 
 deps_chttp2_fullstack_simple_request_unsecure_test: $(CHTTP2_FULLSTACK_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21394,28 +20859,16 @@ CHTTP2_FULLSTACK_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_request_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_simple_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21423,28 +20876,16 @@ CHTTP2_FULLSTACK_THREAD_STRESS_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_THREAD_STRESS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_THREAD_STRESS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_thread_stress_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_thread_stress_unsecure_test: $(CHTTP2_FULLSTACK_THREAD_STRESS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_THREAD_STRESS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_thread_stress_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_THREAD_STRESS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_thread_stress_unsecure_test
 
 
 deps_chttp2_fullstack_thread_stress_unsecure_test: $(CHTTP2_FULLSTACK_THREAD_STRESS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_THREAD_STRESS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21452,28 +20893,16 @@ CHTTP2_FULLSTACK_THREAD_STRESS_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_THREAD_STRESS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_thread_stress_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_thread_stress_legacy_unsecure_test: $(CHTTP2_FULLSTACK_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_thread_stress_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_thread_stress_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_thread_stress_legacy_unsecure_test: $(CHTTP2_FULLSTACK_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21481,28 +20910,16 @@ CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_writes_done_hangs_with_pending_read_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_writes_done_hangs_with_pending_read_unsecure_test: $(CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_writes_done_hangs_with_pending_read_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_writes_done_hangs_with_pending_read_unsecure_test
 
 
 deps_chttp2_fullstack_writes_done_hangs_with_pending_read_unsecure_test: $(CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21510,28 +20927,16 @@ CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_SRC = 
 
 CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_writes_done_hangs_with_pending_read_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_writes_done_hangs_with_pending_read_legacy_unsecure_test: $(CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_writes_done_hangs_with_pending_read_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_writes_done_hangs_with_pending_read_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_writes_done_hangs_with_pending_read_legacy_unsecure_test: $(CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21539,28 +20944,16 @@ CHTTP2_FULLSTACK_UDS_BAD_HOSTNAME_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_BAD_HOSTNAME_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_BAD_HOSTNAME_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_bad_hostname_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_bad_hostname_unsecure_test: $(CHTTP2_FULLSTACK_UDS_BAD_HOSTNAME_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_bad_hostname.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_BAD_HOSTNAME_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_bad_hostname.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_bad_hostname_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_BAD_HOSTNAME_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_bad_hostname.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_bad_hostname_unsecure_test
 
 
 deps_chttp2_fullstack_uds_bad_hostname_unsecure_test: $(CHTTP2_FULLSTACK_UDS_BAD_HOSTNAME_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_BAD_HOSTNAME_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21568,28 +20961,16 @@ CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_unsecure_test
 
 
 deps_chttp2_fullstack_uds_cancel_after_accept_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21597,28 +20978,16 @@ CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_and_writes_closed_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_and_writes_closed_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_and_writes_closed_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_and_writes_closed_unsecure_test
 
 
 deps_chttp2_fullstack_uds_cancel_after_accept_and_writes_closed_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21626,28 +20995,16 @@ CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_
 
 CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_and_writes_closed_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_and_writes_closed_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_and_writes_closed_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_and_writes_closed_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_cancel_after_accept_and_writes_closed_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21655,28 +21012,16 @@ CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_accept_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_cancel_after_accept_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21684,28 +21029,16 @@ CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_invoke_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_invoke_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_invoke_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_invoke_unsecure_test
 
 
 deps_chttp2_fullstack_uds_cancel_after_invoke_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21713,28 +21046,16 @@ CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_invoke_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_invoke_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_invoke_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_after_invoke_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_cancel_after_invoke_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21742,28 +21063,16 @@ CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_before_invoke_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_before_invoke_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_before_invoke_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_before_invoke_unsecure_test
 
 
 deps_chttp2_fullstack_uds_cancel_before_invoke_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21771,28 +21080,16 @@ CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_before_invoke_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_before_invoke_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_before_invoke_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_before_invoke_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_cancel_before_invoke_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21800,28 +21097,16 @@ CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_in_a_vacuum_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_in_a_vacuum_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_in_a_vacuum_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_in_a_vacuum_unsecure_test
 
 
 deps_chttp2_fullstack_uds_cancel_in_a_vacuum_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21829,28 +21114,16 @@ CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_in_a_vacuum_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_in_a_vacuum_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_in_a_vacuum_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_cancel_in_a_vacuum_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_cancel_in_a_vacuum_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21858,28 +21131,16 @@ CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_census_simple_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_census_simple_request_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_census_simple_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_census_simple_request_unsecure_test
 
 
 deps_chttp2_fullstack_uds_census_simple_request_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21887,28 +21148,16 @@ CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_census_simple_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_census_simple_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_census_simple_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_census_simple_request_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_census_simple_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21916,28 +21165,16 @@ CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_disappearing_server_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_disappearing_server_unsecure_test: $(CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_disappearing_server_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_disappearing_server_unsecure_test
 
 
 deps_chttp2_fullstack_uds_disappearing_server_unsecure_test: $(CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21945,28 +21182,16 @@ CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_disappearing_server_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_disappearing_server_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_disappearing_server_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_disappearing_server_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_disappearing_server_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -21974,28 +21199,16 @@ CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST
 
 CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_inflight_calls_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_inflight_calls_unsecure_test: $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_inflight_calls_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_inflight_calls_unsecure_test
 
 
 deps_chttp2_fullstack_uds_early_server_shutdown_finishes_inflight_calls_unsecure_test: $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22003,28 +21216,16 @@ CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECU
 
 CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22032,28 +21233,16 @@ CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_tags_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_tags_unsecure_test: $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_tags_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_tags_unsecure_test
 
 
 deps_chttp2_fullstack_uds_early_server_shutdown_finishes_tags_unsecure_test: $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22061,28 +21250,16 @@ CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_SR
 
 CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_tags_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_tags_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_tags_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_early_server_shutdown_finishes_tags_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_early_server_shutdown_finishes_tags_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22090,28 +21267,16 @@ CHTTP2_FULLSTACK_UDS_EMPTY_BATCH_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_EMPTY_BATCH_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_EMPTY_BATCH_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_empty_batch_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_empty_batch_unsecure_test: $(CHTTP2_FULLSTACK_UDS_EMPTY_BATCH_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_EMPTY_BATCH_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_empty_batch_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_EMPTY_BATCH_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_empty_batch_unsecure_test
 
 
 deps_chttp2_fullstack_uds_empty_batch_unsecure_test: $(CHTTP2_FULLSTACK_UDS_EMPTY_BATCH_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_EMPTY_BATCH_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22119,28 +21284,16 @@ CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_graceful_server_shutdown_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_graceful_server_shutdown_unsecure_test: $(CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_graceful_server_shutdown_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_graceful_server_shutdown_unsecure_test
 
 
 deps_chttp2_fullstack_uds_graceful_server_shutdown_unsecure_test: $(CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22148,28 +21301,16 @@ CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_graceful_server_shutdown_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_graceful_server_shutdown_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_graceful_server_shutdown_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_graceful_server_shutdown_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_graceful_server_shutdown_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22177,28 +21318,16 @@ CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_invoke_large_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_invoke_large_request_unsecure_test: $(CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_invoke_large_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_invoke_large_request_unsecure_test
 
 
 deps_chttp2_fullstack_uds_invoke_large_request_unsecure_test: $(CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22206,28 +21335,16 @@ CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_invoke_large_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_invoke_large_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_invoke_large_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_invoke_large_request_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_invoke_large_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22235,28 +21352,16 @@ CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_max_concurrent_streams_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_max_concurrent_streams_unsecure_test: $(CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_max_concurrent_streams_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_max_concurrent_streams_unsecure_test
 
 
 deps_chttp2_fullstack_uds_max_concurrent_streams_unsecure_test: $(CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22264,28 +21369,16 @@ CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_max_concurrent_streams_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_max_concurrent_streams_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_max_concurrent_streams_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_max_concurrent_streams_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_max_concurrent_streams_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22293,28 +21386,16 @@ CHTTP2_FULLSTACK_UDS_NO_OP_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_NO_OP_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_NO_OP_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_no_op_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_no_op_unsecure_test: $(CHTTP2_FULLSTACK_UDS_NO_OP_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_NO_OP_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_no_op_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_NO_OP_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_no_op_unsecure_test
 
 
 deps_chttp2_fullstack_uds_no_op_unsecure_test: $(CHTTP2_FULLSTACK_UDS_NO_OP_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_NO_OP_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22322,28 +21403,16 @@ CHTTP2_FULLSTACK_UDS_NO_OP_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_NO_OP_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_NO_OP_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_no_op_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_no_op_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_NO_OP_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_NO_OP_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_no_op_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_NO_OP_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_no_op_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_no_op_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_NO_OP_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_NO_OP_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22351,28 +21420,16 @@ CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_ping_pong_streaming_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_ping_pong_streaming_unsecure_test: $(CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_ping_pong_streaming_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_ping_pong_streaming_unsecure_test
 
 
 deps_chttp2_fullstack_uds_ping_pong_streaming_unsecure_test: $(CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22380,28 +21437,16 @@ CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_ping_pong_streaming_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_ping_pong_streaming_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_ping_pong_streaming_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_ping_pong_streaming_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_ping_pong_streaming_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22409,28 +21454,16 @@ CHTTP2_FULLSTACK_UDS_REGISTERED_CALL_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_REGISTERED_CALL_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_REGISTERED_CALL_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_registered_call_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_registered_call_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REGISTERED_CALL_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_registered_call.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REGISTERED_CALL_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_registered_call.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_registered_call_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REGISTERED_CALL_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_registered_call.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_registered_call_unsecure_test
 
 
 deps_chttp2_fullstack_uds_registered_call_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REGISTERED_CALL_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_REGISTERED_CALL_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22438,28 +21471,16 @@ CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_
 
 CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_binary_metadata_and_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_binary_metadata_and_payload_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_binary_metadata_and_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_binary_metadata_and_payload_unsecure_test
 
 
 deps_chttp2_fullstack_uds_request_response_with_binary_metadata_and_payload_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22467,28 +21488,16 @@ CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UN
 
 CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_binary_metadata_and_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_binary_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_binary_metadata_and_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_binary_metadata_and_payload_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_request_response_with_binary_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22496,28 +21505,16 @@ CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_SR
 
 CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_metadata_and_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_metadata_and_payload_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_metadata_and_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_metadata_and_payload_unsecure_test
 
 
 deps_chttp2_fullstack_uds_request_response_with_metadata_and_payload_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22525,28 +21522,16 @@ CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_
 
 CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_metadata_and_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_metadata_and_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_metadata_and_payload_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_request_response_with_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22554,28 +21539,16 @@ CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_payload_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_payload_unsecure_test
 
 
 deps_chttp2_fullstack_uds_request_response_with_payload_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22583,28 +21556,16 @@ CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_payload_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_request_response_with_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22612,28 +21573,16 @@ CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_
 
 CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22641,28 +21590,16 @@ CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_large_metadata_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_large_metadata_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_large_metadata_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_large_metadata_unsecure_test
 
 
 deps_chttp2_fullstack_uds_request_with_large_metadata_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22670,28 +21607,16 @@ CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_large_metadata_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_large_metadata_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_large_metadata_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_large_metadata_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_request_with_large_metadata_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22699,28 +21624,16 @@ CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_payload_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_payload_unsecure_test
 
 
 deps_chttp2_fullstack_uds_request_with_payload_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22728,28 +21641,16 @@ CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_request_with_payload_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_request_with_payload_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22757,28 +21658,16 @@ CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_delayed_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_delayed_request_unsecure_test: $(CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_delayed_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_delayed_request_unsecure_test
 
 
 deps_chttp2_fullstack_uds_simple_delayed_request_unsecure_test: $(CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22786,28 +21675,16 @@ CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_delayed_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_delayed_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_delayed_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_delayed_request_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_simple_delayed_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22815,28 +21692,16 @@ CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_request_unsecure_test: $(CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_request_unsecure_test
 
 
 deps_chttp2_fullstack_uds_simple_request_unsecure_test: $(CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22844,28 +21709,16 @@ CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_simple_request_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_simple_request_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22873,28 +21726,16 @@ CHTTP2_FULLSTACK_UDS_THREAD_STRESS_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_THREAD_STRESS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_THREAD_STRESS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_thread_stress_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_thread_stress_unsecure_test: $(CHTTP2_FULLSTACK_UDS_THREAD_STRESS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_THREAD_STRESS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_thread_stress_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_THREAD_STRESS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_thread_stress_unsecure_test
 
 
 deps_chttp2_fullstack_uds_thread_stress_unsecure_test: $(CHTTP2_FULLSTACK_UDS_THREAD_STRESS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_THREAD_STRESS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22902,28 +21743,16 @@ CHTTP2_FULLSTACK_UDS_THREAD_STRESS_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_THREAD_STRESS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_thread_stress_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_thread_stress_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_thread_stress_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_thread_stress_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_thread_stress_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22931,28 +21760,16 @@ CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_SRC = \
 
 CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_writes_done_hangs_with_pending_read_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_writes_done_hangs_with_pending_read_unsecure_test: $(CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_writes_done_hangs_with_pending_read_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_writes_done_hangs_with_pending_read_unsecure_test
 
 
 deps_chttp2_fullstack_uds_writes_done_hangs_with_pending_read_unsecure_test: $(CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22960,28 +21777,16 @@ CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_SR
 
 CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_writes_done_hangs_with_pending_read_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_writes_done_hangs_with_pending_read_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_writes_done_hangs_with_pending_read_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_writes_done_hangs_with_pending_read_legacy_unsecure_test
 
 
 deps_chttp2_fullstack_uds_writes_done_hangs_with_pending_read_legacy_unsecure_test: $(CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_FULLSTACK_UDS_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -22989,28 +21794,16 @@ CHTTP2_SOCKET_PAIR_BAD_HOSTNAME_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_BAD_HOSTNAME_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_BAD_HOSTNAME_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_bad_hostname_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_bad_hostname_unsecure_test: $(CHTTP2_SOCKET_PAIR_BAD_HOSTNAME_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_bad_hostname.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_BAD_HOSTNAME_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_bad_hostname.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_bad_hostname_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_BAD_HOSTNAME_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_bad_hostname.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_bad_hostname_unsecure_test
 
 
 deps_chttp2_socket_pair_bad_hostname_unsecure_test: $(CHTTP2_SOCKET_PAIR_BAD_HOSTNAME_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_BAD_HOSTNAME_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23018,28 +21811,16 @@ CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_unsecure_test
 
 
 deps_chttp2_socket_pair_cancel_after_accept_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23047,28 +21828,16 @@ CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_unsecure_test
 
 
 deps_chttp2_socket_pair_cancel_after_accept_and_writes_closed_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23076,28 +21845,16 @@ CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_SR
 
 CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_cancel_after_accept_and_writes_closed_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23105,28 +21862,16 @@ CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_cancel_after_accept_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23134,28 +21879,16 @@ CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_invoke_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_invoke_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_invoke_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_invoke_unsecure_test
 
 
 deps_chttp2_socket_pair_cancel_after_invoke_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23163,28 +21896,16 @@ CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_invoke_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_invoke_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_invoke_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_invoke_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_cancel_after_invoke_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23192,28 +21913,16 @@ CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_before_invoke_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_before_invoke_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_before_invoke_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_before_invoke_unsecure_test
 
 
 deps_chttp2_socket_pair_cancel_before_invoke_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23221,28 +21930,16 @@ CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_before_invoke_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_before_invoke_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_before_invoke_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_before_invoke_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_cancel_before_invoke_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23250,28 +21947,16 @@ CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_in_a_vacuum_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_in_a_vacuum_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_in_a_vacuum_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_in_a_vacuum_unsecure_test
 
 
 deps_chttp2_socket_pair_cancel_in_a_vacuum_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23279,28 +21964,16 @@ CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_in_a_vacuum_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_in_a_vacuum_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_in_a_vacuum_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_in_a_vacuum_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_cancel_in_a_vacuum_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23308,28 +21981,16 @@ CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_census_simple_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_census_simple_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_census_simple_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_census_simple_request_unsecure_test
 
 
 deps_chttp2_socket_pair_census_simple_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23337,28 +21998,16 @@ CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_census_simple_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_census_simple_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_census_simple_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_census_simple_request_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_census_simple_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23366,28 +22015,16 @@ CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_disappearing_server_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_disappearing_server_unsecure_test: $(CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_disappearing_server_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_disappearing_server_unsecure_test
 
 
 deps_chttp2_socket_pair_disappearing_server_unsecure_test: $(CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23395,28 +22032,16 @@ CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_disappearing_server_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_disappearing_server_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_disappearing_server_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_disappearing_server_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_disappearing_server_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23424,28 +22049,16 @@ CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_S
 
 CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_unsecure_test: $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_unsecure_test
 
 
 deps_chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_unsecure_test: $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23453,28 +22066,16 @@ CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE
 
 CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23482,28 +22083,16 @@ CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_unsecure_test: $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_unsecure_test
 
 
 deps_chttp2_socket_pair_early_server_shutdown_finishes_tags_unsecure_test: $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23511,28 +22100,16 @@ CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_SRC 
 
 CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_early_server_shutdown_finishes_tags_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_early_server_shutdown_finishes_tags_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23540,28 +22117,16 @@ CHTTP2_SOCKET_PAIR_EMPTY_BATCH_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_EMPTY_BATCH_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_EMPTY_BATCH_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_empty_batch_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_empty_batch_unsecure_test: $(CHTTP2_SOCKET_PAIR_EMPTY_BATCH_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_EMPTY_BATCH_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_empty_batch_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_EMPTY_BATCH_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_empty_batch_unsecure_test
 
 
 deps_chttp2_socket_pair_empty_batch_unsecure_test: $(CHTTP2_SOCKET_PAIR_EMPTY_BATCH_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_EMPTY_BATCH_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23569,28 +22134,16 @@ CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_unsecure_test: $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_unsecure_test
 
 
 deps_chttp2_socket_pair_graceful_server_shutdown_unsecure_test: $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23598,28 +22151,16 @@ CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_graceful_server_shutdown_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23627,28 +22168,16 @@ CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_invoke_large_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_invoke_large_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_invoke_large_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_invoke_large_request_unsecure_test
 
 
 deps_chttp2_socket_pair_invoke_large_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23656,28 +22185,16 @@ CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_invoke_large_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_invoke_large_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_invoke_large_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_invoke_large_request_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_invoke_large_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23685,28 +22202,16 @@ CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_unsecure_test: $(CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_unsecure_test
 
 
 deps_chttp2_socket_pair_max_concurrent_streams_unsecure_test: $(CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23714,28 +22219,16 @@ CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_max_concurrent_streams_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23743,28 +22236,16 @@ CHTTP2_SOCKET_PAIR_NO_OP_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_NO_OP_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_NO_OP_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_no_op_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_no_op_unsecure_test: $(CHTTP2_SOCKET_PAIR_NO_OP_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_NO_OP_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_no_op_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_NO_OP_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_no_op_unsecure_test
 
 
 deps_chttp2_socket_pair_no_op_unsecure_test: $(CHTTP2_SOCKET_PAIR_NO_OP_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_NO_OP_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23772,28 +22253,16 @@ CHTTP2_SOCKET_PAIR_NO_OP_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_NO_OP_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_NO_OP_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_no_op_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_no_op_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_NO_OP_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_NO_OP_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_no_op_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_NO_OP_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_no_op_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_no_op_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_NO_OP_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_NO_OP_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23801,28 +22270,16 @@ CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_ping_pong_streaming_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_ping_pong_streaming_unsecure_test: $(CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_ping_pong_streaming_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_ping_pong_streaming_unsecure_test
 
 
 deps_chttp2_socket_pair_ping_pong_streaming_unsecure_test: $(CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23830,28 +22287,16 @@ CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_ping_pong_streaming_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_ping_pong_streaming_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_ping_pong_streaming_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_ping_pong_streaming_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_ping_pong_streaming_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23859,28 +22304,16 @@ CHTTP2_SOCKET_PAIR_REGISTERED_CALL_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_REGISTERED_CALL_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REGISTERED_CALL_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_registered_call_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_registered_call_unsecure_test: $(CHTTP2_SOCKET_PAIR_REGISTERED_CALL_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_registered_call.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REGISTERED_CALL_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_registered_call.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_registered_call_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REGISTERED_CALL_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_registered_call.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_registered_call_unsecure_test
 
 
 deps_chttp2_socket_pair_registered_call_unsecure_test: $(CHTTP2_SOCKET_PAIR_REGISTERED_CALL_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_REGISTERED_CALL_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23888,28 +22321,16 @@ CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TE
 
 CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_binary_metadata_and_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_binary_metadata_and_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_binary_metadata_and_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_binary_metadata_and_payload_unsecure_test
 
 
 deps_chttp2_socket_pair_request_response_with_binary_metadata_and_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23917,28 +22338,16 @@ CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSE
 
 CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_binary_metadata_and_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_binary_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_binary_metadata_and_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_binary_metadata_and_payload_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_request_response_with_binary_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23946,28 +22355,16 @@ CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_SRC 
 
 CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_metadata_and_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_metadata_and_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_metadata_and_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_metadata_and_payload_unsecure_test
 
 
 deps_chttp2_socket_pair_request_response_with_metadata_and_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -23975,28 +22372,16 @@ CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TE
 
 CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_metadata_and_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_metadata_and_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_metadata_and_payload_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_request_response_with_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24004,28 +22389,16 @@ CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_payload_unsecure_test
 
 
 deps_chttp2_socket_pair_request_response_with_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24033,28 +22406,16 @@ CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_payload_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_request_response_with_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24062,28 +22423,16 @@ CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UN
 
 CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24091,28 +22440,16 @@ CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_large_metadata_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_large_metadata_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_large_metadata_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_large_metadata_unsecure_test
 
 
 deps_chttp2_socket_pair_request_with_large_metadata_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24120,28 +22457,16 @@ CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_large_metadata_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_large_metadata_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_large_metadata_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_large_metadata_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_request_with_large_metadata_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24149,28 +22474,16 @@ CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_payload_unsecure_test
 
 
 deps_chttp2_socket_pair_request_with_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24178,28 +22491,16 @@ CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_request_with_payload_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_request_with_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24207,28 +22508,16 @@ CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_delayed_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_delayed_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_delayed_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_delayed_request_unsecure_test
 
 
 deps_chttp2_socket_pair_simple_delayed_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24236,28 +22525,16 @@ CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_delayed_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_delayed_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_delayed_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_delayed_request_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_simple_delayed_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24265,28 +22542,16 @@ CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_request_unsecure_test
 
 
 deps_chttp2_socket_pair_simple_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24294,28 +22559,16 @@ CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_request_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_simple_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24323,28 +22576,16 @@ CHTTP2_SOCKET_PAIR_THREAD_STRESS_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_THREAD_STRESS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_THREAD_STRESS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_thread_stress_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_thread_stress_unsecure_test: $(CHTTP2_SOCKET_PAIR_THREAD_STRESS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_THREAD_STRESS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_thread_stress_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_THREAD_STRESS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_thread_stress_unsecure_test
 
 
 deps_chttp2_socket_pair_thread_stress_unsecure_test: $(CHTTP2_SOCKET_PAIR_THREAD_STRESS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_THREAD_STRESS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24352,28 +22593,16 @@ CHTTP2_SOCKET_PAIR_THREAD_STRESS_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_THREAD_STRESS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_thread_stress_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_thread_stress_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_thread_stress_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_thread_stress_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_thread_stress_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24381,28 +22610,16 @@ CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_writes_done_hangs_with_pending_read_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_writes_done_hangs_with_pending_read_unsecure_test: $(CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_writes_done_hangs_with_pending_read_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_writes_done_hangs_with_pending_read_unsecure_test
 
 
 deps_chttp2_socket_pair_writes_done_hangs_with_pending_read_unsecure_test: $(CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24410,28 +22627,16 @@ CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_SRC 
 
 CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_writes_done_hangs_with_pending_read_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_writes_done_hangs_with_pending_read_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_writes_done_hangs_with_pending_read_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_writes_done_hangs_with_pending_read_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_writes_done_hangs_with_pending_read_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24439,28 +22644,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_BAD_HOSTNAME_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_BAD_HOSTNAME_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_BAD_HOSTNAME_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_bad_hostname_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_bad_hostname_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_BAD_HOSTNAME_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_bad_hostname.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_BAD_HOSTNAME_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_bad_hostname.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_bad_hostname_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_BAD_HOSTNAME_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_bad_hostname.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_bad_hostname_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_bad_hostname_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_BAD_HOSTNAME_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_BAD_HOSTNAME_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24468,28 +22661,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24497,28 +22678,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSE
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24526,28 +22695,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGA
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24555,28 +22712,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_S
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_ACCEPT_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24584,28 +22729,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24613,28 +22746,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_S
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_AFTER_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24642,28 +22763,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24671,28 +22780,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_BEFORE_INVOKE_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24700,28 +22797,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24729,28 +22814,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_SR
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CANCEL_IN_A_VACUUM_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24758,28 +22831,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_SRC = 
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_census_simple_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_census_simple_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_census_simple_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_census_simple_request_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_census_simple_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24787,28 +22848,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_census_simple_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_census_simple_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_census_simple_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_census_simple_request_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_census_simple_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_CENSUS_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24816,28 +22865,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_disappearing_server_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24845,28 +22882,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_S
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_disappearing_server_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_disappearing_server_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_DISAPPEARING_SERVER_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24874,28 +22899,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CA
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24903,28 +22916,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CA
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24932,28 +22933,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECU
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24961,28 +22950,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -24990,28 +22967,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EMPTY_BATCH_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EMPTY_BATCH_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EMPTY_BATCH_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_empty_batch_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_empty_batch_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EMPTY_BATCH_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EMPTY_BATCH_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_empty_batch_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EMPTY_BATCH_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_empty_batch_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_empty_batch_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EMPTY_BATCH_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_EMPTY_BATCH_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25019,28 +22984,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_SRC
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25048,28 +23001,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_T
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_GRACEFUL_SERVER_SHUTDOWN_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25077,28 +23018,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25106,28 +23035,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_INVOKE_LARGE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25135,28 +23052,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_SRC =
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25164,28 +23069,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TES
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_MAX_CONCURRENT_STREAMS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25193,28 +23086,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_no_op_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25222,28 +23103,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_no_op_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_no_op_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_NO_OP_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25251,28 +23120,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25280,28 +23137,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_S
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_PING_PONG_STREAMING_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25309,28 +23154,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REGISTERED_CALL_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REGISTERED_CALL_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REGISTERED_CALL_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_registered_call_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_registered_call_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REGISTERED_CALL_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_registered_call.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REGISTERED_CALL_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_registered_call.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_registered_call_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REGISTERED_CALL_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_registered_call.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_registered_call_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_registered_call_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REGISTERED_CALL_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REGISTERED_CALL_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25338,28 +23171,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25367,28 +23188,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25396,28 +23205,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25425,28 +23222,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25454,28 +23239,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TES
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25483,28 +23256,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSEC
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25512,28 +23273,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AN
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_request_response_with_trailing_metadata_and_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25541,28 +23290,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25570,28 +23307,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECUR
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_LARGE_METADATA_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25599,28 +23324,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_payload_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_payload_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_payload_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_request_with_payload_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25628,28 +23341,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_payload_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_payload_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_request_with_payload_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_request_with_payload_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_REQUEST_WITH_PAYLOAD_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25657,28 +23358,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_SRC =
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25686,28 +23375,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TES
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_DELAYED_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25715,28 +23392,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_simple_request_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25744,28 +23409,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC = 
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_simple_request_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SIMPLE_REQUEST_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25773,28 +23426,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_thread_stress_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_thread_stress_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_thread_stress_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_thread_stress_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_thread_stress_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25802,28 +23443,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_LEGACY_UNSECURE_TEST_SRC = \
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_thread_stress_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_thread_stress_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_thread_stress_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_thread_stress_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_thread_stress_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_thread_stress_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_THREAD_STRESS_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25831,28 +23460,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECU
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 
@@ -25860,28 +23477,16 @@ CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY
 
 CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_SRC))))
 
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL with ALPN.
-
-$(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_legacy_unsecure_test: openssl_dep_error
-
-else
-
 $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_legacy_unsecure_test
-
-endif
+	$(Q) $(LD) $(LDFLAGS) $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_test_writes_done_hangs_with_pending_read_legacy.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_legacy_unsecure_test
 
 
 deps_chttp2_socket_pair_one_byte_at_a_time_writes_done_hangs_with_pending_read_legacy_unsecure_test: $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
 
-ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_UNSECURE_TEST_OBJS:.o=.dep)
-endif
 endif
 
 

@@ -31,23 +31,13 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_CHANNEL_H
-#define GRPC_INTERNAL_CORE_SURFACE_CHANNEL_H
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
+#define GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
 
 #include "src/core/channel/channel_stack.h"
 
-grpc_channel *grpc_channel_create_from_filters(
-    const grpc_channel_filter **filters, size_t count,
-    const grpc_channel_args *args, grpc_mdctx *mdctx, int is_client);
+/* Processes metadata that is common to both client and server for HTTP2
+   transports. */
+extern const grpc_channel_filter grpc_http_filter;
 
-grpc_channel_stack *grpc_channel_get_channel_stack(grpc_channel *channel);
-grpc_mdctx *grpc_channel_get_metadata_context(grpc_channel *channel);
-grpc_mdstr *grpc_channel_get_status_string(grpc_channel *channel);
-grpc_mdstr *grpc_channel_get_message_string(grpc_channel *channel);
-
-void grpc_client_channel_closed(grpc_channel_element *elem);
-
-void grpc_channel_internal_ref(grpc_channel *channel);
-void grpc_channel_internal_unref(grpc_channel *channel);
-
-#endif  /* GRPC_INTERNAL_CORE_SURFACE_CHANNEL_H */
+#endif  /* GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H */
