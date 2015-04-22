@@ -50,7 +50,8 @@ static void ignore_unused(void *ignored) {}
      - a network event (or similar) from below, to receive something
    op contains type and call direction information, in addition to the data
    that is being sent or received. */
-static void noop_start_transport_op(grpc_call_element *elem, grpc_transport_op *op) {
+static void call_op(grpc_call_element *elem, grpc_call_element *from_elem,
+                    grpc_call_op *op) {
   /* grab pointers to our data from the call element */
   call_data *calld = elem->call_data;
   channel_data *channeld = elem->channel_data;
@@ -58,8 +59,12 @@ static void noop_start_transport_op(grpc_call_element *elem, grpc_transport_op *
   ignore_unused(calld);
   ignore_unused(channeld);
 
-  /* pass control down the stack */
-  grpc_call_next_op(elem, op);
+  switch (op->type) {
+    default:
+      /* pass control up or down the stack depending on op->dir */
+      grpc_call_next_op(elem, op);
+      break;
+  }
 }
 
 /* Called on special channel events, such as disconnection or new incoming
@@ -126,6 +131,6 @@ static void destroy_channel_elem(grpc_channel_element *elem) {
 }
 
 const grpc_channel_filter grpc_no_op_filter = {
-    noop_start_transport_op,           channel_op,           sizeof(call_data),
+    call_op,           channel_op,           sizeof(call_data),
     init_call_elem,    destroy_call_elem,    sizeof(channel_data),
     init_channel_elem, destroy_channel_elem, "no-op"};
