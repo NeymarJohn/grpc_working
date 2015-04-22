@@ -54,7 +54,7 @@
 
   id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[NSData data]];
 
-  GRPCCall *call = [[GRPCCall alloc] initWithHost:@"grpc-test.sandbox.google.com"
+  GRPCCall *call = [[GRPCCall alloc] initWithHost:@"grpc-test.sandbox.google.com:443"
                                            method:method
                                    requestsWriter:requestsWriter];
 

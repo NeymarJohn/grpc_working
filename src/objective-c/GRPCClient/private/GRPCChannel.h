@@ -45,7 +45,6 @@ struct grpc_channel;
 // Convenience constructor to allow for reuse of connections.
 + (instancetype)channelToHost:(NSString *)host;
 
-- (instancetype)initWithHost:(NSString *)host NS_DESIGNATED_INITIALIZER;
-
-- (instancetype)initWithChannel:(struct grpc_channel *)unmanagedChannel NS_DESIGNATED_INITIALIZER;
+// Designated initializer
+- (instancetype)initWithHost:(NSString *)host;
 @end
