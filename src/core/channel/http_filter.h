@@ -1,4 +1,3 @@
-<?php
 /*
  *
  * Copyright 2015, Google Inc.
@@ -31,11 +30,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-require 'AbstractGeneratedCodeTest.php';
 
-class GeneratedCodeTest extends AbstractGeneratedCodeTest {
-  public static function setUpBeforeClass() {
-    self::$client = new math\MathClient(new Grpc\BaseStub(
-        getenv('GRPC_TEST_HOST'), []));
-  }
-}
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
+#define GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
+
+#include "src/core/channel/channel_stack.h"
+
+/* Processes metadata that is common to both client and server for HTTP2
+   transports. */
+extern const grpc_channel_filter grpc_http_filter;
+
+#endif  /* GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H */
