@@ -31,45 +31,76 @@
  *
  */
 
+#ifndef GRPC_INTERNAL_CPP_UTIL_TIME_H
+#define GRPC_INTERNAL_CPP_UTIL_TIME_H
+
 #include <grpc++/config.h>
-
-#ifndef GRPC_CXX0X_NO_CHRONO
-
-#include <grpc/support/time.h>
-#include <grpc++/time.h>
-
-using std::chrono::duration_cast;
-using std::chrono::nanoseconds;
-using std::chrono::seconds;
-using std::chrono::system_clock;
 
 namespace grpc {
 
-void Timepoint2Timespec(const system_clock::time_point& from,
-                        gpr_timespec* to) {
-  system_clock::duration deadline = from.time_since_epoch();
-  seconds secs = duration_cast<seconds>(deadline);
-  if (from == system_clock::time_point::max() ||
-      secs.count() >= gpr_inf_future.tv_sec || secs.count() < 0) {
-    *to = gpr_inf_future;
-    return;
-  }
-  nanoseconds nsecs = duration_cast<nanoseconds>(deadline - secs);
-  to->tv_sec = secs.count();
-  to->tv_nsec = nsecs.count();
-}
+/* If you are trying to use CompletionQueue::AsyncNext with a time class that
+   isn't either gpr_timespec or std::chrono::system_clock::time_point, you
+   will most likely be looking at this comment as your compiler will have
+   fired an error below. In order to fix this issue, you have two potential
+   solutions:
 
-system_clock::time_point Timespec2Timepoint(gpr_timespec t) {
-  if (gpr_time_cmp(t, gpr_inf_future) == 0) {
-    return system_clock::time_point::max();
+     1. Use gpr_timespec or std::chrono::system_clock::time_point instead
+     2. Specialize the TimePoint class with whichever time class that you
+        want to use here. See below for two examples of how to do this.
+ */
+
+template <typename T>
+class TimePoint {
+ public:
+  TimePoint(const T& time) {
+    you_need_a_specialization_of_TimePoint();
   }
-  system_clock::time_point tp;
-  tp += duration_cast<system_clock::time_point::duration>(seconds(t.tv_sec));
-  tp +=
-      duration_cast<system_clock::time_point::duration>(nanoseconds(t.tv_nsec));
-  return tp;
-}
+  gpr_timespec raw_time() {
+    gpr_timespec t;
+    return t;
+  }
+ private:
+  void you_need_a_specialization_of_TimePoint();
+};
+
+template<>
+class TimePoint<gpr_timespec> {
+ public:
+  TimePoint(const gpr_timespec& time) : time_(time) { }
+  gpr_timespec raw_time() { return time_; }
+ private:
+  gpr_timespec time_;
+};
+
+}  // namespace grpc
+
+#ifndef GRPC_CXX0X_NO_CHRONO
+
+#include <chrono>
+
+#include <grpc/support/time.h>
+
+namespace grpc {
+
+// from and to should be absolute time.
+void Timepoint2Timespec(const std::chrono::system_clock::time_point& from,
+                        gpr_timespec* to);
+
+std::chrono::system_clock::time_point Timespec2Timepoint(gpr_timespec t);
+
+template <>
+class TimePoint<std::chrono::system_clock::time_point> {
+ public:
+  TimePoint(const std::chrono::system_clock::time_point& time) {
+	Timepoint2Timespec(time, &time_);
+  }
+  gpr_timespec raw_time() const { return time_; }
+ private:
+  gpr_timespec time_;
+};
 
 }  // namespace grpc
 
 #endif  // !GRPC_CXX0X_NO_CHRONO
+
+#endif  // GRPC_INTERNAL_CPP_UTIL_TIME_H

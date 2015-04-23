@@ -52,15 +52,18 @@ void grpc_transport_destroy(grpc_transport *transport) {
 }
 
 int grpc_transport_init_stream(grpc_transport *transport, grpc_stream *stream,
-                               const void *server_data,
-                               grpc_transport_op *initial_op) {
-  return transport->vtable->init_stream(transport, stream, server_data,
-                                        initial_op);
+                               const void *server_data) {
+  return transport->vtable->init_stream(transport, stream, server_data);
 }
 
-void grpc_transport_perform_op(grpc_transport *transport, grpc_stream *stream,
-                               grpc_transport_op *op) {
-  transport->vtable->perform_op(transport, stream, op);
+void grpc_transport_send_batch(grpc_transport *transport, grpc_stream *stream,
+                               grpc_stream_op *ops, size_t nops, int is_last) {
+  transport->vtable->send_batch(transport, stream, ops, nops, is_last);
+}
+
+void grpc_transport_set_allow_window_updates(grpc_transport *transport,
+                                             grpc_stream *stream, int allow) {
+  transport->vtable->set_allow_window_updates(transport, stream, allow);
 }
 
 void grpc_transport_add_to_pollset(grpc_transport *transport,
@@ -71,6 +74,11 @@ void grpc_transport_add_to_pollset(grpc_transport *transport,
 void grpc_transport_destroy_stream(grpc_transport *transport,
                                    grpc_stream *stream) {
   transport->vtable->destroy_stream(transport, stream);
+}
+
+void grpc_transport_abort_stream(grpc_transport *transport, grpc_stream *stream,
+                                 grpc_status_code status) {
+  transport->vtable->abort_stream(transport, stream, status);
 }
 
 void grpc_transport_ping(grpc_transport *transport, void (*cb)(void *user_data),
@@ -84,13 +92,4 @@ void grpc_transport_setup_cancel(grpc_transport_setup *setup) {
 
 void grpc_transport_setup_initiate(grpc_transport_setup *setup) {
   setup->vtable->initiate(setup);
-}
-
-void grpc_transport_op_finish_with_failure(grpc_transport_op *op) {
-  if (op->send_ops) {
-    op->on_done_send(op->send_user_data, 0);
-  }
-  if (op->recv_ops) {
-    op->on_done_recv(op->recv_user_data, 0);
-  }
 }
