@@ -31,24 +31,38 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H
-#define GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H
+#ifndef GRPC_TEST_CORE_TRANSPORT_TRANSPORT_END2END_TESTS_H
+#define GRPC_TEST_CORE_TRANSPORT_TRANSPORT_END2END_TESTS_H
 
-typedef struct {
-  const char *name;
-  grpc_call_error (*initiate_cancel)(grpc_call *call);
-  grpc_status_code expect_status;
-  const char *expect_details;
-} cancellation_mode;
+#include "src/core/transport/transport.h"
 
-static grpc_call_error wait_for_deadline(grpc_call *call) {
-  return GRPC_CALL_OK;
-}
+/* Defines a suite of tests that all GRPC transports should be able to pass */
 
-static const cancellation_mode cancellation_modes[] = {
-    {"cancel", grpc_call_cancel, GRPC_STATUS_CANCELLED, ""},
-    {"deadline", wait_for_deadline, GRPC_STATUS_DEADLINE_EXCEEDED,
-     "Deadline Exceeded"},
-};
+/* A test configuration has a name and a factory method */
+typedef struct grpc_transport_test_config {
+  /* The name of this configuration */
+  char *name;
+  /* Create a transport
+     Returns 0 on success
 
-#endif /* GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H */
+     Arguments:
+       OUT: client           - the created client half of the transport
+       IN:  client_callbacks - callback structure to be used by the client
+                               transport
+       IN:  client_user_data - user data pointer to be passed into each client
+                               callback
+       OUT: server           - the created server half of the transport
+       IN:  server_callbacks - callback structure to be used by the server
+                               transport
+       IN:  server_user_data - user data pointer to be passed into each
+                               server */
+  int (*create_transport)(grpc_transport_setup_callback client_setup,
+                          void *client_arg,
+                          grpc_transport_setup_callback server_setup,
+                          void *server_arg, grpc_mdctx *mdctx);
+} grpc_transport_test_config;
+
+/* Run the test suite on one configuration */
+void grpc_transport_end2end_tests(grpc_transport_test_config *config);
+
+#endif  /* GRPC_TEST_CORE_TRANSPORT_TRANSPORT_END2END_TESTS_H */
