@@ -3184,6 +3184,7 @@ LIBGRPC_SRC = \
     src/core/tsi/fake_transport_security.c \
     src/core/tsi/ssl_transport_security.c \
     src/core/tsi/transport_security.c \
+    src/core/channel/call_op_string.c \
     src/core/channel/census_filter.c \
     src/core/channel/channel_args.c \
     src/core/channel/channel_stack.c \
@@ -3192,6 +3193,7 @@ LIBGRPC_SRC = \
     src/core/channel/client_setup.c \
     src/core/channel/connected_channel.c \
     src/core/channel/http_client_filter.c \
+    src/core/channel/http_filter.c \
     src/core/channel/http_server_filter.c \
     src/core/channel/noop_filter.c \
     src/core/compression/algorithm.c \
@@ -3279,7 +3281,6 @@ LIBGRPC_SRC = \
     src/core/transport/metadata.c \
     src/core/transport/stream_op.c \
     src/core/transport/transport.c \
-    src/core/transport/transport_op_string.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/grpc_security.h \
@@ -3370,6 +3371,7 @@ $(OBJDIR)/$(CONFIG)/src/core/surface/secure_channel_create.o:
 $(OBJDIR)/$(CONFIG)/src/core/tsi/fake_transport_security.o: 
 $(OBJDIR)/$(CONFIG)/src/core/tsi/ssl_transport_security.o: 
 $(OBJDIR)/$(CONFIG)/src/core/tsi/transport_security.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/call_op_string.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/census_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/channel_args.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/channel_stack.o: 
@@ -3378,6 +3380,7 @@ $(OBJDIR)/$(CONFIG)/src/core/channel/client_channel.o:
 $(OBJDIR)/$(CONFIG)/src/core/channel/client_setup.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/connected_channel.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/http_client_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/http_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/http_server_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/noop_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/compression/algorithm.o: 
@@ -3465,7 +3468,6 @@ $(OBJDIR)/$(CONFIG)/src/core/transport/chttp2_transport.o:
 $(OBJDIR)/$(CONFIG)/src/core/transport/metadata.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/stream_op.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/transport.o: 
-$(OBJDIR)/$(CONFIG)/src/core/transport/transport_op_string.o: 
 
 
 LIBGRPC_TEST_UTIL_SRC = \
@@ -3570,6 +3572,7 @@ $(OBJDIR)/$(CONFIG)/test/core/util/slice_splitter.o:
 
 LIBGRPC_UNSECURE_SRC = \
     src/core/surface/init_unsecure.c \
+    src/core/channel/call_op_string.c \
     src/core/channel/census_filter.c \
     src/core/channel/channel_args.c \
     src/core/channel/channel_stack.c \
@@ -3578,6 +3581,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/channel/client_setup.c \
     src/core/channel/connected_channel.c \
     src/core/channel/http_client_filter.c \
+    src/core/channel/http_filter.c \
     src/core/channel/http_server_filter.c \
     src/core/channel/noop_filter.c \
     src/core/compression/algorithm.c \
@@ -3665,7 +3669,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/transport/metadata.c \
     src/core/transport/stream_op.c \
     src/core/transport/transport.c \
-    src/core/transport/transport_op_string.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer.h \
@@ -3710,6 +3713,7 @@ ifneq ($(NO_DEPS),true)
 endif
 
 $(OBJDIR)/$(CONFIG)/src/core/surface/init_unsecure.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/call_op_string.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/census_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/channel_args.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/channel_stack.o: 
@@ -3718,6 +3722,7 @@ $(OBJDIR)/$(CONFIG)/src/core/channel/client_channel.o:
 $(OBJDIR)/$(CONFIG)/src/core/channel/client_setup.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/connected_channel.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/http_client_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/http_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/http_server_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/noop_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/compression/algorithm.o: 
@@ -3805,7 +3810,6 @@ $(OBJDIR)/$(CONFIG)/src/core/transport/chttp2_transport.o:
 $(OBJDIR)/$(CONFIG)/src/core/transport/metadata.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/stream_op.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/transport.o: 
-$(OBJDIR)/$(CONFIG)/src/core/transport/transport_op_string.o: 
 
 
 LIBGRPC++_SRC = \

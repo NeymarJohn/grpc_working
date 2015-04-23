@@ -31,44 +31,13 @@
  *
  */
 
-#include <sys/signal.h>
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
+#define GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
 
-#include <chrono>
-#include <thread>
+#include "src/core/channel/channel_stack.h"
 
-#include <grpc/grpc.h>
-#include <gflags/gflags.h>
+/* Processes metadata that is common to both client and server for HTTP2
+   transports. */
+extern const grpc_channel_filter grpc_http_filter;
 
-#include "qps_worker.h"
-#include "test/cpp/util/test_config.h"
-
-DEFINE_int32(driver_port, 0, "Driver server port.");
-DEFINE_int32(server_port, 0, "Spawned server port.");
-
-static bool got_sigint = false;
-
-static void sigint_handler(int x) {got_sigint = true;}
-
-namespace grpc {
-namespace testing {
-
-static void RunServer() {
-  QpsWorker worker(FLAGS_driver_port, FLAGS_server_port);
-
-  while (!got_sigint) {
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-  }
-}
-
-}  // namespace testing
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  grpc::testing::InitTest(&argc, &argv, true);
-
-  signal(SIGINT, sigint_handler);
-
-  grpc::testing::RunServer();
-  
-  return 0;
-}
+#endif  /* GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H */
