@@ -31,13 +31,22 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
-#define GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
+#import "GRPCSecureChannel.h"
 
-#include "src/core/channel/channel_stack.h"
+#import <grpc/grpc_security.h>
 
-/* Processes metadata that is common to both client and server for HTTP2
-   transports. */
-extern const grpc_channel_filter grpc_http_filter;
+@implementation GRPCSecureChannel
 
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H */
+- (instancetype)initWithHost:(NSString *)host {
+  // TODO(jcanizales): Load certs only once.
+  NSURL *certsURL = [[NSBundle mainBundle] URLForResource:@"gRPC.bundle/roots" withExtension:@"pem"];
+  NSData *certsData = [NSData dataWithContentsOfURL:certsURL];
+  NSString *certsString = [[NSString alloc] initWithData:certsData encoding:NSUTF8StringEncoding];
+
+  grpc_credentials *credentials = grpc_ssl_credentials_create(certsString.UTF8String, NULL);
+  return (self = [super initWithChannel:grpc_secure_channel_create(credentials,
+                                                                   host.UTF8String,
+                                                                   NULL)]);
+}
+
+@end
