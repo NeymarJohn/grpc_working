@@ -34,6 +34,7 @@
 #ifndef GRPCXX_CREDENTIALS_H
 #define GRPCXX_CREDENTIALS_H
 
+#include <chrono>
 #include <memory>
 
 #include <grpc++/config.h>
@@ -97,20 +98,20 @@ std::unique_ptr<Credentials> ComputeEngineCredentials();
 // Builds service account credentials.
 // json_key is the JSON key string containing the client's private key.
 // scope is a space-delimited list of the requested permissions.
-// token_lifetime_seconds is the lifetime in seconds of each token acquired
-// through this service account credentials. It should be positive and should
-// not exceed grpc_max_auth_token_lifetime or will be cropped to this value.
+// token_lifetime is the lifetime of each token acquired through this service
+// account credentials. It should be positive and should not exceed
+// grpc_max_auth_token_lifetime or will be cropped to this value.
 std::unique_ptr<Credentials> ServiceAccountCredentials(
     const grpc::string& json_key, const grpc::string& scope,
-    long token_lifetime_seconds);
+    std::chrono::seconds token_lifetime);
 
 // Builds JWT credentials.
 // json_key is the JSON key string containing the client's private key.
-// token_lifetime_seconds is the lifetime in seconds of each Json Web Token
-// (JWT) created with this credentials. It should not exceed
-// grpc_max_auth_token_lifetime or will be cropped to this value.
+// token_lifetime is the lifetime of each Json Web Token (JWT) created with
+// this credentials.  It should not exceed grpc_max_auth_token_lifetime or
+// will be cropped to this value.
 std::unique_ptr<Credentials> JWTCredentials(
-    const grpc::string& json_key, long token_lifetime_seconds);
+    const grpc::string& json_key, std::chrono::seconds token_lifetime);
 
 // Builds refresh token credentials.
 // json_refresh_token is the JSON string containing the refresh token along
