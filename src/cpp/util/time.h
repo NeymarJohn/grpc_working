@@ -31,13 +31,21 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
-#define GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
+#ifndef GRPC_INTERNAL_CPP_UTIL_TIME_H
+#define GRPC_INTERNAL_CPP_UTIL_TIME_H
 
-#include "src/core/channel/channel_stack.h"
+#include <chrono>
 
-/* Processes metadata that is common to both client and server for HTTP2
-   transports. */
-extern const grpc_channel_filter grpc_http_filter;
+#include <grpc/support/time.h>
 
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H */
+namespace grpc {
+
+// from and to should be absolute time.
+void Timepoint2Timespec(const std::chrono::system_clock::time_point& from,
+                        gpr_timespec* to);
+
+std::chrono::system_clock::time_point Timespec2Timepoint(gpr_timespec t);
+
+}  // namespace grpc
+
+#endif  // GRPC_INTERNAL_CPP_UTIL_TIME_H
