@@ -37,39 +37,39 @@
 #import <gRPC/GRPCMethodName.h>
 #import <gRPC/GRXWriter+Immediate.h>
 #import <gRPC/GRXWriteable.h>
-#import <RemoteTest/Messages.pb.h>
 
 @interface ViewController ()
+
 @end
 
 @implementation ViewController
 
 - (void)viewDidLoad {
   [super viewDidLoad];
+  // Do any additional setup after loading the view, typically from a nib.
 
   GRPCMethodName *method = [[GRPCMethodName alloc] initWithPackage:@"grpc.testing"
                                                          interface:@"TestService"
-                                                            method:@"UnaryCall"];
+                                                            method:@"EmptyCall"];
 
-  RMTSimpleRequest *request = [[[[[[RMTSimpleRequestBuilder alloc] init]
-                                  setResponseSize:100]
-                                 setFillUsername:YES]
-                                setFillOauthScope:YES]
-                               build];
-  id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[request data]];
+  id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[NSData data]];
 
-  GRPCCall *call = [[GRPCCall alloc] initWithHost:@"grpc-test.sandbox.google.com"
+  GRPCCall *call = [[GRPCCall alloc] initWithHost:@"grpc-test.sandbox.google.com:443"
                                            method:method
                                    requestsWriter:requestsWriter];
 
   id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
-    RMTSimpleResponse *response = [RMTSimpleResponse parseFromData:value];
-    NSLog(@"Received response:\n%@", response);
+    NSLog(@"Received response: %@", value);
   } completionHandler:^(NSError *errorOrNil) {
     NSLog(@"Finished with error: %@", errorOrNil);
   }];
 
   [call startWithWriteable:responsesWriteable];
+}
+
+- (void)didReceiveMemoryWarning {
+  [super didReceiveMemoryWarning];
+  // Dispose of any resources that can be recreated.
 }
 
 @end
