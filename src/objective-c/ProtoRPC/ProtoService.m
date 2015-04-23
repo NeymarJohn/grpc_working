@@ -31,24 +31,51 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_CHANNEL_H
-#define GRPC_INTERNAL_CORE_SURFACE_CHANNEL_H
+#import "ProtoService.h"
 
-#include "src/core/channel/channel_stack.h"
+#import <gRPC/GRPCMethodName.h>
+#import <gRPC/GRXWriteable.h>
+#import <gRPC/GRXWriter.h>
 
-grpc_channel *grpc_channel_create_from_filters(
-    const grpc_channel_filter **filters, size_t count,
-    const grpc_channel_args *args, grpc_mdctx *mdctx, int is_client);
+#import "ProtoRPC.h"
 
-grpc_channel_stack *grpc_channel_get_channel_stack(grpc_channel *channel);
-grpc_mdctx *grpc_channel_get_metadata_context(grpc_channel *channel);
-grpc_mdstr *grpc_channel_get_status_string(grpc_channel *channel);
-grpc_mdstr *grpc_channel_get_message_string(grpc_channel *channel);
-gpr_uint32 grpc_channel_get_max_message_length(grpc_channel *channel);
+@implementation ProtoService {
+  NSString *_host;
+  NSString *_packageName;
+  NSString *_serviceName;
+}
 
-void grpc_client_channel_closed(grpc_channel_element *elem);
+- (instancetype)init {
+  return [self initWithHost:nil packageName:nil serviceName:nil];
+}
 
-void grpc_channel_internal_ref(grpc_channel *channel);
-void grpc_channel_internal_unref(grpc_channel *channel);
+// Designated initializer
+- (instancetype)initWithHost:(NSString *)host
+                 packageName:(NSString *)packageName
+                 serviceName:(NSString *)serviceName {
+  if (!host || !serviceName) {
+    [NSException raise:NSInvalidArgumentException
+                format:@"Neither host nor serviceName can be nil."];
+  }
+  if ((self = [super init])) {
+    _host = [host copy];
+    _packageName = [packageName copy];
+    _serviceName = [serviceName copy];
+  }
+  return self;
+}
 
-#endif /* GRPC_INTERNAL_CORE_SURFACE_CHANNEL_H */
+- (ProtoRPC *)RPCToMethod:(NSString *)method
+           requestsWriter:(id<GRXWriter>)requestsWriter
+            responseClass:(Class)responseClass
+       responsesWriteable:(id<GRXWriteable>)responsesWriteable {
+  GRPCMethodName *methodName = [[GRPCMethodName alloc] initWithPackage:_packageName
+                                                             interface:_serviceName
+                                                                method:method];
+  return [[ProtoRPC alloc] initWithHost:_host
+                                 method:methodName
+                         requestsWriter:requestsWriter
+                          responseClass:responseClass
+                     responsesWriteable:responsesWriteable];
+}
+@end

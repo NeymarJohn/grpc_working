@@ -31,24 +31,19 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_CHANNEL_H
-#define GRPC_INTERNAL_CORE_SURFACE_CHANNEL_H
+#import <Foundation/Foundation.h>
 
-#include "src/core/channel/channel_stack.h"
+@class ProtoRPC;
+@protocol GRXWriteable;
+@protocol GRXWriter;
 
-grpc_channel *grpc_channel_create_from_filters(
-    const grpc_channel_filter **filters, size_t count,
-    const grpc_channel_args *args, grpc_mdctx *mdctx, int is_client);
+@interface ProtoService : NSObject
+- (instancetype)initWithHost:(NSString *)host
+                 packageName:(NSString *)packageName
+                 serviceName:(NSString *)serviceName NS_DESIGNATED_INITIALIZER;
 
-grpc_channel_stack *grpc_channel_get_channel_stack(grpc_channel *channel);
-grpc_mdctx *grpc_channel_get_metadata_context(grpc_channel *channel);
-grpc_mdstr *grpc_channel_get_status_string(grpc_channel *channel);
-grpc_mdstr *grpc_channel_get_message_string(grpc_channel *channel);
-gpr_uint32 grpc_channel_get_max_message_length(grpc_channel *channel);
-
-void grpc_client_channel_closed(grpc_channel_element *elem);
-
-void grpc_channel_internal_ref(grpc_channel *channel);
-void grpc_channel_internal_unref(grpc_channel *channel);
-
-#endif /* GRPC_INTERNAL_CORE_SURFACE_CHANNEL_H */
+- (ProtoRPC *)RPCToMethod:(NSString *)method
+           requestsWriter:(id<GRXWriter>)requestsWriter
+  	        responseClass:(Class)responseClass
+  	   responsesWriteable:(id<GRXWriteable>)responsesWriteable;
+@end
