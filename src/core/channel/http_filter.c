@@ -1,4 +1,5 @@
 /*
+ *
  * Copyright 2015, Google Inc.
  * All rights reserved.
  *
@@ -30,20 +31,15 @@
  *
  */
 
-#include "src/core/channel/http_client_filter.h"
-#include <string.h>
+#include "src/core/channel/http_filter.h"
 #include <grpc/support/log.h>
 
 typedef struct call_data {
-  int sent_headers;
+  int unused; /* C89 requires at least one struct element */
 } call_data;
 
 typedef struct channel_data {
-  grpc_mdelem *te_trailers;
-  grpc_mdelem *method;
-  grpc_mdelem *scheme;
-  grpc_mdelem *content_type;
-  grpc_mdelem *status;
+  int unused; /* C89 requires at least one struct element */
 } channel_data;
 
 /* used to silence 'variable not used' warnings */
@@ -62,42 +58,9 @@ static void call_op(grpc_call_element *elem, grpc_call_element *from_elem,
   GRPC_CALL_LOG_OP(GPR_INFO, elem, op);
 
   ignore_unused(calld);
+  ignore_unused(channeld);
 
   switch (op->type) {
-    case GRPC_SEND_METADATA:
-      if (!calld->sent_headers) {
-        /* Send : prefixed headers, which have to be before any application
-         * layer headers. */
-        calld->sent_headers = 1;
-        grpc_call_element_send_metadata(elem, grpc_mdelem_ref(channeld->method));
-        grpc_call_element_send_metadata(elem, grpc_mdelem_ref(channeld->scheme));
-      }
-      grpc_call_next_op(elem, op);
-      break;
-    case GRPC_SEND_START:
-      if (!calld->sent_headers) {
-        /* Send : prefixed headers, if we haven't already */
-        calld->sent_headers = 1;
-        grpc_call_element_send_metadata(elem, grpc_mdelem_ref(channeld->method));
-        grpc_call_element_send_metadata(elem, grpc_mdelem_ref(channeld->scheme));
-      }
-      /* Send non : prefixed headers */
-      grpc_call_element_send_metadata(elem, grpc_mdelem_ref(channeld->te_trailers));
-      grpc_call_element_send_metadata(elem, grpc_mdelem_ref(channeld->content_type));
-      grpc_call_next_op(elem, op);
-      break;
-    case GRPC_RECV_METADATA:
-      if (op->data.metadata == channeld->status) {
-        grpc_mdelem_unref(op->data.metadata);
-        op->done_cb(op->user_data, GRPC_OP_OK);
-      } else if (op->data.metadata->key == channeld->status->key) {
-        grpc_mdelem_unref(op->data.metadata);
-        op->done_cb(op->user_data, GRPC_OP_OK);
-        grpc_call_element_send_cancel(elem);
-      } else {
-        grpc_call_next_op(elem, op);
-      }
-      break;
     default:
       /* pass control up or down the stack depending on op->dir */
       grpc_call_next_op(elem, op);
@@ -129,10 +92,8 @@ static void init_call_elem(grpc_call_element *elem,
   call_data *calld = elem->call_data;
   channel_data *channeld = elem->channel_data;
 
-  ignore_unused(channeld);
-
   /* initialize members */
-  calld->sent_headers = 0;
+  calld->unused = channeld->unused;
 }
 
 /* Destructor for call_data */
@@ -143,19 +104,6 @@ static void destroy_call_elem(grpc_call_element *elem) {
 
   ignore_unused(calld);
   ignore_unused(channeld);
-}
-
-static const char *scheme_from_args(const grpc_channel_args *args) {
-  unsigned i;
-  if (args != NULL) {
-    for (i = 0; i < args->num_args; ++i) {
-      if (args->args[i].type == GRPC_ARG_STRING &&
-          strcmp(args->args[i].key, GRPC_ARG_HTTP2_SCHEME) == 0) {
-        return args->args[i].value.string;
-      }
-    }
-  }
-  return "http";
 }
 
 /* Constructor for channel_data */
@@ -172,13 +120,7 @@ static void init_channel_elem(grpc_channel_element *elem,
   GPR_ASSERT(!is_last);
 
   /* initialize members */
-  channeld->te_trailers = grpc_mdelem_from_strings(mdctx, "te", "trailers");
-  channeld->method = grpc_mdelem_from_strings(mdctx, ":method", "POST");
-  channeld->scheme =
-      grpc_mdelem_from_strings(mdctx, ":scheme", scheme_from_args(args));
-  channeld->content_type =
-      grpc_mdelem_from_strings(mdctx, "content-type", "application/grpc");
-  channeld->status = grpc_mdelem_from_strings(mdctx, ":status", "200");
+  channeld->unused = 0;
 }
 
 /* Destructor for channel data */
@@ -186,14 +128,10 @@ static void destroy_channel_elem(grpc_channel_element *elem) {
   /* grab pointers to our data from the channel element */
   channel_data *channeld = elem->channel_data;
 
-  grpc_mdelem_unref(channeld->te_trailers);
-  grpc_mdelem_unref(channeld->method);
-  grpc_mdelem_unref(channeld->scheme);
-  grpc_mdelem_unref(channeld->content_type);
-  grpc_mdelem_unref(channeld->status);
+  ignore_unused(channeld);
 }
 
-const grpc_channel_filter grpc_http_client_filter = {
+const grpc_channel_filter grpc_http_filter = {
     call_op,           channel_op,           sizeof(call_data),
     init_call_elem,    destroy_call_elem,    sizeof(channel_data),
-    init_channel_elem, destroy_channel_elem, "http-client"};
+    init_channel_elem, destroy_channel_elem, "http"};

@@ -31,24 +31,13 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H
-#define GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
+#define GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
 
-typedef struct {
-  const char *name;
-  grpc_call_error (*initiate_cancel)(grpc_call *call);
-  grpc_status_code expect_status;
-  const char *expect_details;
-} cancellation_mode;
+#include "src/core/channel/channel_stack.h"
 
-static grpc_call_error wait_for_deadline(grpc_call *call) {
-  return GRPC_CALL_OK;
-}
+/* Processes metadata that is common to both client and server for HTTP2
+   transports. */
+extern const grpc_channel_filter grpc_http_filter;
 
-static const cancellation_mode cancellation_modes[] = {
-    {"cancel", grpc_call_cancel, GRPC_STATUS_CANCELLED, ""},
-    {"deadline", wait_for_deadline, GRPC_STATUS_DEADLINE_EXCEEDED,
-     "Deadline Exceeded"},
-};
-
-#endif /* GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H */
+#endif  /* GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H */

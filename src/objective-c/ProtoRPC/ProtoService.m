@@ -31,24 +31,51 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H
-#define GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H
+#import "ProtoService.h"
 
-typedef struct {
-  const char *name;
-  grpc_call_error (*initiate_cancel)(grpc_call *call);
-  grpc_status_code expect_status;
-  const char *expect_details;
-} cancellation_mode;
+#import <gRPC/GRPCMethodName.h>
+#import <RxLibrary/GRXWriteable.h>
+#import <RxLibrary/GRXWriter.h>
 
-static grpc_call_error wait_for_deadline(grpc_call *call) {
-  return GRPC_CALL_OK;
+#import "ProtoRPC.h"
+
+@implementation ProtoService {
+  NSString *_host;
+  NSString *_packageName;
+  NSString *_serviceName;
 }
 
-static const cancellation_mode cancellation_modes[] = {
-    {"cancel", grpc_call_cancel, GRPC_STATUS_CANCELLED, ""},
-    {"deadline", wait_for_deadline, GRPC_STATUS_DEADLINE_EXCEEDED,
-     "Deadline Exceeded"},
-};
+- (instancetype)init {
+  return [self initWithHost:nil packageName:nil serviceName:nil];
+}
 
-#endif /* GRPC_TEST_CORE_END2END_TESTS_CANCEL_TEST_HELPERS_H */
+// Designated initializer
+- (instancetype)initWithHost:(NSString *)host
+                 packageName:(NSString *)packageName
+                 serviceName:(NSString *)serviceName {
+  if (!host || !serviceName) {
+    [NSException raise:NSInvalidArgumentException
+                format:@"Neither host nor serviceName can be nil."];
+  }
+  if ((self = [super init])) {
+    _host = [host copy];
+    _packageName = [packageName copy];
+    _serviceName = [serviceName copy];
+  }
+  return self;
+}
+
+- (ProtoRPC *)RPCToMethod:(NSString *)method
+           requestsWriter:(id<GRXWriter>)requestsWriter
+            responseClass:(Class)responseClass
+       responsesWriteable:(id<GRXWriteable>)responsesWriteable {
+  GRPCMethodName *methodName = [[GRPCMethodName alloc] initWithPackage:_packageName
+                                                             interface:_serviceName
+                                                                method:method];
+  return [[ProtoRPC alloc] initWithHost:_host
+                                 method:methodName
+                         requestsWriter:requestsWriter
+                          responseClass:responseClass
+                     responsesWriteable:responsesWriteable];
+}
+@end
