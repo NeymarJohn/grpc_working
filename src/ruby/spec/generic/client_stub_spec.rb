@@ -28,6 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'grpc'
+require 'xray/thread_dump_signal_handler'
 
 # Notifier is useful high-level synchronization primitive.
 class Notifier

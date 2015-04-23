@@ -40,8 +40,7 @@
 #include "src/core/iomgr/endpoint.h"
 #include "src/core/iomgr/resolve_address.h"
 #include "src/core/iomgr/tcp_server.h"
-#include "src/core/security/credentials.h"
-#include "src/core/security/security_connector.h"
+#include "src/core/security/security_context.h"
 #include "src/core/security/secure_transport_setup.h"
 #include "src/core/surface/server.h"
 #include "src/core/transport/chttp2_transport.h"
@@ -53,7 +52,7 @@
 typedef struct grpc_server_secure_state {
   grpc_server *server;
   grpc_tcp_server *tcp;
-  grpc_security_connector *sc;
+  grpc_security_context *ctx;
   int is_shutdown;
   gpr_mu mu;
   gpr_refcount refcount;
@@ -65,7 +64,7 @@ static void state_ref(grpc_server_secure_state *state) {
 
 static void state_unref(grpc_server_secure_state *state) {
   if (gpr_unref(&state->refcount)) {
-    grpc_security_connector_unref(state->sc);
+    grpc_security_context_unref(state->ctx);
     gpr_free(state);
   }
 }
@@ -105,7 +104,7 @@ static void on_secure_transport_setup_done(void *statep,
 static void on_accept(void *statep, grpc_endpoint *tcp) {
   grpc_server_secure_state *state = statep;
   state_ref(state);
-  grpc_setup_secure_transport(state->sc, tcp, on_secure_transport_setup_done,
+  grpc_setup_secure_transport(state->ctx, tcp, on_secure_transport_setup_done,
                               state);
 }
 
@@ -138,11 +137,11 @@ int grpc_server_add_secure_http2_port(grpc_server *server, const char *addr,
   int port_num = -1;
   int port_temp;
   grpc_security_status status = GRPC_SECURITY_ERROR;
-  grpc_security_connector *sc = NULL;
+  grpc_security_context *ctx = NULL;
 
   /* create security context */
   if (creds == NULL) goto error;
-  status = grpc_server_credentials_create_security_connector(creds, &sc);
+  status = grpc_server_security_context_create(creds, &ctx);
   if (status != GRPC_SECURITY_OK) {
     gpr_log(GPR_ERROR,
             "Unable to create secure server with credentials of type %s.",
@@ -189,7 +188,7 @@ int grpc_server_add_secure_http2_port(grpc_server *server, const char *addr,
   state = gpr_malloc(sizeof(*state));
   state->server = server;
   state->tcp = tcp;
-  state->sc = sc;
+  state->ctx = ctx;
   state->is_shutdown = 0;
   gpr_mu_init(&state->mu);
   gpr_ref_init(&state->refcount, 1);
@@ -201,8 +200,8 @@ int grpc_server_add_secure_http2_port(grpc_server *server, const char *addr,
 
 /* Error path: cleanup and return */
 error:
-  if (sc) {
-    grpc_security_connector_unref(sc);
+  if (ctx) {
+    grpc_security_context_unref(ctx);
   }
   if (resolved) {
     grpc_resolved_addresses_destroy(resolved);
