@@ -38,28 +38,26 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Grpc.Core.Internal;
-using Grpc.Core.Utils;
 
 namespace Grpc.Core
 {
     /// <summary>
-    /// A gRPC server.
+    /// Server is implemented only to be able to do
+    /// in-process testing.
     /// </summary>
     public class Server
     {
-        // TODO(jtattermusch) : make sure the delegate doesn't get garbage collected while
+        // TODO: make sure the delegate doesn't get garbage collected while
         // native callbacks are in the completion queue.
         readonly ServerShutdownCallbackDelegate serverShutdownHandler;
         readonly CompletionCallbackDelegate newServerRpcHandler;
 
+        readonly BlockingCollection<NewRpcInfo> newRpcQueue = new BlockingCollection<NewRpcInfo>();
         readonly ServerSafeHandle handle;
-        readonly object myLock = new object();
 
         readonly Dictionary<string, IServerCallHandler> callHandlers = new Dictionary<string, IServerCallHandler>();
-        readonly TaskCompletionSource<object> shutdownTcs = new TaskCompletionSource<object>();
 
-        bool startRequested;
-        bool shutdownRequested;
+        readonly TaskCompletionSource<object> shutdownTcs = new TaskCompletionSource<object>();
 
         public Server()
         {
@@ -68,81 +66,71 @@ namespace Grpc.Core
             this.serverShutdownHandler = HandleServerShutdown;
         }
 
-        /// <summary>
-        /// Adds a service definition to the server. This is how you register
-        /// handlers for a service with the server.
-        /// Only call this before Start().
-        /// </summary>
+        // only call this before Start()
         public void AddServiceDefinition(ServerServiceDefinition serviceDefinition)
         {
-            lock (myLock)
+            foreach (var entry in serviceDefinition.CallHandlers)
             {
-                Preconditions.CheckState(!startRequested);
-                foreach (var entry in serviceDefinition.CallHandlers)
-                {
-                    callHandlers.Add(entry.Key, entry.Value);
-                }
+                callHandlers.Add(entry.Key, entry.Value);
             }
         }
 
-        /// <summary>
-        /// Add a non-secure port on which server should listen.
-        /// Only call this before Start().
-        /// </summary>
+        // only call before Start()
         public int AddListeningPort(string addr)
         {
-            lock (myLock)
-            {
-                Preconditions.CheckState(!startRequested);
-                return handle.AddListeningPort(addr);
-            }
+            return handle.AddListeningPort(addr);
         }
 
-        /// <summary>
-        /// Add a secure port on which server should listen.
-        /// Only call this before Start().
-        /// </summary>
+        // only call before Start()
         public int AddListeningPort(string addr, ServerCredentials credentials)
         {
-            lock (myLock)
+            using (var nativeCredentials = credentials.ToNativeCredentials())
             {
-                Preconditions.CheckState(!startRequested);
-                using (var nativeCredentials = credentials.ToNativeCredentials())
-                {
-                    return handle.AddListeningPort(addr, nativeCredentials);
-                }
+                return handle.AddListeningPort(addr, nativeCredentials);
             }
         }
 
-        /// <summary>
-        /// Starts the server.
-        /// </summary>
         public void Start()
         {
-            lock (myLock)
+            handle.Start();
+
+            // TODO: this basically means the server is single threaded....
+            StartHandlingRpcs();
+        }
+
+        /// <summary>
+        /// Requests and handles single RPC call.
+        /// </summary>
+        internal void RunRpc()
+        {
+            AllowOneRpc();
+
+            try
             {
-                Preconditions.CheckState(!startRequested);
-                startRequested = true;
-                
-                handle.Start();
-                AllowOneRpc();
+                var rpcInfo = newRpcQueue.Take();
+
+                // Console.WriteLine("Server received RPC " + rpcInfo.Method);
+
+                IServerCallHandler callHandler;
+                if (!callHandlers.TryGetValue(rpcInfo.Method, out callHandler))
+                {
+                    callHandler = new NoSuchMethodCallHandler();
+                }
+                callHandler.StartCall(rpcInfo.Method, rpcInfo.Call, GetCompletionQueue());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception while handling RPC: " + e);
             }
         }
 
         /// <summary>
         /// Requests server shutdown and when there are no more calls being serviced,
-        /// cleans up used resources. The returned task finishes when shutdown procedure
-        /// is complete.
+        /// cleans up used resources.
         /// </summary>
+        /// <returns>The async.</returns>
         public async Task ShutdownAsync()
         {
-            lock (myLock)
-            {
-                Preconditions.CheckState(startRequested);
-                Preconditions.CheckState(!shutdownRequested);
-                shutdownRequested = true;
-            }
-
             handle.ShutdownAndNotify(serverShutdownHandler);
             await shutdownTcs.Task;
             handle.Dispose();
@@ -164,43 +152,19 @@ namespace Grpc.Core
             handle.Dispose();
         }
 
-        /// <summary>
-        /// Allows one new RPC call to be received by server.
-        /// </summary>
+        private async Task StartHandlingRpcs()
+        {
+            while (true)
+            {
+                await Task.Factory.StartNew(RunRpc);
+            }
+        }
+
         private void AllowOneRpc()
         {
-            lock (myLock)
-            {
-                if (!shutdownRequested)
-                {
-                    handle.RequestCall(GetCompletionQueue(), newServerRpcHandler);
-                }
-            }
+            AssertCallOk(handle.RequestCall(GetCompletionQueue(), newServerRpcHandler));
         }
 
-        /// <summary>
-        /// Selects corresponding handler for given call and handles the call.
-        /// </summary>
-        private void InvokeCallHandler(CallSafeHandle call, string method)
-        {
-            try
-            {
-                IServerCallHandler callHandler;
-                if (!callHandlers.TryGetValue(method, out callHandler))
-                {
-                    callHandler = new NoSuchMethodCallHandler();
-                }
-                callHandler.StartCall(method, call, GetCompletionQueue());
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception while handling RPC: " + e);
-            }
-        }
-
-        /// <summary>
-        /// Handles the native callback.
-        /// </summary>
         private void HandleNewServerRpc(GRPCOpError error, IntPtr batchContextPtr)
         {
             try
@@ -212,16 +176,13 @@ namespace Grpc.Core
                     // TODO: handle error
                 }
 
-                CallSafeHandle call = ctx.GetServerRpcNewCall();
-                string method = ctx.GetServerRpcNewMethod();
+                var rpcInfo = new NewRpcInfo(ctx.GetServerRpcNewCall(), ctx.GetServerRpcNewMethod());
 
                 // after server shutdown, the callback returns with null call
-                if (!call.IsInvalid)
+                if (!rpcInfo.Call.IsInvalid)
                 {
-                    Task.Run(() => InvokeCallHandler(call, method));
+                    newRpcQueue.Add(rpcInfo);
                 }
-
-                AllowOneRpc();
             }
             catch (Exception e)
             {
@@ -229,10 +190,6 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>
-        /// Handles native callback.
-        /// </summary>
-        /// <param name="eventPtr"></param>
         private void HandleServerShutdown(IntPtr eventPtr)
         {
             try
@@ -245,9 +202,42 @@ namespace Grpc.Core
             }
         }
 
+        private static void AssertCallOk(GRPCCallError callError)
+        {
+            Trace.Assert(callError == GRPCCallError.GRPC_CALL_OK, "Status not GRPC_CALL_OK");
+        }
+
         private static CompletionQueueSafeHandle GetCompletionQueue()
         {
             return GrpcEnvironment.ThreadPool.CompletionQueue;
+        }
+
+        private struct NewRpcInfo
+        {
+            private CallSafeHandle call;
+            private string method;
+
+            public NewRpcInfo(CallSafeHandle call, string method)
+            {
+                this.call = call;
+                this.method = method;
+            }
+
+            public CallSafeHandle Call
+            {
+                get
+                {
+                    return this.call;
+                }
+            }
+
+            public string Method
+            {
+                get
+                {
+                    return this.method;
+                }
+            }
         }
     }
 }
