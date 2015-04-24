@@ -348,8 +348,8 @@ OPENSSL_ALPN_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/ope
 ZLIB_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/zlib.c -lz $(LDFLAGS)
 PERFTOOLS_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/perftools.c -lprofiler $(LDFLAGS)
 PROTOBUF_CHECK_CMD = $(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/protobuf.cc -lprotobuf $(LDFLAGS)
-PROTOC_CMD = which protoc > /dev/null
-PROTOC_CHECK_CMD = protoc --version | grep -q libprotoc.3
+PROTOC_CHECK_CMD = which protoc > /dev/null
+PROTOC_CHECK_VERSION_CMD = protoc --version | grep -q libprotoc.3
 
 ifeq ($(OPENSSL_REQUIRES_DL),true)
 OPENSSL_ALPN_CHECK_CMD += -ldl
@@ -375,9 +375,9 @@ HAS_SYSTEM_ZLIB = false
 HAS_SYSTEM_PROTOBUF = false
 endif
 
-HAS_PROTOC = $(shell $(PROTOC_CMD) 2> /dev/null && echo true || echo false)
+HAS_PROTOC = $(shell $(PROTOC_CHECK_CMD) 2> /dev/null && echo true || echo false)
 ifeq ($(HAS_PROTOC),true)
-HAS_VALID_PROTOC = $(shell $(PROTOC_CHECK_CMD) 2> /dev/null && echo true || echo false)
+HAS_VALID_PROTOC = $(shell $(PROTOC_CHECK_VERSION_CMD) 2> /dev/null && echo true || echo false)
 else
 HAS_VALID_PROTOC = false
 endif
@@ -1212,7 +1212,7 @@ run_dep_checks:
 	$(ZLIB_CHECK_CMD) || true
 	$(PERFTOOLS_CHECK_CMD) || true
 	$(PROTOBUF_CHECK_CMD) || true
-	$(PROTOC_CHECK_CMD) || true
+	$(PROTOC_CHECK_VERSION_CMD) || true
 
 $(LIBDIR)/$(CONFIG)/zlib/libz.a:
 	$(E) "[MAKE]    Building zlib"
@@ -3184,6 +3184,7 @@ LIBGRPC_SRC = \
     src/core/tsi/fake_transport_security.c \
     src/core/tsi/ssl_transport_security.c \
     src/core/tsi/transport_security.c \
+    src/core/channel/call_op_string.c \
     src/core/channel/census_filter.c \
     src/core/channel/channel_args.c \
     src/core/channel/channel_stack.c \
@@ -3192,6 +3193,7 @@ LIBGRPC_SRC = \
     src/core/channel/client_setup.c \
     src/core/channel/connected_channel.c \
     src/core/channel/http_client_filter.c \
+    src/core/channel/http_filter.c \
     src/core/channel/http_server_filter.c \
     src/core/channel/noop_filter.c \
     src/core/compression/algorithm.c \
@@ -3279,7 +3281,6 @@ LIBGRPC_SRC = \
     src/core/transport/metadata.c \
     src/core/transport/stream_op.c \
     src/core/transport/transport.c \
-    src/core/transport/transport_op_string.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/grpc_security.h \
@@ -3370,6 +3371,7 @@ $(OBJDIR)/$(CONFIG)/src/core/surface/secure_channel_create.o:
 $(OBJDIR)/$(CONFIG)/src/core/tsi/fake_transport_security.o: 
 $(OBJDIR)/$(CONFIG)/src/core/tsi/ssl_transport_security.o: 
 $(OBJDIR)/$(CONFIG)/src/core/tsi/transport_security.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/call_op_string.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/census_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/channel_args.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/channel_stack.o: 
@@ -3378,6 +3380,7 @@ $(OBJDIR)/$(CONFIG)/src/core/channel/client_channel.o:
 $(OBJDIR)/$(CONFIG)/src/core/channel/client_setup.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/connected_channel.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/http_client_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/http_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/http_server_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/noop_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/compression/algorithm.o: 
@@ -3465,7 +3468,6 @@ $(OBJDIR)/$(CONFIG)/src/core/transport/chttp2_transport.o:
 $(OBJDIR)/$(CONFIG)/src/core/transport/metadata.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/stream_op.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/transport.o: 
-$(OBJDIR)/$(CONFIG)/src/core/transport/transport_op_string.o: 
 
 
 LIBGRPC_TEST_UTIL_SRC = \
@@ -3570,6 +3572,7 @@ $(OBJDIR)/$(CONFIG)/test/core/util/slice_splitter.o:
 
 LIBGRPC_UNSECURE_SRC = \
     src/core/surface/init_unsecure.c \
+    src/core/channel/call_op_string.c \
     src/core/channel/census_filter.c \
     src/core/channel/channel_args.c \
     src/core/channel/channel_stack.c \
@@ -3578,6 +3581,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/channel/client_setup.c \
     src/core/channel/connected_channel.c \
     src/core/channel/http_client_filter.c \
+    src/core/channel/http_filter.c \
     src/core/channel/http_server_filter.c \
     src/core/channel/noop_filter.c \
     src/core/compression/algorithm.c \
@@ -3665,7 +3669,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/transport/metadata.c \
     src/core/transport/stream_op.c \
     src/core/transport/transport.c \
-    src/core/transport/transport_op_string.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer.h \
@@ -3710,6 +3713,7 @@ ifneq ($(NO_DEPS),true)
 endif
 
 $(OBJDIR)/$(CONFIG)/src/core/surface/init_unsecure.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/call_op_string.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/census_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/channel_args.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/channel_stack.o: 
@@ -3718,6 +3722,7 @@ $(OBJDIR)/$(CONFIG)/src/core/channel/client_channel.o:
 $(OBJDIR)/$(CONFIG)/src/core/channel/client_setup.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/connected_channel.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/http_client_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/http_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/http_server_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/channel/noop_filter.o: 
 $(OBJDIR)/$(CONFIG)/src/core/compression/algorithm.o: 
@@ -3805,7 +3810,6 @@ $(OBJDIR)/$(CONFIG)/src/core/transport/chttp2_transport.o:
 $(OBJDIR)/$(CONFIG)/src/core/transport/metadata.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/stream_op.o: 
 $(OBJDIR)/$(CONFIG)/src/core/transport/transport.o: 
-$(OBJDIR)/$(CONFIG)/src/core/transport/transport_op_string.o: 
 
 
 LIBGRPC++_SRC = \
@@ -3850,6 +3854,7 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/generic_stub.h \
     include/grpc++/impl/call.h \
     include/grpc++/impl/client_unary_call.h \
+    include/grpc++/impl/grpc_library.h \
     include/grpc++/impl/internal_stub.h \
     include/grpc++/impl/rpc_method.h \
     include/grpc++/impl/rpc_service_method.h \
@@ -4113,6 +4118,7 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/generic_stub.h \
     include/grpc++/impl/call.h \
     include/grpc++/impl/client_unary_call.h \
+    include/grpc++/impl/grpc_library.h \
     include/grpc++/impl/internal_stub.h \
     include/grpc++/impl/rpc_method.h \
     include/grpc++/impl/rpc_service_method.h \

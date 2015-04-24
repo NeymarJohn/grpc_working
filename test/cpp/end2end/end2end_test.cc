@@ -491,6 +491,27 @@ TEST_F(End2endTest, ServerCancelsRpc) {
   EXPECT_TRUE(s.details().empty());
 }
 
+// Client cancels request stream after sending two messages
+TEST_F(End2endTest, ClientCancelsRequestStream) {
+  ResetStub();
+  EchoRequest request;
+  EchoResponse response;
+  ClientContext context;
+  request.set_message("hello");
+
+  auto stream = stub_->RequestStream(&context, &response);
+  EXPECT_TRUE(stream->Write(request));
+  EXPECT_TRUE(stream->Write(request));
+  
+  context.TryCancel();
+
+  Status s = stream->Finish();
+  EXPECT_EQ(grpc::StatusCode::CANCELLED, s.code());
+  
+  EXPECT_EQ(response.message(), "");
+
+}
+
 // Client cancels server stream after sending some messages
 TEST_F(End2endTest, ClientCancelsResponseStream) {
   ResetStub();
@@ -562,9 +583,6 @@ TEST_F(End2endTest, ClientCancelsBidi) {
 
 int main(int argc, char** argv) {
   grpc_test_init(argc, argv);
-  grpc_init();
   ::testing::InitGoogleTest(&argc, argv);
-  int result = RUN_ALL_TESTS();
-  grpc_shutdown();
-  return result;
+  return RUN_ALL_TESTS();
 }
