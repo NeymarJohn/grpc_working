@@ -99,6 +99,7 @@
         "src/core/channel/client_setup.h",
         "src/core/channel/connected_channel.h",
         "src/core/channel/http_client_filter.h",
+        "src/core/channel/http_filter.h",
         "src/core/channel/http_server_filter.h",
         "src/core/channel/noop_filter.h",
         "src/core/compression/algorithm.h",
@@ -180,6 +181,7 @@
         "src/core/transport/transport_impl.h"
       ],
       "src": [
+        "src/core/channel/call_op_string.c",
         "src/core/channel/census_filter.c",
         "src/core/channel/channel_args.c",
         "src/core/channel/channel_stack.c",
@@ -188,6 +190,7 @@
         "src/core/channel/client_setup.c",
         "src/core/channel/connected_channel.c",
         "src/core/channel/http_client_filter.c",
+        "src/core/channel/http_filter.c",
         "src/core/channel/http_server_filter.c",
         "src/core/channel/noop_filter.c",
         "src/core/compression/algorithm.c",
@@ -274,8 +277,7 @@
         "src/core/transport/chttp2_transport.c",
         "src/core/transport/metadata.c",
         "src/core/transport/stream_op.c",
-        "src/core/transport/transport.c",
-        "src/core/transport/transport_op_string.c"
+        "src/core/transport/transport.c"
       ]
     },
     {
@@ -808,6 +810,7 @@
     },
     {
       "name": "census_statistics_multiple_writers_test",
+      "flaky": true,
       "build": "test",
       "language": "c",
       "src": [
@@ -822,6 +825,7 @@
     },
     {
       "name": "census_statistics_performance_test",
+      "flaky": true,
       "build": "test",
       "language": "c",
       "src": [
@@ -836,6 +840,7 @@
     },
     {
       "name": "census_statistics_quick_test",
+      "flaky": true,
       "build": "test",
       "language": "c",
       "src": [
