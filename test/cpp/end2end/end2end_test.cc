@@ -562,6 +562,9 @@ TEST_F(End2endTest, ClientCancelsBidi) {
 
 int main(int argc, char** argv) {
   grpc_test_init(argc, argv);
+  grpc_init();
   ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  int result = RUN_ALL_TESTS();
+  grpc_shutdown();
+  return result;
 }

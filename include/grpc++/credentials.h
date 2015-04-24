@@ -38,16 +38,15 @@
 #include <memory>
 
 #include <grpc++/config.h>
-#include <grpc++/impl/grpc_library.h>
 
 namespace grpc {
 class ChannelArguments;
 class ChannelInterface;
 class SecureCredentials;
 
-class Credentials : public GrpcLibrary {
+class Credentials {
  public:
-  ~Credentials() GRPC_OVERRIDE;
+  virtual ~Credentials();
 
  protected:
   friend std::unique_ptr<Credentials> CompositeCredentials(

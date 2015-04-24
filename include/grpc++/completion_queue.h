@@ -36,7 +36,6 @@
 
 #include <chrono>
 #include <grpc++/impl/client_unary_call.h>
-#include <grpc++/impl/grpc_library.h>
 #include <grpc/support/time.h>
 
 struct grpc_completion_queue;
@@ -72,11 +71,11 @@ class CompletionQueueTag {
 };
 
 // grpc_completion_queue wrapper class
-class CompletionQueue : public GrpcLibrary {
+class CompletionQueue {
  public:
   CompletionQueue();
   explicit CompletionQueue(grpc_completion_queue* take);
-  ~CompletionQueue() GRPC_OVERRIDE;
+  ~CompletionQueue();
 
   // Tri-state return for AsyncNext: SHUTDOWN, GOT_EVENT, TIMEOUT
   enum NextStatus { SHUTDOWN, GOT_EVENT, TIMEOUT };
