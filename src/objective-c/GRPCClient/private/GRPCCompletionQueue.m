@@ -46,7 +46,7 @@
 - (instancetype)init {
   if ((self = [super init])) {
     _unmanagedQueue = grpc_completion_queue_create();
-
+    
     // This is for the following block to capture the pointer by value (instead
     // of retaining self and doing self->_unmanagedQueue). This is essential
     // because the block doesn't end until after grpc_completion_queue_shutdown
@@ -54,7 +54,7 @@
     // anymore (i.e. on self dealloc). So the block would never end if it
     // retained self.
     grpc_completion_queue *unmanagedQueue = _unmanagedQueue;
-
+    
     // Start a loop on a concurrent queue to read events from the completion
     // queue and dispatch each.
     static dispatch_once_t initialization;
@@ -66,30 +66,17 @@
       while (YES) {
         // The following call blocks until an event is available.
         grpc_event *event = grpc_completion_queue_next(unmanagedQueue, gpr_inf_future);
+        GRPCQueueCompletionHandler handler;
         switch (event->type) {
-          case GRPC_WRITE_ACCEPTED:
-          case GRPC_FINISH_ACCEPTED:
-          case GRPC_CLIENT_METADATA_READ:
-          case GRPC_READ:
-          case GRPC_FINISHED:
-            if (event->tag) {
-              GRPCEventHandler handler = (__bridge_transfer GRPCEventHandler) event->tag;
-              handler(event);
-            }
-            grpc_event_finish(event);
-            continue;
+          case GRPC_OP_COMPLETE:
+            handler = (__bridge_transfer GRPCQueueCompletionHandler)event->tag;
+            handler(event->data.op_complete);
+            break;
           case GRPC_QUEUE_SHUTDOWN:
-            grpc_completion_queue_destroy(unmanagedQueue);
-            grpc_event_finish(event);
             return;
-          case GRPC_SERVER_RPC_NEW:
-            NSAssert(NO, @"C gRPC library produced a server-only event.");
-            continue;
+          default:
+            [NSException raise:@"Unrecognized completion type" format:@""];
         }
-        // This means the C gRPC library produced an event that wasn't known
-        // when this library was written. To preserve evolvability, ignore the
-        // unknown event on release builds.
-        NSAssert(NO, @"C gRPC library produced an unknown event.");
       };
     });
   }
