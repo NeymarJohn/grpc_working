@@ -65,7 +65,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "census_statistics_multiple_writers_test", 
     "platforms": [
@@ -74,7 +74,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "census_statistics_performance_test", 
     "platforms": [
@@ -83,7 +83,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "census_statistics_quick_test", 
     "platforms": [
@@ -140,6 +140,15 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_stream_map_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
+    "name": "chttp2_transport_end2end_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -462,6 +471,15 @@
   {
     "flaky": false, 
     "language": "c", 
+    "name": "metadata_buffer_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
     "name": "multi_init_test", 
     "platforms": [
       "windows", 
@@ -703,7 +721,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fake_security_cancel_after_accept_test", 
     "platforms": [
@@ -730,7 +748,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fake_security_cancel_after_accept_legacy_test", 
     "platforms": [
@@ -892,7 +910,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fake_security_invoke_large_request_test", 
     "platforms": [
@@ -901,7 +919,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fake_security_invoke_large_request_legacy_test", 
     "platforms": [
@@ -1153,7 +1171,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_cancel_after_accept_test", 
     "platforms": [
@@ -1180,7 +1198,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_cancel_after_accept_legacy_test", 
     "platforms": [
@@ -1342,7 +1360,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_invoke_large_request_test", 
     "platforms": [
@@ -1351,7 +1369,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_invoke_large_request_legacy_test", 
     "platforms": [
@@ -1603,7 +1621,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_uds_cancel_after_accept_test", 
     "platforms": [
@@ -1630,7 +1648,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_uds_cancel_after_accept_legacy_test", 
     "platforms": [
@@ -1792,7 +1810,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_uds_invoke_large_request_test", 
     "platforms": [
@@ -1801,7 +1819,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_uds_invoke_large_request_legacy_test", 
     "platforms": [
@@ -2053,7 +2071,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_cancel_after_accept_test", 
     "platforms": [
@@ -2080,7 +2098,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_cancel_after_accept_legacy_test", 
     "platforms": [
@@ -2242,7 +2260,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_invoke_large_request_test", 
     "platforms": [
@@ -2251,7 +2269,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_invoke_large_request_legacy_test", 
     "platforms": [
@@ -2503,7 +2521,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_test", 
     "platforms": [
@@ -2530,7 +2548,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_legacy_test", 
     "platforms": [
@@ -2692,7 +2710,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test", 
     "platforms": [
@@ -2701,7 +2719,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_legacy_test", 
     "platforms": [
@@ -2953,7 +2971,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_cancel_after_accept_test", 
     "platforms": [
@@ -2980,7 +2998,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_cancel_after_accept_legacy_test", 
     "platforms": [
@@ -3142,7 +3160,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_invoke_large_request_test", 
     "platforms": [
@@ -3151,7 +3169,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_invoke_large_request_legacy_test", 
     "platforms": [
@@ -3403,7 +3421,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_test", 
     "platforms": [
@@ -3430,7 +3448,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_legacy_test", 
     "platforms": [
@@ -3592,7 +3610,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test", 
     "platforms": [
@@ -3601,7 +3619,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_legacy_test", 
     "platforms": [
@@ -4042,7 +4060,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_invoke_large_request_unsecure_test", 
     "platforms": [
@@ -4051,7 +4069,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_invoke_large_request_legacy_unsecure_test", 
     "platforms": [
@@ -4492,7 +4510,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_uds_invoke_large_request_unsecure_test", 
     "platforms": [
@@ -4501,7 +4519,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_uds_invoke_large_request_legacy_unsecure_test", 
     "platforms": [
@@ -4942,7 +4960,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_invoke_large_request_unsecure_test", 
     "platforms": [
@@ -4951,7 +4969,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_invoke_large_request_legacy_unsecure_test", 
     "platforms": [
@@ -5392,7 +5410,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_unsecure_test", 
     "platforms": [
@@ -5401,7 +5419,7 @@
     ]
   }, 
   {
-    "flaky": true, 
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_legacy_unsecure_test", 
     "platforms": [
