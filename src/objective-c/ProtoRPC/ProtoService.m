@@ -31,38 +31,51 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_TRANSPORT_TRANSPORT_END2END_TESTS_H
-#define GRPC_TEST_CORE_TRANSPORT_TRANSPORT_END2END_TESTS_H
+#import "ProtoService.h"
 
-#include "src/core/transport/transport.h"
+#import <gRPC/GRPCMethodName.h>
+#import <gRPC/GRXWriteable.h>
+#import <gRPC/GRXWriter.h>
 
-/* Defines a suite of tests that all GRPC transports should be able to pass */
+#import "ProtoRPC.h"
 
-/* A test configuration has a name and a factory method */
-typedef struct grpc_transport_test_config {
-  /* The name of this configuration */
-  char *name;
-  /* Create a transport
-     Returns 0 on success
+@implementation ProtoService {
+  NSString *_host;
+  NSString *_packageName;
+  NSString *_serviceName;
+}
 
-     Arguments:
-       OUT: client           - the created client half of the transport
-       IN:  client_callbacks - callback structure to be used by the client
-                               transport
-       IN:  client_user_data - user data pointer to be passed into each client
-                               callback
-       OUT: server           - the created server half of the transport
-       IN:  server_callbacks - callback structure to be used by the server
-                               transport
-       IN:  server_user_data - user data pointer to be passed into each
-                               server */
-  int (*create_transport)(grpc_transport_setup_callback client_setup,
-                          void *client_arg,
-                          grpc_transport_setup_callback server_setup,
-                          void *server_arg, grpc_mdctx *mdctx);
-} grpc_transport_test_config;
+- (instancetype)init {
+  return [self initWithHost:nil packageName:nil serviceName:nil];
+}
 
-/* Run the test suite on one configuration */
-void grpc_transport_end2end_tests(grpc_transport_test_config *config);
+// Designated initializer
+- (instancetype)initWithHost:(NSString *)host
+                 packageName:(NSString *)packageName
+                 serviceName:(NSString *)serviceName {
+  if (!host || !serviceName) {
+    [NSException raise:NSInvalidArgumentException
+                format:@"Neither host nor serviceName can be nil."];
+  }
+  if ((self = [super init])) {
+    _host = [host copy];
+    _packageName = [packageName copy];
+    _serviceName = [serviceName copy];
+  }
+  return self;
+}
 
-#endif  /* GRPC_TEST_CORE_TRANSPORT_TRANSPORT_END2END_TESTS_H */
+- (ProtoRPC *)RPCToMethod:(NSString *)method
+           requestsWriter:(id<GRXWriter>)requestsWriter
+            responseClass:(Class)responseClass
+       responsesWriteable:(id<GRXWriteable>)responsesWriteable {
+  GRPCMethodName *methodName = [[GRPCMethodName alloc] initWithPackage:_packageName
+                                                             interface:_serviceName
+                                                                method:method];
+  return [[ProtoRPC alloc] initWithHost:_host
+                                 method:methodName
+                         requestsWriter:requestsWriter
+                          responseClass:responseClass
+                     responsesWriteable:responsesWriteable];
+}
+@end
