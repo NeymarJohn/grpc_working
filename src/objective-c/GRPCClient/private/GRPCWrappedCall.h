@@ -32,15 +32,17 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <gRPC/GRPCCall.h>
+#import "GRPCChannel.h"
 
-@interface ProtoRPC : GRPCCall
+typedef void(^GRPCCompletionHandler)(NSDictionary *);
 
-- (instancetype)initWithHost:(NSString *)host
-                      method:(GRPCMethodName *)method
-              requestsWriter:(id<GRXWriter>)requestsWriter
-               responseClass:(Class)responseClass
-          responsesWriteable:(id<GRXWriteable>)responsesWriteable NS_DESIGNATED_INITIALIZER;
+@interface GRPCWrappedCall : NSObject
 
-- (void)start;
+- (instancetype)initWithChannel:(GRPCChannel *)channel method:(NSString *)method host:(NSString *)host NS_DESIGNATED_INITIALIZER;
+
+- (void)startBatchWithOperations:(NSDictionary *)ops handleCompletion:(GRPCCompletionHandler)handleCompletion errorHandler:(void(^)())errorHandler;
+
+- (void)startBatchWithOperations:(NSDictionary *)ops handleCompletion:(GRPCCompletionHandler)handleCompletion;
+
+- (void)cancel;
 @end
