@@ -52,7 +52,6 @@ typedef struct registered_call {
 struct grpc_channel {
   int is_client;
   gpr_refcount refs;
-  gpr_uint32 max_message_length;
   grpc_mdctx *metadata_context;
   grpc_mdstr *grpc_status_string;
   grpc_mdstr *grpc_message_string;
@@ -63,19 +62,15 @@ struct grpc_channel {
   registered_call *registered_calls;
 };
 
-#define CHANNEL_STACK_FROM_CHANNEL(c) ((grpc_channel_stack *)((c) + 1))
+#define CHANNEL_STACK_FROM_CHANNEL(c) ((grpc_channel_stack *)((c)+1))
 #define CHANNEL_FROM_CHANNEL_STACK(channel_stack) \
   (((grpc_channel *)(channel_stack)) - 1)
 #define CHANNEL_FROM_TOP_ELEM(top_elem) \
   CHANNEL_FROM_CHANNEL_STACK(grpc_channel_stack_from_top_element(top_elem))
 
-/* the protobuf library will (by default) start warning at 100megs */
-#define DEFAULT_MAX_MESSAGE_LENGTH (100 * 1024 * 1024)
-
 grpc_channel *grpc_channel_create_from_filters(
     const grpc_channel_filter **filters, size_t num_filters,
     const grpc_channel_args *args, grpc_mdctx *mdctx, int is_client) {
-  size_t i;
   size_t size =
       sizeof(grpc_channel) + grpc_channel_stack_size(filters, num_filters);
   grpc_channel *channel = gpr_malloc(size);
@@ -93,46 +88,47 @@ grpc_channel *grpc_channel_create_from_filters(
                           CHANNEL_STACK_FROM_CHANNEL(channel));
   gpr_mu_init(&channel->registered_call_mu);
   channel->registered_calls = NULL;
-
-  channel->max_message_length = DEFAULT_MAX_MESSAGE_LENGTH;
-  if (args) {
-    for (i = 0; i < args->num_args; i++) {
-      if (0 == strcmp(args->args[i].key, GRPC_ARG_MAX_MESSAGE_LENGTH)) {
-        if (args->args[i].type != GRPC_ARG_INTEGER) {
-          gpr_log(GPR_ERROR, "%s ignored: it must be an integer",
-                  GRPC_ARG_MAX_MESSAGE_LENGTH);
-        } else if (args->args[i].value.integer < 0) {
-          gpr_log(GPR_ERROR, "%s ignored: it must be >= 0",
-                  GRPC_ARG_MAX_MESSAGE_LENGTH);
-        } else {
-          channel->max_message_length = args->args[i].value.integer;
-        }
-      }
-    }
-  }
-
   return channel;
 }
+
+static void do_nothing(void *ignored, grpc_op_error error) {}
 
 static grpc_call *grpc_channel_create_call_internal(
     grpc_channel *channel, grpc_completion_queue *cq, grpc_mdelem *path_mdelem,
     grpc_mdelem *authority_mdelem, gpr_timespec deadline) {
-  grpc_mdelem *send_metadata[2];
+  grpc_call *call;
+  grpc_call_op op;
 
-  GPR_ASSERT(channel->is_client);
+  if (!channel->is_client) {
+    gpr_log(GPR_ERROR, "Cannot create a call on the server.");
+    return NULL;
+  }
 
-  send_metadata[0] = path_mdelem;
-  send_metadata[1] = authority_mdelem;
+  call = grpc_call_create(channel, cq, NULL);
 
-  return grpc_call_create(channel, cq, NULL, send_metadata,
-                          GPR_ARRAY_SIZE(send_metadata), deadline);
-}
+  /* Add :path and :authority headers. */
+  op.type = GRPC_SEND_METADATA;
+  op.dir = GRPC_CALL_DOWN;
+  op.flags = 0;
+  op.data.metadata = path_mdelem;
+  op.done_cb = do_nothing;
+  op.user_data = NULL;
+  grpc_call_execute_op(call, &op);
 
-grpc_call *grpc_channel_create_call_old(grpc_channel *channel,
-                                        const char *method, const char *host,
-                                        gpr_timespec absolute_deadline) {
-  return grpc_channel_create_call(channel, NULL, method, host,
-                                  absolute_deadline);
+  op.data.metadata = authority_mdelem;
+  grpc_call_execute_op(call, &op);
+
+  if (0 != gpr_time_cmp(deadline, gpr_inf_future)) {
+    op.type = GRPC_SEND_DEADLINE;
+    op.dir = GRPC_CALL_DOWN;
+    op.flags = 0;
+    op.data.deadline = deadline;
+    op.done_cb = do_nothing;
+    op.user_data = NULL;
+    grpc_call_execute_op(call, &op);
+  }
+
+  return call;
 }
 
 grpc_call *grpc_channel_create_call(grpc_channel *channel,
@@ -148,6 +144,13 @@ grpc_call *grpc_channel_create_call(grpc_channel *channel,
           channel->metadata_context, grpc_mdstr_ref(channel->authority_string),
           grpc_mdstr_from_string(channel->metadata_context, host)),
       deadline);
+}
+
+grpc_call *grpc_channel_create_call_old(grpc_channel *channel,
+                                        const char *method, const char *host,
+                                        gpr_timespec absolute_deadline) {
+  return grpc_channel_create_call(channel, NULL, method, host,
+                                  absolute_deadline);
 }
 
 void *grpc_channel_register_call(grpc_channel *channel, const char *method,
@@ -241,8 +244,4 @@ grpc_mdstr *grpc_channel_get_status_string(grpc_channel *channel) {
 
 grpc_mdstr *grpc_channel_get_message_string(grpc_channel *channel) {
   return channel->grpc_message_string;
-}
-
-gpr_uint32 grpc_channel_get_max_message_length(grpc_channel *channel) {
-  return channel->max_message_length;
 }
