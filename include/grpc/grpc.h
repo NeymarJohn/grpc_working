@@ -186,13 +186,6 @@ typedef struct grpc_metadata {
   const char *key;
   const char *value;
   size_t value_length;
-
-  /* The following fields are reserved for grpc internal use.
-     There is no need to initialize them, and they will be set to garbage during
-     calls to grpc. */
-  struct {
-    void *obfuscated[3];
-  } internal_data;
 } grpc_metadata;
 
 typedef enum grpc_completion_type {
@@ -302,7 +295,7 @@ typedef struct grpc_op {
   union {
     struct {
       size_t count;
-      grpc_metadata *metadata;
+      const grpc_metadata *metadata;
     } send_initial_metadata;
     grpc_byte_buffer *send_message;
     struct {
