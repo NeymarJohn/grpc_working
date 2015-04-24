@@ -3101,6 +3101,42 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBGPR_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/src/core/support/alloc.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/cancellable.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/cmdline.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/cpu_iphone.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/cpu_linux.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/cpu_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/cpu_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/env_linux.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/env_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/env_win32.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/file.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/file_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/file_win32.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/histogram.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/host_port.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/log.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/log_android.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/log_linux.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/log_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/log_win32.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/murmur_hash.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/slice.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/slice_buffer.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/string.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/string_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/string_win32.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/sync.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/sync_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/sync_win32.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/thd.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/thd_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/thd_win32.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/time.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/time_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/support/time_win32.o: 
+
 
 LIBGPR_TEST_UTIL_SRC = \
     test/core/util/test_config.c \
@@ -3123,6 +3159,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBGPR_TEST_UTIL_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/util/test_config.o: 
 
 
 LIBGRPC_SRC = \
@@ -3313,6 +3351,124 @@ ifneq ($(NO_DEPS),true)
 endif
 endif
 
+$(OBJDIR)/$(CONFIG)/src/core/httpcli/format_request.o: 
+$(OBJDIR)/$(CONFIG)/src/core/httpcli/httpcli.o: 
+$(OBJDIR)/$(CONFIG)/src/core/httpcli/httpcli_security_connector.o: 
+$(OBJDIR)/$(CONFIG)/src/core/httpcli/parser.o: 
+$(OBJDIR)/$(CONFIG)/src/core/security/auth.o: 
+$(OBJDIR)/$(CONFIG)/src/core/security/base64.o: 
+$(OBJDIR)/$(CONFIG)/src/core/security/credentials.o: 
+$(OBJDIR)/$(CONFIG)/src/core/security/credentials_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/security/credentials_win32.o: 
+$(OBJDIR)/$(CONFIG)/src/core/security/google_default_credentials.o: 
+$(OBJDIR)/$(CONFIG)/src/core/security/json_token.o: 
+$(OBJDIR)/$(CONFIG)/src/core/security/secure_endpoint.o: 
+$(OBJDIR)/$(CONFIG)/src/core/security/secure_transport_setup.o: 
+$(OBJDIR)/$(CONFIG)/src/core/security/security_connector.o: 
+$(OBJDIR)/$(CONFIG)/src/core/security/server_secure_chttp2.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/init_secure.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/secure_channel_create.o: 
+$(OBJDIR)/$(CONFIG)/src/core/tsi/fake_transport_security.o: 
+$(OBJDIR)/$(CONFIG)/src/core/tsi/ssl_transport_security.o: 
+$(OBJDIR)/$(CONFIG)/src/core/tsi/transport_security.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/call_op_string.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/census_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/channel_args.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/channel_stack.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/child_channel.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/client_channel.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/client_setup.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/connected_channel.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/http_client_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/http_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/http_server_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/noop_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/compression/algorithm.o: 
+$(OBJDIR)/$(CONFIG)/src/core/compression/message_compress.o: 
+$(OBJDIR)/$(CONFIG)/src/core/debug/trace.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/alarm.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/alarm_heap.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/endpoint.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/endpoint_pair_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/endpoint_pair_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/fd_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/iocp_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/iomgr.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/iomgr_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/iomgr_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_kick.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_epoll.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/resolve_address_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/resolve_address_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/sockaddr_utils.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/socket_utils_common_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/socket_utils_linux.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/socket_utils_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/socket_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/tcp_client_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/tcp_client_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/tcp_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/tcp_server_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/tcp_server_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/tcp_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/time_averaged_stats.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/wakeup_fd_eventfd.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/wakeup_fd_nospecial.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/wakeup_fd_pipe.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/wakeup_fd_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/json/json.o: 
+$(OBJDIR)/$(CONFIG)/src/core/json/json_reader.o: 
+$(OBJDIR)/$(CONFIG)/src/core/json/json_string.o: 
+$(OBJDIR)/$(CONFIG)/src/core/json/json_writer.o: 
+$(OBJDIR)/$(CONFIG)/src/core/profiling/timers.o: 
+$(OBJDIR)/$(CONFIG)/src/core/statistics/census_init.o: 
+$(OBJDIR)/$(CONFIG)/src/core/statistics/census_log.o: 
+$(OBJDIR)/$(CONFIG)/src/core/statistics/census_rpc_stats.o: 
+$(OBJDIR)/$(CONFIG)/src/core/statistics/census_tracing.o: 
+$(OBJDIR)/$(CONFIG)/src/core/statistics/hash_table.o: 
+$(OBJDIR)/$(CONFIG)/src/core/statistics/window_stats.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/byte_buffer.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/byte_buffer_queue.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/byte_buffer_reader.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/call.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/call_details.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/call_log_batch.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/channel.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/channel_create.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/client.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/completion_queue.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/event_string.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/init.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/lame_client.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/metadata_array.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/server.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/server_chttp2.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/server_create.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/surface_trace.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/alpn.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/bin_encoder.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_data.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_goaway.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_ping.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_rst_stream.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_settings.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_window_update.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/hpack_parser.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/hpack_table.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/huffsyms.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/status_conversion.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/stream_encoder.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/stream_map.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/timeout_encoding.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/varint.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2_transport.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/metadata.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/stream_op.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/transport.o: 
+
 
 LIBGRPC_TEST_UTIL_SRC = \
     test/core/end2end/data/server1_cert.c \
@@ -3361,6 +3517,18 @@ ifneq ($(NO_DEPS),true)
 endif
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/data/server1_cert.o: 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/data/server1_key.o: 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/data/test_root_cert.o: 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/cq_verifier.o: 
+$(OBJDIR)/$(CONFIG)/test/core/iomgr/endpoint_tests.o: 
+$(OBJDIR)/$(CONFIG)/test/core/statistics/census_log_tests.o: 
+$(OBJDIR)/$(CONFIG)/test/core/util/grpc_profiler.o: 
+$(OBJDIR)/$(CONFIG)/test/core/util/parse_hexstring.o: 
+$(OBJDIR)/$(CONFIG)/test/core/util/port_posix.o: 
+$(OBJDIR)/$(CONFIG)/test/core/util/port_windows.o: 
+$(OBJDIR)/$(CONFIG)/test/core/util/slice_splitter.o: 
+
 
 LIBGRPC_TEST_UTIL_UNSECURE_SRC = \
     test/core/end2end/cq_verifier.c \
@@ -3391,6 +3559,15 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC_TEST_UTIL_UNSECURE_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/cq_verifier.o: 
+$(OBJDIR)/$(CONFIG)/test/core/iomgr/endpoint_tests.o: 
+$(OBJDIR)/$(CONFIG)/test/core/statistics/census_log_tests.o: 
+$(OBJDIR)/$(CONFIG)/test/core/util/grpc_profiler.o: 
+$(OBJDIR)/$(CONFIG)/test/core/util/parse_hexstring.o: 
+$(OBJDIR)/$(CONFIG)/test/core/util/port_posix.o: 
+$(OBJDIR)/$(CONFIG)/test/core/util/port_windows.o: 
+$(OBJDIR)/$(CONFIG)/test/core/util/slice_splitter.o: 
 
 
 LIBGRPC_UNSECURE_SRC = \
@@ -3535,6 +3712,105 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC_UNSECURE_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/src/core/surface/init_unsecure.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/call_op_string.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/census_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/channel_args.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/channel_stack.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/child_channel.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/client_channel.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/client_setup.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/connected_channel.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/http_client_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/http_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/http_server_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/channel/noop_filter.o: 
+$(OBJDIR)/$(CONFIG)/src/core/compression/algorithm.o: 
+$(OBJDIR)/$(CONFIG)/src/core/compression/message_compress.o: 
+$(OBJDIR)/$(CONFIG)/src/core/debug/trace.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/alarm.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/alarm_heap.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/endpoint.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/endpoint_pair_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/endpoint_pair_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/fd_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/iocp_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/iomgr.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/iomgr_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/iomgr_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_kick.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_epoll.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_multipoller_with_poll_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/pollset_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/resolve_address_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/resolve_address_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/sockaddr_utils.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/socket_utils_common_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/socket_utils_linux.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/socket_utils_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/socket_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/tcp_client_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/tcp_client_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/tcp_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/tcp_server_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/tcp_server_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/tcp_windows.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/time_averaged_stats.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/wakeup_fd_eventfd.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/wakeup_fd_nospecial.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/wakeup_fd_pipe.o: 
+$(OBJDIR)/$(CONFIG)/src/core/iomgr/wakeup_fd_posix.o: 
+$(OBJDIR)/$(CONFIG)/src/core/json/json.o: 
+$(OBJDIR)/$(CONFIG)/src/core/json/json_reader.o: 
+$(OBJDIR)/$(CONFIG)/src/core/json/json_string.o: 
+$(OBJDIR)/$(CONFIG)/src/core/json/json_writer.o: 
+$(OBJDIR)/$(CONFIG)/src/core/profiling/timers.o: 
+$(OBJDIR)/$(CONFIG)/src/core/statistics/census_init.o: 
+$(OBJDIR)/$(CONFIG)/src/core/statistics/census_log.o: 
+$(OBJDIR)/$(CONFIG)/src/core/statistics/census_rpc_stats.o: 
+$(OBJDIR)/$(CONFIG)/src/core/statistics/census_tracing.o: 
+$(OBJDIR)/$(CONFIG)/src/core/statistics/hash_table.o: 
+$(OBJDIR)/$(CONFIG)/src/core/statistics/window_stats.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/byte_buffer.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/byte_buffer_queue.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/byte_buffer_reader.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/call.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/call_details.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/call_log_batch.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/channel.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/channel_create.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/client.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/completion_queue.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/event_string.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/init.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/lame_client.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/metadata_array.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/server.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/server_chttp2.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/server_create.o: 
+$(OBJDIR)/$(CONFIG)/src/core/surface/surface_trace.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/alpn.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/bin_encoder.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_data.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_goaway.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_ping.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_rst_stream.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_settings.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/frame_window_update.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/hpack_parser.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/hpack_table.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/huffsyms.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/status_conversion.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/stream_encoder.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/stream_map.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/timeout_encoding.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2/varint.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/chttp2_transport.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/metadata.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/stream_op.o: 
+$(OBJDIR)/$(CONFIG)/src/core/transport/transport.o: 
+
 
 LIBGRPC++_SRC = \
     src/cpp/client/secure_credentials.cc \
@@ -3667,6 +3943,33 @@ ifneq ($(NO_DEPS),true)
 endif
 endif
 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/secure_credentials.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/secure_server_credentials.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/channel.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/channel_arguments.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/client_context.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/client_unary_call.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/create_channel.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/credentials.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/generic_stub.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/insecure_credentials.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/internal_stub.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/common/call.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/common/completion_queue.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/common/rpc_method.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/proto/proto_utils.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/async_generic_service.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/insecure_server_credentials.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/server.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/server_builder.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/server_context.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/server_credentials.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/thread_pool.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/util/byte_buffer.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/util/slice.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/util/status.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/util/time.o: 
+
 
 LIBGRPC++_TEST_CONFIG_SRC = \
     test/cpp/util/test_config.cc \
@@ -3713,6 +4016,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC++_TEST_CONFIG_OBJS:.o=.dep)
 endif
 endif
+
+$(OBJDIR)/$(CONFIG)/test/cpp/util/test_config.o: 
 
 
 LIBGRPC++_TEST_UTIL_SRC = \
@@ -3764,8 +4069,12 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC++_TEST_UTIL_OBJS:.o=.dep)
 endif
 endif
-$(OBJDIR)/$(CONFIG)/test/cpp/util/cli_call.o: $(GENDIR)/test/cpp/util/messages.pb.cc $(GENDIR)/test/cpp/util/messages.grpc.pb.cc $(GENDIR)/test/cpp/util/echo.pb.cc $(GENDIR)/test/cpp/util/echo.grpc.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/util/create_test_channel.o: $(GENDIR)/test/cpp/util/messages.pb.cc $(GENDIR)/test/cpp/util/messages.grpc.pb.cc $(GENDIR)/test/cpp/util/echo.pb.cc $(GENDIR)/test/cpp/util/echo.grpc.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.grpc.pb.cc
+
+
+
+
+$(OBJDIR)/$(CONFIG)/test/cpp/util/cli_call.o:     $(GENDIR)/test/cpp/util/messages.pb.cc $(GENDIR)/test/cpp/util/messages.grpc.pb.cc    $(GENDIR)/test/cpp/util/echo.pb.cc $(GENDIR)/test/cpp/util/echo.grpc.pb.cc    $(GENDIR)/test/cpp/util/echo_duplicate.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/test/cpp/util/create_test_channel.o:     $(GENDIR)/test/cpp/util/messages.pb.cc $(GENDIR)/test/cpp/util/messages.grpc.pb.cc    $(GENDIR)/test/cpp/util/echo.pb.cc $(GENDIR)/test/cpp/util/echo.grpc.pb.cc    $(GENDIR)/test/cpp/util/echo_duplicate.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.grpc.pb.cc
 
 
 LIBGRPC++_UNSECURE_SRC = \
@@ -3879,6 +4188,31 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC++_UNSECURE_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/channel.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/channel_arguments.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/client_context.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/client_unary_call.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/create_channel.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/credentials.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/generic_stub.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/insecure_credentials.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/client/internal_stub.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/common/call.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/common/completion_queue.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/common/rpc_method.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/proto/proto_utils.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/async_generic_service.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/insecure_server_credentials.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/server.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/server_builder.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/server_context.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/server_credentials.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/server/thread_pool.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/util/byte_buffer.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/util/slice.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/util/status.o: 
+$(OBJDIR)/$(CONFIG)/src/cpp/util/time.o: 
+
 
 LIBGRPC_PLUGIN_SUPPORT_SRC = \
     src/compiler/cpp_generator.cc \
@@ -3915,6 +4249,11 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC_PLUGIN_SUPPORT_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/src/compiler/cpp_generator.o: 
+$(OBJDIR)/$(CONFIG)/src/compiler/objective_c_generator.o: 
+$(OBJDIR)/$(CONFIG)/src/compiler/python_generator.o: 
+$(OBJDIR)/$(CONFIG)/src/compiler/ruby_generator.o: 
 
 
 LIBINTEROP_CLIENT_HELPER_SRC = \
@@ -3962,6 +4301,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBINTEROP_CLIENT_HELPER_OBJS:.o=.dep)
 endif
 endif
+
+$(OBJDIR)/$(CONFIG)/test/cpp/interop/client_helper.o: 
 
 
 LIBINTEROP_CLIENT_MAIN_SRC = \
@@ -4013,8 +4354,12 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBINTEROP_CLIENT_MAIN_OBJS:.o=.dep)
 endif
 endif
-$(OBJDIR)/$(CONFIG)/test/cpp/interop/client.o: $(GENDIR)/test/proto/empty.pb.cc $(GENDIR)/test/proto/empty.grpc.pb.cc $(GENDIR)/test/proto/messages.pb.cc $(GENDIR)/test/proto/messages.grpc.pb.cc $(GENDIR)/test/proto/test.pb.cc $(GENDIR)/test/proto/test.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/interop/interop_client.o: $(GENDIR)/test/proto/empty.pb.cc $(GENDIR)/test/proto/empty.grpc.pb.cc $(GENDIR)/test/proto/messages.pb.cc $(GENDIR)/test/proto/messages.grpc.pb.cc $(GENDIR)/test/proto/test.pb.cc $(GENDIR)/test/proto/test.grpc.pb.cc
+
+
+
+
+$(OBJDIR)/$(CONFIG)/test/cpp/interop/client.o:     $(GENDIR)/test/proto/empty.pb.cc $(GENDIR)/test/proto/empty.grpc.pb.cc    $(GENDIR)/test/proto/messages.pb.cc $(GENDIR)/test/proto/messages.grpc.pb.cc    $(GENDIR)/test/proto/test.pb.cc $(GENDIR)/test/proto/test.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/test/cpp/interop/interop_client.o:     $(GENDIR)/test/proto/empty.pb.cc $(GENDIR)/test/proto/empty.grpc.pb.cc    $(GENDIR)/test/proto/messages.pb.cc $(GENDIR)/test/proto/messages.grpc.pb.cc    $(GENDIR)/test/proto/test.pb.cc $(GENDIR)/test/proto/test.grpc.pb.cc
 
 
 LIBINTEROP_SERVER_HELPER_SRC = \
@@ -4062,6 +4407,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBINTEROP_SERVER_HELPER_OBJS:.o=.dep)
 endif
 endif
+
+$(OBJDIR)/$(CONFIG)/test/cpp/interop/server_helper.o: 
 
 
 LIBINTEROP_SERVER_MAIN_SRC = \
@@ -4112,7 +4459,11 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBINTEROP_SERVER_MAIN_OBJS:.o=.dep)
 endif
 endif
-$(OBJDIR)/$(CONFIG)/test/cpp/interop/server.o: $(GENDIR)/test/proto/empty.pb.cc $(GENDIR)/test/proto/empty.grpc.pb.cc $(GENDIR)/test/proto/messages.pb.cc $(GENDIR)/test/proto/messages.grpc.pb.cc $(GENDIR)/test/proto/test.pb.cc $(GENDIR)/test/proto/test.grpc.pb.cc
+
+
+
+
+$(OBJDIR)/$(CONFIG)/test/cpp/interop/server.o:     $(GENDIR)/test/proto/empty.pb.cc $(GENDIR)/test/proto/empty.grpc.pb.cc    $(GENDIR)/test/proto/messages.pb.cc $(GENDIR)/test/proto/messages.grpc.pb.cc    $(GENDIR)/test/proto/test.pb.cc $(GENDIR)/test/proto/test.grpc.pb.cc
 
 
 LIBPUBSUB_CLIENT_LIB_SRC = \
@@ -4164,8 +4515,12 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBPUBSUB_CLIENT_LIB_OBJS:.o=.dep)
 endif
 endif
-$(OBJDIR)/$(CONFIG)/examples/pubsub/publisher.o: $(GENDIR)/examples/pubsub/label.pb.cc $(GENDIR)/examples/pubsub/label.grpc.pb.cc $(GENDIR)/examples/pubsub/empty.pb.cc $(GENDIR)/examples/pubsub/empty.grpc.pb.cc $(GENDIR)/examples/pubsub/pubsub.pb.cc $(GENDIR)/examples/pubsub/pubsub.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/examples/pubsub/subscriber.o: $(GENDIR)/examples/pubsub/label.pb.cc $(GENDIR)/examples/pubsub/label.grpc.pb.cc $(GENDIR)/examples/pubsub/empty.pb.cc $(GENDIR)/examples/pubsub/empty.grpc.pb.cc $(GENDIR)/examples/pubsub/pubsub.pb.cc $(GENDIR)/examples/pubsub/pubsub.grpc.pb.cc
+
+
+
+
+$(OBJDIR)/$(CONFIG)/examples/pubsub/publisher.o:     $(GENDIR)/examples/pubsub/label.pb.cc $(GENDIR)/examples/pubsub/label.grpc.pb.cc    $(GENDIR)/examples/pubsub/empty.pb.cc $(GENDIR)/examples/pubsub/empty.grpc.pb.cc    $(GENDIR)/examples/pubsub/pubsub.pb.cc $(GENDIR)/examples/pubsub/pubsub.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/examples/pubsub/subscriber.o:     $(GENDIR)/examples/pubsub/label.pb.cc $(GENDIR)/examples/pubsub/label.grpc.pb.cc    $(GENDIR)/examples/pubsub/empty.pb.cc $(GENDIR)/examples/pubsub/empty.grpc.pb.cc    $(GENDIR)/examples/pubsub/pubsub.pb.cc $(GENDIR)/examples/pubsub/pubsub.grpc.pb.cc
 
 
 LIBQPS_SRC = \
@@ -4221,14 +4576,16 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBQPS_OBJS:.o=.dep)
 endif
 endif
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/client_async.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/client_sync.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/driver.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/qps_worker.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/report.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/server_async.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/server_sync.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/timer.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
+
+
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/client_async.o:     $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/client_sync.o:     $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/driver.o:     $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/qps_worker.o:     $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/report.o:     $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/server_async.o:     $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/server_sync.o:     $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/timer.o:     $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
 
 
 LIBGRPC_CSHARP_EXT_SRC = \
@@ -4289,6 +4646,8 @@ ifneq ($(NO_DEPS),true)
 endif
 endif
 
+$(OBJDIR)/$(CONFIG)/src/csharp/ext/grpc_csharp_ext.o: 
+
 
 LIBEND2END_FIXTURE_CHTTP2_FAKE_SECURITY_SRC = \
     test/core/end2end/fixtures/chttp2_fake_security.c \
@@ -4326,6 +4685,8 @@ ifneq ($(NO_DEPS),true)
 endif
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/chttp2_fake_security.o: 
+
 
 LIBEND2END_FIXTURE_CHTTP2_FULLSTACK_SRC = \
     test/core/end2end/fixtures/chttp2_fullstack.c \
@@ -4349,6 +4710,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_FIXTURE_CHTTP2_FULLSTACK_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/chttp2_fullstack.o: 
+
 
 LIBEND2END_FIXTURE_CHTTP2_FULLSTACK_UDS_SRC = \
     test/core/end2end/fixtures/chttp2_fullstack_uds.c \
@@ -4371,6 +4734,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_FIXTURE_CHTTP2_FULLSTACK_UDS_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/chttp2_fullstack_uds.o: 
 
 
 LIBEND2END_FIXTURE_CHTTP2_SIMPLE_SSL_FULLSTACK_SRC = \
@@ -4409,6 +4774,8 @@ ifneq ($(NO_DEPS),true)
 endif
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/chttp2_simple_ssl_fullstack.o: 
+
 
 LIBEND2END_FIXTURE_CHTTP2_SIMPLE_SSL_WITH_OAUTH2_FULLSTACK_SRC = \
     test/core/end2end/fixtures/chttp2_simple_ssl_with_oauth2_fullstack.c \
@@ -4446,6 +4813,8 @@ ifneq ($(NO_DEPS),true)
 endif
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/chttp2_simple_ssl_with_oauth2_fullstack.o: 
+
 
 LIBEND2END_FIXTURE_CHTTP2_SOCKET_PAIR_SRC = \
     test/core/end2end/fixtures/chttp2_socket_pair.c \
@@ -4468,6 +4837,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_FIXTURE_CHTTP2_SOCKET_PAIR_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/chttp2_socket_pair.o: 
 
 
 LIBEND2END_FIXTURE_CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_SRC = \
@@ -4492,6 +4863,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_FIXTURE_CHTTP2_SOCKET_PAIR_ONE_BYTE_AT_A_TIME_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/chttp2_socket_pair_one_byte_at_a_time.o: 
+
 
 LIBEND2END_TEST_BAD_HOSTNAME_SRC = \
     test/core/end2end/tests/bad_hostname.c \
@@ -4514,6 +4887,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_BAD_HOSTNAME_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/bad_hostname.o: 
 
 
 LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_SRC = \
@@ -4538,6 +4913,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/cancel_after_accept.o: 
+
 
 LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_SRC = \
     test/core/end2end/tests/cancel_after_accept_and_writes_closed.c \
@@ -4560,6 +4937,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/cancel_after_accept_and_writes_closed.o: 
 
 
 LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_SRC = \
@@ -4584,6 +4963,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_AND_WRITES_CLOSED_LEGACY_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/cancel_after_accept_and_writes_closed_legacy.o: 
+
 
 LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_LEGACY_SRC = \
     test/core/end2end/tests/cancel_after_accept_legacy.c \
@@ -4606,6 +4987,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_AFTER_ACCEPT_LEGACY_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/cancel_after_accept_legacy.o: 
 
 
 LIBEND2END_TEST_CANCEL_AFTER_INVOKE_SRC = \
@@ -4630,6 +5013,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_AFTER_INVOKE_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/cancel_after_invoke.o: 
+
 
 LIBEND2END_TEST_CANCEL_AFTER_INVOKE_LEGACY_SRC = \
     test/core/end2end/tests/cancel_after_invoke_legacy.c \
@@ -4652,6 +5037,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_AFTER_INVOKE_LEGACY_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/cancel_after_invoke_legacy.o: 
 
 
 LIBEND2END_TEST_CANCEL_BEFORE_INVOKE_SRC = \
@@ -4676,6 +5063,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_BEFORE_INVOKE_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/cancel_before_invoke.o: 
+
 
 LIBEND2END_TEST_CANCEL_BEFORE_INVOKE_LEGACY_SRC = \
     test/core/end2end/tests/cancel_before_invoke_legacy.c \
@@ -4698,6 +5087,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_BEFORE_INVOKE_LEGACY_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/cancel_before_invoke_legacy.o: 
 
 
 LIBEND2END_TEST_CANCEL_IN_A_VACUUM_SRC = \
@@ -4722,6 +5113,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_IN_A_VACUUM_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/cancel_in_a_vacuum.o: 
+
 
 LIBEND2END_TEST_CANCEL_IN_A_VACUUM_LEGACY_SRC = \
     test/core/end2end/tests/cancel_in_a_vacuum_legacy.c \
@@ -4744,6 +5137,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CANCEL_IN_A_VACUUM_LEGACY_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/cancel_in_a_vacuum_legacy.o: 
 
 
 LIBEND2END_TEST_CENSUS_SIMPLE_REQUEST_SRC = \
@@ -4768,6 +5163,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CENSUS_SIMPLE_REQUEST_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/census_simple_request.o: 
+
 
 LIBEND2END_TEST_CENSUS_SIMPLE_REQUEST_LEGACY_SRC = \
     test/core/end2end/tests/census_simple_request_legacy.c \
@@ -4790,6 +5187,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_CENSUS_SIMPLE_REQUEST_LEGACY_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/census_simple_request_legacy.o: 
 
 
 LIBEND2END_TEST_DISAPPEARING_SERVER_SRC = \
@@ -4814,6 +5213,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_DISAPPEARING_SERVER_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/disappearing_server.o: 
+
 
 LIBEND2END_TEST_DISAPPEARING_SERVER_LEGACY_SRC = \
     test/core/end2end/tests/disappearing_server_legacy.c \
@@ -4836,6 +5237,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_DISAPPEARING_SERVER_LEGACY_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/disappearing_server_legacy.o: 
 
 
 LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_SRC = \
@@ -4860,6 +5263,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/early_server_shutdown_finishes_inflight_calls.o: 
+
 
 LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_SRC = \
     test/core/end2end/tests/early_server_shutdown_finishes_inflight_calls_legacy.c \
@@ -4882,6 +5287,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_INFLIGHT_CALLS_LEGACY_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/early_server_shutdown_finishes_inflight_calls_legacy.o: 
 
 
 LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_SRC = \
@@ -4906,6 +5313,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/early_server_shutdown_finishes_tags.o: 
+
 
 LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_SRC = \
     test/core/end2end/tests/early_server_shutdown_finishes_tags_legacy.c \
@@ -4928,6 +5337,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_EARLY_SERVER_SHUTDOWN_FINISHES_TAGS_LEGACY_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/early_server_shutdown_finishes_tags_legacy.o: 
 
 
 LIBEND2END_TEST_EMPTY_BATCH_SRC = \
@@ -4952,6 +5363,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_EMPTY_BATCH_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/empty_batch.o: 
+
 
 LIBEND2END_TEST_GRACEFUL_SERVER_SHUTDOWN_SRC = \
     test/core/end2end/tests/graceful_server_shutdown.c \
@@ -4974,6 +5387,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_GRACEFUL_SERVER_SHUTDOWN_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/graceful_server_shutdown.o: 
 
 
 LIBEND2END_TEST_GRACEFUL_SERVER_SHUTDOWN_LEGACY_SRC = \
@@ -4998,6 +5413,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_GRACEFUL_SERVER_SHUTDOWN_LEGACY_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/graceful_server_shutdown_legacy.o: 
+
 
 LIBEND2END_TEST_INVOKE_LARGE_REQUEST_SRC = \
     test/core/end2end/tests/invoke_large_request.c \
@@ -5020,6 +5437,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_INVOKE_LARGE_REQUEST_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/invoke_large_request.o: 
 
 
 LIBEND2END_TEST_INVOKE_LARGE_REQUEST_LEGACY_SRC = \
@@ -5044,6 +5463,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_INVOKE_LARGE_REQUEST_LEGACY_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/invoke_large_request_legacy.o: 
+
 
 LIBEND2END_TEST_MAX_CONCURRENT_STREAMS_SRC = \
     test/core/end2end/tests/max_concurrent_streams.c \
@@ -5066,6 +5487,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_MAX_CONCURRENT_STREAMS_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/max_concurrent_streams.o: 
 
 
 LIBEND2END_TEST_MAX_CONCURRENT_STREAMS_LEGACY_SRC = \
@@ -5090,6 +5513,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_MAX_CONCURRENT_STREAMS_LEGACY_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/max_concurrent_streams_legacy.o: 
+
 
 LIBEND2END_TEST_NO_OP_SRC = \
     test/core/end2end/tests/no_op.c \
@@ -5112,6 +5537,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_NO_OP_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/no_op.o: 
 
 
 LIBEND2END_TEST_NO_OP_LEGACY_SRC = \
@@ -5136,6 +5563,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_NO_OP_LEGACY_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/no_op_legacy.o: 
+
 
 LIBEND2END_TEST_PING_PONG_STREAMING_SRC = \
     test/core/end2end/tests/ping_pong_streaming.c \
@@ -5158,6 +5587,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_PING_PONG_STREAMING_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/ping_pong_streaming.o: 
 
 
 LIBEND2END_TEST_PING_PONG_STREAMING_LEGACY_SRC = \
@@ -5182,6 +5613,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_PING_PONG_STREAMING_LEGACY_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/ping_pong_streaming_legacy.o: 
+
 
 LIBEND2END_TEST_REGISTERED_CALL_SRC = \
     test/core/end2end/tests/registered_call.c \
@@ -5204,6 +5637,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REGISTERED_CALL_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/registered_call.o: 
 
 
 LIBEND2END_TEST_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_SRC = \
@@ -5228,6 +5663,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/request_response_with_binary_metadata_and_payload.o: 
+
 
 LIBEND2END_TEST_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_SRC = \
     test/core/end2end/tests/request_response_with_binary_metadata_and_payload_legacy.c \
@@ -5250,6 +5687,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_BINARY_METADATA_AND_PAYLOAD_LEGACY_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/request_response_with_binary_metadata_and_payload_legacy.o: 
 
 
 LIBEND2END_TEST_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_SRC = \
@@ -5274,6 +5713,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/request_response_with_metadata_and_payload.o: 
+
 
 LIBEND2END_TEST_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_SRC = \
     test/core/end2end/tests/request_response_with_metadata_and_payload_legacy.c \
@@ -5296,6 +5737,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_METADATA_AND_PAYLOAD_LEGACY_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/request_response_with_metadata_and_payload_legacy.o: 
 
 
 LIBEND2END_TEST_REQUEST_RESPONSE_WITH_PAYLOAD_SRC = \
@@ -5320,6 +5763,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_PAYLOAD_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/request_response_with_payload.o: 
+
 
 LIBEND2END_TEST_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_SRC = \
     test/core/end2end/tests/request_response_with_payload_legacy.c \
@@ -5342,6 +5787,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_PAYLOAD_LEGACY_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/request_response_with_payload_legacy.o: 
 
 
 LIBEND2END_TEST_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_SRC = \
@@ -5366,6 +5813,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_RESPONSE_WITH_TRAILING_METADATA_AND_PAYLOAD_LEGACY_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/request_response_with_trailing_metadata_and_payload_legacy.o: 
+
 
 LIBEND2END_TEST_REQUEST_WITH_LARGE_METADATA_SRC = \
     test/core/end2end/tests/request_with_large_metadata.c \
@@ -5388,6 +5837,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_WITH_LARGE_METADATA_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/request_with_large_metadata.o: 
 
 
 LIBEND2END_TEST_REQUEST_WITH_LARGE_METADATA_LEGACY_SRC = \
@@ -5412,6 +5863,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_WITH_LARGE_METADATA_LEGACY_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/request_with_large_metadata_legacy.o: 
+
 
 LIBEND2END_TEST_REQUEST_WITH_PAYLOAD_SRC = \
     test/core/end2end/tests/request_with_payload.c \
@@ -5434,6 +5887,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_WITH_PAYLOAD_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/request_with_payload.o: 
 
 
 LIBEND2END_TEST_REQUEST_WITH_PAYLOAD_LEGACY_SRC = \
@@ -5458,6 +5913,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_REQUEST_WITH_PAYLOAD_LEGACY_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/request_with_payload_legacy.o: 
+
 
 LIBEND2END_TEST_SIMPLE_DELAYED_REQUEST_SRC = \
     test/core/end2end/tests/simple_delayed_request.c \
@@ -5480,6 +5937,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_SIMPLE_DELAYED_REQUEST_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/simple_delayed_request.o: 
 
 
 LIBEND2END_TEST_SIMPLE_DELAYED_REQUEST_LEGACY_SRC = \
@@ -5504,6 +5963,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_SIMPLE_DELAYED_REQUEST_LEGACY_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/simple_delayed_request_legacy.o: 
+
 
 LIBEND2END_TEST_SIMPLE_REQUEST_SRC = \
     test/core/end2end/tests/simple_request.c \
@@ -5526,6 +5987,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_SIMPLE_REQUEST_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/simple_request.o: 
 
 
 LIBEND2END_TEST_SIMPLE_REQUEST_LEGACY_SRC = \
@@ -5550,6 +6013,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_SIMPLE_REQUEST_LEGACY_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/simple_request_legacy.o: 
+
 
 LIBEND2END_TEST_THREAD_STRESS_SRC = \
     test/core/end2end/tests/thread_stress.c \
@@ -5572,6 +6037,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_THREAD_STRESS_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/thread_stress.o: 
 
 
 LIBEND2END_TEST_THREAD_STRESS_LEGACY_SRC = \
@@ -5596,6 +6063,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_THREAD_STRESS_LEGACY_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/thread_stress_legacy.o: 
+
 
 LIBEND2END_TEST_WRITES_DONE_HANGS_WITH_PENDING_READ_SRC = \
     test/core/end2end/tests/writes_done_hangs_with_pending_read.c \
@@ -5619,6 +6088,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_WRITES_DONE_HANGS_WITH_PENDING_READ_OBJS:.o=.dep)
 endif
 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/writes_done_hangs_with_pending_read.o: 
+
 
 LIBEND2END_TEST_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_SRC = \
     test/core/end2end/tests/writes_done_hangs_with_pending_read_legacy.c \
@@ -5641,6 +6112,8 @@ endif
 ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_TEST_WRITES_DONE_HANGS_WITH_PENDING_READ_LEGACY_OBJS:.o=.dep)
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/tests/writes_done_hangs_with_pending_read_legacy.o: 
 
 
 LIBEND2END_CERTS_SRC = \
@@ -5680,6 +6153,10 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBEND2END_CERTS_OBJS:.o=.dep)
 endif
 endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/data/test_root_cert.o: 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/data/server1_cert.o: 
+$(OBJDIR)/$(CONFIG)/test/core/end2end/data/server1_key.o: 
 
 
 
