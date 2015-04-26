@@ -51,4 +51,3 @@ re-generate the project files using the following command:
 
 `./tools/buildgen/generate_projects.sh`
 
-You'll find more information about this in the [templates](templates) folder.

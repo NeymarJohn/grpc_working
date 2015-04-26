@@ -37,8 +37,7 @@
 
 // A fully-qualified gRPC method name. Full qualification is needed because a gRPC endpoint can
 // implement multiple interfaces.
-// TODO(jcanizales): Move to ProtoRPC package.
-// TODO(jcanizales): Rename interface -> service.
+// TODO(jcanizales): Is this proto-specific, or actual part of gRPC? If the former, move one layer up.
 @interface GRPCMethodName : NSObject
 @property(nonatomic, readonly) NSString *package;
 @property(nonatomic, readonly) NSString *interface;
