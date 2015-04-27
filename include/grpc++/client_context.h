@@ -35,7 +35,6 @@
 #define GRPCXX_CLIENT_CONTEXT_H
 
 #include <map>
-#include <memory>
 #include <string>
 
 #include <grpc/support/log.h>
@@ -127,10 +126,9 @@ class ClientContext {
   friend class ::grpc::ClientAsyncResponseReader;
 
   grpc_call* call() { return call_; }
-  void set_call(grpc_call* call, const std::shared_ptr<ChannelInterface>& channel) {
+  void set_call(grpc_call* call) {
     GPR_ASSERT(call_ == nullptr);
     call_ = call;
-    channel_ = channel;
   }
 
   grpc_completion_queue* cq() { return cq_; }
@@ -139,7 +137,6 @@ class ClientContext {
   grpc::string authority() { return authority_; }
 
   bool initial_metadata_received_;
-  std::shared_ptr<ChannelInterface> channel_;
   grpc_call* call_;
   grpc_completion_queue* cq_;
   gpr_timespec deadline_;
