@@ -33,11 +33,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
-
+using System.Threading.Tasks;
 using Google.ProtocolBuffers;
 using grpc.testing;
-using Grpc.Auth;
 using Grpc.Core;
 using Grpc.Core.Utils;
 using NUnit.Framework;
@@ -46,11 +47,6 @@ namespace Grpc.IntegrationTesting
 {
     public class InteropClient
     {
-        private const string ServiceAccountUser = "155450119199-3psnrh1sdr3d8cpj1v46naggf81mhdnk@developer.gserviceaccount.com";
-        private const string ComputeEngineUser = "155450119199-r5aaqa2vqoa9g5mv2m6s3m1l293rlmel@developer.gserviceaccount.com";
-        private const string AuthScope = "https://www.googleapis.com/auth/xapi.zoo";
-        private const string AuthScopeResponse = "xapi.zoo";
-
         private class ClientOptions
         {
             public bool help;
@@ -119,18 +115,7 @@ namespace Grpc.IntegrationTesting
 
             using (Channel channel = new Channel(addr, credentials, channelArgs))
             {
-                var stubConfig = StubConfiguration.Default;
-                if (options.testCase == "service_account_creds" || options.testCase == "compute_engine_creds")
-                {
-                    var credential = GoogleCredential.GetApplicationDefault();
-                    if (credential.IsCreateScopedRequired)
-                    {
-                        credential = credential.CreateScoped(new[] { AuthScope });
-                    }
-                    stubConfig = new StubConfiguration(OAuth2InterceptorFactory.Create(credential));
-                }
-
-                TestServiceGrpc.ITestServiceClient client = new TestServiceGrpc.TestServiceClientStub(channel, stubConfig);
+                TestServiceGrpc.ITestServiceClient client = new TestServiceGrpc.TestServiceClientStub(channel);
                 RunTestCase(options.testCase, client);
             }
 
@@ -158,12 +143,6 @@ namespace Grpc.IntegrationTesting
                     break;
                 case "empty_stream":
                     RunEmptyStream(client);
-                    break;
-                case "service_account_creds":
-                    RunServiceAccountCreds(client);
-                    break;
-                case "compute_engine_creds":
-                    RunComputeEngineCreds(client);
                     break;
                 case "benchmark_empty_unary":
                     RunBenchmarkEmptyUnary(client);
@@ -305,46 +284,6 @@ namespace Grpc.IntegrationTesting
             var responseList = recorder.ToList().Result;
             Assert.AreEqual(0, responseList.Count);
 
-            Console.WriteLine("Passed!");
-        }
-
-        public static void RunServiceAccountCreds(TestServiceGrpc.ITestServiceClient client)
-        {
-            Console.WriteLine("running service_account_creds");
-            var request = SimpleRequest.CreateBuilder()
-                .SetResponseType(PayloadType.COMPRESSABLE)
-                    .SetResponseSize(314159)
-                    .SetPayload(CreateZerosPayload(271828))
-                    .SetFillUsername(true)
-                    .SetFillOauthScope(true)
-                    .Build();
-
-            var response = client.UnaryCall(request);
-
-            Assert.AreEqual(PayloadType.COMPRESSABLE, response.Payload.Type);
-            Assert.AreEqual(314159, response.Payload.Body.Length);
-            Assert.AreEqual(AuthScopeResponse, response.OauthScope);
-            Assert.AreEqual(ServiceAccountUser, response.Username);
-            Console.WriteLine("Passed!");
-        }
-
-        public static void RunComputeEngineCreds(TestServiceGrpc.ITestServiceClient client)
-        {
-            Console.WriteLine("running compute_engine_creds");
-            var request = SimpleRequest.CreateBuilder()
-                .SetResponseType(PayloadType.COMPRESSABLE)
-                    .SetResponseSize(314159)
-                    .SetPayload(CreateZerosPayload(271828))
-                    .SetFillUsername(true)
-                    .SetFillOauthScope(true)
-                    .Build();
-
-            var response = client.UnaryCall(request);
-
-            Assert.AreEqual(PayloadType.COMPRESSABLE, response.Payload.Type);
-            Assert.AreEqual(314159, response.Payload.Body.Length);
-            Assert.AreEqual(AuthScopeResponse, response.OauthScope);
-            Assert.AreEqual(ServiceAccountUser, response.Username);
             Console.WriteLine("Passed!");
         }
 
