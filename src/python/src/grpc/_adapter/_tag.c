@@ -31,34 +31,35 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
-#define GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
+#include "grpc/_adapter/_tag.h"
 
-#include "src/core/channel/channel_stack.h"
+#include <Python.h>
+#include <grpc/grpc.h>
+#include <grpc/support/alloc.h>
 
-/* helper for filters that need to host child channel stacks... handles
-   lifetime and upwards propagation cleanly */
+pygrpc_tag *pygrpc_tag_new(pygrpc_tag_type type, PyObject *user_tag,
+                           Call *call) {
+  pygrpc_tag *self = (pygrpc_tag *)gpr_malloc(sizeof(pygrpc_tag));
+  memset(self, 0, sizeof(pygrpc_tag));
+  if (user_tag == NULL) {
+    self->user_tag = Py_None;
+  } else {
+    self->user_tag = user_tag;
+  }
+  Py_INCREF(self->user_tag);
+  self->type = type;
+  self->call = call;
+  Py_INCREF(call);
+  return self;
+}
 
-extern const grpc_channel_filter grpc_child_channel_top_filter;
+pygrpc_tag *pygrpc_tag_new_server_rpc_call(PyObject *user_tag) {
+  return pygrpc_tag_new(PYGRPC_SERVER_RPC_NEW, user_tag,
+                        (Call *)pygrpc_CallType.tp_alloc(&pygrpc_CallType, 0));
+}
 
-typedef grpc_channel_stack grpc_child_channel;
-typedef grpc_call_stack grpc_child_call;
-
-/* filters[0] must be &grpc_child_channel_top_filter */
-grpc_child_channel *grpc_child_channel_create(
-    grpc_channel_element *parent, const grpc_channel_filter **filters,
-    size_t filter_count, const grpc_channel_args *args,
-    grpc_mdctx *metadata_context);
-void grpc_child_channel_handle_op(grpc_child_channel *channel,
-                                  grpc_channel_op *op);
-grpc_channel_element *grpc_child_channel_get_bottom_element(
-    grpc_child_channel *channel);
-void grpc_child_channel_destroy(grpc_child_channel *channel,
-                                int wait_for_callbacks);
-
-grpc_child_call *grpc_child_channel_create_call(grpc_child_channel *channel,
-                                                grpc_call_element *parent);
-grpc_call_element *grpc_child_call_get_top_element(grpc_child_call *call);
-void grpc_child_call_destroy(grpc_child_call *call);
-
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H */
+void pygrpc_tag_destroy(pygrpc_tag *self) {
+  Py_XDECREF(self->user_tag);
+  Py_XDECREF(self->call);
+  gpr_free(self);
+}

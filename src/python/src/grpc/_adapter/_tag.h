@@ -31,34 +31,40 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
-#define GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
+#ifndef _ADAPTER__TAG_H_
+#define _ADAPTER__TAG_H_
 
-#include "src/core/channel/channel_stack.h"
+#include <Python.h>
+#include <grpc/grpc.h>
 
-/* helper for filters that need to host child channel stacks... handles
-   lifetime and upwards propagation cleanly */
+#include "grpc/_adapter/_call.h"
+#include "grpc/_adapter/_completion_queue.h"
 
-extern const grpc_channel_filter grpc_child_channel_top_filter;
+/* grpc_completion_type is becoming meaningless in grpc_event; this is a partial
+   replacement for its descriptive functionality until Python can move its whole
+   C and C adapter stack to more closely resemble the core batching API. */
+typedef enum {
+  PYGRPC_SERVER_RPC_NEW       = 0,
+  PYGRPC_INITIAL_METADATA     = 1,
+  PYGRPC_READ                 = 2,
+  PYGRPC_WRITE_ACCEPTED       = 3,
+  PYGRPC_FINISH_ACCEPTED      = 4,
+  PYGRPC_CLIENT_METADATA_READ = 5,
+  PYGRPC_FINISHED_CLIENT      = 6,
+  PYGRPC_FINISHED_SERVER      = 7,
+} pygrpc_tag_type;
 
-typedef grpc_channel_stack grpc_child_channel;
-typedef grpc_call_stack grpc_child_call;
+typedef struct {
+  pygrpc_tag_type type;
+  PyObject *user_tag;
 
-/* filters[0] must be &grpc_child_channel_top_filter */
-grpc_child_channel *grpc_child_channel_create(
-    grpc_channel_element *parent, const grpc_channel_filter **filters,
-    size_t filter_count, const grpc_channel_args *args,
-    grpc_mdctx *metadata_context);
-void grpc_child_channel_handle_op(grpc_child_channel *channel,
-                                  grpc_channel_op *op);
-grpc_channel_element *grpc_child_channel_get_bottom_element(
-    grpc_child_channel *channel);
-void grpc_child_channel_destroy(grpc_child_channel *channel,
-                                int wait_for_callbacks);
+  Call *call;
+} pygrpc_tag;
 
-grpc_child_call *grpc_child_channel_create_call(grpc_child_channel *channel,
-                                                grpc_call_element *parent);
-grpc_call_element *grpc_child_call_get_top_element(grpc_child_call *call);
-void grpc_child_call_destroy(grpc_child_call *call);
+pygrpc_tag *pygrpc_tag_new(pygrpc_tag_type type, PyObject *user_tag,
+                           Call *call);
+pygrpc_tag *pygrpc_tag_new_server_rpc_call(PyObject *user_tag);
+void pygrpc_tag_destroy(pygrpc_tag *self);
 
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H */
+#endif /* _ADAPTER__TAG_H_ */
+

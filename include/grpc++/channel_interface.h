@@ -34,8 +34,6 @@
 #ifndef GRPCXX_CHANNEL_INTERFACE_H
 #define GRPCXX_CHANNEL_INTERFACE_H
 
-#include <memory>
-
 #include <grpc++/status.h>
 #include <grpc++/impl/call.h>
 
@@ -49,9 +47,7 @@ class CompletionQueue;
 class RpcMethod;
 class CallInterface;
 
-class ChannelInterface 
-	: public CallHook, 
-      public std::enable_shared_from_this<ChannelInterface> {
+class ChannelInterface : public CallHook {
  public:
   virtual ~ChannelInterface() {}
 
