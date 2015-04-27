@@ -31,12 +31,9 @@
  *
  */
 
-#include <grpc++/config.h>
-
-#ifndef GRPC_CXX0X_NO_CHRONO
+#include "src/cpp/util/time.h"
 
 #include <grpc/support/time.h>
-#include <grpc++/time.h>
 
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
@@ -71,5 +68,3 @@ system_clock::time_point Timespec2Timepoint(gpr_timespec t) {
 }
 
 }  // namespace grpc
-
-#endif  // !GRPC_CXX0X_NO_CHRONO
