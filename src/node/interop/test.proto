@@ -30,8 +30,7 @@
 
 // An integration test service that covers all the method signature permutations
 // of unary/streaming requests/responses.
-
-syntax = "proto3";
+syntax = "proto2";
 
 import "empty.proto";
 import "messages.proto";
