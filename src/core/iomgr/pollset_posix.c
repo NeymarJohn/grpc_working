@@ -47,19 +47,15 @@
 #include "src/core/iomgr/fd_posix.h"
 #include "src/core/iomgr/iomgr_internal.h"
 #include "src/core/iomgr/socket_utils_posix.h"
-#include "src/core/profiling/timers.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/thd.h>
-#include <grpc/support/tls.h>
 #include <grpc/support/useful.h>
 
 static grpc_pollset g_backup_pollset;
 static int g_shutdown_backup_poller;
 static gpr_event g_backup_poller_done;
 static gpr_event g_backup_pollset_shutdown_done;
-
-GPR_TLS_DECL(g_current_thread_poller);
 
 static void backup_poller(void *p) {
   gpr_timespec delta = gpr_time_from_millis(100);
@@ -80,21 +76,17 @@ static void backup_poller(void *p) {
 }
 
 void grpc_pollset_kick(grpc_pollset *p) {
-  if (gpr_tls_get(&g_current_thread_poller) != (gpr_intptr)p && p->counter) {
+  if (p->counter) {
     p->vtable->kick(p);
   }
 }
 
 void grpc_pollset_force_kick(grpc_pollset *p) {
-  if (gpr_tls_get(&g_current_thread_poller) != (gpr_intptr)p) {
-    grpc_pollset_kick_kick(&p->kick_state);
-  }
+  grpc_pollset_kick_kick(&p->kick_state);
 }
 
 static void kick_using_pollset_kick(grpc_pollset *p) {
-  if (gpr_tls_get(&g_current_thread_poller) != (gpr_intptr)p) {
-    grpc_pollset_kick_kick(&p->kick_state);
-  }
+  grpc_pollset_kick_kick(&p->kick_state);
 }
 
 /* global state management */
@@ -103,8 +95,6 @@ grpc_pollset *grpc_backup_pollset(void) { return &g_backup_pollset; }
 
 void grpc_pollset_global_init(void) {
   gpr_thd_id id;
-
-  gpr_tls_init(&g_current_thread_poller);
 
   /* Initialize kick fd state */
   grpc_pollset_kick_global_init();
@@ -139,8 +129,6 @@ void grpc_pollset_global_shutdown(void) {
 
   /* destroy the kick pipes */
   grpc_pollset_kick_global_destroy();
-
-  gpr_tls_destroy(&g_current_thread_poller);
 }
 
 /* main interface */
@@ -173,8 +161,8 @@ void grpc_pollset_del_fd(grpc_pollset *pollset, grpc_fd *fd) {
 
 int grpc_pollset_work(grpc_pollset *pollset, gpr_timespec deadline) {
   /* pollset->mu already held */
-  gpr_timespec now = gpr_now();
-  int r;
+  gpr_timespec now;
+  now = gpr_now();
   if (gpr_time_cmp(now, deadline) > 0) {
     return 0;
   }
@@ -184,10 +172,7 @@ int grpc_pollset_work(grpc_pollset *pollset, gpr_timespec deadline) {
   if (grpc_alarm_check(&pollset->mu, now, &deadline)) {
     return 1;
   }
-  gpr_tls_set(&g_current_thread_poller, (gpr_intptr)pollset);
-  r = pollset->vtable->maybe_work(pollset, deadline, now, 1);
-  gpr_tls_set(&g_current_thread_poller, 0);
-  return r;
+  return pollset->vtable->maybe_work(pollset, deadline, now, 1);
 }
 
 void grpc_pollset_shutdown(grpc_pollset *pollset,
@@ -411,7 +396,6 @@ static int unary_poll_pollset_maybe_work(grpc_pollset *pollset,
   pfd[1].events = grpc_fd_begin_poll(fd, pollset, POLLIN, POLLOUT, &fd_watcher);
 
   r = poll(pfd, GPR_ARRAY_SIZE(pfd), timeout);
-  GRPC_TIMER_MARK(POLL_FINISHED, r);
 
   grpc_fd_end_poll(&fd_watcher);
 
