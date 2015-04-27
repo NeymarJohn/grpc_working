@@ -31,21 +31,19 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_UTIL_TIME_H
-#define GRPC_INTERNAL_CPP_UTIL_TIME_H
+#import <Foundation/Foundation.h>
 
-#include <chrono>
+@class ProtoRPC;
+@protocol GRXWriteable;
+@protocol GRXWriter;
 
-#include <grpc/support/time.h>
+@interface ProtoService : NSObject
+- (instancetype)initWithHost:(NSString *)host
+                 packageName:(NSString *)packageName
+                 serviceName:(NSString *)serviceName NS_DESIGNATED_INITIALIZER;
 
-namespace grpc {
-
-// from and to should be absolute time.
-void Timepoint2Timespec(const std::chrono::system_clock::time_point& from,
-                        gpr_timespec* to);
-
-std::chrono::system_clock::time_point Timespec2Timepoint(gpr_timespec t);
-
-}  // namespace grpc
-
-#endif  // GRPC_INTERNAL_CPP_UTIL_TIME_H
+- (ProtoRPC *)RPCToMethod:(NSString *)method
+           requestsWriter:(id<GRXWriter>)requestsWriter
+  	        responseClass:(Class)responseClass
+  	   responsesWriteable:(id<GRXWriteable>)responsesWriteable;
+@end

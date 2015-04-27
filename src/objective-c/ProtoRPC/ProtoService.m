@@ -31,13 +31,51 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
-#define GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
+#import "ProtoService.h"
 
-#include "src/core/channel/channel_stack.h"
+#import <gRPC/GRPCMethodName.h>
+#import <gRPC/GRXWriteable.h>
+#import <gRPC/GRXWriter.h>
 
-/* Processes metadata that is common to both client and server for HTTP2
-   transports. */
-extern const grpc_channel_filter grpc_http_filter;
+#import "ProtoRPC.h"
 
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H */
+@implementation ProtoService {
+  NSString *_host;
+  NSString *_packageName;
+  NSString *_serviceName;
+}
+
+- (instancetype)init {
+  return [self initWithHost:nil packageName:nil serviceName:nil];
+}
+
+// Designated initializer
+- (instancetype)initWithHost:(NSString *)host
+                 packageName:(NSString *)packageName
+                 serviceName:(NSString *)serviceName {
+  if (!host || !serviceName) {
+    [NSException raise:NSInvalidArgumentException
+                format:@"Neither host nor serviceName can be nil."];
+  }
+  if ((self = [super init])) {
+    _host = [host copy];
+    _packageName = [packageName copy];
+    _serviceName = [serviceName copy];
+  }
+  return self;
+}
+
+- (ProtoRPC *)RPCToMethod:(NSString *)method
+           requestsWriter:(id<GRXWriter>)requestsWriter
+            responseClass:(Class)responseClass
+       responsesWriteable:(id<GRXWriteable>)responsesWriteable {
+  GRPCMethodName *methodName = [[GRPCMethodName alloc] initWithPackage:_packageName
+                                                             interface:_serviceName
+                                                                method:method];
+  return [[ProtoRPC alloc] initWithHost:_host
+                                 method:methodName
+                         requestsWriter:requestsWriter
+                          responseClass:responseClass
+                     responsesWriteable:responsesWriteable];
+}
+@end
