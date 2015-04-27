@@ -61,7 +61,7 @@ class SimpleConfig(object):
     self.environ = environ
     self.environ['CONFIG'] = config
 
-  def job_spec(self, cmdline, hash_targets, shortname=None):
+  def job_spec(self, cmdline, hash_targets):
     """Construct a jobset.JobSpec for a test under this config
 
        Args:
@@ -74,7 +74,6 @@ class SimpleConfig(object):
                           be listed
     """
     return jobset.JobSpec(cmdline=cmdline,
-                          shortname=shortname,
                           environ=self.environ,
                           hash_targets=hash_targets
                               if self.allow_hashing else None)
@@ -219,13 +218,9 @@ class RubyLanguage(object):
 
 
 class CSharpLanguage(object):
+
   def test_specs(self, config, travis):
-    assemblies = ['Grpc.Core.Tests',
-                  'Grpc.Examples.Tests',
-                  'Grpc.IntegrationTesting']
-    return [config.job_spec(['tools/run_tests/run_csharp.sh', assembly],
-            None, shortname=assembly)
-            for assembly in assemblies ]
+    return [config.job_spec('tools/run_tests/run_csharp.sh', None)]
 
   def make_targets(self):
     return ['grpc_csharp_ext']
@@ -264,7 +259,7 @@ class Build(object):
     return []
 
   def make_targets(self):
-    return ['static']
+    return ['all']
 
   def build_steps(self):
     return []
@@ -351,8 +346,8 @@ if len(build_configs) > 1:
 
 if platform.system() == 'Windows':
   def make_jobspec(cfg, targets):
-    return jobset.JobSpec(['make.bat', 'CONFIG=%s' % cfg] + targets,
-                          cwd='vsprojects', shell=True)
+    return jobset.JobSpec(['nmake', '/f', 'Grpc.mak', 'CONFIG=%s' % cfg] + targets,
+                          cwd='vsprojects\\vs2013')
 else:
   def make_jobspec(cfg, targets):
     return jobset.JobSpec(['make',

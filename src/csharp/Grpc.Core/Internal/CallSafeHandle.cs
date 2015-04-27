@@ -33,7 +33,6 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Grpc.Core;
-using Grpc.Core.Utils;
 
 namespace Grpc.Core.Internal
 {
@@ -181,7 +180,7 @@ namespace Grpc.Core.Internal
 
         private static void AssertCallOk(GRPCCallError callError)
         {
-            Preconditions.CheckState(callError == GRPCCallError.GRPC_CALL_OK, "Status not GRPC_CALL_OK");
+            Trace.Assert(callError == GRPCCallError.GRPC_CALL_OK, "Status not GRPC_CALL_OK");
         }
 
         private static uint GetFlags(bool buffered)

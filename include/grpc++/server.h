@@ -40,7 +40,6 @@
 #include <grpc++/completion_queue.h>
 #include <grpc++/config.h>
 #include <grpc++/impl/call.h>
-#include <grpc++/impl/grpc_library.h>
 #include <grpc++/impl/service_type.h>
 #include <grpc++/impl/sync.h>
 #include <grpc++/status.h>
@@ -57,8 +56,7 @@ class ServerCredentials;
 class ThreadPoolInterface;
 
 // Currently it only supports handling rpcs in a single thread.
-class Server GRPC_FINAL : public GrpcLibrary,
-                          private CallHook,
+class Server GRPC_FINAL : private CallHook,
                           private AsynchronousService::DispatchImpl {
  public:
   ~Server();
