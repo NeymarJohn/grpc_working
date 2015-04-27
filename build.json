@@ -1,7 +1,4 @@
 {
-  "#1": "This file describes the list of targets and dependencies.",
-  "#2": "It is used among other things to generate all of our project files.",
-  "#3": "Please refer to the templates directory for more information.",
   "settings": {
     "#": "The public version number of the library.",
     "version": {
@@ -28,7 +25,6 @@
         "include/grpc++/generic_stub.h",
         "include/grpc++/impl/call.h",
         "include/grpc++/impl/client_unary_call.h",
-        "include/grpc++/impl/grpc_library.h",
         "include/grpc++/impl/internal_stub.h",
         "include/grpc++/impl/rpc_method.h",
         "include/grpc++/impl/rpc_service_method.h",
@@ -47,13 +43,13 @@
         "include/grpc++/status.h",
         "include/grpc++/status_code_enum.h",
         "include/grpc++/stream.h",
-        "include/grpc++/thread_pool_interface.h",
-        "include/grpc++/time.h"
+        "include/grpc++/thread_pool_interface.h"
       ],
       "headers": [
         "src/cpp/client/channel.h",
         "src/cpp/proto/proto_utils.h",
-        "src/cpp/server/thread_pool.h"
+        "src/cpp/server/thread_pool.h",
+        "src/cpp/util/time.h"
       ],
       "src": [
         "src/cpp/client/channel.cc",
@@ -100,7 +96,9 @@
         "src/core/channel/client_setup.h",
         "src/core/channel/connected_channel.h",
         "src/core/channel/http_client_filter.h",
+        "src/core/channel/http_filter.h",
         "src/core/channel/http_server_filter.h",
+        "src/core/channel/metadata_buffer.h",
         "src/core/channel/noop_filter.h",
         "src/core/compression/algorithm.h",
         "src/core/compression/message_compress.h",
@@ -181,6 +179,7 @@
         "src/core/transport/transport_impl.h"
       ],
       "src": [
+        "src/core/channel/call_op_string.c",
         "src/core/channel/census_filter.c",
         "src/core/channel/channel_args.c",
         "src/core/channel/channel_stack.c",
@@ -189,7 +188,9 @@
         "src/core/channel/client_setup.c",
         "src/core/channel/connected_channel.c",
         "src/core/channel/http_client_filter.c",
+        "src/core/channel/http_filter.c",
         "src/core/channel/http_server_filter.c",
+        "src/core/channel/metadata_buffer.c",
         "src/core/channel/noop_filter.c",
         "src/core/compression/algorithm.c",
         "src/core/compression/message_compress.c",
@@ -275,21 +276,7 @@
         "src/core/transport/chttp2_transport.c",
         "src/core/transport/metadata.c",
         "src/core/transport/stream_op.c",
-        "src/core/transport/transport.c",
-        "src/core/transport/transport_op_string.c"
-      ]
-    },
-    {
-      "name": "grpc_test_util_base",
-      "src": [
-        "test/core/end2end/cq_verifier.c",
-        "test/core/iomgr/endpoint_tests.c",
-        "test/core/statistics/census_log_tests.c",
-        "test/core/util/grpc_profiler.c",
-        "test/core/util/parse_hexstring.c",
-        "test/core/util/port_posix.c",
-        "test/core/util/port_windows.c",
-        "test/core/util/slice_splitter.c"
+        "src/core/transport/transport.c"
       ]
     }
   ],
@@ -387,7 +374,6 @@
       "deps": [
         "gpr"
       ],
-      "secure": "no",
       "vs_project_guid": "{EAB0A629-17A9-44DB-B5FF-E91A721FE037}"
     },
     {
@@ -451,34 +437,25 @@
       "build": "private",
       "language": "c",
       "src": [
+        "test/core/end2end/cq_verifier.c",
         "test/core/end2end/data/server1_cert.c",
         "test/core/end2end/data/server1_key.c",
-        "test/core/end2end/data/test_root_cert.c"
+        "test/core/end2end/data/test_root_cert.c",
+        "test/core/iomgr/endpoint_tests.c",
+        "test/core/statistics/census_log_tests.c",
+        "test/core/transport/transport_end2end_tests.c",
+        "test/core/util/grpc_profiler.c",
+        "test/core/util/parse_hexstring.c",
+        "test/core/util/port_posix.c",
+        "test/core/util/port_windows.c",
+        "test/core/util/slice_splitter.c"
       ],
       "deps": [
         "gpr",
         "gpr_test_util",
         "grpc"
-      ],
-      "filegroups": [
-        "grpc_test_util_base"
       ],
       "vs_project_guid": "{17BCAFC0-5FDC-4C94-AEB9-95F3E220614B}"
-    },
-    {
-      "name": "grpc_test_util_unsecure",
-      "build": "private",
-      "language": "c",
-      "deps": [
-        "gpr",
-        "gpr_test_util",
-        "grpc"
-      ],
-      "filegroups": [
-        "grpc_test_util_base"
-      ],
-      "secure": "no",
-      "vs_project_guid": "{0A7E7F92-FDEA-40F1-A9EC-3BA484F98BBF}"
     },
     {
       "name": "grpc_unsecure",
@@ -809,7 +786,6 @@
     },
     {
       "name": "census_statistics_multiple_writers_test",
-      "flaky": true,
       "build": "test",
       "language": "c",
       "src": [
@@ -824,7 +800,6 @@
     },
     {
       "name": "census_statistics_performance_test",
-      "flaky": true,
       "build": "test",
       "language": "c",
       "src": [
@@ -839,7 +814,6 @@
     },
     {
       "name": "census_statistics_quick_test",
-      "flaky": true,
       "build": "test",
       "language": "c",
       "src": [
@@ -957,6 +931,20 @@
       "language": "c",
       "src": [
         "test/core/transport/chttp2/stream_map_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "chttp2_transport_end2end_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/transport/chttp2_transport_end2end_test.c"
       ],
       "deps": [
         "grpc_test_util",
@@ -1591,6 +1579,20 @@
       "language": "c",
       "src": [
         "test/core/compression/message_compress_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "metadata_buffer_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/channel/metadata_buffer_test.c"
       ],
       "deps": [
         "grpc_test_util",
