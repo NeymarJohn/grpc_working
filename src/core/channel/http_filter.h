@@ -31,20 +31,13 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_GRPC_LIBRARY_H
-#define GRPCXX_IMPL_GRPC_LIBRARY_H
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
+#define GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
 
-#include <grpc/grpc.h>
+#include "src/core/channel/channel_stack.h"
 
-namespace grpc {
+/* Processes metadata that is common to both client and server for HTTP2
+   transports. */
+extern const grpc_channel_filter grpc_http_filter;
 
-class GrpcLibrary {
- public:
-  GrpcLibrary() { grpc_init(); }
-  virtual ~GrpcLibrary() { grpc_shutdown(); }
-};
-
-}  // namespace grpc
-
-
-#endif  // GRPCXX_IMPL_GRPC_LIBRARY_H
+#endif  /* GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H */
