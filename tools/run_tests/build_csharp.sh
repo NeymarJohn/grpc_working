@@ -30,21 +30,9 @@
 
 set -ex
 
-if [ "$CONFIG" = "dbg" ]
-then
-  MSBUILD_CONFIG="Debug"
-else
-  MSBUILD_CONFIG="Release"
-fi
-
 # change to gRPC repo root
 cd $(dirname $0)/../..
 
 root=`pwd`
 
-if [ -n "$NUGET" ]
-then
-  $NUGET restore src/csharp/Grpc.sln
-fi
-
-xbuild /p:Configuration=$MSBUILD_CONFIG src/csharp/Grpc.sln
+xbuild src/csharp/Grpc.sln
