@@ -32,15 +32,66 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <gRPC/GRPCCall.h>
+#include <grpc/grpc.h>
+#import "GRPCChannel.h"
 
-@interface ProtoRPC : GRPCCall
+typedef void(^GRPCCompletionHandler)(NSDictionary *);
 
-- (instancetype)initWithHost:(NSString *)host
-                      method:(GRPCMethodName *)method
-              requestsWriter:(id<GRXWriter>)requestsWriter
-               responseClass:(Class)responseClass
-          responsesWriteable:(id<GRXWriteable>)responsesWriteable NS_DESIGNATED_INITIALIZER;
+@protocol GRPCOp <NSObject>
 
-- (void)start;
+- (void)getOp:(grpc_op *)op;
+
+- (void(^)(void))opProcessor;
+
+@end
+
+@interface GRPCOpSendMetadata : NSObject <GRPCOp>
+
+- (instancetype)initWithMetadata:(NSDictionary *)metadata
+                         handler:(void(^)(void))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpSendMessage : NSObject <GRPCOp>
+
+- (instancetype)initWithMessage:(NSData *)message
+                        handler:(void(^)(void))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpSendClose : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(void))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpRecvMetadata : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(NSDictionary *))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpRecvMessage : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(grpc_byte_buffer *))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpRecvStatus : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(NSError *))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCWrappedCall : NSObject
+
+- (instancetype)initWithChannel:(GRPCChannel *)channel
+                         method:(NSString *)method
+                           host:(NSString *)host NS_DESIGNATED_INITIALIZER;
+
+- (void)startBatchWithOperations:(NSArray *)ops errorHandler:(void(^)())errorHandler;
+
+- (void)startBatchWithOperations:(NSArray *)ops;
+
+- (void)cancel;
 @end

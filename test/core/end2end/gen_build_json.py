@@ -110,7 +110,7 @@ def main():
               'name': 'end2end_fixture_%s' % f,
               'build': 'private',
               'language': 'c',
-              'secure': 'check' if END2END_FIXTURES[f] else 'no',
+              'secure': 'check',
               'src': ['test/core/end2end/fixtures/%s.c' % f]
           }
           for f in sorted(END2END_FIXTURES.keys())] + [
@@ -140,7 +140,6 @@ def main():
               'build': 'test',
               'language': 'c',
               'src': [],
-              'flaky': 'invoke_large_request' in t,
               'deps': [
                   'end2end_fixture_%s' % f,
                   'end2end_test_%s' % t,
@@ -157,13 +156,11 @@ def main():
               'name': '%s_%s_unsecure_test' % (f, t),
               'build': 'test',
               'language': 'c',
-              'secure': 'no',
               'src': [],
-              'flaky': 'invoke_large_request' in t,
               'deps': [
                   'end2end_fixture_%s' % f,
                   'end2end_test_%s' % t,
-                  'grpc_test_util_unsecure',
+                  'grpc_test_util',
                   'grpc_unsecure',
                   'gpr_test_util',
                   'gpr'
