@@ -40,7 +40,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include <grpc/grpc.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
@@ -141,12 +140,11 @@ static void read_cb(void *user_data, gpr_slice *slices, size_t nslices,
                     grpc_endpoint_cb_status error) {
   struct read_socket_state *state = (struct read_socket_state *)user_data;
   ssize_t read_bytes;
-  int current_data;
+  int current_data = 0;
 
   GPR_ASSERT(error == GRPC_ENDPOINT_CB_OK);
 
   gpr_mu_lock(&state->mu);
-  current_data = state->read_bytes % 256;
   read_bytes = count_and_unref_slices(slices, nslices, &current_data);
   state->read_bytes += read_bytes;
   gpr_log(GPR_INFO, "Read %d bytes of %d", read_bytes,
@@ -485,10 +483,10 @@ static grpc_endpoint_test_config configs[] = {
 
 int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
-  grpc_init();
+  grpc_iomgr_init();
   run_tests();
   grpc_endpoint_tests(configs[0]);
-  grpc_shutdown();
+  grpc_iomgr_shutdown();
 
   return 0;
 }
