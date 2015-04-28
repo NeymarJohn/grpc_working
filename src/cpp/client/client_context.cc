@@ -34,7 +34,9 @@
 #include <grpc++/client_context.h>
 
 #include <grpc/grpc.h>
-#include <grpc++/time.h>
+#include "src/cpp/util/time.h"
+
+using std::chrono::system_clock;
 
 namespace grpc {
 
@@ -42,7 +44,7 @@ ClientContext::ClientContext()
     : initial_metadata_received_(false),
       call_(nullptr),
       cq_(nullptr),
-      deadline_(gpr_inf_future) {}
+      absolute_deadline_(gpr_inf_future) {}
 
 ClientContext::~ClientContext() {
   if (call_) {
@@ -60,6 +62,15 @@ ClientContext::~ClientContext() {
     } while (t != GRPC_QUEUE_SHUTDOWN);
     grpc_completion_queue_destroy(cq_);
   }
+}
+
+void ClientContext::set_absolute_deadline(
+    const system_clock::time_point& deadline) {
+  Timepoint2Timespec(deadline, &absolute_deadline_);
+}
+
+system_clock::time_point ClientContext::absolute_deadline() {
+  return Timespec2Timepoint(absolute_deadline_);
 }
 
 void ClientContext::AddMetadata(const grpc::string& meta_key,

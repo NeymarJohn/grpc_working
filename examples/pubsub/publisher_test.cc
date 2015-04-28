@@ -148,8 +148,10 @@ TEST_F(PublisherTest, TestPublisher) {
 
 int main(int argc, char** argv) {
   grpc_test_init(argc, argv);
+  grpc_init();
   ::testing::InitGoogleTest(&argc, argv);
   gpr_log(GPR_INFO, "Start test ...");
   int result = RUN_ALL_TESTS();
+  grpc_shutdown();
   return result;
 }
