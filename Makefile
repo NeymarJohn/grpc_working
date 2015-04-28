@@ -183,6 +183,7 @@ DEFINES_gcov = NDEBUG
 prefix ?= /usr/local
 
 PROTOC = protoc
+DTRACE = dtrace
 CONFIG ?= opt
 CC = $(CC_$(CONFIG))
 CXX = $(CXX_$(CONFIG))
@@ -350,6 +351,8 @@ PERFTOOLS_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/perfto
 PROTOBUF_CHECK_CMD = $(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/protobuf.cc -lprotobuf $(LDFLAGS)
 PROTOC_CHECK_CMD = which protoc > /dev/null
 PROTOC_CHECK_VERSION_CMD = protoc --version | grep -q libprotoc.3
+DTRACE_CHECK_CMD = which dtrace > /dev/null
+SYSTEMTAP_HEADERS_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/systemtap.c $(LDFLAGS)
 
 ifeq ($(OPENSSL_REQUIRES_DL),true)
 OPENSSL_ALPN_CHECK_CMD += -ldl
@@ -380,6 +383,19 @@ ifeq ($(HAS_PROTOC),true)
 HAS_VALID_PROTOC = $(shell $(PROTOC_CHECK_VERSION_CMD) 2> /dev/null && echo true || echo false)
 else
 HAS_VALID_PROTOC = false
+endif
+
+# Check for Systemtap (https://sourceware.org/systemtap/), first by making sure <sys/sdt.h> is present
+# in the system and secondly by checking for the "dtrace" binary (on Linux, this is part of the Systemtap
+# distribution. It's part of the base system on BSD/Solaris machines).
+HAS_SYSTEMTAP_HEADERS = $(shell $(SYSTEMTAP_HEADERS_CHECK_CMD) 2> /dev/null && echo true || echo false)
+HAS_DTRACE = $(shell $(DTRACE_CHECK_CMD) 2> /dev/null && echo true || echo false)
+HAS_SYSTEMTAP = false
+ifeq ($(HAS_SYSTEMTAP_HEADERS),true)
+ifeq ($(HAS_DTRACE),true)
+HAS_SYSTEMTAP = true
+DEFINES += GRPC_STAP_PROFILER
+endif
 endif
 
 ifeq ($(wildcard third_party/openssl/ssl/ssl.h),)
@@ -2779,6 +2795,15 @@ $(GENDIR)/test/proto/test.grpc.pb.cc: test/proto/test.proto $(PROTOBUF_DEP) $(PR
 endif
 
 
+ifeq ($(HAS_SYSTEMTAP),true)
+$(GENDIR)/src/core/profiling/stap_probes.h: src/core/profiling/stap_probes.d
+	$(E) "[DTRACE]  Compiling $<"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(DTRACE) -C -h -s $< -o $@
+
+src/core/profiling/timers.h: $(GENDIR)/src/core/profiling/stap_probes.h
+endif
+
 $(OBJDIR)/$(CONFIG)/%.o : %.c
 	$(E) "[C]       Compiling $<"
 	$(Q) mkdir -p `dirname $@`
@@ -3146,6 +3171,7 @@ LIBGRPC_SRC = \
     src/core/tsi/fake_transport_security.c \
     src/core/tsi/ssl_transport_security.c \
     src/core/tsi/transport_security.c \
+    src/core/channel/call_op_string.c \
     src/core/channel/census_filter.c \
     src/core/channel/channel_args.c \
     src/core/channel/channel_stack.c \
@@ -3154,6 +3180,7 @@ LIBGRPC_SRC = \
     src/core/channel/client_setup.c \
     src/core/channel/connected_channel.c \
     src/core/channel/http_client_filter.c \
+    src/core/channel/http_filter.c \
     src/core/channel/http_server_filter.c \
     src/core/channel/noop_filter.c \
     src/core/compression/algorithm.c \
@@ -3241,7 +3268,6 @@ LIBGRPC_SRC = \
     src/core/transport/metadata.c \
     src/core/transport/stream_op.c \
     src/core/transport/transport.c \
-    src/core/transport/transport_op_string.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/grpc_security.h \
@@ -3394,6 +3420,7 @@ endif
 
 LIBGRPC_UNSECURE_SRC = \
     src/core/surface/init_unsecure.c \
+    src/core/channel/call_op_string.c \
     src/core/channel/census_filter.c \
     src/core/channel/channel_args.c \
     src/core/channel/channel_stack.c \
@@ -3402,6 +3429,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/channel/client_setup.c \
     src/core/channel/connected_channel.c \
     src/core/channel/http_client_filter.c \
+    src/core/channel/http_filter.c \
     src/core/channel/http_server_filter.c \
     src/core/channel/noop_filter.c \
     src/core/compression/algorithm.c \
@@ -3489,7 +3517,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/transport/metadata.c \
     src/core/transport/stream_op.c \
     src/core/transport/transport.c \
-    src/core/transport/transport_op_string.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer.h \
