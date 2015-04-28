@@ -31,34 +31,13 @@
  *
  */
 
-#ifndef GRPCXX_CHANNEL_INTERFACE_H
-#define GRPCXX_CHANNEL_INTERFACE_H
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
+#define GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
 
-#include <memory>
+#include "src/core/channel/channel_stack.h"
 
-#include <grpc++/status.h>
-#include <grpc++/impl/call.h>
+/* Processes metadata that is common to both client and server for HTTP2
+   transports. */
+extern const grpc_channel_filter grpc_http_filter;
 
-struct grpc_call;
-
-namespace grpc {
-class Call;
-class CallOpBuffer;
-class ClientContext;
-class CompletionQueue;
-class RpcMethod;
-class CallInterface;
-
-class ChannelInterface : public CallHook,
-                         public std::enable_shared_from_this<ChannelInterface> {
- public:
-  virtual ~ChannelInterface() {}
-
-  virtual void* RegisterMethod(const char* method_name) = 0;
-  virtual Call CreateCall(const RpcMethod& method, ClientContext* context,
-                          CompletionQueue* cq) = 0;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_CHANNEL_INTERFACE_H
+#endif  /* GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H */
