@@ -34,7 +34,6 @@
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 
-#import <gRPC/GRXWriter+Immediate.h>
 #import <RemoteTest/Messages.pb.h>
 #import <RemoteTest/Test.pb.h>
 
@@ -49,82 +48,40 @@
   _service = [[RMTTestService alloc] initWithHost:@"grpc-test.sandbox.google.com"];
 }
 
-// Tests as described here: https://github.com/grpc/grpc/blob/master/doc/interop-test-descriptions.md
+- (void)testEmptyRPC {
+  __weak XCTestExpectation *noRPCError = [self expectationWithDescription:@"RPC succeeded."];
+  __weak XCTestExpectation *responded = [self expectationWithDescription:@"Response received."];
 
-- (void)testEmptyUnaryRPC {
-  __weak XCTestExpectation *expectation = [self expectationWithDescription:@"EmptyUnary"];
-
-  RMTEmpty *request = [RMTEmpty defaultInstance];
-
-  [_service emptyCallWithRequest:request handler:^(RMTEmpty *response, NSError *error) {
+  [_service emptyCallWithRequest:[RMTEmpty defaultInstance]
+                         handler:^(RMTEmpty *response, NSError *error) {
     XCTAssertNil(error, @"Finished with unexpected error: %@", error);
-
-    id expectedResponse = [RMTEmpty defaultInstance];
-    XCTAssertEqualObjects(response, expectedResponse);
-
-    [expectation fulfill];
+    [noRPCError fulfill];
+    XCTAssertNotNil(response, @"nil response received.");
+    [responded fulfill];
   }];
 
   [self waitForExpectationsWithTimeout:2. handler:nil];
 }
 
-- (void)testLargeUnaryRPC {
-  __weak XCTestExpectation *expectation = [self expectationWithDescription:@"EmptyUnary"];
+- (void)testSimpleProtoRPC {
+  __weak XCTestExpectation *noRPCError = [self expectationWithDescription:@"RPC succeeded."];
+  __weak XCTestExpectation *responded = [self expectationWithDescription:@"Response received."];
+  __weak XCTestExpectation *validResponse = [self expectationWithDescription:@"Valid response."];
 
   RMTSimpleRequest *request = [[[[[[RMTSimpleRequestBuilder alloc] init]
-                                  setResponseType:RMTPayloadTypeCompressable]
-                                 setResponseSize:314159]
-                                setPayloadBuilder:[[[RMTPayloadBuilder alloc] init]
-                                             setBody:[NSMutableData dataWithLength:271828]]]
+                                  setResponseSize:100]
+                                 setFillUsername:YES]
+                                setFillOauthScope:YES]
                                build];
-
   [_service unaryCallWithRequest:request handler:^(RMTSimpleResponse *response, NSError *error) {
     XCTAssertNil(error, @"Finished with unexpected error: %@", error);
-
-    id expectedResponse = [[[[RMTSimpleResponseBuilder alloc] init]
-                            setPayloadBuilder:[[[[RMTPayloadBuilder alloc] init]
-                                                setType:RMTPayloadTypeCompressable]
-                                               setBody:[NSMutableData dataWithLength:314159]]]
-                           build];
-    XCTAssertEqualObjects(response, expectedResponse);
-
-    [expectation fulfill];
-  }];
-
-  [self waitForExpectationsWithTimeout:4. handler:nil];
-}
-
-- (void)testClientStreamingRPC {
-  __weak XCTestExpectation *expectation = [self expectationWithDescription:@"EmptyUnary"];
-
-  id request1 = [[[[RMTStreamingInputCallRequestBuilder alloc] init]
-                  setPayloadBuilder:[[[RMTPayloadBuilder alloc] init]
-                                     setBody:[NSMutableData dataWithLength:27182]]]
-                 build];
-  id request2 = [[[[RMTStreamingInputCallRequestBuilder alloc] init]
-                  setPayloadBuilder:[[[RMTPayloadBuilder alloc] init]
-                                     setBody:[NSMutableData dataWithLength:8]]]
-                 build];
-  id request3 = [[[[RMTStreamingInputCallRequestBuilder alloc] init]
-                  setPayloadBuilder:[[[RMTPayloadBuilder alloc] init]
-                                     setBody:[NSMutableData dataWithLength:1828]]]
-                 build];
-  id request4 = [[[[RMTStreamingInputCallRequestBuilder alloc] init]
-                  setPayloadBuilder:[[[RMTPayloadBuilder alloc] init]
-                                     setBody:[NSMutableData dataWithLength:45904]]]
-                 build];
-  id<GRXWriter> writer = [GRXWriter writerWithContainer:@[request1, request2, request3, request4]];
-
-  [_service streamingInputCallWithRequestsWriter:writer
-                                         handler:^(RMTStreamingInputCallResponse *response, NSError *error) {
-    XCTAssertNil(error, @"Finished with unexpected error: %@", error);
-
-    id expectedResponse = [[[[RMTStreamingInputCallResponseBuilder alloc] init]
-                            setAggregatedPayloadSize:74922]
-                           build];
-    XCTAssertEqualObjects(response, expectedResponse);
-
-    [expectation fulfill];
+    [noRPCError fulfill];
+    XCTAssertNotNil(response, @"nil response received.");
+    [responded fulfill];
+    // We expect empty strings, not nil:
+    XCTAssertNotNil(response.username, @"Response's username is nil.");
+    XCTAssertNotNil(response.oauthScope, @"Response's OAuth scope is nil.");
+    [validResponse fulfill];
   }];
 
   [self waitForExpectationsWithTimeout:2. handler:nil];
