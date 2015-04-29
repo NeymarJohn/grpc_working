@@ -36,14 +36,12 @@
 #include <Python.h>
 #include <grpc/grpc.h>
 
-#include "grpc/_adapter/_call.h"
 #include "grpc/_adapter/_completion_queue.h"
 #include "grpc/_adapter/_error.h"
 #include "grpc/_adapter/_server_credentials.h"
-#include "grpc/_adapter/_tag.h"
 
 static int pygrpc_server_init(Server *self, PyObject *args, PyObject *kwds) {
-  CompletionQueue *completion_queue;
+  const PyObject *completion_queue;
   static char *kwlist[] = {"completion_queue", NULL};
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!:Server", kwlist,
@@ -52,9 +50,7 @@ static int pygrpc_server_init(Server *self, PyObject *args, PyObject *kwds) {
     return -1;
   }
   self->c_server = grpc_server_create(
-      completion_queue->c_completion_queue, NULL);
-  self->completion_queue = completion_queue;
-  Py_INCREF(completion_queue);
+      ((CompletionQueue *)completion_queue)->c_completion_queue, NULL);
   return 0;
 }
 
@@ -62,7 +58,6 @@ static void pygrpc_server_dealloc(Server *self) {
   if (self->c_server != NULL) {
     grpc_server_destroy(self->c_server);
   }
-  Py_XDECREF(self->completion_queue);
   self->ob_type->tp_free((PyObject *)self);
 }
 
@@ -114,15 +109,8 @@ static PyObject *pygrpc_server_start(Server *self) {
 static const PyObject *pygrpc_server_service(Server *self, PyObject *tag) {
   grpc_call_error call_error;
   const PyObject *result;
-  pygrpc_tag *c_tag = pygrpc_tag_new_server_rpc_call(tag);
-  c_tag->call->completion_queue = self->completion_queue;
-  c_tag->call->server = self;
-  Py_INCREF(c_tag->call->completion_queue);
-  Py_INCREF(c_tag->call->server);
-  call_error = grpc_server_request_call(
-      self->c_server, &c_tag->call->c_call, &c_tag->call->call_details,
-      &c_tag->call->recv_metadata, self->completion_queue->c_completion_queue,
-      c_tag);
+
+  call_error = grpc_server_request_call_old(self->c_server, (void *)tag);
 
   result = pygrpc_translate_call_error(call_error);
   if (result != NULL) {

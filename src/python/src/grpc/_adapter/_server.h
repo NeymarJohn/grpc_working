@@ -37,12 +37,8 @@
 #include <Python.h>
 #include <grpc/grpc.h>
 
-#include "grpc/_adapter/_completion_queue.h"
-
 typedef struct {
   PyObject_HEAD
-
-  CompletionQueue *completion_queue;
   grpc_server *c_server;
 } Server;
 

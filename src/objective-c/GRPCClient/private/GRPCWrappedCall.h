@@ -31,40 +31,67 @@
  *
  */
 
-#ifndef _ADAPTER__TAG_H_
-#define _ADAPTER__TAG_H_
-
-#include <Python.h>
+#import <Foundation/Foundation.h>
 #include <grpc/grpc.h>
+#import "GRPCChannel.h"
 
-#include "grpc/_adapter/_call.h"
-#include "grpc/_adapter/_completion_queue.h"
+typedef void(^GRPCCompletionHandler)(NSDictionary *);
 
-/* grpc_completion_type is becoming meaningless in grpc_event; this is a partial
-   replacement for its descriptive functionality until Python can move its whole
-   C and C adapter stack to more closely resemble the core batching API. */
-typedef enum {
-  PYGRPC_SERVER_RPC_NEW       = 0,
-  PYGRPC_INITIAL_METADATA     = 1,
-  PYGRPC_READ                 = 2,
-  PYGRPC_WRITE_ACCEPTED       = 3,
-  PYGRPC_FINISH_ACCEPTED      = 4,
-  PYGRPC_CLIENT_METADATA_READ = 5,
-  PYGRPC_FINISHED_CLIENT      = 6,
-  PYGRPC_FINISHED_SERVER      = 7,
-} pygrpc_tag_type;
+@protocol GRPCOp <NSObject>
 
-typedef struct {
-  pygrpc_tag_type type;
-  PyObject *user_tag;
+- (void)getOp:(grpc_op *)op;
 
-  Call *call;
-} pygrpc_tag;
+- (void(^)(void))opProcessor;
 
-pygrpc_tag *pygrpc_tag_new(pygrpc_tag_type type, PyObject *user_tag,
-                           Call *call);
-pygrpc_tag *pygrpc_tag_new_server_rpc_call(PyObject *user_tag);
-void pygrpc_tag_destroy(pygrpc_tag *self);
+@end
 
-#endif /* _ADAPTER__TAG_H_ */
+@interface GRPCOpSendMetadata : NSObject <GRPCOp>
 
+- (instancetype)initWithMetadata:(NSDictionary *)metadata
+                         handler:(void(^)(void))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpSendMessage : NSObject <GRPCOp>
+
+- (instancetype)initWithMessage:(NSData *)message
+                        handler:(void(^)(void))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpSendClose : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(void))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpRecvMetadata : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(NSDictionary *))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpRecvMessage : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(grpc_byte_buffer *))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpRecvStatus : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(NSError *))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCWrappedCall : NSObject
+
+- (instancetype)initWithChannel:(GRPCChannel *)channel
+                         method:(NSString *)method
+                           host:(NSString *)host NS_DESIGNATED_INITIALIZER;
+
+- (void)startBatchWithOperations:(NSArray *)ops errorHandler:(void(^)())errorHandler;
+
+- (void)startBatchWithOperations:(NSArray *)ops;
+
+- (void)cancel;
+@end
