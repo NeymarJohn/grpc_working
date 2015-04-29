@@ -58,12 +58,14 @@ typedef NS_ENUM(NSInteger, GRPCErrorCode) {
 
 // TODO(jcanizales): This is conflating trailing metadata with Status details. Fix it once there's
 // a decision on how to codify Status.
-#include <grpc/grpc.h>
-typedef struct grpc_status {
+#include <grpc/status.h>
+struct grpc_metadata;
+struct grpc_status {
     grpc_status_code status;
     const char *details;
-    grpc_metadata_array metadata;
-} grpc_status;
+    size_t metadata_count;
+    struct grpc_metadata *metadata_elements;
+};
 
 @interface NSError (GRPC)
 // Returns nil if the status is OK. Otherwise, a NSError whose code is one of
