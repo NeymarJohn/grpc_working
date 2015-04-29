@@ -32,9 +32,11 @@
  */
 
 #import <Foundation/Foundation.h>
-#include <grpc/grpc.h>
 
-typedef void(^GRPCQueueCompletionHandler)(grpc_op_error error);
+struct grpc_completion_queue;
+struct grpc_event;
+
+typedef void(^GRPCEventHandler)(struct grpc_event *event);
 
 // This class lets one more easily use grpc_completion_queue. To use it, pass
 // the value of the unmanagedQueue property of an instance of this class to
@@ -46,7 +48,7 @@ typedef void(^GRPCQueueCompletionHandler)(grpc_op_error error);
 // Release the GRPCCompletionQueue object only after you are not going to pass
 // any more blocks to the grpc_call that's using it.
 @interface GRPCCompletionQueue : NSObject
-@property(nonatomic, readonly) grpc_completion_queue *unmanagedQueue;
+@property(nonatomic, readonly) struct grpc_completion_queue *unmanagedQueue;
 
 + (instancetype)completionQueue;
 @end
