@@ -46,7 +46,7 @@
 #include "src/core/channel/http_client_filter.h"
 #include "src/core/iomgr/resolve_address.h"
 #include "src/core/iomgr/tcp_client.h"
-#include "src/core/security/auth.h"
+#include "src/core/security/auth_filters.h"
 #include "src/core/security/credentials.h"
 #include "src/core/security/secure_transport_setup.h"
 #include "src/core/support/string.h"
@@ -140,10 +140,9 @@ static int maybe_try_next_resolved(request *r) {
   if (!r->resolved) return 0;
   if (r->resolved_index == r->resolved->naddrs) return 0;
   addr = &r->resolved->addrs[r->resolved_index++];
-  grpc_tcp_client_connect(
-      on_connect, r, grpc_client_setup_get_interested_parties(r->cs_request),
-      (struct sockaddr *)&addr->addr, addr->len,
-      grpc_client_setup_request_deadline(r->cs_request));
+  grpc_tcp_client_connect(on_connect, r, (struct sockaddr *)&addr->addr,
+                          addr->len,
+                          grpc_client_setup_request_deadline(r->cs_request));
   return 1;
 }
 
