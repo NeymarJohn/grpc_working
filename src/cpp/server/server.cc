@@ -124,12 +124,12 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
       std::unique_ptr<grpc::protobuf::Message> req;
       std::unique_ptr<grpc::protobuf::Message> res;
       if (has_request_payload_) {
-        GRPC_TIMER_BEGIN(PTAG_PROTO_DESERIALIZE, call_.call());
+        GRPC_TIMER_MARK(DESER_PROTO_BEGIN, call_.call());
         req.reset(method_->AllocateRequestProto());
         if (!DeserializeProto(request_payload_, req.get())) {
           abort();  // for now
         }
-        GRPC_TIMER_END(PTAG_PROTO_DESERIALIZE, call_.call());
+        GRPC_TIMER_MARK(DESER_PROTO_END, call_.call());
       }
       if (has_response_payload_) {
         res.reset(method_->AllocateResponseProto());
@@ -180,6 +180,7 @@ Server::Server(ThreadPoolInterface* thread_pool, bool thread_pool_owned)
     : started_(false),
       shutdown_(false),
       num_running_cb_(0),
+      sync_methods_(new std::list<SyncRequest>),
       server_(grpc_server_create(cq_.cq(), nullptr)),
       thread_pool_(thread_pool),
       thread_pool_owned_(thread_pool_owned) {}
@@ -196,6 +197,7 @@ Server::~Server() {
   if (thread_pool_owned_) {
     delete thread_pool_;
   }
+  delete sync_methods_;
 }
 
 bool Server::RegisterService(RpcService* service) {
@@ -208,7 +210,8 @@ bool Server::RegisterService(RpcService* service) {
               method->name());
       return false;
     }
-    sync_methods_.emplace_back(method, tag);
+    SyncRequest request(method, tag);
+    sync_methods_->emplace_back(request);
   }
   return true;
 }
@@ -250,8 +253,8 @@ bool Server::Start() {
   grpc_server_start(server_);
 
   // Start processing rpcs.
-  if (!sync_methods_.empty()) {
-    for (auto m = sync_methods_.begin(); m != sync_methods_.end(); m++) {
+  if (!sync_methods_->empty()) {
+    for (auto m = sync_methods_->begin(); m != sync_methods_->end(); m++) {
       m->Request(server_);
     }
 
@@ -343,9 +346,9 @@ class Server::AsyncRequest GRPC_FINAL : public CompletionQueueTag {
     bool orig_status = *status;
     if (*status && request_) {
       if (payload_) {
-        GRPC_TIMER_BEGIN(PTAG_PROTO_DESERIALIZE, call_);
+        GRPC_TIMER_MARK(DESER_PROTO_BEGIN, call_);
         *status = DeserializeProto(payload_, request_);
-        GRPC_TIMER_END(PTAG_PROTO_DESERIALIZE, call_);
+        GRPC_TIMER_MARK(DESER_PROTO_END, call_);
       } else {
         *status = false;
       }
