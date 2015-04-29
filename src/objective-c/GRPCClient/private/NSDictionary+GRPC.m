@@ -33,7 +33,7 @@
 
 #import "NSDictionary+GRPC.h"
 
-#include <grpc/support/alloc.h>
+#include <grpc.h>
 
 @implementation NSDictionary (GRPC)
 + (instancetype)grpc_dictionaryFromMetadata:(grpc_metadata *)entries count:(size_t)count {
@@ -50,26 +50,6 @@
     // TODO(jcanizales): Should we use a non-copy constructor?
     [metadata[name] addObject:[NSData dataWithBytes:entry->value
                                              length:entry->value_length]];
-  }
-  return metadata;
-}
-
-- (grpc_metadata *)grpc_getMetadataArray {
-  grpc_metadata *metadata = gpr_malloc([self count] * sizeof(grpc_metadata));
-  int i = 0;
-  for (id key in self) {
-    id value = self[key];
-    grpc_metadata *current = &metadata[i];
-    current->key = [key UTF8String];
-    if ([value isKindOfClass:[NSData class]]) {
-      current->value = [value bytes];
-    } else if ([value isKindOfClass:[NSString class]]) {
-      current->value = [value UTF8String];
-    } else {
-      [NSException raise:NSInvalidArgumentException
-                  format:@"Metadata values must be NSString or NSData."];
-    }
-    i += 1;
   }
   return metadata;
 }
