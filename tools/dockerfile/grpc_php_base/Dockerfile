@@ -58,6 +58,7 @@ RUN apt-get update && apt-get install -y \
     libyaml-dev \
     make \
     patch \
+    procps \
     php5-common \
     php5-cli \
     php5-dev \

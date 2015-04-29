@@ -69,10 +69,5 @@ namespace Grpc.Core
                 return detail;
             }
         }
-
-        public override string ToString()
-        {
-            return string.Format("Status(StatusCode={0}, Detail=\"{1}\")", statusCode, detail);
-        }
     }
 }
