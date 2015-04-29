@@ -31,35 +31,67 @@
  *
  */
 
-#include "grpc/_adapter/_tag.h"
-
-#include <Python.h>
+#import <Foundation/Foundation.h>
 #include <grpc/grpc.h>
-#include <grpc/support/alloc.h>
+#import "GRPCChannel.h"
 
-pygrpc_tag *pygrpc_tag_new(pygrpc_tag_type type, PyObject *user_tag,
-                           Call *call) {
-  pygrpc_tag *self = (pygrpc_tag *)gpr_malloc(sizeof(pygrpc_tag));
-  memset(self, 0, sizeof(pygrpc_tag));
-  if (user_tag == NULL) {
-    self->user_tag = Py_None;
-  } else {
-    self->user_tag = user_tag;
-  }
-  Py_INCREF(self->user_tag);
-  self->type = type;
-  self->call = call;
-  Py_INCREF(call);
-  return self;
-}
+typedef void(^GRPCCompletionHandler)(NSDictionary *);
 
-pygrpc_tag *pygrpc_tag_new_server_rpc_call(PyObject *user_tag) {
-  return pygrpc_tag_new(PYGRPC_SERVER_RPC_NEW, user_tag,
-                        (Call *)pygrpc_CallType.tp_alloc(&pygrpc_CallType, 0));
-}
+@protocol GRPCOp <NSObject>
 
-void pygrpc_tag_destroy(pygrpc_tag *self) {
-  Py_XDECREF(self->user_tag);
-  Py_XDECREF(self->call);
-  gpr_free(self);
-}
+- (void)getOp:(grpc_op *)op;
+
+- (void)finish;
+
+@end
+
+@interface GRPCOpSendMetadata : NSObject <GRPCOp>
+
+- (instancetype)initWithMetadata:(NSDictionary *)metadata
+                         handler:(void(^)(void))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpSendMessage : NSObject <GRPCOp>
+
+- (instancetype)initWithMessage:(NSData *)message
+                        handler:(void(^)(void))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpSendClose : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(void))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpRecvMetadata : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(NSDictionary *))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpRecvMessage : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(grpc_byte_buffer *))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpRecvStatus : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(NSError *))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCWrappedCall : NSObject
+
+- (instancetype)initWithChannel:(GRPCChannel *)channel
+                         method:(NSString *)method
+                           host:(NSString *)host NS_DESIGNATED_INITIALIZER;
+
+- (void)startBatchWithOperations:(NSArray *)ops errorHandler:(void(^)())errorHandler;
+
+- (void)startBatchWithOperations:(NSArray *)ops;
+
+- (void)cancel;
+@end
