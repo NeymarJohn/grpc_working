@@ -70,7 +70,7 @@ class SynchronousClient : public Client {
     responses_.resize(num_threads_);
   }
 
-  virtual ~SynchronousClient() {};
+  virtual ~SynchronousClient() { EndThreads(); }
 
  protected:
   size_t num_threads_;
@@ -81,7 +81,7 @@ class SynchronousUnaryClient GRPC_FINAL : public SynchronousClient {
  public:
   SynchronousUnaryClient(const ClientConfig& config):
     SynchronousClient(config) {StartThreads(num_threads_);}
-  ~SynchronousUnaryClient() {EndThreads();}
+  ~SynchronousUnaryClient() {}
   
   bool ThreadFunc(Histogram* histogram, size_t thread_idx) GRPC_OVERRIDE {
     auto* stub = channels_[thread_idx % channels_.size()].get_stub();

@@ -161,6 +161,7 @@
     <ClInclude Include="..\..\src\core\channel\client_setup.h" />
     <ClInclude Include="..\..\src\core\channel\connected_channel.h" />
     <ClInclude Include="..\..\src\core\channel\http_client_filter.h" />
+    <ClInclude Include="..\..\src\core\channel\http_filter.h" />
     <ClInclude Include="..\..\src\core\channel\http_server_filter.h" />
     <ClInclude Include="..\..\src\core\channel\noop_filter.h" />
     <ClInclude Include="..\..\src\core\compression\algorithm.h" />
@@ -244,6 +245,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\core\surface\init_unsecure.c">
     </ClCompile>
+    <ClCompile Include="..\..\src\core\channel\call_op_string.c">
+    </ClCompile>
     <ClCompile Include="..\..\src\core\channel\census_filter.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\channel\channel_args.c">
@@ -259,6 +262,8 @@
     <ClCompile Include="..\..\src\core\channel\connected_channel.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\channel\http_client_filter.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\channel\http_filter.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\channel\http_server_filter.c">
     </ClCompile>
@@ -344,7 +349,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\core\json\json_writer.c">
     </ClCompile>
-    <ClCompile Include="..\..\src\core\profiling\timers.c">
+    <ClCompile Include="..\..\src\core\profiling\basic_timers.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\profiling\stap_timers.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\statistics\census_init.c">
     </ClCompile>
@@ -433,8 +440,6 @@
     <ClCompile Include="..\..\src\core\transport\stream_op.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\transport\transport.c">
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\transport\transport_op_string.c">
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
