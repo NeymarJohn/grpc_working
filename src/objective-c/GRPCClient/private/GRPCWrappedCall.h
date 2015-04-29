@@ -31,27 +31,67 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#import <Foundation/Foundation.h>
+#include <grpc/grpc.h>
+#import "GRPCChannel.h"
 
-#ifdef GRPC_STAP_PROFILER
+typedef void(^GRPCCompletionHandler)(NSDictionary *);
 
-#include "src/core/profiling/timers.h"
+@protocol GRPCOp <NSObject>
 
-#include <sys/sdt.h>
-/* Generated from src/core/profiling/stap_probes.d */
-#include "src/core/profiling/stap_probes.h"
+- (void)getOp:(grpc_op *)op;
 
-/* Latency profiler API implementation. */
-void grpc_timer_add_mark(int tag, void* id, const char *file, int line) {
-  _STAP_ADD_MARK(tag);
-}
+- (void(^)(void))opProcessor;
 
-void grpc_timer_begin(int tag, void* id, const char *file, int line) {
-  _STAP_TIMING_NS_BEGIN(tag);
-}
+@end
 
-void grpc_timer_end(int tag, void* id, const char *file, int line) {
-  _STAP_TIMING_NS_END(tag);
-}
+@interface GRPCOpSendMetadata : NSObject <GRPCOp>
 
-#endif /* GRPC_STAP_PROFILER */
+- (instancetype)initWithMetadata:(NSDictionary *)metadata
+                         handler:(void(^)(void))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpSendMessage : NSObject <GRPCOp>
+
+- (instancetype)initWithMessage:(NSData *)message
+                        handler:(void(^)(void))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpSendClose : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(void))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpRecvMetadata : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(NSDictionary *))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpRecvMessage : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(grpc_byte_buffer *))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCOpRecvStatus : NSObject <GRPCOp>
+
+- (instancetype)initWithHandler:(void(^)(NSError *))handler NS_DESIGNATED_INITIALIZER;
+
+@end
+
+@interface GRPCWrappedCall : NSObject
+
+- (instancetype)initWithChannel:(GRPCChannel *)channel
+                         method:(NSString *)method
+                           host:(NSString *)host NS_DESIGNATED_INITIALIZER;
+
+- (void)startBatchWithOperations:(NSArray *)ops errorHandler:(void(^)())errorHandler;
+
+- (void)startBatchWithOperations:(NSArray *)ops;
+
+- (void)cancel;
+@end

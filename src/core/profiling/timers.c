@@ -31,9 +31,7 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
-
-#ifdef GRPC_BASIC_PROFILER
+#ifdef GRPC_LATENCY_PROFILER
 
 #include "src/core/profiling/timers.h"
 #include "src/core/profiling/timers_preciseclock.h"
@@ -46,7 +44,7 @@
 
 typedef struct grpc_timer_entry {
   grpc_precise_clock tm;
-  int tag;
+  const char* tag;
   void* id;
   const char* file;
   int line;
@@ -63,7 +61,7 @@ struct grpc_timers_log {
 
 grpc_timers_log* grpc_timers_log_global = NULL;
 
-static grpc_timers_log* grpc_timers_log_create(int capacity_limit, FILE* dump) {
+grpc_timers_log* grpc_timers_log_create(int capacity_limit, FILE* dump) {
   grpc_timers_log* log = gpr_malloc(sizeof(*log));
 
   /* TODO (vpai): Allow allocation below limit */
@@ -87,7 +85,7 @@ static void log_report_locked(grpc_timers_log* log) {
     grpc_timer_entry* entry = &(log->log[i]);
     fprintf(fp, "GRPC_LAT_PROF ");
     grpc_precise_clock_print(&entry->tm, fp);
-    fprintf(fp, " %d %p %s %d\n", entry->tag, entry->id, entry->file,
+    fprintf(fp, " %s %p %s %d\n", entry->tag, entry->id, entry->file,
             entry->line);
   }
 
@@ -95,7 +93,7 @@ static void log_report_locked(grpc_timers_log* log) {
   log->num_entries = 0;
 }
 
-static void grpc_timers_log_destroy(grpc_timers_log* log) {
+void grpc_timers_log_destroy(grpc_timers_log* log) {
   gpr_mu_lock(&log->mu);
   log_report_locked(log);
   gpr_mu_unlock(&log->mu);
@@ -106,8 +104,8 @@ static void grpc_timers_log_destroy(grpc_timers_log* log) {
   gpr_free(log);
 }
 
-static void grpc_timers_log_add(grpc_timers_log* log, int tag, void* id,
-                                const char* file, int line) {
+void grpc_timers_log_add(grpc_timers_log* log, const char* tag, void* id,
+                         const char* file, int line) {
   grpc_timer_entry* entry;
 
   /* TODO (vpai) : Improve concurrency */
@@ -127,25 +125,14 @@ static void grpc_timers_log_add(grpc_timers_log* log, int tag, void* id,
   gpr_mu_unlock(&log->mu);
 }
 
-/* Latency profiler API implementation. */
-void grpc_timer_add_mark(int tag, void* id, const char* file, int line) {
-  grpc_timers_log_add(grpc_timers_log_global, tag, id, file, line);
-}
-
-void grpc_timer_begin(int tag, void* id, const char *file, int line) {}
-void grpc_timer_end(int tag, void* id, const char *file, int line) {}
-
-/* Basic profiler specific API functions. */
-void grpc_timers_global_init(void) {
+void grpc_timers_log_global_init(void) {
   grpc_timers_log_global = grpc_timers_log_create(100000, stdout);
 }
 
-void grpc_timers_global_destroy(void) {
+void grpc_timers_log_global_destroy(void) {
   grpc_timers_log_destroy(grpc_timers_log_global);
 }
-
-
-#else  /* !GRPC_BASIC_PROFILER */
-void grpc_timers_global_init(void) {}
-void grpc_timers_global_destroy(void) {}
-#endif /* GRPC_BASIC_PROFILER */
+#else  /* !GRPC_LATENCY_PROFILER */
+void grpc_timers_log_global_init(void) {}
+void grpc_timers_log_global_destroy(void) {}
+#endif /* GRPC_LATENCY_PROFILER */
