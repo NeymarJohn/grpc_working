@@ -61,6 +61,9 @@
     <ClCompile Include="..\..\src\core\tsi\transport_security.c">
       <Filter>src\core\tsi</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\core\channel\call_op_string.c">
+      <Filter>src\core\channel</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\core\channel\census_filter.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
@@ -83,6 +86,9 @@
       <Filter>src\core\channel</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\channel\http_client_filter.c">
+      <Filter>src\core\channel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\channel\http_filter.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\channel\http_server_filter.c">
@@ -211,7 +217,10 @@
     <ClCompile Include="..\..\src\core\json\json_writer.c">
       <Filter>src\core\json</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\profiling\timers.c">
+    <ClCompile Include="..\..\src\core\profiling\basic_timers.c">
+      <Filter>src\core\profiling</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\profiling\stap_timers.c">
       <Filter>src\core\profiling</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\statistics\census_init.c">
@@ -346,9 +355,6 @@
     <ClCompile Include="..\..\src\core\transport\transport.c">
       <Filter>src\core\transport</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\transport\transport_op_string.c">
-      <Filter>src\core\transport</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\grpc\grpc_security.h">
@@ -438,6 +444,9 @@
       <Filter>src\core\channel</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\channel\http_client_filter.h">
+      <Filter>src\core\channel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\core\channel\http_filter.h">
       <Filter>src\core\channel</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\channel\http_server_filter.h">

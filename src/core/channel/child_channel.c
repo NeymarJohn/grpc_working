@@ -60,11 +60,23 @@ typedef struct {
   gpr_uint8 sent_farewell;
 } lb_channel_data;
 
-typedef struct { grpc_child_channel *channel; } lb_call_data;
+typedef struct {
+  grpc_call_element *back;
+  grpc_child_channel *channel;
+} lb_call_data;
 
-static void lb_start_transport_op(grpc_call_element *elem,
-                                  grpc_transport_op *op) {
-  grpc_call_next_op(elem, op);
+static void lb_call_op(grpc_call_element *elem, grpc_call_element *from_elem,
+                       grpc_call_op *op) {
+  lb_call_data *calld = elem->call_data;
+
+  switch (op->dir) {
+    case GRPC_CALL_UP:
+      calld->back->filter->call_op(calld->back, elem, op);
+      break;
+    case GRPC_CALL_DOWN:
+      grpc_call_next_op(elem, op);
+      break;
+  }
 }
 
 /* Currently we assume all channel operations should just be pushed up. */
@@ -120,8 +132,7 @@ static void lb_channel_op(grpc_channel_element *elem,
 
 /* Constructor for call_data */
 static void lb_init_call_elem(grpc_call_element *elem,
-                              const void *server_transport_data,
-                              grpc_transport_op *initial_op) {}
+                              const void *server_transport_data) {}
 
 /* Destructor for call_data */
 static void lb_destroy_call_elem(grpc_call_element *elem) {}
@@ -154,10 +165,9 @@ static void lb_destroy_channel_elem(grpc_channel_element *elem) {
 }
 
 const grpc_channel_filter grpc_child_channel_top_filter = {
-    lb_start_transport_op, lb_channel_op,           sizeof(lb_call_data),
-    lb_init_call_elem,     lb_destroy_call_elem,    sizeof(lb_channel_data),
-    lb_init_channel_elem,  lb_destroy_channel_elem, "child-channel",
-};
+    lb_call_op,           lb_channel_op,           sizeof(lb_call_data),
+    lb_init_call_elem,    lb_destroy_call_elem,    sizeof(lb_channel_data),
+    lb_init_channel_elem, lb_destroy_channel_elem, "child-channel", };
 
 /* grpc_child_channel proper */
 
@@ -262,17 +272,17 @@ void grpc_child_channel_handle_op(grpc_child_channel *channel,
 }
 
 grpc_child_call *grpc_child_channel_create_call(grpc_child_channel *channel,
-                                                grpc_call_element *parent,
-                                                grpc_transport_op *initial_op) {
+                                                grpc_call_element *parent) {
   grpc_call_stack *stk = gpr_malloc((channel)->call_stack_size);
   grpc_call_element *lbelem;
   lb_call_data *lbcalld;
   lb_channel_data *lbchand;
 
-  grpc_call_stack_init(channel, NULL, initial_op, stk);
+  grpc_call_stack_init(channel, NULL, stk);
   lbelem = LINK_BACK_ELEM_FROM_CALL(stk);
   lbchand = lbelem->channel_data;
   lbcalld = lbelem->call_data;
+  lbcalld->back = parent;
   lbcalld->channel = channel;
 
   gpr_mu_lock(&lbchand->mu);
