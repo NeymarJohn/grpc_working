@@ -79,7 +79,7 @@ static void drain_cq(grpc_completion_queue *cq) {
 
 static void shutdown_server(grpc_end2end_test_fixture *f) {
   if (!f->server) return;
-  /* don't shutdown, just destroy, to tickle this code edge */
+  grpc_server_shutdown(f->server);
   grpc_server_destroy(f->server);
   f->server = NULL;
 }
@@ -102,26 +102,71 @@ static void end_test(grpc_end2end_test_fixture *f) {
   grpc_completion_queue_destroy(f->client_cq);
 }
 
-static void test_early_server_shutdown_finishes_tags(
-    grpc_end2end_test_config config) {
+/* Client sends a request with payload, server reads then returns status. */
+static void test_invoke_request_with_payload(grpc_end2end_test_config config) {
+  grpc_call *c;
+  grpc_call *s;
+  gpr_slice payload_slice = gpr_slice_from_copied_string("hello world");
+  grpc_byte_buffer *payload = grpc_byte_buffer_create(&payload_slice, 1);
+  gpr_timespec deadline = five_seconds_time();
   grpc_end2end_test_fixture f = begin_test(config, __FUNCTION__, NULL, NULL);
+  cq_verifier *v_client = cq_verifier_create(f.client_cq);
   cq_verifier *v_server = cq_verifier_create(f.server_cq);
-  grpc_call *s = (void *)1;
 
-  /* upon shutdown, the server should finish all requested calls indicating
-     no new call */
-  grpc_server_request_call_old(f.server, tag(1000));
-  grpc_server_shutdown(f.server);
-  cq_expect_server_rpc_new(v_server, &s, tag(1000), NULL, NULL, gpr_inf_past,
-                           NULL);
+  /* byte buffer holds the slice, we can unref it already */
+  gpr_slice_unref(payload_slice);
+
+  c = grpc_channel_create_call_old(f.client, "/foo", "foo.test.google.fr",
+                                   deadline);
+  GPR_ASSERT(c);
+
+  GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call_old(f.server, tag(100)));
+
+  GPR_ASSERT(GRPC_CALL_OK ==
+             grpc_call_invoke_old(c, f.client_cq, tag(2), tag(3), 0));
+
+  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_write_old(c, payload, tag(4), 0));
+  /* destroy byte buffer early to ensure async code keeps track of its contents
+     correctly */
+  grpc_byte_buffer_destroy(payload);
+  cq_expect_write_accepted(v_client, tag(4), GRPC_OP_OK);
+  cq_verify(v_client);
+
+  cq_expect_server_rpc_new(v_server, &s, tag(100), "/foo", "foo.test.google.fr",
+                           deadline, NULL);
   cq_verify(v_server);
-  GPR_ASSERT(s == NULL);
+
+  GPR_ASSERT(GRPC_CALL_OK ==
+             grpc_call_server_accept_old(s, f.server_cq, tag(102)));
+  GPR_ASSERT(GRPC_CALL_OK == grpc_call_server_end_initial_metadata_old(s, 0));
+  cq_expect_client_metadata_read(v_client, tag(2), NULL);
+  cq_verify(v_client);
+
+  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_read_old(s, tag(4)));
+  cq_expect_read(v_server, tag(4), gpr_slice_from_copied_string("hello world"));
+
+  GPR_ASSERT(GRPC_CALL_OK == grpc_call_writes_done_old(c, tag(5)));
+  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_write_status_old(
+                                 s, GRPC_STATUS_UNIMPLEMENTED, "xyz", tag(6)));
+  cq_expect_finish_accepted(v_client, tag(5), GRPC_OP_OK);
+  cq_expect_finished_with_status(v_client, tag(3), GRPC_STATUS_UNIMPLEMENTED,
+                                 "xyz", NULL);
+  cq_verify(v_client);
+
+  cq_expect_finish_accepted(v_server, tag(6), GRPC_OP_OK);
+  cq_expect_finished(v_server, tag(102), NULL);
+  cq_verify(v_server);
+
+  grpc_call_destroy(c);
+  grpc_call_destroy(s);
 
   end_test(&f);
   config.tear_down_data(&f);
+
+  cq_verifier_destroy(v_client);
   cq_verifier_destroy(v_server);
 }
 
 void grpc_end2end_tests(grpc_end2end_test_config config) {
-  test_early_server_shutdown_finishes_tags(config);
+  test_invoke_request_with_payload(config);
 }
