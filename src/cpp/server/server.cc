@@ -45,10 +45,10 @@
 #include <grpc++/server_context.h>
 #include <grpc++/server_credentials.h>
 #include <grpc++/thread_pool_interface.h>
+#include <grpc++/time.h>
 
 #include "src/core/profiling/timers.h"
 #include "src/cpp/proto/proto_utils.h"
-#include "src/cpp/util/time.h"
 
 namespace grpc {
 
@@ -100,7 +100,7 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
    public:
     explicit CallData(Server* server, SyncRequest* mrd)
         : cq_(mrd->cq_),
-          call_(mrd->call_, server, &cq_),
+          call_(mrd->call_, server, &cq_, server->max_message_size_),
           ctx_(mrd->deadline_, mrd->request_metadata_.metadata,
                mrd->request_metadata_.count),
           has_request_payload_(mrd->has_request_payload_),
@@ -126,7 +126,7 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
       if (has_request_payload_) {
         GRPC_TIMER_MARK(DESER_PROTO_BEGIN, call_.call());
         req.reset(method_->AllocateRequestProto());
-        if (!DeserializeProto(request_payload_, req.get())) {
+        if (!DeserializeProto(request_payload_, req.get(), call_.max_message_size())) {
           abort();  // for now
         }
         GRPC_TIMER_MARK(DESER_PROTO_END, call_.call());
@@ -176,11 +176,27 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
   grpc_completion_queue* cq_;
 };
 
-Server::Server(ThreadPoolInterface* thread_pool, bool thread_pool_owned)
-    : started_(false),
+grpc_server* CreateServer(grpc_completion_queue* cq, int max_message_size) {
+  if (max_message_size > 0) {
+    grpc_arg arg;
+    arg.type = GRPC_ARG_INTEGER;
+    arg.key = const_cast<char*>(GRPC_ARG_MAX_MESSAGE_LENGTH);
+    arg.value.integer = max_message_size;
+    grpc_channel_args args = {1, &arg};
+    return grpc_server_create(cq, &args);
+  } else {
+    return grpc_server_create(cq, nullptr);
+  }
+}
+
+Server::Server(ThreadPoolInterface* thread_pool, bool thread_pool_owned,
+               int max_message_size)
+    : max_message_size_(max_message_size),
+      started_(false),
       shutdown_(false),
       num_running_cb_(0),
-      server_(grpc_server_create(cq_.cq(), nullptr)),
+      sync_methods_(new std::list<SyncRequest>),
+      server_(CreateServer(cq_.cq(), max_message_size)),
       thread_pool_(thread_pool),
       thread_pool_owned_(thread_pool_owned) {}
 
@@ -196,6 +212,7 @@ Server::~Server() {
   if (thread_pool_owned_) {
     delete thread_pool_;
   }
+  delete sync_methods_;
 }
 
 bool Server::RegisterService(RpcService* service) {
@@ -208,7 +225,8 @@ bool Server::RegisterService(RpcService* service) {
               method->name());
       return false;
     }
-    sync_methods_.emplace_back(method, tag);
+    SyncRequest request(method, tag);
+    sync_methods_->emplace_back(request);
   }
   return true;
 }
@@ -250,8 +268,8 @@ bool Server::Start() {
   grpc_server_start(server_);
 
   // Start processing rpcs.
-  if (!sync_methods_.empty()) {
-    for (auto m = sync_methods_.begin(); m != sync_methods_.end(); m++) {
+  if (!sync_methods_->empty()) {
+    for (auto m = sync_methods_->begin(); m != sync_methods_->end(); m++) {
       m->Request(server_);
     }
 
@@ -344,7 +362,8 @@ class Server::AsyncRequest GRPC_FINAL : public CompletionQueueTag {
     if (*status && request_) {
       if (payload_) {
         GRPC_TIMER_MARK(DESER_PROTO_BEGIN, call_);
-        *status = DeserializeProto(payload_, request_);
+        *status = DeserializeProto(payload_, request_,
+                                   server_->max_message_size_);
         GRPC_TIMER_MARK(DESER_PROTO_END, call_);
       } else {
         *status = false;
@@ -353,7 +372,7 @@ class Server::AsyncRequest GRPC_FINAL : public CompletionQueueTag {
     ServerContext* ctx = ctx_ ? ctx_ : generic_ctx_;
     GPR_ASSERT(ctx);
     if (*status) {
-      ctx->deadline_ = Timespec2Timepoint(call_details_.deadline);
+      ctx->deadline_ = call_details_.deadline;
       for (size_t i = 0; i < array_.count; i++) {
         ctx->client_metadata_.insert(std::make_pair(
             grpc::string(array_.metadata[i].key),
@@ -371,7 +390,7 @@ class Server::AsyncRequest GRPC_FINAL : public CompletionQueueTag {
     }
     ctx->call_ = call_;
     ctx->cq_ = cq_;
-    Call call(call_, server_, cq_);
+    Call call(call_, server_, cq_, server_->max_message_size_);
     if (orig_status && call_) {
       ctx->BeginCompletionOp(&call);
     }
