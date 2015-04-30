@@ -42,7 +42,7 @@ typedef struct {
   grpc_server_credentials *c_server_credentials;
 } ServerCredentials;
 
-extern PyTypeObject pygrpc_ServerCredentialsType;
+PyTypeObject pygrpc_ServerCredentialsType;
 
 int pygrpc_add_server_credentials(PyObject *module);
 

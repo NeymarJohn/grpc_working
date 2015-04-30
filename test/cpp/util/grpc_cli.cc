@@ -79,6 +79,8 @@ DEFINE_string(output_binary_file, "output.bin",
               "Path to output file to write serialized response.");
 
 int main(int argc, char** argv) {
+  grpc_init();
+
   grpc::testing::InitTest(&argc, &argv, true);
 
   if (argc < 4 || grpc::string(argv[1]) != "call") {
@@ -125,5 +127,7 @@ int main(int argc, char** argv) {
     output_file << response;
   }
 
+  channel.reset();
+  grpc_shutdown();
   return 0;
 }
