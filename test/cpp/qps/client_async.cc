@@ -130,26 +130,39 @@ class ClientRpcContextUnaryImpl : public ClientRpcContext {
       response_reader_;
 };
 
-class AsyncClient : public Client {
+class AsyncUnaryClient GRPC_FINAL : public Client {
  public:
-  explicit AsyncClient(const ClientConfig& config,
-                       void (*setup_ctx)(CompletionQueue*, TestService::Stub*,
-                                         const SimpleRequest&)) :
-      Client(config) {
+  explicit AsyncUnaryClient(const ClientConfig& config) : Client(config) {
     for (int i = 0; i < config.async_client_threads(); i++) {
       cli_cqs_.emplace_back(new CompletionQueue);
     }
+
+    auto check_done = [](grpc::Status s, SimpleResponse* response) {};
+
     int t = 0;
     for (int i = 0; i < config.outstanding_rpcs_per_channel(); i++) {
       for (auto channel = channels_.begin(); channel != channels_.end();
 	   channel++) {
         auto* cq = cli_cqs_[t].get();
         t = (t + 1) % cli_cqs_.size();
-        (*setup_ctx)(cq, channel->get_stub(), request_);
+        auto start_req = [cq](TestService::Stub* stub, grpc::ClientContext* ctx,
+                              const SimpleRequest& request, void* tag) {
+          return stub->AsyncUnaryCall(ctx, request, cq, tag);
+        };
+
+        TestService::Stub* stub = channel->get_stub();
+        const SimpleRequest& request = request_;
+        new ClientRpcContextUnaryImpl<SimpleRequest, SimpleResponse>(
+            stub, request, start_req, check_done);
       }
     }
+
+    StartThreads(config.async_client_threads());
   }
-  virtual ~AsyncClient() {
+
+  ~AsyncUnaryClient() GRPC_OVERRIDE {
+    EndThreads();
+
     for (auto cq = cli_cqs_.begin(); cq != cli_cqs_.end(); cq++) {
       (*cq)->Shutdown();
       void* got_tag;
@@ -160,13 +173,10 @@ class AsyncClient : public Client {
     }
   }
 
-  bool ThreadFunc(Histogram* histogram, size_t thread_idx)
-      GRPC_OVERRIDE GRPC_FINAL {
+  bool ThreadFunc(Histogram* histogram, size_t thread_idx) GRPC_OVERRIDE {
     void* got_tag;
     bool ok;
-    switch (cli_cqs_[thread_idx]->AsyncNext(&got_tag, &ok,
-                                            std::chrono::system_clock::now() +
-                                            std::chrono::seconds(1))) {
+    switch (cli_cqs_[thread_idx]->AsyncNext(&got_tag, &ok, std::chrono::system_clock::now() + std::chrono::seconds(1))) {
       case CompletionQueue::SHUTDOWN: return false;
       case CompletionQueue::TIMEOUT: return true;
       case CompletionQueue::GOT_EVENT: break;
@@ -182,28 +192,8 @@ class AsyncClient : public Client {
 
     return true;
   }
- private:
-  std::vector<std::unique_ptr<CompletionQueue>> cli_cqs_;
-};
 
-class AsyncUnaryClient GRPC_FINAL : public AsyncClient {
- public:
-  explicit AsyncUnaryClient(const ClientConfig& config) :
-      AsyncClient(config, SetupCtx) {
-    StartThreads(config.async_client_threads());
-  }
-  ~AsyncUnaryClient() GRPC_OVERRIDE { EndThreads(); }
-private:
-  static void SetupCtx(CompletionQueue* cq, TestService::Stub* stub,
-                       const SimpleRequest& req) {
-    auto check_done = [](grpc::Status s, SimpleResponse* response) {};
-    auto start_req = [cq](TestService::Stub* stub, grpc::ClientContext* ctx,
-                          const SimpleRequest& request, void* tag) {
-      return stub->AsyncUnaryCall(ctx, request, cq, tag);
-    };
-    new ClientRpcContextUnaryImpl<SimpleRequest, SimpleResponse>(
-        stub, req, start_req, check_done);
-  }
+  std::vector<std::unique_ptr<CompletionQueue>> cli_cqs_;
 };
 
 template <class RequestType, class ResponseType>
@@ -251,7 +241,7 @@ class ClientRpcContextStreamingImpl : public ClientRpcContext {
       return(false);
     }
     next_state_ = &ClientRpcContextStreamingImpl::ReadDone;
-    stream_->Read(&response_, ClientRpcContext::tag(this));
+    stream_->Read(&response_, ClientRpcContext::tag(this)); 
     return true;
   }
   bool ReadDone(bool ok, Histogram *hist) {
@@ -273,26 +263,71 @@ class ClientRpcContextStreamingImpl : public ClientRpcContext {
     stream_;
 };
 
-class AsyncStreamingClient GRPC_FINAL : public AsyncClient {
+class AsyncStreamingClient GRPC_FINAL : public Client {
  public:
-  explicit AsyncStreamingClient(const ClientConfig &config) :
-      AsyncClient(config, SetupCtx) {
+  explicit AsyncStreamingClient(const ClientConfig &config) : Client(config) {
+    for (int i = 0; i < config.async_client_threads(); i++) {
+      cli_cqs_.emplace_back(new CompletionQueue);
+    }
+
+    auto check_done = [](grpc::Status s, SimpleResponse* response) {};
+
+    int t = 0;
+    for (int i = 0; i < config.outstanding_rpcs_per_channel(); i++) {
+      for (auto channel = channels_.begin(); channel != channels_.end();
+           channel++) {
+        auto* cq = cli_cqs_[t].get();
+        t = (t + 1) % cli_cqs_.size();
+        auto start_req = [cq](TestService::Stub *stub, grpc::ClientContext *ctx,
+                              void *tag) {
+          auto stream = stub->AsyncStreamingCall(ctx, cq, tag);
+          return stream;
+        };
+
+        TestService::Stub *stub = channel->get_stub();
+        const SimpleRequest &request = request_;
+        new ClientRpcContextStreamingImpl<SimpleRequest, SimpleResponse>(
+            stub, request, start_req, check_done);
+      }
+    }
+
     StartThreads(config.async_client_threads());
   }
 
-  ~AsyncStreamingClient() GRPC_OVERRIDE { EndThreads(); }
-private:
-  static void SetupCtx(CompletionQueue* cq, TestService::Stub* stub,
-                       const SimpleRequest& req)  {
-    auto check_done = [](grpc::Status s, SimpleResponse* response) {};
-    auto start_req = [cq](TestService::Stub *stub, grpc::ClientContext *ctx,
-                          void *tag) {
-      auto stream = stub->AsyncStreamingCall(ctx, cq, tag);
-      return stream;
-    };
-    new ClientRpcContextStreamingImpl<SimpleRequest, SimpleResponse>(
-        stub, req, start_req, check_done);
+  ~AsyncStreamingClient() GRPC_OVERRIDE {
+    EndThreads();
+
+    for (auto cq = cli_cqs_.begin(); cq != cli_cqs_.end(); cq++) {
+      (*cq)->Shutdown();
+      void *got_tag;
+      bool ok;
+      while ((*cq)->Next(&got_tag, &ok)) {
+        delete ClientRpcContext::detag(got_tag);
+      }
+    }
   }
+
+  bool ThreadFunc(Histogram *histogram, size_t thread_idx) GRPC_OVERRIDE {
+    void *got_tag;
+    bool ok;
+    switch (cli_cqs_[thread_idx]->AsyncNext(&got_tag, &ok, std::chrono::system_clock::now() + std::chrono::seconds(1))) {
+      case CompletionQueue::SHUTDOWN: return false;
+      case CompletionQueue::TIMEOUT: return true;
+      case CompletionQueue::GOT_EVENT: break;
+    }
+
+    ClientRpcContext *ctx = ClientRpcContext::detag(got_tag);
+    if (ctx->RunNextState(ok, histogram) == false) {
+      // call the callback and then delete it
+      ctx->RunNextState(ok, histogram);
+      ctx->StartNewClone();
+      delete ctx;
+    }
+
+    return true;
+  }
+
+  std::vector<std::unique_ptr<CompletionQueue>> cli_cqs_;
 };
 
 std::unique_ptr<Client> CreateAsyncUnaryClient(const ClientConfig& args) {
