@@ -31,12 +31,13 @@
  *
  */
 
+#include <chrono>
 #include <thread>
 
-#include "test/core/util/port.h"
 #include "test/core/util/test_config.h"
 #include "test/cpp/util/echo_duplicate.grpc.pb.h"
 #include "test/cpp/util/echo.grpc.pb.h"
+#include "src/cpp/util/time.h"
 #include "src/cpp/server/thread_pool.h"
 #include <grpc++/channel_arguments.h>
 #include <grpc++/channel_interface.h>
@@ -49,7 +50,7 @@
 #include <grpc++/server_credentials.h>
 #include <grpc++/status.h>
 #include <grpc++/stream.h>
-#include <grpc++/time.h>
+#include "test/core/util/port.h"
 #include <gtest/gtest.h>
 
 #include <grpc/grpc.h>
@@ -71,8 +72,8 @@ void MaybeEchoDeadline(ServerContext* context, const EchoRequest* request,
                        EchoResponse* response) {
   if (request->has_param() && request->param().echo_deadline()) {
     gpr_timespec deadline = gpr_inf_future;
-    if (context->deadline() != system_clock::time_point::max()) {
-      Timepoint2Timespec(context->deadline(), &deadline);
+    if (context->absolute_deadline() != system_clock::time_point::max()) {
+      Timepoint2Timespec(context->absolute_deadline(), &deadline);
     }
     response->mutable_param()->set_request_deadline(deadline.tv_sec);
   }
@@ -244,7 +245,7 @@ TEST_F(End2endTest, RpcDeadlineExpires) {
   ClientContext context;
   std::chrono::system_clock::time_point deadline =
       std::chrono::system_clock::now() + std::chrono::microseconds(10);
-  context.set_deadline(deadline);
+  context.set_absolute_deadline(deadline);
   Status s = stub_->Echo(&context, request, &response);
   EXPECT_EQ(StatusCode::DEADLINE_EXCEEDED, s.code());
 }
@@ -259,7 +260,7 @@ TEST_F(End2endTest, RpcLongDeadline) {
   ClientContext context;
   std::chrono::system_clock::time_point deadline =
       std::chrono::system_clock::now() + std::chrono::hours(1);
-  context.set_deadline(deadline);
+  context.set_absolute_deadline(deadline);
   Status s = stub_->Echo(&context, request, &response);
   EXPECT_EQ(response.message(), request.message());
   EXPECT_TRUE(s.IsOk());
@@ -276,7 +277,7 @@ TEST_F(End2endTest, EchoDeadline) {
   ClientContext context;
   std::chrono::system_clock::time_point deadline =
       std::chrono::system_clock::now() + std::chrono::seconds(100);
-  context.set_deadline(deadline);
+  context.set_absolute_deadline(deadline);
   Status s = stub_->Echo(&context, request, &response);
   EXPECT_EQ(response.message(), request.message());
   EXPECT_TRUE(s.IsOk());
@@ -427,7 +428,7 @@ TEST_F(End2endTest, DiffPackageServices) {
 // rpc and stream should fail on bad credentials.
 TEST_F(End2endTest, BadCredentials) {
   std::unique_ptr<Credentials> bad_creds =
-      ServiceAccountCredentials("", "", 1);
+      ServiceAccountCredentials("", "", std::chrono::seconds(1));
   EXPECT_EQ(nullptr, bad_creds.get());
   std::shared_ptr<ChannelInterface> channel =
       CreateChannel(server_address_.str(), bad_creds, ChannelArguments());
@@ -488,27 +489,6 @@ TEST_F(End2endTest, ServerCancelsRpc) {
   Status s = stub_->Echo(&context, request, &response);
   EXPECT_EQ(StatusCode::CANCELLED, s.code());
   EXPECT_TRUE(s.details().empty());
-}
-
-// Client cancels request stream after sending two messages
-TEST_F(End2endTest, ClientCancelsRequestStream) {
-  ResetStub();
-  EchoRequest request;
-  EchoResponse response;
-  ClientContext context;
-  request.set_message("hello");
-
-  auto stream = stub_->RequestStream(&context, &response);
-  EXPECT_TRUE(stream->Write(request));
-  EXPECT_TRUE(stream->Write(request));
-  
-  context.TryCancel();
-
-  Status s = stream->Finish();
-  EXPECT_EQ(grpc::StatusCode::CANCELLED, s.code());
-  
-  EXPECT_EQ(response.message(), "");
-
 }
 
 // Client cancels server stream after sending some messages
@@ -582,6 +562,9 @@ TEST_F(End2endTest, ClientCancelsBidi) {
 
 int main(int argc, char** argv) {
   grpc_test_init(argc, argv);
+  grpc_init();
   ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  int result = RUN_ALL_TESTS();
+  grpc_shutdown();
+  return result;
 }
