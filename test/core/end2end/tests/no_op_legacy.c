@@ -46,8 +46,6 @@
 
 enum { TIMEOUT = 200000 };
 
-static void *tag(gpr_intptr t) { return (void *)t; }
-
 static grpc_end2end_test_fixture begin_test(grpc_end2end_test_config config,
                                             const char *test_name,
                                             grpc_channel_args *client_args,
@@ -79,7 +77,7 @@ static void drain_cq(grpc_completion_queue *cq) {
 
 static void shutdown_server(grpc_end2end_test_fixture *f) {
   if (!f->server) return;
-  /* don't shutdown, just destroy, to tickle this code edge */
+  grpc_server_shutdown(f->server);
   grpc_server_destroy(f->server);
   f->server = NULL;
 }
@@ -102,26 +100,10 @@ static void end_test(grpc_end2end_test_fixture *f) {
   grpc_completion_queue_destroy(f->client_cq);
 }
 
-static void test_early_server_shutdown_finishes_tags(
-    grpc_end2end_test_config config) {
+static void test_no_op(grpc_end2end_test_config config) {
   grpc_end2end_test_fixture f = begin_test(config, __FUNCTION__, NULL, NULL);
-  cq_verifier *v_server = cq_verifier_create(f.server_cq);
-  grpc_call *s = (void *)1;
-
-  /* upon shutdown, the server should finish all requested calls indicating
-     no new call */
-  grpc_server_request_call_old(f.server, tag(1000));
-  grpc_server_shutdown(f.server);
-  cq_expect_server_rpc_new(v_server, &s, tag(1000), NULL, NULL, gpr_inf_past,
-                           NULL);
-  cq_verify(v_server);
-  GPR_ASSERT(s == NULL);
-
   end_test(&f);
   config.tear_down_data(&f);
-  cq_verifier_destroy(v_server);
 }
 
-void grpc_end2end_tests(grpc_end2end_test_config config) {
-  test_early_server_shutdown_finishes_tags(config);
-}
+void grpc_end2end_tests(grpc_end2end_test_config config) { test_no_op(config); }
