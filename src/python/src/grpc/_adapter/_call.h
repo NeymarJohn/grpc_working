@@ -70,7 +70,7 @@ typedef struct {
   grpc_call *c_call;
 } Call;
 
-extern PyTypeObject pygrpc_CallType;
+PyTypeObject pygrpc_CallType;
 
 int pygrpc_add_call(PyObject *module);
 
