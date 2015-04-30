@@ -34,7 +34,6 @@
 #include "src/core/tsi/ssl_transport_security.h"
 
 #include <limits.h>
-#include <string.h>
 
 #include <grpc/support/log.h>
 #include <grpc/support/sync.h>
