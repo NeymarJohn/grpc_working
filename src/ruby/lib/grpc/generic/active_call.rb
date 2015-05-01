@@ -30,25 +30,6 @@
 require 'forwardable'
 require 'grpc/generic/bidi_call'
 
-class Struct
-  # BatchResult is the struct returned by calls to call#start_batch.
-  class BatchResult
-    # check_status returns the status, raising an error if the status
-    # is non-nil and not OK.
-    def check_status
-      return nil if status.nil?
-      fail GRPC::Cancelled if status.code == GRPC::Core::StatusCodes::CANCELLED
-      if status.code != GRPC::Core::StatusCodes::OK
-        # raise BadStatus, propagating the metadata if present.
-        md = status.metadata
-        with_sym_keys = Hash[md.each_pair.collect { |x, y| [x.to_sym, y] }]
-        fail GRPC::BadStatus.new(status.code, status.details, **with_sym_keys)
-      end
-      status
-    end
-  end
-end
-
 # GRPC contains the General RPC module.
 module GRPC
   # The ActiveCall class provides simple methods for sending marshallable
@@ -57,9 +38,7 @@ module GRPC
     include Core::StatusCodes
     include Core::TimeConsts
     include Core::CallOps
-    extend Forwardable
     attr_reader(:deadline)
-    def_delegators :@call, :cancel, :metadata
 
     # client_invoke begins a client invocation.
     #
@@ -122,10 +101,48 @@ module GRPC
       @metadata_tag = metadata_tag
     end
 
-    # output_metadata are provides access to hash that can be used to
-    # save metadata to be sent as trailer
-    def output_metadata
-      @output_metadata ||= {}
+    # Obtains the status of the call.
+    #
+    # this value is nil until the call completes
+    # @return this call's status
+    def status
+      @call.status
+    end
+
+    # Obtains the metadata of the call.
+    #
+    # At the start of the call this will be nil.  During the call this gets
+    # some values as soon as the other end of the connection acknowledges the
+    # request.
+    #
+    # @return this calls's metadata
+    def metadata
+      @call.metadata
+    end
+
+    # Cancels the call.
+    #
+    # Cancels the call.  The call does not return any result, but once this it
+    # has been called, the call should eventually terminate.  Due to potential
+    # races between the execution of the cancel and the in-flight request, the
+    # result of the call after calling #cancel is indeterminate:
+    #
+    # - the call may terminate with a BadStatus exception, with code=CANCELLED
+    # - the call may terminate with OK Status, and return a response
+    # - the call may terminate with a different BadStatus exception if that
+    #   was happening
+    def cancel
+      @call.cancel
+    end
+
+    # indicates if the call is shutdown
+    def shutdown
+      @shutdown ||= false
+    end
+
+    # indicates if the call is cancelled.
+    def cancelled
+      @cancelled ||= false
     end
 
     # multi_req_view provides a restricted view of this ActiveCall for use
@@ -159,9 +176,9 @@ module GRPC
         SEND_CLOSE_FROM_CLIENT => nil
       }
       ops[RECV_STATUS_ON_CLIENT] = nil if assert_finished
-      batch_result = @call.run_batch(@cq, self, INFINITE_FUTURE, ops)
+      @call.run_batch(@cq, self, INFINITE_FUTURE, ops)
       return unless assert_finished
-      batch_result.check_status
+      @call.status
     end
 
     # finished waits until a client call is completed.
@@ -170,25 +187,28 @@ module GRPC
     def finished
       batch_result = @call.run_batch(@cq, self, INFINITE_FUTURE,
                                      RECV_STATUS_ON_CLIENT => nil)
-      unless batch_result.status.nil?
-        if @call.metadata.nil?
-          @call.metadata = batch_result.status.metadata
-        else
-          @call.metadata.merge!(batch_result.status.metadata)
-        end
+      if @call.metadata.nil?
+        @call.metadata = batch_result.metadata
+      elsif !batch_result.metadata.nil?
+        @call.metadata.merge!(batch_result.metadata)
       end
-      batch_result.check_status
+      if batch_result.status.code != Core::StatusCodes::OK
+        fail BadStatus.new(batch_result.status.code,
+                           batch_result.status.details)
+      end
+      batch_result
     end
 
     # remote_send sends a request to the remote endpoint.
     #
-    # It blocks until the remote endpoint accepts the message.
+    # It blocks until the remote endpoint acknowledges by sending a
+    # WRITE_ACCEPTED.  req can be marshalled already.
     #
     # @param req [Object, String] the object to send or it's marshal form.
     # @param marshalled [false, true] indicates if the object is already
     # marshalled.
     def remote_send(req, marshalled = false)
-      logger.debug("sending #{req}, marshalled? #{marshalled}")
+      logger.debug("sending #{req.inspect}, marshalled? #{marshalled}")
       if marshalled
         payload = req
       else
@@ -203,13 +223,9 @@ module GRPC
     # @param details [String] details
     # @param assert_finished [true, false] when true(default), waits for
     # FINISHED.
-    #
-    # == Keyword Arguments ==
-    # any keyword arguments are treated as metadata to be sent to the server
-    # if a keyword value is a list, multiple metadata for it's key are sent
-    def send_status(code = OK, details = '', assert_finished = false, **kw)
+    def send_status(code = OK, details = '', assert_finished = false)
       ops = {
-        SEND_STATUS_FROM_SERVER => Struct::Status.new(code, details, kw)
+        SEND_STATUS_FROM_SERVER => Struct::Status.new(code, details)
       }
       ops[RECV_CLOSE_ON_SERVER] = nil if assert_finished
       @call.run_batch(@cq, self, INFINITE_FUTURE, ops)
@@ -316,9 +332,6 @@ module GRPC
       response = remote_read
       finished unless response.is_a? Struct::Status
       response
-    rescue GRPC::Core::CallError => e
-      finished  # checks for Cancelled
-      raise e
     end
 
     # client_streamer sends a stream of requests to a GRPC server, and
@@ -342,9 +355,6 @@ module GRPC
       response = remote_read
       finished unless response.is_a? Struct::Status
       response
-    rescue GRPC::Core::CallError => e
-      finished  # checks for Cancelled
-      raise e
     end
 
     # server_streamer sends one request to the GRPC server, which yields a
@@ -371,9 +381,6 @@ module GRPC
       replies = enum_for(:each_remote_read_then_finish)
       return replies unless block_given?
       replies.each { |r| yield r }
-    rescue GRPC::Core::CallError => e
-      finished  # checks for Cancelled
-      raise e
     end
 
     # bidi_streamer sends a stream of requests to the GRPC server, and yields
@@ -409,9 +416,6 @@ module GRPC
       start_call(**kw) unless @started
       bd = BidiCall.new(@call, @cq, @marshal, @unmarshal, @deadline)
       bd.run_on_client(requests, &blk)
-    rescue GRPC::Core::CallError => e
-      finished  # checks for Cancelled
-      raise e
     end
 
     # run_server_bidi orchestrates a BiDi stream processing on a server.
@@ -432,10 +436,9 @@ module GRPC
 
     private
 
-    # Starts the call if not already started
     def start_call(**kw)
-      return if @started
-      @metadata_tag = ActiveCall.client_invoke(@call, @cq, @deadline, **kw)
+      tags = ActiveCall.client_invoke(@call, @cq, @deadline, **kw)
+      @finished_tag, @read_metadata_tag = tags
       @started = true
     end
 
@@ -453,17 +456,16 @@ module GRPC
 
     # SingleReqView limits access to an ActiveCall's methods for use in server
     # handlers that receive just one request.
-    SingleReqView = view_class(:cancelled, :deadline, :metadata,
-                               :output_metadata)
+    SingleReqView = view_class(:cancelled, :deadline, :metadata)
 
     # MultiReqView limits access to an ActiveCall's methods for use in
     # server client_streamer handlers.
     MultiReqView = view_class(:cancelled, :deadline, :each_queued_msg,
-                              :each_remote_read, :metadata, :output_metadata)
+                              :each_remote_read, :metadata)
 
     # Operation limits access to an ActiveCall's methods for use as
     # a Operation on the client.
     Operation = view_class(:cancel, :cancelled, :deadline, :execute,
-                           :metadata, :status, :start_call)
+                           :metadata, :status)
   end
 end

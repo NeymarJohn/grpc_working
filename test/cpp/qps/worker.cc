@@ -40,10 +40,16 @@
 #include <gflags/gflags.h>
 
 #include "qps_worker.h"
-#include "test/cpp/util/test_config.h"
 
 DEFINE_int32(driver_port, 0, "Driver server port.");
 DEFINE_int32(server_port, 0, "Spawned server port.");
+
+// In some distros, gflags is in the namespace google, and in some others,
+// in gflags. This hack is enabling us to find both.
+namespace google {}
+namespace gflags {}
+using namespace google;
+using namespace gflags;
 
 static bool got_sigint = false;
 
@@ -64,11 +70,13 @@ static void RunServer() {
 }  // namespace grpc
 
 int main(int argc, char** argv) {
-  grpc::testing::InitTest(&argc, &argv, true);
+  grpc_init();
+  ParseCommandLineFlags(&argc, &argv, true);
 
   signal(SIGINT, sigint_handler);
 
   grpc::testing::RunServer();
-  
+
+  grpc_shutdown();
   return 0;
 }

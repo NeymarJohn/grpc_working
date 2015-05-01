@@ -79,7 +79,7 @@ static void test_wait_empty(void) {
   shutdown_and_destroy(cc);
 }
 
-static void test_cq_end_op(void) {
+static void test_cq_end_read(void) {
   grpc_event *ev;
   grpc_completion_queue *cc;
   int on_finish_called = 0;
@@ -89,15 +89,94 @@ static void test_cq_end_op(void) {
 
   cc = grpc_completion_queue_create();
 
-  grpc_cq_begin_op(cc, NULL, GRPC_OP_COMPLETE);
-  grpc_cq_end_op(cc, tag, NULL, increment_int_on_finish, &on_finish_called,
-                 GRPC_OP_OK);
+  grpc_cq_begin_op(cc, NULL, GRPC_READ);
+  grpc_cq_end_read(cc, tag, NULL, increment_int_on_finish, &on_finish_called,
+                   NULL);
 
   ev = grpc_completion_queue_next(cc, gpr_inf_past);
   GPR_ASSERT(ev != NULL);
-  GPR_ASSERT(ev->type == GRPC_OP_COMPLETE);
+  GPR_ASSERT(ev->type == GRPC_READ);
   GPR_ASSERT(ev->tag == tag);
-  GPR_ASSERT(ev->data.op_complete == GRPC_OP_OK);
+  GPR_ASSERT(ev->data.read == NULL);
+  GPR_ASSERT(on_finish_called == 0);
+  grpc_event_finish(ev);
+  GPR_ASSERT(on_finish_called == 1);
+
+  shutdown_and_destroy(cc);
+}
+
+static void test_cq_end_write_accepted(void) {
+  grpc_event *ev;
+  grpc_completion_queue *cc;
+  int on_finish_called = 0;
+  void *tag = create_test_tag();
+
+  LOG_TEST();
+
+  cc = grpc_completion_queue_create();
+
+  grpc_cq_begin_op(cc, NULL, GRPC_WRITE_ACCEPTED);
+  grpc_cq_end_write_accepted(cc, tag, NULL, increment_int_on_finish,
+                             &on_finish_called, GRPC_OP_OK);
+
+  ev = grpc_completion_queue_next(cc, gpr_inf_past);
+  GPR_ASSERT(ev != NULL);
+  GPR_ASSERT(ev->type == GRPC_WRITE_ACCEPTED);
+  GPR_ASSERT(ev->tag == tag);
+  GPR_ASSERT(ev->data.write_accepted == GRPC_OP_OK);
+  GPR_ASSERT(on_finish_called == 0);
+  grpc_event_finish(ev);
+  GPR_ASSERT(on_finish_called == 1);
+
+  shutdown_and_destroy(cc);
+}
+
+static void test_cq_end_finish_accepted(void) {
+  grpc_event *ev;
+  grpc_completion_queue *cc;
+  int on_finish_called = 0;
+  void *tag = create_test_tag();
+
+  LOG_TEST();
+
+  cc = grpc_completion_queue_create();
+
+  grpc_cq_begin_op(cc, NULL, GRPC_FINISH_ACCEPTED);
+  grpc_cq_end_finish_accepted(cc, tag, NULL, increment_int_on_finish,
+                              &on_finish_called, GRPC_OP_OK);
+
+  ev = grpc_completion_queue_next(cc, gpr_inf_past);
+  GPR_ASSERT(ev != NULL);
+  GPR_ASSERT(ev->type == GRPC_FINISH_ACCEPTED);
+  GPR_ASSERT(ev->tag == tag);
+  GPR_ASSERT(ev->data.finish_accepted == GRPC_OP_OK);
+  GPR_ASSERT(on_finish_called == 0);
+  grpc_event_finish(ev);
+  GPR_ASSERT(on_finish_called == 1);
+
+  shutdown_and_destroy(cc);
+}
+
+static void test_cq_end_client_metadata_read(void) {
+  grpc_event *ev;
+  grpc_completion_queue *cc;
+  int on_finish_called = 0;
+  void *tag = create_test_tag();
+
+  LOG_TEST();
+
+  cc = grpc_completion_queue_create();
+
+  grpc_cq_begin_op(cc, NULL, GRPC_CLIENT_METADATA_READ);
+  grpc_cq_end_client_metadata_read(cc, tag, NULL, increment_int_on_finish,
+                                   &on_finish_called, 0, NULL);
+
+  ev = grpc_completion_queue_next(cc, gpr_inf_past);
+  GPR_ASSERT(ev != NULL);
+  GPR_ASSERT(ev->type == GRPC_CLIENT_METADATA_READ);
+  GPR_ASSERT(ev->tag == tag);
+  GPR_ASSERT(ev->data.client_metadata_read.count == 0);
+  GPR_ASSERT(ev->data.client_metadata_read.elements == NULL);
   GPR_ASSERT(on_finish_called == 0);
   grpc_event_finish(ev);
   GPR_ASSERT(on_finish_called == 1);
@@ -124,9 +203,9 @@ static void test_pluck(void) {
   cc = grpc_completion_queue_create();
 
   for (i = 0; i < GPR_ARRAY_SIZE(tags); i++) {
-    grpc_cq_begin_op(cc, NULL, GRPC_OP_COMPLETE);
-    grpc_cq_end_op(cc, tags[i], NULL, increment_int_on_finish,
-                   &on_finish_called, GRPC_OP_OK);
+    grpc_cq_begin_op(cc, NULL, GRPC_WRITE_ACCEPTED);
+    grpc_cq_end_write_accepted(cc, tags[i], NULL, increment_int_on_finish,
+                               &on_finish_called, GRPC_OP_OK);
   }
 
   for (i = 0; i < GPR_ARRAY_SIZE(tags); i++) {
@@ -138,9 +217,9 @@ static void test_pluck(void) {
   GPR_ASSERT(on_finish_called == GPR_ARRAY_SIZE(tags));
 
   for (i = 0; i < GPR_ARRAY_SIZE(tags); i++) {
-    grpc_cq_begin_op(cc, NULL, GRPC_OP_COMPLETE);
-    grpc_cq_end_op(cc, tags[i], NULL, increment_int_on_finish,
-                   &on_finish_called, GRPC_OP_OK);
+    grpc_cq_begin_op(cc, NULL, GRPC_WRITE_ACCEPTED);
+    grpc_cq_end_write_accepted(cc, tags[i], NULL, increment_int_on_finish,
+                               &on_finish_called, GRPC_OP_OK);
   }
 
   for (i = 0; i < GPR_ARRAY_SIZE(tags); i++) {
@@ -182,7 +261,7 @@ static void producer_thread(void *arg) {
 
   gpr_log(GPR_INFO, "producer %d phase 1", opt->id);
   for (i = 0; i < TEST_THREAD_EVENTS; i++) {
-    grpc_cq_begin_op(opt->cc, NULL, GRPC_OP_COMPLETE);
+    grpc_cq_begin_op(opt->cc, NULL, GRPC_WRITE_ACCEPTED);
   }
 
   gpr_log(GPR_INFO, "producer %d phase 1 done", opt->id);
@@ -191,8 +270,8 @@ static void producer_thread(void *arg) {
 
   gpr_log(GPR_INFO, "producer %d phase 2", opt->id);
   for (i = 0; i < TEST_THREAD_EVENTS; i++) {
-    grpc_cq_end_op(opt->cc, (void *)(gpr_intptr)1, NULL, NULL, NULL,
-                   GRPC_OP_OK);
+    grpc_cq_end_write_accepted(opt->cc, (void *)(gpr_intptr) 1, NULL, NULL,
+                               NULL, GRPC_OP_OK);
     opt->events_triggered++;
   }
 
@@ -219,8 +298,8 @@ static void consumer_thread(void *arg) {
     ev = grpc_completion_queue_next(opt->cc, ten_seconds_time());
     GPR_ASSERT(ev);
     switch (ev->type) {
-      case GRPC_OP_COMPLETE:
-        GPR_ASSERT(ev->data.op_complete == GRPC_OP_OK);
+      case GRPC_WRITE_ACCEPTED:
+        GPR_ASSERT(ev->data.write_accepted == GRPC_OP_OK);
         opt->events_triggered++;
         grpc_event_finish(ev);
         break;
@@ -315,7 +394,10 @@ int main(int argc, char **argv) {
   grpc_iomgr_init();
   test_no_op();
   test_wait_empty();
-  test_cq_end_op();
+  test_cq_end_read();
+  test_cq_end_write_accepted();
+  test_cq_end_finish_accepted();
+  test_cq_end_client_metadata_read();
   test_pluck();
   test_threading(1, 1);
   test_threading(1, 10);
