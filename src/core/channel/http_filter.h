@@ -31,27 +31,13 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
+#define GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H
 
-#ifdef GRPC_STAP_PROFILER
+#include "src/core/channel/channel_stack.h"
 
-#include "src/core/profiling/timers.h"
+/* Processes metadata that is common to both client and server for HTTP2
+   transports. */
+extern const grpc_channel_filter grpc_http_filter;
 
-#include <sys/sdt.h>
-/* Generated from src/core/profiling/stap_probes.d */
-#include "src/core/profiling/stap_probes.h"
-
-/* Latency profiler API implementation. */
-void grpc_timer_add_mark(int tag, void* id, const char *file, int line) {
-  _STAP_ADD_MARK(tag);
-}
-
-void grpc_timer_begin(int tag, void* id, const char *file, int line) {
-  _STAP_TIMING_NS_BEGIN(tag);
-}
-
-void grpc_timer_end(int tag, void* id, const char *file, int line) {
-  _STAP_TIMING_NS_END(tag);
-}
-
-#endif /* GRPC_STAP_PROFILER */
+#endif  /* GRPC_INTERNAL_CORE_CHANNEL_HTTP_FILTER_H */
