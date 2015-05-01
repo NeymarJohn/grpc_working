@@ -100,7 +100,7 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
    public:
     explicit CallData(Server* server, SyncRequest* mrd)
         : cq_(mrd->cq_),
-          call_(mrd->call_, server, &cq_, server->max_message_size_),
+          call_(mrd->call_, server, &cq_),
           ctx_(mrd->deadline_, mrd->request_metadata_.metadata,
                mrd->request_metadata_.count),
           has_request_payload_(mrd->has_request_payload_),
@@ -124,12 +124,12 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
       std::unique_ptr<grpc::protobuf::Message> req;
       std::unique_ptr<grpc::protobuf::Message> res;
       if (has_request_payload_) {
-        GRPC_TIMER_MARK(DESER_PROTO_BEGIN, call_.call());
+        GRPC_TIMER_BEGIN(GRPC_PTAG_PROTO_DESERIALIZE, call_.call());
         req.reset(method_->AllocateRequestProto());
-        if (!DeserializeProto(request_payload_, req.get(), call_.max_message_size())) {
+        if (!DeserializeProto(request_payload_, req.get())) {
           abort();  // for now
         }
-        GRPC_TIMER_MARK(DESER_PROTO_END, call_.call());
+        GRPC_TIMER_END(GRPC_PTAG_PROTO_DESERIALIZE, call_.call());
       }
       if (has_response_payload_) {
         res.reset(method_->AllocateResponseProto());
@@ -176,27 +176,12 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
   grpc_completion_queue* cq_;
 };
 
-grpc_server* CreateServer(grpc_completion_queue* cq, int max_message_size) {
-  if (max_message_size > 0) {
-    grpc_arg arg;
-    arg.type = GRPC_ARG_INTEGER;
-    arg.key = const_cast<char*>(GRPC_ARG_MAX_MESSAGE_LENGTH);
-    arg.value.integer = max_message_size;
-    grpc_channel_args args = {1, &arg};
-    return grpc_server_create(cq, &args);
-  } else {
-    return grpc_server_create(cq, nullptr);
-  }
-}
-
-Server::Server(ThreadPoolInterface* thread_pool, bool thread_pool_owned,
-               int max_message_size)
-    : max_message_size_(max_message_size),
-      started_(false),
+Server::Server(ThreadPoolInterface* thread_pool, bool thread_pool_owned)
+    : started_(false),
       shutdown_(false),
       num_running_cb_(0),
       sync_methods_(new std::list<SyncRequest>),
-      server_(CreateServer(cq_.cq(), max_message_size)),
+      server_(grpc_server_create(cq_.cq(), nullptr)),
       thread_pool_(thread_pool),
       thread_pool_owned_(thread_pool_owned) {}
 
@@ -361,10 +346,9 @@ class Server::AsyncRequest GRPC_FINAL : public CompletionQueueTag {
     bool orig_status = *status;
     if (*status && request_) {
       if (payload_) {
-        GRPC_TIMER_MARK(DESER_PROTO_BEGIN, call_);
-        *status = DeserializeProto(payload_, request_,
-                                   server_->max_message_size_);
-        GRPC_TIMER_MARK(DESER_PROTO_END, call_);
+        GRPC_TIMER_BEGIN(GRPC_PTAG_PROTO_DESERIALIZE, call_);
+        *status = DeserializeProto(payload_, request_);
+        GRPC_TIMER_END(GRPC_PTAG_PROTO_DESERIALIZE, call_);
       } else {
         *status = false;
       }
@@ -390,7 +374,7 @@ class Server::AsyncRequest GRPC_FINAL : public CompletionQueueTag {
     }
     ctx->call_ = call_;
     ctx->cq_ = cq_;
-    Call call(call_, server_, cq_, server_->max_message_size_);
+    Call call(call_, server_, cq_);
     if (orig_status && call_) {
       ctx->BeginCompletionOp(&call);
     }

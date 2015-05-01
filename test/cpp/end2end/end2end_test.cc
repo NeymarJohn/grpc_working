@@ -172,7 +172,7 @@ class TestServiceImplDupPkg
 
 class End2endTest : public ::testing::Test {
  protected:
-  End2endTest() : kMaxMessageSize_(8192), thread_pool_(2) {}
+  End2endTest() : thread_pool_(2) {}
 
   void SetUp() GRPC_OVERRIDE {
     int port = grpc_pick_unused_port_or_die();
@@ -182,7 +182,6 @@ class End2endTest : public ::testing::Test {
     builder.AddListeningPort(server_address_.str(),
                              InsecureServerCredentials());
     builder.RegisterService(&service_);
-    builder.SetMaxMessageSize(kMaxMessageSize_);  // For testing max message size.
     builder.RegisterService(&dup_pkg_service_);
     builder.SetThreadPool(&thread_pool_);
     server_ = builder.BuildAndStart();
@@ -199,13 +198,11 @@ class End2endTest : public ::testing::Test {
   std::unique_ptr<grpc::cpp::test::util::TestService::Stub> stub_;
   std::unique_ptr<Server> server_;
   std::ostringstream server_address_;
-  const int kMaxMessageSize_;
   TestServiceImpl service_;
   TestServiceImplDupPkg dup_pkg_service_;
   ThreadPool thread_pool_;
 };
 
-/*
 static void SendRpc(grpc::cpp::test::util::TestService::Stub* stub,
                     int num_rpcs) {
   EchoRequest request;
@@ -578,17 +575,17 @@ TEST_F(End2endTest, ClientCancelsBidi) {
   Status s = stream->Finish();
   EXPECT_EQ(grpc::StatusCode::CANCELLED, s.code());
 }
-*/
 
-TEST_F(End2endTest, RpcMaxMessageSize) {
+TEST_F(End2endTest, ThreadStress) {
   ResetStub();
-  EchoRequest request;
-  EchoResponse response;
-  request.set_message(string(kMaxMessageSize_*2, 'a'));
-
-  ClientContext context;
-  Status s = stub_->Echo(&context, request, &response);
-  EXPECT_FALSE(s.IsOk());
+  std::vector<std::thread*> threads;
+  for (int i = 0; i < 100; ++i) {
+    threads.push_back(new std::thread(SendRpc, stub_.get(), 1000));
+  }
+  for (int i = 0; i < 100; ++i) {
+    threads[i]->join();
+    delete threads[i];
+  }
 }
 
 }  // namespace testing
