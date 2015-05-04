@@ -39,11 +39,6 @@ namespace Grpc.Core
     /// </summary>
     public struct Status
     {
-        /// <summary>
-        /// Default result of a successful RPC. StatusCode=OK, empty details message.
-        /// </summary>
-        public static readonly Status DefaultSuccess = new Status(StatusCode.OK, "");
-
         readonly StatusCode statusCode;
         readonly string detail;
 

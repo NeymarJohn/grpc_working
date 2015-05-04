@@ -75,33 +75,17 @@ namespace Grpc.Core
 
             public Builder AddMethod<TRequest, TResponse>(
                 Method<TRequest, TResponse> method,
-                UnaryServerMethod<TRequest, TResponse> handler)
+                UnaryRequestServerMethod<TRequest, TResponse> handler)
             {
-                callHandlers.Add(GetFullMethodName(serviceName, method.Name), ServerCalls.UnaryCall(method, handler));
+                callHandlers.Add(GetFullMethodName(serviceName, method.Name), ServerCalls.UnaryRequestCall(method, handler));
                 return this;
             }
 
             public Builder AddMethod<TRequest, TResponse>(
                 Method<TRequest, TResponse> method,
-                ClientStreamingServerMethod<TRequest, TResponse> handler)
+                StreamingRequestServerMethod<TRequest, TResponse> handler)
             {
-                callHandlers.Add(GetFullMethodName(serviceName, method.Name), ServerCalls.ClientStreamingCall(method, handler));
-                return this;
-            }
-
-            public Builder AddMethod<TRequest, TResponse>(
-                Method<TRequest, TResponse> method,
-                ServerStreamingServerMethod<TRequest, TResponse> handler)
-            {
-                callHandlers.Add(GetFullMethodName(serviceName, method.Name), ServerCalls.ServerStreamingCall(method, handler));
-                return this;
-            }
-
-            public Builder AddMethod<TRequest, TResponse>(
-                Method<TRequest, TResponse> method,
-                DuplexStreamingServerMethod<TRequest, TResponse> handler)
-            {
-                callHandlers.Add(GetFullMethodName(serviceName, method.Name), ServerCalls.DuplexStreamingCall(method, handler));
+                callHandlers.Add(GetFullMethodName(serviceName, method.Name), ServerCalls.StreamingRequestCall(method, handler));
                 return this;
             }
 

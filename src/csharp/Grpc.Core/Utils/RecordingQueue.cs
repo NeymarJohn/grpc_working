@@ -1,4 +1,4 @@
-﻿#region Copyright notice and license
+#region Copyright notice and license
 
 // Copyright 2015, Google Inc.
 // All rights reserved.
@@ -32,23 +32,52 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace Grpc.Core
+namespace Grpc.Core.Utils
 {
+    // TODO: replace this by something that implements IAsyncEnumerator.
     /// <summary>
-    /// A stream of messages to be read.
+    /// Observer that allows us to await incoming messages one-by-one.
+    /// The implementation is not ideal and class will be probably replaced
+    /// by something more versatile in the future.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public interface IAsyncStreamReader<T>
+    public class RecordingQueue<T> : IObserver<T>
     {
-        /// <summary>
-        /// Reads a single message. Returns default(T) if the last message was already read.
-        /// A following read can only be started when the previous one finishes.
-        /// </summary>
-        Task<T> ReadNext();
+        readonly BlockingCollection<T> queue = new BlockingCollection<T>();
+        TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
+
+        public void OnCompleted()
+        {
+            tcs.SetResult(null);
+        }
+
+        public void OnError(Exception error)
+        {
+            tcs.SetException(error);
+        }
+
+        public void OnNext(T value)
+        {
+            queue.Add(value);
+        }
+
+        public BlockingCollection<T> Queue
+        {
+            get
+            {
+                return queue;
+            }
+        }
+
+        public Task Finished
+        {
+            get
+            {
+                return tcs.Task;
+            }
+        }
     }
 }

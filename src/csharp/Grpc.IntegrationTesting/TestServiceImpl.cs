@@ -36,7 +36,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.ProtocolBuffers;
-using Grpc.Core;
 using Grpc.Core.Utils;
 
 namespace grpc.testing
@@ -46,54 +45,88 @@ namespace grpc.testing
     /// </summary>
     public class TestServiceImpl : TestServiceGrpc.ITestService
     {
-        public Task<Empty> EmptyCall(Empty request)
+        public void EmptyCall(Empty request, IObserver<Empty> responseObserver)
         {
-            return Task.FromResult(Empty.DefaultInstance);
+            responseObserver.OnNext(Empty.DefaultInstance);
+            responseObserver.OnCompleted();
         }
 
-        public Task<SimpleResponse> UnaryCall(SimpleRequest request)
+        public void UnaryCall(SimpleRequest request, IObserver<SimpleResponse> responseObserver)
         {
             var response = SimpleResponse.CreateBuilder()
                 .SetPayload(CreateZerosPayload(request.ResponseSize)).Build();
-            return Task.FromResult(response);
+            // TODO: check we support ReponseType
+            responseObserver.OnNext(response);
+            responseObserver.OnCompleted();
         }
 
-        public async Task StreamingOutputCall(StreamingOutputCallRequest request, IServerStreamWriter<StreamingOutputCallResponse> responseStream)
+        public void StreamingOutputCall(StreamingOutputCallRequest request, IObserver<StreamingOutputCallResponse> responseObserver)
         {
             foreach (var responseParam in request.ResponseParametersList)
             {
                 var response = StreamingOutputCallResponse.CreateBuilder()
                     .SetPayload(CreateZerosPayload(responseParam.Size)).Build();
-                await responseStream.Write(response);
+                responseObserver.OnNext(response);
             }
+            responseObserver.OnCompleted();
         }
 
-        public async Task<StreamingInputCallResponse> StreamingInputCall(IAsyncStreamReader<StreamingInputCallRequest> requestStream)
+        public IObserver<StreamingInputCallRequest> StreamingInputCall(IObserver<StreamingInputCallResponse> responseObserver)
         {
-            int sum = 0;
-            await requestStream.ForEach(async request =>
+            var recorder = new RecordingObserver<StreamingInputCallRequest>();
+            Task.Run(() =>
             {
-                sum += request.Payload.Body.Length;
+                int sum = 0;
+                foreach (var req in recorder.ToList().Result)
+                {
+                    sum += req.Payload.Body.Length;
+                }
+                var response = StreamingInputCallResponse.CreateBuilder()
+                    .SetAggregatedPayloadSize(sum).Build();
+                responseObserver.OnNext(response);
+                responseObserver.OnCompleted();
             });
-            return StreamingInputCallResponse.CreateBuilder().SetAggregatedPayloadSize(sum).Build();
+            return recorder;
         }
 
-        public async Task FullDuplexCall(IAsyncStreamReader<StreamingOutputCallRequest> requestStream, IServerStreamWriter<StreamingOutputCallResponse> responseStream)
+        public IObserver<StreamingOutputCallRequest> FullDuplexCall(IObserver<StreamingOutputCallResponse> responseObserver)
         {
-            await requestStream.ForEach(async request =>
+            return new FullDuplexObserver(responseObserver);
+        }
+
+        public IObserver<StreamingOutputCallRequest> HalfDuplexCall(IObserver<StreamingOutputCallResponse> responseObserver)
+        {
+            throw new NotImplementedException();
+        }
+
+        private class FullDuplexObserver : IObserver<StreamingOutputCallRequest>
+        {
+            readonly IObserver<StreamingOutputCallResponse> responseObserver;
+
+            public FullDuplexObserver(IObserver<StreamingOutputCallResponse> responseObserver)
             {
-                foreach (var responseParam in request.ResponseParametersList)
+                this.responseObserver = responseObserver;
+            }
+
+            public void OnCompleted()
+            {
+                responseObserver.OnCompleted();
+            }
+
+            public void OnError(Exception error)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void OnNext(StreamingOutputCallRequest value)
+            {
+                foreach (var responseParam in value.ResponseParametersList)
                 {
                     var response = StreamingOutputCallResponse.CreateBuilder()
                         .SetPayload(CreateZerosPayload(responseParam.Size)).Build();
-                    await responseStream.Write(response);
+                    responseObserver.OnNext(response);
                 }
-            });
-        }
-
-        public async Task HalfDuplexCall(IAsyncStreamReader<StreamingOutputCallRequest> requestStream, IServerStreamWriter<StreamingOutputCallResponse> responseStream)
-        {
-            throw new NotImplementedException();
+            }
         }
 
         private static Payload CreateZerosPayload(int size)
