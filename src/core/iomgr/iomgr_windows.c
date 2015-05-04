@@ -43,10 +43,6 @@
 #include "src/core/iomgr/iocp_windows.h"
 #include "src/core/iomgr/iomgr.h"
 
-/* Windows' io manager is going to be fully designed using IO completion
-   ports. All of what we're doing here is basically make sure that
-   Windows sockets are initialized in and out. */
-
 static void winsock_init(void) {
   WSADATA wsaData;
   int status = WSAStartup(MAKEWORD(2, 0), &wsaData);
