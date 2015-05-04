@@ -63,7 +63,8 @@ grpc_byte_buffer *string_to_byte_buffer(const char *buffer, size_t len) {
   return bb;
 }
 
-typedef void(GPR_CALLTYPE *callback_funcptr)(int success, void *batch_context);
+typedef void(GPR_CALLTYPE *callback_funcptr)(grpc_op_error op_error,
+                                             void *batch_context);
 
 /*
  * Helper to maintain lifetime of batch op inputs and store batch op outputs.
@@ -276,6 +277,12 @@ grpcsharp_batch_context_server_rpc_new_method(
   return ctx->server_rpc_new.call_details.method;
 }
 
+GPR_EXPORT gpr_int32 GPR_CALLTYPE
+grpcsharp_batch_context_recv_close_on_server_cancelled(
+    const grpcsharp_batch_context *ctx) {
+  return (gpr_int32) ctx->recv_close_on_server_cancelled;
+}
+
 /* Init & shutdown */
 
 GPR_EXPORT void GPR_CALLTYPE grpcsharp_init(void) { grpc_init(); }
@@ -301,26 +308,27 @@ grpcsharp_completion_queue_destroy(grpc_completion_queue *cq) {
 
 GPR_EXPORT grpc_completion_type GPR_CALLTYPE
 grpcsharp_completion_queue_next_with_callback(grpc_completion_queue *cq) {
-  grpc_event ev;
+  grpc_event *ev;
   grpcsharp_batch_context *batch_context;
   grpc_completion_type t;
   void(GPR_CALLTYPE * callback)(grpc_event *);
 
   ev = grpc_completion_queue_next(cq, gpr_inf_future);
-  t = ev.type;
-  if (t == GRPC_OP_COMPLETE && ev.tag) {
+  t = ev->type;
+  if (t == GRPC_OP_COMPLETE && ev->tag) {
     /* NEW API handler */
-    batch_context = (grpcsharp_batch_context *)ev.tag;
-    batch_context->callback(ev.success, batch_context);
+    batch_context = (grpcsharp_batch_context *)ev->tag;
+    batch_context->callback(ev->data.op_complete, batch_context);
     grpcsharp_batch_context_destroy(batch_context);
-  } else if (ev.tag) {
+  } else if (ev->tag) {
     /* call the callback in ev->tag */
     /* C forbids to cast object pointers to function pointers, so
      * we cast to intptr first.
      */
-    callback = (void(GPR_CALLTYPE *)(grpc_event *))(gpr_intptr)ev.tag;
-    (*callback)(&ev);
+    callback = (void(GPR_CALLTYPE *)(grpc_event *))(gpr_intptr)ev->tag;
+    (*callback)(ev);
   }
+  grpc_event_finish(ev);
 
   /* return completion type to allow some handling for events that have no
    * tag - such as GRPC_QUEUE_SHUTDOWN
@@ -787,7 +795,7 @@ GPR_EXPORT void GPR_CALLTYPE grpcsharp_redirect_log(grpcsharp_log_func func) {
 /* For testing */
 GPR_EXPORT void GPR_CALLTYPE
 grpcsharp_test_callback(callback_funcptr callback) {
-  callback(1, NULL);
+  callback(GRPC_OP_OK, NULL);
 }
 
 /* For testing */
