@@ -62,7 +62,7 @@ typedef enum {
 typedef struct {
   grpc_ioreq_completion_func on_complete;
   void *user_data;
-  int success;
+  grpc_op_error status;
 } completed_request;
 
 /* See request_set in grpc_call below for a description */
@@ -74,7 +74,7 @@ typedef struct {
 typedef struct {
   /* Overall status of the operation: starts OK, may degrade to
      non-OK */
-  int success;
+  grpc_op_error status;
   /* Completion function to call at the end of the operation */
   grpc_ioreq_completion_func on_complete;
   void *user_data;
@@ -239,6 +239,7 @@ struct grpc_call {
     y = temp;            \
   } while (0)
 
+static void do_nothing(void *ignored, grpc_op_error also_ignored) {}
 static void set_deadline_alarm(grpc_call *call, gpr_timespec deadline);
 static void call_on_done_recv(void *call, int success);
 static void call_on_done_send(void *call, int success);
@@ -246,6 +247,9 @@ static int fill_send_ops(grpc_call *call, grpc_transport_op *op);
 static void execute_op(grpc_call *call, grpc_transport_op *op);
 static void recv_metadata(grpc_call *call, grpc_metadata_batch *metadata);
 static void finish_read_ops(grpc_call *call);
+static grpc_call_error cancel_with_status(
+    grpc_call *c, grpc_status_code status, const char *description,
+    gpr_uint8 locked);
 
 grpc_call *grpc_call_create(grpc_channel *channel, grpc_completion_queue *cq,
                             const void *server_transport_data,
@@ -459,7 +463,7 @@ static void unlock(grpc_call *call) {
 
   if (completing_requests > 0) {
     for (i = 0; i < completing_requests; i++) {
-      completed_requests[i].on_complete(call, completed_requests[i].success,
+      completed_requests[i].on_complete(call, completed_requests[i].status,
                                         completed_requests[i].user_data);
     }
     lock(call);
@@ -519,7 +523,7 @@ no_details:
 }
 
 static void finish_live_ioreq_op(grpc_call *call, grpc_ioreq_op op,
-                                 int success) {
+                                 grpc_op_error status) {
   completed_request *cr;
   gpr_uint8 master_set = call->request_set[op];
   reqinfo_master *master;
@@ -527,8 +531,8 @@ static void finish_live_ioreq_op(grpc_call *call, grpc_ioreq_op op,
   /* ioreq is live: we need to do something */
   master = &call->masters[master_set];
   master->complete_mask |= 1u << op;
-  if (!success) {
-    master->success = 0;
+  if (status != GRPC_OP_OK) {
+    master->status = status;
   }
   if (master->complete_mask == master->need_mask) {
     for (i = 0; i < GRPC_IOREQ_OP_COUNT; i++) {
@@ -539,7 +543,7 @@ static void finish_live_ioreq_op(grpc_call *call, grpc_ioreq_op op,
       switch ((grpc_ioreq_op)i) {
         case GRPC_IOREQ_RECV_MESSAGE:
         case GRPC_IOREQ_SEND_MESSAGE:
-          if (master->success) {
+          if (master->status == GRPC_OP_OK) {
             call->request_set[i] = REQSET_EMPTY;
           } else {
             call->write_state = WRITE_STATE_WRITE_CLOSED;
@@ -574,31 +578,33 @@ static void finish_live_ioreq_op(grpc_call *call, grpc_ioreq_op op,
       }
     }
     cr = &call->completed_requests[call->num_completed_requests++];
-    cr->success = master->success;
+    cr->status = master->status;
     cr->on_complete = master->on_complete;
     cr->user_data = master->user_data;
   }
 }
 
-static void finish_ioreq_op(grpc_call *call, grpc_ioreq_op op, int success) {
+static void finish_ioreq_op(grpc_call *call, grpc_ioreq_op op,
+                            grpc_op_error status) {
   if (is_op_live(call, op)) {
-    finish_live_ioreq_op(call, op, success);
+    finish_live_ioreq_op(call, op, status);
   }
 }
 
 static void call_on_done_send(void *pc, int success) {
   grpc_call *call = pc;
+  grpc_op_error error = success ? GRPC_OP_OK : GRPC_OP_ERROR;
   lock(call);
   if (call->last_send_contains & (1 << GRPC_IOREQ_SEND_INITIAL_METADATA)) {
-    finish_ioreq_op(call, GRPC_IOREQ_SEND_INITIAL_METADATA, success);
+    finish_ioreq_op(call, GRPC_IOREQ_SEND_INITIAL_METADATA, error);
   }
   if (call->last_send_contains & (1 << GRPC_IOREQ_SEND_MESSAGE)) {
-    finish_ioreq_op(call, GRPC_IOREQ_SEND_MESSAGE, success);
+    finish_ioreq_op(call, GRPC_IOREQ_SEND_MESSAGE, error);
   }
   if (call->last_send_contains & (1 << GRPC_IOREQ_SEND_CLOSE)) {
-    finish_ioreq_op(call, GRPC_IOREQ_SEND_TRAILING_METADATA, success);
-    finish_ioreq_op(call, GRPC_IOREQ_SEND_STATUS, success);
-    finish_ioreq_op(call, GRPC_IOREQ_SEND_CLOSE, 1);
+    finish_ioreq_op(call, GRPC_IOREQ_SEND_TRAILING_METADATA, error);
+    finish_ioreq_op(call, GRPC_IOREQ_SEND_STATUS, error);
+    finish_ioreq_op(call, GRPC_IOREQ_SEND_CLOSE, GRPC_OP_OK);
   }
   call->last_send_contains = 0;
   call->sending = 0;
@@ -625,7 +631,7 @@ static int begin_message(grpc_call *call, grpc_begin_message msg) {
     gpr_asprintf(
         &message, "Message terminated early; read %d bytes, expected %d",
         (int)call->incoming_message.length, (int)call->incoming_message_length);
-    grpc_call_cancel_with_status(call, GRPC_STATUS_INVALID_ARGUMENT, message);
+    cancel_with_status(call, GRPC_STATUS_INVALID_ARGUMENT, message, 1);
     gpr_free(message);
     return 0;
   }
@@ -636,7 +642,7 @@ static int begin_message(grpc_call *call, grpc_begin_message msg) {
         &message,
         "Maximum message length of %d exceeded by a message of length %d",
         grpc_channel_get_max_message_length(call->channel), msg.length);
-    grpc_call_cancel_with_status(call, GRPC_STATUS_INVALID_ARGUMENT, message);
+    cancel_with_status(call, GRPC_STATUS_INVALID_ARGUMENT, message, 1);
     gpr_free(message);
     return 0;
   } else if (msg.length > 0) {
@@ -656,9 +662,9 @@ static int add_slice_to_message(grpc_call *call, gpr_slice slice) {
   }
   /* we have to be reading a message to know what to do here */
   if (!call->reading_message) {
-    grpc_call_cancel_with_status(
+    cancel_with_status(
         call, GRPC_STATUS_INVALID_ARGUMENT,
-        "Received payload data while not reading a message");
+        "Received payload data while not reading a message", 1);
     return 0;
   }
   /* append the slice to the incoming buffer */
@@ -669,7 +675,7 @@ static int add_slice_to_message(grpc_call *call, gpr_slice slice) {
     gpr_asprintf(
         &message, "Receiving message overflow; read %d bytes, expected %d",
         (int)call->incoming_message.length, (int)call->incoming_message_length);
-    grpc_call_cancel_with_status(call, GRPC_STATUS_INVALID_ARGUMENT, message);
+    cancel_with_status(call, GRPC_STATUS_INVALID_ARGUMENT, message, 1);
     gpr_free(message);
     return 0;
   } else if (call->incoming_message.length == call->incoming_message_length) {
@@ -717,12 +723,12 @@ static void call_on_done_recv(void *pc, int success) {
     }
     finish_read_ops(call);
   } else {
-    finish_ioreq_op(call, GRPC_IOREQ_RECV_MESSAGE, 0);
-    finish_ioreq_op(call, GRPC_IOREQ_RECV_STATUS, 0);
-    finish_ioreq_op(call, GRPC_IOREQ_RECV_CLOSE, 0);
-    finish_ioreq_op(call, GRPC_IOREQ_RECV_TRAILING_METADATA, 0);
-    finish_ioreq_op(call, GRPC_IOREQ_RECV_INITIAL_METADATA, 0);
-    finish_ioreq_op(call, GRPC_IOREQ_RECV_STATUS_DETAILS, 0);
+    finish_ioreq_op(call, GRPC_IOREQ_RECV_MESSAGE, GRPC_OP_ERROR);
+    finish_ioreq_op(call, GRPC_IOREQ_RECV_STATUS, GRPC_OP_ERROR);
+    finish_ioreq_op(call, GRPC_IOREQ_RECV_CLOSE, GRPC_OP_ERROR);
+    finish_ioreq_op(call, GRPC_IOREQ_RECV_TRAILING_METADATA, GRPC_OP_ERROR);
+    finish_ioreq_op(call, GRPC_IOREQ_RECV_INITIAL_METADATA, GRPC_OP_ERROR);
+    finish_ioreq_op(call, GRPC_IOREQ_RECV_STATUS_DETAILS, GRPC_OP_ERROR);
   }
   call->recv_ops.nops = 0;
   unlock(call);
@@ -874,7 +880,7 @@ static void finish_read_ops(grpc_call *call) {
         (NULL == (*call->request_data[GRPC_IOREQ_RECV_MESSAGE].recv_message =
                       grpc_bbq_pop(&call->incoming_queue)));
     if (!empty) {
-      finish_live_ioreq_op(call, GRPC_IOREQ_RECV_MESSAGE, 1);
+      finish_live_ioreq_op(call, GRPC_IOREQ_RECV_MESSAGE, GRPC_OP_OK);
       empty = grpc_bbq_empty(&call->incoming_queue);
     }
   } else {
@@ -884,19 +890,19 @@ static void finish_read_ops(grpc_call *call) {
   switch (call->read_state) {
     case READ_STATE_STREAM_CLOSED:
       if (empty) {
-        finish_ioreq_op(call, GRPC_IOREQ_RECV_CLOSE, 1);
+        finish_ioreq_op(call, GRPC_IOREQ_RECV_CLOSE, GRPC_OP_OK);
       }
     /* fallthrough */
     case READ_STATE_READ_CLOSED:
       if (empty) {
-        finish_ioreq_op(call, GRPC_IOREQ_RECV_MESSAGE, 1);
+        finish_ioreq_op(call, GRPC_IOREQ_RECV_MESSAGE, GRPC_OP_OK);
       }
-      finish_ioreq_op(call, GRPC_IOREQ_RECV_STATUS, 1);
-      finish_ioreq_op(call, GRPC_IOREQ_RECV_STATUS_DETAILS, 1);
-      finish_ioreq_op(call, GRPC_IOREQ_RECV_TRAILING_METADATA, 1);
+      finish_ioreq_op(call, GRPC_IOREQ_RECV_STATUS, GRPC_OP_OK);
+      finish_ioreq_op(call, GRPC_IOREQ_RECV_STATUS_DETAILS, GRPC_OP_OK);
+      finish_ioreq_op(call, GRPC_IOREQ_RECV_TRAILING_METADATA, GRPC_OP_OK);
     /* fallthrough */
     case READ_STATE_GOT_INITIAL_METADATA:
-      finish_ioreq_op(call, GRPC_IOREQ_RECV_INITIAL_METADATA, 1);
+      finish_ioreq_op(call, GRPC_IOREQ_RECV_INITIAL_METADATA, GRPC_OP_OK);
     /* fallthrough */
     case READ_STATE_INITIAL:
       /* do nothing */
@@ -907,13 +913,13 @@ static void finish_read_ops(grpc_call *call) {
 static void early_out_write_ops(grpc_call *call) {
   switch (call->write_state) {
     case WRITE_STATE_WRITE_CLOSED:
-      finish_ioreq_op(call, GRPC_IOREQ_SEND_MESSAGE, 0);
-      finish_ioreq_op(call, GRPC_IOREQ_SEND_STATUS, 0);
-      finish_ioreq_op(call, GRPC_IOREQ_SEND_TRAILING_METADATA, 0);
-      finish_ioreq_op(call, GRPC_IOREQ_SEND_CLOSE, 1);
+      finish_ioreq_op(call, GRPC_IOREQ_SEND_MESSAGE, GRPC_OP_ERROR);
+      finish_ioreq_op(call, GRPC_IOREQ_SEND_STATUS, GRPC_OP_ERROR);
+      finish_ioreq_op(call, GRPC_IOREQ_SEND_TRAILING_METADATA, GRPC_OP_ERROR);
+      finish_ioreq_op(call, GRPC_IOREQ_SEND_CLOSE, GRPC_OP_OK);
     /* fallthrough */
     case WRITE_STATE_STARTED:
-      finish_ioreq_op(call, GRPC_IOREQ_SEND_INITIAL_METADATA, 0);
+      finish_ioreq_op(call, GRPC_IOREQ_SEND_INITIAL_METADATA, GRPC_OP_ERROR);
     /* fallthrough */
     case WRITE_STATE_INITIAL:
       /* do nothing */
@@ -954,7 +960,7 @@ static grpc_call_error start_ioreq(grpc_call *call, const grpc_ioreq *reqs,
   }
 
   master = &call->masters[set];
-  master->success = 1;
+  master->status = GRPC_OP_OK;
   master->need_mask = have_ops;
   master->complete_mask = 0;
   master->on_complete = completion;
@@ -996,6 +1002,12 @@ grpc_call_error grpc_call_cancel(grpc_call *call) {
 grpc_call_error grpc_call_cancel_with_status(grpc_call *c,
                                              grpc_status_code status,
                                              const char *description) {
+  return cancel_with_status(c, status, description, 0);
+}
+
+static grpc_call_error cancel_with_status(
+    grpc_call *c, grpc_status_code status, const char *description,
+    gpr_uint8 locked) {
   grpc_transport_op op;
   grpc_mdstr *details =
       description ? grpc_mdstr_from_string(c->metadata_context, description)
@@ -1003,10 +1015,14 @@ grpc_call_error grpc_call_cancel_with_status(grpc_call *c,
   memset(&op, 0, sizeof(op));
   op.cancel_with_status = status;
 
-  lock(c);
+  if (locked == 0) {
+    lock(c);
+  }
   set_status_code(c, STATUS_FROM_API_OVERRIDE, status);
   set_status_details(c, STATUS_FROM_API_OVERRIDE, details);
-  unlock(c);
+  if (locked == 0) {
+    unlock(c);
+  }
 
   execute_op(c, &op);
 
@@ -1027,8 +1043,8 @@ static void call_alarm(void *arg, int success) {
   grpc_call *call = arg;
   if (success) {
     if (call->is_client) {
-      grpc_call_cancel_with_status(call, GRPC_STATUS_DEADLINE_EXCEEDED,
-                                   "Deadline Exceeded");
+      cancel_with_status(call, GRPC_STATUS_DEADLINE_EXCEEDED,
+                         "Deadline Exceeded", 0);
     } else {
       grpc_call_cancel(call);
     }
@@ -1141,8 +1157,8 @@ static void set_cancelled_value(grpc_status_code status, void *dest) {
   *(grpc_status_code *)dest = (status != GRPC_STATUS_OK);
 }
 
-static void finish_batch(grpc_call *call, int success, void *tag) {
-  grpc_cq_end_op(call->cq, tag, call, 1);
+static void finish_batch(grpc_call *call, grpc_op_error result, void *tag) {
+  grpc_cq_end_op(call->cq, tag, call, do_nothing, NULL, GRPC_OP_OK);
 }
 
 grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
@@ -1156,8 +1172,8 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
   GRPC_CALL_LOG_BATCH(GPR_INFO, call, ops, nops, tag);
 
   if (nops == 0) {
-    grpc_cq_begin_op(call->cq, call);
-    grpc_cq_end_op(call->cq, tag, call, 1);
+    grpc_cq_begin_op(call->cq, call, GRPC_OP_COMPLETE);
+    grpc_cq_end_op(call->cq, tag, call, do_nothing, NULL, GRPC_OP_OK);
     return GRPC_CALL_OK;
   }
 
@@ -1248,7 +1264,7 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
     }
   }
 
-  grpc_cq_begin_op(call->cq, call);
+  grpc_cq_begin_op(call->cq, call, GRPC_OP_COMPLETE);
 
   return grpc_call_start_ioreq_and_call_back(call, reqs, out, finish_batch,
                                              tag);

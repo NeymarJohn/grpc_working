@@ -37,7 +37,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "src/core/support/string.h"
 #include <grpc/byte_buffer.h>
+#include <grpc/grpc.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
@@ -102,37 +104,10 @@ static void end_test(grpc_end2end_test_fixture *f) {
   grpc_completion_queue_destroy(f->client_cq);
 }
 
-/* Request/response with metadata and payload.*/
-static void test_request_response_with_metadata_and_payload(
-    grpc_end2end_test_config config) {
+static void simple_request_body(grpc_end2end_test_fixture f) {
   grpc_call *c;
   grpc_call *s;
-  gpr_slice request_payload_slice = gpr_slice_from_copied_string("hello world");
-  gpr_slice response_payload_slice = gpr_slice_from_copied_string("hello you");
-  grpc_byte_buffer *request_payload =
-      grpc_byte_buffer_create(&request_payload_slice, 1);
-  grpc_byte_buffer *response_payload =
-      grpc_byte_buffer_create(&response_payload_slice, 1);
   gpr_timespec deadline = five_seconds_time();
-  grpc_metadata meta_c[2] = {
-      {"key1-bin",
-       "\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc",
-       13,
-       {{NULL, NULL, NULL}}},
-      {"key2-bin",
-       "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d",
-       14,
-       {{NULL, NULL, NULL}}}};
-  grpc_metadata meta_s[2] = {
-      {"key3-bin",
-       "\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee",
-       15,
-       {{NULL, NULL, NULL}}},
-      {"key4-bin",
-       "\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff",
-       16,
-       {{NULL, NULL, NULL}}}};
-  grpc_end2end_test_fixture f = begin_test(config, __FUNCTION__, NULL, NULL);
   cq_verifier *v_client = cq_verifier_create(f.client_cq);
   cq_verifier *v_server = cq_verifier_create(f.server_cq);
   grpc_op ops[6];
@@ -140,8 +115,6 @@ static void test_request_response_with_metadata_and_payload(
   grpc_metadata_array initial_metadata_recv;
   grpc_metadata_array trailing_metadata_recv;
   grpc_metadata_array request_metadata_recv;
-  grpc_byte_buffer *request_payload_recv = NULL;
-  grpc_byte_buffer *response_payload_recv = NULL;
   grpc_call_details call_details;
   grpc_status_code status;
   char *details = NULL;
@@ -149,7 +122,7 @@ static void test_request_response_with_metadata_and_payload(
   int was_cancelled = 2;
 
   c = grpc_channel_create_call(f.client, f.client_cq, "/foo",
-                               "foo.test.google.fr", deadline);
+                               "foo.test.google.fr:1234", deadline);
   GPR_ASSERT(c);
 
   grpc_metadata_array_init(&initial_metadata_recv);
@@ -159,19 +132,12 @@ static void test_request_response_with_metadata_and_payload(
 
   op = ops;
   op->op = GRPC_OP_SEND_INITIAL_METADATA;
-  op->data.send_initial_metadata.count = 2;
-  op->data.send_initial_metadata.metadata = meta_c;
-  op++;
-  op->op = GRPC_OP_SEND_MESSAGE;
-  op->data.send_message = request_payload;
+  op->data.send_initial_metadata.count = 0;
   op++;
   op->op = GRPC_OP_SEND_CLOSE_FROM_CLIENT;
   op++;
   op->op = GRPC_OP_RECV_INITIAL_METADATA;
   op->data.recv_initial_metadata = &initial_metadata_recv;
-  op++;
-  op->op = GRPC_OP_RECV_MESSAGE;
-  op->data.recv_message = &response_payload_recv;
   op++;
   op->op = GRPC_OP_RECV_STATUS_ON_CLIENT;
   op->data.recv_status_on_client.trailing_metadata = &trailing_metadata_recv;
@@ -190,19 +156,12 @@ static void test_request_response_with_metadata_and_payload(
 
   op = ops;
   op->op = GRPC_OP_SEND_INITIAL_METADATA;
-  op->data.send_initial_metadata.count = 2;
-  op->data.send_initial_metadata.metadata = meta_s;
-  op++;
-  op->op = GRPC_OP_SEND_MESSAGE;
-  op->data.send_message = response_payload;
+  op->data.send_initial_metadata.count = 0;
   op++;
   op->op = GRPC_OP_SEND_STATUS_FROM_SERVER;
   op->data.send_status_from_server.trailing_metadata_count = 0;
   op->data.send_status_from_server.status = GRPC_STATUS_UNIMPLEMENTED;
   op->data.send_status_from_server.status_details = "xyz";
-  op++;
-  op->op = GRPC_OP_RECV_MESSAGE;
-  op->data.recv_message = &request_payload_recv;
   op++;
   op->op = GRPC_OP_RECV_CLOSE_ON_SERVER;
   op->data.recv_close_on_server.cancelled = &was_cancelled;
@@ -218,22 +177,8 @@ static void test_request_response_with_metadata_and_payload(
   GPR_ASSERT(status == GRPC_STATUS_UNIMPLEMENTED);
   GPR_ASSERT(0 == strcmp(details, "xyz"));
   GPR_ASSERT(0 == strcmp(call_details.method, "/foo"));
-  GPR_ASSERT(0 == strcmp(call_details.host, "foo.test.google.fr"));
+  GPR_ASSERT(0 == strcmp(call_details.host, "foo.test.google.fr:1234"));
   GPR_ASSERT(was_cancelled == 0);
-  GPR_ASSERT(byte_buffer_eq_string(request_payload_recv, "hello world"));
-  GPR_ASSERT(byte_buffer_eq_string(response_payload_recv, "hello you"));
-  GPR_ASSERT(contains_metadata(
-      &request_metadata_recv, "key1-bin",
-      "\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc"));
-  GPR_ASSERT(contains_metadata(
-      &request_metadata_recv, "key2-bin",
-      "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d"));
-  GPR_ASSERT(contains_metadata(
-      &initial_metadata_recv, "key3-bin",
-      "\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee"));
-  GPR_ASSERT(contains_metadata(
-      &initial_metadata_recv, "key4-bin",
-      "\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff"));
 
   gpr_free(details);
   grpc_metadata_array_destroy(&initial_metadata_recv);
@@ -246,16 +191,30 @@ static void test_request_response_with_metadata_and_payload(
 
   cq_verifier_destroy(v_client);
   cq_verifier_destroy(v_server);
+}
 
-  grpc_byte_buffer_destroy(request_payload);
-  grpc_byte_buffer_destroy(response_payload);
-  grpc_byte_buffer_destroy(request_payload_recv);
-  grpc_byte_buffer_destroy(response_payload_recv);
+static void test_invoke_10_simple_requests(grpc_end2end_test_config config, int initial_sequence_number) {
+  int i;
+  grpc_end2end_test_fixture f;
+  grpc_arg client_arg;
+  grpc_channel_args client_args;
 
+  client_arg.type = GRPC_ARG_INTEGER;
+  client_arg.key = GRPC_ARG_HTTP2_INITIAL_SEQUENCE_NUMBER;
+  client_arg.value.integer = initial_sequence_number;
+
+  client_args.num_args = 1;
+  client_args.args = &client_arg;
+
+  f = begin_test(config, __FUNCTION__, &client_args, NULL);
+  for (i = 0; i < 10; i++) {
+    simple_request_body(f);
+    gpr_log(GPR_INFO, "Passed simple request %d", i);
+  }
   end_test(&f);
   config.tear_down_data(&f);
 }
 
 void grpc_end2end_tests(grpc_end2end_test_config config) {
-  test_request_response_with_metadata_and_payload(config);
+  test_invoke_10_simple_requests(config, 16777213);
 }
