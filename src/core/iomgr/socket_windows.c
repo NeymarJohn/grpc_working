@@ -32,11 +32,10 @@
  */
 
 #include <grpc/support/port_platform.h>
-
-#ifdef GPR_WINSOCK_SOCKET
-
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
+
+#ifdef GPR_WINSOCK_SOCKET
 
 #include "src/core/iomgr/iocp_windows.h"
 #include "src/core/iomgr/iomgr.h"
@@ -65,21 +64,16 @@ void grpc_winsocket_shutdown(grpc_winsocket *socket) {
   shutdown_op(&socket->write_info);
 }
 
-void grpc_winsocket_orphan(grpc_winsocket *winsocket) {
-  SOCKET socket = winsocket->socket;
-  if (!winsocket->closed_early) {
-    grpc_iocp_socket_orphan(winsocket);
-  }
-  if (winsocket->closed_early) {
-    grpc_winsocket_destroy(winsocket);
-  }
-  closesocket(socket);
+void grpc_winsocket_orphan(grpc_winsocket *socket) {
+  grpc_iocp_socket_orphan(socket);
+  socket->orphan = 1;
   grpc_iomgr_unref();
+  closesocket(socket->socket);
 }
 
-void grpc_winsocket_destroy(grpc_winsocket *winsocket) {
-  gpr_mu_destroy(&winsocket->state_mu);
-  gpr_free(winsocket);
+void grpc_winsocket_destroy(grpc_winsocket *socket) {
+  gpr_mu_destroy(&socket->state_mu);
+  gpr_free(socket);
 }
 
 #endif  /* GPR_WINSOCK_SOCKET */
