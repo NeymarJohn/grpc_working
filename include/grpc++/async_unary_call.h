@@ -44,19 +44,8 @@
 #include <grpc/support/log.h>
 
 namespace grpc {
-
 template <class R>
-class ClientAsyncResponseReaderInterface {
- public:
-  virtual ~ClientAsyncResponseReaderInterface() {}
-  virtual void ReadInitialMetadata(void* tag) = 0;
-  virtual void Finish(R* msg, Status* status, void* tag) = 0;
-
-};
-
-template <class R>
-class ClientAsyncResponseReader GRPC_FINAL
-    : public ClientAsyncResponseReaderInterface<R> {
+class ClientAsyncResponseReader GRPC_FINAL {
  public:
   ClientAsyncResponseReader(ChannelInterface* channel, CompletionQueue* cq,
                             const RpcMethod& method, ClientContext* context,
