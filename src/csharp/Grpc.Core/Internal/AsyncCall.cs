@@ -43,7 +43,7 @@ using Grpc.Core.Utils;
 namespace Grpc.Core.Internal
 {
     /// <summary>
-    /// Manages client side native call lifecycle.
+    /// Handles client side native call lifecycle.
     /// </summary>
     internal class AsyncCall<TRequest, TResponse> : AsyncCallBase<TRequest, TResponse>
     {
@@ -67,7 +67,6 @@ namespace Grpc.Core.Internal
         public void Initialize(Channel channel, CompletionQueueSafeHandle cq, string methodName)
         {
             var call = CallSafeHandle.Create(channel.Handle, cq, methodName, channel.Target, Timespec.InfFuture);
-            DebugStats.ActiveClientCalls.Increment();
             InitializeInternal(call);
         }
 
@@ -161,7 +160,7 @@ namespace Grpc.Core.Internal
         /// <summary>
         /// Starts a unary request - streamed response call.
         /// </summary>
-        public void StartServerStreamingCall(TRequest msg, Metadata headers)
+        public void StartServerStreamingCall(TRequest msg, IObserver<TResponse> readObserver, Metadata headers)
         {
             lock (myLock)
             {
@@ -170,13 +169,17 @@ namespace Grpc.Core.Internal
                 started = true;
                 halfcloseRequested = true;
                 halfclosed = true;  // halfclose not confirmed yet, but it will be once finishedHandler is called.
+        
+                this.readObserver = readObserver;
 
                 byte[] payload = UnsafeSerialize(msg);
-
+        
                 using (var metadataArray = MetadataArraySafeHandle.Create(headers))
                 {
                     call.StartServerStreaming(payload, finishedHandler, metadataArray);
                 }
+
+                StartReceiveMessage();
             }
         }
 
@@ -184,7 +187,7 @@ namespace Grpc.Core.Internal
         /// Starts a streaming request - streaming response call.
         /// Use StartSendMessage and StartSendCloseFromClient to stream requests.
         /// </summary>
-        public void StartDuplexStreamingCall(Metadata headers)
+        public void StartDuplexStreamingCall(IObserver<TResponse> readObserver, Metadata headers)
         {
             lock (myLock)
             {
@@ -192,10 +195,14 @@ namespace Grpc.Core.Internal
 
                 started = true;
 
+                this.readObserver = readObserver;
+
                 using (var metadataArray = MetadataArraySafeHandle.Create(headers))
                 {
                     call.StartDuplexStreaming(finishedHandler, metadataArray);
                 }
+
+                StartReceiveMessage();
             }
         }
 
@@ -203,18 +210,9 @@ namespace Grpc.Core.Internal
         /// Sends a streaming request. Only one pending send action is allowed at any given time.
         /// completionDelegate is called when the operation finishes.
         /// </summary>
-        public void StartSendMessage(TRequest msg, AsyncCompletionDelegate<object> completionDelegate)
+        public void StartSendMessage(TRequest msg, AsyncCompletionDelegate completionDelegate)
         {
             StartSendMessageInternal(msg, completionDelegate);
-        }
-
-        /// <summary>
-        /// Receives a streaming response. Only one pending read action is allowed at any given time.
-        /// completionDelegate is called when the operation finishes.
-        /// </summary>
-        public void StartReadMessage(AsyncCompletionDelegate<TResponse> completionDelegate)
-        {
-            StartReadMessageInternal(completionDelegate);
         }
 
         /// <summary>
@@ -222,7 +220,7 @@ namespace Grpc.Core.Internal
         /// Only one pending send action is allowed at any given time.
         /// completionDelegate is called when the operation finishes.
         /// </summary>
-        public void StartSendCloseFromClient(AsyncCompletionDelegate<object> completionDelegate)
+        public void StartSendCloseFromClient(AsyncCompletionDelegate completionDelegate)
         {
             lock (myLock)
             {
@@ -237,12 +235,12 @@ namespace Grpc.Core.Internal
         }
 
         /// <summary>
-        /// On client-side, we only fire readCompletionDelegate once all messages have been read 
+        /// On client-side, we only fire readObserver.OnCompleted once all messages have been read 
         /// and status has been received.
         /// </summary>
-        protected override void ProcessLastRead(AsyncCompletionDelegate<TResponse> completionDelegate)
+        protected override void CompleteReadObserver()
         {
-            if (completionDelegate != null && readingDone && finishedStatus.HasValue)
+            if (readingDone && finishedStatus.HasValue)
             {
                 bool shouldComplete;
                 lock (myLock)
@@ -256,19 +254,14 @@ namespace Grpc.Core.Internal
                     var status = finishedStatus.Value;
                     if (status.StatusCode != StatusCode.OK)
                     {
-                        FireCompletion(completionDelegate, default(TResponse), new RpcException(status));
+                        FireReadObserverOnError(new RpcException(status));
                     }
                     else
                     {
-                        FireCompletion(completionDelegate, default(TResponse), null);
+                        FireReadObserverOnCompleted();
                     }
                 }
             }
-        }
-
-        protected override void OnReleaseResources()
-        {
-            DebugStats.ActiveClientCalls.Decrement();
         }
 
         /// <summary>
@@ -311,18 +304,15 @@ namespace Grpc.Core.Internal
         {
             var status = ctx.GetReceivedStatus();
 
-            AsyncCompletionDelegate<TResponse> origReadCompletionDelegate = null;
             lock (myLock)
             {
                 finished = true;
                 finishedStatus = status;
 
-                origReadCompletionDelegate = readCompletionDelegate;
-
                 ReleaseResourcesIfPossible();
             }
 
-            ProcessLastRead(origReadCompletionDelegate);
+            CompleteReadObserver();
         }
     }
 }

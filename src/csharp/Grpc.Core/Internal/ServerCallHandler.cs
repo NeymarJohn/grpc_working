@@ -33,7 +33,6 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Grpc.Core.Internal;
 using Grpc.Core.Utils;
 
@@ -41,229 +40,96 @@ namespace Grpc.Core.Internal
 {
     internal interface IServerCallHandler
     {
-        Task HandleCall(string methodName, CallSafeHandle call, CompletionQueueSafeHandle cq);
+        void StartCall(string methodName, CallSafeHandle call, CompletionQueueSafeHandle cq);
     }
 
-    internal class UnaryServerCallHandler<TRequest, TResponse> : IServerCallHandler
+    internal class UnaryRequestServerCallHandler<TRequest, TResponse> : IServerCallHandler
     {
         readonly Method<TRequest, TResponse> method;
-        readonly UnaryServerMethod<TRequest, TResponse> handler;
+        readonly UnaryRequestServerMethod<TRequest, TResponse> handler;
 
-        public UnaryServerCallHandler(Method<TRequest, TResponse> method, UnaryServerMethod<TRequest, TResponse> handler)
+        public UnaryRequestServerCallHandler(Method<TRequest, TResponse> method, UnaryRequestServerMethod<TRequest, TResponse> handler)
         {
             this.method = method;
             this.handler = handler;
         }
 
-        public async Task HandleCall(string methodName, CallSafeHandle call, CompletionQueueSafeHandle cq)
+        public void StartCall(string methodName, CallSafeHandle call, CompletionQueueSafeHandle cq)
         {
             var asyncCall = new AsyncCallServer<TRequest, TResponse>(
                 method.ResponseMarshaller.Serializer,
                 method.RequestMarshaller.Deserializer);
 
             asyncCall.Initialize(call);
-            var finishedTask = asyncCall.ServerSideCallAsync();
-            var requestStream = new ServerRequestStream<TRequest, TResponse>(asyncCall);
-            var responseStream = new ServerResponseStream<TRequest, TResponse>(asyncCall);
+           
+            var requestObserver = new RecordingObserver<TRequest>();
+            var finishedTask = asyncCall.ServerSideCallAsync(requestObserver);
 
-            Status status = Status.DefaultSuccess;
-            try
-            {
-                var request = await requestStream.ReadNext();
-                // TODO(jtattermusch): we need to read the full stream so that native callhandle gets deallocated.
-                Preconditions.CheckArgument(await requestStream.ReadNext() == null);
-                var result = await handler(request);
-                await responseStream.Write(result);
-            } 
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception occured in handler: " + e);
-                status = HandlerUtils.StatusFromException(e);
-            }
-            try
-            {
-                await responseStream.WriteStatus(status);
-            }
-            catch (OperationCanceledException)
-            {
-                // Call has been already cancelled.
-            }
-            await finishedTask;
+            var request = requestObserver.ToList().Result.Single();
+            var responseObserver = new ServerStreamingOutputObserver<TRequest, TResponse>(asyncCall);
+            handler(request, responseObserver);
+
+            finishedTask.Wait();
         }
     }
 
-    internal class ServerStreamingServerCallHandler<TRequest, TResponse> : IServerCallHandler
+    internal class StreamingRequestServerCallHandler<TRequest, TResponse> : IServerCallHandler
     {
         readonly Method<TRequest, TResponse> method;
-        readonly ServerStreamingServerMethod<TRequest, TResponse> handler;
+        readonly StreamingRequestServerMethod<TRequest, TResponse> handler;
 
-        public ServerStreamingServerCallHandler(Method<TRequest, TResponse> method, ServerStreamingServerMethod<TRequest, TResponse> handler)
+        public StreamingRequestServerCallHandler(Method<TRequest, TResponse> method, StreamingRequestServerMethod<TRequest, TResponse> handler)
         {
             this.method = method;
             this.handler = handler;
         }
 
-        public async Task HandleCall(string methodName, CallSafeHandle call, CompletionQueueSafeHandle cq)
+        public void StartCall(string methodName, CallSafeHandle call, CompletionQueueSafeHandle cq)
         {
             var asyncCall = new AsyncCallServer<TRequest, TResponse>(
                 method.ResponseMarshaller.Serializer,
                 method.RequestMarshaller.Deserializer);
 
             asyncCall.Initialize(call);
-            var finishedTask = asyncCall.ServerSideCallAsync();
-            var requestStream = new ServerRequestStream<TRequest, TResponse>(asyncCall);
-            var responseStream = new ServerResponseStream<TRequest, TResponse>(asyncCall);
 
-            Status status = Status.DefaultSuccess;
-            try
-            {
-                var request = await requestStream.ReadNext();
-                // TODO(jtattermusch): we need to read the full stream so that native callhandle gets deallocated.
-                Preconditions.CheckArgument(await requestStream.ReadNext() == null);
-
-                await handler(request, responseStream);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception occured in handler: " + e);
-                status = HandlerUtils.StatusFromException(e);
-            }
-
-            try
-            {
-                await responseStream.WriteStatus(status);
-            }
-            catch (OperationCanceledException)
-            {
-                // Call has been already cancelled.
-            }
-            await finishedTask;
-        }
-    }
-
-    internal class ClientStreamingServerCallHandler<TRequest, TResponse> : IServerCallHandler
-    {
-        readonly Method<TRequest, TResponse> method;
-        readonly ClientStreamingServerMethod<TRequest, TResponse> handler;
-
-        public ClientStreamingServerCallHandler(Method<TRequest, TResponse> method, ClientStreamingServerMethod<TRequest, TResponse> handler)
-        {
-            this.method = method;
-            this.handler = handler;
-        }
-
-        public async Task HandleCall(string methodName, CallSafeHandle call, CompletionQueueSafeHandle cq)
-        {
-            var asyncCall = new AsyncCallServer<TRequest, TResponse>(
-                method.ResponseMarshaller.Serializer,
-                method.RequestMarshaller.Deserializer);
-
-            asyncCall.Initialize(call);
-            var finishedTask = asyncCall.ServerSideCallAsync();
-            var requestStream = new ServerRequestStream<TRequest, TResponse>(asyncCall);
-            var responseStream = new ServerResponseStream<TRequest, TResponse>(asyncCall);
-
-            Status status = Status.DefaultSuccess;
-            try
-            {
-                var result = await handler(requestStream);
-                try
-                {
-                    await responseStream.Write(result);
-                }
-                catch (OperationCanceledException)
-                {
-                    status = Status.DefaultCancelled;
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception occured in handler: " + e);
-                status = HandlerUtils.StatusFromException(e);
-            }
-
-            try
-            {
-                await responseStream.WriteStatus(status);
-            }
-            catch (OperationCanceledException)
-            {
-                // Call has been already cancelled.
-            }
-            await finishedTask;
-        }
-    }
-
-    internal class DuplexStreamingServerCallHandler<TRequest, TResponse> : IServerCallHandler
-    {
-        readonly Method<TRequest, TResponse> method;
-        readonly DuplexStreamingServerMethod<TRequest, TResponse> handler;
-
-        public DuplexStreamingServerCallHandler(Method<TRequest, TResponse> method, DuplexStreamingServerMethod<TRequest, TResponse> handler)
-        {
-            this.method = method;
-            this.handler = handler;
-        }
-
-        public async Task HandleCall(string methodName, CallSafeHandle call, CompletionQueueSafeHandle cq)
-        {
-            var asyncCall = new AsyncCallServer<TRequest, TResponse>(
-                method.ResponseMarshaller.Serializer,
-                method.RequestMarshaller.Deserializer);
-
-            asyncCall.Initialize(call);
-            var finishedTask = asyncCall.ServerSideCallAsync();
-            var requestStream = new ServerRequestStream<TRequest, TResponse>(asyncCall);
-            var responseStream = new ServerResponseStream<TRequest, TResponse>(asyncCall);
-
-            Status status = Status.DefaultSuccess;
-            try
-            {
-                await handler(requestStream, responseStream);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception occured in handler: " + e);
-                status = HandlerUtils.StatusFromException(e);
-            }
-            try
-            {
-                await responseStream.WriteStatus(status);
-            }
-            catch (OperationCanceledException)
-            {
-                // Call has been already cancelled.
-            }
-            await finishedTask;
+            var responseObserver = new ServerStreamingOutputObserver<TRequest, TResponse>(asyncCall);
+            var requestObserver = handler(responseObserver);
+            var finishedTask = asyncCall.ServerSideCallAsync(requestObserver);
+            finishedTask.Wait();
         }
     }
 
     internal class NoSuchMethodCallHandler : IServerCallHandler
     {
-        public async Task HandleCall(string methodName, CallSafeHandle call, CompletionQueueSafeHandle cq)
+        public void StartCall(string methodName, CallSafeHandle call, CompletionQueueSafeHandle cq)
         {
             // We don't care about the payload type here.
             var asyncCall = new AsyncCallServer<byte[], byte[]>(
                 (payload) => payload, (payload) => payload);
-            
-            asyncCall.Initialize(call);
-            var finishedTask = asyncCall.ServerSideCallAsync();
-            var requestStream = new ServerRequestStream<byte[], byte[]>(asyncCall);
-            var responseStream = new ServerResponseStream<byte[], byte[]>(asyncCall);
 
-            await responseStream.WriteStatus(new Status(StatusCode.Unimplemented, "No such method."));
-            // TODO(jtattermusch): if we don't read what client has sent, the server call never gets disposed.
-            await requestStream.ToList();
-            await finishedTask;
+            asyncCall.Initialize(call);
+
+            var finishedTask = asyncCall.ServerSideCallAsync(new NullObserver<byte[]>());
+
+            // TODO: check result of the completion status.
+            asyncCall.StartSendStatusFromServer(new Status(StatusCode.Unimplemented, "No such method."), new AsyncCompletionDelegate((error) => { }));
+
+            finishedTask.Wait();
         }
     }
 
-    internal static class HandlerUtils
+    internal class NullObserver<T> : IObserver<T>
     {
-        public static Status StatusFromException(Exception e)
+        public void OnCompleted()
         {
-            // TODO(jtattermusch): what is the right status code here?
-            return new Status(StatusCode.Unknown, "Exception was thrown by handler.");
+        }
+
+        public void OnError(Exception error)
+        {
+        }
+
+        public void OnNext(T value)
+        {
         }
     }
 }
