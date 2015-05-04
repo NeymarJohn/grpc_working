@@ -42,7 +42,7 @@
 namespace grpc {
 
 ServerBuilder::ServerBuilder()
-    : max_message_size_(-1), generic_service_(nullptr), thread_pool_(nullptr) {}
+    : generic_service_(nullptr), thread_pool_(nullptr) {}
 
 void ServerBuilder::RegisterService(SynchronousService* service) {
   services_.push_back(service->service());
@@ -86,8 +86,7 @@ std::unique_ptr<Server> ServerBuilder::BuildAndStart() {
     thread_pool_ = new ThreadPool(cores);
     thread_pool_owned = true;
   }
-  std::unique_ptr<Server> server(
-      new Server(thread_pool_, thread_pool_owned, max_message_size_));
+  std::unique_ptr<Server> server(new Server(thread_pool_, thread_pool_owned));
   for (auto service = services_.begin(); service != services_.end();
        service++) {
     if (!server->RegisterService(*service)) {
