@@ -49,7 +49,7 @@ namespace Grpc.Core
     {
         // TODO(jtattermusch) : make sure the delegate doesn't get garbage collected while
         // native callbacks are in the completion queue.
-        readonly CompletionCallbackDelegate serverShutdownHandler;
+        readonly ServerShutdownCallbackDelegate serverShutdownHandler;
         readonly CompletionCallbackDelegate newServerRpcHandler;
 
         readonly ServerSafeHandle handle;
@@ -201,13 +201,16 @@ namespace Grpc.Core
         /// <summary>
         /// Handles the native callback.
         /// </summary>
-        private void HandleNewServerRpc(bool success, IntPtr batchContextPtr)
+        private void HandleNewServerRpc(GRPCOpError error, IntPtr batchContextPtr)
         {
             try
             {
                 var ctx = new BatchContextSafeHandleNotOwned(batchContextPtr);
 
-                // TODO: handle error
+                if (error != GRPCOpError.GRPC_OP_OK)
+                {
+                    // TODO: handle error
+                }
 
                 CallSafeHandle call = ctx.GetServerRpcNewCall();
                 string method = ctx.GetServerRpcNewMethod();
@@ -229,7 +232,8 @@ namespace Grpc.Core
         /// <summary>
         /// Handles native callback.
         /// </summary>
-        private void HandleServerShutdown(bool success, IntPtr batchContextPtr)
+        /// <param name="eventPtr"></param>
+        private void HandleServerShutdown(IntPtr eventPtr)
         {
             try
             {
