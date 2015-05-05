@@ -76,9 +76,6 @@ typedef struct grpc_transport_op {
 
   grpc_status_code cancel_with_status;
   grpc_mdstr *cancel_message;
-
-  /* Indexes correspond to grpc_context_index enum values */
-  void *const *context;
 } grpc_transport_op;
 
 /* Callbacks made from the transport to the upper layers of grpc. */
