@@ -62,19 +62,16 @@ END2END_TESTS = {
     'graceful_server_shutdown': True,
     'invoke_large_request': False,
     'max_concurrent_streams': True,
-    'max_message_length': True,
     'no_op': True,
     'ping_pong_streaming': True,
-    'registered_call': True,
     'request_response_with_binary_metadata_and_payload': True,
     'request_response_with_metadata_and_payload': True,
     'request_response_with_payload': True,
-    'request_response_with_trailing_metadata_and_payload': True,
     'request_with_large_metadata': True,
     'request_with_payload': True,
     'simple_delayed_request': True,
     'simple_request': True,
-    'simple_request_with_high_initial_sequence_number': True,
+    'registered_call': True,
 }
 
 
