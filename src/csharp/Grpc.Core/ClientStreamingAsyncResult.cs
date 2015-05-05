@@ -32,14 +32,38 @@
 #endregion
 
 using System;
-using System.Threading;
+using System.Threading.Tasks;
 
-namespace Grpc.Core.Internal
+namespace Grpc.Core
 {
-    internal static class DebugStats
+    /// <summary>
+    /// Return type for client streaming async method.
+    /// </summary>
+    public struct ClientStreamingAsyncResult<TRequest, TResponse>
     {
-        public static readonly AtomicCounter ActiveClientCalls = new AtomicCounter();
+        readonly Task<TResponse> task;
+        readonly IObserver<TRequest> inputs;
 
-        public static readonly AtomicCounter ActiveServerCalls = new AtomicCounter();
+        public ClientStreamingAsyncResult(Task<TResponse> task, IObserver<TRequest> inputs)
+        {
+            this.task = task;
+            this.inputs = inputs;
+        }
+
+        public Task<TResponse> Task
+        {
+            get
+            {
+                return this.task;
+            }
+        }
+
+        public IObserver<TRequest> Inputs
+        {
+            get
+            {
+                return this.inputs;
+            }
+        }
     }
 }

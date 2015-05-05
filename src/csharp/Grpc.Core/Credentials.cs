@@ -37,7 +37,7 @@ using Grpc.Core.Internal;
 namespace Grpc.Core
 {
     /// <summary>
-    /// Client-side credentials. Used for creation of a secure channel.
+    /// Client-side credentials.
     /// </summary>
     public abstract class Credentials
     {

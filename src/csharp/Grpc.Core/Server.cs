@@ -49,7 +49,7 @@ namespace Grpc.Core
     {
         // TODO(jtattermusch) : make sure the delegate doesn't get garbage collected while
         // native callbacks are in the completion queue.
-        readonly ServerShutdownCallbackDelegate serverShutdownHandler;
+        readonly CompletionCallbackDelegate serverShutdownHandler;
         readonly CompletionCallbackDelegate newServerRpcHandler;
 
         readonly ServerSafeHandle handle;
@@ -181,7 +181,7 @@ namespace Grpc.Core
         /// <summary>
         /// Selects corresponding handler for given call and handles the call.
         /// </summary>
-        private async Task InvokeCallHandler(CallSafeHandle call, string method)
+        private void InvokeCallHandler(CallSafeHandle call, string method)
         {
             try
             {
@@ -190,7 +190,7 @@ namespace Grpc.Core
                 {
                     callHandler = new NoSuchMethodCallHandler();
                 }
-                await callHandler.HandleCall(method, call, GetCompletionQueue());
+                callHandler.StartCall(method, call, GetCompletionQueue());
             }
             catch (Exception e)
             {
@@ -201,16 +201,13 @@ namespace Grpc.Core
         /// <summary>
         /// Handles the native callback.
         /// </summary>
-        private void HandleNewServerRpc(GRPCOpError error, IntPtr batchContextPtr)
+        private void HandleNewServerRpc(bool success, IntPtr batchContextPtr)
         {
             try
             {
                 var ctx = new BatchContextSafeHandleNotOwned(batchContextPtr);
 
-                if (error != GRPCOpError.GRPC_OP_OK)
-                {
-                    // TODO: handle error
-                }
+                // TODO: handle error
 
                 CallSafeHandle call = ctx.GetServerRpcNewCall();
                 string method = ctx.GetServerRpcNewMethod();
@@ -218,7 +215,7 @@ namespace Grpc.Core
                 // after server shutdown, the callback returns with null call
                 if (!call.IsInvalid)
                 {
-                    Task.Run(async () => await InvokeCallHandler(call, method));
+                    Task.Run(() => InvokeCallHandler(call, method));
                 }
 
                 AllowOneRpc();
@@ -232,8 +229,7 @@ namespace Grpc.Core
         /// <summary>
         /// Handles native callback.
         /// </summary>
-        /// <param name="eventPtr"></param>
-        private void HandleServerShutdown(IntPtr eventPtr)
+        private void HandleServerShutdown(bool success, IntPtr batchContextPtr)
         {
             try
             {

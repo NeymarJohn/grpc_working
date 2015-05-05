@@ -35,15 +35,12 @@ using System;
 
 namespace Grpc.Core
 {
-    /// <summary>
-    /// Method types supported by gRPC.
-    /// </summary>
     public enum MethodType
     {
-        Unary,  // Unary request, unary response.
-        ClientStreaming,  // Streaming request, unary response.
-        ServerStreaming,  // Unary request, streaming response.
-        DuplexStreaming  // Streaming request, streaming response.
+        Unary,
+        ClientStreaming,
+        ServerStreaming,
+        DuplexStreaming
     }
 
     /// <summary>
