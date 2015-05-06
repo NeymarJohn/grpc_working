@@ -245,7 +245,6 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
         if (response.status.code !== grpc.status.OK) {
           var error = new Error(response.status.details);
           error.code = response.status.code;
-          error.metadata = response.status.metadata;
           callback(error);
           return;
         }
@@ -317,7 +316,6 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
         if (response.status.code !== grpc.status.OK) {
           var error = new Error(response.status.details);
           error.code = response.status.code;
-          error.metadata = response.status.metadata;
           callback(error);
           return;
         }
@@ -384,13 +382,6 @@ function makeServerStreamRequestFunction(method, serialize, deserialize) {
           throw err;
         }
         stream.emit('status', response.status);
-        if (response.status.code !== grpc.status.OK) {
-          var error = new Error(response.status.details);
-          error.code = response.status.code;
-          error.metadata = response.status.metadata;
-          stream.emit('error', error);
-          return;
-        }
       });
     });
     return stream;
@@ -449,13 +440,6 @@ function makeBidiStreamRequestFunction(method, serialize, deserialize) {
           throw err;
         }
         stream.emit('status', response.status);
-        if (response.status.code !== grpc.status.OK) {
-          var error = new Error(response.status.details);
-          error.code = response.status.code;
-          error.metadata = response.status.metadata;
-          stream.emit('error', error);
-          return;
-        }
       });
     });
     return stream;
@@ -504,6 +488,7 @@ function makeClientConstructor(methods) {
         callback(null, metadata);
       };
     }
+    this.server_address = address;
     this.channel = new grpc.Channel(address, options);
   }
 
