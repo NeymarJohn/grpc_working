@@ -32,8 +32,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
@@ -43,7 +41,7 @@ namespace math
     /// <summary>
     /// Math service definitions (this is handwritten version of code that will normally be generated).
     /// </summary>
-    public class MathGrpc
+    public static class MathGrpc
     {
         static readonly string ServiceName = "/math.Math";
 
@@ -133,13 +131,13 @@ namespace math
         // server-side interface
         public interface IMathService
         {
-            Task<DivReply> Div(DivArgs request);
+            Task<DivReply> Div(ServerCallContext context, DivArgs request);
 
-            Task Fib(FibArgs request, IServerStreamWriter<Num> responseStream);
+            Task Fib(ServerCallContext context, FibArgs request, IServerStreamWriter<Num> responseStream);
 
-            Task<Num> Sum(IAsyncStreamReader<Num> requestStream);
+            Task<Num> Sum(ServerCallContext context, IAsyncStreamReader<Num> requestStream);
 
-            Task DivMany(IAsyncStreamReader<DivArgs> requestStream, IServerStreamWriter<DivReply> responseStream);
+            Task DivMany(ServerCallContext context, IAsyncStreamReader<DivArgs> requestStream, IServerStreamWriter<DivReply> responseStream);
         }
 
         public static ServerServiceDefinition BindService(IMathService serviceImpl)
