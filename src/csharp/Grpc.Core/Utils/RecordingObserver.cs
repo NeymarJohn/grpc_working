@@ -32,32 +32,34 @@
 #endregion
 
 using System;
-using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Grpc.Core;
 
-namespace Grpc.Core.Internal
+namespace Grpc.Core.Utils
 {
-    internal static class ServerCalls
+    public class RecordingObserver<T> : IObserver<T>
     {
-        public static IServerCallHandler UnaryCall<TRequest, TResponse>(Method<TRequest, TResponse> method, UnaryServerMethod<TRequest, TResponse> handler)
+        TaskCompletionSource<List<T>> tcs = new TaskCompletionSource<List<T>>();
+        List<T> data = new List<T>();
+
+        public void OnCompleted()
         {
-            return new UnaryServerCallHandler<TRequest, TResponse>(method, handler);
+            tcs.SetResult(data);
         }
 
-        public static IServerCallHandler ClientStreamingCall<TRequest, TResponse>(Method<TRequest, TResponse> method, ClientStreamingServerMethod<TRequest, TResponse> handler)
+        public void OnError(Exception error)
         {
-            return new ClientStreamingServerCallHandler<TRequest, TResponse>(method, handler);
+            tcs.SetException(error);
         }
 
-        public static IServerCallHandler ServerStreamingCall<TRequest, TResponse>(Method<TRequest, TResponse> method, ServerStreamingServerMethod<TRequest, TResponse> handler)
+        public void OnNext(T value)
         {
-            return new ServerStreamingServerCallHandler<TRequest, TResponse>(method, handler);
+            data.Add(value);
         }
 
-        public static IServerCallHandler DuplexStreamingCall<TRequest, TResponse>(Method<TRequest, TResponse> method, DuplexStreamingServerMethod<TRequest, TResponse> handler)
+        public Task<List<T>> ToList()
         {
-            return new DuplexStreamingServerCallHandler<TRequest, TResponse>(method, handler);
+            return tcs.Task;
         }
     }
 }

@@ -61,8 +61,9 @@ namespace math
 
         public static async Task FibExample(MathGrpc.IMathServiceClient stub)
         {
-            var call = stub.Fib(new FibArgs.Builder { Limit = 5 }.Build());
-            List<Num> result = await call.ResponseStream.ToList();
+            var recorder = new RecordingObserver<Num>();
+            stub.Fib(new FibArgs.Builder { Limit = 5 }.Build(), recorder);
+            List<Num> result = await recorder.ToList();
             Console.WriteLine("Fib Result: " + string.Join("|", result));
         }
 
@@ -75,9 +76,9 @@ namespace math
                 new Num.Builder { Num_ = 3 }.Build()
             };
 
-            var call = stub.Sum();
-            await call.RequestStream.WriteAll(numbers);
-            Console.WriteLine("Sum Result: " + await call.Result);
+            var clientStreamingResult = stub.Sum();
+            numbers.Subscribe(clientStreamingResult.Inputs);
+            Console.WriteLine("Sum Result: " + await clientStreamingResult.Task);
         }
 
         public static async Task DivManyExample(MathGrpc.IMathServiceClient stub)
@@ -88,9 +89,12 @@ namespace math
                 new DivArgs.Builder { Dividend = 100, Divisor = 21 }.Build(),
                 new DivArgs.Builder { Dividend = 7, Divisor = 2 }.Build()
             };
-            var call = stub.DivMany();
-            await call.RequestStream.WriteAll(divArgsList);
-            Console.WriteLine("DivMany Result: " + string.Join("|", await call.ResponseStream.ToList()));
+
+            var recorder = new RecordingObserver<DivReply>();
+            var inputs = stub.DivMany(recorder);
+            divArgsList.Subscribe(inputs);
+            var result = await recorder.ToList();
+            Console.WriteLine("DivMany Result: " + string.Join("|", result));
         }
 
         public static async Task DependendRequestsExample(MathGrpc.IMathServiceClient stub)
@@ -102,9 +106,9 @@ namespace math
                 new Num.Builder { Num_ = 3 }.Build()
             };
 
-            var sumCall = stub.Sum();
-            await sumCall.RequestStream.WriteAll(numbers);
-            Num sum = await sumCall.Result;
+            var clientStreamingResult = stub.Sum();
+            numbers.Subscribe(clientStreamingResult.Inputs);
+            Num sum = await clientStreamingResult.Task;
 
             DivReply result = await stub.DivAsync(new DivArgs.Builder { Dividend = sum.Num_, Divisor = numbers.Count }.Build());
             Console.WriteLine("Avg Result: " + result);

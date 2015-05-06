@@ -1,5 +1,4 @@
 #region Copyright notice and license
-
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -28,34 +27,45 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #endregion
-
 using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 using Grpc.Core.Internal;
 
-namespace Grpc.Core
+namespace Grpc.Core.Internal
 {
     /// <summary>
-    /// Server-side handler for unary call.
+    /// Observer that writes all arriving messages to a call abstraction (in blocking fashion)
+    /// and then halfcloses the call. Used for server-side call handling.
     /// </summary>
-    public delegate Task<TResponse> UnaryServerMethod<TRequest, TResponse>(TRequest request);
+    internal class ServerStreamingOutputObserver<TRequest, TResponse> : IObserver<TResponse>
+    {
+        readonly AsyncCallServer<TRequest, TResponse> call;
 
-    /// <summary>
-    /// Server-side handler for client streaming call.
-    /// </summary>
-    public delegate Task<TResponse> ClientStreamingServerMethod<TRequest, TResponse>(IAsyncStreamReader<TRequest> requestStream);
+        public ServerStreamingOutputObserver(AsyncCallServer<TRequest, TResponse> call)
+        {
+            this.call = call;
+        }
 
-    /// <summary>
-    /// Server-side handler for server streaming call.
-    /// </summary>
-    public delegate Task ServerStreamingServerMethod<TRequest, TResponse>(TRequest request, IServerStreamWriter<TResponse> responseStream);
+        public void OnCompleted()
+        {
+            var taskSource = new AsyncCompletionTaskSource();
+            call.StartSendStatusFromServer(new Status(StatusCode.OK, ""), taskSource.CompletionDelegate);
+            // TODO: how bad is the Wait here?
+            taskSource.Task.Wait();
+        }
 
-    /// <summary>
-    /// Server-side handler for bidi streaming call.
-    /// </summary>
-    public delegate Task DuplexStreamingServerMethod<TRequest, TResponse>(IAsyncStreamReader<TRequest> requestStream, IServerStreamWriter<TResponse> responseStream);
+        public void OnError(Exception error)
+        {
+            // TODO: implement this...
+            throw new InvalidOperationException("This should never be called.");
+        }
+
+        public void OnNext(TResponse value)
+        {
+            var taskSource = new AsyncCompletionTaskSource();
+            call.StartSendMessage(value, taskSource.CompletionDelegate);
+            // TODO: how bad is the Wait here?
+            taskSource.Task.Wait();
+        }
+    }
 }
