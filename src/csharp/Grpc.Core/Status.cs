@@ -39,16 +39,6 @@ namespace Grpc.Core
     /// </summary>
     public struct Status
     {
-        /// <summary>
-        /// Default result of a successful RPC. StatusCode=OK, empty details message.
-        /// </summary>
-        public static readonly Status DefaultSuccess = new Status(StatusCode.OK, "");
-
-        /// <summary>
-        /// Default result of a cancelled RPC. StatusCode=Cancelled, empty details message.
-        /// </summary>
-        public static readonly Status DefaultCancelled = new Status(StatusCode.Cancelled, "");
-
         readonly StatusCode statusCode;
         readonly string detail;
 
@@ -78,11 +68,6 @@ namespace Grpc.Core
             {
                 return detail;
             }
-        }
-
-        public override string ToString()
-        {
-            return string.Format("Status(StatusCode={0}, Detail=\"{1}\")", statusCode, detail);
         }
     }
 }

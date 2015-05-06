@@ -34,15 +34,19 @@
 #include <grpc/support/port_platform.h>
 
 #ifdef GPR_WIN32
-#include <windows.h>
+
 #include <grpc/support/log.h>
 
 unsigned gpr_cpu_num_cores(void) {
-  SYSTEM_INFO si;
-  GetSystemInfo(&si);
-  return si.dwNumberOfProcessors;
+  /* TODO(jtattermusch): implement */
+  gpr_log(GPR_ERROR, "Cannot determine number of CPUs: assuming 1");
+  return 1;
 }
 
-unsigned gpr_cpu_current_cpu(void) { return GetCurrentProcessorNumber(); }
+unsigned gpr_cpu_current_cpu(void) {
+  /* TODO(jtattermusch): implement */
+  gpr_log(GPR_ERROR, "Cannot determine current CPU");
+  return 0;
+}
 
 #endif /* GPR_WIN32 */

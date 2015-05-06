@@ -82,11 +82,11 @@ namespace math
 
             Task<DivReply> DivAsync(DivArgs request, CancellationToken token = default(CancellationToken));
 
-            AsyncServerStreamingCall<Num> Fib(FibArgs request, CancellationToken token = default(CancellationToken));
+            void Fib(FibArgs request, IObserver<Num> responseObserver, CancellationToken token = default(CancellationToken));
 
-            AsyncClientStreamingCall<Num, Num> Sum(CancellationToken token = default(CancellationToken));
+            ClientStreamingAsyncResult<Num, Num> Sum(CancellationToken token = default(CancellationToken));
 
-            AsyncDuplexStreamingCall<DivArgs, DivReply> DivMany(CancellationToken token = default(CancellationToken));
+            IObserver<DivArgs> DivMany(IObserver<DivReply> responseObserver, CancellationToken token = default(CancellationToken));
         }
 
         public class MathServiceClientStub : AbstractStub<MathServiceClientStub, StubConfiguration>, IMathServiceClient
@@ -111,35 +111,35 @@ namespace math
                 return Calls.AsyncUnaryCall(call, request, token);
             }
 
-            public AsyncServerStreamingCall<Num> Fib(FibArgs request, CancellationToken token = default(CancellationToken))
+            public void Fib(FibArgs request, IObserver<Num> responseObserver, CancellationToken token = default(CancellationToken))
             {
                 var call = CreateCall(ServiceName, FibMethod);
-                return Calls.AsyncServerStreamingCall(call, request, token);
+                Calls.AsyncServerStreamingCall(call, request, responseObserver, token);
             }
 
-            public AsyncClientStreamingCall<Num, Num> Sum(CancellationToken token = default(CancellationToken))
+            public ClientStreamingAsyncResult<Num, Num> Sum(CancellationToken token = default(CancellationToken))
             {
                 var call = CreateCall(ServiceName, SumMethod);
                 return Calls.AsyncClientStreamingCall(call, token);
             }
 
-            public AsyncDuplexStreamingCall<DivArgs, DivReply> DivMany(CancellationToken token = default(CancellationToken))
+            public IObserver<DivArgs> DivMany(IObserver<DivReply> responseObserver, CancellationToken token = default(CancellationToken))
             {
                 var call = CreateCall(ServiceName, DivManyMethod);
-                return Calls.AsyncDuplexStreamingCall(call, token);
+                return Calls.DuplexStreamingCall(call, responseObserver, token);
             }
         }
 
         // server-side interface
         public interface IMathService
         {
-            Task<DivReply> Div(DivArgs request);
+            void Div(DivArgs request, IObserver<DivReply> responseObserver);
 
-            Task Fib(FibArgs request, IServerStreamWriter<Num> responseStream);
+            void Fib(FibArgs request, IObserver<Num> responseObserver);
 
-            Task<Num> Sum(IAsyncStreamReader<Num> requestStream);
+            IObserver<Num> Sum(IObserver<Num> responseObserver);
 
-            Task DivMany(IAsyncStreamReader<DivArgs> requestStream, IServerStreamWriter<DivReply> responseStream);
+            IObserver<DivArgs> DivMany(IObserver<DivReply> responseObserver);
         }
 
         public static ServerServiceDefinition BindService(IMathService serviceImpl)

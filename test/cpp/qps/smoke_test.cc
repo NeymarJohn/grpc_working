@@ -33,8 +33,6 @@
 
 #include <grpc/support/log.h>
 
-#include <signal.h>
-
 #include "test/cpp/qps/driver.h"
 #include "test/cpp/qps/report.h"
 
@@ -138,7 +136,6 @@ static void RunQPS() {
 }  // namespace grpc
 
 int main(int argc, char** argv) {
-  signal(SIGPIPE, SIG_IGN);
   using namespace grpc::testing;
   RunSynchronousStreamingPingPong();
   RunSynchronousUnaryPingPong();

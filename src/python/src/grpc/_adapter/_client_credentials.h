@@ -42,7 +42,7 @@ typedef struct {
   grpc_credentials *c_client_credentials;
 } ClientCredentials;
 
-extern PyTypeObject pygrpc_ClientCredentialsType;
+PyTypeObject pygrpc_ClientCredentialsType;
 
 int pygrpc_add_client_credentials(PyObject *module);
 
