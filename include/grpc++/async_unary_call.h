@@ -49,8 +49,9 @@ class ClientAsyncResponseReader GRPC_FINAL {
  public:
   ClientAsyncResponseReader(ChannelInterface* channel, CompletionQueue* cq,
                             const RpcMethod& method, ClientContext* context,
-                            const grpc::protobuf::Message& request)
+                            const grpc::protobuf::Message& request, void* tag)
       : context_(context), call_(channel->CreateCall(method, context, cq)) {
+    init_buf_.Reset(tag);
     init_buf_.AddSendInitialMetadata(&context->send_initial_metadata_);
     init_buf_.AddSendMessage(request);
     init_buf_.AddClientSendClose();
@@ -78,7 +79,7 @@ class ClientAsyncResponseReader GRPC_FINAL {
  private:
   ClientContext* context_;
   Call call_;
-  SneakyCallOpBuffer init_buf_;
+  CallOpBuffer init_buf_;
   CallOpBuffer meta_buf_;
   CallOpBuffer finish_buf_;
 };
