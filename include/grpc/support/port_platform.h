@@ -80,7 +80,6 @@
 #define GPR_POSIX_SYNC 1
 #define GPR_POSIX_TIME 1
 #define GPR_GETPID_IN_UNISTD_H 1
-#define GPR_HAVE_MSG_NOSIGNAL 1
 #elif defined(__linux__)
 #ifndef _BSD_SOURCE
 #define _BSD_SOURCE
@@ -125,7 +124,6 @@
 #define GPR_POSIX_SYNC 1
 #define GPR_POSIX_TIME 1
 #define GPR_GETPID_IN_UNISTD_H 1
-#define GPR_HAVE_MSG_NOSIGNAL 1
 #ifdef _LP64
 #define GPR_ARCH_64 1
 #else /* _LP64 */
@@ -157,7 +155,6 @@
 #define GPR_POSIX_SYNC 1
 #define GPR_POSIX_TIME 1
 #define GPR_GETPID_IN_UNISTD_H 1
-#define GPR_HAVE_SO_NOSIGPIPE 1
 #ifdef _LP64
 #define GPR_ARCH_64 1
 #else /* _LP64 */
@@ -183,7 +180,6 @@
 #define GPR_POSIX_SYNC 1
 #define GPR_POSIX_TIME 1
 #define GPR_GETPID_IN_UNISTD_H 1
-#define GPR_HAVE_SO_NOSIGPIPE 1
 #ifdef _LP64
 #define GPR_ARCH_64 1
 #else /* _LP64 */
