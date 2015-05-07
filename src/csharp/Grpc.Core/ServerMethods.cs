@@ -42,28 +42,20 @@ namespace Grpc.Core
     /// <summary>
     /// Server-side handler for unary call.
     /// </summary>
-    public delegate Task<TResponse> UnaryServerMethod<TRequest, TResponse>(ServerCallContext context, TRequest request)
-        where TRequest : class
-        where TResponse : class;
+    public delegate Task<TResponse> UnaryServerMethod<TRequest, TResponse>(TRequest request);
 
     /// <summary>
     /// Server-side handler for client streaming call.
     /// </summary>
-    public delegate Task<TResponse> ClientStreamingServerMethod<TRequest, TResponse>(ServerCallContext context, IAsyncStreamReader<TRequest> requestStream)
-        where TRequest : class
-        where TResponse : class;
+    public delegate Task<TResponse> ClientStreamingServerMethod<TRequest, TResponse>(IAsyncStreamReader<TRequest> requestStream);
 
     /// <summary>
     /// Server-side handler for server streaming call.
     /// </summary>
-    public delegate Task ServerStreamingServerMethod<TRequest, TResponse>(ServerCallContext context, TRequest request, IServerStreamWriter<TResponse> responseStream)
-        where TRequest : class
-        where TResponse : class;
+    public delegate Task ServerStreamingServerMethod<TRequest, TResponse>(TRequest request, IServerStreamWriter<TResponse> responseStream);
 
     /// <summary>
     /// Server-side handler for bidi streaming call.
     /// </summary>
-    public delegate Task DuplexStreamingServerMethod<TRequest, TResponse>(ServerCallContext context, IAsyncStreamReader<TRequest> requestStream, IServerStreamWriter<TResponse> responseStream)
-        where TRequest : class
-        where TResponse : class;
+    public delegate Task DuplexStreamingServerMethod<TRequest, TResponse>(IAsyncStreamReader<TRequest> requestStream, IServerStreamWriter<TResponse> responseStream);
 }

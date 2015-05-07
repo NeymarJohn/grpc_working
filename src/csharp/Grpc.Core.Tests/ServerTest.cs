@@ -47,7 +47,7 @@ namespace Grpc.Core.Tests
             GrpcEnvironment.Initialize();
 
             Server server = new Server();
-            server.AddListeningPort("localhost", Server.PickUnusedPort);
+            server.AddListeningPort("localhost:0");
             server.Start();
             server.ShutdownAsync().Wait();
 
