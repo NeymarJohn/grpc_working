@@ -446,12 +446,8 @@ void Server::RunRpc() {
     ScheduleCallback();
     if (ok) {
       SyncRequest::CallData cd(this, mrd);
-      {
-        grpc::unique_lock<grpc::mutex> lock(mu_);
-        if (!shutdown_) {
-          mrd->Request(server_);
-        }
-      }
+      mrd->Request(server_);
+
       cd.Run();
     }
   }
