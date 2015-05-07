@@ -37,7 +37,6 @@
 
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
-#include <grpc/support/useful.h>
 
 /* grow a buffer; requires GRPC_SLICE_BUFFER_INLINE_ELEMENTS > 1 */
 #define GROW(x) (3 * (x) / 2)
@@ -163,30 +162,14 @@ void gpr_slice_buffer_reset_and_unref(gpr_slice_buffer *sb) {
 }
 
 void gpr_slice_buffer_swap(gpr_slice_buffer *a, gpr_slice_buffer *b) {
-  GPR_SWAP(size_t, a->count, b->count);
-  GPR_SWAP(size_t, a->capacity, b->capacity);
-  GPR_SWAP(size_t, a->length, b->length);
+  gpr_slice_buffer temp = *a;
+  *a = *b;
+  *b = temp;
 
-  if (a->slices == a->inlined) {
-    if (b->slices == b->inlined) {
-      /* swap contents of inlined buffer */
-      gpr_slice temp[GRPC_SLICE_BUFFER_INLINE_ELEMENTS];
-      memcpy(temp, a->slices, b->count * sizeof(gpr_slice));
-      memcpy(a->slices, b->slices, a->count * sizeof(gpr_slice));
-      memcpy(b->slices, temp, b->count * sizeof(gpr_slice));
-    } else {
-      /* a is inlined, b is not - copy a inlined into b, fix pointers */
-      a->slices = b->slices;
-      b->slices = b->inlined;
-      memcpy(b->slices, a->inlined, b->count * sizeof(gpr_slice));
-    }
-  } else if (b->slices == b->inlined) {
-    /* b is inlined, a is not - copy b inlined int a, fix pointers */
-    b->slices = a->slices;
+  if (a->slices == b->inlined) {
     a->slices = a->inlined;
-    memcpy(a->slices, b->inlined, a->count * sizeof(gpr_slice));
-  } else {
-    /* no inlining: easy swap */
-    GPR_SWAP(gpr_slice *, a->slices, b->slices);
+  }
+  if (b->slices == a->inlined) {
+    b->slices = b->inlined;
   }
 }
