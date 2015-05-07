@@ -140,9 +140,7 @@ typedef enum grpc_call_error {
   /* there is already an outstanding read/write operation on the call */
   GRPC_CALL_ERROR_TOO_MANY_OPERATIONS,
   /* the flags value was illegal for this call */
-  GRPC_CALL_ERROR_INVALID_FLAGS,
-  /* invalid metadata was passed to this call */
-  GRPC_CALL_ERROR_INVALID_METADATA
+  GRPC_CALL_ERROR_INVALID_FLAGS
 } grpc_call_error;
 
 /* Result of a grpc operation */

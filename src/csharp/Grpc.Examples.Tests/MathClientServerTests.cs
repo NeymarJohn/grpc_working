@@ -33,6 +33,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
@@ -58,7 +59,7 @@ namespace math.Tests
 
             server = new Server();
             server.AddServiceDefinition(MathGrpc.BindService(new MathServiceImpl()));
-            int port = server.AddListeningPort(host, Server.PickUnusedPort);
+            int port = server.AddListeningPort(host + ":0");
             server.Start();
             channel = new Channel(host + ":" + port);
 

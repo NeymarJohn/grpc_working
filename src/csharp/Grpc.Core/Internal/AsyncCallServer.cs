@@ -138,7 +138,9 @@ namespace Grpc.Core.Internal
 
                 ReleaseResourcesIfPossible();
             }
-            // TODO(jtattermusch): handle error
+            // TODO(jtattermusch): check if call was cancelled.
+
+            // TODO: handle error ...
 
             finishedServersideTcs.SetResult(null);
         }

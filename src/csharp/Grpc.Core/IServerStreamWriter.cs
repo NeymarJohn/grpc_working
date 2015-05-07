@@ -43,7 +43,6 @@ namespace Grpc.Core
     /// A writable stream of messages that is used in server-side handlers.
     /// </summary>
     public interface IServerStreamWriter<T> : IAsyncStreamWriter<T>
-        where T : class
     {
     }
 }
