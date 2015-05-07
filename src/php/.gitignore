@@ -19,4 +19,3 @@ mkinstalldirs
 
 ext/grpc/ltmain.sh
 composer.lock
-vendor/

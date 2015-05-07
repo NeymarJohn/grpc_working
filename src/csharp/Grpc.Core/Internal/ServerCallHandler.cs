@@ -45,8 +45,6 @@ namespace Grpc.Core.Internal
     }
 
     internal class UnaryServerCallHandler<TRequest, TResponse> : IServerCallHandler
-        where TRequest : class
-        where TResponse : class
     {
         readonly Method<TRequest, TResponse> method;
         readonly UnaryServerMethod<TRequest, TResponse> handler;
@@ -74,8 +72,7 @@ namespace Grpc.Core.Internal
                 var request = await requestStream.ReadNext();
                 // TODO(jtattermusch): we need to read the full stream so that native callhandle gets deallocated.
                 Preconditions.CheckArgument(await requestStream.ReadNext() == null);
-                var context = new ServerCallContext();  // TODO(jtattermusch): initialize the context
-                var result = await handler(context, request);
+                var result = await handler(request);
                 await responseStream.Write(result);
             } 
             catch (Exception e)
@@ -96,8 +93,6 @@ namespace Grpc.Core.Internal
     }
 
     internal class ServerStreamingServerCallHandler<TRequest, TResponse> : IServerCallHandler
-        where TRequest : class
-        where TResponse : class
     {
         readonly Method<TRequest, TResponse> method;
         readonly ServerStreamingServerMethod<TRequest, TResponse> handler;
@@ -126,8 +121,7 @@ namespace Grpc.Core.Internal
                 // TODO(jtattermusch): we need to read the full stream so that native callhandle gets deallocated.
                 Preconditions.CheckArgument(await requestStream.ReadNext() == null);
 
-                var context = new ServerCallContext();  // TODO(jtattermusch): initialize the context
-                await handler(context, request, responseStream);
+                await handler(request, responseStream);
             }
             catch (Exception e)
             {
@@ -148,8 +142,6 @@ namespace Grpc.Core.Internal
     }
 
     internal class ClientStreamingServerCallHandler<TRequest, TResponse> : IServerCallHandler
-        where TRequest : class
-        where TResponse : class
     {
         readonly Method<TRequest, TResponse> method;
         readonly ClientStreamingServerMethod<TRequest, TResponse> handler;
@@ -170,12 +162,11 @@ namespace Grpc.Core.Internal
             var finishedTask = asyncCall.ServerSideCallAsync();
             var requestStream = new ServerRequestStream<TRequest, TResponse>(asyncCall);
             var responseStream = new ServerResponseStream<TRequest, TResponse>(asyncCall);
-            var context = new ServerCallContext();  // TODO(jtattermusch): initialize the context
 
             Status status = Status.DefaultSuccess;
             try
             {
-                var result = await handler(context, requestStream);
+                var result = await handler(requestStream);
                 try
                 {
                     await responseStream.Write(result);
@@ -204,8 +195,6 @@ namespace Grpc.Core.Internal
     }
 
     internal class DuplexStreamingServerCallHandler<TRequest, TResponse> : IServerCallHandler
-        where TRequest : class
-        where TResponse : class
     {
         readonly Method<TRequest, TResponse> method;
         readonly DuplexStreamingServerMethod<TRequest, TResponse> handler;
@@ -226,12 +215,11 @@ namespace Grpc.Core.Internal
             var finishedTask = asyncCall.ServerSideCallAsync();
             var requestStream = new ServerRequestStream<TRequest, TResponse>(asyncCall);
             var responseStream = new ServerResponseStream<TRequest, TResponse>(asyncCall);
-            var context = new ServerCallContext();  // TODO(jtattermusch): initialize the context
 
             Status status = Status.DefaultSuccess;
             try
             {
-                await handler(context, requestStream, responseStream);
+                await handler(requestStream, responseStream);
             }
             catch (Exception e)
             {

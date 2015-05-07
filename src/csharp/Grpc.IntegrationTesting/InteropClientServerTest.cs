@@ -50,7 +50,7 @@ namespace Grpc.IntegrationTesting
         string host = "localhost";
         Server server;
         Channel channel;
-        TestService.ITestServiceClient client;
+        TestServiceGrpc.ITestServiceClient client;
 
         [TestFixtureSetUp]
         public void Init()
@@ -58,15 +58,15 @@ namespace Grpc.IntegrationTesting
             GrpcEnvironment.Initialize();
 
             server = new Server();
-            server.AddServiceDefinition(TestService.BindService(new TestServiceImpl()));
-            int port = server.AddListeningPort(host, Server.PickUnusedPort, TestCredentials.CreateTestServerCredentials());
+            server.AddServiceDefinition(TestServiceGrpc.BindService(new TestServiceImpl()));
+            int port = server.AddListeningPort(host + ":0", TestCredentials.CreateTestServerCredentials());
             server.Start();
 
             var channelArgs = ChannelArgs.CreateBuilder()
                 .AddString(ChannelArgs.SslTargetNameOverrideKey, TestCredentials.DefaultHostOverride).Build();
 
             channel = new Channel(host + ":" + port, TestCredentials.CreateTestClientCredentials(true), channelArgs);
-            client = TestService.NewStub(channel);
+            client = TestServiceGrpc.NewStub(channel);
         }
 
         [TestFixtureTearDown]

@@ -91,19 +91,18 @@ namespace Grpc.IntegrationTesting
             GrpcEnvironment.Initialize();
 
             var server = new Server();
-            server.AddServiceDefinition(TestService.BindService(new TestServiceImpl()));
+            server.AddServiceDefinition(TestServiceGrpc.BindService(new TestServiceImpl()));
 
-            string host = "0.0.0.0";
-            int port = options.port.Value;
+            string addr = "0.0.0.0:" + options.port;
             if (options.useTls)
             {
-                server.AddListeningPort(host, port, TestCredentials.CreateTestServerCredentials());
+                server.AddListeningPort(addr, TestCredentials.CreateTestServerCredentials());
             }
             else
             {
-                server.AddListeningPort(host, options.port.Value);
+                server.AddListeningPort(addr);
             }
-            Console.WriteLine("Running server on " + string.Format("{0}:{1}", host, port));
+            Console.WriteLine("Running server on " + addr);
             server.Start();
 
             server.ShutdownTask.Wait();
