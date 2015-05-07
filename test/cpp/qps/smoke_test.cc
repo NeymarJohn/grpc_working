@@ -138,6 +138,7 @@ static void RunQPS() {
 }  // namespace grpc
 
 int main(int argc, char** argv) {
+  signal(SIGPIPE, SIG_IGN);
   using namespace grpc::testing;
   RunSynchronousStreamingPingPong();
   RunSynchronousUnaryPingPong();
