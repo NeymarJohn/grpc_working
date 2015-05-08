@@ -48,41 +48,53 @@ CompletionQueue::~CompletionQueue() { grpc_completion_queue_destroy(cq_); }
 
 void CompletionQueue::Shutdown() { grpc_completion_queue_shutdown(cq_); }
 
+// Helper class so we can declare a unique_ptr with grpc_event
+class EventDeleter {
+ public:
+  void operator()(grpc_event* ev) {
+    if (ev) grpc_event_finish(ev);
+  }
+};
+
 CompletionQueue::NextStatus CompletionQueue::AsyncNextInternal(
     void** tag, bool* ok, gpr_timespec deadline) {
+  std::unique_ptr<grpc_event, EventDeleter> ev;
+
   for (;;) {
-    auto ev = grpc_completion_queue_next(cq_, deadline);
-    switch (ev.type) {
-      case GRPC_QUEUE_TIMEOUT:
-        return TIMEOUT;
-      case GRPC_QUEUE_SHUTDOWN:
-        return SHUTDOWN;
-      case GRPC_OP_COMPLETE:
-        auto cq_tag = static_cast<CompletionQueueTag*>(ev.tag);
-        *ok = ev.success != 0;
-        *tag = cq_tag;
-        if (cq_tag->FinalizeResult(tag, ok)) {
-          return GOT_EVENT;
-        }
-        break;
+    ev.reset(grpc_completion_queue_next(cq_, deadline));
+    if (!ev) { /* got a NULL back because deadline passed */
+      return TIMEOUT;
+    }
+    if (ev->type == GRPC_QUEUE_SHUTDOWN) {
+      return SHUTDOWN;
+    }
+    auto cq_tag = static_cast<CompletionQueueTag*>(ev->tag);
+    *ok = ev->data.op_complete == GRPC_OP_OK;
+    *tag = cq_tag;
+    if (cq_tag->FinalizeResult(tag, ok)) {
+      return GOT_EVENT;
     }
   }
 }
 
 bool CompletionQueue::Pluck(CompletionQueueTag* tag) {
-  auto ev = grpc_completion_queue_pluck(cq_, tag, gpr_inf_future);
-  bool ok = ev.success != 0;
+  std::unique_ptr<grpc_event, EventDeleter> ev;
+
+  ev.reset(grpc_completion_queue_pluck(cq_, tag, gpr_inf_future));
+  bool ok = ev->data.op_complete == GRPC_OP_OK;
   void* ignored = tag;
   GPR_ASSERT(tag->FinalizeResult(&ignored, &ok));
   GPR_ASSERT(ignored == tag);
   // Ignore mutations by FinalizeResult: Pluck returns the C API status
-  return ev.success != 0;
+  return ev->data.op_complete == GRPC_OP_OK;
 }
 
 void CompletionQueue::TryPluck(CompletionQueueTag* tag) {
-  auto ev = grpc_completion_queue_pluck(cq_, tag, gpr_time_0);
-  if (ev.type == GRPC_QUEUE_TIMEOUT) return;
-  bool ok = ev.success != 0;
+  std::unique_ptr<grpc_event, EventDeleter> ev;
+
+  ev.reset(grpc_completion_queue_pluck(cq_, tag, gpr_time_0));
+  if (!ev) return;
+  bool ok = ev->data.op_complete == GRPC_OP_OK;
   void* ignored = tag;
   // the tag must be swallowed if using TryPluck
   GPR_ASSERT(!tag->FinalizeResult(&ignored, &ok));
