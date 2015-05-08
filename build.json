@@ -6,7 +6,7 @@
     "#": "The public version number of the library.",
     "version": {
       "major": 0,
-      "minor": 7,
+      "minor": 8,
       "micro": 0,
       "build": 0
     }
@@ -120,8 +120,6 @@
         "src/core/iomgr/pollset_kick_posix.h",
         "src/core/iomgr/pollset_kick_windows.h",
         "src/core/iomgr/pollset_posix.h",
-        "src/core/iomgr/pollset_set_posix.h",
-        "src/core/iomgr/pollset_set_windows.h",
         "src/core/iomgr/pollset_windows.h",
         "src/core/iomgr/resolve_address.h",
         "src/core/iomgr/sockaddr.h",
@@ -210,8 +208,6 @@
         "src/core/iomgr/pollset_multipoller_with_epoll.c",
         "src/core/iomgr/pollset_multipoller_with_poll_posix.c",
         "src/core/iomgr/pollset_posix.c",
-        "src/core/iomgr/pollset_set_posix.c",
-        "src/core/iomgr/pollset_set_windows.c",
         "src/core/iomgr/pollset_windows.c",
         "src/core/iomgr/resolve_address_posix.c",
         "src/core/iomgr/resolve_address_windows.c",

@@ -37,7 +37,6 @@
 #include <stddef.h>
 
 #include "src/core/iomgr/pollset.h"
-#include "src/core/iomgr/pollset_set.h"
 #include "src/core/transport/stream_op.h"
 
 /* forward declarations */
@@ -194,8 +193,7 @@ typedef struct grpc_transport_setup grpc_transport_setup;
 typedef struct grpc_transport_setup_vtable grpc_transport_setup_vtable;
 
 struct grpc_transport_setup_vtable {
-  void (*initiate)(grpc_transport_setup *setup,
-                   grpc_pollset_set *interested_parties);
+  void (*initiate)(grpc_transport_setup *setup);
   void (*cancel)(grpc_transport_setup *setup);
 };
 
@@ -211,8 +209,7 @@ struct grpc_transport_setup {
    setup construction time.
    This *may* be implemented as a no-op if the setup process monitors something
    continuously. */
-void grpc_transport_setup_initiate(grpc_transport_setup *setup,
-                                   grpc_pollset_set *interested_parties);
+void grpc_transport_setup_initiate(grpc_transport_setup *setup);
 /* Cancel transport setup. After this returns, no new transports should be
    created, and all pending transport setup callbacks should be completed.
    After this call completes, setup should be considered invalid (this can be
