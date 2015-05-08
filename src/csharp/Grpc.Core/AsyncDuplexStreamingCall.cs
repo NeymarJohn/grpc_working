@@ -40,9 +40,7 @@ namespace Grpc.Core
     /// <summary>
     /// Return type for bidirectional streaming calls.
     /// </summary>
-    public sealed class AsyncDuplexStreamingCall<TRequest, TResponse>
-        where TRequest : class
-        where TResponse : class
+    public struct AsyncDuplexStreamingCall<TRequest, TResponse>
     {
         readonly IClientStreamWriter<TRequest> requestStream;
         readonly IAsyncStreamReader<TResponse> responseStream;

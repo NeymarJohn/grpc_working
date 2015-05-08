@@ -6,7 +6,7 @@
     "#": "The public version number of the library.",
     "version": {
       "major": 0,
-      "minor": 7,
+      "minor": 8,
       "micro": 0,
       "build": 0
     }
@@ -2053,7 +2053,8 @@
     },
     {
       "name": "qps_driver",
-      "build": "tool",
+      "build": "test",
+      "run": false,
       "language": "c++",
       "src": [
         "test/cpp/qps/qps_driver.cc"
@@ -2089,7 +2090,8 @@
     },
     {
       "name": "qps_worker",
-      "build": "tool",
+      "build": "test",
+      "run": false,
       "language": "c++",
       "headers": [
         "test/cpp/qps/client.h",
