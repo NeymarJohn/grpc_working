@@ -43,7 +43,7 @@ namespace math
 
             using (Channel channel = new Channel("127.0.0.1:23456"))
             {
-                Math.IMathClient stub = new Math.MathClient(channel);
+                MathGrpc.IMathServiceClient stub = new MathGrpc.MathServiceClientStub(channel);
                 MathExamples.DivExample(stub);
 
                 MathExamples.DivAsyncExample(stub).Wait();
