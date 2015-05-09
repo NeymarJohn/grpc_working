@@ -35,6 +35,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <grpc/grpc_security.h>
 #include <grpc/byte_buffer.h>
@@ -54,7 +55,7 @@ static const char overridden_iam_selector[] = "overridden_selector";
 typedef enum {
   NONE,
   OVERRIDE,
-  DESTROY
+  DELETE
 } override_mode;
 
 enum { TIMEOUT = 200000 };
@@ -179,7 +180,7 @@ static void request_response_with_payload_and_call_creds(
       GPR_ASSERT(creds != NULL);
       GPR_ASSERT(grpc_call_set_credentials(c, creds) == GRPC_CALL_OK);
       break;
-    case DESTROY:
+    case DELETE:
       GPR_ASSERT(grpc_call_set_credentials(c, NULL) == GRPC_CALL_OK);
       break;
   }
@@ -274,7 +275,7 @@ static void request_response_with_payload_and_call_creds(
                                    GRPC_IAM_AUTHORITY_SELECTOR_METADATA_KEY,
                                    overridden_iam_selector));
       break;
-    case DESTROY:
+    case DELETE:
       GPR_ASSERT(!contains_metadata(&request_metadata_recv,
                                     GRPC_IAM_AUTHORIZATION_TOKEN_METADATA_KEY,
                                     iam_token));
@@ -323,7 +324,7 @@ void test_request_response_with_payload_and_overridden_call_creds(
 
 void test_request_response_with_payload_and_deleted_call_creds(
     grpc_end2end_test_config config) {
-  request_response_with_payload_and_call_creds(__FUNCTION__, config, DESTROY);
+  request_response_with_payload_and_call_creds(__FUNCTION__, config, DELETE);
 }
 
 void grpc_end2end_tests(grpc_end2end_test_config config) {

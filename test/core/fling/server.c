@@ -39,10 +39,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#ifndef _WIN32
-/* This is for _exit() below, which is temporary. */
 #include <unistd.h>
-#endif
 
 #include "test/core/util/grpc_profiler.h"
 #include "test/core/util/test_config.h"
@@ -169,8 +166,6 @@ static void start_send_status(void) {
                                  tag(FLING_SERVER_SEND_STATUS_FOR_STREAMING)));
 }
 
-/* We have some sort of deadlock, so let's not exit gracefully for now.
-   When that is resolved, please remove the #include <unistd.h> above. */
 static void sigint_handler(int x) { _exit(0); }
 
 int main(int argc, char **argv) {
