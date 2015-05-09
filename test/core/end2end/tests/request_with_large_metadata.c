@@ -163,10 +163,10 @@ static void test_request_with_large_metadata(grpc_end2end_test_config config) {
   op++;
   GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_batch(c, ops, op - ops, tag(1)));
 
-  GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_server_request_call(f.server, &s, &call_details,
-                                      &request_metadata_recv, f.server_cq,
-                                      f.server_cq, tag(101)));
+  GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, &s,
+                                                      &call_details,
+                                                      &request_metadata_recv,
+                                                      f.server_cq, tag(101)));
   cq_expect_completion(v_server, tag(101), GRPC_OP_OK);
   cq_verify(v_server);
 
@@ -176,7 +176,7 @@ static void test_request_with_large_metadata(grpc_end2end_test_config config) {
   op++;
   op->op = GRPC_OP_SEND_STATUS_FROM_SERVER;
   op->data.send_status_from_server.trailing_metadata_count = 0;
-  op->data.send_status_from_server.status = GRPC_STATUS_OK;
+  op->data.send_status_from_server.status = GRPC_STATUS_UNIMPLEMENTED;
   op->data.send_status_from_server.status_details = "xyz";
   op++;
   op->op = GRPC_OP_RECV_MESSAGE;
@@ -193,7 +193,7 @@ static void test_request_with_large_metadata(grpc_end2end_test_config config) {
   cq_expect_completion(v_client, tag(1), GRPC_OP_OK);
   cq_verify(v_client);
 
-  GPR_ASSERT(status == GRPC_STATUS_OK);
+  GPR_ASSERT(status == GRPC_STATUS_UNIMPLEMENTED);
   GPR_ASSERT(0 == strcmp(details, "xyz"));
   GPR_ASSERT(0 == strcmp(call_details.method, "/foo"));
   GPR_ASSERT(0 == strcmp(call_details.host, "foo.test.google.fr"));
