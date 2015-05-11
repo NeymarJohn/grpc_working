@@ -31,22 +31,27 @@
  *
  */
 
-#import <Foundation/Foundation.h>
-#include <grpc/grpc.h>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
 
-typedef void(^GRPCQueueCompletionHandler)(grpc_op_error error);
+#include "src/core/iomgr/pollset.h"
 
-// This class lets one more easily use grpc_completion_queue. To use it, pass
-// the value of the unmanagedQueue property of an instance of this class to
-// grpc_call_start_invoke. Then for every grpc_call_* method that accepts a tag,
-// you can pass a block of type GRPCEventHandler (remembering to cast it using
-// __bridge_retained). The block is guaranteed to eventually be called, by a
-// concurrent queue, and then released. Each such block is passed a pointer to
-// the grpc_event that carried it (in event->tag).
-// Release the GRPCCompletionQueue object only after you are not going to pass
-// any more blocks to the grpc_call that's using it.
-@interface GRPCCompletionQueue : NSObject
-@property(nonatomic, readonly) grpc_completion_queue *unmanagedQueue;
+/* A grpc_pollset_set is a set of pollsets that are interested in an
+   action. Adding a pollset to a pollset_set automatically adds any
+   fd's (etc) that have been registered with the set_set with that pollset.
+   Registering fd's automatically iterates all current pollsets. */
 
-+ (instancetype)completionQueue;
-@end
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/pollset_set_posix.h"
+#endif
+
+#ifdef GPR_WIN32
+#include "src/core/iomgr/pollset_set_windows.h"
+#endif
+
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set, grpc_pollset *pollset);
+void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set, grpc_pollset *pollset);
+
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */

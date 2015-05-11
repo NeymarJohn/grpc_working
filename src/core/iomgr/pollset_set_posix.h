@@ -31,22 +31,25 @@
  *
  */
 
-#import <Foundation/Foundation.h>
-#include <grpc/grpc.h>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
 
-typedef void(^GRPCQueueCompletionHandler)(grpc_op_error error);
+#include "src/core/iomgr/fd_posix.h"
+#include "src/core/iomgr/pollset_posix.h"
 
-// This class lets one more easily use grpc_completion_queue. To use it, pass
-// the value of the unmanagedQueue property of an instance of this class to
-// grpc_call_start_invoke. Then for every grpc_call_* method that accepts a tag,
-// you can pass a block of type GRPCEventHandler (remembering to cast it using
-// __bridge_retained). The block is guaranteed to eventually be called, by a
-// concurrent queue, and then released. Each such block is passed a pointer to
-// the grpc_event that carried it (in event->tag).
-// Release the GRPCCompletionQueue object only after you are not going to pass
-// any more blocks to the grpc_call that's using it.
-@interface GRPCCompletionQueue : NSObject
-@property(nonatomic, readonly) grpc_completion_queue *unmanagedQueue;
+typedef struct grpc_pollset_set {
+	gpr_mu mu;
+	
+	size_t pollset_count;
+	size_t pollset_capacity;
+	grpc_pollset **pollsets;
 
-+ (instancetype)completionQueue;
-@end
+	size_t fd_count;
+	size_t fd_capacity;
+	grpc_fd **fds;
+} grpc_pollset_set;
+
+void grpc_pollset_set_add_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
+void grpc_pollset_set_del_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
+
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */
