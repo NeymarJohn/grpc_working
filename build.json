@@ -6,7 +6,7 @@
     "#": "The public version number of the library.",
     "version": {
       "major": 0,
-      "minor": 7,
+      "minor": 8,
       "micro": 0,
       "build": 0
     }
@@ -555,8 +555,7 @@
       "filegroups": [
         "grpc++_base"
       ],
-      "secure": "no",
-      "vs_project_guid": "{6EE56155-DF7C-4F6E-BFC4-F6F776BEB211}"
+      "secure": "no"
     },
     {
       "name": "grpc_plugin_support",
@@ -1001,9 +1000,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1048,9 +1044,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1065,9 +1058,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1623,9 +1613,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1682,9 +1669,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1699,9 +1683,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1716,9 +1697,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {

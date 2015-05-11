@@ -35,6 +35,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <grpc/grpc_security.h>
 #include <grpc/byte_buffer.h>
@@ -54,7 +55,7 @@ static const char overridden_iam_selector[] = "overridden_selector";
 typedef enum {
   NONE,
   OVERRIDE,
-  DESTROY
+  DELETE
 } override_mode;
 
 enum { TIMEOUT = 200000 };
@@ -80,14 +81,10 @@ static gpr_timespec n_seconds_time(int n) {
 static gpr_timespec five_seconds_time(void) { return n_seconds_time(5); }
 
 static void drain_cq(grpc_completion_queue *cq) {
-  grpc_event *ev;
-  grpc_completion_type type;
+  grpc_event ev;
   do {
     ev = grpc_completion_queue_next(cq, five_seconds_time());
-    GPR_ASSERT(ev);
-    type = ev->type;
-    grpc_event_finish(ev);
-  } while (type != GRPC_QUEUE_SHUTDOWN);
+  } while (ev.type != GRPC_QUEUE_SHUTDOWN);
 }
 
 static void shutdown_server(grpc_end2end_test_fixture *f) {
@@ -179,7 +176,7 @@ static void request_response_with_payload_and_call_creds(
       GPR_ASSERT(creds != NULL);
       GPR_ASSERT(grpc_call_set_credentials(c, creds) == GRPC_CALL_OK);
       break;
-    case DESTROY:
+    case DELETE:
       GPR_ASSERT(grpc_call_set_credentials(c, NULL) == GRPC_CALL_OK);
       break;
   }
@@ -217,7 +214,7 @@ static void request_response_with_payload_and_call_creds(
                                                       &call_details,
                                                       &request_metadata_recv,
                                                       f.server_cq, tag(101)));
-  cq_expect_completion(v_server, tag(101), GRPC_OP_OK);
+  cq_expect_completion(v_server, tag(101), 1);
   cq_verify(v_server);
 
   /* Cannot set creds on the server call object. */
@@ -243,10 +240,10 @@ static void request_response_with_payload_and_call_creds(
   op++;
   GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_batch(s, ops, op - ops, tag(102)));
 
-  cq_expect_completion(v_server, tag(102), GRPC_OP_OK);
+  cq_expect_completion(v_server, tag(102), 1);
   cq_verify(v_server);
 
-  cq_expect_completion(v_client, tag(1), GRPC_OP_OK);
+  cq_expect_completion(v_client, tag(1), 1);
   cq_verify(v_client);
 
   GPR_ASSERT(status == GRPC_STATUS_OK);
@@ -274,7 +271,7 @@ static void request_response_with_payload_and_call_creds(
                                    GRPC_IAM_AUTHORITY_SELECTOR_METADATA_KEY,
                                    overridden_iam_selector));
       break;
-    case DESTROY:
+    case DELETE:
       GPR_ASSERT(!contains_metadata(&request_metadata_recv,
                                     GRPC_IAM_AUTHORIZATION_TOKEN_METADATA_KEY,
                                     iam_token));
@@ -323,7 +320,7 @@ void test_request_response_with_payload_and_overridden_call_creds(
 
 void test_request_response_with_payload_and_deleted_call_creds(
     grpc_end2end_test_config config) {
-  request_response_with_payload_and_call_creds(__FUNCTION__, config, DESTROY);
+  request_response_with_payload_and_call_creds(__FUNCTION__, config, DELETE);
 }
 
 void grpc_end2end_tests(grpc_end2end_test_config config) {
