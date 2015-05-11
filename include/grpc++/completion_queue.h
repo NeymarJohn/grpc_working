@@ -58,7 +58,6 @@ class ServerReaderWriter;
 
 class CompletionQueue;
 class Server;
-class ServerBuilder;
 class ServerContext;
 
 class CompletionQueueTag {
@@ -136,12 +135,6 @@ class CompletionQueue : public GrpcLibrary {
   void TryPluck(CompletionQueueTag* tag);
 
   grpc_completion_queue* cq_;  // owned
-};
-
-class ServerCompletionQueue : public CompletionQueue {
- private:
-  friend class ServerBuilder;
-  ServerCompletionQueue() {}
 };
 
 }  // namespace grpc
