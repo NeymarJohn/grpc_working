@@ -6,7 +6,7 @@
     "#": "The public version number of the library.",
     "version": {
       "major": 0,
-      "minor": 8,
+      "minor": 7,
       "micro": 0,
       "build": 0
     }
@@ -555,7 +555,8 @@
       "filegroups": [
         "grpc++_base"
       ],
-      "secure": "no"
+      "secure": "no",
+      "vs_project_guid": "{6EE56155-DF7C-4F6E-BFC4-F6F776BEB211}"
     },
     {
       "name": "grpc_plugin_support",
@@ -1000,6 +1001,9 @@
         "grpc",
         "gpr_test_util",
         "gpr"
+      ],
+      "platforms": [
+        "posix"
       ]
     },
     {
@@ -1044,6 +1048,9 @@
         "grpc",
         "gpr_test_util",
         "gpr"
+      ],
+      "platforms": [
+        "posix"
       ]
     },
     {
@@ -1058,6 +1065,9 @@
         "grpc",
         "gpr_test_util",
         "gpr"
+      ],
+      "platforms": [
+        "posix"
       ]
     },
     {
@@ -1287,6 +1297,20 @@
       "language": "c",
       "src": [
         "test/core/channel/channel_stack_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "grpc_completion_queue_benchmark",
+      "build": "benchmark",
+      "language": "c",
+      "src": [
+        "test/core/surface/completion_queue_benchmark.c"
       ],
       "deps": [
         "grpc_test_util",
@@ -1599,6 +1623,9 @@
         "grpc",
         "gpr_test_util",
         "gpr"
+      ],
+      "platforms": [
+        "posix"
       ]
     },
     {
@@ -1655,6 +1682,9 @@
         "grpc",
         "gpr_test_util",
         "gpr"
+      ],
+      "platforms": [
+        "posix"
       ]
     },
     {
@@ -1669,6 +1699,9 @@
         "grpc",
         "gpr_test_util",
         "gpr"
+      ],
+      "platforms": [
+        "posix"
       ]
     },
     {
@@ -1683,6 +1716,9 @@
         "grpc",
         "gpr_test_util",
         "gpr"
+      ],
+      "platforms": [
+        "posix"
       ]
     },
     {

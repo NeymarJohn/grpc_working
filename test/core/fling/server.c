@@ -39,7 +39,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifndef _WIN32
+/* This is for _exit() below, which is temporary. */
 #include <unistd.h>
+#endif
 
 #include "test/core/util/grpc_profiler.h"
 #include "test/core/util/test_config.h"
@@ -166,10 +169,12 @@ static void start_send_status(void) {
                                  tag(FLING_SERVER_SEND_STATUS_FOR_STREAMING)));
 }
 
+/* We have some sort of deadlock, so let's not exit gracefully for now.
+   When that is resolved, please remove the #include <unistd.h> above. */
 static void sigint_handler(int x) { _exit(0); }
 
 int main(int argc, char **argv) {
-  grpc_event ev;
+  grpc_event *ev;
   call_state *s;
   char *addr_buf = NULL;
   gpr_cmdline *cl;
@@ -233,8 +238,9 @@ int main(int argc, char **argv) {
     }
     ev = grpc_completion_queue_next(
         cq, gpr_time_add(gpr_now(), gpr_time_from_micros(1000000)));
-    s = ev.tag;
-    switch (ev.type) {
+    if (!ev) continue;
+    s = ev->tag;
+    switch (ev->type) {
       case GRPC_OP_COMPLETE:
         switch ((gpr_intptr)s) {
           case FLING_SERVER_NEW_REQUEST:
@@ -296,9 +302,10 @@ int main(int argc, char **argv) {
         GPR_ASSERT(shutdown_started);
         shutdown_finished = 1;
         break;
-      case GRPC_QUEUE_TIMEOUT:
-        break;
+      default:
+        GPR_ASSERT(0);
     }
+    grpc_event_finish(ev);
   }
   grpc_profiler_stop();
   grpc_call_details_destroy(&call_details);

@@ -40,7 +40,7 @@ using Grpc.Core.Utils;
 namespace Grpc.Core.Internal
 {
     // TODO: we need to make sure that the delegates are not collected before invoked.
-    //internal delegate void ServerShutdownCallbackDelegate(bool success);
+    internal delegate void ServerShutdownCallbackDelegate(IntPtr eventPtr);
 
     /// <summary>
     /// grpc_server from grpc/grpc.h
@@ -65,8 +65,9 @@ namespace Grpc.Core.Internal
         [DllImport("grpc_csharp_ext.dll")]
         static extern void grpcsharp_server_shutdown(ServerSafeHandle server);
 
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern void grpcsharp_server_shutdown_and_notify_callback(ServerSafeHandle server, [MarshalAs(UnmanagedType.FunctionPtr)] CompletionCallbackDelegate callback);
+        // TODO: get rid of the old callback style
+        [DllImport("grpc_csharp_ext.dll", EntryPoint = "grpcsharp_server_shutdown_and_notify")]
+        static extern void grpcsharp_server_shutdown_and_notify_CALLBACK(ServerSafeHandle server, [MarshalAs(UnmanagedType.FunctionPtr)] ServerShutdownCallbackDelegate callback);
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern void grpcsharp_server_destroy(IntPtr server);
@@ -100,9 +101,9 @@ namespace Grpc.Core.Internal
             grpcsharp_server_shutdown(this);
         }
 
-        public void ShutdownAndNotify(CompletionCallbackDelegate callback)
+        public void ShutdownAndNotify(ServerShutdownCallbackDelegate callback)
         {
-            grpcsharp_server_shutdown_and_notify_callback(this, callback);
+            grpcsharp_server_shutdown_and_notify_CALLBACK(this, callback);
         }
 
         public void RequestCall(CompletionQueueSafeHandle cq, CompletionCallbackDelegate callback)
