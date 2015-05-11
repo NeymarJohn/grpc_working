@@ -177,8 +177,9 @@ finish:
 }
 
 void grpc_tcp_client_connect(void (*cb)(void *arg, grpc_endpoint *ep),
-                             void *arg, const struct sockaddr *addr,
-                             int addr_len, gpr_timespec deadline) {
+                             void *arg, grpc_pollset_set *interested_parties,
+                             const struct sockaddr *addr, int addr_len,
+                             gpr_timespec deadline) {
   int fd;
   grpc_dualstack_mode dsmode;
   int err;
@@ -233,6 +234,8 @@ void grpc_tcp_client_connect(void (*cb)(void *arg, grpc_endpoint *ep),
   ac->refs = 2;
   ac->write_closure.cb = on_writable;
   ac->write_closure.cb_arg = ac;
+
+  grpc_pollset_set_add_fd(interested_parties, ac->fd);
 
   grpc_alarm_init(&ac->alarm, deadline, on_alarm, ac, gpr_now());
   grpc_fd_notify_on_write(ac->fd, &ac->write_closure);

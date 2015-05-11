@@ -31,18 +31,19 @@
  *
  */
 
-#include <grpc++/async_generic_service.h>
+#include <grpc/support/port_platform.h>
 
-#include <grpc++/server.h>
+#ifdef GPR_WINSOCK_SOCKET
 
-namespace grpc {
+#include "src/core/iomgr/pollset_set.h"
 
-void AsyncGenericService::RequestCall(
-    GenericServerContext* ctx, GenericServerAsyncReaderWriter* reader_writer,
-    CompletionQueue* call_cq, ServerCompletionQueue* notification_cq,
-    void* tag) {
-  server_->RequestAsyncGenericCall(ctx, reader_writer, call_cq, notification_cq,
-                                   tag);
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set) {
 }
 
-}  // namespace grpc
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set) {
+}
+
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set, grpc_pollset *pollset) {
+}
+
+#endif  /* GPR_WINSOCK_SOCKET */

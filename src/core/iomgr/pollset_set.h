@@ -31,18 +31,27 @@
  *
  */
 
-#include <grpc++/async_generic_service.h>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
 
-#include <grpc++/server.h>
+#include "src/core/iomgr/pollset.h"
 
-namespace grpc {
+/* A grpc_pollset_set is a set of pollsets that are interested in an
+   action. Adding a pollset to a pollset_set automatically adds any
+   fd's (etc) that have been registered with the set_set with that pollset.
+   Registering fd's automatically iterates all current pollsets. */
 
-void AsyncGenericService::RequestCall(
-    GenericServerContext* ctx, GenericServerAsyncReaderWriter* reader_writer,
-    CompletionQueue* call_cq, ServerCompletionQueue* notification_cq,
-    void* tag) {
-  server_->RequestAsyncGenericCall(ctx, reader_writer, call_cq, notification_cq,
-                                   tag);
-}
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/pollset_set_posix.h"
+#endif
 
-}  // namespace grpc
+#ifdef GPR_WIN32
+#include "src/core/iomgr/pollset_set_windows.h"
+#endif
+
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set, grpc_pollset *pollset);
+void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set, grpc_pollset *pollset);
+
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */
