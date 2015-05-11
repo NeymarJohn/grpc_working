@@ -64,10 +64,14 @@ static gpr_timespec n_seconds_time(int n) {
 static gpr_timespec five_seconds_time(void) { return n_seconds_time(5); }
 
 static void drain_cq(grpc_completion_queue *cq) {
-  grpc_event ev;
+  grpc_event *ev;
+  grpc_completion_type type;
   do {
     ev = grpc_completion_queue_next(cq, five_seconds_time());
-  } while (ev.type != GRPC_QUEUE_SHUTDOWN);
+    GPR_ASSERT(ev);
+    type = ev->type;
+    grpc_event_finish(ev);
+  } while (type != GRPC_QUEUE_SHUTDOWN);
 }
 
 static void shutdown_server(grpc_end2end_test_fixture *f) {
@@ -87,12 +91,9 @@ static void end_test(grpc_end2end_test_fixture *f) {
   shutdown_server(f);
   shutdown_client(f);
 
-  grpc_completion_queue_shutdown(f->server_cq);
-  drain_cq(f->server_cq);
-  grpc_completion_queue_destroy(f->server_cq);
-  grpc_completion_queue_shutdown(f->client_cq);
-  drain_cq(f->client_cq);
-  grpc_completion_queue_destroy(f->client_cq);
+  grpc_completion_queue_shutdown(f->cq);
+  drain_cq(f->cq);
+  grpc_completion_queue_destroy(f->cq);
 }
 
 static void test_no_op(grpc_end2end_test_config config) {
