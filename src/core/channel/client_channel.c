@@ -39,7 +39,6 @@
 #include "src/core/channel/child_channel.h"
 #include "src/core/channel/connected_channel.h"
 #include "src/core/iomgr/iomgr.h"
-#include "src/core/iomgr/pollset_set.h"
 #include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
@@ -65,7 +64,6 @@ typedef struct {
   call_data **waiting_children;
   size_t waiting_child_count;
   size_t waiting_child_capacity;
-  grpc_pollset_set waiting_pollsets;
 
   /* transport setup for this channel */
   grpc_transport_setup *transport_setup;
@@ -135,7 +133,6 @@ static void remove_waiting_child(channel_data *chand, call_data *calld) {
   for (i = 0, new_count = 0; i < chand->waiting_child_count; i++) {
     if (chand->waiting_children[i] == calld) continue;
     chand->waiting_children[new_count++] = chand->waiting_children[i];
-    abort(); /* what to do about waiting_pollsets */
   }
   GPR_ASSERT(new_count == chand->waiting_child_count - 1 ||
              new_count == chand->waiting_child_count);
@@ -212,7 +209,6 @@ static void cc_start_transport_op(grpc_call_element *elem,
           if (!chand->transport_setup_initiated) {
             chand->transport_setup_initiated = 1;
             initiate_transport_setup = 1;
-            grpc_pollset_set_init(&chand->waiting_pollsets);
           }
           /* add this call to the waiting set to be resumed once we have a child
              channel stack, growing the waiting set if needed */
@@ -223,15 +219,13 @@ static void cc_start_transport_op(grpc_call_element *elem,
                 chand->waiting_children,
                 chand->waiting_child_capacity * sizeof(call_data *));
           }
-          grpc_pollset_set_add_pollset(&chand->waiting_pollsets, op->bind_pollset);
           calld->s.waiting_op = *op;
           chand->waiting_children[chand->waiting_child_count++] = calld;
           gpr_mu_unlock(&chand->mu);
 
           /* finally initiate transport setup if needed */
           if (initiate_transport_setup) {
-            grpc_transport_setup_initiate(chand->transport_setup,
-                                          &chand->waiting_pollsets);
+            grpc_transport_setup_initiate(chand->transport_setup);
           }
         }
       }
@@ -475,8 +469,6 @@ grpc_transport_setup_result grpc_client_channel_transport_setup_complete(
   chand->waiting_children = NULL;
   chand->waiting_child_count = 0;
   chand->waiting_child_capacity = 0;
-
-  grpc_pollset_set_destroy(&chand->waiting_pollsets);
 
   call_ops = gpr_malloc(sizeof(*call_ops) * waiting_child_count);
 
