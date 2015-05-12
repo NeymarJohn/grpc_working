@@ -7,7 +7,7 @@ The Python facility of gRPC.
 Status
 -------
 
-Usable with limitations, Alpha
+Usable with limitations, Pre-Alpha
 
 Prerequisites
 -----------------------
