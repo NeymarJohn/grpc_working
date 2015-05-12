@@ -31,18 +31,10 @@
  *
  */
 
-#include <grpc++/async_generic_service.h>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_WINDOWS_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_WINDOWS_H
 
-#include <grpc++/server.h>
+typedef struct grpc_pollset_set {
+} grpc_pollset_set;
 
-namespace grpc {
-
-void AsyncGenericService::RequestCall(
-    GenericServerContext* ctx, GenericServerAsyncReaderWriter* reader_writer,
-    CompletionQueue* call_cq, ServerCompletionQueue* notification_cq,
-    void* tag) {
-  server_->RequestAsyncGenericCall(ctx, reader_writer, call_cq, notification_cq,
-                                   tag);
-}
-
-}  // namespace grpc
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */
