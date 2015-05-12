@@ -204,7 +204,7 @@ static VALUE grpc_rb_server_request_call(VALUE self, VALUE cqueue,
                                          VALUE tag_new, VALUE timeout) {
   grpc_rb_server *s = NULL;
   grpc_call *call = NULL;
-  grpc_event ev;
+  grpc_event *ev = NULL;
   grpc_call_error err;
   request_call_stack st;
   VALUE result;
@@ -229,13 +229,15 @@ static VALUE grpc_rb_server_request_call(VALUE self, VALUE cqueue,
       return Qnil;
     }
     ev = grpc_rb_completion_queue_pluck_event(cqueue, tag_new, timeout);
-    if (ev.type == GRPC_QUEUE_TIMEOUT) {
+    if (ev == NULL) {
       grpc_request_call_stack_cleanup(&st);
       return Qnil;
     }
-    if (!ev.success) {
+    if (ev->data.op_complete != GRPC_OP_OK) {
       grpc_request_call_stack_cleanup(&st);
-      rb_raise(grpc_rb_eCallError, "request_call completion failed");
+      grpc_event_finish(ev);
+      rb_raise(grpc_rb_eCallError, "request_call completion failed: (code=%d)",
+               ev->data.op_complete);
       return Qnil;
     }
 
@@ -249,6 +251,7 @@ static VALUE grpc_rb_server_request_call(VALUE self, VALUE cqueue,
         grpc_rb_md_ary_to_h(&st.md_ary),
         grpc_rb_wrap_call(call),
         NULL);
+    grpc_event_finish(ev);
     grpc_request_call_stack_cleanup(&st);
     return result;
   }
