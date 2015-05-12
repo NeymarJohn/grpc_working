@@ -58,7 +58,7 @@ module GRPC
                "Cannot make an absolute deadline from #{timeish.inspect}")
         elsif timeish < 0
           TimeConsts::INFINITE_FUTURE
-        elsif timeish.zero?
+        elsif timeish == 0
           TimeConsts::ZERO
         else
           Time.now + timeish
