@@ -107,7 +107,6 @@ class CLanguage(object):
       plat = 'windows'
     else:
       plat = 'posix'
-    self.platform = plat
     with open('tools/run_tests/tests.json') as f:
       js = json.load(f)
       self.binaries = [tgt
@@ -120,12 +119,9 @@ class CLanguage(object):
     for target in self.binaries:
       if travis and target['flaky']:
         continue
-      if self.platform == 'windows':
-        binary = 'vsprojects\\test_bin\\%s.exe' % (target['name'])
-      else:
-        binary = 'bins/%s/%s' % (config.build_config, target['name'])
+      binary = 'bins/%s/%s' % (config.build_config, target['name'])
       out.append(config.job_spec([binary], [binary]))
-    return sorted(out)
+    return out
 
   def make_targets(self):
     return ['buildtests_%s' % self.make_target]
@@ -290,6 +286,8 @@ _CONFIGS = {
     'ubsan': SimpleConfig('ubsan'),
     'asan': SimpleConfig('asan', environ={
         'ASAN_OPTIONS': 'detect_leaks=1:color=always:suppressions=tools/tsan_suppressions.txt'}),
+    'asan-noleaks': SimpleConfig('asan', environ={
+        'ASAN_OPTIONS': 'detect_leaks=0:color=always:suppressions=tools/tsan_suppressions.txt'}),
     'gcov': SimpleConfig('gcov'),
     'memcheck': ValgrindConfig('valgrind', 'memcheck', ['--leak-check=full']),
     'helgrind': ValgrindConfig('dbg', 'helgrind')

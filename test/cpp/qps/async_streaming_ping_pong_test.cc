@@ -31,35 +31,49 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_END2END_CQ_VERIFIER_H
-#define GRPC_TEST_CORE_END2END_CQ_VERIFIER_H
+#include <grpc/support/log.h>
 
-#include <grpc/grpc.h>
-#include "test/core/util/test_config.h"
+#include <signal.h>
 
-/* A cq_verifier can verify that expected events arrive in a timely fashion
-   on a single completion queue */
+#include "test/cpp/qps/driver.h"
+#include "test/cpp/qps/report.h"
 
-typedef struct cq_verifier cq_verifier;
+namespace grpc {
+namespace testing {
 
-/* construct/destroy a cq_verifier */
-cq_verifier *cq_verifier_create(grpc_completion_queue *cq);
-void cq_verifier_destroy(cq_verifier *v);
+static const int WARMUP = 5;
+static const int BENCHMARK = 10;
 
-/* ensure all expected events (and only those events) are present on the
-   bound completion queue */
-void cq_verify(cq_verifier *v);
+static void RunAsyncStreamingPingPong() {
+  gpr_log(GPR_INFO, "Running Async Streaming Ping Pong");
 
-/* ensure that the completion queue is empty */
-void cq_verify_empty(cq_verifier *v);
+  ClientConfig client_config;
+  client_config.set_client_type(ASYNC_CLIENT);
+  client_config.set_enable_ssl(false);
+  client_config.set_outstanding_rpcs_per_channel(1);
+  client_config.set_client_channels(1);
+  client_config.set_payload_size(1);
+  client_config.set_async_client_threads(1);
+  client_config.set_rpc_type(STREAMING);
 
-/* Various expectation matchers
-   Any functions taking ... expect a NULL terminated list of key/value pairs
-   (each pair using two parameter slots) of metadata that MUST be present in
-   the event. */
-void cq_expect_completion(cq_verifier *v, void *tag, int success);
+  ServerConfig server_config;
+  server_config.set_server_type(ASYNC_SERVER);
+  server_config.set_enable_ssl(false);
+  server_config.set_threads(1);
 
-int byte_buffer_eq_string(grpc_byte_buffer *byte_buffer, const char *string);
-int contains_metadata(grpc_metadata_array *array, const char *key, const char *value);
+  const auto result =
+      RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
 
-#endif  /* GRPC_TEST_CORE_END2END_CQ_VERIFIER_H */
+  ReportQPS(result);
+  ReportLatency(result);
+}
+
+}  // namespace testing
+}  // namespace grpc
+
+int main(int argc, char** argv) {
+  signal(SIGPIPE, SIG_IGN);
+  grpc::testing::RunAsyncStreamingPingPong();
+
+  return 0;
+}

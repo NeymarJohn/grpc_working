@@ -1,5 +1,3 @@
-#region Copyright notice and license
-
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -29,53 +27,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#endregion
+syntax = "proto3";
 
-using System;
-using System.Runtime.InteropServices;
+message EchoMessage {
+  string value = 1;
+  int32 value2 = 2;
+}
 
-namespace Grpc.Core.Internal
-{
-    /// <summary>
-    /// from grpc/grpc.h
-    /// </summary>
-    internal enum GRPCCallError
-    {
-        /* everything went ok */
-        GRPC_CALL_OK = 0,
-        /* something failed, we don't know what */
-        GRPC_CALL_ERROR,
-        /* this method is not available on the server */
-        GRPC_CALL_ERROR_NOT_ON_SERVER,
-        /* this method is not available on the client */
-        GRPC_CALL_ERROR_NOT_ON_CLIENT,
-        /* this method must be called before server_accept */
-        GRPC_CALL_ERROR_ALREADY_ACCEPTED,
-        /* this method must be called before invoke */
-        GRPC_CALL_ERROR_ALREADY_INVOKED,
-        /* this method must be called after invoke */
-        GRPC_CALL_ERROR_NOT_INVOKED,
-        /* this call is already finished
-     (writes_done or write_status has already been called) */
-        GRPC_CALL_ERROR_ALREADY_FINISHED,
-        /* there is already an outstanding read/write operation on the call */
-        GRPC_CALL_ERROR_TOO_MANY_OPERATIONS,
-        /* the flags value was illegal for this call */
-        GRPC_CALL_ERROR_INVALID_FLAGS
-    }
-
-    /// <summary>
-    /// grpc_completion_type from grpc/grpc.h
-    /// </summary>
-    internal enum GRPCCompletionType
-    {
-        /* Shutting down */
-        GRPC_QUEUE_SHUTDOWN, 
-
-        /* No event before timeout */
-        GRPC_QUEUE_TIMEOUT,  
-
-        /* operation completion */
-        GRPC_OP_COMPLETE
-    }
+service EchoService {
+  rpc Echo (EchoMessage) returns (EchoMessage);
 }

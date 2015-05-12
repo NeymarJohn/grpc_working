@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -27,16 +28,35 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'grpc'
+thisfile=$(readlink -ne "${BASH_SOURCE[0]}")
+test_case=$1
+client_vm=$2
+result=cloud_prod_result.$1
+cur=$(date "+%Y-%m-%d-%H-%M-%S") 
+log_link=https://pantheon.corp.google.com/m/cloudstorage/b/stoked-keyword-656-output/o/prod_result/$test_case/$cur
 
-describe GRPC::Core::CompletionQueue do
-  before(:example) do
-    @cq = GRPC::Core::CompletionQueue.new
-  end
+main() {
+  source grpc_docker.sh
+  clients=(cxx java go ruby node csharp_mono python php)
+  for client in "${clients[@]}"
+  do
+    log_file_name=cloud_{$test_case}_{$client}.txt 
+    if grpc_cloud_prod_test $test_case $client_vm $client > /tmp/$log_file_name 2>&1
+    then
+      echo "          ['$test_case', '$client', 'prod', true, '<a href="$log_link/$log_file_name">log</a>']," >> /tmp/$result.txt
+    else
+      echo "          ['$test_case', '$client', 'prod', false, '<a href="$log_link/$log_file_name">log</a>']," >> /tmp/$result.txt
+    fi
+    gsutil cp /tmp/$log_file_name gs://stoked-keyword-656-output/prod_result/$test_case/$cur/$log_file_name
+    rm /tmp/$log_file_name
+  done
+  if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    cat pre.html /tmp/$result.txt post.html > /tmp/$result.html
+    gsutil cp /tmp/$result.html gs://stoked-keyword-656-output/prod_result/$test_case/$cur/$result.html
+    rm /tmp/$result.txt
+    rm /tmp/$result.html
+  fi
+}
 
-  describe '#new' do
-    it 'is constructed successufully' do
-      expect { GRPC::Core::CompletionQueue.new }.not_to raise_error
-    end
-  end
-end
+set -x
+main "$@"
