@@ -35,6 +35,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "src/core/support/string.h"
 #include <grpc/byte_buffer.h>
@@ -145,10 +146,10 @@ static void simple_request_body(grpc_end2end_test_fixture f, void *rc) {
   op++;
   GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_batch(c, ops, op - ops, tag(1)));
 
-  GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_server_request_call(f.server, &s, &call_details,
-                                      &request_metadata_recv, f.server_cq,
-                                      f.server_cq, tag(101)));
+  GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, &s,
+                                                      &call_details,
+                                                      &request_metadata_recv,
+                                                      f.server_cq, tag(101)));
   cq_expect_completion(v_server, tag(101), GRPC_OP_OK);
   cq_verify(v_server);
 

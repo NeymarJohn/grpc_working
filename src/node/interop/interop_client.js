@@ -86,7 +86,7 @@ function emptyUnary(client, done) {
  */
 function largeUnary(client, done) {
   var arg = {
-    response_type: 'COMPRESSABLE',
+    response_type: testProto.PayloadType.COMPRESSABLE,
     response_size: 314159,
     payload: {
       body: zeroBuffer(271828)
@@ -94,8 +94,9 @@ function largeUnary(client, done) {
   };
   var call = client.unaryCall(arg, function(err, resp) {
     assert.ifError(err);
-    assert.strictEqual(resp.payload.type, 'COMPRESSABLE');
-    assert.strictEqual(resp.payload.body.length, 314159);
+    assert.strictEqual(resp.payload.type, testProto.PayloadType.COMPRESSABLE);
+    assert.strictEqual(resp.payload.body.limit - resp.payload.body.offset,
+                       314159);
   });
   call.on('status', function(status) {
     assert.strictEqual(status.code, grpc.status.OK);
@@ -137,7 +138,7 @@ function clientStreaming(client, done) {
  */
 function serverStreaming(client, done) {
   var arg = {
-    response_type: 'COMPRESSABLE',
+    response_type: testProto.PayloadType.COMPRESSABLE,
     response_parameters: [
       {size: 31415},
       {size: 9},
@@ -149,8 +150,8 @@ function serverStreaming(client, done) {
   var resp_index = 0;
   call.on('data', function(value) {
     assert(resp_index < 4);
-    assert.strictEqual(value.payload.type, 'COMPRESSABLE');
-    assert.strictEqual(value.payload.body.length,
+    assert.strictEqual(value.payload.type, testProto.PayloadType.COMPRESSABLE);
+    assert.strictEqual(value.payload.body.limit - value.payload.body.offset,
                        arg.response_parameters[resp_index].size);
     resp_index += 1;
   });
@@ -181,21 +182,23 @@ function pingPong(client, done) {
   });
   var index = 0;
   call.write({
-      response_type: 'COMPRESSABLE',
+      response_type: testProto.PayloadType.COMPRESSABLE,
       response_parameters: [
         {size: response_sizes[index]}
       ],
       payload: {body: zeroBuffer(payload_sizes[index])}
   });
   call.on('data', function(response) {
-    assert.strictEqual(response.payload.type, 'COMPRESSABLE');
-    assert.equal(response.payload.body.length, response_sizes[index]);
+    assert.strictEqual(response.payload.type,
+                       testProto.PayloadType.COMPRESSABLE);
+    assert.equal(response.payload.body.limit - response.payload.body.offset,
+                 response_sizes[index]);
     index += 1;
     if (index === 4) {
       call.end();
     } else {
       call.write({
-        response_type: 'COMPRESSABLE',
+        response_type: testProto.PayloadType.COMPRESSABLE,
         response_parameters: [
           {size: response_sizes[index]}
         ],
@@ -248,7 +251,7 @@ function cancelAfterBegin(client, done) {
 function cancelAfterFirstResponse(client, done) {
   var call = client.fullDuplexCall();
   call.write({
-      response_type: 'COMPRESSABLE',
+      response_type: testProto.PayloadType.COMPRESSABLE,
       response_parameters: [
         {size: 31415}
       ],
@@ -267,19 +270,18 @@ function cancelAfterFirstResponse(client, done) {
  * Run one of the authentication tests.
  * @param {string} expected_user The expected username in the response
  * @param {Client} client The client to test against
- * @param {?string} scope The scope to apply to the credentials
  * @param {function} done Callback to call when the test is completed. Included
  *     primarily for use with mocha
  */
-function authTest(expected_user, client, scope, done) {
+function authTest(expected_user, client, done) {
   (new GoogleAuth()).getApplicationDefault(function(err, credential) {
     assert.ifError(err);
-    if (credential.createScopedRequired() && scope) {
-      credential = credential.createScoped(scope);
+    if (credential.createScopedRequired()) {
+      credential = credential.createScoped(AUTH_SCOPE);
     }
     client.updateMetadata = grpc.getGoogleAuthDelegate(credential);
     var arg = {
-      response_type: 'COMPRESSABLE',
+      response_type: testProto.PayloadType.COMPRESSABLE,
       response_size: 314159,
       payload: {
         body: zeroBuffer(271828)
@@ -289,8 +291,9 @@ function authTest(expected_user, client, scope, done) {
     };
     var call = client.unaryCall(arg, function(err, resp) {
       assert.ifError(err);
-      assert.strictEqual(resp.payload.type, 'COMPRESSABLE');
-      assert.strictEqual(resp.payload.body.length, 314159);
+      assert.strictEqual(resp.payload.type, testProto.PayloadType.COMPRESSABLE);
+      assert.strictEqual(resp.payload.body.limit - resp.payload.body.offset,
+                         314159);
       assert.strictEqual(resp.username, expected_user);
       assert.strictEqual(resp.oauth_scope, AUTH_SCOPE_RESPONSE);
     });
@@ -315,9 +318,8 @@ var test_cases = {
   empty_stream: emptyStream,
   cancel_after_begin: cancelAfterBegin,
   cancel_after_first_response: cancelAfterFirstResponse,
-  compute_engine_creds: _.partial(authTest, COMPUTE_ENGINE_USER, null),
-  service_account_creds: _.partial(authTest, AUTH_USER, AUTH_SCOPE),
-  jwt_token_creds: _.partial(authTest, AUTH_USER, null)
+  compute_engine_creds: _.partial(authTest, COMPUTE_ENGINE_USER),
+  service_account_creds: _.partial(authTest, AUTH_USER)
 };
 
 /**

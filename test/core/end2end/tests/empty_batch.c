@@ -35,6 +35,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "src/core/support/string.h"
 #include <grpc/byte_buffer.h>

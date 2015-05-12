@@ -6,7 +6,7 @@
     "#": "The public version number of the library.",
     "version": {
       "major": 0,
-      "minor": 8,
+      "minor": 7,
       "micro": 0,
       "build": 0
     }
@@ -410,7 +410,6 @@
         "src/core/security/secure_endpoint.h",
         "src/core/security/secure_transport_setup.h",
         "src/core/security/security_connector.h",
-        "src/core/security/security_context.h",
         "src/core/tsi/fake_transport_security.h",
         "src/core/tsi/ssl_transport_security.h",
         "src/core/tsi/transport_security.h",
@@ -431,7 +430,6 @@
         "src/core/security/secure_endpoint.c",
         "src/core/security/secure_transport_setup.c",
         "src/core/security/security_connector.c",
-        "src/core/security/security_context.c",
         "src/core/security/server_secure_chttp2.c",
         "src/core/surface/init_secure.c",
         "src/core/surface/secure_channel_create.c",
@@ -555,8 +553,7 @@
       "filegroups": [
         "grpc++_base"
       ],
-      "secure": "no",
-      "vs_project_guid": "{6EE56155-DF7C-4F6E-BFC4-F6F776BEB211}"
+      "secure": "no"
     },
     {
       "name": "grpc_plugin_support",
@@ -1001,9 +998,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1048,9 +1042,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1065,9 +1056,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1623,9 +1611,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1682,9 +1667,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1699,9 +1681,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1716,9 +1695,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1813,24 +1789,6 @@
         "test/cpp/end2end/async_end2end_test.cc"
       ],
       "deps": [
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "async_streaming_ping_pong_test",
-      "build": "test",
-      "run": false,
-      "language": "c++",
-      "src": [
-        "test/cpp/qps/async_streaming_ping_pong_test.cc"
-      ],
-      "deps": [
-        "qps",
         "grpc++_test_util",
         "grpc_test_util",
         "grpc++",
@@ -2259,22 +2217,6 @@
         "test/cpp/server/thread_pool_test.cc"
       ],
       "deps": [
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "thread_stress_test",
-      "build": "test",
-      "language": "c++",
-      "src": [
-        "test/cpp/end2end/thread_stress_test.cc"
-      ],
-      "deps": [
-        "grpc++_test_util",
         "grpc_test_util",
         "grpc++",
         "grpc",
