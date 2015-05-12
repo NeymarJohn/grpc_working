@@ -130,7 +130,8 @@ describe('Math client', function() {
     });
     call.write({dividend: 7, divisor: 0});
     call.end();
-    call.on('error', function checkStatus(status) {
+    call.on('status', function checkStatus(status) {
+      assert.notEqual(status.code, grpc.status.OK);
       done();
     });
   });

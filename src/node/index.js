@@ -100,23 +100,22 @@ function load(filename, format) {
 function getGoogleAuthDelegate(credential) {
   /**
    * Update a metadata object with authentication information.
-   * @param {string} authURI The uri to authenticate to
    * @param {Object} metadata Metadata object
    * @param {function(Error, Object)} callback
    */
-  return function updateMetadata(authURI, metadata, callback) {
+  return function updateMetadata(metadata, callback) {
     metadata = _.clone(metadata);
     if (metadata.Authorization) {
       metadata.Authorization = _.clone(metadata.Authorization);
     } else {
       metadata.Authorization = [];
     }
-    credential.getRequestMetadata(authURI, function(err, header) {
+    credential.getAccessToken(function(err, token) {
       if (err) {
         callback(err);
         return;
       }
-      metadata.Authorization.push(header.Authorization);
+      metadata.Authorization.push('Bearer ' + token);
       callback(null, metadata);
     });
   };

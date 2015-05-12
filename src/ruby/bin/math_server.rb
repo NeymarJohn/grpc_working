@@ -55,7 +55,7 @@ class Fibber
     return enum_for(:generator) unless block_given?
     idx, current, previous = 0, 1, 1
     until idx == @limit
-      if idx.zero? || idx == 1
+      if idx == 0 || idx == 1
         yield Math::Num.new(num: 1)
         idx += 1
         next
@@ -94,7 +94,7 @@ end
 # package. That practice should be avoided by defining real services.
 class Calculator < Math::Math::Service
   def div(div_args, _call)
-    if div_args.divisor.zero?
+    if div_args.divisor == 0
       # To send non-OK status handlers raise a StatusError with the code and
       # and detail they want sent as a Status.
       fail GRPC::StatusError.new(GRPC::Status::INVALID_ARGUMENT,
