@@ -31,32 +31,10 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_WINDOWS_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_WINDOWS_H
 
-#ifdef GRPC_STAP_PROFILER
+typedef struct grpc_pollset_set {
+} grpc_pollset_set;
 
-#include "src/core/profiling/timers.h"
-
-#include <sys/sdt.h>
-/* Generated from src/core/profiling/stap_probes.d */
-#include "src/core/profiling/stap_probes.h"
-
-/* Latency profiler API implementation. */
-void grpc_timer_add_mark(int tag, void* id, const char* file, int line) {
-  _STAP_ADD_MARK(tag);
-}
-
-void grpc_timer_add_important_mark(int tag, void* id, const char* file,
-                                   int line) {
-  _STAP_ADD_IMPORTANT_MARK(tag);
-}
-
-void grpc_timer_begin(int tag, void* id, const char* file, int line) {
-  _STAP_TIMING_NS_BEGIN(tag);
-}
-
-void grpc_timer_end(int tag, void* id, const char* file, int line) {
-  _STAP_TIMING_NS_END(tag);
-}
-
-#endif /* GRPC_STAP_PROFILER */
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */

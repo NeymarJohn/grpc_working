@@ -33,30 +33,17 @@
 
 #include <grpc/support/port_platform.h>
 
-#ifdef GRPC_STAP_PROFILER
+#ifdef GPR_WINSOCK_SOCKET
 
-#include "src/core/profiling/timers.h"
+#include "src/core/iomgr/pollset_set.h"
 
-#include <sys/sdt.h>
-/* Generated from src/core/profiling/stap_probes.d */
-#include "src/core/profiling/stap_probes.h"
-
-/* Latency profiler API implementation. */
-void grpc_timer_add_mark(int tag, void* id, const char* file, int line) {
-  _STAP_ADD_MARK(tag);
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set) {
 }
 
-void grpc_timer_add_important_mark(int tag, void* id, const char* file,
-                                   int line) {
-  _STAP_ADD_IMPORTANT_MARK(tag);
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set) {
 }
 
-void grpc_timer_begin(int tag, void* id, const char* file, int line) {
-  _STAP_TIMING_NS_BEGIN(tag);
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set, grpc_pollset *pollset) {
 }
 
-void grpc_timer_end(int tag, void* id, const char* file, int line) {
-  _STAP_TIMING_NS_END(tag);
-}
-
-#endif /* GRPC_STAP_PROFILER */
+#endif  /* GPR_WINSOCK_SOCKET */

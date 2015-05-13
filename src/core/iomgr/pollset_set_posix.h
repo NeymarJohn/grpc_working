@@ -31,32 +31,25 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
 
-#ifdef GRPC_STAP_PROFILER
+#include "src/core/iomgr/fd_posix.h"
+#include "src/core/iomgr/pollset_posix.h"
 
-#include "src/core/profiling/timers.h"
+typedef struct grpc_pollset_set {
+	gpr_mu mu;
+	
+	size_t pollset_count;
+	size_t pollset_capacity;
+	grpc_pollset **pollsets;
 
-#include <sys/sdt.h>
-/* Generated from src/core/profiling/stap_probes.d */
-#include "src/core/profiling/stap_probes.h"
+	size_t fd_count;
+	size_t fd_capacity;
+	grpc_fd **fds;
+} grpc_pollset_set;
 
-/* Latency profiler API implementation. */
-void grpc_timer_add_mark(int tag, void* id, const char* file, int line) {
-  _STAP_ADD_MARK(tag);
-}
+void grpc_pollset_set_add_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
+void grpc_pollset_set_del_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
 
-void grpc_timer_add_important_mark(int tag, void* id, const char* file,
-                                   int line) {
-  _STAP_ADD_IMPORTANT_MARK(tag);
-}
-
-void grpc_timer_begin(int tag, void* id, const char* file, int line) {
-  _STAP_TIMING_NS_BEGIN(tag);
-}
-
-void grpc_timer_end(int tag, void* id, const char* file, int line) {
-  _STAP_TIMING_NS_END(tag);
-}
-
-#endif /* GRPC_STAP_PROFILER */
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */

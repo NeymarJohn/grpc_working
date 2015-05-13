@@ -31,32 +31,27 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
 
-#ifdef GRPC_STAP_PROFILER
+#include "src/core/iomgr/pollset.h"
 
-#include "src/core/profiling/timers.h"
+/* A grpc_pollset_set is a set of pollsets that are interested in an
+   action. Adding a pollset to a pollset_set automatically adds any
+   fd's (etc) that have been registered with the set_set with that pollset.
+   Registering fd's automatically iterates all current pollsets. */
 
-#include <sys/sdt.h>
-/* Generated from src/core/profiling/stap_probes.d */
-#include "src/core/profiling/stap_probes.h"
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/pollset_set_posix.h"
+#endif
 
-/* Latency profiler API implementation. */
-void grpc_timer_add_mark(int tag, void* id, const char* file, int line) {
-  _STAP_ADD_MARK(tag);
-}
+#ifdef GPR_WIN32
+#include "src/core/iomgr/pollset_set_windows.h"
+#endif
 
-void grpc_timer_add_important_mark(int tag, void* id, const char* file,
-                                   int line) {
-  _STAP_ADD_IMPORTANT_MARK(tag);
-}
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set, grpc_pollset *pollset);
+void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set, grpc_pollset *pollset);
 
-void grpc_timer_begin(int tag, void* id, const char* file, int line) {
-  _STAP_TIMING_NS_BEGIN(tag);
-}
-
-void grpc_timer_end(int tag, void* id, const char* file, int line) {
-  _STAP_TIMING_NS_END(tag);
-}
-
-#endif /* GRPC_STAP_PROFILER */
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */

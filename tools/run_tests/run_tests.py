@@ -290,6 +290,8 @@ _CONFIGS = {
     'ubsan': SimpleConfig('ubsan'),
     'asan': SimpleConfig('asan', environ={
         'ASAN_OPTIONS': 'detect_leaks=1:color=always:suppressions=tools/tsan_suppressions.txt'}),
+    'asan-noleaks': SimpleConfig('asan', environ={
+        'ASAN_OPTIONS': 'detect_leaks=0:color=always:suppressions=tools/tsan_suppressions.txt'}),
     'gcov': SimpleConfig('gcov'),
     'memcheck': ValgrindConfig('valgrind', 'memcheck', ['--leak-check=full']),
     'helgrind': ValgrindConfig('dbg', 'helgrind')
@@ -332,9 +334,9 @@ argp.add_argument('--newline_on_success',
                   action='store_const',
                   const=True)
 argp.add_argument('-l', '--language',
-                  choices=sorted(_LANGUAGES.keys()),
+                  choices=['all'] + sorted(_LANGUAGES.keys()),
                   nargs='+',
-                  default=sorted(_LANGUAGES.keys()))
+                  default=['all'])
 args = argp.parse_args()
 
 # grab config
@@ -345,7 +347,10 @@ run_configs = set(_CONFIGS[cfg]
 build_configs = set(cfg.build_config for cfg in run_configs)
 
 make_targets = []
-languages = set(_LANGUAGES[l] for l in args.language)
+languages = set(_LANGUAGES[l]
+                for l in itertools.chain.from_iterable(
+                      _LANGUAGES.iterkeys() if x == 'all' else [x]
+                      for x in args.language))
 
 if len(build_configs) > 1:
   for language in languages:
@@ -377,8 +382,8 @@ build_steps.extend(set(
 one_run = set(
     spec
     for config in run_configs
-    for language in args.language
-    for spec in _LANGUAGES[language].test_specs(config, args.travis)
+    for language in languages
+    for spec in language.test_specs(config, args.travis)
     if re.search(args.regex, spec.shortname))
 
 runs_per_test = args.runs_per_test
