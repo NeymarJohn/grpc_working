@@ -39,7 +39,6 @@
 #include "src/core/channel/child_channel.h"
 #include "src/core/channel/connected_channel.h"
 #include "src/core/iomgr/iomgr.h"
-#include "src/core/iomgr/pollset_set.h"
 #include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
@@ -132,10 +131,7 @@ static void remove_waiting_child(channel_data *chand, call_data *calld) {
   size_t new_count;
   size_t i;
   for (i = 0, new_count = 0; i < chand->waiting_child_count; i++) {
-    if (chand->waiting_children[i] == calld) {
-      grpc_transport_setup_del_interested_party(chand->transport_setup, calld->s.waiting_op.bind_pollset);
-      continue;
-    }
+    if (chand->waiting_children[i] == calld) continue;
     chand->waiting_children[new_count++] = chand->waiting_children[i];
   }
   GPR_ASSERT(new_count == chand->waiting_child_count - 1 ||
@@ -231,7 +227,6 @@ static void cc_start_transport_op(grpc_call_element *elem,
           if (initiate_transport_setup) {
             grpc_transport_setup_initiate(chand->transport_setup);
           }
-          grpc_transport_setup_add_interested_party(chand->transport_setup, op->bind_pollset);
         }
       }
       break;
