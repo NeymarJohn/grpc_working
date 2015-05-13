@@ -31,49 +31,29 @@
  *
  */
 
-#include <grpc/grpc_security.h>
-#include <grpc++/channel_arguments.h>
-#include <grpc++/credentials.h>
-#include <grpc++/server_credentials.h>
-#include "src/cpp/client/channel.h"
-#include "src/cpp/server/secure_server_credentials.h"
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
 
-namespace grpc {
-namespace testing {
+#include "src/core/iomgr/pollset.h"
 
-namespace {
-class FakeCredentialsImpl GRPC_FINAL : public Credentials {
- public:
-  FakeCredentialsImpl()
-      : c_creds_(grpc_fake_transport_security_credentials_create()) {}
-  ~FakeCredentialsImpl() { grpc_credentials_release(c_creds_); }
-  SecureCredentials* AsSecureCredentials() GRPC_OVERRIDE { return nullptr; }
-  std::shared_ptr<ChannelInterface> CreateChannel(
-      const grpc::string& target, const ChannelArguments& args) GRPC_OVERRIDE {
-    grpc_channel_args channel_args;
-    args.SetChannelArgs(&channel_args);
-    return std::shared_ptr<ChannelInterface>(new Channel(
-        target,
-        grpc_secure_channel_create(c_creds_, target.c_str(), &channel_args)));
-  }
-  bool ApplyToCall(grpc_call* call) GRPC_OVERRIDE { return false; }
+/* A grpc_pollset_set is a set of pollsets that are interested in an
+   action. Adding a pollset to a pollset_set automatically adds any
+   fd's (etc) that have been registered with the set_set with that pollset.
+   Registering fd's automatically iterates all current pollsets. */
 
- private:
-  grpc_credentials* const c_creds_;
-};
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/pollset_set_posix.h"
+#endif
 
-}  // namespace
+#ifdef GPR_WIN32
+#include "src/core/iomgr/pollset_set_windows.h"
+#endif
 
-std::shared_ptr<Credentials> FakeCredentials() {
-  return std::shared_ptr<Credentials>(new FakeCredentialsImpl());
-}
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset);
+void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset);
 
-std::shared_ptr<ServerCredentials> FakeServerCredentials() {
-  grpc_server_credentials* c_creds =
-      grpc_fake_transport_security_server_credentials_create();
-  return std::shared_ptr<ServerCredentials>(
-      new SecureServerCredentials(c_creds));
-}
-
-}  // namespace testing
-}  // namespace grpc
+#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */
