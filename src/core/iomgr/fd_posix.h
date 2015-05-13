@@ -68,8 +68,6 @@ struct grpc_fd {
 
   gpr_mu watcher_mu;
   grpc_fd_watcher watcher_root;
-  grpc_fd_watcher *read_watcher;
-  grpc_fd_watcher *write_watcher;
 
   gpr_atm readst;
   gpr_atm writest;
@@ -105,7 +103,7 @@ gpr_uint32 grpc_fd_begin_poll(grpc_fd *fd, grpc_pollset *pollset,
                               gpr_uint32 read_mask, gpr_uint32 write_mask,
                               grpc_fd_watcher *rec);
 /* Complete polling previously started with grpc_fd_begin_poll */
-void grpc_fd_end_poll(grpc_fd_watcher *rec, int got_read, int got_write);
+void grpc_fd_end_poll(grpc_fd_watcher *rec);
 
 /* Return 1 if this fd is orphaned, 0 otherwise */
 int grpc_fd_is_orphaned(grpc_fd *fd);
