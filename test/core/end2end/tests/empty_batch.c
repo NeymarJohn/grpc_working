@@ -68,10 +68,14 @@ static gpr_timespec n_seconds_time(int n) {
 static gpr_timespec five_seconds_time(void) { return n_seconds_time(5); }
 
 static void drain_cq(grpc_completion_queue *cq) {
-  grpc_event ev;
+  grpc_event *ev;
+  grpc_completion_type type;
   do {
     ev = grpc_completion_queue_next(cq, five_seconds_time());
-  } while (ev.type != GRPC_QUEUE_SHUTDOWN);
+    GPR_ASSERT(ev);
+    type = ev->type;
+    grpc_event_finish(ev);
+  } while (type != GRPC_QUEUE_SHUTDOWN);
 }
 
 static void shutdown_server(grpc_end2end_test_fixture *f) {
@@ -91,28 +95,31 @@ static void end_test(grpc_end2end_test_fixture *f) {
   shutdown_server(f);
   shutdown_client(f);
 
-  grpc_completion_queue_shutdown(f->cq);
-  drain_cq(f->cq);
-  grpc_completion_queue_destroy(f->cq);
+  grpc_completion_queue_shutdown(f->server_cq);
+  drain_cq(f->server_cq);
+  grpc_completion_queue_destroy(f->server_cq);
+  grpc_completion_queue_shutdown(f->client_cq);
+  drain_cq(f->client_cq);
+  grpc_completion_queue_destroy(f->client_cq);
 }
 
 static void empty_batch_body(grpc_end2end_test_fixture f) {
   grpc_call *c;
   gpr_timespec deadline = five_seconds_time();
-  cq_verifier *cqv = cq_verifier_create(f.cq);
+  cq_verifier *v_client = cq_verifier_create(f.client_cq);
   grpc_op *op = NULL;
 
-  c = grpc_channel_create_call(f.client, f.cq, "/foo",
+  c = grpc_channel_create_call(f.client, f.client_cq, "/foo",
                                "foo.test.google.fr", deadline);
   GPR_ASSERT(c);
 
   GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_batch(c, op, 0, tag(1)));
-  cq_expect_completion(cqv, tag(1), 1);
-  cq_verify(cqv);
+  cq_expect_completion(v_client, tag(1), GRPC_OP_OK);
+  cq_verify(v_client);
 
   grpc_call_destroy(c);
 
-  cq_verifier_destroy(cqv);
+  cq_verifier_destroy(v_client);
 }
 
 static void test_invoke_empty_body(grpc_end2end_test_config config) {

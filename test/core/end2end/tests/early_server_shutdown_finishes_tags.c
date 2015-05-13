@@ -66,10 +66,14 @@ static gpr_timespec n_seconds_time(int n) {
 static gpr_timespec five_seconds_time(void) { return n_seconds_time(5); }
 
 static void drain_cq(grpc_completion_queue *cq) {
-  grpc_event ev;
+  grpc_event *ev;
+  grpc_completion_type type;
   do {
     ev = grpc_completion_queue_next(cq, five_seconds_time());
-  } while (ev.type != GRPC_QUEUE_SHUTDOWN);
+    GPR_ASSERT(ev);
+    type = ev->type;
+    grpc_event_finish(ev);
+  } while (type != GRPC_QUEUE_SHUTDOWN);
 }
 
 static void shutdown_server(grpc_end2end_test_fixture *f) {
@@ -89,15 +93,18 @@ static void end_test(grpc_end2end_test_fixture *f) {
   shutdown_server(f);
   shutdown_client(f);
 
-  grpc_completion_queue_shutdown(f->cq);
-  drain_cq(f->cq);
-  grpc_completion_queue_destroy(f->cq);
+  grpc_completion_queue_shutdown(f->server_cq);
+  drain_cq(f->server_cq);
+  grpc_completion_queue_destroy(f->server_cq);
+  grpc_completion_queue_shutdown(f->client_cq);
+  drain_cq(f->client_cq);
+  grpc_completion_queue_destroy(f->client_cq);
 }
 
 static void test_early_server_shutdown_finishes_tags(
     grpc_end2end_test_config config) {
   grpc_end2end_test_fixture f = begin_test(config, __FUNCTION__, NULL, NULL);
-  cq_verifier *cqv = cq_verifier_create(f.cq);
+  cq_verifier *v_server = cq_verifier_create(f.server_cq);
   grpc_call *s = (void *)1;
   grpc_call_details call_details;
   grpc_metadata_array request_metadata_recv;
@@ -109,16 +116,16 @@ static void test_early_server_shutdown_finishes_tags(
      no new call */
   GPR_ASSERT(GRPC_CALL_OK ==
              grpc_server_request_call(f.server, &s, &call_details,
-                                      &request_metadata_recv, f.cq,
-                                      f.cq, tag(101)));
+                                      &request_metadata_recv, f.server_cq,
+                                      f.server_cq, tag(101)));
   grpc_server_shutdown(f.server);
-  cq_expect_completion(cqv, tag(101), 0);
-  cq_verify(cqv);
+  cq_expect_completion(v_server, tag(101), GRPC_OP_ERROR);
+  cq_verify(v_server);
   GPR_ASSERT(s == NULL);
 
   end_test(&f);
   config.tear_down_data(&f);
-  cq_verifier_destroy(cqv);
+  cq_verifier_destroy(v_server);
 }
 
 void grpc_end2end_tests(grpc_end2end_test_config config) {
