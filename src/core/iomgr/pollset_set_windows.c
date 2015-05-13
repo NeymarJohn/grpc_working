@@ -31,35 +31,19 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_END2END_CQ_VERIFIER_H
-#define GRPC_TEST_CORE_END2END_CQ_VERIFIER_H
+#include <grpc/support/port_platform.h>
 
-#include <grpc/grpc.h>
-#include "test/core/util/test_config.h"
+#ifdef GPR_WINSOCK_SOCKET
 
-/* A cq_verifier can verify that expected events arrive in a timely fashion
-   on a single completion queue */
+#include "src/core/iomgr/pollset_set.h"
 
-typedef struct cq_verifier cq_verifier;
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set) {
+}
 
-/* construct/destroy a cq_verifier */
-cq_verifier *cq_verifier_create(grpc_completion_queue *cq);
-void cq_verifier_destroy(cq_verifier *v);
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set) {
+}
 
-/* ensure all expected events (and only those events) are present on the
-   bound completion queue */
-void cq_verify(cq_verifier *v);
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set, grpc_pollset *pollset) {
+}
 
-/* ensure that the completion queue is empty */
-void cq_verify_empty(cq_verifier *v);
-
-/* Various expectation matchers
-   Any functions taking ... expect a NULL terminated list of key/value pairs
-   (each pair using two parameter slots) of metadata that MUST be present in
-   the event. */
-void cq_expect_completion(cq_verifier *v, void *tag, int success);
-
-int byte_buffer_eq_string(grpc_byte_buffer *byte_buffer, const char *string);
-int contains_metadata(grpc_metadata_array *array, const char *key, const char *value);
-
-#endif  /* GRPC_TEST_CORE_END2END_CQ_VERIFIER_H */
+#endif  /* GPR_WINSOCK_SOCKET */
