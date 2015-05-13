@@ -31,19 +31,6 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
-
-#ifdef GPR_WINSOCK_SOCKET
-
-#include "src/core/iomgr/pollset_set.h"
-
-void grpc_pollset_set_init(grpc_pollset_set *pollset_set) {
-}
-
-void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set) {
-}
-
-void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set, grpc_pollset *pollset) {
-}
-
-#endif  /* GPR_WINSOCK_SOCKET */
+var grpc = require('grpc');
+exports.client = grpc.load(__dirname + '/service.json', 'json');
+exports.auth = require('google-auth-library');
