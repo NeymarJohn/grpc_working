@@ -39,10 +39,8 @@
 namespace grpc {
 
 class Call;
-class CompletionQueue;
 class RpcService;
 class Server;
-class ServerCompletionQueue;
 class ServerContext;
 class Status;
 
@@ -72,55 +70,52 @@ class AsynchronousService {
                                   ServerContext* context,
                                   ::grpc::protobuf::Message* request,
                                   ServerAsyncStreamingInterface* stream,
-                                  CompletionQueue* call_cq,
-                                  ServerCompletionQueue* notification_cq,
-                                  void* tag) = 0;
+                                  CompletionQueue* cq, void* tag) = 0;
   };
 
-  AsynchronousService(const char** method_names, size_t method_count)
-      : dispatch_impl_(nullptr),
+  AsynchronousService(CompletionQueue* cq, const char** method_names,
+                      size_t method_count)
+      : cq_(cq),
+        dispatch_impl_(nullptr),
         method_names_(method_names),
         method_count_(method_count),
         request_args_(nullptr) {}
 
   ~AsynchronousService() { delete[] request_args_; }
 
+  CompletionQueue* completion_queue() const { return cq_; }
+
  protected:
   void RequestAsyncUnary(int index, ServerContext* context,
                          grpc::protobuf::Message* request,
                          ServerAsyncStreamingInterface* stream,
-                         CompletionQueue* call_cq,
-                         ServerCompletionQueue* notification_cq, void* tag) {
+                         CompletionQueue* cq, void* tag) {
     dispatch_impl_->RequestAsyncCall(request_args_[index], context, request,
-                                     stream, call_cq, notification_cq, tag);
+                                     stream, cq, tag);
   }
   void RequestClientStreaming(int index, ServerContext* context,
                               ServerAsyncStreamingInterface* stream,
-                              CompletionQueue* call_cq,
-                              ServerCompletionQueue* notification_cq,
-                              void* tag) {
+                              CompletionQueue* cq, void* tag) {
     dispatch_impl_->RequestAsyncCall(request_args_[index], context, nullptr,
-                                     stream, call_cq, notification_cq, tag);
+                                     stream, cq, tag);
   }
   void RequestServerStreaming(int index, ServerContext* context,
                               grpc::protobuf::Message* request,
                               ServerAsyncStreamingInterface* stream,
-                              CompletionQueue* call_cq,
-                              ServerCompletionQueue* notification_cq,
-                              void* tag) {
+                              CompletionQueue* cq, void* tag) {
     dispatch_impl_->RequestAsyncCall(request_args_[index], context, request,
-                                     stream, call_cq, notification_cq, tag);
+                                     stream, cq, tag);
   }
   void RequestBidiStreaming(int index, ServerContext* context,
                             ServerAsyncStreamingInterface* stream,
-                            CompletionQueue* call_cq,
-                            ServerCompletionQueue* notification_cq, void* tag) {
+                            CompletionQueue* cq, void* tag) {
     dispatch_impl_->RequestAsyncCall(request_args_[index], context, nullptr,
-                                     stream, call_cq, notification_cq, tag);
+                                     stream, cq, tag);
   }
 
  private:
   friend class Server;
+  CompletionQueue* const cq_;
   DispatchImpl* dispatch_impl_;
   const char** const method_names_;
   size_t method_count_;

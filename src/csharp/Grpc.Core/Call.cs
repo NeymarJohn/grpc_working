@@ -52,7 +52,7 @@ namespace Grpc.Core
 
         public Call(string serviceName, Method<TRequest, TResponse> method, Channel channel, Metadata headers)
         {
-            this.name = method.GetFullName(serviceName);
+            this.name = Preconditions.CheckNotNull(serviceName) + "/" + method.Name;
             this.requestMarshaller = method.RequestMarshaller;
             this.responseMarshaller = method.ResponseMarshaller;
             this.channel = Preconditions.CheckNotNull(channel);
