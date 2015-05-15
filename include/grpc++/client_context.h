@@ -51,7 +51,6 @@ namespace grpc {
 class CallOpBuffer;
 class ChannelInterface;
 class CompletionQueue;
-class Credentials;
 class RpcMethod;
 class Status;
 template <class R>
@@ -103,11 +102,6 @@ class ClientContext {
 
   void set_authority(const grpc::string& authority) { authority_ = authority; }
 
-  // Set credentials for the rpc.
-  void set_credentials(const std::shared_ptr<Credentials>& creds) {
-    creds_ = creds;
-  }
-
   void TryCancel();
 
  private:
@@ -133,8 +127,11 @@ class ClientContext {
   friend class ::grpc::ClientAsyncResponseReader;
 
   grpc_call* call() { return call_; }
-  void set_call(grpc_call* call,
-                const std::shared_ptr<ChannelInterface>& channel);
+  void set_call(grpc_call* call, const std::shared_ptr<ChannelInterface>& channel) {
+    GPR_ASSERT(call_ == nullptr);
+    call_ = call;
+    channel_ = channel;
+  }
 
   grpc_completion_queue* cq() { return cq_; }
   void set_cq(grpc_completion_queue* cq) { cq_ = cq; }
@@ -147,7 +144,6 @@ class ClientContext {
   grpc_completion_queue* cq_;
   gpr_timespec deadline_;
   grpc::string authority_;
-  std::shared_ptr<Credentials> creds_;
   std::multimap<grpc::string, grpc::string> send_initial_metadata_;
   std::multimap<grpc::string, grpc::string> recv_initial_metadata_;
   std::multimap<grpc::string, grpc::string> trailing_metadata_;
