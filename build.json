@@ -362,6 +362,7 @@
         "src/core/support/string.c",
         "src/core/support/string_posix.c",
         "src/core/support/string_win32.c",
+        "src/core/support/subprocess_posix.c",
         "src/core/support/sync.c",
         "src/core/support/sync_posix.c",
         "src/core/support/sync_win32.c",
@@ -1306,20 +1307,6 @@
       ]
     },
     {
-      "name": "grpc_completion_queue_benchmark",
-      "build": "benchmark",
-      "language": "c",
-      "src": [
-        "test/core/surface/completion_queue_benchmark.c"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
       "name": "grpc_completion_queue_test",
       "build": "test",
       "language": "c",
@@ -1822,6 +1809,24 @@
       ]
     },
     {
+      "name": "async_streaming_ping_pong_test",
+      "build": "test",
+      "run": false,
+      "language": "c++",
+      "src": [
+        "test/cpp/qps/async_streaming_ping_pong_test.cc"
+      ],
+      "deps": [
+        "qps",
+        "grpc++_test_util",
+        "grpc_test_util",
+        "grpc++",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
       "name": "async_unary_ping_pong_test",
       "build": "test",
       "run": false,
@@ -2126,7 +2131,7 @@
     },
     {
       "name": "qps_driver",
-      "build": "tool",
+      "build": "benchmark",
       "language": "c++",
       "src": [
         "test/cpp/qps/qps_driver.cc"
@@ -2144,8 +2149,7 @@
     },
     {
       "name": "qps_test",
-      "build": "test",
-      "run": false,
+      "build": "benchmark",
       "language": "c++",
       "src": [
         "test/cpp/qps/qps_test.cc"
@@ -2157,12 +2161,13 @@
         "grpc++",
         "grpc",
         "gpr_test_util",
-        "gpr"
+        "gpr",
+        "grpc++_test_config"
       ]
     },
     {
       "name": "qps_worker",
-      "build": "tool",
+      "build": "benchmark",
       "language": "c++",
       "headers": [
         "test/cpp/qps/client.h",
