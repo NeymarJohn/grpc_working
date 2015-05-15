@@ -63,7 +63,7 @@ CompletionQueueAsyncWorker::~CompletionQueueAsyncWorker() {}
 
 void CompletionQueueAsyncWorker::Execute() {
   result = grpc_completion_queue_next(queue, gpr_inf_future);
-  if (!result.success) {
+  if (result->data.op_complete != GRPC_OP_OK) {
     SetErrorMessage("The batch encountered an error");
   }
 }
@@ -96,21 +96,25 @@ void CompletionQueueAsyncWorker::HandleOKCallback() {
   } else {
     current_threads -= 1;
   }
-  NanCallback *callback = GetTagCallback(result.tag);
-  Handle<Value> argv[] = {NanNull(), GetTagNodeValue(result.tag)};
+  NanCallback *callback = GetTagCallback(result->tag);
+  Handle<Value> argv[] = {NanNull(), GetTagNodeValue(result->tag)};
   callback->Call(2, argv);
 
-  DestroyTag(result.tag);
+  DestroyTag(result->tag);
+  grpc_event_finish(result);
+  result = NULL;
 }
 
 void CompletionQueueAsyncWorker::HandleErrorCallback() {
   NanScope();
-  NanCallback *callback = GetTagCallback(result.tag);
+  NanCallback *callback = GetTagCallback(result->tag);
   Handle<Value> argv[] = {NanError(ErrorMessage())};
 
   callback->Call(1, argv);
 
-  DestroyTag(result.tag);
+  DestroyTag(result->tag);
+  grpc_event_finish(result);
+  result = NULL;
 }
 
 }  // namespace node

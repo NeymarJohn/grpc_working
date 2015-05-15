@@ -315,7 +315,6 @@
         "include/grpc/support/port_platform.h",
         "include/grpc/support/slice.h",
         "include/grpc/support/slice_buffer.h",
-        "include/grpc/support/subprocess.h",
         "include/grpc/support/sync.h",
         "include/grpc/support/sync_generic.h",
         "include/grpc/support/sync_posix.h",
@@ -363,7 +362,6 @@
         "src/core/support/string.c",
         "src/core/support/string_posix.c",
         "src/core/support/string_win32.c",
-        "src/core/support/subprocess_posix.c",
         "src/core/support/sync.c",
         "src/core/support/sync_posix.c",
         "src/core/support/sync_win32.c",
@@ -1308,6 +1306,20 @@
       ]
     },
     {
+      "name": "grpc_completion_queue_benchmark",
+      "build": "benchmark",
+      "language": "c",
+      "src": [
+        "test/core/surface/completion_queue_benchmark.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
       "name": "grpc_completion_queue_test",
       "build": "test",
       "language": "c",
@@ -1810,24 +1822,6 @@
       ]
     },
     {
-      "name": "async_streaming_ping_pong_test",
-      "build": "test",
-      "run": false,
-      "language": "c++",
-      "src": [
-        "test/cpp/qps/async_streaming_ping_pong_test.cc"
-      ],
-      "deps": [
-        "qps",
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
       "name": "async_unary_ping_pong_test",
       "build": "test",
       "run": false,
@@ -2132,7 +2126,7 @@
     },
     {
       "name": "qps_driver",
-      "build": "benchmark",
+      "build": "tool",
       "language": "c++",
       "src": [
         "test/cpp/qps/qps_driver.cc"
@@ -2150,7 +2144,8 @@
     },
     {
       "name": "qps_test",
-      "build": "benchmark",
+      "build": "test",
+      "run": false,
       "language": "c++",
       "src": [
         "test/cpp/qps/qps_test.cc"
@@ -2162,13 +2157,12 @@
         "grpc++",
         "grpc",
         "gpr_test_util",
-        "gpr",
-        "grpc++_test_config"
+        "gpr"
       ]
     },
     {
       "name": "qps_worker",
-      "build": "benchmark",
+      "build": "tool",
       "language": "c++",
       "headers": [
         "test/cpp/qps/client.h",

@@ -16,7 +16,5 @@ Build all flavors of gRPC C# extension and package them as a NuGet package.
 ```
 buildall.bat
 
-nuget pack grpc.native.csharp_ext.nuspec
+nuget pack grpc.native.csharp_ext
 ```
-
-When building the NuGet package, ignore the "Assembly outside lib folder" warnings (they DLLs are not assemblies, they are native libraries).
