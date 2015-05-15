@@ -362,7 +362,6 @@
         "src/core/support/string.c",
         "src/core/support/string_posix.c",
         "src/core/support/string_win32.c",
-        "src/core/support/subprocess_posix.c",
         "src/core/support/sync.c",
         "src/core/support/sync_posix.c",
         "src/core/support/sync_win32.c",
@@ -2131,7 +2130,7 @@
     },
     {
       "name": "qps_driver",
-      "build": "benchmark",
+      "build": "tool",
       "language": "c++",
       "src": [
         "test/cpp/qps/qps_driver.cc"
@@ -2149,7 +2148,8 @@
     },
     {
       "name": "qps_test",
-      "build": "benchmark",
+      "build": "test",
+      "run": false,
       "language": "c++",
       "src": [
         "test/cpp/qps/qps_test.cc"
@@ -2161,13 +2161,12 @@
         "grpc++",
         "grpc",
         "gpr_test_util",
-        "gpr",
-        "grpc++_test_config"
+        "gpr"
       ]
     },
     {
       "name": "qps_worker",
-      "build": "benchmark",
+      "build": "tool",
       "language": "c++",
       "headers": [
         "test/cpp/qps/client.h",
