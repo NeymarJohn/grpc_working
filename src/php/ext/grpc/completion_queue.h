@@ -31,29 +31,20 @@
  *
  */
 
-#include "test/cpp/util/subprocess.h"
+#ifndef GRPC_PHP_GRPC_COMPLETION_QUEUE_H_
+#define GRPC_PHP_GRPC_COMPLETION_QUEUE_H_
 
-#include <vector>
+#include <php.h>
 
-#include <grpc/support/subprocess.h>
+#include <grpc/grpc.h>
 
-namespace grpc {
+/* The global completion queue for all operations */
+extern grpc_completion_queue *completion_queue;
 
-static gpr_subprocess *MakeProcess(std::initializer_list<std::string> args) {
-  std::vector<const char *> vargs;
-  for (auto it = args.begin(); it != args.end(); ++it) {
-    vargs.push_back(it->c_str());
-  }
-  return gpr_subprocess_create(vargs.size(), &vargs[0]);
-}
+/* Initializes the completion queue */
+void grpc_php_init_completion_queue(TSRMLS_D);
 
-SubProcess::SubProcess(std::initializer_list<std::string> args)
-    : subprocess_(MakeProcess(args)) {}
+/* Shut down the completion queue */
+void grpc_php_shutdown_completion_queue(TSRMLS_D);
 
-SubProcess::~SubProcess() { gpr_subprocess_destroy(subprocess_); }
-
-int SubProcess::Join() { return gpr_subprocess_join(subprocess_); }
-
-void SubProcess::Interrupt() { gpr_subprocess_interrupt(subprocess_); }
-
-}  // namespace grpc
+#endif /* GRPC_PHP_GRPC_COMPLETION_QUEUE_H_ */

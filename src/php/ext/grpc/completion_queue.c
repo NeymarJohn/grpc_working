@@ -31,31 +31,20 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_UTIL_SUBPROCESS_H
-#define GRPC_TEST_CPP_UTIL_SUBPROCESS_H
+#include "completion_queue.h"
 
-#include <initializer_list>
-#include <string>
+#include <php.h>
 
-struct gpr_subprocess;
+grpc_completion_queue *completion_queue;
 
-namespace grpc {
+void grpc_php_init_completion_queue(TSRMLS_D) {
+  completion_queue = grpc_completion_queue_create();
+}
 
-class SubProcess {
- public:
-  SubProcess(std::initializer_list<std::string> args);
-  ~SubProcess();
-
-  int Join();
-  void Interrupt();
-
- private:
-  SubProcess(const SubProcess& other);
-  SubProcess& operator=(const SubProcess& other);
-
-  gpr_subprocess* const subprocess_;
-};
-
-}  // namespace grpc
-
-#endif  // GRPC_TEST_CPP_UTIL_SUBPROCESS_H
+void grpc_php_shutdown_completion_queue(TSRMLS_D) {
+  grpc_completion_queue_shutdown(completion_queue);
+  while (grpc_completion_queue_next(completion_queue, gpr_inf_future).type !=
+         GRPC_QUEUE_SHUTDOWN)
+    ;
+  grpc_completion_queue_destroy(completion_queue);
+}

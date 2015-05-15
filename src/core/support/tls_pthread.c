@@ -31,27 +31,15 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_SUBPROCESS_H
-#define GRPC_SUPPORT_SUBPROCESS_H
+#include <grpc/support/port_platform.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif	
+#ifdef GPR_PTHREAD_TLS
 
-typedef struct gpr_subprocess gpr_subprocess;
+#include <grpc/support/tls.h>
 
-/* .exe on windows, empty on unices */
-char *gpr_subprocess_binary_extension();
+gpr_intptr gpr_tls_set(struct gpr_pthread_thread_local *tls, gpr_intptr value) {
+  GPR_ASSERT(0 == pthread_setspecific(tls->key, (void*)value));
+  return value;
+}
 
-gpr_subprocess *gpr_subprocess_create(int argc, const char **argv);
-/* if subprocess has not been joined, kill it */
-void gpr_subprocess_destroy(gpr_subprocess *p);
-/* returns exit status; can be called at most once */
-int gpr_subprocess_join(gpr_subprocess *p);
-void gpr_subprocess_interrupt(gpr_subprocess *p);
-
-#ifdef __cplusplus
-}  // extern "C"
-#endif
-
-#endif
+#endif /* GPR_PTHREAD_TLS */
