@@ -31,19 +31,20 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_SUBPROCESS_H
-#define GRPC_SUPPORT_SUBPROCESS_H
+#include "completion_queue.h"
 
-typedef struct gpr_subprocess gpr_subprocess;
+#include <php.h>
 
-/* .exe on windows, empty on unices */
-char *gpr_subprocess_binary_extension();
+grpc_completion_queue *completion_queue;
 
-gpr_subprocess *gpr_subprocess_create(int argc, char **argv);
-/* if subprocess has not been joined, kill it */
-void gpr_subprocess_destroy(gpr_subprocess *p);
-/* returns exit status; can be called at most once */
-int gpr_subprocess_join(gpr_subprocess *p);
-void gpr_subprocess_interrupt(gpr_subprocess *p);
+void grpc_php_init_completion_queue(TSRMLS_D) {
+  completion_queue = grpc_completion_queue_create();
+}
 
-#endif
+void grpc_php_shutdown_completion_queue(TSRMLS_D) {
+  grpc_completion_queue_shutdown(completion_queue);
+  while (grpc_completion_queue_next(completion_queue, gpr_inf_future).type !=
+         GRPC_QUEUE_SHUTDOWN)
+    ;
+  grpc_completion_queue_destroy(completion_queue);
+}

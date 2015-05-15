@@ -2313,7 +2313,6 @@ LIBGPR_SRC = \
     src/core/support/string.c \
     src/core/support/string_posix.c \
     src/core/support/string_win32.c \
-    src/core/support/subprocess_posix.c \
     src/core/support/sync.c \
     src/core/support/sync_posix.c \
     src/core/support/sync_win32.c \
@@ -2323,6 +2322,7 @@ LIBGPR_SRC = \
     src/core/support/time.c \
     src/core/support/time_posix.c \
     src/core/support/time_win32.c \
+    src/core/support/tls_pthread.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/support/alloc.h \

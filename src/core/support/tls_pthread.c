@@ -33,76 +33,13 @@
 
 #include <grpc/support/port_platform.h>
 
-#ifdef GPR_POSIX_SUBPROCESS
+#ifdef GPR_PTHREAD_TLS
 
-#include <grpc/support/subprocess.h>
+#include <grpc/support/tls.h>
 
-#include <unistd.h>
-#include <assert.h>
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
-
-struct gpr_subprocess {
-  int pid;
-  int joined;
-};
-
-char *gpr_subprocess_binary_extension() { return ""; }
-
-gpr_subprocess *gpr_subprocess_create(int argc, char **argv) {
-  gpr_subprocess *r;
-  int pid;
-  char **exec_args;
-
-  pid = fork();
-  if (pid == -1) {
-    return NULL;
-  } else if (pid == 0) {
-    exec_args = gpr_malloc((argc + 1) * sizeof(char *));
-    memcpy(exec_args, argv, argc * sizeof(char *));
-    exec_args[argc] = NULL;
-    execv(exec_args[0], exec_args);
-    /* if we reach here, an error has occurred */
-    gpr_log(GPR_ERROR, "execv '%s' failed: %s", exec_args[0], strerror(errno));
-    _exit(1);
-    return NULL;
-  } else {
-    r = gpr_malloc(sizeof(gpr_subprocess));
-    memset(r, 0, sizeof(*r));
-    r->pid = pid;
-    return r;
-  }
+gpr_intptr gpr_tls_set(struct gpr_pthread_thread_local *tls, gpr_intptr value) {
+  GPR_ASSERT(0 == pthread_set_specific(tls->key, (void*)value));
+  return value;
 }
 
-void gpr_subprocess_destroy(gpr_subprocess *p) {
-  if (!p->joined) {
-    kill(p->pid, SIGKILL);
-    gpr_subprocess_join(p);
-  }
-  gpr_free(p);
-}
-
-int gpr_subprocess_join(gpr_subprocess *p) {
-  int status;
-  if (waitpid(p->pid, &status, 0) == -1) {
-    gpr_log(GPR_ERROR, "waitpid failed: %s", strerror(errno));
-    return -1;
-  }
-  return status;
-}
-
-void gpr_subprocess_interrupt(gpr_subprocess *p) {
-  if (!p->joined) {
-    kill(p->pid, SIGINT);
-  }
-}
-
-#endif /* GPR_POSIX_SUBPROCESS */
+#endif /* GPR_PTHREAD_TLS */
