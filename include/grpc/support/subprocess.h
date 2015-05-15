@@ -31,23 +31,27 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_TLS_PTHREAD_H
-#define GRPC_SUPPORT_TLS_PTHREAD_H
+#ifndef GRPC_SUPPORT_SUBPROCESS_H
+#define GRPC_SUPPORT_SUBPROCESS_H
 
-/* Thread local storage based on pthread library calls.
-   #include tls.h to use this - and see that file for documentation */
+#ifdef __cplusplus
+extern "C" {
+#endif	
 
-struct gpr_pthread_thread_local {
-  pthread_key_t key;
-};
+typedef struct gpr_subprocess gpr_subprocess;
 
-#define GPR_TLS_DECL(name) \
-    static struct gpr_pthread_thread_local name = {0}
+/* .exe on windows, empty on unices */
+char *gpr_subprocess_binary_extension();
 
-#define gpr_tls_init(tls) GPR_ASSERT(0 == pthread_key_create(&(tls)->key, NULL))
-#define gpr_tls_destroy(tls) pthread_key_delete((tls)->key)
-#define gpr_tls_set(tls, new_value) \
-    (GPR_ASSERT(pthread_setspecific((tls)->key, (void*)(new_value)) == 0), (new_value))
-#define gpr_tls_get(tls) ((gpr_intptr)pthread_getspecific((tls)->key))
+gpr_subprocess *gpr_subprocess_create(int argc, const char **argv);
+/* if subprocess has not been joined, kill it */
+void gpr_subprocess_destroy(gpr_subprocess *p);
+/* returns exit status; can be called at most once */
+int gpr_subprocess_join(gpr_subprocess *p);
+void gpr_subprocess_interrupt(gpr_subprocess *p);
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif
 
 #endif

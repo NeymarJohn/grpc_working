@@ -31,23 +31,36 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_TLS_PTHREAD_H
-#define GRPC_SUPPORT_TLS_PTHREAD_H
+#include "test/cpp/util/subprocess.h"
 
-/* Thread local storage based on pthread library calls.
-   #include tls.h to use this - and see that file for documentation */
+#include <vector>
 
-struct gpr_pthread_thread_local {
-  pthread_key_t key;
-};
+#include <grpc/support/subprocess.h>
 
-#define GPR_TLS_DECL(name) \
-    static struct gpr_pthread_thread_local name = {0}
+namespace grpc {
 
-#define gpr_tls_init(tls) GPR_ASSERT(0 == pthread_key_create(&(tls)->key, NULL))
-#define gpr_tls_destroy(tls) pthread_key_delete((tls)->key)
-#define gpr_tls_set(tls, new_value) \
-    (GPR_ASSERT(pthread_setspecific((tls)->key, (void*)(new_value)) == 0), (new_value))
-#define gpr_tls_get(tls) ((gpr_intptr)pthread_getspecific((tls)->key))
+static gpr_subprocess *MakeProcess(std::initializer_list<std::string> args) {
+	std::vector<const char *> vargs;
+	for (auto it = args.begin(); it != args.end(); ++it) {
+		vargs.push_back(it->c_str());
+	}
+	return gpr_subprocess_create(vargs.size(), &vargs[0]);
+}
 
-#endif
+SubProcess::SubProcess(std::initializer_list<std::string> args)
+		: subprocess_(MakeProcess(args)) {
+}
+
+SubProcess::~SubProcess() {
+	gpr_subprocess_destroy(subprocess_);
+}
+
+int SubProcess::Join() {
+	return gpr_subprocess_join(subprocess_);
+}
+
+void SubProcess::Interrupt() {
+	gpr_subprocess_interrupt(subprocess_);
+}
+
+}  // namespace grpc

@@ -31,23 +31,31 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_TLS_PTHREAD_H
-#define GRPC_SUPPORT_TLS_PTHREAD_H
+#ifndef GRPC_TEST_CPP_UTIL_SUBPROCESS_H
+#define GRPC_TEST_CPP_UTIL_SUBPROCESS_H
 
-/* Thread local storage based on pthread library calls.
-   #include tls.h to use this - and see that file for documentation */
+#include <initializer_list>
+#include <string>
 
-struct gpr_pthread_thread_local {
-  pthread_key_t key;
+struct gpr_subprocess;
+
+namespace grpc {
+
+class SubProcess {
+ public:
+ 	SubProcess(std::initializer_list<std::string> args);
+ 	~SubProcess();
+
+ 	int Join();
+ 	void Interrupt();
+
+ private:
+ 	SubProcess(const SubProcess& other);
+ 	SubProcess& operator=(const SubProcess& other);
+
+ 	gpr_subprocess *const subprocess_;
 };
 
-#define GPR_TLS_DECL(name) \
-    static struct gpr_pthread_thread_local name = {0}
+}  // namespace grpc
 
-#define gpr_tls_init(tls) GPR_ASSERT(0 == pthread_key_create(&(tls)->key, NULL))
-#define gpr_tls_destroy(tls) pthread_key_delete((tls)->key)
-#define gpr_tls_set(tls, new_value) \
-    (GPR_ASSERT(pthread_setspecific((tls)->key, (void*)(new_value)) == 0), (new_value))
-#define gpr_tls_get(tls) ((gpr_intptr)pthread_getspecific((tls)->key))
-
-#endif
+#endif  // GRPC_TEST_CPP_UTIL_SUBPROCESS_H
