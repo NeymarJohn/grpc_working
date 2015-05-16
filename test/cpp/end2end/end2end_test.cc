@@ -33,11 +33,13 @@
 
 #include <thread>
 
+#include "src/core/security/credentials.h"
+#include "src/cpp/server/thread_pool.h"
 #include "test/core/util/port.h"
 #include "test/core/util/test_config.h"
 #include "test/cpp/util/echo_duplicate.grpc.pb.h"
 #include "test/cpp/util/echo.grpc.pb.h"
-#include "src/cpp/server/thread_pool.h"
+#include "test/cpp/util/fake_credentials.h"
 #include <grpc++/channel_arguments.h>
 #include <grpc++/channel_interface.h>
 #include <grpc++/client_context.h>
@@ -105,6 +107,16 @@ class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
       return Status::Cancelled;
     } else {
       EXPECT_FALSE(context->IsCancelled());
+    }
+
+    if (request->has_param() && request->param().echo_metadata()) {
+      const std::multimap<grpc::string, grpc::string>& client_metadata =
+          context->client_metadata();
+      for (std::multimap<grpc::string, grpc::string>::const_iterator iter =
+               client_metadata.begin();
+           iter != client_metadata.end(); ++iter) {
+        context->AddTrailingMetadata((*iter).first, (*iter).second);
+      }
     }
     return Status::OK;
   }
@@ -179,8 +191,7 @@ class End2endTest : public ::testing::Test {
     server_address_ << "localhost:" << port;
     // Setup server
     ServerBuilder builder;
-    builder.AddListeningPort(server_address_.str(),
-                             InsecureServerCredentials());
+    builder.AddListeningPort(server_address_.str(), FakeServerCredentials());
     builder.RegisterService(&service_);
     builder.SetMaxMessageSize(
         kMaxMessageSize_);  // For testing max message size.
@@ -193,7 +204,7 @@ class End2endTest : public ::testing::Test {
 
   void ResetStub() {
     std::shared_ptr<ChannelInterface> channel = CreateChannel(
-        server_address_.str(), InsecureCredentials(), ChannelArguments());
+        server_address_.str(), FakeCredentials(), ChannelArguments());
     stub_ = std::move(grpc::cpp::test::util::TestService::NewStub(channel));
   }
 
@@ -405,7 +416,7 @@ TEST_F(End2endTest, BidiStream) {
 // The two stubs are created on the same channel.
 TEST_F(End2endTest, DiffPackageServices) {
   std::shared_ptr<ChannelInterface> channel = CreateChannel(
-      server_address_.str(), InsecureCredentials(), ChannelArguments());
+      server_address_.str(), FakeCredentials(), ChannelArguments());
 
   EchoRequest request;
   EchoResponse response;
@@ -429,7 +440,7 @@ TEST_F(End2endTest, DiffPackageServices) {
 
 // rpc and stream should fail on bad credentials.
 TEST_F(End2endTest, BadCredentials) {
-  std::unique_ptr<Credentials> bad_creds = ServiceAccountCredentials("", "", 1);
+  std::shared_ptr<Credentials> bad_creds = ServiceAccountCredentials("", "", 1);
   EXPECT_EQ(nullptr, bad_creds.get());
   std::shared_ptr<ChannelInterface> channel =
       CreateChannel(server_address_.str(), bad_creds, ChannelArguments());
@@ -438,7 +449,7 @@ TEST_F(End2endTest, BadCredentials) {
   EchoRequest request;
   EchoResponse response;
   ClientContext context;
-  grpc::string msg("hello");
+  request.set_message("Hello");
 
   Status s = stub->Echo(&context, request, &response);
   EXPECT_EQ("", response.message());
@@ -586,6 +597,82 @@ TEST_F(End2endTest, RpcMaxMessageSize) {
   ClientContext context;
   Status s = stub_->Echo(&context, request, &response);
   EXPECT_FALSE(s.IsOk());
+}
+
+bool MetadataContains(const std::multimap<grpc::string, grpc::string>& metadata,
+                      const grpc::string& key, const grpc::string& value) {
+  int count = 0;
+
+  for (std::multimap<grpc::string, grpc::string>::const_iterator iter =
+           metadata.begin();
+       iter != metadata.end(); ++iter) {
+    if ((*iter).first == key && (*iter).second == value) {
+      count++;
+    }
+  }
+  return count == 1;
+}
+
+TEST_F(End2endTest, SetPerCallCredentials) {
+  ResetStub();
+  EchoRequest request;
+  EchoResponse response;
+  ClientContext context;
+  std::shared_ptr<Credentials> creds =
+      IAMCredentials("fake_token", "fake_selector");
+  context.set_credentials(creds);
+  request.set_message("Hello");
+  request.mutable_param()->set_echo_metadata(true);
+
+  Status s = stub_->Echo(&context, request, &response);
+  EXPECT_EQ(request.message(), response.message());
+  EXPECT_TRUE(s.IsOk());
+  EXPECT_TRUE(MetadataContains(context.GetServerTrailingMetadata(),
+                               GRPC_IAM_AUTHORIZATION_TOKEN_METADATA_KEY,
+                               "fake_token"));
+  EXPECT_TRUE(MetadataContains(context.GetServerTrailingMetadata(),
+                               GRPC_IAM_AUTHORITY_SELECTOR_METADATA_KEY,
+                               "fake_selector"));
+}
+
+TEST_F(End2endTest, InsecurePerCallCredentials) {
+  ResetStub();
+  EchoRequest request;
+  EchoResponse response;
+  ClientContext context;
+  std::shared_ptr<Credentials> creds = InsecureCredentials();
+  context.set_credentials(creds);
+  request.set_message("Hello");
+  request.mutable_param()->set_echo_metadata(true);
+
+  Status s = stub_->Echo(&context, request, &response);
+  EXPECT_EQ(StatusCode::CANCELLED, s.code());
+  EXPECT_EQ("Failed to set credentials to rpc.", s.details());
+}
+
+TEST_F(End2endTest, OverridePerCallCredentials) {
+  ResetStub();
+  EchoRequest request;
+  EchoResponse response;
+  ClientContext context;
+  std::shared_ptr<Credentials> creds1 =
+      IAMCredentials("fake_token1", "fake_selector1");
+  context.set_credentials(creds1);
+  std::shared_ptr<Credentials> creds2 =
+      IAMCredentials("fake_token2", "fake_selector2");
+  context.set_credentials(creds2);
+  request.set_message("Hello");
+  request.mutable_param()->set_echo_metadata(true);
+
+  Status s = stub_->Echo(&context, request, &response);
+  EXPECT_TRUE(MetadataContains(context.GetServerTrailingMetadata(),
+                               GRPC_IAM_AUTHORIZATION_TOKEN_METADATA_KEY,
+                               "fake_token2"));
+  EXPECT_TRUE(MetadataContains(context.GetServerTrailingMetadata(),
+                               GRPC_IAM_AUTHORITY_SELECTOR_METADATA_KEY,
+                               "fake_selector2"));
+  EXPECT_EQ(request.message(), response.message());
+  EXPECT_TRUE(s.IsOk());
 }
 
 }  // namespace testing

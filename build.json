@@ -315,7 +315,6 @@
         "include/grpc/support/port_platform.h",
         "include/grpc/support/slice.h",
         "include/grpc/support/slice_buffer.h",
-        "include/grpc/support/subprocess.h",
         "include/grpc/support/sync.h",
         "include/grpc/support/sync_generic.h",
         "include/grpc/support/sync_posix.h",
@@ -363,7 +362,6 @@
         "src/core/support/string.c",
         "src/core/support/string_posix.c",
         "src/core/support/string_win32.c",
-        "src/core/support/subprocess_posix.c",
         "src/core/support/sync.c",
         "src/core/support/sync_posix.c",
         "src/core/support/sync_win32.c",
@@ -372,8 +370,7 @@
         "src/core/support/thd_win32.c",
         "src/core/support/time.c",
         "src/core/support/time_posix.c",
-        "src/core/support/time_win32.c",
-        "src/core/support/tls_pthread.c"
+        "src/core/support/time_win32.c"
       ],
       "secure": "no",
       "vs_project_guid": "{B23D3D1A-9438-4EDA-BEB6-9A0A03D17792}"
@@ -544,7 +541,7 @@
         "test/cpp/util/echo_duplicate.proto",
         "test/cpp/util/cli_call.cc",
         "test/cpp/util/create_test_channel.cc",
-        "test/cpp/util/subprocess.cc"
+        "test/cpp/util/fake_credentials.cc"
       ]
     },
     {
@@ -1877,39 +1874,6 @@
       ]
     },
     {
-      "name": "crash_test",
-      "build": "test",
-      "language": "c++",
-      "src": [
-        "test/cpp/end2end/crash_test.cc"
-      ],
-      "deps": [
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "crash_test_server",
-      "build": "test",
-      "run": false,
-      "language": "c++",
-      "src": [
-        "test/cpp/end2end/crash_test_server.cc"
-      ],
-      "deps": [
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
       "name": "credentials_test",
       "build": "test",
       "language": "c++",
@@ -2167,7 +2131,7 @@
     },
     {
       "name": "qps_driver",
-      "build": "benchmark",
+      "build": "tool",
       "language": "c++",
       "src": [
         "test/cpp/qps/qps_driver.cc"
@@ -2185,7 +2149,8 @@
     },
     {
       "name": "qps_test",
-      "build": "benchmark",
+      "build": "test",
+      "run": false,
       "language": "c++",
       "src": [
         "test/cpp/qps/qps_test.cc"
@@ -2197,13 +2162,12 @@
         "grpc++",
         "grpc",
         "gpr_test_util",
-        "gpr",
-        "grpc++_test_config"
+        "gpr"
       ]
     },
     {
       "name": "qps_worker",
-      "build": "benchmark",
+      "build": "tool",
       "language": "c++",
       "headers": [
         "test/cpp/qps/client.h",

@@ -31,64 +31,49 @@
  *
  */
 
-#include <iostream>
-#include <memory>
-#include <string>
-#include <gflags/gflags.h>
-
-#include <grpc++/server.h>
-#include <grpc++/server_builder.h>
-#include <grpc++/server_context.h>
+#include <grpc/grpc_security.h>
+#include <grpc++/channel_arguments.h>
+#include <grpc++/credentials.h>
 #include <grpc++/server_credentials.h>
-#include <grpc++/status.h>
-#include "test/cpp/util/echo.grpc.pb.h"
-
-DEFINE_string(address, "", "Address to bind to");
-
-using grpc::cpp::test::util::EchoRequest;
-using grpc::cpp::test::util::EchoResponse;
-
-// In some distros, gflags is in the namespace google, and in some others,
-// in gflags. This hack is enabling us to find both.
-namespace google {}
-namespace gflags {}
-using namespace google;
-using namespace gflags;
+#include "src/cpp/client/channel.h"
+#include "src/cpp/server/secure_server_credentials.h"
 
 namespace grpc {
 namespace testing {
 
-class ServiceImpl GRPC_FINAL : public ::grpc::cpp::test::util::TestService::Service {
-  Status BidiStream(ServerContext* context,
-                    ServerReaderWriter<EchoResponse, EchoRequest>* stream)
-      GRPC_OVERRIDE {
-    EchoRequest request;
-    EchoResponse response;
-    while (stream->Read(&request)) {
-      gpr_log(GPR_INFO, "recv msg %s", request.message().c_str());
-      response.set_message(request.message());
-      stream->Write(response);
-    }
-    return Status::OK;
+namespace {
+class FakeCredentialsImpl GRPC_FINAL : public Credentials {
+ public:
+  FakeCredentialsImpl()
+      : c_creds_(grpc_fake_transport_security_credentials_create()) {}
+  ~FakeCredentialsImpl() { grpc_credentials_release(c_creds_); }
+  SecureCredentials* AsSecureCredentials() GRPC_OVERRIDE { return nullptr; }
+  std::shared_ptr<ChannelInterface> CreateChannel(
+      const grpc::string& target, const ChannelArguments& args) GRPC_OVERRIDE {
+    grpc_channel_args channel_args;
+    args.SetChannelArgs(&channel_args);
+    return std::shared_ptr<ChannelInterface>(new Channel(
+        target,
+        grpc_secure_channel_create(c_creds_, target.c_str(), &channel_args)));
   }
+  bool ApplyToCall(grpc_call* call) GRPC_OVERRIDE { return false; }
+
+ private:
+  grpc_credentials* const c_creds_;
 };
 
-void RunServer() {
-  ServiceImpl service;
+}  // namespace
 
-  ServerBuilder builder;
-  builder.AddListeningPort(FLAGS_address, grpc::InsecureServerCredentials());
-  builder.RegisterService(&service);
-  std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "Server listening on " << FLAGS_address << std::endl;
-  server->Wait();
-}
-}
+std::shared_ptr<Credentials> FakeCredentials() {
+  return std::shared_ptr<Credentials>(new FakeCredentialsImpl());
 }
 
-int main(int argc, char** argv) {
-  ParseCommandLineFlags(&argc, &argv, true);
-  grpc::testing::RunServer();
-
-  return 0;
+std::shared_ptr<ServerCredentials> FakeServerCredentials() {
+  grpc_server_credentials* c_creds =
+      grpc_fake_transport_security_server_credentials_create();
+  return std::shared_ptr<ServerCredentials>(
+      new SecureServerCredentials(c_creds));
 }
+
+}  // namespace testing
+}  // namespace grpc

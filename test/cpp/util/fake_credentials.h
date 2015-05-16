@@ -31,31 +31,21 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_UTIL_SUBPROCESS_H
-#define GRPC_TEST_CPP_UTIL_SUBPROCESS_H
+#ifndef GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
+#define GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
 
-#include <initializer_list>
-#include <string>
-
-struct gpr_subprocess;
+#include <memory>
 
 namespace grpc {
+class Credentials;
+class ServerCredentials;
 
-class SubProcess {
- public:
-  SubProcess(std::initializer_list<std::string> args);
-  ~SubProcess();
+namespace testing {
 
-  int Join();
-  void Interrupt();
+std::shared_ptr<Credentials> FakeCredentials();
+std::shared_ptr<ServerCredentials> FakeServerCredentials();
 
- private:
-  SubProcess(const SubProcess& other);
-  SubProcess& operator=(const SubProcess& other);
-
-  gpr_subprocess* const subprocess_;
-};
-
+}  // namespace testing
 }  // namespace grpc
 
-#endif  // GRPC_TEST_CPP_UTIL_SUBPROCESS_H
+#endif  // GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
