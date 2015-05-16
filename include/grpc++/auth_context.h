@@ -31,32 +31,38 @@
  *
  */
 
-#ifndef GRPC_COMPRESSION_H
-#define GRPC_COMPRESSION_H
+#ifndef GRPCXX_AUTH_CONTEXT_H
+#define GRPCXX_AUTH_CONTEXT_H
 
-/** To be used in channel arguments */
-#define GRPC_COMPRESSION_LEVEL_ARG "grpc.compression_level"
+#include <memory>
 
-/* The various compression algorithms supported by GRPC */
-typedef enum {
-  GRPC_COMPRESS_NONE = 0,
-  GRPC_COMPRESS_DEFLATE,
-  GRPC_COMPRESS_GZIP,
-  /* TODO(ctiller): snappy */
-  GRPC_COMPRESS_ALGORITHMS_COUNT
-} grpc_compression_algorithm;
+#include <grpc++/impl/grpc_library.h>
 
-typedef enum {
-  GRPC_COMPRESS_LEVEL_NONE = 0,
-  GRPC_COMPRESS_LEVEL_LOW,
-  GRPC_COMPRESS_LEVEL_MED,
-  GRPC_COMPRESS_LEVEL_HIGH
-} grpc_compression_level;
+#include <grpc/grpc_security.h>
 
-const char *grpc_compression_algorithm_name(
-    grpc_compression_algorithm algorithm);
+namespace grpc {
 
-grpc_compression_algorithm grpc_compression_algorithm_for_level(
-    grpc_compression_level level);
+class AuthContext GRPC_FINAL : {
+ public:
+  typedef std::pair<grpc::string, grpc::string> Property;
 
-#endif  /* GRPC_COMPRESSION_H */
+  // A peer identity, in general is one or more properties (in which case they
+  // have the same name).
+  std::vector<grpc::string> GetPeerIdentity() const;
+  grpc::string GetPeerIdentityPropertyName() const;
+
+  // Returns all the property values with the given name.
+  std::vector<grpc::string> FindPropertyValues(const grpc::string& name) const;
+
+  // Iteration over all the properties.
+  std::const_iterator<Property> begin() const;
+  std::const_iterator<Property> end() const;
+
+ private:
+  grpc_auth_context *ctx_;
+};
+
+}  // namespace grpc
+
+#endif  // GRPCXX_AUTH_CONTEXT_H
+
