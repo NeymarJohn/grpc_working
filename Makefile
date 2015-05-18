@@ -2495,8 +2495,6 @@ LIBGRPC_SRC = \
     src/core/iomgr/pollset_multipoller_with_epoll.c \
     src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_posix.c \
-    src/core/iomgr/pollset_set_posix.c \
-    src/core/iomgr/pollset_set_windows.c \
     src/core/iomgr/pollset_windows.c \
     src/core/iomgr/resolve_address_posix.c \
     src/core/iomgr/resolve_address_windows.c \
@@ -2573,7 +2571,6 @@ PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer.h \
     include/grpc/byte_buffer_reader.h \
     include/grpc/grpc.h \
-    include/grpc/grpc_http.h \
     include/grpc/status.h \
 
 LIBGRPC_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_SRC))))
@@ -2746,8 +2743,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/iomgr/pollset_multipoller_with_epoll.c \
     src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_posix.c \
-    src/core/iomgr/pollset_set_posix.c \
-    src/core/iomgr/pollset_set_windows.c \
     src/core/iomgr/pollset_windows.c \
     src/core/iomgr/resolve_address_posix.c \
     src/core/iomgr/resolve_address_windows.c \
@@ -2823,7 +2818,6 @@ PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer.h \
     include/grpc/byte_buffer_reader.h \
     include/grpc/grpc.h \
-    include/grpc/grpc_http.h \
     include/grpc/status.h \
 
 LIBGRPC_UNSECURE_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_UNSECURE_SRC))))
