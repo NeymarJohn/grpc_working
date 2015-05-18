@@ -31,20 +31,21 @@
  *
  */
 
-#include "completion_queue.h"
+#ifndef GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
+#define GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
 
-#include <php.h>
+#include <memory>
 
-grpc_completion_queue *completion_queue;
+namespace grpc {
+class Credentials;
+class ServerCredentials;
 
-void grpc_php_init_completion_queue(TSRMLS_D) {
-  completion_queue = grpc_completion_queue_create();
-}
+namespace testing {
 
-void grpc_php_shutdown_completion_queue(TSRMLS_D) {
-  grpc_completion_queue_shutdown(completion_queue);
-  while (grpc_completion_queue_next(completion_queue, gpr_inf_future).type !=
-         GRPC_QUEUE_SHUTDOWN)
-    ;
-  grpc_completion_queue_destroy(completion_queue);
-}
+std::shared_ptr<Credentials> FakeTransportSecurityCredentials();
+std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials();
+
+}  // namespace testing
+}  // namespace grpc
+
+#endif  // GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
