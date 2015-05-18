@@ -31,37 +31,28 @@
  *
  */
 
-#ifndef GRPC_GRPC_HTTP_H
-#define GRPC_GRPC_HTTP_H
+#include <grpc/grpc_security.h>
+#include <grpc++/channel_arguments.h>
+#include <grpc++/credentials.h>
+#include <grpc++/server_credentials.h>
+#include "src/cpp/client/channel.h"
+#include "src/cpp/client/secure_credentials.h"
+#include "src/cpp/server/secure_server_credentials.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace grpc {
+namespace testing {
 
-/* HTTP GET support.
-
-   HTTP2 servers can publish statically generated text content served
-   via HTTP2 GET queries by publishing one or more grpc_http_server_page
-   elements via repeated GRPC_ARG_SERVE_OVER_HTTP elements in the servers
-   channel_args.
-
-   This is not:
-    - a general purpose web server
-    - particularly fast
-
-   It's useful for being able to serve up some static content (maybe some
-   javascript to be able to interact with your GRPC server?) */
-
-typedef struct {
-  const char *path;
-  const char *content_type;
-  const char *content;
-} grpc_http_server_page;
-
-#define GRPC_ARG_SERVE_OVER_HTTP "grpc.serve_over_http"
-
-#ifdef __cplusplus
+std::shared_ptr<Credentials> FakeTransportSecurityCredentials() {
+  grpc_credentials* c_creds = grpc_fake_transport_security_credentials_create();
+  return std::shared_ptr<Credentials>(new SecureCredentials(c_creds));
 }
-#endif
 
-#endif  /* GRPC_GRPC_HTTP_H */
+std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials() {
+  grpc_server_credentials* c_creds =
+      grpc_fake_transport_security_server_credentials_create();
+  return std::shared_ptr<ServerCredentials>(
+      new SecureServerCredentials(c_creds));
+}
+
+}  // namespace testing
+}  // namespace grpc
