@@ -31,28 +31,20 @@
  *
  */
 
-#include <grpc/grpc_security.h>
-#include <grpc++/channel_arguments.h>
-#include <grpc++/credentials.h>
-#include <grpc++/server_credentials.h>
-#include "src/cpp/client/channel.h"
-#include "src/cpp/client/secure_credentials.h"
-#include "src/cpp/server/secure_server_credentials.h"
+#ifndef GRPC_PHP_GRPC_COMPLETION_QUEUE_H_
+#define GRPC_PHP_GRPC_COMPLETION_QUEUE_H_
 
-namespace grpc {
-namespace testing {
+#include <php.h>
 
-std::shared_ptr<Credentials> FakeTransportSecurityCredentials() {
-  grpc_credentials* c_creds = grpc_fake_transport_security_credentials_create();
-  return std::shared_ptr<Credentials>(new SecureCredentials(c_creds));
-}
+#include <grpc/grpc.h>
 
-std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials() {
-  grpc_server_credentials* c_creds =
-      grpc_fake_transport_security_server_credentials_create();
-  return std::shared_ptr<ServerCredentials>(
-      new SecureServerCredentials(c_creds));
-}
+/* The global completion queue for all operations */
+extern grpc_completion_queue *completion_queue;
 
-}  // namespace testing
-}  // namespace grpc
+/* Initializes the completion queue */
+void grpc_php_init_completion_queue(TSRMLS_D);
+
+/* Shut down the completion queue */
+void grpc_php_shutdown_completion_queue(TSRMLS_D);
+
+#endif /* GRPC_PHP_GRPC_COMPLETION_QUEUE_H_ */

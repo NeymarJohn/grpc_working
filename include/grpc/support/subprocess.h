@@ -31,21 +31,19 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
-#define GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
+#ifndef GRPC_SUPPORT_SUBPROCESS_H
+#define GRPC_SUPPORT_SUBPROCESS_H
 
-#include <memory>
+typedef struct gpr_subprocess gpr_subprocess;
 
-namespace grpc {
-class Credentials;
-class ServerCredentials;
+/* .exe on windows, empty on unices */
+char *gpr_subprocess_binary_extension();
 
-namespace testing {
+gpr_subprocess *gpr_subprocess_create(int argc, char **argv);
+/* if subprocess has not been joined, kill it */
+void gpr_subprocess_destroy(gpr_subprocess *p);
+/* returns exit status; can be called at most once */
+int gpr_subprocess_join(gpr_subprocess *p);
+void gpr_subprocess_interrupt(gpr_subprocess *p);
 
-std::shared_ptr<Credentials> FakeTransportSecurityCredentials();
-std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials();
-
-}  // namespace testing
-}  // namespace grpc
-
-#endif  // GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
+#endif
