@@ -308,7 +308,7 @@ E = @echo
 Q = @
 endif
 
-VERSION = 0.8.0.0
+VERSION = 0.9.0.0
 
 CPPFLAGS_NO_ARCH += $(addprefix -I, $(INCLUDES)) $(addprefix -D, $(DEFINES))
 CPPFLAGS += $(CPPFLAGS_NO_ARCH) $(ARCH_FLAGS)
@@ -1845,6 +1845,10 @@ test_c: buildtests_c
 test_cxx: buildtests_cxx
 	$(E) "[RUN]     Testing async_end2end_test"
 	$(Q) $(BINDIR)/$(CONFIG)/async_end2end_test || ( echo test async_end2end_test failed ; exit 1 )
+	$(E) "[RUN]     Testing async_streaming_ping_pong_test"
+	$(Q) $(BINDIR)/$(CONFIG)/async_streaming_ping_pong_test || ( echo test async_streaming_ping_pong_test failed ; exit 1 )
+	$(E) "[RUN]     Testing async_unary_ping_pong_test"
+	$(Q) $(BINDIR)/$(CONFIG)/async_unary_ping_pong_test || ( echo test async_unary_ping_pong_test failed ; exit 1 )
 	$(E) "[RUN]     Testing channel_arguments_test"
 	$(Q) $(BINDIR)/$(CONFIG)/channel_arguments_test || ( echo test channel_arguments_test failed ; exit 1 )
 	$(E) "[RUN]     Testing cli_call_test"
@@ -1863,6 +1867,10 @@ test_cxx: buildtests_cxx
 	$(Q) $(BINDIR)/$(CONFIG)/mock_test || ( echo test mock_test failed ; exit 1 )
 	$(E) "[RUN]     Testing status_test"
 	$(Q) $(BINDIR)/$(CONFIG)/status_test || ( echo test status_test failed ; exit 1 )
+	$(E) "[RUN]     Testing sync_streaming_ping_pong_test"
+	$(Q) $(BINDIR)/$(CONFIG)/sync_streaming_ping_pong_test || ( echo test sync_streaming_ping_pong_test failed ; exit 1 )
+	$(E) "[RUN]     Testing sync_unary_ping_pong_test"
+	$(Q) $(BINDIR)/$(CONFIG)/sync_unary_ping_pong_test || ( echo test sync_unary_ping_pong_test failed ; exit 1 )
 	$(E) "[RUN]     Testing thread_pool_test"
 	$(Q) $(BINDIR)/$(CONFIG)/thread_pool_test || ( echo test thread_pool_test failed ; exit 1 )
 	$(E) "[RUN]     Testing thread_stress_test"
@@ -2571,7 +2579,6 @@ PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer.h \
     include/grpc/byte_buffer_reader.h \
     include/grpc/grpc.h \
-    include/grpc/grpc_http.h \
     include/grpc/status.h \
 
 LIBGRPC_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_SRC))))
@@ -2819,7 +2826,6 @@ PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer.h \
     include/grpc/byte_buffer_reader.h \
     include/grpc/grpc.h \
-    include/grpc/grpc_http.h \
     include/grpc/status.h \
 
 LIBGRPC_UNSECURE_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_UNSECURE_SRC))))
@@ -3045,6 +3051,7 @@ LIBGRPC++_TEST_UTIL_SRC = \
     $(GENDIR)/test/cpp/util/echo_duplicate.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.grpc.pb.cc \
     test/cpp/util/cli_call.cc \
     test/cpp/util/create_test_channel.cc \
+    test/cpp/util/fake_credentials.cc \
 
 
 LIBGRPC++_TEST_UTIL_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC++_TEST_UTIL_SRC))))
@@ -3090,6 +3097,7 @@ endif
 endif
 $(OBJDIR)/$(CONFIG)/test/cpp/util/cli_call.o: $(GENDIR)/test/cpp/util/messages.pb.cc $(GENDIR)/test/cpp/util/messages.grpc.pb.cc $(GENDIR)/test/cpp/util/echo.pb.cc $(GENDIR)/test/cpp/util/echo.grpc.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/create_test_channel.o: $(GENDIR)/test/cpp/util/messages.pb.cc $(GENDIR)/test/cpp/util/messages.grpc.pb.cc $(GENDIR)/test/cpp/util/echo.pb.cc $(GENDIR)/test/cpp/util/echo.grpc.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/test/cpp/util/fake_credentials.o: $(GENDIR)/test/cpp/util/messages.pb.cc $(GENDIR)/test/cpp/util/messages.grpc.pb.cc $(GENDIR)/test/cpp/util/echo.pb.cc $(GENDIR)/test/cpp/util/echo.grpc.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.grpc.pb.cc
 
 
 LIBGRPC++_UNSECURE_SRC = \
