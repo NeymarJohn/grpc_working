@@ -31,20 +31,37 @@
  *
  */
 
-#include "completion_queue.h"
+#ifndef GRPC_GRPC_HTTP_H
+#define GRPC_GRPC_HTTP_H
 
-#include <php.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-grpc_completion_queue *completion_queue;
+/* HTTP GET support.
 
-void grpc_php_init_completion_queue(TSRMLS_D) {
-  completion_queue = grpc_completion_queue_create();
+   HTTP2 servers can publish statically generated text content served
+   via HTTP2 GET queries by publishing one or more grpc_http_server_page
+   elements via repeated GRPC_ARG_SERVE_OVER_HTTP elements in the servers
+   channel_args.
+
+   This is not:
+    - a general purpose web server
+    - particularly fast
+
+   It's useful for being able to serve up some static content (maybe some
+   javascript to be able to interact with your GRPC server?) */
+
+typedef struct {
+  const char *path;
+  const char *content_type;
+  const char *content;
+} grpc_http_server_page;
+
+#define GRPC_ARG_SERVE_OVER_HTTP "grpc.serve_over_http"
+
+#ifdef __cplusplus
 }
+#endif
 
-void grpc_php_shutdown_completion_queue(TSRMLS_D) {
-  grpc_completion_queue_shutdown(completion_queue);
-  while (grpc_completion_queue_next(completion_queue, gpr_inf_future).type !=
-         GRPC_QUEUE_SHUTDOWN)
-    ;
-  grpc_completion_queue_destroy(completion_queue);
-}
+#endif  /* GRPC_GRPC_HTTP_H */
