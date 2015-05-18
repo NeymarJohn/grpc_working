@@ -7,7 +7,7 @@ The Python facility of gRPC.
 Status
 -------
 
-Alpha : Ready for early adopters
+Usable with limitations, Alpha
 
 Prerequisites
 -----------------------

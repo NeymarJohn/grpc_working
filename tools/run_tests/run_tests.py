@@ -214,7 +214,7 @@ class RubyLanguage(object):
     return [config.job_spec(['tools/run_tests/run_ruby.sh'], None)]
 
   def make_targets(self):
-    return ['run_dep_checks']
+    return ['static_c']
 
   def build_steps(self):
     return [['tools/run_tests/build_ruby.sh']]

@@ -60,24 +60,19 @@ inline grpc::string StripProto(grpc::string filename) {
 }
 
 inline grpc::string StringReplace(grpc::string str, const grpc::string &from,
-                                  const grpc::string &to, bool replace_all) {
+                                  const grpc::string &to) {
   size_t pos = 0;
 
-  do {
+  for (;;) {
     pos = str.find(from, pos);
     if (pos == grpc::string::npos) {
       break;
     }
     str.replace(pos, from.length(), to);
     pos += to.length();
-  } while(replace_all);
+  }
 
   return str;
-}
-
-inline grpc::string StringReplace(grpc::string str, const grpc::string &from,
-                                  const grpc::string &to) {
-  return StringReplace(str, from, to, true);
 }
 
 inline std::vector<grpc::string> tokenize(const grpc::string &input,

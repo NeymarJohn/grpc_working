@@ -33,7 +33,7 @@
 
 #include "rb_byte_buffer.h"
 
-#include <ruby/ruby.h>
+#include <ruby.h>
 
 #include <grpc/grpc.h>
 #include <grpc/support/slice.h>
