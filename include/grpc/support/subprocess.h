@@ -31,28 +31,19 @@
  *
  */
 
-#include <grpc/grpc_security.h>
-#include <grpc++/channel_arguments.h>
-#include <grpc++/credentials.h>
-#include <grpc++/server_credentials.h>
-#include "src/cpp/client/channel.h"
-#include "src/cpp/client/secure_credentials.h"
-#include "src/cpp/server/secure_server_credentials.h"
+#ifndef GRPC_SUPPORT_SUBPROCESS_H
+#define GRPC_SUPPORT_SUBPROCESS_H
 
-namespace grpc {
-namespace testing {
+typedef struct gpr_subprocess gpr_subprocess;
 
-std::shared_ptr<Credentials> FakeTransportSecurityCredentials() {
-  grpc_credentials* c_creds = grpc_fake_transport_security_credentials_create();
-  return std::shared_ptr<Credentials>(new SecureCredentials(c_creds));
-}
+/* .exe on windows, empty on unices */
+char *gpr_subprocess_binary_extension();
 
-std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials() {
-  grpc_server_credentials* c_creds =
-      grpc_fake_transport_security_server_credentials_create();
-  return std::shared_ptr<ServerCredentials>(
-      new SecureServerCredentials(c_creds));
-}
+gpr_subprocess *gpr_subprocess_create(int argc, char **argv);
+/* if subprocess has not been joined, kill it */
+void gpr_subprocess_destroy(gpr_subprocess *p);
+/* returns exit status; can be called at most once */
+int gpr_subprocess_join(gpr_subprocess *p);
+void gpr_subprocess_interrupt(gpr_subprocess *p);
 
-}  // namespace testing
-}  // namespace grpc
+#endif
