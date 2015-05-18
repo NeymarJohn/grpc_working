@@ -96,7 +96,8 @@ static grpc_fd *alloc_fd(int fd) {
   gpr_atm_rel_store(&r->writest, NOT_READY);
   gpr_atm_rel_store(&r->shutdown, 0);
   r->fd = fd;
-  r->inactive_watcher_root.next = r->inactive_watcher_root.prev = &r->inactive_watcher_root;
+  r->inactive_watcher_root.next = r->inactive_watcher_root.prev =
+      &r->inactive_watcher_root;
   r->freelist_next = NULL;
   r->read_watcher = r->write_watcher = NULL;
   return r;
@@ -166,8 +167,8 @@ static void maybe_wake_one_watcher(grpc_fd *fd) {
 
 static void wake_all_watchers(grpc_fd *fd) {
   grpc_fd_watcher *watcher;
-  for (watcher = fd->inactive_watcher_root.next; watcher != &fd->inactive_watcher_root;
-       watcher = watcher->next) {
+  for (watcher = fd->inactive_watcher_root.next;
+       watcher != &fd->inactive_watcher_root; watcher = watcher->next) {
     grpc_pollset_force_kick(watcher->pollset);
   }
   if (fd->read_watcher) {
@@ -322,7 +323,8 @@ gpr_uint32 grpc_fd_begin_poll(grpc_fd *fd, grpc_pollset *pollset,
     fd->read_watcher = watcher;
     mask |= read_mask;
   }
-  /* if there is nobody polling for write, but we need to, then start doing so */
+  /* if there is nobody polling for write, but we need to, then start doing so
+   */
   if (!fd->write_watcher && gpr_atm_acq_load(&fd->writest) > READY) {
     fd->write_watcher = watcher;
     mask |= write_mask;
