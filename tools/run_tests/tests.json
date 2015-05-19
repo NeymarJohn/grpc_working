@@ -599,24 +599,6 @@
   {
     "flaky": false, 
     "language": "c++", 
-    "name": "async_streaming_ping_pong_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c++", 
-    "name": "async_unary_ping_pong_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c++", 
     "name": "channel_arguments_test", 
     "platforms": [
       "windows", 
@@ -627,6 +609,15 @@
     "flaky": false, 
     "language": "c++", 
     "name": "cli_call_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c++", 
+    "name": "client_crash_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -689,25 +680,16 @@
   {
     "flaky": false, 
     "language": "c++", 
+    "name": "server_crash_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c++", 
     "name": "status_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c++", 
-    "name": "sync_streaming_ping_pong_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c++", 
-    "name": "sync_unary_ping_pong_test", 
     "platforms": [
       "windows", 
       "posix"

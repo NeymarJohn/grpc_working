@@ -31,27 +31,50 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_SUBPROCESS_H
-#define GRPC_SUPPORT_SUBPROCESS_H
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <gflags/gflags.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif	
+#include <grpc++/channel_arguments.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/client_context.h>
+#include <grpc++/create_channel.h>
+#include <grpc++/credentials.h>
+#include <grpc++/status.h>
+#include "test/cpp/util/echo.grpc.pb.h"
 
-typedef struct gpr_subprocess gpr_subprocess;
+DEFINE_string(address, "", "Address to connect to");
 
-/* .exe on windows, empty on unices */
-const char *gpr_subprocess_binary_extension();
+using grpc::cpp::test::util::EchoRequest;
+using grpc::cpp::test::util::EchoResponse;
 
-gpr_subprocess *gpr_subprocess_create(int argc, const char **argv);
-/* if subprocess has not been joined, kill it */
-void gpr_subprocess_destroy(gpr_subprocess *p);
-/* returns exit status; can be called at most once */
-int gpr_subprocess_join(gpr_subprocess *p);
-void gpr_subprocess_interrupt(gpr_subprocess *p);
+// In some distros, gflags is in the namespace google, and in some others,
+// in gflags. This hack is enabling us to find both.
+namespace google {}
+namespace gflags {}
+using namespace google;
+using namespace gflags;
 
-#ifdef __cplusplus
-}  // extern "C"
-#endif
+int main(int argc, char** argv) {
+  ParseCommandLineFlags(&argc, &argv, true);
+  auto stub = grpc::cpp::test::util::TestService::NewStub(
+    grpc::CreateChannel(FLAGS_address, grpc::InsecureCredentials(), grpc::ChannelArguments()));
 
-#endif
+  EchoRequest request;
+  EchoResponse response;
+  grpc::ClientContext context;
+
+  auto stream = stub->BidiStream(&context);
+  for (int i = 0;; i++) {
+    std::ostringstream msg;
+    msg << "Hello " << i;
+    request.set_message(msg.str());
+    GPR_ASSERT(stream->Write(request));
+    GPR_ASSERT(stream->Read(&response));
+    GPR_ASSERT(response.message() == request.message());
+  }
+
+  return 0;
+}
