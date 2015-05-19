@@ -36,45 +36,12 @@
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 
-#import <gRPC/GRXWriter+Immediate.h>
-#import <gRPC/GRXBufferedPipe.h>
 #import <gRPC/ProtoRPC.h>
+#import <gRPC/GRXWriter+Immediate.h>
 #import <RemoteTest/Empty.pbobjc.h>
 #import <RemoteTest/Messages.pbobjc.h>
 #import <RemoteTest/Test.pbobjc.h>
 #import <RemoteTest/Test.pbrpc.h>
-
-// Convenience constructors for the generated proto messages:
-
-@interface RMTStreamingOutputCallRequest (Constructors)
-+ (instancetype)messageWithPayloadSize:(NSNumber *)payloadSize
-                 requestedResponseSize:(NSNumber *)responseSize;
-@end
-
-@implementation RMTStreamingOutputCallRequest (Constructors)
-+ (instancetype)messageWithPayloadSize:(NSNumber *)payloadSize
-                 requestedResponseSize:(NSNumber *)responseSize {
-  RMTStreamingOutputCallRequest *request = [self message];
-  RMTResponseParameters *parameters = [RMTResponseParameters message];
-  parameters.size = responseSize.integerValue;
-  [request.responseParametersArray addObject:parameters];
-  request.payload.body = [NSMutableData dataWithLength:payloadSize.unsignedIntegerValue];
-  return request;
-}
-@end
-
-@interface RMTStreamingOutputCallResponse (Constructors)
-+ (instancetype)messageWithPayloadSize:(NSNumber *)payloadSize;
-@end
-
-@implementation RMTStreamingOutputCallResponse (Constructors)
-+ (instancetype)messageWithPayloadSize:(NSNumber *)payloadSize {
-  RMTStreamingOutputCallResponse * response = [self message];
-  response.payload.type = RMTPayloadType_Compressable;
-  response.payload.body = [NSMutableData dataWithLength:payloadSize.unsignedIntegerValue];
-  return response;
-}
-@end
 
 @interface RemoteProtoTests : XCTestCase
 @end
@@ -103,7 +70,7 @@
     [expectation fulfill];
   }];
 
-  [self waitForExpectationsWithTimeout:2 handler:nil];
+  [self waitForExpectationsWithTimeout:2. handler:nil];
 }
 
 - (void)testLargeUnaryRPC {
@@ -125,7 +92,7 @@
     [expectation fulfill];
   }];
 
-  [self waitForExpectationsWithTimeout:4 handler:nil];
+  [self waitForExpectationsWithTimeout:4. handler:nil];
 }
 
 - (void)testClientStreamingRPC {
@@ -157,7 +124,7 @@
     [expectation fulfill];
   }];
 
-  [self waitForExpectationsWithTimeout:4 handler:nil];
+  [self waitForExpectationsWithTimeout:4. handler:nil];
 }
 
 - (void)testServerStreamingRPC {
@@ -182,7 +149,10 @@
 
     if (response) {
       XCTAssertLessThan(index, 4, @"More than 4 responses received.");
-      id expected = [RMTStreamingOutputCallResponse messageWithPayloadSize:expectedSizes[index]];
+      RMTStreamingOutputCallResponse * expected = [RMTStreamingOutputCallResponse message];
+      expected.payload.type = RMTPayloadType_Compressable;
+      int expectedSize = [expectedSizes[index] unsignedIntegerValue];
+      expected.payload.body = [NSMutableData dataWithLength:expectedSize];
       XCTAssertEqualObjects(response, expected);
       index += 1;
     }
@@ -196,49 +166,6 @@
   [self waitForExpectationsWithTimeout:4 handler:nil];
 }
 
-- (void)testPingPongRPC {
-  __weak XCTestExpectation *expectation = [self expectationWithDescription:@"PingPong"];
-
-  NSArray *requests = @[@27182, @8, @1828, @45904];
-  NSArray *responses = @[@31415, @9, @2653, @58979];
-
-  GRXBufferedPipe *requestsBuffer = [[GRXBufferedPipe alloc] init];
-
-  __block int index = 0;
-
-  id request = [RMTStreamingOutputCallRequest messageWithPayloadSize:requests[index]
-                                               requestedResponseSize:responses[index]];
-  [requestsBuffer didReceiveValue:request];
-
-  [_service fullDuplexCallWithRequestsWriter:requestsBuffer
-                                     handler:^(BOOL done,
-                                               RMTStreamingOutputCallResponse *response,
-                                               NSError *error) {
-    XCTAssertNil(error, @"Finished with unexpected error: %@", error);
-    XCTAssertTrue(done || response, @"Event handler called without an event.");
-
-    if (response) {
-      XCTAssertLessThan(index, 4, @"More than 4 responses received.");
-      id expected = [RMTStreamingOutputCallResponse messageWithPayloadSize:responses[index]];
-      XCTAssertEqualObjects(response, expected);
-      index += 1;
-      if (index < 4) {
-        id request = [RMTStreamingOutputCallRequest messageWithPayloadSize:requests[index]
-                                                     requestedResponseSize:responses[index]];
-        [requestsBuffer didReceiveValue:request];
-      } else {
-        [requestsBuffer didFinishWithError:nil];
-      }
-    }
-                                       
-    if (done) {
-      XCTAssertEqual(index, 4, @"Received %i responses instead of 4.", index);
-      [expectation fulfill];
-    }
-  }];
-  [self waitForExpectationsWithTimeout:2 handler:nil];
-}
-
 - (void)testEmptyStreamRPC {
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"EmptyStream"];
   [_service fullDuplexCallWithRequestsWriter:[GRXWriter emptyWriter]
@@ -249,16 +176,13 @@
     XCTAssert(done, @"Unexpected response: %@", response);
     [expectation fulfill];
   }];
-  [self waitForExpectationsWithTimeout:2 handler:nil];
+  [self waitForExpectationsWithTimeout:4 handler:nil];
 }
 
 - (void)testCancelAfterBeginRPC {
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"CancelAfterBegin"];
-
-  // A buffered pipe to which we never write any value acts as a writer that just hangs.
-  GRXBufferedPipe *requestsBuffer = [[GRXBufferedPipe alloc] init];
-
-  ProtoRPC *call = [_service RPCToStreamingInputCallWithRequestsWriter:requestsBuffer
+  // TODO(mlumish): change to writing that blocks instead of writing
+  ProtoRPC *call = [_service RPCToStreamingInputCallWithRequestsWriter:[GRXWriter emptyWriter]
                                                                handler:^(RMTStreamingInputCallResponse *response,
                                                                          NSError *error) {
     XCTAssertEqual(error.code, GRPC_STATUS_CANCELLED);

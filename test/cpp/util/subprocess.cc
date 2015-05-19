@@ -31,11 +31,29 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_RST_STREAM_H
-#define GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_RST_STREAM_H
+#include "test/cpp/util/subprocess.h"
 
-#include <grpc/support/slice.h>
+#include <vector>
 
-gpr_slice grpc_chttp2_rst_stream_create(gpr_uint32 stream_id, gpr_uint32 code);
+#include <grpc/support/subprocess.h>
 
-#endif  /* GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_RST_STREAM_H */
+namespace grpc {
+
+static gpr_subprocess *MakeProcess(std::initializer_list<std::string> args) {
+  std::vector<const char *> vargs;
+  for (auto it = args.begin(); it != args.end(); ++it) {
+    vargs.push_back(it->c_str());
+  }
+  return gpr_subprocess_create(vargs.size(), &vargs[0]);
+}
+
+SubProcess::SubProcess(std::initializer_list<std::string> args)
+    : subprocess_(MakeProcess(args)) {}
+
+SubProcess::~SubProcess() { gpr_subprocess_destroy(subprocess_); }
+
+int SubProcess::Join() { return gpr_subprocess_join(subprocess_); }
+
+void SubProcess::Interrupt() { gpr_subprocess_interrupt(subprocess_); }
+
+}  // namespace grpc
