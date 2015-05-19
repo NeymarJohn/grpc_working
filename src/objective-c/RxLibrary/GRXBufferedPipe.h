@@ -31,21 +31,29 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
-#define GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
+#import <Foundation/Foundation.h>
 
-#include <memory>
+#import "GRXWriteable.h"
+#import "GRXWriter.h"
 
-namespace grpc {
-class Credentials;
-class ServerCredentials;
+// A buffered pipe is a Writeable that also acts as a Writer (to whichever other writeable is passed
+// to -startWithWriteable:).
+// Once it is started, whatever values are written into it (via -didReceiveValue:) will be
+// propagated immediately, unless flow control prevents it.
+// If it is throttled and keeps receiving values, as well as if it receives values before being
+// started, it will buffer them and propagate them in order as soon as its state becomes
+// GRXWriterStateStarted.
+// If it receives an error (via -didFinishWithError:), it will drop any buffered values and
+// propagate the error immediately.
+//
+// Beware that a pipe of this type can't prevent receiving more values when it is paused (for
+// example if used to write data to a congested network connection). Because in such situations the
+// pipe will keep buffering all data written to it, your application could run out of memory and
+// crash. If you want to react to flow control signals to prevent that, instead of using this class
+// you can implement an object that conforms to GRXWriter.
+@interface GRXBufferedPipe : NSObject<GRXWriteable, GRXWriter>
 
-namespace testing {
+// Convenience constructor.
++ (instancetype)pipe;
 
-std::shared_ptr<Credentials> FakeTransportSecurityCredentials();
-std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials();
-
-}  // namespace testing
-}  // namespace grpc
-
-#endif  // GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
+@end
