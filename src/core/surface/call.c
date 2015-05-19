@@ -205,8 +205,8 @@ struct grpc_call {
   /* Received call statuses from various sources */
   received_status status[STATUS_SOURCE_COUNT];
 
-  /* Contexts for various subsystems (security, tracing, ...). */
-  grpc_call_context_element context[GRPC_CONTEXT_COUNT];
+  void *context[GRPC_CONTEXT_COUNT];
+  void (*destroy_context[GRPC_CONTEXT_COUNT])(void *);
 
   /* Deadline alarm - if have_alarm is non-zero */
   grpc_alarm alarm;
@@ -344,8 +344,8 @@ static void destroy_call(void *call, int ignored_success) {
     grpc_mdelem_unref(c->send_initial_metadata[i].md);
   }
   for (i = 0; i < GRPC_CONTEXT_COUNT; i++) {
-    if (c->context[i].destroy) {
-      c->context[i].destroy(c->context[i].value);
+    if (c->destroy_context[i]) {
+      c->destroy_context[i](c->context[i]);
     }
   }
   grpc_sopb_destroy(&c->send_ops);
@@ -401,6 +401,7 @@ static int is_op_live(grpc_call *call, grpc_ioreq_op op) {
 static void lock(grpc_call *call) { gpr_mu_lock(&call->mu); }
 
 static int need_more_data(grpc_call *call) {
+  if (call->read_state == READ_STATE_STREAM_CLOSED) return 0;
   return is_op_live(call, GRPC_IOREQ_RECV_INITIAL_METADATA) ||
          (is_op_live(call, GRPC_IOREQ_RECV_MESSAGE) && grpc_bbq_empty(&call->incoming_queue)) ||
          is_op_live(call, GRPC_IOREQ_RECV_TRAILING_METADATA) ||
@@ -408,8 +409,7 @@ static int need_more_data(grpc_call *call) {
          is_op_live(call, GRPC_IOREQ_RECV_STATUS_DETAILS) ||
          (is_op_live(call, GRPC_IOREQ_RECV_CLOSE) &&
           grpc_bbq_empty(&call->incoming_queue)) ||
-         (call->write_state == WRITE_STATE_INITIAL && !call->is_client &&
-          call->read_state < READ_STATE_GOT_INITIAL_METADATA);
+         (call->write_state == WRITE_STATE_INITIAL && !call->is_client);
 }
 
 static void unlock(grpc_call *call) {
@@ -1289,15 +1289,15 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
 
 void grpc_call_context_set(grpc_call *call, grpc_context_index elem, void *value,
                            void (*destroy)(void *value)) {
-  if (call->context[elem].destroy) {
-    call->context[elem].destroy(call->context[elem].value);
+  if (call->destroy_context[elem]) {
+    call->destroy_context[elem](value);
   }
-  call->context[elem].value = value;
-  call->context[elem].destroy = destroy;
+  call->context[elem] = value;
+  call->destroy_context[elem] = destroy;
 }
 
 void *grpc_call_context_get(grpc_call *call, grpc_context_index elem) {
-  return call->context[elem].value;
+  return call->context[elem];
 }
 
 gpr_uint8 grpc_call_is_client(grpc_call *call) { return call->is_client; }
