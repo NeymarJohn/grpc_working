@@ -38,7 +38,7 @@
 #import <gRPC/GRPCMethodName.h>
 #import <gRPC/GRXWriter+Immediate.h>
 #import <gRPC/GRXWriteable.h>
-#import <RemoteTest/Messages.pbobjc.h>
+#import <RemoteTest/Messages.pb.h>
 
 @interface RemoteTests : XCTestCase
 @end
@@ -111,10 +111,11 @@
                                                          interface:@"TestService"
                                                             method:@"UnaryCall"];
 
-  RMTSimpleRequest *request = [[RMTSimpleRequest alloc] init];
-  request.responseSize = 100;
-  request.fillUsername = YES;
-  request.fillOauthScope = YES;
+  RMTSimpleRequest *request = [[[[[[RMTSimpleRequestBuilder alloc] init]
+                                  setResponseSize:100]
+                                 setFillUsername:YES]
+                                setFillOauthScope:YES]
+                               build];
   id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[request data]];
 
   GRPCCall *call = [[GRPCCall alloc] initWithHost:@"grpc-test.sandbox.google.com"

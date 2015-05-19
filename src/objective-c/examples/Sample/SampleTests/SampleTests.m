@@ -38,8 +38,7 @@
 #import <gRPC/GRPCMethodName.h>
 #import <gRPC/GRXWriter+Immediate.h>
 #import <gRPC/GRXWriteable.h>
-#import <Route_guide/RouteGuide.pbobjc.h>
-#import <Route_guide/RouteGuide.pbrpc.h>
+#import <Route_guide/Route_guide.pb.h>
 
 @interface SampleTests : XCTestCase
 @end
@@ -106,15 +105,15 @@
 
 - (void)testSimpleProtoRPC {
   __weak XCTestExpectation *response = [self expectationWithDescription:@"Response received."];
+  __weak XCTestExpectation *expectedResponse =
+      [self expectationWithDescription:@"Expected response."];
   __weak XCTestExpectation *completion = [self expectationWithDescription:@"RPC completed."];
 
   GRPCMethodName *method = [[GRPCMethodName alloc] initWithPackage:@"grpc.example.routeguide"
                                                          interface:@"RouteGuide"
                                                             method:@"GetFeature"];
 
-  RGDPoint *point = [RGDPoint message];
-  point.latitude = 28E7;
-  point.longitude = -15E7;
+  RGDPoint *point = [[[[[RGDPointBuilder alloc] init] setLatitude:28E7] setLongitude:-15E7] build];
   id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[point data]];
 
   GRPCCall *call = [[GRPCCall alloc] initWithHost:@"http://127.0.0.1:8980"
@@ -123,34 +122,17 @@
 
   id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
     XCTAssertNotNil(value, @"nil value received as response.");
+    [response fulfill];
     RGDFeature *feature = [RGDFeature parseFromData:value];
     XCTAssertEqualObjects(point, feature.location);
     XCTAssertNotNil(feature.name, @"Response's name is nil.");
-    [response fulfill];
+    [expectedResponse fulfill];
   } completionHandler:^(NSError *errorOrNil) {
     XCTAssertNil(errorOrNil, @"Finished with unexpected error: %@", errorOrNil);
     [completion fulfill];
   }];
 
   [call startWithWriteable:responsesWriteable];
-
-  [self waitForExpectationsWithTimeout:2.0 handler:nil];
-}
-
-- (void)testSimpleProtoRPCUsingGeneratedService {
-  __weak XCTestExpectation *completion = [self expectationWithDescription:@"RPC completed."];
-
-  RGDPoint *point = [RGDPoint message];
-  point.latitude = 28E7;
-  point.longitude = -15E7;
-
-  RGDRouteGuide *service = [[RGDRouteGuide alloc] initWithHost:@"http://127.0.0.1:8980"];
-  [service getFeatureWithRequest:point handler:^(RGDFeature *response, NSError *error) {
-    XCTAssertNil(error, @"Finished with unexpected error: %@", error);
-    XCTAssertEqualObjects(point, response.location);
-    XCTAssertNotNil(response.name, @"Response's name is nil.");
-    [completion fulfill];
-  }];
 
   [self waitForExpectationsWithTimeout:2.0 handler:nil];
 }

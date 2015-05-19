@@ -37,8 +37,7 @@
 #import <gRPC/GRPCMethodName.h>
 #import <gRPC/GRXWriter+Immediate.h>
 #import <gRPC/GRXWriteable.h>
-#import <RemoteTest/Messages.pbobjc.h>
-#import <RemoteTest/Test.pbrpc.h>
+#import <RemoteTest/Messages.pb.h>
 
 @interface ViewController ()
 @end
@@ -48,34 +47,18 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
 
-  NSString * const kRemoteHost = @"grpc-test.sandbox.google.com";
-
-  RMTSimpleRequest *request = [[RMTSimpleRequest alloc] init];
-  request.responseSize = 10;
-  request.fillUsername = YES;
-  request.fillOauthScope = YES;
-
-  // Example gRPC call using a generated proto client library:
-
-  RMTTestService *service = [[RMTTestService alloc] initWithHost:kRemoteHost];
-  [service unaryCallWithRequest:request handler:^(RMTSimpleResponse *response, NSError *error) {
-    if (response) {
-      NSLog(@"Finished successfully with response:\n%@", response);
-    } else if (error) {
-      NSLog(@"Finished with error: %@", error);
-    }
-  }];
-
-
-  // Same example call using the generic gRPC client library:
-
   GRPCMethodName *method = [[GRPCMethodName alloc] initWithPackage:@"grpc.testing"
                                                          interface:@"TestService"
                                                             method:@"UnaryCall"];
 
+  RMTSimpleRequest *request = [[[[[[RMTSimpleRequestBuilder alloc] init]
+                                  setResponseSize:100]
+                                 setFillUsername:YES]
+                                setFillOauthScope:YES]
+                               build];
   id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[request data]];
 
-  GRPCCall *call = [[GRPCCall alloc] initWithHost:kRemoteHost
+  GRPCCall *call = [[GRPCCall alloc] initWithHost:@"grpc-test.sandbox.google.com"
                                            method:method
                                    requestsWriter:requestsWriter];
 
@@ -83,11 +66,7 @@
     RMTSimpleResponse *response = [RMTSimpleResponse parseFromData:value];
     NSLog(@"Received response:\n%@", response);
   } completionHandler:^(NSError *errorOrNil) {
-    if (errorOrNil) {
-      NSLog(@"Finished with error: %@", errorOrNil);
-    } else {
-      NSLog(@"Finished successfully.");
-    }
+    NSLog(@"Finished with error: %@", errorOrNil);
   }];
 
   [call startWithWriteable:responsesWriteable];
