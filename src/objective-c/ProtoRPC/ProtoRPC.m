@@ -71,9 +71,9 @@
   if ((self = [super initWithHost:host method:method requestsWriter:bytesWriter])) {
     // A writeable that parses the proto messages received.
     _responseWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
-      [responsesWriteable writeValue:[responseClass parseFromData:value]];
+      [responsesWriteable didReceiveValue:[responseClass parseFromData:value]];
     } completionHandler:^(NSError *errorOrNil) {
-      [responsesWriteable writesFinishedWithError:errorOrNil];
+      [responsesWriteable didFinishWithError:errorOrNil];
     }];
   }
   return self;

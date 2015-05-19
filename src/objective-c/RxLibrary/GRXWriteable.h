@@ -38,12 +38,14 @@
 @protocol GRXWriteable <NSObject>
 
 // Push the next value of the sequence to the receiving object.
-- (void)writeValue:(id)value;
+// TODO(jcanizales): Name it enumerator:(id<GRXEnumerator>) didProduceValue:(id)?
+- (void)didReceiveValue:(id)value;
 
 // Signal that the sequence is completed, or that an error ocurred. After this
-// message is sent to the instance, neither it nor writeValue: may be
+// message is sent to the instance, neither it nor didReceiveValue: may be
 // called again.
-- (void)writesFinishedWithError:(NSError *)errorOrNil;
+// TODO(jcanizales): enumerator:(id<GRXEnumerator>) didFinishWithError:(NSError*)?
+- (void)didFinishWithError:(NSError *)errorOrNil;
 @end
 
 typedef void (^GRXValueHandler)(id value);

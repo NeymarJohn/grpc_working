@@ -62,7 +62,7 @@
 - (void)finishOutputWithError:(NSError *)errorOrNil {
   id<GRXWriteable> writeable = _writeable;
   _writeable = nil;
-  [writeable writesFinishedWithError:errorOrNil];
+  [writeable didFinishWithError:errorOrNil];
 }
 
 // This is used to stop the input writer. It nillifies our reference to it
@@ -75,11 +75,11 @@
 
 #pragma mark GRXWriteable implementation
 
-- (void)writeValue:(id)value {
-  [_writeable writeValue:value];
+- (void)didReceiveValue:(id)value {
+  [_writeable didReceiveValue:value];
 }
 
-- (void)writesFinishedWithError:(NSError *)errorOrNil {
+- (void)didFinishWithError:(NSError *)errorOrNil {
   _writer = nil;
   [self finishOutputWithError:errorOrNil];
 }

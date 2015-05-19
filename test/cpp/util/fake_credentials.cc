@@ -31,22 +31,28 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_RST_STREAM_H
-#define GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_RST_STREAM_H
+#include <grpc/grpc_security.h>
+#include <grpc++/channel_arguments.h>
+#include <grpc++/credentials.h>
+#include <grpc++/server_credentials.h>
+#include "src/cpp/client/channel.h"
+#include "src/cpp/client/secure_credentials.h"
+#include "src/cpp/server/secure_server_credentials.h"
 
-#include <grpc/support/slice.h>
-#include "src/core/transport/chttp2/frame.h"
+namespace grpc {
+namespace testing {
 
-typedef struct {
-  gpr_uint8 byte;
-  gpr_uint8 reason_bytes[4];
-} grpc_chttp2_rst_stream_parser;
+std::shared_ptr<Credentials> FakeTransportSecurityCredentials() {
+  grpc_credentials* c_creds = grpc_fake_transport_security_credentials_create();
+  return std::shared_ptr<Credentials>(new SecureCredentials(c_creds));
+}
 
-gpr_slice grpc_chttp2_rst_stream_create(gpr_uint32 stream_id, gpr_uint32 code);
+std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials() {
+  grpc_server_credentials* c_creds =
+      grpc_fake_transport_security_server_credentials_create();
+  return std::shared_ptr<ServerCredentials>(
+      new SecureServerCredentials(c_creds));
+}
 
-grpc_chttp2_parse_error grpc_chttp2_rst_stream_parser_begin_frame(
-    grpc_chttp2_rst_stream_parser *parser, gpr_uint32 length, gpr_uint8 flags);
-grpc_chttp2_parse_error grpc_chttp2_rst_stream_parser_parse(
-    void *parser, grpc_chttp2_parse_state *state, gpr_slice slice, int is_last);
-
-#endif  /* GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_RST_STREAM_H */
+}  // namespace testing
+}  // namespace grpc
