@@ -296,8 +296,8 @@
     [op getOp:&ops_array[i++]];
   }
   grpc_call_error error = grpc_call_start_batch(_call, ops_array, nops,
-                                                (__bridge_retained void *)(^(bool success){
-    if (!success) {
+                                                (__bridge_retained void *)(^(grpc_op_error error){
+    if (error != GRPC_OP_OK) {
       if (errorHandler) {
         errorHandler();
       } else {

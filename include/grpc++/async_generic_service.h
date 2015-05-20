@@ -65,8 +65,10 @@ class AsyncGenericService GRPC_FINAL {
 
   void RequestCall(GenericServerContext* ctx,
                    GenericServerAsyncReaderWriter* reader_writer,
-                   CompletionQueue* call_cq,
-                   ServerCompletionQueue* notification_cq, void* tag);
+                   CompletionQueue* cq, void* tag);
+
+  // The new rpc event should be obtained from this completion queue.
+  CompletionQueue* completion_queue();
 
  private:
   friend class Server;

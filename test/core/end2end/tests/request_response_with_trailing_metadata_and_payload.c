@@ -66,10 +66,14 @@ static gpr_timespec n_seconds_time(int n) {
 static gpr_timespec five_seconds_time(void) { return n_seconds_time(5); }
 
 static void drain_cq(grpc_completion_queue *cq) {
-  grpc_event ev;
+  grpc_event *ev;
+  grpc_completion_type type;
   do {
     ev = grpc_completion_queue_next(cq, five_seconds_time());
-  } while (ev.type != GRPC_QUEUE_SHUTDOWN);
+    GPR_ASSERT(ev);
+    type = ev->type;
+    grpc_event_finish(ev);
+  } while (type != GRPC_QUEUE_SHUTDOWN);
 }
 
 static void shutdown_server(grpc_end2end_test_fixture *f) {
@@ -164,27 +168,14 @@ static void test_request_response_with_metadata_and_payload(
   GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, &s,
                                                       &call_details,
                                                       &request_metadata_recv,
-                                                      f.server_cq, f.server_cq,
-                                                      tag(101)));
-  cq_expect_completion(v_server, tag(101), 1);
+                                                      f.server_cq, tag(101)));
+  cq_expect_completion(v_server, tag(101), GRPC_OP_OK);
   cq_verify(v_server);
 
   op = ops;
   op->op = GRPC_OP_SEND_INITIAL_METADATA;
   op->data.send_initial_metadata.count = 2;
   op->data.send_initial_metadata.metadata = meta_s;
-  op++;
-  op->op = GRPC_OP_RECV_MESSAGE;
-  op->data.recv_message = &request_payload_recv;
-  op++;
-  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_batch(s, ops, op - ops, tag(102)));
-
-  cq_expect_completion(v_server, tag(102), 1);
-  cq_verify(v_server);
-
-  op = ops;
-  op->op = GRPC_OP_RECV_CLOSE_ON_SERVER;
-  op->data.recv_close_on_server.cancelled = &was_cancelled;
   op++;
   op->op = GRPC_OP_SEND_MESSAGE;
   op->data.send_message = response_payload;
@@ -195,12 +186,18 @@ static void test_request_response_with_metadata_and_payload(
   op->data.send_status_from_server.status = GRPC_STATUS_OK;
   op->data.send_status_from_server.status_details = "xyz";
   op++;
-  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_batch(s, ops, op - ops, tag(103)));
+  op->op = GRPC_OP_RECV_MESSAGE;
+  op->data.recv_message = &request_payload_recv;
+  op++;
+  op->op = GRPC_OP_RECV_CLOSE_ON_SERVER;
+  op->data.recv_close_on_server.cancelled = &was_cancelled;
+  op++;
+  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_batch(s, ops, op - ops, tag(102)));
 
-  cq_expect_completion(v_server, tag(103), 1);
+  cq_expect_completion(v_server, tag(102), GRPC_OP_OK);
   cq_verify(v_server);
 
-  cq_expect_completion(v_client, tag(1), 1);
+  cq_expect_completion(v_client, tag(1), GRPC_OP_OK);
   cq_verify(v_client);
 
   GPR_ASSERT(status == GRPC_STATUS_OK);
