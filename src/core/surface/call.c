@@ -401,7 +401,6 @@ static int is_op_live(grpc_call *call, grpc_ioreq_op op) {
 static void lock(grpc_call *call) { gpr_mu_lock(&call->mu); }
 
 static int need_more_data(grpc_call *call) {
-  if (call->read_state == READ_STATE_STREAM_CLOSED) return 0;
   return is_op_live(call, GRPC_IOREQ_RECV_INITIAL_METADATA) ||
          (is_op_live(call, GRPC_IOREQ_RECV_MESSAGE) && grpc_bbq_empty(&call->incoming_queue)) ||
          is_op_live(call, GRPC_IOREQ_RECV_TRAILING_METADATA) ||
@@ -409,7 +408,8 @@ static int need_more_data(grpc_call *call) {
          is_op_live(call, GRPC_IOREQ_RECV_STATUS_DETAILS) ||
          (is_op_live(call, GRPC_IOREQ_RECV_CLOSE) &&
           grpc_bbq_empty(&call->incoming_queue)) ||
-         (call->write_state == WRITE_STATE_INITIAL && !call->is_client);
+         (call->write_state == WRITE_STATE_INITIAL && !call->is_client &&
+          call->read_state < READ_STATE_GOT_INITIAL_METADATA);
 }
 
 static void unlock(grpc_call *call) {
