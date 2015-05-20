@@ -31,37 +31,19 @@
  *
  */
 
-#ifndef GRPC_GRPC_HTTP_H
-#define GRPC_GRPC_HTTP_H
+#ifndef GRPC_SUPPORT_SUBPROCESS_H
+#define GRPC_SUPPORT_SUBPROCESS_H
 
-#ifdef __cplusplus
-extern "C" {
+typedef struct gpr_subprocess gpr_subprocess;
+
+/* .exe on windows, empty on unices */
+const char *gpr_subprocess_binary_extension();
+
+gpr_subprocess *gpr_subprocess_create(int argc, char **argv);
+/* if subprocess has not been joined, kill it */
+void gpr_subprocess_destroy(gpr_subprocess *p);
+/* returns exit status; can be called at most once */
+int gpr_subprocess_join(gpr_subprocess *p);
+void gpr_subprocess_interrupt(gpr_subprocess *p);
+
 #endif
-
-/* HTTP GET support.
-
-   HTTP2 servers can publish statically generated text content served
-   via HTTP2 GET queries by publishing one or more grpc_http_server_page
-   elements via repeated GRPC_ARG_SERVE_OVER_HTTP elements in the servers
-   channel_args.
-
-   This is not:
-    - a general purpose web server
-    - particularly fast
-
-   It's useful for being able to serve up some static content (maybe some
-   javascript to be able to interact with your GRPC server?) */
-
-typedef struct {
-  const char *path;
-  const char *content_type;
-  const char *content;
-} grpc_http_server_page;
-
-#define GRPC_ARG_SERVE_OVER_HTTP "grpc.serve_over_http"
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif  /* GRPC_GRPC_HTTP_H */

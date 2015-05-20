@@ -49,6 +49,7 @@ END2END_FIXTURES = {
     'chttp2_simple_ssl_with_oauth2_fullstack': default_secure_fixture_options,
     'chttp2_socket_pair': default_unsecure_fixture_options,
     'chttp2_socket_pair_one_byte_at_a_time': default_unsecure_fixture_options,
+    'chttp2_socket_pair_with_grpc_trace': default_unsecure_fixture_options,
 }
 
 TestOptions = collections.namedtuple('TestOptions', 'flaky secure')
@@ -75,6 +76,7 @@ END2END_TESTS = {
     'ping_pong_streaming': default_test_options,
     'registered_call': default_test_options,
     'request_response_with_binary_metadata_and_payload': default_test_options,
+    'request_response_with_trailing_metadata_and_payload': default_test_options,
     'request_response_with_metadata_and_payload': default_test_options,
     'request_response_with_payload': default_test_options,
     'request_response_with_payload_and_call_creds': TestOptions(flaky=False, secure=True),
