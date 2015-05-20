@@ -41,9 +41,4 @@ typedef enum {
   GRPC_CONTEXT_COUNT
 } grpc_context_index;
 
-typedef struct {
-  void *value;
-  void (*destroy)(void *);
-} grpc_call_context;
-
-#endif /* GRPC_INTERNAL_CORE_CHANNEL_CONTEXT_H */
+#endif
