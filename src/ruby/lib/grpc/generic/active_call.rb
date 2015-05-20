@@ -188,7 +188,7 @@ module GRPC
     # @param marshalled [false, true] indicates if the object is already
     # marshalled.
     def remote_send(req, marshalled = false)
-      GRPC.logger.debug("sending #{req}, marshalled? #{marshalled}")
+      logger.debug("sending #{req}, marshalled? #{marshalled}")
       if marshalled
         payload = req
       else
@@ -230,14 +230,14 @@ module GRPC
         @call.metadata = batch_result.metadata
         @metadata_tag = nil
       end
-      GRPC.logger.debug("received req: #{batch_result}")
+      logger.debug("received req: #{batch_result}")
       unless batch_result.nil? || batch_result.message.nil?
-        GRPC.logger.debug("received req.to_s: #{batch_result.message}")
+        logger.debug("received req.to_s: #{batch_result.message}")
         res = @unmarshal.call(batch_result.message)
-        GRPC.logger.debug("received_req (unmarshalled): #{res.inspect}")
+        logger.debug("received_req (unmarshalled): #{res.inspect}")
         return res
       end
-      GRPC.logger.debug('found nil; the final response has been sent')
+      logger.debug('found nil; the final response has been sent')
       nil
     end
 
