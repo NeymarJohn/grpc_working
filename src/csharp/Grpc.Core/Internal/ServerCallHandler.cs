@@ -32,7 +32,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Core.Internal;
@@ -72,10 +71,9 @@ namespace Grpc.Core.Internal
             Status status = Status.DefaultSuccess;
             try
             {
-                Preconditions.CheckArgument(await requestStream.MoveNext());
-                var request = requestStream.Current;
+                var request = await requestStream.ReadNext();
                 // TODO(jtattermusch): we need to read the full stream so that native callhandle gets deallocated.
-                Preconditions.CheckArgument(!await requestStream.MoveNext());
+                Preconditions.CheckArgument(await requestStream.ReadNext() == null);
                 var context = new ServerCallContext();  // TODO(jtattermusch): initialize the context
                 var result = await handler(context, request);
                 await responseStream.Write(result);
@@ -124,10 +122,9 @@ namespace Grpc.Core.Internal
             Status status = Status.DefaultSuccess;
             try
             {
-                Preconditions.CheckArgument(await requestStream.MoveNext());
-                var request = requestStream.Current;
+                var request = await requestStream.ReadNext();
                 // TODO(jtattermusch): we need to read the full stream so that native callhandle gets deallocated.
-                Preconditions.CheckArgument(!await requestStream.MoveNext());
+                Preconditions.CheckArgument(await requestStream.ReadNext() == null);
 
                 var context = new ServerCallContext();  // TODO(jtattermusch): initialize the context
                 await handler(context, request, responseStream);
