@@ -31,44 +31,29 @@
  *
  */
 
-#include <sys/signal.h>
+#include "test/cpp/util/subprocess.h"
 
-#include <chrono>
-#include <thread>
+#include <vector>
 
-#include <grpc/grpc.h>
-#include <gflags/gflags.h>
-
-#include "qps_worker.h"
-#include "test/cpp/util/test_config.h"
-
-DEFINE_int32(driver_port, 0, "Driver server port.");
-DEFINE_int32(server_port, 0, "Spawned server port.");
-
-static bool got_sigint = false;
-
-static void sigint_handler(int x) {got_sigint = true;}
+#include <grpc/support/subprocess.h>
 
 namespace grpc {
-namespace testing {
 
-static void RunServer() {
-  QpsWorker worker(FLAGS_driver_port, FLAGS_server_port);
-
-  while (!got_sigint) {
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+static gpr_subprocess *MakeProcess(std::initializer_list<std::string> args) {
+  std::vector<const char *> vargs;
+  for (auto it = args.begin(); it != args.end(); ++it) {
+    vargs.push_back(it->c_str());
   }
+  return gpr_subprocess_create(vargs.size(), &vargs[0]);
 }
 
-}  // namespace testing
+SubProcess::SubProcess(std::initializer_list<std::string> args)
+    : subprocess_(MakeProcess(args)) {}
+
+SubProcess::~SubProcess() { gpr_subprocess_destroy(subprocess_); }
+
+int SubProcess::Join() { return gpr_subprocess_join(subprocess_); }
+
+void SubProcess::Interrupt() { gpr_subprocess_interrupt(subprocess_); }
+
 }  // namespace grpc
-
-int main(int argc, char** argv) {
-  grpc::testing::InitTest(&argc, &argv, true);
-
-  signal(SIGINT, sigint_handler);
-
-  grpc::testing::RunServer();
-  
-  return 0;
-}

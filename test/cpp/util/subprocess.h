@@ -31,44 +31,31 @@
  *
  */
 
-#include <sys/signal.h>
+#ifndef GRPC_TEST_CPP_UTIL_SUBPROCESS_H
+#define GRPC_TEST_CPP_UTIL_SUBPROCESS_H
 
-#include <chrono>
-#include <thread>
+#include <initializer_list>
+#include <string>
 
-#include <grpc/grpc.h>
-#include <gflags/gflags.h>
-
-#include "qps_worker.h"
-#include "test/cpp/util/test_config.h"
-
-DEFINE_int32(driver_port, 0, "Driver server port.");
-DEFINE_int32(server_port, 0, "Spawned server port.");
-
-static bool got_sigint = false;
-
-static void sigint_handler(int x) {got_sigint = true;}
+struct gpr_subprocess;
 
 namespace grpc {
-namespace testing {
 
-static void RunServer() {
-  QpsWorker worker(FLAGS_driver_port, FLAGS_server_port);
+class SubProcess {
+ public:
+  SubProcess(std::initializer_list<std::string> args);
+  ~SubProcess();
 
-  while (!got_sigint) {
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-  }
-}
+  int Join();
+  void Interrupt();
 
-}  // namespace testing
+ private:
+  SubProcess(const SubProcess& other);
+  SubProcess& operator=(const SubProcess& other);
+
+  gpr_subprocess* const subprocess_;
+};
+
 }  // namespace grpc
 
-int main(int argc, char** argv) {
-  grpc::testing::InitTest(&argc, &argv, true);
-
-  signal(SIGINT, sigint_handler);
-
-  grpc::testing::RunServer();
-  
-  return 0;
-}
+#endif  // GRPC_TEST_CPP_UTIL_SUBPROCESS_H
