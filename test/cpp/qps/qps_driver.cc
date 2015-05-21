@@ -31,15 +31,12 @@
  *
  */
 
-#include <memory>
-#include <set>
-
 #include <gflags/gflags.h>
 #include <grpc/support/log.h>
 
 #include "test/cpp/qps/driver.h"
 #include "test/cpp/qps/report.h"
-#include "test/cpp/util/benchmark_config.h"
+#include "test/cpp/util/test_config.h"
 
 DEFINE_int32(num_clients, 1, "Number of client binaries");
 DEFINE_int32(num_servers, 1, "Number of server binaries");
@@ -71,10 +68,9 @@ using grpc::testing::ServerType;
 using grpc::testing::RpcType;
 using grpc::testing::ResourceUsage;
 
-namespace grpc {
-namespace testing {
+int main(int argc, char** argv) {
+  grpc::testing::InitTest(&argc, &argv, true);
 
-static void QpsDriver() {
   RpcType rpc_type;
   GPR_ASSERT(RpcType_Parse(FLAGS_rpc_type, &rpc_type));
 
@@ -107,24 +103,14 @@ static void QpsDriver() {
                FLAGS_server_threads <  FLAGS_client_channels *
                FLAGS_outstanding_rpcs_per_channel));
 
-  const auto result = RunScenario(
-      client_config, FLAGS_num_clients, server_config, FLAGS_num_servers,
-      FLAGS_warmup_seconds, FLAGS_benchmark_seconds, FLAGS_local_workers);
+  auto result = RunScenario(client_config, FLAGS_num_clients,
+                            server_config, FLAGS_num_servers,
+                            FLAGS_warmup_seconds, FLAGS_benchmark_seconds,
+                            FLAGS_local_workers);
 
-  GetReporter()->ReportQPS(result);
-  GetReporter()->ReportQPSPerCore(result, server_config);
-  GetReporter()->ReportLatency(result);
-  GetReporter()->ReportTimes(result);
-}
-
-}  // namespace testing
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  grpc::testing::InitBenchmark(&argc, &argv, true);
-
-  signal(SIGPIPE, SIG_IGN);
-  grpc::testing::QpsDriver();
+  ReportQPSPerCore(result, server_config);
+  ReportLatency(result);
+  ReportTimes(result);
 
   return 0;
 }

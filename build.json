@@ -526,16 +526,6 @@
       "vs_project_guid": "{C187A093-A0FE-489D-A40A-6E33DE0F9FEB}"
     },
     {
-      "name": "grpc++_benchmark_config",
-      "build": "private",
-      "language": "c++",
-      "src": [
-        "test/cpp/qps/qpstest.proto",
-        "test/cpp/qps/report.cc",
-        "test/cpp/util/benchmark_config.cc"
-      ]
-    },
-    {
       "name": "grpc++_test_config",
       "build": "private",
       "language": "c++",
@@ -703,6 +693,7 @@
         "test/cpp/qps/client_sync.cc",
         "test/cpp/qps/driver.cc",
         "test/cpp/qps/qps_worker.cc",
+        "test/cpp/qps/report.cc",
         "test/cpp/qps/server_async.cc",
         "test/cpp/qps/server_sync.cc",
         "test/cpp/qps/timer.cc"
@@ -1829,7 +1820,6 @@
       "deps": [
         "qps",
         "grpc++_test_util",
-        "grpc++_benchmark_config",
         "grpc_test_util",
         "grpc++",
         "grpc",
@@ -1847,7 +1837,6 @@
       "deps": [
         "qps",
         "grpc++_test_util",
-        "grpc++_benchmark_config",
         "grpc_test_util",
         "grpc++",
         "grpc",
@@ -2155,8 +2144,7 @@
         "grpc",
         "gpr_test_util",
         "gpr",
-        "grpc++_test_config",
-        "grpc++_benchmark_config"
+        "grpc++_test_config"
       ]
     },
     {
@@ -2169,7 +2157,6 @@
       "deps": [
         "qps",
         "grpc++_test_util",
-        "grpc++_benchmark_config",
         "grpc_test_util",
         "grpc++",
         "grpc",
@@ -2225,7 +2212,6 @@
       "deps": [
         "qps",
         "grpc++_test_util",
-        "grpc++_benchmark_config",
         "grpc_test_util",
         "grpc++",
         "grpc",
@@ -2243,7 +2229,6 @@
       "deps": [
         "qps",
         "grpc++_test_util",
-        "grpc++_benchmark_config",
         "grpc_test_util",
         "grpc++",
         "grpc",
