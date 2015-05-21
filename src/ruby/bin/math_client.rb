@@ -46,51 +46,51 @@ require 'optparse'
 include GRPC::Core::TimeConsts
 
 def do_div(stub)
-  GRPC.logger.info('request_response')
-  GRPC.logger.info('----------------')
+  logger.info('request_response')
+  logger.info('----------------')
   req = Math::DivArgs.new(dividend: 7, divisor: 3)
-  GRPC.logger.info("div(7/3): req=#{req.inspect}")
+  logger.info("div(7/3): req=#{req.inspect}")
   resp = stub.div(req, INFINITE_FUTURE)
-  GRPC.logger.info("Answer: #{resp.inspect}")
-  GRPC.logger.info('----------------')
+  logger.info("Answer: #{resp.inspect}")
+  logger.info('----------------')
 end
 
 def do_sum(stub)
   # to make client streaming requests, pass an enumerable of the inputs
-  GRPC.logger.info('client_streamer')
-  GRPC.logger.info('---------------')
+  logger.info('client_streamer')
+  logger.info('---------------')
   reqs = [1, 2, 3, 4, 5].map { |x| Math::Num.new(num: x) }
-  GRPC.logger.info("sum(1, 2, 3, 4, 5): reqs=#{reqs.inspect}")
+  logger.info("sum(1, 2, 3, 4, 5): reqs=#{reqs.inspect}")
   resp = stub.sum(reqs)  # reqs.is_a?(Enumerable)
-  GRPC.logger.info("Answer: #{resp.inspect}")
-  GRPC.logger.info('---------------')
+  logger.info("Answer: #{resp.inspect}")
+  logger.info('---------------')
 end
 
 def do_fib(stub)
-  GRPC.logger.info('server_streamer')
-  GRPC.logger.info('----------------')
+  logger.info('server_streamer')
+  logger.info('----------------')
   req = Math::FibArgs.new(limit: 11)
-  GRPC.logger.info("fib(11): req=#{req.inspect}")
+  logger.info("fib(11): req=#{req.inspect}")
   resp = stub.fib(req, INFINITE_FUTURE)
   resp.each do |r|
-    GRPC.logger.info("Answer: #{r.inspect}")
+    logger.info("Answer: #{r.inspect}")
   end
-  GRPC.logger.info('----------------')
+  logger.info('----------------')
 end
 
 def do_div_many(stub)
-  GRPC.logger.info('bidi_streamer')
-  GRPC.logger.info('-------------')
+  logger.info('bidi_streamer')
+  logger.info('-------------')
   reqs = []
   reqs << Math::DivArgs.new(dividend: 7, divisor: 3)
   reqs << Math::DivArgs.new(dividend: 5, divisor: 2)
   reqs << Math::DivArgs.new(dividend: 7, divisor: 2)
-  GRPC.logger.info("div(7/3), div(5/2), div(7/2): reqs=#{reqs.inspect}")
+  logger.info("div(7/3), div(5/2), div(7/2): reqs=#{reqs.inspect}")
   resp = stub.div_many(reqs, 10)
   resp.each do |r|
-    GRPC.logger.info("Answer: #{r.inspect}")
+    logger.info("Answer: #{r.inspect}")
   end
-  GRPC.logger.info('----------------')
+  logger.info('----------------')
 end
 
 def load_test_certs
@@ -132,10 +132,10 @@ def main
     p stub_opts
     p options['host']
     stub = Math::Math::Stub.new(options['host'], **stub_opts)
-    GRPC.logger.info("... connecting securely on #{options['host']}")
+    logger.info("... connecting securely on #{options['host']}")
   else
     stub = Math::Math::Stub.new(options['host'])
-    GRPC.logger.info("... connecting insecurely on #{options['host']}")
+    logger.info("... connecting insecurely on #{options['host']}")
   end
 
   do_div(stub)

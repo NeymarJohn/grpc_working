@@ -49,9 +49,14 @@ namespace Grpc.Core.Utils
         public static async Task ForEach<T>(this IAsyncStreamReader<T> streamReader, Func<T, Task> asyncAction)
             where T : class
         {
-            while (await streamReader.MoveNext())
+            while (true)
             {
-                await asyncAction(streamReader.Current);
+                var elem = await streamReader.ReadNext();
+                if (elem == null)
+                {
+                    break;
+                }
+                await asyncAction(elem);
             }
         }
 
@@ -62,27 +67,32 @@ namespace Grpc.Core.Utils
             where T : class
         {
             var result = new List<T>();
-            while (await streamReader.MoveNext())
+            while (true)
             {
-                result.Add(streamReader.Current);
+                var elem = await streamReader.ReadNext();
+                if (elem == null)
+                {
+                    break;
+                }
+                result.Add(elem);
             }
             return result;
         }
 
         /// <summary>
         /// Writes all elements from given enumerable to the stream.
-        /// Completes the stream afterwards unless close = false.
+        /// Closes the stream afterwards unless close = false.
         /// </summary>
-        public static async Task WriteAll<T>(this IClientStreamWriter<T> streamWriter, IEnumerable<T> elements, bool complete = true)
+        public static async Task WriteAll<T>(this IClientStreamWriter<T> streamWriter, IEnumerable<T> elements, bool close = true)
             where T : class
         {
             foreach (var element in elements)
             {
                 await streamWriter.Write(element);
             }
-            if (complete)
+            if (close)
             {
-                await streamWriter.Complete();
+                await streamWriter.Close();
             }
         }
 

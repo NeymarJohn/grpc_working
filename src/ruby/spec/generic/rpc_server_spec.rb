@@ -69,7 +69,7 @@ class EchoService
   end
 
   def an_rpc(req, call)
-    GRPC.logger.info('echo service received a request')
+    logger.info('echo service received a request')
     call.output_metadata.update(@trailing_metadata)
     @received_md << call.metadata unless call.metadata.nil?
     req
@@ -109,7 +109,7 @@ class SlowService
   end
 
   def an_rpc(req, call)
-    GRPC.logger.info("starting a slow #{@delay} rpc")
+    logger.info("starting a slow #{@delay} rpc")
     sleep @delay
     @received_md << call.metadata unless call.metadata.nil?
     req  # send back the req as the response

@@ -57,7 +57,7 @@ static id (^kIdentity)(id value) = ^id(id value) {
 }
 
 // Override
-- (void)writeValue:(id)value {
-  [super writeValue:_map(value)];
+- (void)didReceiveValue:(id)value {
+  [super didReceiveValue:_map(value)];
 }
 @end

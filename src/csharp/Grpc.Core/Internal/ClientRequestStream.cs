@@ -38,6 +38,8 @@ namespace Grpc.Core.Internal
     /// Writes requests asynchronously to an underlying AsyncCall object.
     /// </summary>
     internal class ClientRequestStream<TRequest, TResponse> : IClientStreamWriter<TRequest>
+        where TRequest : class
+        where TResponse : class
     {
         readonly AsyncCall<TRequest, TResponse> call;
 
@@ -53,7 +55,7 @@ namespace Grpc.Core.Internal
             return taskSource.Task;
         }
 
-        public Task Complete()
+        public Task Close()
         {
             var taskSource = new AsyncCompletionTaskSource<object>();
             call.StartSendCloseFromClient(taskSource.CompletionDelegate);

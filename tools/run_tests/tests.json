@@ -315,6 +315,15 @@
   {
     "flaky": false, 
     "language": "c", 
+    "name": "grpc_auth_context_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
     "name": "grpc_base64_test", 
     "platforms": [
       "windows", 
@@ -599,24 +608,6 @@
   {
     "flaky": false, 
     "language": "c++", 
-    "name": "async_streaming_ping_pong_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c++", 
-    "name": "async_unary_ping_pong_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c++", 
     "name": "channel_arguments_test", 
     "platforms": [
       "windows", 
@@ -690,24 +681,6 @@
     "flaky": false, 
     "language": "c++", 
     "name": "status_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c++", 
-    "name": "sync_streaming_ping_pong_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c++", 
-    "name": "sync_unary_ping_pong_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -951,15 +924,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_fake_security_request_with_payload_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_fake_security_server_finishes_request_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -1220,15 +1184,6 @@
   {
     "flaky": false, 
     "language": "c", 
-    "name": "chttp2_fullstack_server_finishes_request_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
     "name": "chttp2_fullstack_simple_delayed_request_test", 
     "platforms": [
       "windows", 
@@ -1449,14 +1404,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_with_payload_test", 
-    "platforms": [
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_server_finishes_request_test", 
     "platforms": [
       "posix"
     ]
@@ -1705,15 +1652,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_request_with_payload_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_simple_ssl_fullstack_server_finishes_request_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -1974,15 +1912,6 @@
   {
     "flaky": false, 
     "language": "c", 
-    "name": "chttp2_simple_ssl_with_oauth2_fullstack_server_finishes_request_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_simple_delayed_request_test", 
     "platforms": [
       "windows", 
@@ -2227,15 +2156,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_request_with_payload_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_socket_pair_server_finishes_request_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -2496,15 +2416,6 @@
   {
     "flaky": false, 
     "language": "c", 
-    "name": "chttp2_socket_pair_one_byte_at_a_time_server_finishes_request_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_test", 
     "platforms": [
       "windows", 
@@ -2757,15 +2668,6 @@
   {
     "flaky": false, 
     "language": "c", 
-    "name": "chttp2_socket_pair_with_grpc_trace_server_finishes_request_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_simple_delayed_request_test", 
     "platforms": [
       "windows", 
@@ -3009,15 +2911,6 @@
   {
     "flaky": false, 
     "language": "c", 
-    "name": "chttp2_fullstack_server_finishes_request_unsecure_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
     "name": "chttp2_fullstack_simple_delayed_request_unsecure_test", 
     "platforms": [
       "windows", 
@@ -3230,14 +3123,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_with_payload_unsecure_test", 
-    "platforms": [
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_server_finishes_request_unsecure_test", 
     "platforms": [
       "posix"
     ]
@@ -3477,15 +3362,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_request_with_payload_unsecure_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_socket_pair_server_finishes_request_unsecure_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -3737,15 +3613,6 @@
   {
     "flaky": false, 
     "language": "c", 
-    "name": "chttp2_socket_pair_one_byte_at_a_time_server_finishes_request_unsecure_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_unsecure_test", 
     "platforms": [
       "windows", 
@@ -3981,15 +3848,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_with_payload_unsecure_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_socket_pair_with_grpc_trace_server_finishes_request_unsecure_test", 
     "platforms": [
       "windows", 
       "posix"
