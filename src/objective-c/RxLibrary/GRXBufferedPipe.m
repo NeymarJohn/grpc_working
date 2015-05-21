@@ -62,7 +62,7 @@
 
 - (void)writeBufferUntilPausedOrStopped {
   while (_state == GRXWriterStateStarted && _queue.count > 0) {
-    [_writeable writeValue:[self popValue]];
+    [_writeable didReceiveValue:[self popValue]];
   }
   if (_inputIsFinished && _queue.count == 0) {
     // Our writer finished normally while we were paused or not-started-yet.
@@ -77,10 +77,10 @@
   return _state == GRXWriterStateStarted && _queue.count == 0;
 }
 
-- (void)writeValue:(id)value {
+- (void)didReceiveValue:(id)value {
   if (self.shouldFastForward) {
     // Skip the queue.
-    [_writeable writeValue:value];
+    [_writeable didReceiveValue:value];
   } else {
     // Even if we're paused and with enqueued values, we can't excert back-pressure to our writer.
     // So just buffer the new value.
@@ -92,7 +92,7 @@
   }
 }
 
-- (void)writesFinishedWithError:(NSError *)errorOrNil {
+- (void)didFinishWithError:(NSError *)errorOrNil {
   _inputIsFinished = YES;
   _errorOrNil = errorOrNil;
   if (errorOrNil || self.shouldFastForward) {
@@ -140,7 +140,7 @@
 - (void)finishWithError:(NSError *)errorOrNil {
   id<GRXWriteable> writeable = _writeable;
   self.state = GRXWriterStateFinished;
-  [writeable writesFinishedWithError:errorOrNil];
+  [writeable didFinishWithError:errorOrNil];
 }
 
 @end
