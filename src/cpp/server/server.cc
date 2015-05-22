@@ -149,7 +149,7 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
       }
       buf.AddServerSendStatus(&ctx_.trailing_metadata_, status);
       call_.PerformOps(&buf);
-      cq_.Pluck(&buf);  /* status ignored */
+      GPR_ASSERT(cq_.Pluck(&buf));
       void* ignored_tag;
       bool ignored_ok;
       cq_.Shutdown();
