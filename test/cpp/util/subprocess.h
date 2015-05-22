@@ -31,27 +31,31 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_UTIL_BENCHMARK_CONFIG_H
-#define GRPC_TEST_CPP_UTIL_BENCHMARK_CONFIG_H
+#ifndef GRPC_TEST_CPP_UTIL_SUBPROCESS_H
+#define GRPC_TEST_CPP_UTIL_SUBPROCESS_H
 
-#include <memory>
-#include <vector>
+#include <initializer_list>
+#include <string>
 
-#include "test/cpp/qps/report.h"
+struct gpr_subprocess;
 
 namespace grpc {
-namespace testing {
 
-void InitBenchmark(int* argc, char*** argv, bool remove_flags);
+class SubProcess {
+ public:
+  SubProcess(std::initializer_list<std::string> args);
+  ~SubProcess();
 
-/** Returns the benchmark Reporter instance.
- *
- * The returned instance will take care of generating reports for all the actual
- * reporters configured via the "enable_*_reporter" command line flags (see
- * benchmark_config.cc). */
-std::shared_ptr<Reporter> GetReporter();
+  int Join();
+  void Interrupt();
 
-}  // namespace testing
+ private:
+  SubProcess(const SubProcess& other);
+  SubProcess& operator=(const SubProcess& other);
+
+  gpr_subprocess* const subprocess_;
+};
+
 }  // namespace grpc
 
-#endif  // GRPC_TEST_CPP_UTIL_BENCHMARK_CONFIG_H
+#endif  // GRPC_TEST_CPP_UTIL_SUBPROCESS_H

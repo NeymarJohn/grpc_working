@@ -31,11 +31,22 @@
  *
  */
 
+#include <iostream>
+#include <memory>
+#include <string>
 #include <gflags/gflags.h>
-#include "test/cpp/util/benchmark_config.h"
 
-DEFINE_bool(enable_log_reporter, true,
-            "Enable reporting of benchmark results through GprLog");
+#include <grpc++/server.h>
+#include <grpc++/server_builder.h>
+#include <grpc++/server_context.h>
+#include <grpc++/server_credentials.h>
+#include <grpc++/status.h>
+#include "test/cpp/util/echo.grpc.pb.h"
+
+DEFINE_string(address, "", "Address to bind to");
+
+using grpc::cpp::test::util::EchoRequest;
+using grpc::cpp::test::util::EchoResponse;
 
 // In some distros, gflags is in the namespace google, and in some others,
 // in gflags. This hack is enabling us to find both.
@@ -47,23 +58,37 @@ using namespace gflags;
 namespace grpc {
 namespace testing {
 
-void InitBenchmark(int* argc, char*** argv, bool remove_flags) {
-  ParseCommandLineFlags(argc, argv, remove_flags);
-}
-
-static std::shared_ptr<Reporter> InitBenchmarkReporters() {
-  auto* composite_reporter = new CompositeReporter;
-  if (FLAGS_enable_log_reporter) {
-    composite_reporter->add(
-        std::unique_ptr<Reporter>(new GprLogReporter("LogReporter")));
+class ServiceImpl GRPC_FINAL : public ::grpc::cpp::test::util::TestService::Service {
+  Status BidiStream(ServerContext* context,
+                    ServerReaderWriter<EchoResponse, EchoRequest>* stream)
+      GRPC_OVERRIDE {
+    EchoRequest request;
+    EchoResponse response;
+    while (stream->Read(&request)) {
+      gpr_log(GPR_INFO, "recv msg %s", request.message().c_str());
+      response.set_message(request.message());
+      stream->Write(response);
+    }
+    return Status::OK;
   }
-  return std::shared_ptr<Reporter>(composite_reporter);
+};
+
+void RunServer() {
+  ServiceImpl service;
+
+  ServerBuilder builder;
+  builder.AddListeningPort(FLAGS_address, grpc::InsecureServerCredentials());
+  builder.RegisterService(&service);
+  std::unique_ptr<Server> server(builder.BuildAndStart());
+  std::cout << "Server listening on " << FLAGS_address << std::endl;
+  server->Wait();
+}
+}
 }
 
-std::shared_ptr<Reporter> GetReporter() {
-  static std::shared_ptr<Reporter> reporter(InitBenchmarkReporters());
-  return reporter;
-}
+int main(int argc, char** argv) {
+  ParseCommandLineFlags(&argc, &argv, true);
+  grpc::testing::RunServer();
 
-}  // namespace testing
-}  // namespace grpc
+  return 0;
+}
