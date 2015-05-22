@@ -291,15 +291,7 @@ function _read(size) {
       return;
     }
     var data = event.read;
-    var deserialized;
-    try {
-      deserialized = self.deserialize(data);
-    } catch (e) {
-      e.code = grpc.status.INVALID_ARGUMENT;
-      self.emit('error', e);
-      return;
-    }
-    if (self.push(deserialized) && data !== null) {
+    if (self.push(self.deserialize(data)) && data !== null) {
       var read_batch = {};
       read_batch[grpc.opType.RECV_MESSAGE] = true;
       self.call.startBatch(read_batch, readCallback);
@@ -362,13 +354,7 @@ function handleUnary(call, handler, metadata) {
       handleError(call, err);
       return;
     }
-    try {
-      emitter.request = handler.deserialize(result.read);
-    } catch (e) {
-      e.code = grpc.status.INVALID_ARGUMENT;
-      handleError(call, e);
-      return;
-    }
+    emitter.request = handler.deserialize(result.read);
     if (emitter.cancelled) {
       return;
     }
@@ -402,13 +388,7 @@ function handleServerStreaming(call, handler, metadata) {
       stream.emit('error', err);
       return;
     }
-    try {
-      stream.request = handler.deserialize(result.read);
-    } catch (e) {
-      e.code = grpc.status.INVALID_ARGUMENT;
-      stream.emit('error', e);
-      return;
-    }
+    stream.request = handler.deserialize(result.read);
     handler.func(stream);
   });
 }
@@ -421,9 +401,6 @@ function handleServerStreaming(call, handler, metadata) {
  */
 function handleClientStreaming(call, handler, metadata) {
   var stream = new ServerReadableStream(call, handler.deserialize);
-  stream.on('error', function(error) {
-    handleError(call, error);
-  });
   waitForCancel(call, stream);
   var metadata_batch = {};
   metadata_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;

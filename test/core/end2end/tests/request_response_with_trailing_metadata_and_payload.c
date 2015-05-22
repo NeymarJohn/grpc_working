@@ -164,27 +164,20 @@ static void test_request_response_with_metadata_and_payload(
   GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, &s,
                                                       &call_details,
                                                       &request_metadata_recv,
+<<<<<<< HEAD
+                                                      f.server_cq, tag(101)));
+  cq_expect_completion(v_server, tag(101), 1);
+=======
                                                       f.server_cq, f.server_cq,
                                                       tag(101)));
-  cq_expect_completion(v_server, tag(101), 1);
+  cq_expect_completion(v_server, tag(101), GRPC_OP_OK);
+>>>>>>> a468c36601dd5997580129bbd66b5ebed02521f8
   cq_verify(v_server);
 
   op = ops;
   op->op = GRPC_OP_SEND_INITIAL_METADATA;
   op->data.send_initial_metadata.count = 2;
   op->data.send_initial_metadata.metadata = meta_s;
-  op++;
-  op->op = GRPC_OP_RECV_MESSAGE;
-  op->data.recv_message = &request_payload_recv;
-  op++;
-  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_batch(s, ops, op - ops, tag(102)));
-
-  cq_expect_completion(v_server, tag(102), 1);
-  cq_verify(v_server);
-
-  op = ops;
-  op->op = GRPC_OP_RECV_CLOSE_ON_SERVER;
-  op->data.recv_close_on_server.cancelled = &was_cancelled;
   op++;
   op->op = GRPC_OP_SEND_MESSAGE;
   op->data.send_message = response_payload;
@@ -195,9 +188,15 @@ static void test_request_response_with_metadata_and_payload(
   op->data.send_status_from_server.status = GRPC_STATUS_OK;
   op->data.send_status_from_server.status_details = "xyz";
   op++;
-  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_batch(s, ops, op - ops, tag(103)));
+  op->op = GRPC_OP_RECV_MESSAGE;
+  op->data.recv_message = &request_payload_recv;
+  op++;
+  op->op = GRPC_OP_RECV_CLOSE_ON_SERVER;
+  op->data.recv_close_on_server.cancelled = &was_cancelled;
+  op++;
+  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_batch(s, ops, op - ops, tag(102)));
 
-  cq_expect_completion(v_server, tag(103), 1);
+  cq_expect_completion(v_server, tag(102), 1);
   cq_verify(v_server);
 
   cq_expect_completion(v_client, tag(1), 1);

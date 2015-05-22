@@ -44,11 +44,9 @@
 #include <thread>
 #include <deque>
 #include <vector>
-#include <unistd.h>
 #include "test/cpp/qps/histogram.h"
 #include "test/cpp/qps/qps_worker.h"
 #include "test/core/util/port.h"
-#include "test/core/util/test_config.h"
 
 using std::list;
 using std::thread;
@@ -77,21 +75,19 @@ static deque<string> get_hosts(const string& name) {
   }
 }
 
-std::unique_ptr<ScenarioResult> RunScenario(
-    const ClientConfig& initial_client_config, size_t num_clients,
-    const ServerConfig& server_config, size_t num_servers, int warmup_seconds,
-    int benchmark_seconds, int spawn_local_worker_count) {
+ScenarioResult RunScenario(const ClientConfig& initial_client_config,
+                           size_t num_clients,
+                           const ServerConfig& server_config,
+                           size_t num_servers,
+                           int warmup_seconds,
+                           int benchmark_seconds,
+                           int spawn_local_worker_count) {
   // ClientContext allocator (all are destroyed at scope exit)
   list<ClientContext> contexts;
   auto alloc_context = [&contexts]() {
     contexts.emplace_back();
     return &contexts.back();
   };
-
-  // To be added to the result, containing the final configuration used for
-  // client and config (incluiding host, etc.)
-  ClientConfig result_client_config;
-  ServerConfig result_server_config;
 
   // Get client, server lists
   auto workers = get_hosts("QPS_WORKERS");
@@ -100,16 +96,6 @@ std::unique_ptr<ScenarioResult> RunScenario(
   // Spawn some local workers if desired
   vector<unique_ptr<QpsWorker>> local_workers;
   for (int i = 0; i < abs(spawn_local_worker_count); i++) {
-    // act as if we're a new test -- gets a good rng seed
-    static bool called_init = false;
-    if (!called_init) {
-      char args_buf[100];
-      strcpy(args_buf, "some-benchmark");
-      char *args[] = {args_buf};
-      grpc_test_init(1, args);
-      called_init = true;
-    }
-
     int driver_port = grpc_pick_unused_port_or_die();
     int benchmark_port = grpc_pick_unused_port_or_die();
     local_workers.emplace_back(new QpsWorker(driver_port, benchmark_port));
@@ -141,8 +127,6 @@ std::unique_ptr<ScenarioResult> RunScenario(
     sd.stub = std::move(Worker::NewStub(
         CreateChannel(workers[i], InsecureCredentials(), ChannelArguments())));
     ServerArgs args;
-    result_server_config = server_config;
-    result_server_config.set_host(workers[i]);
     *args.mutable_setup() = server_config;
     sd.stream = std::move(sd.stub->RunServer(alloc_context()));
     GPR_ASSERT(sd.stream->Write(args));
@@ -172,8 +156,6 @@ std::unique_ptr<ScenarioResult> RunScenario(
     cd.stub = std::move(Worker::NewStub(CreateChannel(
         workers[i + num_servers], InsecureCredentials(), ChannelArguments())));
     ClientArgs args;
-    result_client_config = client_config;
-    result_client_config.set_host(workers[i + num_servers]);
     *args.mutable_setup() = client_config;
     cd.stream = std::move(cd.stub->RunTest(alloc_context()));
     GPR_ASSERT(cd.stream->Write(args));
@@ -214,9 +196,7 @@ std::unique_ptr<ScenarioResult> RunScenario(
   gpr_sleep_until(gpr_time_add(start, gpr_time_from_seconds(benchmark_seconds)));
 
   // Finish a run
-  std::unique_ptr<ScenarioResult> result(new ScenarioResult);
-  result->client_config = result_client_config;
-  result->server_config = result_server_config;
+  ScenarioResult result;
   gpr_log(GPR_INFO, "Finishing");
   for (auto server = servers.begin(); server != servers.end(); server++) {
     GPR_ASSERT(server->stream->Write(server_mark));
@@ -227,14 +207,14 @@ std::unique_ptr<ScenarioResult> RunScenario(
   for (auto server = servers.begin(); server != servers.end(); server++) {
     GPR_ASSERT(server->stream->Read(&server_status));
     const auto& stats = server_status.stats();
-    result->server_resources.push_back(ResourceUsage{
+    result.server_resources.push_back(ResourceUsage{
         stats.time_elapsed(), stats.time_user(), stats.time_system()});
   }
   for (auto client = clients.begin(); client != clients.end(); client++) {
     GPR_ASSERT(client->stream->Read(&client_status));
     const auto& stats = client_status.stats();
-    result->latencies.MergeProto(stats.latencies());
-    result->client_resources.push_back(ResourceUsage{
+    result.latencies.MergeProto(stats.latencies());
+    result.client_resources.push_back(ResourceUsage{
         stats.time_elapsed(), stats.time_user(), stats.time_system()});
   }
 

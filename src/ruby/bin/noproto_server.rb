@@ -63,7 +63,7 @@ class NoProto < NoProtoService
   end
 
   def an_rpc(req, _call)
-    GRPC.logger.info('echo service received a request')
+    logger.info('echo service received a request')
     req
   end
 end
@@ -98,10 +98,10 @@ def main
   s = GRPC::RpcServer.new
   if options['secure']
     s.add_http2_port(options['host'], test_server_creds)
-    GRPC.logger.info("... running securely on #{options['host']}")
+    logger.info("... running securely on #{options['host']}")
   else
     s.add_http2_port(options['host'])
-    GRPC.logger.info("... running insecurely on #{options['host']}")
+    logger.info("... running insecurely on #{options['host']}")
   end
 
   s.handle(NoProto)
