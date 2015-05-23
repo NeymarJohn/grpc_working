@@ -80,12 +80,10 @@ struct grpc_completion_queue {
 
 grpc_completion_queue *grpc_completion_queue_create(void) {
   grpc_completion_queue *cc = gpr_malloc(sizeof(grpc_completion_queue));
-  gpr_log(GPR_DEBUG, "%s: %p", __FUNCTION__, cc);
   memset(cc, 0, sizeof(*cc));
   /* Initial ref is dropped by grpc_completion_queue_shutdown */
   gpr_ref_init(&cc->refs, 1);
-  /* One for destroy(), one for pollset_shutdown */
-  gpr_ref_init(&cc->owning_refs, 2);
+  gpr_ref_init(&cc->owning_refs, 1);
   grpc_pollset_init(&cc->pollset);
   cc->allow_polling = 1;
   return cc;
@@ -93,22 +91,18 @@ grpc_completion_queue *grpc_completion_queue_create(void) {
 
 void grpc_cq_internal_ref(grpc_completion_queue *cc) {
   gpr_ref(&cc->owning_refs);
-  gpr_log(GPR_DEBUG, "%s: %p", __FUNCTION__, cc);
 }
 
 static void on_pollset_destroy_done(void *arg) {
   grpc_completion_queue *cc = arg;
-  gpr_log(GPR_DEBUG, "%s: %p", __FUNCTION__, cc);
-  grpc_cq_internal_unref(cc);
+  grpc_pollset_destroy(&cc->pollset);
+  gpr_free(cc);
 }
 
 void grpc_cq_internal_unref(grpc_completion_queue *cc) {
-  gpr_log(GPR_DEBUG, "%s: %p", __FUNCTION__, cc);
   if (gpr_unref(&cc->owning_refs)) {
-    gpr_log(GPR_DEBUG, "%s: %p", __FUNCTION__, cc);
     GPR_ASSERT(cc->queue == NULL);
-    grpc_pollset_destroy(&cc->pollset);
-    gpr_free(cc);
+    grpc_pollset_shutdown(&cc->pollset, on_pollset_destroy_done, cc);
   }
 }
 
@@ -123,7 +117,6 @@ static event *add_locked(grpc_completion_queue *cc, grpc_completion_type type,
                          void *tag, grpc_call *call) {
   event *ev = gpr_malloc(sizeof(event));
   gpr_uintptr bucket = ((gpr_uintptr)tag) % NUM_TAG_BUCKETS;
-  gpr_log(GPR_DEBUG, "%s: %p", __FUNCTION__, cc);
   ev->base.type = type;
   ev->base.tag = tag;
   if (cc->queue == NULL) {
@@ -146,34 +139,31 @@ static event *add_locked(grpc_completion_queue *cc, grpc_completion_type type,
 }
 
 void grpc_cq_begin_op(grpc_completion_queue *cc, grpc_call *call) {
-  gpr_log(GPR_DEBUG, "%s: %p", __FUNCTION__, cc);
   gpr_ref(&cc->refs);
   if (call) GRPC_CALL_INTERNAL_REF(call, "cq");
 }
 
 /* Signal the end of an operation - if this is the last waiting-to-be-queued
    event, then enter shutdown mode */
-void grpc_cq_end_op(grpc_completion_queue *cc, void *tag, grpc_call *call,
-                    int success) {
-  event *ev;
-  int shutdown = 0;
-  gpr_log(GPR_DEBUG, "%s: %p", __FUNCTION__, cc);
-  gpr_mu_lock(GRPC_POLLSET_MU(&cc->pollset));
-  ev = add_locked(cc, GRPC_OP_COMPLETE, tag, call);
-  ev->base.success = success;
+static void end_op_locked(grpc_completion_queue *cc,
+                          grpc_completion_type type) {
   if (gpr_unref(&cc->refs)) {
     GPR_ASSERT(!cc->shutdown);
     GPR_ASSERT(cc->shutdown_called);
     cc->shutdown = 1;
     gpr_cv_broadcast(GRPC_POLLSET_CV(&cc->pollset));
-    shutdown = 1;
   }
+}
+
+void grpc_cq_end_op(grpc_completion_queue *cc, void *tag, grpc_call *call,
+                    int success) {
+  event *ev;
+  gpr_mu_lock(GRPC_POLLSET_MU(&cc->pollset));
+  ev = add_locked(cc, GRPC_OP_COMPLETE, tag, call);
+  ev->base.success = success;
+  end_op_locked(cc, GRPC_OP_COMPLETE);
   gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
   if (call) GRPC_CALL_INTERNAL_UNREF(call, "cq", 0);
-  gpr_log(GPR_DEBUG, "shutdown=%d", shutdown);
-  if (shutdown) {
-    grpc_pollset_shutdown(&cc->pollset, on_pollset_destroy_done, cc);
-  }
 }
 
 /* Create a GRPC_QUEUE_SHUTDOWN event without queuing it anywhere */
@@ -189,8 +179,6 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
   event *ev = NULL;
   grpc_event ret;
 
-  gpr_log(GPR_DEBUG, "%s: %p", __FUNCTION__, cc);
-  grpc_cq_internal_ref(cc);
   gpr_mu_lock(GRPC_POLLSET_MU(&cc->pollset));
   for (;;) {
     if (cc->queue != NULL) {
@@ -226,7 +214,6 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
       memset(&ret, 0, sizeof(ret));
       ret.type = GRPC_QUEUE_TIMEOUT;
       GRPC_SURFACE_TRACE_RETURNED_EVENT(cc, &ret);
-      grpc_cq_internal_unref(cc);
       return ret;
     }
   }
@@ -234,7 +221,6 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
   ret = ev->base;
   gpr_free(ev);
   GRPC_SURFACE_TRACE_RETURNED_EVENT(cc, &ret);
-  grpc_cq_internal_unref(cc);
   return ret;
 }
 
@@ -272,8 +258,6 @@ grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
   event *ev = NULL;
   grpc_event ret;
 
-  gpr_log(GPR_DEBUG, "%s: %p", __FUNCTION__, cc);
-  grpc_cq_internal_ref(cc);
   gpr_mu_lock(GRPC_POLLSET_MU(&cc->pollset));
   for (;;) {
     if ((ev = pluck_event(cc, tag))) {
@@ -292,7 +276,6 @@ grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
       memset(&ret, 0, sizeof(ret));
       ret.type = GRPC_QUEUE_TIMEOUT;
       GRPC_SURFACE_TRACE_RETURNED_EVENT(cc, &ret);
-      grpc_cq_internal_unref(cc);
       return ret;
     }
   }
@@ -300,14 +283,12 @@ grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
   ret = ev->base;
   gpr_free(ev);
   GRPC_SURFACE_TRACE_RETURNED_EVENT(cc, &ret);
-  grpc_cq_internal_unref(cc);
   return ret;
 }
 
 /* Shutdown simply drops a ref that we reserved at creation time; if we drop
    to zero here, then enter shutdown mode and wake up any waiters */
 void grpc_completion_queue_shutdown(grpc_completion_queue *cc) {
-  gpr_log(GPR_DEBUG, "%s: %p", __FUNCTION__, cc);
   gpr_mu_lock(GRPC_POLLSET_MU(&cc->pollset));
   cc->shutdown_called = 1;
   gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
@@ -318,12 +299,10 @@ void grpc_completion_queue_shutdown(grpc_completion_queue *cc) {
     cc->shutdown = 1;
     gpr_cv_broadcast(GRPC_POLLSET_CV(&cc->pollset));
     gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
-    grpc_pollset_shutdown(&cc->pollset, on_pollset_destroy_done, cc);
   }
 }
 
 void grpc_completion_queue_destroy(grpc_completion_queue *cc) {
-  gpr_log(GPR_DEBUG, "%s: %p", __FUNCTION__, cc);
   grpc_cq_internal_unref(cc);
 }
 
