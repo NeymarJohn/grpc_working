@@ -76,7 +76,7 @@ module GRPC
       @jobs = Queue.new
       @size = size
       @stopped = false
-      @stop_mutex = Mutex.new # needs to be held when accessing @stopped
+      @stop_mutex = Mutex.new
       @stop_cond = ConditionVariable.new
       @workers = []
       @keep_alive = keep_alive
@@ -92,15 +92,10 @@ module GRPC
     # @param args the args passed blk when it is called
     # @param blk the block to call
     def schedule(*args, &blk)
+      fail 'already stopped' if @stopped
       return if blk.nil?
-      @stop_mutex.synchronize do
-        if @stopped
-          GRPC.logger.warn('did not schedule job, already stopped')
-          return
-        end
-        GRPC.logger.info('schedule another job')
-        @jobs << [blk, args]
-      end
+      GRPC.logger.info('schedule another job')
+      @jobs << [blk, args]
     end
 
     # Starts running the jobs in the thread pool.
@@ -121,8 +116,8 @@ module GRPC
     def stop
       GRPC.logger.info('stopping, will wait for all the workers to exit')
       @workers.size.times { schedule { throw :exit } }
+      @stopped = true
       @stop_mutex.synchronize do  # wait @keep_alive for works to stop
-        @stopped = true
         @stop_cond.wait(@stop_mutex, @keep_alive) if @workers.size > 0
       end
       forcibly_stop_workers
@@ -254,18 +249,15 @@ module GRPC
                    server_override:nil,
                    connect_md_proc:nil,
                    **kw)
-      @connect_md_proc = RpcServer.setup_connect_md_proc(connect_md_proc)
       @cq = RpcServer.setup_cq(completion_queue_override)
+      @server = RpcServer.setup_srv(server_override, @cq, **kw)
+      @connect_md_proc = RpcServer.setup_connect_md_proc(connect_md_proc)
+      @pool_size = pool_size
       @max_waiting_requests = max_waiting_requests
       @poll_period = poll_period
-      @pool_size = pool_size
-      @pool = Pool.new(@pool_size)
-      @run_cond = ConditionVariable.new
       @run_mutex = Mutex.new
-      @running = false
-      @server = RpcServer.setup_srv(server_override, @cq, **kw)
-      @stopped = false
-      @stop_mutex = Mutex.new
+      @run_cond = ConditionVariable.new
+      @pool = Pool.new(@pool_size)
     end
 
     # stops a running server
@@ -274,23 +266,20 @@ module GRPC
     # server's current call loop is it's last.
     def stop
       return unless @running
-      @stop_mutex.synchronize do
-        @stopped = true
-      end
+      @stopped = true
       @pool.stop
-      @server.close
-    end
 
-    # determines if the server has been stopped
-    def stopped?
-      @stop_mutex.synchronize do
-        return @stopped
-      end
+      # TODO: uncomment this:
+      #
+      # This segfaults in the c layer, so its commented out for now.  Shutdown
+      # still occurs, but the c layer has to do the cleanup.
+      #
+      # @server.close
     end
 
     # determines if the server is currently running
     def running?
-      @running
+      @running ||= false
     end
 
     # Is called from other threads to wait for #run to start up the server.
@@ -320,6 +309,11 @@ module GRPC
       end
       stop
       t.join
+    end
+
+    # Determines if the server is currently stopped
+    def stopped?
+      @stopped ||= false
     end
 
     # handle registration of classes
@@ -413,13 +407,7 @@ module GRPC
       request_call_tag = Object.new
       until stopped?
         deadline = from_relative_time(@poll_period)
-        begin
-          an_rpc = @server.request_call(@cq, request_call_tag, deadline)
-        rescue Core::CallError, RuntimeError => e
-          # can happen during server shutdown
-          GRPC.logger.warn("server call failed: #{e}")
-          next
-        end
+        an_rpc = @server.request_call(@cq, request_call_tag, deadline)
         c = new_active_server_call(an_rpc)
         unless c.nil?
           mth = an_rpc.method.to_sym

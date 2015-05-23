@@ -212,12 +212,8 @@ describe GRPC::RpcServer do
 
   describe '#stopped?' do
     before(:each) do
-      opts = { a_channel_arg: 'an_arg', poll_period: 1.5 }
+      opts = { a_channel_arg: 'an_arg', poll_period: 1 }
       @srv = RpcServer.new(**opts)
-    end
-
-    after(:each) do
-      @srv.stop
     end
 
     it 'starts out false' do
@@ -229,7 +225,7 @@ describe GRPC::RpcServer do
       expect(@srv.stopped?).to be(false)
     end
 
-    it 'stays false after the server starts running', server: true do
+    it 'stays false after the server starts running' do
       @srv.handle(EchoService)
       t = Thread.new { @srv.run }
       @srv.wait_till_running
@@ -238,7 +234,7 @@ describe GRPC::RpcServer do
       t.join
     end
 
-    it 'is true after a running server is stopped', server: true do
+    it 'is true after a running server is stopped' do
       @srv.handle(EchoService)
       t = Thread.new { @srv.run }
       @srv.wait_till_running
@@ -255,22 +251,21 @@ describe GRPC::RpcServer do
       expect(r.running?).to be(false)
     end
 
-    it 'is false if run is called with no services registered', server: true do
+    it 'is false after run is called with no services registered' do
       opts = {
         a_channel_arg: 'an_arg',
-        poll_period: 2,
+        poll_period: 1,
         server_override: @server
       }
       r = RpcServer.new(**opts)
       r.run
       expect(r.running?).to be(false)
-      r.stop
     end
 
     it 'is true after run is called with a registered service' do
       opts = {
         a_channel_arg: 'an_arg',
-        poll_period: 2.5,
+        poll_period: 1,
         server_override: @server
       }
       r = RpcServer.new(**opts)
@@ -287,10 +282,6 @@ describe GRPC::RpcServer do
     before(:each) do
       @opts = { a_channel_arg: 'an_arg', poll_period: 1 }
       @srv = RpcServer.new(**@opts)
-    end
-
-    after(:each) do
-      @srv.stop
     end
 
     it 'raises if #run has already been called' do
@@ -344,10 +335,6 @@ describe GRPC::RpcServer do
         @srv = RpcServer.new(**server_opts)
       end
 
-      after(:each) do
-        @srv.stop
-      end
-
       it 'should return NOT_FOUND status on unknown methods', server: true do
         @srv.handle(EchoService)
         t = Thread.new { @srv.run }
@@ -389,7 +376,7 @@ describe GRPC::RpcServer do
         t.join
       end
 
-      it 'should receive metadata if a deadline is specified', server: true do
+      it 'should receive metadata when a deadline is specified', server: true do
         service = SlowService.new
         @srv.handle(service)
         t = Thread.new { @srv.run }
@@ -458,11 +445,11 @@ describe GRPC::RpcServer do
 
       it 'should handle multiple parallel requests', server: true do
         @srv.handle(EchoService)
-        t = Thread.new { @srv.run }
+        Thread.new { @srv.run }
         @srv.wait_till_running
         req, q = EchoMsg.new, Queue.new
         n = 5  # arbitrary
-        threads = [t]
+        threads = []
         n.times do
           threads << Thread.new do
             stub = EchoStub.new(@host, **client_opts)
@@ -485,7 +472,7 @@ describe GRPC::RpcServer do
         }
         alt_srv = RpcServer.new(**opts)
         alt_srv.handle(SlowService)
-        t = Thread.new { alt_srv.run }
+        Thread.new { alt_srv.run }
         alt_srv.wait_till_running
         req = EchoMsg.new
         n = 5  # arbitrary, use as many to ensure the server pool is exceeded
@@ -503,7 +490,6 @@ describe GRPC::RpcServer do
         end
         threads.each(&:join)
         alt_srv.stop
-        t.join
         expect(one_failed_as_unavailable).to be(true)
       end
     end
@@ -525,10 +511,6 @@ describe GRPC::RpcServer do
           connect_md_proc: test_md_proc
         }
         @srv = RpcServer.new(**server_opts)
-      end
-
-      after(:each) do
-        @srv.stop
       end
 
       it 'should send connect metadata to the client', server: true do
@@ -561,10 +543,6 @@ describe GRPC::RpcServer do
           poll_period: 1
         }
         @srv = RpcServer.new(**server_opts)
-      end
-
-      after(:each) do
-        @srv.stop
       end
 
       it 'should be added to BadStatus when requests fail', server: true do
