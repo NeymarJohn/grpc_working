@@ -44,11 +44,12 @@ namespace Grpc.Core
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface IAsyncStreamWriter<T>
+        where T : class
     {
         /// <summary>
-        /// Writes a single asynchronously. Only one write can be pending at a time.
+        /// Writes a single message. Only one write can be pending at a time.
         /// </summary>
         /// <param name="message">the message to be written. Cannot be null.</param>
-        Task WriteAsync(T message);
+        Task Write(T message);
     }
 }

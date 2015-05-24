@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/bin/sh
+
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,7 +29,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""This is used by run_tests.py to create cpu load on a machine"""
+set -ex
 
-while True:
-	pass
+# change to grpc repo root
+cd $(dirname $0)/../..
+
+for i in tools/doxygen/Doxyfile.*
+do
+	doxygen $i
+done

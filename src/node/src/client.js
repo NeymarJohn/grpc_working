@@ -81,8 +81,7 @@ function _write(chunk, encoding, callback) {
   batch[grpc.opType.SEND_MESSAGE] = this.serialize(chunk);
   this.call.startBatch(batch, function(err, event) {
     if (err) {
-      // Something has gone wrong. Stop writing by failing to call callback
-      return;
+      throw err;
     }
     callback();
   });
@@ -121,8 +120,10 @@ function _read(size) {
    */
   function readCallback(err, event) {
     if (err) {
-      // Something has gone wrong. Stop reading and wait for status
-      self.finished = true;
+      throw err;
+    }
+    if (self.finished) {
+      self.push(null);
       return;
     }
     var data = event.read;
@@ -236,6 +237,10 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
       client_batch[grpc.opType.RECV_MESSAGE] = true;
       client_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
       call.startBatch(client_batch, function(err, response) {
+        if (err) {
+          callback(err);
+          return;
+        }
         emitter.emit('status', response.status);
         if (response.status.code !== grpc.status.OK) {
           var error = new Error(response.status.details);
@@ -243,12 +248,6 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
           error.metadata = response.status.metadata;
           callback(error);
           return;
-        } else {
-          if (err) {
-            // Got a batch error, but OK status. Something went wrong
-            callback(err);
-            return;
-          }
         }
         emitter.emit('metadata', response.metadata);
         callback(null, deserialize(response.read));
@@ -301,8 +300,7 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
       metadata_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
       call.startBatch(metadata_batch, function(err, response) {
         if (err) {
-          // The call has stopped for some reason. A non-OK status will arrive
-          // in the other batch.
+          callback(err);
           return;
         }
         stream.emit('metadata', response.metadata);
@@ -311,6 +309,10 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
       client_batch[grpc.opType.RECV_MESSAGE] = true;
       client_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
       call.startBatch(client_batch, function(err, response) {
+        if (err) {
+          callback(err);
+          return;
+        }
         stream.emit('status', response.status);
         if (response.status.code !== grpc.status.OK) {
           var error = new Error(response.status.details);
@@ -318,12 +320,6 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
           error.metadata = response.status.metadata;
           callback(error);
           return;
-        } else {
-          if (err) {
-            // Got a batch error, but OK status. Something went wrong
-            callback(err);
-            return;
-          }
         }
         callback(null, deserialize(response.read));
       });
@@ -377,15 +373,16 @@ function makeServerStreamRequestFunction(method, serialize, deserialize) {
       start_batch[grpc.opType.SEND_CLOSE_FROM_CLIENT] = true;
       call.startBatch(start_batch, function(err, response) {
         if (err) {
-          // The call has stopped for some reason. A non-OK status will arrive
-          // in the other batch.
-          return;
+          throw err;
         }
         stream.emit('metadata', response.metadata);
       });
       var status_batch = {};
       status_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
       call.startBatch(status_batch, function(err, response) {
+        if (err) {
+          throw err;
+        }
         stream.emit('status', response.status);
         if (response.status.code !== grpc.status.OK) {
           var error = new Error(response.status.details);
@@ -393,12 +390,6 @@ function makeServerStreamRequestFunction(method, serialize, deserialize) {
           error.metadata = response.status.metadata;
           stream.emit('error', error);
           return;
-        } else {
-          if (err) {
-            // Got a batch error, but OK status. Something went wrong
-            stream.emit('error', err);
-            return;
-          }
         }
       });
     });
@@ -447,15 +438,16 @@ function makeBidiStreamRequestFunction(method, serialize, deserialize) {
       start_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
       call.startBatch(start_batch, function(err, response) {
         if (err) {
-          // The call has stopped for some reason. A non-OK status will arrive
-          // in the other batch.
-          return;
+          throw err;
         }
         stream.emit('metadata', response.metadata);
       });
       var status_batch = {};
       status_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
       call.startBatch(status_batch, function(err, response) {
+        if (err) {
+          throw err;
+        }
         stream.emit('status', response.status);
         if (response.status.code !== grpc.status.OK) {
           var error = new Error(response.status.details);
@@ -463,12 +455,6 @@ function makeBidiStreamRequestFunction(method, serialize, deserialize) {
           error.metadata = response.status.metadata;
           stream.emit('error', error);
           return;
-        } else {
-          if (err) {
-            // Got a batch error, but OK status. Something went wrong
-            stream.emit('error', err);
-            return;
-          }
         }
       });
     });

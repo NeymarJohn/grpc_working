@@ -49,14 +49,14 @@ namespace Grpc.Core.Internal
             this.call = call;
         }
 
-        public Task WriteAsync(TResponse message)
+        public Task Write(TResponse message)
         {
             var taskSource = new AsyncCompletionTaskSource<object>();
             call.StartSendMessage(message, taskSource.CompletionDelegate);
             return taskSource.Task;
         }
 
-        public Task WriteStatusAsync(Status status)
+        public Task WriteStatus(Status status)
         {
             var taskSource = new AsyncCompletionTaskSource<object>();
             call.StartSendStatusFromServer(status, taskSource.CompletionDelegate);

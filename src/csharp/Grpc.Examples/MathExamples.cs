@@ -51,13 +51,18 @@ namespace math
             Console.WriteLine("DivAsync Result: " + result);
         }
 
+        public static async Task DivAsyncWithCancellationExample(Math.IMathClient stub)
+        {
+            Task<DivReply> resultTask = stub.DivAsync(new DivArgs.Builder { Dividend = 4, Divisor = 5 }.Build());
+            DivReply result = await resultTask;
+            Console.WriteLine(result);
+        }
+
         public static async Task FibExample(Math.IMathClient stub)
         {
-            using (var call = stub.Fib(new FibArgs.Builder { Limit = 5 }.Build()))
-            {
-                List<Num> result = await call.ResponseStream.ToList();
-                Console.WriteLine("Fib Result: " + string.Join("|", result));
-            }
+            var call = stub.Fib(new FibArgs.Builder { Limit = 5 }.Build());
+            List<Num> result = await call.ResponseStream.ToList();
+            Console.WriteLine("Fib Result: " + string.Join("|", result));
         }
 
         public static async Task SumExample(Math.IMathClient stub)
@@ -69,11 +74,9 @@ namespace math
                 new Num.Builder { Num_ = 3 }.Build()
             };
 
-            using (var call = stub.Sum())
-            {
-                await call.RequestStream.WriteAll(numbers);
-                Console.WriteLine("Sum Result: " + await call.Result);
-            }
+            var call = stub.Sum();
+            await call.RequestStream.WriteAll(numbers);
+            Console.WriteLine("Sum Result: " + await call.Result);
         }
 
         public static async Task DivManyExample(Math.IMathClient stub)
@@ -84,11 +87,9 @@ namespace math
                 new DivArgs.Builder { Dividend = 100, Divisor = 21 }.Build(),
                 new DivArgs.Builder { Dividend = 7, Divisor = 2 }.Build()
             };
-            using (var call = stub.DivMany())
-            { 
-                await call.RequestStream.WriteAll(divArgsList);
-                Console.WriteLine("DivMany Result: " + string.Join("|", await call.ResponseStream.ToList()));
-            }
+            var call = stub.DivMany();
+            await call.RequestStream.WriteAll(divArgsList);
+            Console.WriteLine("DivMany Result: " + string.Join("|", await call.ResponseStream.ToList()));
         }
 
         public static async Task DependendRequestsExample(Math.IMathClient stub)
@@ -100,12 +101,9 @@ namespace math
                 new Num.Builder { Num_ = 3 }.Build()
             };
 
-            Num sum;
-            using (var sumCall = stub.Sum())
-            {
-                await sumCall.RequestStream.WriteAll(numbers);
-                sum = await sumCall.Result;
-            }
+            var sumCall = stub.Sum();
+            await sumCall.RequestStream.WriteAll(numbers);
+            Num sum = await sumCall.Result;
 
             DivReply result = await stub.DivAsync(new DivArgs.Builder { Dividend = sum.Num_, Divisor = numbers.Count }.Build());
             Console.WriteLine("Avg Result: " + result);
