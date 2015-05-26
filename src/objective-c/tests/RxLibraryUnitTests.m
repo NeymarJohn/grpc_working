@@ -31,25 +31,35 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
+#import <UIKit/UIKit.h>
+#import <XCTest/XCTest.h>
 
-#include "src/core/iomgr/fd_posix.h"
-#include "src/core/iomgr/pollset_posix.h"
+@interface RxLibraryUnitTests : XCTestCase
 
-typedef struct grpc_pollset_set {
-  gpr_mu mu;
+@end
 
-  size_t pollset_count;
-  size_t pollset_capacity;
-  grpc_pollset **pollsets;
+@implementation RxLibraryUnitTests
 
-  size_t fd_count;
-  size_t fd_capacity;
-  grpc_fd **fds;
-} grpc_pollset_set;
+- (void)setUp {
+    [super setUp];
+    // Put setup code here. This method is called before the invocation of each test method in the class.
+}
 
-void grpc_pollset_set_add_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
-void grpc_pollset_set_del_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
+- (void)tearDown {
+    // Put teardown code here. This method is called after the invocation of each test method in the class.
+    [super tearDown];
+}
 
-#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */
+- (void)testExample {
+    // This is an example of a functional test case.
+    XCTAssert(YES, @"Pass");
+}
+
+- (void)testPerformanceExample {
+    // This is an example of a performance test case.
+    [self measureBlock:^{
+        // Put the code you want to measure the time of here.
+    }];
+}
+
+@end
