@@ -31,11 +31,29 @@
  *
  */
 
-#include <grpc/census.h>
-#include "src/core/census/grpc_context.h"
+#import <Foundation/Foundation.h>
 
-void *grpc_census_context_create() { return census_context_deserialize(NULL); }
+#import "GRXWriteable.h"
+#import "GRXWriter.h"
 
-void grpc_census_context_destroy(void *context) {
-  census_context_destroy((census_context *)context);
-}
+// A buffered pipe is a Writeable that also acts as a Writer (to whichever other writeable is passed
+// to -startWithWriteable:).
+// Once it is started, whatever values are written into it (via -writeValue:) will be propagated
+// immediately, unless flow control prevents it.
+// If it is throttled and keeps receiving values, as well as if it receives values before being
+// started, it will buffer them and propagate them in order as soon as its state becomes
+// GRXWriterStateStarted.
+// If it receives an error (via -writesFinishedWithError:), it will drop any buffered values and
+// propagate the error immediately.
+//
+// Beware that a pipe of this type can't prevent receiving more values when it is paused (for
+// example if used to write data to a congested network connection). Because in such situations the
+// pipe will keep buffering all data written to it, your application could run out of memory and
+// crash. If you want to react to flow control signals to prevent that, instead of using this class
+// you can implement an object that conforms to GRXWriter.
+@interface GRXBufferedPipe : NSObject<GRXWriteable, GRXWriter>
+
+// Convenience constructor.
++ (instancetype)pipe;
+
+@end
