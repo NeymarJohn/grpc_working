@@ -665,7 +665,7 @@ void *grpc_server_register_method(grpc_server *server, const char *method,
                                   const char *host) {
   registered_method *m;
   if (!method) {
-    gpr_log(GPR_ERROR, "%s method string cannot be NULL", __FUNCTION__);
+    gpr_log(GPR_ERROR, "grpc_server_register_method method string cannot be NULL");
     return NULL;
   }
   for (m = server->registered_methods; m; m = m->next) {
@@ -931,6 +931,7 @@ void grpc_server_destroy(grpc_server *server) {
       grpc_cq_hack_spin_pollset(server->cqs[i]);
     }
 
+    /* delay execution some, and return early */
     grpc_iomgr_add_callback(continue_server_shutdown, server);
     return;
   }
@@ -943,7 +944,6 @@ void grpc_server_destroy(grpc_server *server) {
 
   while ((calld = call_list_remove_head(&server->lists[PENDING_START],
                                         PENDING_START)) != NULL) {
-    gpr_log(GPR_DEBUG, "server destroys call %p", calld->call);
     calld->state = ZOMBIED;
     grpc_iomgr_add_callback(
         kill_zombie,
