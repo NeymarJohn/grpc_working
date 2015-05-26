@@ -371,6 +371,19 @@ static void kill_zombie(void *elem, int success) {
   grpc_call_destroy(grpc_call_from_top_element(elem));
 }
 
+static void maybe_finish_shutdown(grpc_server *server) {
+  size_t i, j;
+  if (server->shutdown && server->lists[ALL_CALLS] == NULL) {
+    for (j = 0; j < server->cq_count; j++) {
+      grpc_cq_end_silent_op(server->cqs[j]);
+      for (i = 0; i < server->num_shutdown_tags; i++) {
+        grpc_cq_end_op(server->cqs[j], server->shutdown_tags[i],
+                       NULL, 1);
+      }
+    }
+  }
+}
+
 static grpc_mdelem *server_filter(void *user_data, grpc_mdelem *md) {
   grpc_call_element *elem = user_data;
   channel_data *chand = elem->channel_data;
@@ -430,6 +443,8 @@ static void server_on_recv(void *ptr, int success) {
         calld->state = ZOMBIED;
         grpc_iomgr_add_callback(kill_zombie, elem);
       }
+      call_list_remove(calld, ALL_CALLS);
+      maybe_finish_shutdown(chand->server);
       gpr_mu_unlock(&chand->server->mu);
       break;
   }
@@ -526,20 +541,13 @@ static void init_call_elem(grpc_call_element *elem,
 static void destroy_call_elem(grpc_call_element *elem) {
   channel_data *chand = elem->channel_data;
   call_data *calld = elem->call_data;
-  size_t i, j;
+  size_t i;
 
   gpr_mu_lock(&chand->server->mu);
   for (i = 0; i < CALL_LIST_COUNT; i++) {
     call_list_remove(elem->call_data, i);
   }
-  if (chand->server->shutdown && chand->server->lists[ALL_CALLS] == NULL) {
-    for (i = 0; i < chand->server->num_shutdown_tags; i++) {
-      for (j = 0; j < chand->server->cq_count; j++) {
-        grpc_cq_end_op(chand->server->cqs[j], chand->server->shutdown_tags[i],
-                       NULL, 1);
-      }
-    }
-  }
+  maybe_finish_shutdown(chand->server);
   gpr_mu_unlock(&chand->server->mu);
 
   if (calld->host) {
@@ -800,7 +808,7 @@ static void shutdown_internal(grpc_server *server, gpr_uint8 have_shutdown_tag,
   channel_data **channels;
   channel_data *c;
   size_t nchannels;
-  size_t i, j;
+  size_t i;
   grpc_channel_op op;
   grpc_channel_element *elem;
   registered_method *rm;
@@ -819,6 +827,10 @@ static void shutdown_internal(grpc_server *server, gpr_uint8 have_shutdown_tag,
   if (server->shutdown) {
     gpr_mu_unlock(&server->mu);
     return;
+  }
+
+  for (i = 0; i < server->cq_count; i++) {
+    grpc_cq_begin_silent_op(server->cqs[i]);
   }
 
   nchannels = 0;
@@ -856,13 +868,7 @@ static void shutdown_internal(grpc_server *server, gpr_uint8 have_shutdown_tag,
   }
 
   server->shutdown = 1;
-  if (server->lists[ALL_CALLS] == NULL) {
-    for (i = 0; i < server->num_shutdown_tags; i++) {
-      for (j = 0; j < server->cq_count; j++) {
-        grpc_cq_end_op(server->cqs[j], server->shutdown_tags[i], NULL, 1);
-      }
-    }
-  }
+  maybe_finish_shutdown(server);
   gpr_mu_unlock(&server->mu);
 
   for (i = 0; i < nchannels; i++) {
@@ -908,6 +914,10 @@ void grpc_server_listener_destroy_done(void *s) {
   gpr_mu_unlock(&server->mu);
 }
 
+static void continue_server_shutdown(void *server, int iomgr_success) {
+  grpc_server_destroy(server);
+}
+
 void grpc_server_destroy(grpc_server *server) {
   channel_data *c;
   listener *l;
@@ -921,15 +931,15 @@ void grpc_server_destroy(grpc_server *server) {
     gpr_mu_lock(&server->mu);
   }
 
-  while (server->listeners_destroyed != num_listeners(server)) {
+  if (server->listeners_destroyed != num_listeners(server)) {
+    gpr_mu_unlock(&server->mu);
     for (i = 0; i < server->cq_count; i++) {
-      gpr_mu_unlock(&server->mu);
       grpc_cq_hack_spin_pollset(server->cqs[i]);
-      gpr_mu_lock(&server->mu);
     }
 
-    gpr_cv_wait(&server->cv, &server->mu,
-                gpr_time_add(gpr_now(), gpr_time_from_millis(100)));
+    /* delay execution some, and return early */
+    grpc_iomgr_add_callback(continue_server_shutdown, server);
+    return;
   }
 
   while (server->listeners) {
@@ -940,7 +950,6 @@ void grpc_server_destroy(grpc_server *server) {
 
   while ((calld = call_list_remove_head(&server->lists[PENDING_START],
                                         PENDING_START)) != NULL) {
-    gpr_log(GPR_DEBUG, "server destroys call %p", calld->call);
     calld->state = ZOMBIED;
     grpc_iomgr_add_callback(
         kill_zombie,
