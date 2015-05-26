@@ -665,7 +665,7 @@ void *grpc_server_register_method(grpc_server *server, const char *method,
                                   const char *host) {
   registered_method *m;
   if (!method) {
-    gpr_log(GPR_ERROR, "grpc_server_register_method method string cannot be NULL");
+    gpr_log(GPR_ERROR, "%s method string cannot be NULL", __FUNCTION__);
     return NULL;
   }
   for (m = server->registered_methods; m; m = m->next) {
@@ -908,6 +908,10 @@ void grpc_server_listener_destroy_done(void *s) {
   gpr_mu_unlock(&server->mu);
 }
 
+static void continue_server_shutdown(void *server, int iomgr_success) {
+  grpc_server_destroy(server);
+}
+
 void grpc_server_destroy(grpc_server *server) {
   channel_data *c;
   listener *l;
@@ -921,15 +925,14 @@ void grpc_server_destroy(grpc_server *server) {
     gpr_mu_lock(&server->mu);
   }
 
-  while (server->listeners_destroyed != num_listeners(server)) {
+  if (server->listeners_destroyed != num_listeners(server)) {
+    gpr_mu_unlock(&server->mu);
     for (i = 0; i < server->cq_count; i++) {
-      gpr_mu_unlock(&server->mu);
       grpc_cq_hack_spin_pollset(server->cqs[i]);
-      gpr_mu_lock(&server->mu);
     }
 
-    gpr_cv_wait(&server->cv, &server->mu,
-                gpr_time_add(gpr_now(), gpr_time_from_millis(100)));
+    grpc_iomgr_add_callback(continue_server_shutdown, server);
+    return;
   }
 
   while (server->listeners) {
@@ -1128,12 +1131,3 @@ static void publish_registered_or_batch(grpc_call *call, int success,
 const grpc_channel_args *grpc_server_get_channel_args(grpc_server *server) {
   return server->channel_args;
 }
-
-int grpc_server_has_open_connections(grpc_server *server) {
-  int r;
-  gpr_mu_lock(&server->mu);
-  r = server->root_channel_data.next != &server->root_channel_data;
-  gpr_mu_unlock(&server->mu);
-  return r;
-}
-
