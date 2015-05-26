@@ -41,14 +41,13 @@
 #import <Route_guide/RouteGuide.pbobjc.h>
 #import <Route_guide/RouteGuide.pbrpc.h>
 
-// These tests require the gRPC-Java "RouteGuide" sample server to be running locally. To do so,
-// install Gradle by following the instructions here: https://docs.gradle.org/current/userguide/installation.html
-// And use it to run the server by following the instructions here: https://github.com/grpc/grpc-java/tree/master/examples
-
-@interface LocalClearTextTests : XCTestCase
+@interface SampleTests : XCTestCase
 @end
 
-@implementation LocalClearTextTests
+// These tests require the gRPC-Java "RouteGuide" sample server to be running locally. Install the
+// gRPC-Java library following the instructions here: https://github.com/grpc/grpc-java And run the
+// server by following the instructions here: https://github.com/grpc/grpc-java/tree/master/examples
+@implementation SampleTests
 
 - (void)testConnectionToLocalServer {
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"Server reachable."];
