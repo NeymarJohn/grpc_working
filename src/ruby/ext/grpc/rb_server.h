@@ -34,8 +34,7 @@
 #ifndef GRPC_RB_SERVER_H_
 #define GRPC_RB_SERVER_H_
 
-#include <ruby/ruby.h>
-
+#include <ruby.h>
 #include <grpc/grpc.h>
 
 /* Initializes the Server class. */

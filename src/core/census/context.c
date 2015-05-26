@@ -31,6 +31,29 @@
  *
  */
 
-var grpc = require('grpc');
-exports.client = grpc.load(__dirname + '/service.json', 'json');
-exports.auth = require('google-auth-library');
+#include "context.h"
+
+#include <string.h>
+#include <grpc/census.h>
+#include <grpc/support/alloc.h>
+
+/* Placeholder implementation only. */
+
+size_t census_context_serialize(const census_context *context, char *buffer,
+                                size_t buf_size) {
+  /* TODO(aveitch): implement serialization */
+  return 0;
+}
+
+census_context *census_context_deserialize(char *buffer) {
+  census_context *ret;
+  if (buffer != NULL) {
+    /* TODO(aveitch): implement deserialization */
+    return NULL;
+  }
+  ret = gpr_malloc(sizeof(census_context));
+  memset(ret, 0, sizeof(census_context));
+  return ret;
+}
+
+void census_context_destroy(census_context *context) { gpr_free(context); }

@@ -39,6 +39,9 @@ using Grpc.Core.Utils;
 
 namespace Grpc.Core.Internal
 {
+    // TODO: we need to make sure that the delegates are not collected before invoked.
+    //internal delegate void ServerShutdownCallbackDelegate(bool success);
+
     /// <summary>
     /// grpc_server from grpc/grpc.h
     /// </summary>

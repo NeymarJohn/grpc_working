@@ -31,31 +31,19 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_UTIL_SUBPROCESS_H
-#define GRPC_TEST_CPP_UTIL_SUBPROCESS_H
+#ifndef GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
+#define GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
 
-#include <initializer_list>
-#include <string>
+#include <grpc/census.h>
 
-struct gpr_subprocess;
-
-namespace grpc {
-
-class SubProcess {
- public:
-  SubProcess(std::initializer_list<std::string> args);
-  ~SubProcess();
-
-  int Join();
-  void Interrupt();
-
- private:
-  SubProcess(const SubProcess& other);
-  SubProcess& operator=(const SubProcess& other);
-
-  gpr_subprocess* const subprocess_;
+/* census_context is the in-memory representation of information needed to
+ * maintain tracing, RPC statistics and resource usage information. */
+struct census_context {
+  gpr_uint64 op_id;    /* Operation identifier - unique per-context */
+  gpr_uint64 trace_id; /* Globally unique trace identifier */
+  /* TODO(aveitch) Add census tags:
+  const census_tag_set *tags;
+  */
 };
 
-}  // namespace grpc
-
-#endif  // GRPC_TEST_CPP_UTIL_SUBPROCESS_H
+#endif /* GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H */
