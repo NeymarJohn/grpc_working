@@ -122,6 +122,8 @@ struct channel_data {
   channel_registered_method *registered_methods;
   gpr_uint32 registered_method_slots;
   gpr_uint32 registered_method_max_probes;
+  grpc_iomgr_closure finish_shutdown_channel_iocb;
+  grpc_iomgr_closure finish_destroy_channel_iocb;
 };
 
 struct grpc_server {
@@ -304,7 +306,10 @@ static void destroy_channel(channel_data *chand) {
   GPR_ASSERT(chand->server != NULL);
   orphan_channel(chand);
   server_ref(chand->server);
-  grpc_iomgr_add_callback(finish_destroy_channel, chand);
+  chand->finish_destroy_channel_iocb.cb = finish_destroy_channel;
+  chand->finish_destroy_channel_iocb.cb_arg = chand;
+  chand->finish_destroy_channel_iocb.is_ext_managed = 1;
+  grpc_iomgr_add_callback(&chand->finish_destroy_channel_iocb);
 }
 
 static void finish_start_new_rpc_and_unlock(grpc_server *server,
@@ -416,7 +421,8 @@ static void server_on_recv(void *ptr, int success) {
       gpr_mu_lock(&chand->server->mu);
       if (calld->state == NOT_STARTED) {
         calld->state = ZOMBIED;
-        grpc_iomgr_add_callback(kill_zombie, elem);
+        grpc_iomgr_add_callback(
+            grpc_iomgr_cb_create(kill_zombie, elem, 0 /* GPR_FALSE */));
       }
       gpr_mu_unlock(&chand->server->mu);
       break;
@@ -424,11 +430,13 @@ static void server_on_recv(void *ptr, int success) {
       gpr_mu_lock(&chand->server->mu);
       if (calld->state == NOT_STARTED) {
         calld->state = ZOMBIED;
-        grpc_iomgr_add_callback(kill_zombie, elem);
+        grpc_iomgr_add_callback(
+            grpc_iomgr_cb_create(kill_zombie, elem, 0 /* GPR_FALSE */));
       } else if (calld->state == PENDING) {
         call_list_remove(calld, PENDING_START);
         calld->state = ZOMBIED;
-        grpc_iomgr_add_callback(kill_zombie, elem);
+        grpc_iomgr_add_callback(
+            grpc_iomgr_cb_create(kill_zombie, elem, 0 /* GPR_FALSE */));
       }
       gpr_mu_unlock(&chand->server->mu);
       break;
@@ -502,7 +510,10 @@ static void finish_shutdown_channel(void *cd, int success) {
 
 static void shutdown_channel(channel_data *chand) {
   grpc_channel_internal_ref(chand->channel);
-  grpc_iomgr_add_callback(finish_shutdown_channel, chand);
+  chand->finish_shutdown_channel_iocb.cb = finish_shutdown_channel;
+  chand->finish_shutdown_channel_iocb.cb_arg = chand;
+  chand->finish_shutdown_channel_iocb.is_ext_managed = 1;
+  grpc_iomgr_add_callback(&chand->finish_shutdown_channel_iocb);
 }
 
 static void init_call_elem(grpc_call_element *elem,
@@ -701,7 +712,7 @@ void grpc_server_start(grpc_server *server) {
 grpc_transport_setup_result grpc_server_setup_transport(
     grpc_server *s, grpc_transport *transport,
     grpc_channel_filter const **extra_filters, size_t num_extra_filters,
-    grpc_mdctx *mdctx) {
+    grpc_mdctx *mdctx, const grpc_channel_args *args) {
   size_t num_filters = s->channel_filter_count + num_extra_filters + 1;
   grpc_channel_filter const **filters =
       gpr_malloc(sizeof(grpc_channel_filter *) * num_filters);
@@ -732,8 +743,8 @@ grpc_transport_setup_result grpc_server_setup_transport(
     grpc_transport_add_to_pollset(transport, grpc_cq_pollset(s->cqs[i]));
   }
 
-  channel = grpc_channel_create_from_filters(filters, num_filters,
-                                             s->channel_args, mdctx, 0);
+  channel =
+      grpc_channel_create_from_filters(filters, num_filters, args, mdctx, 0);
   chand = (channel_data *)grpc_channel_stack_element(
               grpc_channel_get_channel_stack(channel), 0)
               ->channel_data;
@@ -943,8 +954,10 @@ void grpc_server_destroy(grpc_server *server) {
     gpr_log(GPR_DEBUG, "server destroys call %p", calld->call);
     calld->state = ZOMBIED;
     grpc_iomgr_add_callback(
+        grpc_iomgr_cb_create(
         kill_zombie,
-        grpc_call_stack_element(grpc_call_get_call_stack(calld->call), 0));
+        grpc_call_stack_element(grpc_call_get_call_stack(calld->call), 0),
+        0)); /* XXX */
   }
 
   for (c = server->root_channel_data.next; c != &server->root_channel_data;
