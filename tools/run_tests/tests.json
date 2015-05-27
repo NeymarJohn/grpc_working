@@ -4039,15 +4039,6 @@
       "windows", 
       "posix"
     ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "connection_prefix_bad_client_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
   }
 ]
 

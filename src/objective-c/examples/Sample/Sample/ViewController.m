@@ -80,7 +80,7 @@
                                    requestsWriter:requestsWriter];
 
   id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
-    RMTSimpleResponse *response = [RMTSimpleResponse parseFromData:value error:NULL];
+    RMTSimpleResponse *response = [RMTSimpleResponse parseFromData:value];
     NSLog(@"Received response:\n%@", response);
   } completionHandler:^(NSError *errorOrNil) {
     if (errorOrNil) {
