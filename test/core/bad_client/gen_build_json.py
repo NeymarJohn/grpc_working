@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -27,52 +28,52 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Buildgen vsprojects plugin.
 
-This parses the list of libraries, and generates globals "vsprojects"
-and "vsproject_dict", to be used by the visual studio generators.
-
-"""
+"""Generates the appropriate build.json data for all the end2end tests."""
 
 
-import hashlib
-import re
+import simplejson
+import collections
+
+TestOptions = collections.namedtuple('TestOptions', 'flaky')
+default_test_options = TestOptions(False)
+
+# maps test names to options
+BAD_CLIENT_TESTS = {
+    'connection_prefix': default_test_options,
+}
+
+def main():
+  json = {
+      '#': 'generated with test/bad_client/gen_build_json.py',
+      'libs': [
+          {
+            'name': 'bad_client_test',
+            'build': 'private',
+            'language': 'c',
+            'src': [
+              'test/core/bad_client/bad_client.c'
+            ]
+          }],
+      'targets': [
+          {
+              'name': '%s_bad_client_test' % t,
+              'build': 'test',
+              'language': 'c',
+              'secure': 'no',
+              'src': ['test/core/bad_client/tests/%s.c' % t],
+              'flaky': 'invoke_large_request' in t,
+              'deps': [
+                  'bad_client_test',
+                  'grpc_test_util_unsecure',
+                  'grpc_unsecure',
+                  'gpr_test_util',
+                  'gpr'
+              ]
+          }
+      for t in sorted(BAD_CLIENT_TESTS.keys())]}
+  print simplejson.dumps(json, sort_keys=True, indent=2 * ' ')
 
 
-def mako_plugin(dictionary):
-  """The exported plugin code for generate_vsprojeccts
-
-  We want to help the work of the visual studio generators.
-
-  """
-
-  libs = dictionary.get('libs', [])
-  targets = dictionary.get('targets', [])
-
-  for lib in libs:
-    lib['is_library'] = True
-  for target in targets:
-    target['is_library'] = False
-
-  projects = []
-  projects.extend(libs)
-  projects.extend(targets)
-  if dictionary.get('debug', False):
-    for target in projects:
-      if not target.get('vs_project_guid', None) and 'windows' in target.get('platforms', ['windows']):
-        name = target['name']
-        guid = re.sub('(........)(....)(....)(....)(.*)',
-               r'{\1-\2-\3-\4-\5}',
-               hashlib.md5(name).hexdigest())
-        target['vs_project_guid'] = guid.upper()
-  # Exclude projects without a visual project guid, such as the tests.
-  projects = [project for project in projects
-                if project.get('vs_project_guid', None)]
-
-  projects = [project for project in projects
-                if project['language'] != 'c++' or project['build'] == 'all']
-
-  project_dict = dict([(p['name'], p) for p in projects])
-
-  dictionary['vsprojects'] = projects
-  dictionary['vsproject_dict'] = project_dict
+if __name__ == '__main__':
+  main()

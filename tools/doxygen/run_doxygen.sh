@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -27,52 +29,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Buildgen vsprojects plugin.
+set -ex
 
-This parses the list of libraries, and generates globals "vsprojects"
-and "vsproject_dict", to be used by the visual studio generators.
+# change to grpc repo root
+cd $(dirname $0)/../..
 
-"""
-
-
-import hashlib
-import re
-
-
-def mako_plugin(dictionary):
-  """The exported plugin code for generate_vsprojeccts
-
-  We want to help the work of the visual studio generators.
-
-  """
-
-  libs = dictionary.get('libs', [])
-  targets = dictionary.get('targets', [])
-
-  for lib in libs:
-    lib['is_library'] = True
-  for target in targets:
-    target['is_library'] = False
-
-  projects = []
-  projects.extend(libs)
-  projects.extend(targets)
-  if dictionary.get('debug', False):
-    for target in projects:
-      if not target.get('vs_project_guid', None) and 'windows' in target.get('platforms', ['windows']):
-        name = target['name']
-        guid = re.sub('(........)(....)(....)(....)(.*)',
-               r'{\1-\2-\3-\4-\5}',
-               hashlib.md5(name).hexdigest())
-        target['vs_project_guid'] = guid.upper()
-  # Exclude projects without a visual project guid, such as the tests.
-  projects = [project for project in projects
-                if project.get('vs_project_guid', None)]
-
-  projects = [project for project in projects
-                if project['language'] != 'c++' or project['build'] == 'all']
-
-  project_dict = dict([(p['name'], p) for p in projects])
-
-  dictionary['vsprojects'] = projects
-  dictionary['vsproject_dict'] = project_dict
+for i in core c++
+do
+	mkdir -p doc/ref/$i
+	doxygen tools/doxygen/Doxyfile.$i
+done
