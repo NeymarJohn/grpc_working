@@ -77,13 +77,17 @@ static void end_test(grpc_end2end_test_fixture *f) {
   shutdown_server(f);
   shutdown_client(f);
 
-  grpc_completion_queue_shutdown(f->cq);
-  drain_cq(f->cq);
-  grpc_completion_queue_destroy(f->cq);
+  grpc_completion_queue_shutdown(f->server_cq);
+  drain_cq(f->server_cq);
+  grpc_completion_queue_destroy(f->server_cq);
+  grpc_completion_queue_shutdown(f->client_cq);
+  drain_cq(f->client_cq);
+  grpc_completion_queue_destroy(f->client_cq);
 }
 
 static void do_request_and_shutdown_server(grpc_end2end_test_fixture *f,
-                                           cq_verifier *cqv) {
+                                           cq_verifier *v_client,
+                                           cq_verifier *v_server) {
   grpc_call *c;
   grpc_call *s;
   gpr_timespec deadline = five_seconds_time();
@@ -98,7 +102,7 @@ static void do_request_and_shutdown_server(grpc_end2end_test_fixture *f,
   size_t details_capacity = 0;
   int was_cancelled = 2;
 
-  c = grpc_channel_create_call(f->client, f->cq, "/foo",
+  c = grpc_channel_create_call(f->client, f->client_cq, "/foo",
                                "foo.test.google.fr:1234", deadline);
   GPR_ASSERT(c);
 
@@ -126,10 +130,10 @@ static void do_request_and_shutdown_server(grpc_end2end_test_fixture *f,
 
   GPR_ASSERT(GRPC_CALL_OK ==
              grpc_server_request_call(f->server, &s, &call_details,
-                                      &request_metadata_recv, f->cq,
-                                      f->cq, tag(101)));
-  cq_expect_completion(cqv, tag(101), 1);
-  cq_verify(cqv);
+                                      &request_metadata_recv, f->server_cq,
+                                      f->server_cq, tag(101)));
+  cq_expect_completion(v_server, tag(101), 1);
+  cq_verify(v_server);
 
   /* should be able to shut down the server early
      - and still complete the request */
@@ -149,9 +153,11 @@ static void do_request_and_shutdown_server(grpc_end2end_test_fixture *f,
   op++;
   GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_batch(s, ops, op - ops, tag(102)));
 
-  cq_expect_completion(cqv, tag(102), 1);
-  cq_expect_completion(cqv, tag(1), 1);
-  cq_verify(cqv);
+  cq_expect_completion(v_server, tag(102), 1);
+  cq_verify(v_server);
+
+  cq_expect_completion(v_client, tag(1), 1);
+  cq_verify(v_client);
 
   GPR_ASSERT(status == GRPC_STATUS_UNIMPLEMENTED);
   GPR_ASSERT(0 == strcmp(details, "xyz"));
@@ -171,21 +177,23 @@ static void do_request_and_shutdown_server(grpc_end2end_test_fixture *f,
 
 static void disappearing_server_test(grpc_end2end_test_config config) {
   grpc_end2end_test_fixture f = config.create_fixture(NULL, NULL);
-  cq_verifier *cqv = cq_verifier_create(f.cq);
+  cq_verifier *v_client = cq_verifier_create(f.client_cq);
+  cq_verifier *v_server = cq_verifier_create(f.server_cq);
 
   gpr_log(GPR_INFO, "%s/%s", "disappearing_server_test", config.name);
 
   config.init_client(&f, NULL);
   config.init_server(&f, NULL);
 
-  do_request_and_shutdown_server(&f, cqv);
+  do_request_and_shutdown_server(&f, v_client, v_server);
 
   /* now destroy and recreate the server */
   config.init_server(&f, NULL);
 
-  do_request_and_shutdown_server(&f, cqv);
+  do_request_and_shutdown_server(&f, v_client, v_server);
 
-  cq_verifier_destroy(cqv);
+  cq_verifier_destroy(v_client);
+  cq_verifier_destroy(v_server);
 
   end_test(&f);
   config.tear_down_data(&f);
