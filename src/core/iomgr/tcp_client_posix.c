@@ -152,7 +152,6 @@ static void on_writable(void *acp, int success) {
         goto finish;
       }
     } else {
-      gpr_log(GPR_DEBUG, "connected");
       ep = grpc_tcp_create(ac->fd, GRPC_TCP_DEFAULT_READ_SLICE_SIZE);
       goto finish;
     }
@@ -178,16 +177,14 @@ finish:
 }
 
 void grpc_tcp_client_connect(void (*cb)(void *arg, grpc_endpoint *ep),
-                             void *arg, grpc_pollset_set *interested_parties,
-                             const struct sockaddr *addr, int addr_len,
-                             gpr_timespec deadline) {
+                             void *arg, const struct sockaddr *addr,
+                             int addr_len, gpr_timespec deadline) {
   int fd;
   grpc_dualstack_mode dsmode;
   int err;
   async_connect *ac;
   struct sockaddr_in6 addr6_v4mapped;
   struct sockaddr_in addr4_copy;
-  grpc_fd *fdobj;
 
   /* Use dualstack sockets where available. */
   if (grpc_sockaddr_to_v4mapped(addr, &addr6_v4mapped)) {
@@ -210,25 +207,20 @@ void grpc_tcp_client_connect(void (*cb)(void *arg, grpc_endpoint *ep),
     return;
   }
 
-  gpr_log(GPR_DEBUG, "connecting fd %d", fd);
-
   do {
     err = connect(fd, addr, addr_len);
   } while (err < 0 && errno == EINTR);
 
-  fdobj = grpc_fd_create(fd);
-  grpc_pollset_set_add_fd(interested_parties, fdobj);
-
   if (err >= 0) {
     gpr_log(GPR_DEBUG, "instant connect");
     cb(arg,
-       grpc_tcp_create(fdobj, GRPC_TCP_DEFAULT_READ_SLICE_SIZE));
+       grpc_tcp_create(grpc_fd_create(fd), GRPC_TCP_DEFAULT_READ_SLICE_SIZE));
     return;
   }
 
   if (errno != EWOULDBLOCK && errno != EINPROGRESS) {
     gpr_log(GPR_ERROR, "connect error: %s", strerror(errno));
-    grpc_fd_orphan(fdobj, NULL, NULL);
+    close(fd);
     cb(arg, NULL);
     return;
   }
@@ -236,7 +228,7 @@ void grpc_tcp_client_connect(void (*cb)(void *arg, grpc_endpoint *ep),
   ac = gpr_malloc(sizeof(async_connect));
   ac->cb = cb;
   ac->cb_arg = arg;
-  ac->fd = fdobj;
+  ac->fd = grpc_fd_create(fd);
   gpr_mu_init(&ac->mu);
   ac->refs = 2;
   ac->write_closure.cb = on_writable;
