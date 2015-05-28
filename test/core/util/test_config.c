@@ -50,9 +50,8 @@ static int seed(void) { return _getpid(); }
 
 void grpc_test_init(int argc, char **argv) {
   gpr_log(GPR_DEBUG, "test slowdown: machine=%f build=%f total=%f",
-          (double)GRPC_TEST_SLOWDOWN_MACHINE_FACTOR,
-          (double)GRPC_TEST_SLOWDOWN_BUILD_FACTOR,
-          (double)GRPC_TEST_SLOWDOWN_FACTOR);
+          GRPC_TEST_SLOWDOWN_MACHINE_FACTOR, GRPC_TEST_SLOWDOWN_BUILD_FACTOR,
+          GRPC_TEST_SLOWDOWN_FACTOR);
   /* seed rng with pid, so we don't end up with the same random numbers as a
      concurrently running test binary */
   srand(seed());
