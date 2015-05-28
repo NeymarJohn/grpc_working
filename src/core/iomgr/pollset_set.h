@@ -31,27 +31,29 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H
-#define GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H
-
-/* Internal API for completion channels */
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
 
 #include "src/core/iomgr/pollset.h"
-#include <grpc/grpc.h>
 
-void grpc_cq_internal_ref(grpc_completion_queue *cc);
-void grpc_cq_internal_unref(grpc_completion_queue *cc);
+/* A grpc_pollset_set is a set of pollsets that are interested in an
+   action. Adding a pollset to a pollset_set automatically adds any
+   fd's (etc) that have been registered with the set_set with that pollset.
+   Registering fd's automatically iterates all current pollsets. */
 
-/* Flag that an operation is beginning: the completion channel will not finish
-   shutdown until a corrensponding grpc_cq_end_* call is made */
-void grpc_cq_begin_op(grpc_completion_queue *cc, grpc_call *call);
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/pollset_set_posix.h"
+#endif
 
-/* Queue a GRPC_OP_COMPLETED operation */
-void grpc_cq_end_op(grpc_completion_queue *cc, void *tag, grpc_call *call,
-                    int success);
+#ifdef GPR_WIN32
+#include "src/core/iomgr/pollset_set_windows.h"
+#endif
 
-grpc_pollset *grpc_cq_pollset(grpc_completion_queue *cc);
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset);
+void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset);
 
-void grpc_cq_hack_spin_pollset(grpc_completion_queue *cc);
-
-#endif /* GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H */
+#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */
