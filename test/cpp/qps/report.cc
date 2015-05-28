@@ -39,55 +39,27 @@
 namespace grpc {
 namespace testing {
 
-void CompositeReporter::add(std::unique_ptr<Reporter> reporter) {
-  reporters_.emplace_back(std::move(reporter));
-}
-
-void CompositeReporter::ReportQPS(const ScenarioResult& result) const {
-  for (size_t i = 0; i < reporters_.size(); ++i) {
-    reporters_[i]->ReportQPS(result);
-  }
-}
-
-void CompositeReporter::ReportQPSPerCore(const ScenarioResult& result,
-                                         const ServerConfig& config) const {
-  for (size_t i = 0; i < reporters_.size(); ++i) {
-    reporters_[i]->ReportQPSPerCore(result, config);
-  }
-}
-
-void CompositeReporter::ReportLatency(const ScenarioResult& result) const {
-  for (size_t i = 0; i < reporters_.size(); ++i) {
-    reporters_[i]->ReportLatency(result);
-  }
-}
-
-void CompositeReporter::ReportTimes(const ScenarioResult& result) const {
-  for (size_t i = 0; i < reporters_.size(); ++i) {
-    reporters_[i]->ReportTimes(result);
-  }
-}
-
-
-void GprLogReporter::ReportQPS(const ScenarioResult& result) const {
+// QPS: XXX
+void ReportQPS(const ScenarioResult& result) {
   gpr_log(GPR_INFO, "QPS: %.1f",
           result.latencies.Count() /
               average(result.client_resources,
                       [](ResourceUsage u) { return u.wall_time; }));
 }
 
-void GprLogReporter::ReportQPSPerCore(const ScenarioResult& result,
-                                      const ServerConfig& server_config) const {
-  auto qps =
-      result.latencies.Count() /
-      average(result.client_resources,
-          [](ResourceUsage u) { return u.wall_time; });
+// QPS: XXX (YYY/server core)
+void ReportQPSPerCore(const ScenarioResult& result,
+                      const ServerConfig& server_config) {
+  auto qps = result.latencies.Count() /
+             average(result.client_resources,
+                     [](ResourceUsage u) { return u.wall_time; });
 
   gpr_log(GPR_INFO, "QPS: %.1f (%.1f/server core)", qps,
           qps / server_config.threads());
 }
 
-void GprLogReporter::ReportLatency(const ScenarioResult& result) const {
+// Latency (50/90/95/99/99.9%-ile): AA/BB/CC/DD/EE us
+void ReportLatency(const ScenarioResult& result) {
   gpr_log(GPR_INFO,
           "Latencies (50/90/95/99/99.9%%-ile): %.1f/%.1f/%.1f/%.1f/%.1f us",
           result.latencies.Percentile(50) / 1000,
@@ -97,7 +69,7 @@ void GprLogReporter::ReportLatency(const ScenarioResult& result) const {
           result.latencies.Percentile(99.9) / 1000);
 }
 
-void GprLogReporter::ReportTimes(const ScenarioResult& result) const {
+void ReportTimes(const ScenarioResult& result) {
   gpr_log(GPR_INFO, "Server system time: %.2f%%",
           100.0 * sum(result.server_resources,
                       [](ResourceUsage u) { return u.system_time; }) /

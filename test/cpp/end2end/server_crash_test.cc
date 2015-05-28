@@ -69,15 +69,10 @@ namespace testing {
 
 namespace {
 
-class ServiceImpl GRPC_FINAL
-    : public ::grpc::cpp::test::util::TestService::Service {
- public:
-  ServiceImpl() : bidi_stream_count_(0), response_stream_count_(0) {}
-
+class ServiceImpl GRPC_FINAL : public ::grpc::cpp::test::util::TestService::Service {
   Status BidiStream(ServerContext* context,
                     ServerReaderWriter<EchoResponse, EchoRequest>* stream)
       GRPC_OVERRIDE {
-    bidi_stream_count_++;
     EchoRequest request;
     EchoResponse response;
     while (stream->Read(&request)) {
@@ -92,7 +87,6 @@ class ServiceImpl GRPC_FINAL
   Status ResponseStream(ServerContext* context, const EchoRequest* request,
                         ServerWriter<EchoResponse>* writer) GRPC_OVERRIDE {
     EchoResponse response;
-    response_stream_count_++;
     for (int i = 0;; i++) {
       std::ostringstream msg;
       msg << "Hello " << i;
@@ -102,27 +96,23 @@ class ServiceImpl GRPC_FINAL
     }
     return Status::OK;
   }
-
-  int bidi_stream_count() { return bidi_stream_count_; }
-
-  int response_stream_count() { return response_stream_count_; }
-
- private:
-  int bidi_stream_count_;
-  int response_stream_count_;
 };
 
 class CrashTest : public ::testing::Test {
  protected:
   CrashTest() {}
 
-  std::unique_ptr<Server> CreateServerAndClient(const std::string& mode) {
+  std::unique_ptr<Server>
+  CreateServerAndClient(const std::string& mode) {
     auto port = grpc_pick_unused_port_or_die();
     std::ostringstream addr_stream;
     addr_stream << "localhost:" << port;
     auto addr = addr_stream.str();
-    client_.reset(new SubProcess({g_root + "/server_crash_test_client",
-                                  "--address=" + addr, "--mode=" + mode}));
+    client_.reset(new SubProcess({
+      g_root + "/server_crash_test_client",
+      "--address=" + addr,
+      "--mode=" + mode
+    }));
     GPR_ASSERT(client_);
 
     ServerBuilder builder;
@@ -131,11 +121,9 @@ class CrashTest : public ::testing::Test {
     return builder.BuildAndStart();
   }
 
-  void KillClient() { client_.reset(); }
-
-  bool HadOneBidiStream() { return service_.bidi_stream_count() == 1; }
-
-  bool HadOneResponseStream() { return service_.response_stream_count() == 1; }
+  void KillClient() {
+    client_.reset();
+  }
 
  private:
   std::unique_ptr<SubProcess> client_;
@@ -148,7 +136,6 @@ TEST_F(CrashTest, ResponseStream) {
   gpr_sleep_until(gpr_time_add(gpr_now(), gpr_time_from_seconds(5)));
   KillClient();
   server->Shutdown();
-  GPR_ASSERT(HadOneResponseStream());
 }
 
 TEST_F(CrashTest, BidiStream) {
@@ -157,7 +144,6 @@ TEST_F(CrashTest, BidiStream) {
   gpr_sleep_until(gpr_time_add(gpr_now(), gpr_time_from_seconds(5)));
   KillClient();
   server->Shutdown();
-  GPR_ASSERT(HadOneBidiStream());
 }
 
 }  // namespace

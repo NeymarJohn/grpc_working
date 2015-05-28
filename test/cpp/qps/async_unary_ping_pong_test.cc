@@ -31,15 +31,12 @@
  *
  */
 
-#include <set>
-
 #include <grpc/support/log.h>
 
 #include <signal.h>
 
 #include "test/cpp/qps/driver.h"
 #include "test/cpp/qps/report.h"
-#include "test/cpp/util/benchmark_config.h"
 
 namespace grpc {
 namespace testing {
@@ -67,16 +64,16 @@ static void RunAsyncUnaryPingPong() {
   const auto result =
       RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
 
-  GetReporter()->ReportQPS(*result);
-  GetReporter()->ReportLatency(*result);
+  ReportQPS(*result);
+  ReportLatency(*result);
 }
+
 }  // namespace testing
 }  // namespace grpc
 
 int main(int argc, char** argv) {
-  grpc::testing::InitBenchmark(&argc, &argv, true);
   signal(SIGPIPE, SIG_IGN);
-
   grpc::testing::RunAsyncUnaryPingPong();
+
   return 0;
 }
