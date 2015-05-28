@@ -59,6 +59,9 @@ typedef struct event {
 
 /* Completion queue structure */
 struct grpc_completion_queue {
+  /* TODO(ctiller): see if this can be removed */
+  int allow_polling;
+
   /* When refs drops to zero, we are in shutdown mode, and will be destroyable
      once all queued events are drained */
   gpr_refcount refs;
@@ -83,6 +86,7 @@ grpc_completion_queue *grpc_completion_queue_create(void) {
   /* One for destroy(), one for pollset_shutdown */
   gpr_ref_init(&cc->owning_refs, 2);
   grpc_pollset_init(&cc->pollset);
+  cc->allow_polling = 1;
   return cc;
 }
 
@@ -101,6 +105,10 @@ void grpc_cq_internal_unref(grpc_completion_queue *cc) {
     grpc_pollset_destroy(&cc->pollset);
     gpr_free(cc);
   }
+}
+
+void grpc_completion_queue_dont_poll_test_only(grpc_completion_queue *cc) {
+  cc->allow_polling = 0;
 }
 
 /* Create and append an event to the queue. Returns the event so that its data
@@ -126,6 +134,7 @@ static event *add_locked(grpc_completion_queue *cc, grpc_completion_type type,
     ev->bucket_prev = cc->buckets[bucket]->bucket_prev;
     ev->bucket_next->bucket_prev = ev->bucket_prev->bucket_next = ev;
   }
+  gpr_cv_broadcast(GRPC_POLLSET_CV(&cc->pollset));
   grpc_pollset_kick(&cc->pollset);
   return ev;
 }
@@ -148,6 +157,7 @@ void grpc_cq_end_op(grpc_completion_queue *cc, void *tag, grpc_call *call,
     GPR_ASSERT(!cc->shutdown);
     GPR_ASSERT(cc->shutdown_called);
     cc->shutdown = 1;
+    gpr_cv_broadcast(GRPC_POLLSET_CV(&cc->pollset));
     shutdown = 1;
   }
   gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
@@ -197,7 +207,11 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
       ev = create_shutdown_event();
       break;
     }
-    if (!grpc_pollset_work(&cc->pollset, deadline)) {
+    if (cc->allow_polling && grpc_pollset_work(&cc->pollset, deadline)) {
+      continue;
+    }
+    if (gpr_cv_wait(GRPC_POLLSET_CV(&cc->pollset),
+                    GRPC_POLLSET_MU(&cc->pollset), deadline)) {
       gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
       memset(&ret, 0, sizeof(ret));
       ret.type = GRPC_QUEUE_TIMEOUT;
@@ -258,7 +272,11 @@ grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
       ev = create_shutdown_event();
       break;
     }
-    if (!grpc_pollset_work(&cc->pollset, deadline)) {
+    if (cc->allow_polling && grpc_pollset_work(&cc->pollset, deadline)) {
+      continue;
+    }
+    if (gpr_cv_wait(GRPC_POLLSET_CV(&cc->pollset),
+                    GRPC_POLLSET_MU(&cc->pollset), deadline)) {
       gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
       memset(&ret, 0, sizeof(ret));
       ret.type = GRPC_QUEUE_TIMEOUT;
@@ -286,6 +304,7 @@ void grpc_completion_queue_shutdown(grpc_completion_queue *cc) {
     gpr_mu_lock(GRPC_POLLSET_MU(&cc->pollset));
     GPR_ASSERT(!cc->shutdown);
     cc->shutdown = 1;
+    gpr_cv_broadcast(GRPC_POLLSET_CV(&cc->pollset));
     gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
     grpc_pollset_shutdown(&cc->pollset, on_pollset_destroy_done, cc);
   }

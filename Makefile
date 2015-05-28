@@ -1158,7 +1158,7 @@ privatelibs: privatelibs_c privatelibs_cxx
 
 privatelibs_c:  $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fake_security.a $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_fullstack_uds_posix.a $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack.a $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair.a $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_one_byte_at_a_time.a $(LIBDIR)/$(CONFIG)/libend2end_fixture_chttp2_socket_pair_with_grpc_trace.a $(LIBDIR)/$(CONFIG)/libend2end_test_bad_hostname.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_accept_and_writes_closed.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_after_invoke.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_before_invoke.a $(LIBDIR)/$(CONFIG)/libend2end_test_cancel_in_a_vacuum.a $(LIBDIR)/$(CONFIG)/libend2end_test_census_simple_request.a $(LIBDIR)/$(CONFIG)/libend2end_test_disappearing_server.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_inflight_calls.a $(LIBDIR)/$(CONFIG)/libend2end_test_early_server_shutdown_finishes_tags.a $(LIBDIR)/$(CONFIG)/libend2end_test_empty_batch.a $(LIBDIR)/$(CONFIG)/libend2end_test_graceful_server_shutdown.a $(LIBDIR)/$(CONFIG)/libend2end_test_invoke_large_request.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_concurrent_streams.a $(LIBDIR)/$(CONFIG)/libend2end_test_max_message_length.a $(LIBDIR)/$(CONFIG)/libend2end_test_no_op.a $(LIBDIR)/$(CONFIG)/libend2end_test_ping_pong_streaming.a $(LIBDIR)/$(CONFIG)/libend2end_test_registered_call.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_binary_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_payload_and_call_creds.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_response_with_trailing_metadata_and_payload.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_large_metadata.a $(LIBDIR)/$(CONFIG)/libend2end_test_request_with_payload.a $(LIBDIR)/$(CONFIG)/libend2end_test_server_finishes_request.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_delayed_request.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request.a $(LIBDIR)/$(CONFIG)/libend2end_test_simple_request_with_high_initial_sequence_number.a $(LIBDIR)/$(CONFIG)/libend2end_certs.a $(LIBDIR)/$(CONFIG)/libbad_client_test.a
 
-privatelibs_cxx:  $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libinterop_client_helper.a $(LIBDIR)/$(CONFIG)/libinterop_client_main.a $(LIBDIR)/$(CONFIG)/libinterop_server_helper.a $(LIBDIR)/$(CONFIG)/libinterop_server_main.a $(LIBDIR)/$(CONFIG)/libqps.a
+privatelibs_cxx:  $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libinterop_client_helper.a $(LIBDIR)/$(CONFIG)/libinterop_client_main.a $(LIBDIR)/$(CONFIG)/libinterop_server_helper.a $(LIBDIR)/$(CONFIG)/libinterop_server_main.a $(LIBDIR)/$(CONFIG)/libqps.a
 
 buildtests: buildtests_c buildtests_cxx
 
@@ -1183,14 +1183,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/bin_encoder_test || ( echo test bin_encoder_test failed ; exit 1 )
 	$(E) "[RUN]     Testing census_hash_table_test"
 	$(Q) $(BINDIR)/$(CONFIG)/census_hash_table_test || ( echo test census_hash_table_test failed ; exit 1 )
-	$(E) "[RUN]     Testing census_statistics_multiple_writers_test"
-	$(Q) $(BINDIR)/$(CONFIG)/census_statistics_multiple_writers_test || ( echo test census_statistics_multiple_writers_test failed ; exit 1 )
-	$(E) "[RUN]     Testing census_statistics_performance_test"
-	$(Q) $(BINDIR)/$(CONFIG)/census_statistics_performance_test || ( echo test census_statistics_performance_test failed ; exit 1 )
-	$(E) "[RUN]     Testing census_statistics_quick_test"
-	$(Q) $(BINDIR)/$(CONFIG)/census_statistics_quick_test || ( echo test census_statistics_quick_test failed ; exit 1 )
-	$(E) "[RUN]     Testing census_statistics_small_log_test"
-	$(Q) $(BINDIR)/$(CONFIG)/census_statistics_small_log_test || ( echo test census_statistics_small_log_test failed ; exit 1 )
 	$(E) "[RUN]     Testing census_stub_test"
 	$(Q) $(BINDIR)/$(CONFIG)/census_stub_test || ( echo test census_stub_test failed ; exit 1 )
 	$(E) "[RUN]     Testing census_window_stats_test"
@@ -1303,8 +1295,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/transport_security_test || ( echo test transport_security_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fake_security_bad_hostname_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fake_security_bad_hostname_test || ( echo test chttp2_fake_security_bad_hostname_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_fake_security_cancel_after_accept_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fake_security_cancel_after_accept_test || ( echo test chttp2_fake_security_cancel_after_accept_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fake_security_cancel_after_accept_and_writes_closed_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fake_security_cancel_after_accept_and_writes_closed_test || ( echo test chttp2_fake_security_cancel_after_accept_and_writes_closed_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fake_security_cancel_after_invoke_test"
@@ -1325,8 +1315,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fake_security_empty_batch_test || ( echo test chttp2_fake_security_empty_batch_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fake_security_graceful_server_shutdown_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fake_security_graceful_server_shutdown_test || ( echo test chttp2_fake_security_graceful_server_shutdown_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_fake_security_invoke_large_request_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fake_security_invoke_large_request_test || ( echo test chttp2_fake_security_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fake_security_max_concurrent_streams_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fake_security_max_concurrent_streams_test || ( echo test chttp2_fake_security_max_concurrent_streams_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fake_security_max_message_length_test"
@@ -1361,8 +1349,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fake_security_simple_request_with_high_initial_sequence_number_test || ( echo test chttp2_fake_security_simple_request_with_high_initial_sequence_number_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_bad_hostname_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_bad_hostname_test || ( echo test chttp2_fullstack_bad_hostname_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_fullstack_cancel_after_accept_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_test || ( echo test chttp2_fullstack_cancel_after_accept_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_cancel_after_accept_and_writes_closed_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_and_writes_closed_test || ( echo test chttp2_fullstack_cancel_after_accept_and_writes_closed_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_cancel_after_invoke_test"
@@ -1383,8 +1369,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_empty_batch_test || ( echo test chttp2_fullstack_empty_batch_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_graceful_server_shutdown_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_graceful_server_shutdown_test || ( echo test chttp2_fullstack_graceful_server_shutdown_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_fullstack_invoke_large_request_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_invoke_large_request_test || ( echo test chttp2_fullstack_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_max_concurrent_streams_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_max_concurrent_streams_test || ( echo test chttp2_fullstack_max_concurrent_streams_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_max_message_length_test"
@@ -1419,8 +1403,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_simple_request_with_high_initial_sequence_number_test || ( echo test chttp2_fullstack_simple_request_with_high_initial_sequence_number_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_uds_posix_bad_hostname_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_posix_bad_hostname_test || ( echo test chttp2_fullstack_uds_posix_bad_hostname_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_fullstack_uds_posix_cancel_after_accept_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_posix_cancel_after_accept_test || ( echo test chttp2_fullstack_uds_posix_cancel_after_accept_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_uds_posix_cancel_after_accept_and_writes_closed_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_posix_cancel_after_accept_and_writes_closed_test || ( echo test chttp2_fullstack_uds_posix_cancel_after_accept_and_writes_closed_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_uds_posix_cancel_after_invoke_test"
@@ -1441,8 +1423,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_posix_empty_batch_test || ( echo test chttp2_fullstack_uds_posix_empty_batch_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_uds_posix_graceful_server_shutdown_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_posix_graceful_server_shutdown_test || ( echo test chttp2_fullstack_uds_posix_graceful_server_shutdown_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_fullstack_uds_posix_invoke_large_request_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_posix_invoke_large_request_test || ( echo test chttp2_fullstack_uds_posix_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_uds_posix_max_concurrent_streams_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_posix_max_concurrent_streams_test || ( echo test chttp2_fullstack_uds_posix_max_concurrent_streams_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_uds_posix_max_message_length_test"
@@ -1477,8 +1457,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_posix_simple_request_with_high_initial_sequence_number_test || ( echo test chttp2_fullstack_uds_posix_simple_request_with_high_initial_sequence_number_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_bad_hostname_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_fullstack_bad_hostname_test || ( echo test chttp2_simple_ssl_fullstack_bad_hostname_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_cancel_after_accept_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_accept_test || ( echo test chttp2_simple_ssl_fullstack_cancel_after_accept_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_cancel_after_accept_and_writes_closed_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_accept_and_writes_closed_test || ( echo test chttp2_simple_ssl_fullstack_cancel_after_accept_and_writes_closed_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_cancel_after_invoke_test"
@@ -1499,8 +1477,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_fullstack_empty_batch_test || ( echo test chttp2_simple_ssl_fullstack_empty_batch_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_graceful_server_shutdown_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_fullstack_graceful_server_shutdown_test || ( echo test chttp2_simple_ssl_fullstack_graceful_server_shutdown_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_invoke_large_request_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_fullstack_invoke_large_request_test || ( echo test chttp2_simple_ssl_fullstack_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_max_concurrent_streams_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_fullstack_max_concurrent_streams_test || ( echo test chttp2_simple_ssl_fullstack_max_concurrent_streams_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_max_message_length_test"
@@ -1535,8 +1511,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_fullstack_simple_request_with_high_initial_sequence_number_test || ( echo test chttp2_simple_ssl_fullstack_simple_request_with_high_initial_sequence_number_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_bad_hostname_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_bad_hostname_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_bad_hostname_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_and_writes_closed_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_and_writes_closed_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_and_writes_closed_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_invoke_test"
@@ -1557,8 +1531,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_empty_batch_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_empty_batch_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_max_concurrent_streams_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_max_concurrent_streams_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_max_concurrent_streams_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_max_message_length_test"
@@ -1593,8 +1565,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_simple_request_with_high_initial_sequence_number_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_simple_request_with_high_initial_sequence_number_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_bad_hostname_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_bad_hostname_test || ( echo test chttp2_socket_pair_bad_hostname_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_socket_pair_cancel_after_accept_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_test || ( echo test chttp2_socket_pair_cancel_after_accept_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_cancel_after_accept_and_writes_closed_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_and_writes_closed_test || ( echo test chttp2_socket_pair_cancel_after_accept_and_writes_closed_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_cancel_after_invoke_test"
@@ -1615,8 +1585,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_empty_batch_test || ( echo test chttp2_socket_pair_empty_batch_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_graceful_server_shutdown_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_graceful_server_shutdown_test || ( echo test chttp2_socket_pair_graceful_server_shutdown_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_socket_pair_invoke_large_request_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_invoke_large_request_test || ( echo test chttp2_socket_pair_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_max_concurrent_streams_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_max_concurrent_streams_test || ( echo test chttp2_socket_pair_max_concurrent_streams_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_max_message_length_test"
@@ -1651,8 +1619,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_simple_request_with_high_initial_sequence_number_test || ( echo test chttp2_socket_pair_simple_request_with_high_initial_sequence_number_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_bad_hostname_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_bad_hostname_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_bad_hostname_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_test"
@@ -1673,8 +1639,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_empty_batch_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_empty_batch_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_max_message_length_test"
@@ -1709,8 +1673,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_simple_request_with_high_initial_sequence_number_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_simple_request_with_high_initial_sequence_number_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_with_grpc_trace_bad_hostname_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_with_grpc_trace_bad_hostname_test || ( echo test chttp2_socket_pair_with_grpc_trace_bad_hostname_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_socket_pair_with_grpc_trace_cancel_after_accept_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_with_grpc_trace_cancel_after_accept_test || ( echo test chttp2_socket_pair_with_grpc_trace_cancel_after_accept_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_with_grpc_trace_cancel_after_accept_and_writes_closed_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_with_grpc_trace_cancel_after_accept_and_writes_closed_test || ( echo test chttp2_socket_pair_with_grpc_trace_cancel_after_accept_and_writes_closed_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_with_grpc_trace_cancel_after_invoke_test"
@@ -1731,8 +1693,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_with_grpc_trace_empty_batch_test || ( echo test chttp2_socket_pair_with_grpc_trace_empty_batch_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_with_grpc_trace_graceful_server_shutdown_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_with_grpc_trace_graceful_server_shutdown_test || ( echo test chttp2_socket_pair_with_grpc_trace_graceful_server_shutdown_test failed ; exit 1 )
-	$(E) "[RUN]     Testing chttp2_socket_pair_with_grpc_trace_invoke_large_request_test"
-	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_with_grpc_trace_invoke_large_request_test || ( echo test chttp2_socket_pair_with_grpc_trace_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_with_grpc_trace_max_concurrent_streams_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_with_grpc_trace_max_concurrent_streams_test || ( echo test chttp2_socket_pair_with_grpc_trace_max_concurrent_streams_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_socket_pair_with_grpc_trace_max_message_length_test"
@@ -2042,6 +2002,46 @@ test_c: buildtests_c
 flaky_test_c: buildtests_c
 	$(E) "[RUN]     Testing census_statistics_multiple_writers_circular_buffer_test"
 	$(Q) $(BINDIR)/$(CONFIG)/census_statistics_multiple_writers_circular_buffer_test || ( echo test census_statistics_multiple_writers_circular_buffer_test failed ; exit 1 )
+	$(E) "[RUN]     Testing census_statistics_multiple_writers_test"
+	$(Q) $(BINDIR)/$(CONFIG)/census_statistics_multiple_writers_test || ( echo test census_statistics_multiple_writers_test failed ; exit 1 )
+	$(E) "[RUN]     Testing census_statistics_performance_test"
+	$(Q) $(BINDIR)/$(CONFIG)/census_statistics_performance_test || ( echo test census_statistics_performance_test failed ; exit 1 )
+	$(E) "[RUN]     Testing census_statistics_quick_test"
+	$(Q) $(BINDIR)/$(CONFIG)/census_statistics_quick_test || ( echo test census_statistics_quick_test failed ; exit 1 )
+	$(E) "[RUN]     Testing census_statistics_small_log_test"
+	$(Q) $(BINDIR)/$(CONFIG)/census_statistics_small_log_test || ( echo test census_statistics_small_log_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_fake_security_cancel_after_accept_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fake_security_cancel_after_accept_test || ( echo test chttp2_fake_security_cancel_after_accept_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_fake_security_invoke_large_request_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fake_security_invoke_large_request_test || ( echo test chttp2_fake_security_invoke_large_request_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_fullstack_cancel_after_accept_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_cancel_after_accept_test || ( echo test chttp2_fullstack_cancel_after_accept_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_fullstack_invoke_large_request_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_invoke_large_request_test || ( echo test chttp2_fullstack_invoke_large_request_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_fullstack_uds_posix_cancel_after_accept_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_posix_cancel_after_accept_test || ( echo test chttp2_fullstack_uds_posix_cancel_after_accept_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_fullstack_uds_posix_invoke_large_request_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_uds_posix_invoke_large_request_test || ( echo test chttp2_fullstack_uds_posix_invoke_large_request_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_cancel_after_accept_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_fullstack_cancel_after_accept_test || ( echo test chttp2_simple_ssl_fullstack_cancel_after_accept_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_simple_ssl_fullstack_invoke_large_request_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_fullstack_invoke_large_request_test || ( echo test chttp2_simple_ssl_fullstack_invoke_large_request_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test || ( echo test chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_socket_pair_cancel_after_accept_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_cancel_after_accept_test || ( echo test chttp2_socket_pair_cancel_after_accept_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_socket_pair_invoke_large_request_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_invoke_large_request_test || ( echo test chttp2_socket_pair_invoke_large_request_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test || ( echo test chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_socket_pair_with_grpc_trace_cancel_after_accept_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_with_grpc_trace_cancel_after_accept_test || ( echo test chttp2_socket_pair_with_grpc_trace_cancel_after_accept_test failed ; exit 1 )
+	$(E) "[RUN]     Testing chttp2_socket_pair_with_grpc_trace_invoke_large_request_test"
+	$(Q) $(BINDIR)/$(CONFIG)/chttp2_socket_pair_with_grpc_trace_invoke_large_request_test || ( echo test chttp2_socket_pair_with_grpc_trace_invoke_large_request_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_invoke_large_request_unsecure_test"
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_fullstack_invoke_large_request_unsecure_test || ( echo test chttp2_fullstack_invoke_large_request_unsecure_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_fullstack_uds_posix_invoke_large_request_unsecure_test"
@@ -2722,8 +2722,6 @@ LIBGRPC_SRC = \
     src/core/iomgr/pollset_multipoller_with_epoll.c \
     src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_posix.c \
-    src/core/iomgr/pollset_set_posix.c \
-    src/core/iomgr/pollset_set_windows.c \
     src/core/iomgr/pollset_windows.c \
     src/core/iomgr/resolve_address_posix.c \
     src/core/iomgr/resolve_address_windows.c \
@@ -2972,8 +2970,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/iomgr/pollset_multipoller_with_epoll.c \
     src/core/iomgr/pollset_multipoller_with_poll_posix.c \
     src/core/iomgr/pollset_posix.c \
-    src/core/iomgr/pollset_set_posix.c \
-    src/core/iomgr/pollset_set_windows.c \
     src/core/iomgr/pollset_windows.c \
     src/core/iomgr/resolve_address_posix.c \
     src/core/iomgr/resolve_address_windows.c \
@@ -3219,57 +3215,6 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC++_OBJS:.o=.dep)
 endif
 endif
-
-
-LIBGRPC++_BENCHMARK_CONFIG_SRC = \
-    $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc \
-    test/cpp/qps/report.cc \
-    test/cpp/util/benchmark_config.cc \
-
-
-LIBGRPC++_BENCHMARK_CONFIG_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC++_BENCHMARK_CONFIG_SRC))))
-
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure libraries if you don't have OpenSSL with ALPN.
-
-$(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a: openssl_dep_error
-
-
-else
-
-ifeq ($(NO_PROTOBUF),true)
-
-# You can't build a C++ library if you don't have protobuf - a bit overreached, but still okay.
-
-$(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a: protobuf_dep_error
-
-
-else
-
-$(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(PROTOBUF_DEP) $(LIBGRPC++_BENCHMARK_CONFIG_OBJS)
-	$(E) "[AR]      Creating $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a
-	$(Q) $(AR) rcs $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBGRPC++_BENCHMARK_CONFIG_OBJS)
-ifeq ($(SYSTEM),Darwin)
-	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a
-endif
-
-
-
-
-endif
-
-endif
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(LIBGRPC++_BENCHMARK_CONFIG_OBJS:.o=.dep)
-endif
-endif
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/report.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/util/benchmark_config.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
 
 
 LIBGRPC++_TEST_CONFIG_SRC = \
@@ -3785,6 +3730,7 @@ LIBQPS_SRC = \
     test/cpp/qps/client_sync.cc \
     test/cpp/qps/driver.cc \
     test/cpp/qps/qps_worker.cc \
+    test/cpp/qps/report.cc \
     test/cpp/qps/server_async.cc \
     test/cpp/qps/server_sync.cc \
     test/cpp/qps/timer.cc \
@@ -3835,6 +3781,7 @@ $(OBJDIR)/$(CONFIG)/test/cpp/qps/client_async.o: $(GENDIR)/test/cpp/qps/qpstest.
 $(OBJDIR)/$(CONFIG)/test/cpp/qps/client_sync.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/qps/driver.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/qps/qps_worker.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/report.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/qps/server_async.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/qps/server_sync.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/qps/timer.o: $(GENDIR)/test/cpp/qps/qpstest.pb.cc $(GENDIR)/test/cpp/qps/qpstest.grpc.pb.cc
@@ -7180,16 +7127,16 @@ $(BINDIR)/$(CONFIG)/async_streaming_ping_pong_test: protobuf_dep_error
 
 else
 
-$(BINDIR)/$(CONFIG)/async_streaming_ping_pong_test: $(PROTOBUF_DEP) $(ASYNC_STREAMING_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(BINDIR)/$(CONFIG)/async_streaming_ping_pong_test: $(PROTOBUF_DEP) $(ASYNC_STREAMING_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(ASYNC_STREAMING_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/async_streaming_ping_pong_test
+	$(Q) $(LDXX) $(LDFLAGS) $(ASYNC_STREAMING_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/async_streaming_ping_pong_test
 
 endif
 
 endif
 
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/async_streaming_ping_pong_test.o:  $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/async_streaming_ping_pong_test.o:  $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 deps_async_streaming_ping_pong_test: $(ASYNC_STREAMING_PING_PONG_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
@@ -7220,16 +7167,16 @@ $(BINDIR)/$(CONFIG)/async_unary_ping_pong_test: protobuf_dep_error
 
 else
 
-$(BINDIR)/$(CONFIG)/async_unary_ping_pong_test: $(PROTOBUF_DEP) $(ASYNC_UNARY_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(BINDIR)/$(CONFIG)/async_unary_ping_pong_test: $(PROTOBUF_DEP) $(ASYNC_UNARY_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(ASYNC_UNARY_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/async_unary_ping_pong_test
+	$(Q) $(LDXX) $(LDFLAGS) $(ASYNC_UNARY_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/async_unary_ping_pong_test
 
 endif
 
 endif
 
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/async_unary_ping_pong_test.o:  $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/async_unary_ping_pong_test.o:  $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 deps_async_unary_ping_pong_test: $(ASYNC_UNARY_PING_PONG_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
@@ -8018,16 +7965,16 @@ $(BINDIR)/$(CONFIG)/qps_driver: protobuf_dep_error
 
 else
 
-$(BINDIR)/$(CONFIG)/qps_driver: $(PROTOBUF_DEP) $(QPS_DRIVER_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a
+$(BINDIR)/$(CONFIG)/qps_driver: $(PROTOBUF_DEP) $(QPS_DRIVER_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(QPS_DRIVER_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/qps_driver
+	$(Q) $(LDXX) $(LDFLAGS) $(QPS_DRIVER_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/qps_driver
 
 endif
 
 endif
 
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/qps_driver.o:  $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/qps_driver.o:  $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a
 deps_qps_driver: $(QPS_DRIVER_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
@@ -8058,16 +8005,16 @@ $(BINDIR)/$(CONFIG)/qps_test: protobuf_dep_error
 
 else
 
-$(BINDIR)/$(CONFIG)/qps_test: $(PROTOBUF_DEP) $(QPS_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a
+$(BINDIR)/$(CONFIG)/qps_test: $(PROTOBUF_DEP) $(QPS_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(QPS_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/qps_test
+	$(Q) $(LDXX) $(LDFLAGS) $(QPS_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/qps_test
 
 endif
 
 endif
 
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/qps_test.o:  $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/qps_test.o:  $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a
 deps_qps_test: $(QPS_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
@@ -8258,16 +8205,16 @@ $(BINDIR)/$(CONFIG)/sync_streaming_ping_pong_test: protobuf_dep_error
 
 else
 
-$(BINDIR)/$(CONFIG)/sync_streaming_ping_pong_test: $(PROTOBUF_DEP) $(SYNC_STREAMING_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(BINDIR)/$(CONFIG)/sync_streaming_ping_pong_test: $(PROTOBUF_DEP) $(SYNC_STREAMING_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(SYNC_STREAMING_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/sync_streaming_ping_pong_test
+	$(Q) $(LDXX) $(LDFLAGS) $(SYNC_STREAMING_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/sync_streaming_ping_pong_test
 
 endif
 
 endif
 
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/sync_streaming_ping_pong_test.o:  $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/sync_streaming_ping_pong_test.o:  $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 deps_sync_streaming_ping_pong_test: $(SYNC_STREAMING_PING_PONG_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
@@ -8298,16 +8245,16 @@ $(BINDIR)/$(CONFIG)/sync_unary_ping_pong_test: protobuf_dep_error
 
 else
 
-$(BINDIR)/$(CONFIG)/sync_unary_ping_pong_test: $(PROTOBUF_DEP) $(SYNC_UNARY_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(BINDIR)/$(CONFIG)/sync_unary_ping_pong_test: $(PROTOBUF_DEP) $(SYNC_UNARY_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(SYNC_UNARY_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/sync_unary_ping_pong_test
+	$(Q) $(LDXX) $(LDFLAGS) $(SYNC_UNARY_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/sync_unary_ping_pong_test
 
 endif
 
 endif
 
-$(OBJDIR)/$(CONFIG)/test/cpp/qps/sync_unary_ping_pong_test.o:  $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++_benchmark_config.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/sync_unary_ping_pong_test.o:  $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 deps_sync_unary_ping_pong_test: $(SYNC_UNARY_PING_PONG_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
