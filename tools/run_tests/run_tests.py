@@ -301,8 +301,7 @@ _CONFIGS = {
     'msan': SimpleConfig('msan'),
     'ubsan': SimpleConfig('ubsan'),
     'asan': SimpleConfig('asan', environ={
-        'ASAN_OPTIONS': 'detect_leaks=1:color=always:suppressions=tools/tsan_suppressions.txt',
-        'LSAN_OPTIONS': 'report_objects=1'}),
+        'ASAN_OPTIONS': 'detect_leaks=1:color=always:suppressions=tools/tsan_suppressions.txt'}),
     'asan-noleaks': SimpleConfig('asan', environ={
         'ASAN_OPTIONS': 'detect_leaks=0:color=always:suppressions=tools/tsan_suppressions.txt'}),
     'gcov': SimpleConfig('gcov'),
