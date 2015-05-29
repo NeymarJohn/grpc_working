@@ -27,31 +27,60 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""A Python interface for GRPC C core structures and behaviors."""
+"""Datatypes passed between Python and C code."""
 
-import atexit
-import gc
+import collections
+import enum
 
-from grpc._adapter import _c
-from grpc._adapter import _datatypes
 
-def _shut_down():
-  # force garbage collection before shutting down grpc, to ensure all grpc
-  # objects are cleaned up
-  gc.collect()
-  _c.shut_down()
+@enum.unique
+class Code(enum.IntEnum):
+  """One Platform error codes (see status.h and codes.proto)."""
 
-_c.init()
-atexit.register(_shut_down)
+  OK = 0
+  CANCELLED = 1
+  UNKNOWN = 2
+  INVALID_ARGUMENT = 3
+  EXPIRED = 4
+  NOT_FOUND = 5
+  ALREADY_EXISTS = 6
+  PERMISSION_DENIED = 7
+  UNAUTHENTICATED = 16
+  RESOURCE_EXHAUSTED = 8
+  FAILED_PRECONDITION = 9
+  ABORTED = 10
+  OUT_OF_RANGE = 11
+  UNIMPLEMENTED = 12
+  INTERNAL_ERROR = 13
+  UNAVAILABLE = 14
+  DATA_LOSS = 15
 
-# pylint: disable=invalid-name
-Code = _datatypes.Code
-Status = _datatypes.Status
-Event = _datatypes.Event
-Call = _c.Call
-Channel = _c.Channel
-CompletionQueue = _c.CompletionQueue
-Server = _c.Server
-ClientCredentials = _c.ClientCredentials
-ServerCredentials = _c.ServerCredentials
-# pylint: enable=invalid-name
+
+class Status(collections.namedtuple('Status', ['code', 'details'])):
+  """Describes an RPC's overall status."""
+
+
+class ServiceAcceptance(
+    collections.namedtuple(
+        'ServiceAcceptance', ['call', 'method', 'host', 'deadline'])):
+  """Describes an RPC on the service side at the start of service."""
+
+
+class Event(
+    collections.namedtuple(
+        'Event',
+        ['kind', 'tag', 'write_accepted', 'complete_accepted',
+         'service_acceptance', 'bytes', 'status', 'metadata'])):
+  """Describes an event emitted from a completion queue."""
+
+  @enum.unique
+  class Kind(enum.Enum):
+    """Describes the kind of an event."""
+
+    STOP = object()
+    WRITE_ACCEPTED = object()
+    COMPLETE_ACCEPTED = object()
+    SERVICE_ACCEPTED = object()
+    READ_ACCEPTED = object()
+    METADATA_ACCEPTED = object()
+    FINISH = object()
