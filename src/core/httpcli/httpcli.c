@@ -59,6 +59,7 @@ typedef struct {
   int use_ssl;
   grpc_httpcli_response_cb on_response;
   void *user_data;
+  grpc_pollset_set *interested_parties;
 } internal_request;
 
 static grpc_httpcli_get_override g_get_override = NULL;
@@ -197,8 +198,9 @@ static void next_address(internal_request *req) {
     return;
   }
   addr = &req->addresses->addrs[req->next_address++];
-  grpc_tcp_client_connect(on_connected, req, (struct sockaddr *)&addr->addr,
-                          addr->len, req->deadline);
+  grpc_tcp_client_connect(on_connected, req, req->interested_parties,
+                          (struct sockaddr *)&addr->addr, addr->len,
+                          req->deadline);
 }
 
 static void on_resolved(void *arg, grpc_resolved_addresses *addresses) {
@@ -214,6 +216,7 @@ static void on_resolved(void *arg, grpc_resolved_addresses *addresses) {
 
 void grpc_httpcli_get(const grpc_httpcli_request *request,
                       gpr_timespec deadline,
+                      grpc_pollset_set *interested_parties,
                       grpc_httpcli_response_cb on_response, void *user_data) {
   internal_request *req;
   if (g_get_override &&
@@ -228,6 +231,7 @@ void grpc_httpcli_get(const grpc_httpcli_request *request,
   req->user_data = user_data;
   req->deadline = deadline;
   req->use_ssl = request->use_ssl;
+  req->interested_parties = interested_parties;
   if (req->use_ssl) {
     req->host = gpr_strdup(request->host);
   }
@@ -239,6 +243,7 @@ void grpc_httpcli_get(const grpc_httpcli_request *request,
 void grpc_httpcli_post(const grpc_httpcli_request *request,
                        const char *body_bytes, size_t body_size,
                        gpr_timespec deadline,
+                       grpc_pollset_set *interested_parties,
                        grpc_httpcli_response_cb on_response, void *user_data) {
   internal_request *req;
   if (g_post_override && g_post_override(request, body_bytes, body_size,
@@ -254,6 +259,7 @@ void grpc_httpcli_post(const grpc_httpcli_request *request,
   req->user_data = user_data;
   req->deadline = deadline;
   req->use_ssl = request->use_ssl;
+  req->interested_parties = interested_parties;
   if (req->use_ssl) {
     req->host = gpr_strdup(request->host);
   }
