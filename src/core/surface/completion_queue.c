@@ -59,9 +59,6 @@ typedef struct event {
 
 /* Completion queue structure */
 struct grpc_completion_queue {
-  /* TODO(ctiller): see if this can be removed */
-  int allow_polling;
-
   /* When refs drops to zero, we are in shutdown mode, and will be destroyable
      once all queued events are drained */
   gpr_refcount refs;
@@ -86,29 +83,46 @@ grpc_completion_queue *grpc_completion_queue_create(void) {
   /* One for destroy(), one for pollset_shutdown */
   gpr_ref_init(&cc->owning_refs, 2);
   grpc_pollset_init(&cc->pollset);
-  cc->allow_polling = 1;
   return cc;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+#ifdef GRPC_CQ_REF_COUNT_DEBUG
+void grpc_cq_internal_ref(grpc_completion_queue *cc, const char *reason) {
+  gpr_log(GPR_DEBUG, "CQ:%p   ref %d -> %d %s", cc, (int)cc->owning_refs.count, (int)cc->owning_refs.count + 1, reason);
+#else
 void grpc_cq_internal_ref(grpc_completion_queue *cc) {
+#endif
   gpr_ref(&cc->owning_refs);
 }
 
 static void on_pollset_destroy_done(void *arg) {
   grpc_completion_queue *cc = arg;
-  grpc_cq_internal_unref(cc);
+  GRPC_CQ_INTERNAL_UNREF(cc, "pollset_destroy");
 }
 
+#ifdef GRPC_CQ_REF_COUNT_DEBUG
+void grpc_cq_internal_unref(grpc_completion_queue *cc, const char *reason) {
+  gpr_log(GPR_DEBUG, "CQ:%p unref %d -> %d %s", cc, (int)cc->owning_refs.count, (int)cc->owning_refs.count - 1, reason);
+#else
 void grpc_cq_internal_unref(grpc_completion_queue *cc) {
+#endif
   if (gpr_unref(&cc->owning_refs)) {
     GPR_ASSERT(cc->queue == NULL);
     grpc_pollset_destroy(&cc->pollset);
     gpr_free(cc);
   }
-}
-
-void grpc_completion_queue_dont_poll_test_only(grpc_completion_queue *cc) {
-  cc->allow_polling = 0;
 }
 
 /* Create and append an event to the queue. Returns the event so that its data
@@ -134,7 +148,6 @@ static event *add_locked(grpc_completion_queue *cc, grpc_completion_type type,
     ev->bucket_prev = cc->buckets[bucket]->bucket_prev;
     ev->bucket_next->bucket_prev = ev->bucket_prev->bucket_next = ev;
   }
-  gpr_cv_broadcast(GRPC_POLLSET_CV(&cc->pollset));
   grpc_pollset_kick(&cc->pollset);
   return ev;
 }
@@ -157,7 +170,6 @@ void grpc_cq_end_op(grpc_completion_queue *cc, void *tag, grpc_call *call,
     GPR_ASSERT(!cc->shutdown);
     GPR_ASSERT(cc->shutdown_called);
     cc->shutdown = 1;
-    gpr_cv_broadcast(GRPC_POLLSET_CV(&cc->pollset));
     shutdown = 1;
   }
   gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
@@ -180,7 +192,7 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
   event *ev = NULL;
   grpc_event ret;
 
-  grpc_cq_internal_ref(cc);
+  GRPC_CQ_INTERNAL_REF(cc, "next");
   gpr_mu_lock(GRPC_POLLSET_MU(&cc->pollset));
   for (;;) {
     if (cc->queue != NULL) {
@@ -207,16 +219,12 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
       ev = create_shutdown_event();
       break;
     }
-    if (cc->allow_polling && grpc_pollset_work(&cc->pollset, deadline)) {
-      continue;
-    }
-    if (gpr_cv_wait(GRPC_POLLSET_CV(&cc->pollset),
-                    GRPC_POLLSET_MU(&cc->pollset), deadline)) {
+    if (!grpc_pollset_work(&cc->pollset, deadline)) {
       gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
       memset(&ret, 0, sizeof(ret));
       ret.type = GRPC_QUEUE_TIMEOUT;
       GRPC_SURFACE_TRACE_RETURNED_EVENT(cc, &ret);
-      grpc_cq_internal_unref(cc);
+      GRPC_CQ_INTERNAL_UNREF(cc, "next");
       return ret;
     }
   }
@@ -224,7 +232,7 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
   ret = ev->base;
   gpr_free(ev);
   GRPC_SURFACE_TRACE_RETURNED_EVENT(cc, &ret);
-  grpc_cq_internal_unref(cc);
+  GRPC_CQ_INTERNAL_UNREF(cc, "next");
   return ret;
 }
 
@@ -262,7 +270,7 @@ grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
   event *ev = NULL;
   grpc_event ret;
 
-  grpc_cq_internal_ref(cc);
+  GRPC_CQ_INTERNAL_REF(cc, "pluck");
   gpr_mu_lock(GRPC_POLLSET_MU(&cc->pollset));
   for (;;) {
     if ((ev = pluck_event(cc, tag))) {
@@ -272,16 +280,12 @@ grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
       ev = create_shutdown_event();
       break;
     }
-    if (cc->allow_polling && grpc_pollset_work(&cc->pollset, deadline)) {
-      continue;
-    }
-    if (gpr_cv_wait(GRPC_POLLSET_CV(&cc->pollset),
-                    GRPC_POLLSET_MU(&cc->pollset), deadline)) {
+    if (!grpc_pollset_work(&cc->pollset, deadline)) {
       gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
       memset(&ret, 0, sizeof(ret));
       ret.type = GRPC_QUEUE_TIMEOUT;
       GRPC_SURFACE_TRACE_RETURNED_EVENT(cc, &ret);
-      grpc_cq_internal_unref(cc);
+      GRPC_CQ_INTERNAL_UNREF(cc, "pluck");
       return ret;
     }
   }
@@ -289,7 +293,7 @@ grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
   ret = ev->base;
   gpr_free(ev);
   GRPC_SURFACE_TRACE_RETURNED_EVENT(cc, &ret);
-  grpc_cq_internal_unref(cc);
+  GRPC_CQ_INTERNAL_UNREF(cc, "pluck");
   return ret;
 }
 
@@ -304,14 +308,13 @@ void grpc_completion_queue_shutdown(grpc_completion_queue *cc) {
     gpr_mu_lock(GRPC_POLLSET_MU(&cc->pollset));
     GPR_ASSERT(!cc->shutdown);
     cc->shutdown = 1;
-    gpr_cv_broadcast(GRPC_POLLSET_CV(&cc->pollset));
     gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
     grpc_pollset_shutdown(&cc->pollset, on_pollset_destroy_done, cc);
   }
 }
 
 void grpc_completion_queue_destroy(grpc_completion_queue *cc) {
-  grpc_cq_internal_unref(cc);
+  GRPC_CQ_INTERNAL_UNREF(cc, "destroy");
 }
 
 grpc_pollset *grpc_cq_pollset(grpc_completion_queue *cc) {
