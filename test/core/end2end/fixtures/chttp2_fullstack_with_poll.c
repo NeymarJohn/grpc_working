@@ -33,14 +33,11 @@
 
 #include "test/core/end2end/end2end_tests.h"
 
-#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "src/core/channel/client_channel.h"
 #include "src/core/channel/connected_channel.h"
 #include "src/core/channel/http_server_filter.h"
-#include "src/core/support/string.h"
 #include "src/core/surface/channel.h"
 #include "src/core/surface/client.h"
 #include "src/core/surface/server.h"
@@ -58,16 +55,14 @@ typedef struct fullstack_fixture_data {
   char *localaddr;
 } fullstack_fixture_data;
 
-static int unique = 1;
-
 static grpc_end2end_test_fixture chttp2_create_fixture_fullstack(
     grpc_channel_args *client_args, grpc_channel_args *server_args) {
   grpc_end2end_test_fixture f;
+  int port = grpc_pick_unused_port_or_die();
   fullstack_fixture_data *ffd = gpr_malloc(sizeof(fullstack_fixture_data));
   memset(&f, 0, sizeof(f));
 
-  gpr_asprintf(&ffd->localaddr, "unix:/tmp/grpc_fullstack_test.%d.%d", getpid(),
-               unique++);
+  gpr_join_host_port(&ffd->localaddr, "localhost", port);
 
   f.fixture_data = ffd;
   f.cq = grpc_completion_queue_create();
@@ -101,13 +96,15 @@ void chttp2_tear_down_fullstack(grpc_end2end_test_fixture *f) {
 
 /* All test configurations */
 static grpc_end2end_test_config configs[] = {
-    {"chttp2/fullstack_uds", FEATURE_MASK_SUPPORTS_DELAYED_CONNECTION,
+    {"chttp2/fullstack", FEATURE_MASK_SUPPORTS_DELAYED_CONNECTION,
      chttp2_create_fixture_fullstack, chttp2_init_client_fullstack,
      chttp2_init_server_fullstack, chttp2_tear_down_fullstack},
 };
 
 int main(int argc, char **argv) {
   size_t i;
+
+  grpc_platform_become_multipoller = grpc_poll_become_multipoller;
 
   grpc_test_init(argc, argv);
   grpc_init();
