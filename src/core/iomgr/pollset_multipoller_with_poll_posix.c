@@ -109,10 +109,8 @@ static int multipoll_with_poll_pollset_maybe_work(
   int r;
   size_t i, np, nf, nd;
   pollset_hdr *h;
+  grpc_kick_fd_info *kfd;
 
-  if (pollset->counter) {
-    return 0;
-  }
   h = pollset->data.ptr;
   if (gpr_time_cmp(deadline, gpr_inf_future) == 0) {
     timeout = -1;
@@ -131,11 +129,12 @@ static int multipoll_with_poll_pollset_maybe_work(
   }
   nf = 0;
   np = 1;
-  h->pfds[0].fd = grpc_pollset_kick_pre_poll(&pollset->kick_state);
-  if (h->pfds[0].fd < 0) {
+  kfd = grpc_pollset_kick_pre_poll(&pollset->kick_state);
+  if (kfd == NULL) {
     /* Already kicked */
     return 1;
   }
+  h->pfds[0].fd = GRPC_POLLSET_KICK_GET_FD(kfd);
   h->pfds[0].events = POLLIN;
   h->pfds[0].revents = POLLOUT;
   for (i = 0; i < h->fd_count; i++) {
@@ -163,7 +162,7 @@ static int multipoll_with_poll_pollset_maybe_work(
     end_polling(pollset);
     return 0;
   }
-  pollset->counter = 1;
+  pollset->counter++;
   gpr_mu_unlock(&pollset->mu);
 
   for (i = 1; i < np; i++) {
@@ -183,7 +182,7 @@ static int multipoll_with_poll_pollset_maybe_work(
     /* do nothing */
   } else {
     if (h->pfds[0].revents & POLLIN) {
-      grpc_pollset_kick_consume(&pollset->kick_state);
+      grpc_pollset_kick_consume(&pollset->kick_state, kfd);
     }
     for (i = 1; i < np; i++) {
       if (h->pfds[i].revents & (POLLIN | POLLHUP | POLLERR)) {
@@ -194,11 +193,10 @@ static int multipoll_with_poll_pollset_maybe_work(
       }
     }
   }
-  grpc_pollset_kick_post_poll(&pollset->kick_state);
+  grpc_pollset_kick_post_poll(&pollset->kick_state, kfd);
 
   gpr_mu_lock(&pollset->mu);
-  pollset->counter = 0;
-  gpr_cv_broadcast(&pollset->cv);
+  pollset->counter--;
   return 1;
 }
 
