@@ -140,6 +140,10 @@ static int multipoll_with_epoll_pollset_maybe_work(
 
   gpr_mu_lock(&pollset->mu);
   pollset->counter -= 1;
+  /* TODO(klempner): This should signal once per event rather than broadcast,
+   * although it probably doesn't matter because threads will generally be
+   * blocked in epoll_wait rather than being blocked on the cv. */
+  gpr_cv_broadcast(&pollset->cv);
   return 1;
 }
 
@@ -190,6 +194,7 @@ static void epoll_become_multipoller(grpc_pollset *pollset, grpc_fd **fds,
   }
 }
 
-grpc_platform_become_multipoller_type grpc_platform_become_multipoller = epoll_become_multipoller;
+grpc_platform_become_multipoller_type grpc_platform_become_multipoller =
+    epoll_become_multipoller;
 
-#endif  /* GPR_LINUX_MULTIPOLL_WITH_EPOLL */
+#endif /* GPR_LINUX_MULTIPOLL_WITH_EPOLL */

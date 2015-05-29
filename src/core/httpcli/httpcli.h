@@ -38,8 +38,6 @@
 
 #include <grpc/support/time.h>
 
-#include "src/core/iomgr/pollset_set.h"
-
 /* User agent this library reports */
 #define GRPC_HTTPCLI_USER_AGENT "grpc-httpcli/0.0"
 /* Maximum length of a header string of the form 'Key: Value\r\n' */
@@ -92,7 +90,6 @@ typedef void (*grpc_httpcli_response_cb)(void *user_data,
      supplied pointer to pass to said call) */
 void grpc_httpcli_get(const grpc_httpcli_request *request,
                       gpr_timespec deadline,
-                      grpc_pollset_set *interested_parties,
                       grpc_httpcli_response_cb on_response, void *user_data);
 
 /* Asynchronously perform a HTTP POST.
@@ -101,7 +98,6 @@ void grpc_httpcli_get(const grpc_httpcli_request *request,
 void grpc_httpcli_post(const grpc_httpcli_request *request,
                        const char *body_bytes, size_t body_size,
                        gpr_timespec deadline,
-                       grpc_pollset_set *interested_parties,
                        grpc_httpcli_response_cb on_response, void *user_data);
 
 /* override functions return 1 if they handled the request, 0 otherwise */
@@ -119,4 +115,4 @@ typedef int (*grpc_httpcli_post_override)(const grpc_httpcli_request *request,
 void grpc_httpcli_set_override(grpc_httpcli_get_override get,
                                grpc_httpcli_post_override post);
 
-#endif /* GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_H */
+#endif  /* GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_H */
