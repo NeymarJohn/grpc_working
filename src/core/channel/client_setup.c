@@ -61,17 +61,11 @@ struct grpc_client_setup {
 struct grpc_client_setup_request {
   /* pointer back to the setup object */
   grpc_client_setup *setup;
-  grpc_pollset_set interested_parties;
   gpr_timespec deadline;
 };
 
 gpr_timespec grpc_client_setup_request_deadline(grpc_client_setup_request *r) {
   return r->deadline;
-}
-
-grpc_pollset_set *grpc_client_setup_get_interested_parties(
-    grpc_client_setup_request *r) {
-  return &r->interested_parties;
 }
 
 static void destroy_setup(grpc_client_setup *s) {
@@ -82,11 +76,6 @@ static void destroy_setup(grpc_client_setup *s) {
   gpr_free(s);
 }
 
-static void destroy_request(grpc_client_setup_request *r) {
-  grpc_pollset_set_destroy(&r->interested_parties);
-  gpr_free(r);
-}
-
 /* initiate handshaking */
 static void setup_initiate(grpc_transport_setup *sp) {
   grpc_client_setup *s = (grpc_client_setup *)sp;
@@ -94,7 +83,6 @@ static void setup_initiate(grpc_transport_setup *sp) {
   int in_alarm = 0;
 
   r->setup = s;
-  grpc_pollset_set_init(&r->interested_parties);
   /* TODO(klempner): Actually set a deadline */
   r->deadline = gpr_inf_future;
 
@@ -116,38 +104,8 @@ static void setup_initiate(grpc_transport_setup *sp) {
   if (!in_alarm) {
     s->initiate(s->user_data, r);
   } else {
-    destroy_request(r);
+    gpr_free(r);
   }
-}
-
-static void setup_add_interested_party(grpc_transport_setup *sp,
-                                       grpc_pollset *pollset) {
-  grpc_client_setup *s = (grpc_client_setup *)sp;
-
-  gpr_mu_lock(&s->mu);
-  if (!s->active_request) {
-    gpr_mu_unlock(&s->mu);
-    return;
-  }
-
-  grpc_pollset_set_add_pollset(&s->active_request->interested_parties, pollset);
-
-  gpr_mu_unlock(&s->mu);
-}
-
-static void setup_del_interested_party(grpc_transport_setup *sp,
-                                       grpc_pollset *pollset) {
-  grpc_client_setup *s = (grpc_client_setup *)sp;
-
-  gpr_mu_lock(&s->mu);
-  if (!s->active_request) {
-    gpr_mu_unlock(&s->mu);
-    return;
-  }
-
-  grpc_pollset_set_del_pollset(&s->active_request->interested_parties, pollset);
-
-  gpr_mu_unlock(&s->mu);
 }
 
 /* cancel handshaking: cancel all requests, and shutdown (the caller promises
@@ -198,9 +156,8 @@ void grpc_client_setup_cb_end(grpc_client_setup_request *r) {
 }
 
 /* vtable for transport setup */
-static const grpc_transport_setup_vtable setup_vtable = {
-    setup_initiate, setup_add_interested_party, setup_del_interested_party,
-    setup_cancel};
+static const grpc_transport_setup_vtable setup_vtable = {setup_initiate,
+                                                         setup_cancel};
 
 void grpc_client_setup_create_and_attach(
     grpc_channel_stack *newly_minted_channel, const grpc_channel_args *args,
@@ -239,24 +196,26 @@ int grpc_client_setup_request_should_continue(grpc_client_setup_request *r) {
 }
 
 static void backoff_alarm_done(void *arg /* grpc_client_setup */, int success) {
-  grpc_client_setup_request *r = arg;
-  grpc_client_setup *s = r->setup;
+  grpc_client_setup *s = arg;
+  grpc_client_setup_request *r = gpr_malloc(sizeof(grpc_client_setup_request));
+  r->setup = s;
+  /* TODO(klempner): Set this to something useful */
+  r->deadline = gpr_inf_future;
   /* Handle status cancelled? */
   gpr_mu_lock(&s->mu);
+  s->active_request = r;
   s->in_alarm = 0;
-  if (s->active_request != NULL || !success) {
+  if (!success) {
     if (0 == --s->refs) {
       gpr_mu_unlock(&s->mu);
       destroy_setup(s);
-      destroy_request(r);
+      gpr_free(r);
       return;
     } else {
       gpr_mu_unlock(&s->mu);
-      destroy_request(r);
       return;
     }
   }
-  s->active_request = r;
   gpr_mu_unlock(&s->mu);
   s->initiate(s->user_data, r);
 }
@@ -275,9 +234,11 @@ void grpc_client_setup_request_finish(grpc_client_setup_request *r,
   if (!retry && 0 == --s->refs) {
     gpr_mu_unlock(&s->mu);
     destroy_setup(s);
-    destroy_request(r);
+    gpr_free(r);
     return;
   }
+
+  gpr_free(r);
 
   if (retry) {
     /* TODO(klempner): Replace these values with further consideration. 2x is
@@ -287,7 +248,7 @@ void grpc_client_setup_request_finish(grpc_client_setup_request *r,
     gpr_timespec deadline = gpr_time_add(s->current_backoff_interval, now);
     GPR_ASSERT(!s->in_alarm);
     s->in_alarm = 1;
-    grpc_alarm_init(&s->backoff_alarm, deadline, backoff_alarm_done, r, now);
+    grpc_alarm_init(&s->backoff_alarm, deadline, backoff_alarm_done, s, now);
     s->current_backoff_interval =
         gpr_time_add(s->current_backoff_interval, s->current_backoff_interval);
     if (gpr_time_cmp(s->current_backoff_interval, max_backoff) > 0) {
