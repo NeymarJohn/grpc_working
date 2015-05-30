@@ -31,36 +31,17 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H
-#define GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H
+#include <grpc/support/port_platform.h>
 
-/* Internal API for completion channels */
+#ifdef GPR_WINSOCK_SOCKET
 
-#include "src/core/iomgr/pollset.h"
-#include <grpc/grpc.h>
+#include "src/core/iomgr/pollset_set.h"
 
-#ifdef GRPC_CQ_REF_COUNT_DEBUG
-void grpc_cq_internal_ref(grpc_completion_queue *cc, const char *reason);
-void grpc_cq_internal_unref(grpc_completion_queue *cc, const char *reason);
-#define GRPC_CQ_INTERNAL_REF(cc, reason) grpc_cq_internal_ref(cc, reason)
-#define GRPC_CQ_INTERNAL_UNREF(cc, reason) grpc_cq_internal_unref(cc, reason)
-#else
-void grpc_cq_internal_ref(grpc_completion_queue *cc);
-void grpc_cq_internal_unref(grpc_completion_queue *cc);
-#define GRPC_CQ_INTERNAL_REF(cc, reason) grpc_cq_internal_ref(cc)
-#define GRPC_CQ_INTERNAL_UNREF(cc, reason) grpc_cq_internal_unref(cc)
-#endif
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set) {}
 
-/* Flag that an operation is beginning: the completion channel will not finish
-   shutdown until a corrensponding grpc_cq_end_* call is made */
-void grpc_cq_begin_op(grpc_completion_queue *cc, grpc_call *call);
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set) {}
 
-/* Queue a GRPC_OP_COMPLETED operation */
-void grpc_cq_end_op(grpc_completion_queue *cc, void *tag, grpc_call *call,
-                    int success);
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset) {}
 
-grpc_pollset *grpc_cq_pollset(grpc_completion_queue *cc);
-
-void grpc_cq_hack_spin_pollset(grpc_completion_queue *cc);
-
-#endif /* GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H */
+#endif /* GPR_WINSOCK_SOCKET */

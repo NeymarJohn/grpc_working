@@ -31,12 +31,29 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_AUTH_FILTERS_H
-#define GRPC_INTERNAL_CORE_SECURITY_AUTH_FILTERS_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
 
-#include "src/core/channel/channel_stack.h"
+#include "src/core/iomgr/pollset.h"
 
-extern const grpc_channel_filter grpc_client_auth_filter;
-extern const grpc_channel_filter grpc_server_auth_filter;
+/* A grpc_pollset_set is a set of pollsets that are interested in an
+   action. Adding a pollset to a pollset_set automatically adds any
+   fd's (etc) that have been registered with the set_set with that pollset.
+   Registering fd's automatically iterates all current pollsets. */
 
-#endif  /* GRPC_INTERNAL_CORE_SECURITY_AUTH_FILTERS_H */
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/pollset_set_posix.h"
+#endif
+
+#ifdef GPR_WIN32
+#include "src/core/iomgr/pollset_set_windows.h"
+#endif
+
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset);
+void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset);
+
+#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */

@@ -68,8 +68,7 @@ static grpc_transport_setup_result server_setup_transport(
   static grpc_channel_filter const *extra_filters[] = {
       &grpc_http_server_filter};
   return grpc_server_setup_transport(a->server, transport, extra_filters,
-                                     GPR_ARRAY_SIZE(extra_filters), mdctx,
-                                     grpc_server_get_channel_args(a->server));
+                                     GPR_ARRAY_SIZE(extra_filters), mdctx);
 }
 
 void grpc_run_bad_client_test(const char *name, const char *client_payload,
@@ -130,6 +129,10 @@ void grpc_run_bad_client_test(const char *name, const char *client_payload,
 
   /* Shutdown */
   grpc_endpoint_destroy(sfd.client);
+  grpc_server_shutdown_and_notify(a.server, a.cq, NULL);
+  GPR_ASSERT(grpc_completion_queue_pluck(a.cq, NULL,
+                                         GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1))
+                 .type == GRPC_OP_COMPLETE);
   grpc_server_destroy(a.server);
   grpc_completion_queue_destroy(a.cq);
 

@@ -38,6 +38,9 @@
 
 #include "src/core/channel/channel_args.h"
 #include "src/core/security/credentials.h"
+#include "src/core/support/env.h"
+#include "src/core/support/file.h"
+#include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/host_port.h>
 #include <grpc/support/log.h>
@@ -55,8 +58,8 @@ static grpc_end2end_test_fixture chttp2_create_fixture_secure_fullstack(
   int port = grpc_pick_unused_port_or_die();
   fullstack_secure_fixture_data *ffd =
       gpr_malloc(sizeof(fullstack_secure_fixture_data));
-
   memset(&f, 0, sizeof(f));
+
   gpr_join_host_port(&ffd->localaddr, "localhost", port);
 
   f.fixture_data = ffd;
@@ -94,35 +97,58 @@ void chttp2_tear_down_secure_fullstack(grpc_end2end_test_fixture *f) {
   gpr_free(ffd);
 }
 
-static void chttp2_init_client_fake_secure_fullstack(
+static void chttp2_init_client_simple_ssl_secure_fullstack(
     grpc_end2end_test_fixture *f, grpc_channel_args *client_args) {
-  grpc_credentials *fake_ts_creds =
-      grpc_fake_transport_security_credentials_create();
-  chttp2_init_client_secure_fullstack(f, client_args, fake_ts_creds);
+  grpc_credentials *ssl_creds = grpc_ssl_credentials_create(NULL, NULL);
+  grpc_arg ssl_name_override = {GRPC_ARG_STRING,
+                                GRPC_SSL_TARGET_NAME_OVERRIDE_ARG,
+                                {"foo.test.google.fr"}};
+  grpc_channel_args *new_client_args =
+      grpc_channel_args_copy_and_add(client_args, &ssl_name_override);
+  chttp2_init_client_secure_fullstack(f, new_client_args, ssl_creds);
+  grpc_channel_args_destroy(new_client_args);
 }
 
-static void chttp2_init_server_fake_secure_fullstack(
+static void chttp2_init_server_simple_ssl_secure_fullstack(
     grpc_end2end_test_fixture *f, grpc_channel_args *server_args) {
-  grpc_server_credentials *fake_ts_creds =
-      grpc_fake_transport_security_server_credentials_create();
-  chttp2_init_server_secure_fullstack(f, server_args, fake_ts_creds);
+  grpc_ssl_pem_key_cert_pair pem_cert_key_pair = {test_server1_key,
+                                                  test_server1_cert};
+  grpc_server_credentials *ssl_creds =
+      grpc_ssl_server_credentials_create(NULL, &pem_cert_key_pair, 1);
+  chttp2_init_server_secure_fullstack(f, server_args, ssl_creds);
 }
 
 /* All test configurations */
 
 static grpc_end2end_test_config configs[] = {
-    {"chttp2/fake_secure_fullstack",
+    {"chttp2/simple_ssl_fullstack",
      FEATURE_MASK_SUPPORTS_DELAYED_CONNECTION |
+         FEATURE_MASK_SUPPORTS_HOSTNAME_VERIFICATION |
          FEATURE_MASK_SUPPORTS_PER_CALL_CREDENTIALS,
      chttp2_create_fixture_secure_fullstack,
-     chttp2_init_client_fake_secure_fullstack,
-     chttp2_init_server_fake_secure_fullstack,
+     chttp2_init_client_simple_ssl_secure_fullstack,
+     chttp2_init_server_simple_ssl_secure_fullstack,
      chttp2_tear_down_secure_fullstack},
 };
 
 int main(int argc, char **argv) {
   size_t i;
+  FILE *roots_file;
+  size_t roots_size = strlen(test_root_cert);
+  char *roots_filename;
+
+  grpc_platform_become_multipoller = grpc_poll_become_multipoller;
+
   grpc_test_init(argc, argv);
+
+  /* Set the SSL roots env var. */
+  roots_file = gpr_tmpfile("chttp2_simple_ssl_with_poll_fullstack_test", 
+                           &roots_filename);
+  GPR_ASSERT(roots_filename != NULL);
+  GPR_ASSERT(roots_file != NULL);
+  GPR_ASSERT(fwrite(test_root_cert, 1, roots_size, roots_file) == roots_size);
+  fclose(roots_file);
+  gpr_setenv(GRPC_DEFAULT_SSL_ROOTS_FILE_PATH_ENV_VAR, roots_filename);
 
   grpc_init();
 
@@ -131,6 +157,10 @@ int main(int argc, char **argv) {
   }
 
   grpc_shutdown();
+
+  /* Cleanup. */
+  remove(roots_filename);
+  gpr_free(roots_filename);
 
   return 0;
 }

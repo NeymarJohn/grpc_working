@@ -31,18 +31,11 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
+#ifndef GRPC_INTERNAL_CORE_SECURITY_AUTH_H
+#define GRPC_INTERNAL_CORE_SECURITY_AUTH_H
 
-#include <grpc/support/sync.h>
+#include "src/core/channel/channel_stack.h"
 
-/* There isn't really any such thing as a pollset under Windows, due to the
-   nature of the IO completion ports. */
+extern const grpc_channel_filter grpc_client_auth_filter;
 
-struct grpc_kick_fd_info;
-
-typedef struct grpc_pollset_kick_state {
-  int unused;
-} grpc_pollset_kick_state;
-
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H */
+#endif  /* GRPC_INTERNAL_CORE_SECURITY_AUTH_H */
