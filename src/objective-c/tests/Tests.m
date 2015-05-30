@@ -31,22 +31,10 @@
  *
  */
 
-#import "GRPCSecureChannel.h"
+#import <Foundation/Foundation.h>
 
-#import <grpc/grpc_security.h>
+@interface Tests : NSObject
+@end
 
-@implementation GRPCSecureChannel
-
-- (instancetype)initWithHost:(NSString *)host {
-  // TODO(jcanizales): Load certs only once.
-  NSURL *certsURL = [[NSBundle mainBundle] URLForResource:@"gRPC.bundle/roots" withExtension:@"pem"];
-  NSData *certsData = [NSData dataWithContentsOfURL:certsURL];
-  NSString *certsString = [[NSString alloc] initWithData:certsData encoding:NSUTF8StringEncoding];
-
-  grpc_credentials *credentials = grpc_ssl_credentials_create(certsString.UTF8String, NULL);
-  return (self = [super initWithChannel:grpc_secure_channel_create(credentials,
-                                                                   host.UTF8String,
-                                                                   NULL)]);
-}
-
+@implementation Tests
 @end
