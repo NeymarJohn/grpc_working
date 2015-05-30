@@ -31,10 +31,11 @@
  *
  */
 
-#import <Foundation/Foundation.h>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_WINDOWS_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_WINDOWS_H
 
-@interface Tests : NSObject
-@end
+typedef struct grpc_pollset_set {
+	void *unused;
+} grpc_pollset_set;
 
-@implementation Tests
-@end
+#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */

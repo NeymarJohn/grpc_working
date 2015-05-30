@@ -6,7 +6,7 @@
     "#": "The public version number of the library.",
     "version": {
       "major": 0,
-      "minor": 9,
+      "minor": 10,
       "micro": 0,
       "build": 0
     }
@@ -115,10 +115,10 @@
         "src/core/iomgr/iomgr_internal.h",
         "src/core/iomgr/iomgr_posix.h",
         "src/core/iomgr/pollset.h",
-        "src/core/iomgr/pollset_kick.h",
         "src/core/iomgr/pollset_kick_posix.h",
-        "src/core/iomgr/pollset_kick_windows.h",
         "src/core/iomgr/pollset_posix.h",
+        "src/core/iomgr/pollset_set_posix.h",
+        "src/core/iomgr/pollset_set_windows.h",
         "src/core/iomgr/pollset_windows.h",
         "src/core/iomgr/resolve_address.h",
         "src/core/iomgr/sockaddr.h",
@@ -203,10 +203,12 @@
         "src/core/iomgr/iomgr.c",
         "src/core/iomgr/iomgr_posix.c",
         "src/core/iomgr/iomgr_windows.c",
-        "src/core/iomgr/pollset_kick.c",
+        "src/core/iomgr/pollset_kick_posix.c",
         "src/core/iomgr/pollset_multipoller_with_epoll.c",
         "src/core/iomgr/pollset_multipoller_with_poll_posix.c",
         "src/core/iomgr/pollset_posix.c",
+        "src/core/iomgr/pollset_set_posix.c",
+        "src/core/iomgr/pollset_set_windows.c",
         "src/core/iomgr/pollset_windows.c",
         "src/core/iomgr/resolve_address_posix.c",
         "src/core/iomgr/resolve_address_windows.c",
@@ -599,7 +601,8 @@
         "src/compiler/ruby_generator.cc"
       ],
       "deps": [],
-      "secure": "no"
+      "secure": "no",
+      "vs_project_guid": "{B6E81D84-2ACB-41B8-8781-493A944C7817}"
     },
     {
       "name": "interop_client_helper",
@@ -829,7 +832,6 @@
     },
     {
       "name": "census_statistics_multiple_writers_test",
-      "flaky": true,
       "build": "test",
       "language": "c",
       "src": [
@@ -844,7 +846,6 @@
     },
     {
       "name": "census_statistics_performance_test",
-      "flaky": true,
       "build": "test",
       "language": "c",
       "src": [
@@ -859,7 +860,6 @@
     },
     {
       "name": "census_statistics_quick_test",
-      "flaky": true,
       "build": "test",
       "language": "c",
       "src": [
@@ -874,7 +874,6 @@
     },
     {
       "name": "census_statistics_small_log_test",
-      "flaky": true,
       "build": "test",
       "language": "c",
       "src": [
@@ -2006,7 +2005,8 @@
       "deps": [
         "grpc_plugin_support"
       ],
-      "secure": "no"
+      "secure": "no",
+      "vs_project_guid": "{7E51A25F-AC59-488F-906C-C60FAAE706AA}"
     },
     {
       "name": "grpc_csharp_plugin",
@@ -2018,7 +2018,8 @@
       "deps": [
         "grpc_plugin_support"
       ],
-      "secure": "no"
+      "secure": "no",
+      "vs_project_guid": "{3C813052-A49A-4662-B90A-1ADBEC7EE453}"
     },
     {
       "name": "grpc_objective_c_plugin",
@@ -2030,7 +2031,8 @@
       "deps": [
         "grpc_plugin_support"
       ],
-      "secure": "no"
+      "secure": "no",
+      "vs_project_guid": "{19564640-CEE6-4921-ABA5-676ED79A36F6}"
     },
     {
       "name": "grpc_python_plugin",
@@ -2042,7 +2044,8 @@
       "deps": [
         "grpc_plugin_support"
       ],
-      "secure": "no"
+      "secure": "no",
+      "vs_project_guid": "{DF52D501-A6CF-4E6F-BA38-6EBE2E8DAFB2}"
     },
     {
       "name": "grpc_ruby_plugin",
@@ -2054,7 +2057,8 @@
       "deps": [
         "grpc_plugin_support"
       ],
-      "secure": "no"
+      "secure": "no",
+      "vs_project_guid": "{069E9D05-B78B-4751-9252-D21EBAE7DE8E}"
     },
     {
       "name": "interop_client",
