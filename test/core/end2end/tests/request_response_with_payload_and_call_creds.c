@@ -88,8 +88,7 @@ static void drain_cq(grpc_completion_queue *cq) {
 
 static void shutdown_server(grpc_end2end_test_fixture *f) {
   if (!f->server) return;
-  grpc_server_shutdown_and_notify(f->server, f->server_cq, tag(1000));
-  GPR_ASSERT(grpc_completion_queue_pluck(f->server_cq, tag(1000), GRPC_TIMEOUT_SECONDS_TO_DEADLINE(5)).type == GRPC_OP_COMPLETE);
+  grpc_server_shutdown(f->server);
   grpc_server_destroy(f->server);
   f->server = NULL;
 }
@@ -110,6 +109,23 @@ static void end_test(grpc_end2end_test_fixture *f) {
   grpc_completion_queue_shutdown(f->client_cq);
   drain_cq(f->client_cq);
   grpc_completion_queue_destroy(f->client_cq);
+}
+
+static void print_auth_context(int is_client, const grpc_auth_context *ctx) {
+  const grpc_auth_property *p;
+  grpc_auth_property_iterator it;
+  gpr_log(GPR_INFO, "%s peer:", is_client ? "client" : "server");
+  gpr_log(GPR_INFO, "\tauthenticated: %s",
+          grpc_auth_context_peer_is_authenticated(ctx) ? "YES" : "NO");
+  it = grpc_auth_context_peer_identity(ctx);
+  while ((p = grpc_auth_property_iterator_next(&it)) != NULL) {
+    gpr_log(GPR_INFO, "\t\t%s: %s", p->name, p->value);
+  }
+  gpr_log(GPR_INFO, "\tall properties:");
+  it = grpc_auth_context_property_iterator(ctx);
+  while ((p = grpc_auth_property_iterator_next(&it)) != NULL) {
+    gpr_log(GPR_INFO, "\t\t%s: %s", p->name, p->value);
+  }
 }
 
 static void test_call_creds_failure(grpc_end2end_test_config config) {
@@ -161,6 +177,7 @@ static void request_response_with_payload_and_call_creds(
   size_t details_capacity = 0;
   int was_cancelled = 2;
   grpc_credentials *creds = NULL;
+  const grpc_auth_context *s_auth_context = NULL;
 
   c = grpc_channel_create_call(f.client, f.client_cq, "/foo",
                                "foo.test.google.fr", deadline);
@@ -215,10 +232,13 @@ static void request_response_with_payload_and_call_creds(
   GPR_ASSERT(GRPC_CALL_OK == grpc_server_request_call(f.server, &s,
                                                       &call_details,
                                                       &request_metadata_recv,
-                                                      f.server_cq, f.server_cq, 
+                                                      f.server_cq, f.server_cq,
                                                       tag(101)));
   cq_expect_completion(v_server, tag(101), 1);
   cq_verify(v_server);
+  s_auth_context = grpc_call_auth_context(s);
+  GPR_ASSERT(s_auth_context != NULL);
+  print_auth_context(0, s_auth_context);
 
   /* Cannot set creds on the server call object. */
   GPR_ASSERT(grpc_call_set_credentials(s, NULL) != GRPC_CALL_OK);

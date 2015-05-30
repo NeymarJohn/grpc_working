@@ -1,3 +1,4 @@
+#!/bin/sh
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -27,20 +28,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""One of the tests of the Face layer of RPC Framework."""
-
-import unittest
-
-from grpc.framework.face import _test_case
-from grpc.framework.face.testing import future_invocation_asynchronous_event_service_test_case as test_case
-
-
-class FutureInvocationAsynchronousEventServiceTest(
-    _test_case.FaceTestCase,
-    test_case.FutureInvocationAsynchronousEventServiceTestCase,
-    unittest.TestCase):
-  pass
-
-
-if __name__ == '__main__':
-  unittest.main(verbosity=2)
+gen_build_json_dirs="test/core/end2end test/core/bad_client"
+gen_build_files=""
+for gen_build_json in $gen_build_json_dirs
+do
+  output_file=`mktemp /tmp/genXXXXXX`
+  $gen_build_json/gen_build_json.py > $output_file
+  gen_build_files="$gen_build_files $output_file"
+done
