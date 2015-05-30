@@ -13,16 +13,13 @@
     <ClCompile Include="..\..\src\core\httpcli\parser.c">
       <Filter>src\core\httpcli</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\core\security\auth.c">
+      <Filter>src\core\security</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\core\security\base64.c">
       <Filter>src\core\security</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\security\client_auth_filter.c">
-      <Filter>src\core\security</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\core\security\credentials.c">
-      <Filter>src\core\security</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\security\credentials_metadata.c">
       <Filter>src\core\security</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\security\credentials_posix.c">
@@ -47,9 +44,6 @@
       <Filter>src\core\security</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\security\security_context.c">
-      <Filter>src\core\security</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\security\server_auth_filter.c">
       <Filter>src\core\security</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\security\server_secure_chttp2.c">
@@ -139,7 +133,7 @@
     <ClCompile Include="..\..\src\core\iomgr\iomgr_windows.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\iomgr\pollset_kick_posix.c">
+    <ClCompile Include="..\..\src\core\iomgr\pollset_kick.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\iomgr\pollset_multipoller_with_epoll.c">
@@ -149,12 +143,6 @@
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\iomgr\pollset_posix.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\iomgr\pollset_set_posix.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\iomgr\pollset_set_windows.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\iomgr\pollset_windows.c">
@@ -398,7 +386,7 @@
     <ClInclude Include="..\..\src\core\httpcli\parser.h">
       <Filter>src\core\httpcli</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\core\security\auth_filters.h">
+    <ClInclude Include="..\..\src\core\security\auth.h">
       <Filter>src\core\security</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\security\base64.h">
@@ -506,16 +494,16 @@
     <ClInclude Include="..\..\src\core\iomgr\pollset.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\core\iomgr\pollset_kick.h">
+      <Filter>src\core\iomgr</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\core\iomgr\pollset_kick_posix.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\core\iomgr\pollset_kick_windows.h">
+      <Filter>src\core\iomgr</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\core\iomgr\pollset_posix.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\iomgr\pollset_set_posix.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\iomgr\pollset_set_windows.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\iomgr\pollset_windows.h">

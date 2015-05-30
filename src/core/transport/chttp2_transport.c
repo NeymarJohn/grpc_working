@@ -614,19 +614,14 @@ static void destroy_transport(grpc_transport *gt) {
   unref_transport(t);
 }
 
-static void close_transport_locked(transport *t) {
-  if (!t->closed) {
-    t->closed = 1;
-    if (t->ep) {
-      grpc_endpoint_shutdown(t->ep);
-    }
-  }
-}
-
 static void close_transport(grpc_transport *gt) {
   transport *t = (transport *)gt;
   gpr_mu_lock(&t->mu);
-  close_transport_locked(t);
+  GPR_ASSERT(!t->closed);
+  t->closed = 1;
+  if (t->ep) {
+    grpc_endpoint_shutdown(t->ep);
+  }
   gpr_mu_unlock(&t->mu);
 }
 
@@ -1318,7 +1313,6 @@ static void drop_connection(transport *t) {
   if (t->error_state == ERROR_STATE_NONE) {
     t->error_state = ERROR_STATE_SEEN;
   }
-  close_transport_locked(t);
   end_all_the_calls(t);
 }
 
