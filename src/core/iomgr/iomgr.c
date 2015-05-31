@@ -42,10 +42,17 @@
 #include <grpc/support/thd.h>
 #include <grpc/support/sync.h>
 
+typedef struct delayed_callback {
+  grpc_iomgr_cb_func cb;
+  void *cb_arg;
+  int success;
+  struct delayed_callback *next;
+} delayed_callback;
+
 static gpr_mu g_mu;
 static gpr_cv g_rcv;
-static grpc_iomgr_closure *g_cbs_head = NULL;
-static grpc_iomgr_closure *g_cbs_tail = NULL;
+static delayed_callback *g_cbs_head = NULL;
+static delayed_callback *g_cbs_tail = NULL;
 static int g_shutdown;
 static int g_refs;
 static gpr_event g_background_callback_executor_done;
@@ -59,11 +66,12 @@ static void background_callback_executor(void *ignored) {
     gpr_timespec short_deadline =
         gpr_time_add(gpr_now(), gpr_time_from_millis(100));
     if (g_cbs_head) {
-      grpc_iomgr_closure *closure = g_cbs_head;
-      g_cbs_head = closure->next;
+      delayed_callback *cb = g_cbs_head;
+      g_cbs_head = cb->next;
       if (!g_cbs_head) g_cbs_tail = NULL;
       gpr_mu_unlock(&g_mu);
-      closure->cb(closure->cb_arg, closure->success);
+      cb->cb(cb->cb_arg, cb->success);
+      gpr_free(cb);
       gpr_mu_lock(&g_mu);
     } else if (grpc_alarm_check(&g_mu, gpr_now(), &deadline)) {
     } else {
@@ -95,23 +103,30 @@ void grpc_iomgr_init(void) {
 }
 
 void grpc_iomgr_shutdown(void) {
-  grpc_iomgr_closure *closure;
+  delayed_callback *cb;
   gpr_timespec shutdown_deadline =
       gpr_time_add(gpr_now(), gpr_time_from_seconds(10));
 
+  grpc_alarm_list_shutdown();
 
   gpr_mu_lock(&g_mu);
   g_shutdown = 1;
-  while (g_cbs_head || g_refs) {
-    gpr_log(GPR_DEBUG, "Waiting for %d iomgr objects to be destroyed%s", g_refs,
-            g_cbs_head ? " and executing final callbacks" : "");
+  while (g_cbs_head != NULL || g_refs > 0) {
+    if (g_cbs_head != NULL && g_refs > 0) {
+      gpr_log(GPR_DEBUG, "Waiting for %d iomgr objects to be destroyed and executing final callbacks", g_refs);
+    } else if (g_cbs_head != NULL) {
+      gpr_log(GPR_DEBUG, "Executing final iomgr callbacks");
+    } else {
+      gpr_log(GPR_DEBUG, "Waiting for %d iomgr objects to be destroyed", g_refs);
+    }
     while (g_cbs_head) {
-      closure = g_cbs_head;
-      g_cbs_head = closure->next;
+      cb = g_cbs_head;
+      g_cbs_head = cb->next;
       if (!g_cbs_head) g_cbs_tail = NULL;
       gpr_mu_unlock(&g_mu);
 
-      closure->cb(closure->cb_arg, 0);
+      cb->cb(cb->cb_arg, 0);
+      gpr_free(cb);
       gpr_mu_lock(&g_mu);
     }
     if (g_refs) {
@@ -139,7 +154,6 @@ void grpc_iomgr_shutdown(void) {
   gpr_event_wait(&g_background_callback_executor_done, gpr_inf_future);
 
   grpc_iomgr_platform_shutdown();
-  grpc_alarm_list_shutdown();
   gpr_mu_destroy(&g_mu);
   gpr_cv_destroy(&g_rcv);
 }
@@ -158,49 +172,42 @@ void grpc_iomgr_unref(void) {
   gpr_mu_unlock(&g_mu);
 }
 
-
-void grpc_iomgr_closure_init(grpc_iomgr_closure *closure, grpc_iomgr_cb_func cb,
-                             void *cb_arg) {
-  closure->cb = cb;
-  closure->cb_arg = cb_arg;
-  closure->success = -1;  /* uninitialized */
-  closure->next = NULL;
-}
-
-void grpc_iomgr_add_delayed_callback(grpc_iomgr_closure *closure, int success) {
-  closure->success = success;
+void grpc_iomgr_add_delayed_callback(grpc_iomgr_cb_func cb, void *cb_arg,
+                                     int success) {
+  delayed_callback *dcb = gpr_malloc(sizeof(delayed_callback));
+  dcb->cb = cb;
+  dcb->cb_arg = cb_arg;
+  dcb->success = success;
   gpr_mu_lock(&g_mu);
-  closure->next = NULL;
+  dcb->next = NULL;
   if (!g_cbs_tail) {
-    g_cbs_head = g_cbs_tail = closure;
+    g_cbs_head = g_cbs_tail = dcb;
   } else {
-    g_cbs_tail->next = closure;
-    g_cbs_tail = closure;
+    g_cbs_tail->next = dcb;
+    g_cbs_tail = dcb;
   }
   gpr_mu_unlock(&g_mu);
 }
 
-
-void grpc_iomgr_add_callback(grpc_iomgr_closure *closure) {
-  grpc_iomgr_add_delayed_callback(closure, 1);
+void grpc_iomgr_add_callback(grpc_iomgr_cb_func cb, void *cb_arg) {
+  grpc_iomgr_add_delayed_callback(cb, cb_arg, 1);
 }
-
 
 int grpc_maybe_call_delayed_callbacks(gpr_mu *drop_mu, int success) {
   int n = 0;
   gpr_mu *retake_mu = NULL;
-  grpc_iomgr_closure *closure;
+  delayed_callback *cb;
   for (;;) {
     /* check for new work */
     if (!gpr_mu_trylock(&g_mu)) {
       break;
     }
-    closure = g_cbs_head;
-    if (!closure) {
+    cb = g_cbs_head;
+    if (!cb) {
       gpr_mu_unlock(&g_mu);
       break;
     }
-    g_cbs_head = closure->next;
+    g_cbs_head = cb->next;
     if (!g_cbs_head) g_cbs_tail = NULL;
     gpr_mu_unlock(&g_mu);
     /* if we have a mutex to drop, do so before executing work */
@@ -209,7 +216,8 @@ int grpc_maybe_call_delayed_callbacks(gpr_mu *drop_mu, int success) {
       retake_mu = drop_mu;
       drop_mu = NULL;
     }
-    closure->cb(closure->cb_arg, success && closure->success);
+    cb->cb(cb->cb_arg, success && cb->success);
+    gpr_free(cb);
     n++;
   }
   if (retake_mu) {

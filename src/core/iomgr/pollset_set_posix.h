@@ -31,21 +31,25 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
-#define GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
 
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/iomgr/iomgr_internal.h"
-#include <grpc/support/sync.h>
+#include "src/core/iomgr/fd_posix.h"
+#include "src/core/iomgr/pollset_posix.h"
 
-int grpc_maybe_call_delayed_callbacks(gpr_mu *drop_mu, int success);
-void grpc_iomgr_add_delayed_callback(grpc_iomgr_cb_func cb, void *cb_arg,
-                                     int success);
+typedef struct grpc_pollset_set {
+  gpr_mu mu;
 
-void grpc_iomgr_ref(void);
-void grpc_iomgr_unref(void);
+  size_t pollset_count;
+  size_t pollset_capacity;
+  grpc_pollset **pollsets;
 
-void grpc_iomgr_platform_init(void);
-void grpc_iomgr_platform_shutdown(void);
+  size_t fd_count;
+  size_t fd_capacity;
+  grpc_fd **fds;
+} grpc_pollset_set;
 
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H */
+void grpc_pollset_set_add_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
+void grpc_pollset_set_del_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
+
+#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */

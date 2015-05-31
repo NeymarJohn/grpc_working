@@ -40,6 +40,11 @@
 #include <grpc/support/sync.h>
 #include <grpc/support/time.h>
 
+typedef struct {
+  grpc_iomgr_cb_func cb;
+  void *cb_arg;
+} grpc_iomgr_closure;
+
 typedef struct grpc_fd grpc_fd;
 
 typedef struct grpc_fd_watcher {
@@ -91,10 +96,9 @@ struct grpc_fd {
   gpr_atm readst;
   gpr_atm writest;
 
+  grpc_iomgr_cb_func on_done;
+  void *on_done_user_data;
   struct grpc_fd *freelist_next;
-
-  grpc_iomgr_closure on_done_closure;
-  grpc_iomgr_closure *shutdown_closures[2];
 };
 
 /* Create a wrapped file descriptor.
@@ -157,8 +161,19 @@ void grpc_fd_become_readable(grpc_fd *fd, int allow_synchronous_callback);
 void grpc_fd_become_writable(grpc_fd *fd, int allow_synchronous_callback);
 
 /* Reference counting for fds */
+#define GRPC_FD_REF_COUNT_DEBUG
+
+#ifdef GRPC_FD_REF_COUNT_DEBUG
+void grpc_fd_ref(grpc_fd *fd, const char *reason, const char *file, int line);
+void grpc_fd_unref(grpc_fd *fd, const char *reason, const char *file, int line);
+#define GRPC_FD_REF(fd, reason) grpc_fd_ref(fd, reason, __FILE__, __LINE__)
+#define GRPC_FD_UNREF(fd, reason) grpc_fd_unref(fd, reason, __FILE__, __LINE__)
+#else
 void grpc_fd_ref(grpc_fd *fd);
 void grpc_fd_unref(grpc_fd *fd);
+#define GRPC_FD_REF(fd, reason) grpc_fd_ref(fd)
+#define GRPC_FD_UNREF(fd, reason) grpc_fd_unref(fd)
+#endif
 
 void grpc_fd_global_init(void);
 void grpc_fd_global_shutdown(void);

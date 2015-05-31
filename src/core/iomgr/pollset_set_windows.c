@@ -31,21 +31,17 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
-#define GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
+#include <grpc/support/port_platform.h>
 
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/iomgr/iomgr_internal.h"
-#include <grpc/support/sync.h>
+#ifdef GPR_WINSOCK_SOCKET
 
-int grpc_maybe_call_delayed_callbacks(gpr_mu *drop_mu, int success);
-void grpc_iomgr_add_delayed_callback(grpc_iomgr_cb_func cb, void *cb_arg,
-                                     int success);
+#include "src/core/iomgr/pollset_set.h"
 
-void grpc_iomgr_ref(void);
-void grpc_iomgr_unref(void);
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set) {}
 
-void grpc_iomgr_platform_init(void);
-void grpc_iomgr_platform_shutdown(void);
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set) {}
 
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H */
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset) {}
+
+#endif /* GPR_WINSOCK_SOCKET */
