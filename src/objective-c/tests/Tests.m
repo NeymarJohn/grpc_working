@@ -31,18 +31,10 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_SECURITY_CONTEXT_H
-#define GRPC_INTERNAL_CORE_SECURITY_SECURITY_CONTEXT_H
+#import <Foundation/Foundation.h>
 
-#include "src/core/security/credentials.h"
+@interface Tests : NSObject
+@end
 
-/* Security context attached to a client-side call. */
-typedef struct {
-  grpc_credentials *creds;
-} grpc_client_security_context;
-
-grpc_client_security_context *grpc_client_security_context_create(void);
-void grpc_client_security_context_destroy(void *ctx);
-
-#endif  /* GRPC_INTERNAL_CORE_SECURITY_SECURITY_CONTEXT_H */
-
+@implementation Tests
+@end
