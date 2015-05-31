@@ -164,8 +164,8 @@ static const grpc_pollset_vtable multipoll_with_epoll_pollset = {
     multipoll_with_epoll_pollset_maybe_work, epoll_kick,
     multipoll_with_epoll_pollset_destroy};
 
-static void epoll_become_multipoller(grpc_pollset *pollset, grpc_fd **fds,
-                                     size_t nfds) {
+void grpc_platform_become_multipoller(grpc_pollset *pollset, grpc_fd **fds,
+                                      size_t nfds) {
   size_t i;
   pollset_hdr *h = gpr_malloc(sizeof(pollset_hdr));
   struct epoll_event ev;
@@ -194,7 +194,4 @@ static void epoll_become_multipoller(grpc_pollset *pollset, grpc_fd **fds,
   }
 }
 
-grpc_platform_become_multipoller_type grpc_platform_become_multipoller =
-    epoll_become_multipoller;
-
-#endif /* GPR_LINUX_MULTIPOLL_WITH_EPOLL */
+#endif  /* GPR_LINUX_MULTIPOLL_WITH_EPOLL */
