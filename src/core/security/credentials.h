@@ -131,6 +131,7 @@ typedef struct {
       grpc_credentials *c, const char *target, const grpc_channel_args *args,
       grpc_credentials *request_metadata_creds,
       grpc_channel_security_connector **sc, grpc_channel_args **new_args);
+
 } grpc_credentials_vtable;
 
 struct grpc_credentials {
@@ -199,4 +200,4 @@ struct grpc_server_credentials {
 grpc_security_status grpc_server_credentials_create_security_connector(
     grpc_server_credentials *creds, grpc_security_connector **sc);
 
-#endif /* GRPC_INTERNAL_CORE_SECURITY_CREDENTIALS_H */
+#endif  /* GRPC_INTERNAL_CORE_SECURITY_CREDENTIALS_H */

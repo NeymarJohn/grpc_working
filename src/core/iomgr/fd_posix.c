@@ -109,28 +109,12 @@ static void destroy(grpc_fd *fd) {
   gpr_free(fd);
 }
 
-#ifdef GRPC_FD_REF_COUNT_DEBUG
-#define REF_BY(fd, n, reason) ref_by(fd, n, reason, __FILE__, __LINE__)
-#define UNREF_BY(fd, n, reason) unref_by(fd, n, reason, __FILE__, __LINE__)
-static void ref_by(grpc_fd *fd, int n, const char *reason, const char *file, int line) {
-  gpr_log(GPR_DEBUG, "FD %d   ref %d %d -> %d [%s; %s:%d]", fd->fd, n, fd->refst, fd->refst + n, reason, file, line);
-#else
-#define REF_BY(fd, n, reason) ref_by(fd, n)
-#define UNREF_BY(fd, n, reason) unref_by(fd, n)
 static void ref_by(grpc_fd *fd, int n) {
-#endif
   GPR_ASSERT(gpr_atm_no_barrier_fetch_add(&fd->refst, n) > 0);
 }
 
-#ifdef GRPC_FD_REF_COUNT_DEBUG
-static void unref_by(grpc_fd *fd, int n, const char *reason, const char *file, int line) {
-  gpr_atm old;
-  gpr_log(GPR_DEBUG, "FD %d unref %d %d -> %d [%s; %s:%d]", fd->fd, n, fd->refst, fd->refst - n, reason, file, line);
-#else
 static void unref_by(grpc_fd *fd, int n) {
-  gpr_atm old;
-#endif
-  old = gpr_atm_full_fetch_add(&fd->refst, -n);
+  gpr_atm old = gpr_atm_full_fetch_add(&fd->refst, -n);
   if (old == n) {
     close(fd->fd);
     grpc_iomgr_add_callback(fd->on_done, fd->on_done_user_data);
@@ -157,6 +141,7 @@ static void do_nothing(void *ignored, int success) {}
 grpc_fd *grpc_fd_create(int fd) {
   grpc_fd *r = alloc_fd(fd);
   grpc_iomgr_ref();
+  grpc_pollset_add_fd(grpc_backup_pollset(), r);
   return r;
 }
 
@@ -198,31 +183,17 @@ void grpc_fd_orphan(grpc_fd *fd, grpc_iomgr_cb_func on_done, void *user_data) {
   fd->on_done = on_done ? on_done : do_nothing;
   fd->on_done_user_data = user_data;
   shutdown(fd->fd, SHUT_RDWR);
-  REF_BY(fd, 1, "orphan"); /* remove active status, but keep referenced */
+  ref_by(fd, 1); /* remove active status, but keep referenced */
   gpr_mu_lock(&fd->watcher_mu);
   wake_all_watchers_locked(fd);
   gpr_mu_unlock(&fd->watcher_mu);
-  UNREF_BY(fd, 2, "orphan"); /* drop the reference */
+  unref_by(fd, 2); /* drop the reference */
 }
 
 /* increment refcount by two to avoid changing the orphan bit */
-#ifdef GRPC_FD_REF_COUNT_DEBUG
-void grpc_fd_ref(grpc_fd *fd, const char *reason, const char *file, int line) { 
-  ref_by(fd, 2, reason, file, line); 
-}
+void grpc_fd_ref(grpc_fd *fd) { ref_by(fd, 2); }
 
-void grpc_fd_unref(grpc_fd *fd, const char *reason, const char *file, int line) { 
-  unref_by(fd, 2, reason, file, line); 
-}
-#else
-void grpc_fd_ref(grpc_fd *fd) { 
-  ref_by(fd, 2); 
-}
-
-void grpc_fd_unref(grpc_fd *fd) { 
-  unref_by(fd, 2); 
-}
-#endif
+void grpc_fd_unref(grpc_fd *fd) { unref_by(fd, 2); }
 
 static void make_callback(grpc_iomgr_cb_func cb, void *arg, int success,
                           int allow_synchronous_callback) {
@@ -346,7 +317,7 @@ gpr_uint32 grpc_fd_begin_poll(grpc_fd *fd, grpc_pollset *pollset,
   gpr_uint32 mask = 0;
   /* keep track of pollers that have requested our events, in case they change
    */
-  GRPC_FD_REF(fd, "poll");
+  grpc_fd_ref(fd);
 
   gpr_mu_lock(&fd->watcher_mu);
   /* if there is nobody polling for read, but we need to, then start doing so */
@@ -401,7 +372,7 @@ void grpc_fd_end_poll(grpc_fd_watcher *watcher, int got_read, int got_write) {
   }
   gpr_mu_unlock(&fd->watcher_mu);
 
-  GRPC_FD_UNREF(fd, "poll");
+  grpc_fd_unref(fd);
 }
 
 void grpc_fd_become_readable(grpc_fd *fd, int allow_synchronous_callback) {
