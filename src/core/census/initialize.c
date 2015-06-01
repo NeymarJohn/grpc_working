@@ -31,11 +31,20 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_AUTH_H
-#define GRPC_INTERNAL_CORE_SECURITY_AUTH_H
+#include <grpc/census.h>
 
-#include "src/core/channel/channel_stack.h"
+static int census_fns_enabled = CENSUS_NONE;
 
-extern const grpc_channel_filter grpc_client_auth_filter;
+int census_initialize(int functions) {
+  if (census_fns_enabled != CENSUS_NONE) {
+    return 1;
+  }
+  if (functions != CENSUS_NONE) {
+    return 1;
+  } else {
+    census_fns_enabled = functions;
+    return 0;
+  }
+}
 
-#endif  /* GRPC_INTERNAL_CORE_SECURITY_AUTH_H */
+void census_shutdown() { census_fns_enabled = CENSUS_NONE; }

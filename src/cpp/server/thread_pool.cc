@@ -60,7 +60,7 @@ void ThreadPool::ThreadFunc() {
 
 ThreadPool::ThreadPool(int num_threads) : shutdown_(false) {
   for (int i = 0; i < num_threads; i++) {
-    threads_.push_back(new grpc::thread(&ThreadPool::ThreadFunc, this));
+    threads_.push_back(grpc::thread(&ThreadPool::ThreadFunc, this));
   }
 }
 
@@ -71,8 +71,7 @@ ThreadPool::~ThreadPool() {
     cv_.notify_all();
   }
   for (auto t = threads_.begin(); t != threads_.end(); t++) {
-    (*t)->join();
-    delete *t;
+    t->join();
   }
 }
 
