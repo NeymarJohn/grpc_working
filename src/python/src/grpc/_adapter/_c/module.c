@@ -31,20 +31,31 @@
  *
  */
 
-#include <grpc/census.h>
+#include <stdlib.h>
 
-static int census_fns_enabled = CENSUS_NONE;
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include <grpc/grpc.h>
 
-int census_initialize(int functions) {
-  if (census_fns_enabled != CENSUS_NONE) {
-    return 1;
+#include "grpc/_adapter/_c/types.h"
+
+static PyMethodDef c_methods[] = {
+    {NULL}
+};
+
+PyMODINIT_FUNC init_c(void) {
+  PyObject *module;
+
+  module = Py_InitModule3("_c", c_methods,
+                          "Wrappings of C structures and functions.");
+
+  if (pygrpc_module_add_types(module) < 0) {
+    return;
   }
-  if (functions != CENSUS_NONE) {
-    return 1;
-  } else {
-    census_fns_enabled = functions;
-    return 0;
-  }
+
+  /* GRPC maintains an internal counter of how many times it has been
+     initialized and handles multiple pairs of grpc_init()/grpc_shutdown()
+     invocations accordingly. */
+  grpc_init();
+  atexit(&grpc_shutdown);
 }
-
-void census_shutdown() { census_fns_enabled = CENSUS_NONE; }

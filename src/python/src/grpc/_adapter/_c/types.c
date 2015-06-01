@@ -31,29 +31,30 @@
  *
  */
 
-#include "context.h"
+#include "grpc/_adapter/_c/types.h"
 
-#include <string.h>
-#include <grpc/census.h>
-#include <grpc/support/alloc.h>
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include <grpc/grpc.h>
 
-/* Placeholder implementation only. */
-
-size_t census_context_serialize(const census_context *context, char *buffer,
-                                size_t buf_size) {
-  /* TODO(aveitch): implement serialization */
+int pygrpc_module_add_types(PyObject *module) {
+  int i;
+  PyTypeObject *types[] = {
+      &pygrpc_ClientCredentials_type,
+      &pygrpc_ServerCredentials_type,
+      &pygrpc_CompletionQueue_type,
+      &pygrpc_Call_type,
+      &pygrpc_Channel_type,
+      &pygrpc_Server_type
+  };
+  for (i = 0; i < sizeof(types)/sizeof(PyTypeObject *); ++i) {
+    if (PyType_Ready(types[i]) < 0) {
+      return -1;
+    }
+  }
+  for (i = 0; i < sizeof(types)/sizeof(PyTypeObject *); ++i) {
+    Py_INCREF(types[i]);
+    PyModule_AddObject(module, types[i]->tp_name, (PyObject *)types[i]);
+  }
   return 0;
 }
-
-int census_context_deserialize(const char *buffer, census_context **context) {
-  int ret = 0;
-  if (buffer != NULL) {
-    /* TODO(aveitch): implement deserialization. */
-    ret = 1;
-  }
-  *context = gpr_malloc(sizeof(census_context));
-  memset(*context, 0, sizeof(census_context));
-  return ret;
-}
-
-void census_context_destroy(census_context *context) { gpr_free(context); }
