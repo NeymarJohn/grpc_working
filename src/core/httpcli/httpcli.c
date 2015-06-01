@@ -59,23 +59,10 @@ typedef struct {
   int use_ssl;
   grpc_httpcli_response_cb on_response;
   void *user_data;
-  grpc_httpcli_context *context;
 } internal_request;
 
 static grpc_httpcli_get_override g_get_override = NULL;
 static grpc_httpcli_post_override g_post_override = NULL;
-
-void grpc_httpcli_context_init(grpc_httpcli_context *context) {
-  grpc_pollset_set_init(&context->pollset_set);
-}
-
-void grpc_httpcli_context_destroy(grpc_httpcli_context *context) {
-  grpc_pollset_set_destroy(&context->pollset_set);
-}
-
-void grpc_httpcli_context_add_interested_party(grpc_httpcli_context *context, grpc_pollset *pollset) {
-  grpc_pollset_set_add_pollset(&context->pollset_set, pollset);
-}
 
 static void next_address(internal_request *req);
 
@@ -210,9 +197,8 @@ static void next_address(internal_request *req) {
     return;
   }
   addr = &req->addresses->addrs[req->next_address++];
-  grpc_tcp_client_connect(on_connected, req, &req->context->pollset_set,
-                          (struct sockaddr *)&addr->addr, addr->len,
-                          req->deadline);
+  grpc_tcp_client_connect(on_connected, req, (struct sockaddr *)&addr->addr,
+                          addr->len, req->deadline);
 }
 
 static void on_resolved(void *arg, grpc_resolved_addresses *addresses) {
@@ -226,8 +212,7 @@ static void on_resolved(void *arg, grpc_resolved_addresses *addresses) {
   next_address(req);
 }
 
-void grpc_httpcli_get(grpc_httpcli_context *context,
-                      const grpc_httpcli_request *request,
+void grpc_httpcli_get(const grpc_httpcli_request *request,
                       gpr_timespec deadline,
                       grpc_httpcli_response_cb on_response, void *user_data) {
   internal_request *req;
@@ -243,7 +228,6 @@ void grpc_httpcli_get(grpc_httpcli_context *context,
   req->user_data = user_data;
   req->deadline = deadline;
   req->use_ssl = request->use_ssl;
-  req->context = context;
   if (req->use_ssl) {
     req->host = gpr_strdup(request->host);
   }
@@ -252,8 +236,7 @@ void grpc_httpcli_get(grpc_httpcli_context *context,
                        on_resolved, req);
 }
 
-void grpc_httpcli_post(grpc_httpcli_context *context,
-                       const grpc_httpcli_request *request,
+void grpc_httpcli_post(const grpc_httpcli_request *request,
                        const char *body_bytes, size_t body_size,
                        gpr_timespec deadline,
                        grpc_httpcli_response_cb on_response, void *user_data) {
@@ -271,7 +254,6 @@ void grpc_httpcli_post(grpc_httpcli_context *context,
   req->user_data = user_data;
   req->deadline = deadline;
   req->use_ssl = request->use_ssl;
-  req->context = context;
   if (req->use_ssl) {
     req->host = gpr_strdup(request->host);
   }
