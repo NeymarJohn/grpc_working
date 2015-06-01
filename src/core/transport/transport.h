@@ -38,7 +38,6 @@
 
 #include "src/core/iomgr/pollset.h"
 #include "src/core/transport/stream_op.h"
-#include "src/core/channel/context.h"
 
 /* forward declarations */
 typedef struct grpc_transport grpc_transport;
@@ -79,7 +78,7 @@ typedef struct grpc_transport_op {
   grpc_mdstr *cancel_message;
 
   /* Indexes correspond to grpc_context_index enum values */
-  grpc_call_context_element *context;
+  void *const *context;
 } grpc_transport_op;
 
 /* Callbacks made from the transport to the upper layers of grpc. */
