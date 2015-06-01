@@ -88,7 +88,7 @@ void grpc_run_bad_client_test(const char *name, const char *client_payload,
   grpc_init();
 
   /* Create endpoints */
-  sfd = grpc_iomgr_create_endpoint_pair(65536);
+  sfd = grpc_iomgr_create_endpoint_pair("fixture", 65536);
 
   /* Create server, completion events */
   a.server = grpc_server_create_from_filters(NULL, 0, NULL);
@@ -130,10 +130,6 @@ void grpc_run_bad_client_test(const char *name, const char *client_payload,
 
   /* Shutdown */
   grpc_endpoint_destroy(sfd.client);
-  grpc_server_shutdown_and_notify(a.server, a.cq, NULL);
-  GPR_ASSERT(grpc_completion_queue_pluck(a.cq, NULL,
-                                         GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1))
-                 .type == GRPC_OP_COMPLETE);
   grpc_server_destroy(a.server);
   grpc_completion_queue_destroy(a.cq);
 
