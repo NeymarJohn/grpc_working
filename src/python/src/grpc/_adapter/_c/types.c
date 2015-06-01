@@ -31,19 +31,30 @@
  *
  */
 
-#ifndef _ADAPTER__COMPLETION_QUEUE_H_
-#define _ADAPTER__COMPLETION_QUEUE_H_
+#include "grpc/_adapter/_c/types.h"
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <grpc/grpc.h>
 
-typedef struct {
-  PyObject_HEAD
-  grpc_completion_queue *c_completion_queue;
-} CompletionQueue;
-
-extern PyTypeObject pygrpc_CompletionQueueType;
-
-int pygrpc_add_completion_queue(PyObject *module);
-
-#endif /* _ADAPTER__COMPLETION_QUEUE_H_ */
+int pygrpc_module_add_types(PyObject *module) {
+  int i;
+  PyTypeObject *types[] = {
+      &pygrpc_ClientCredentials_type,
+      &pygrpc_ServerCredentials_type,
+      &pygrpc_CompletionQueue_type,
+      &pygrpc_Call_type,
+      &pygrpc_Channel_type,
+      &pygrpc_Server_type
+  };
+  for (i = 0; i < sizeof(types)/sizeof(PyTypeObject *); ++i) {
+    if (PyType_Ready(types[i]) < 0) {
+      return -1;
+    }
+  }
+  for (i = 0; i < sizeof(types)/sizeof(PyTypeObject *); ++i) {
+    Py_INCREF(types[i]);
+    PyModule_AddObject(module, types[i]->tp_name, (PyObject *)types[i]);
+  }
+  return 0;
+}
