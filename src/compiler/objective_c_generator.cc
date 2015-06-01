@@ -32,20 +32,19 @@
  */
 
 #include <map>
-#include <sstream>
 
-#include "src/compiler/config.h"
 #include "src/compiler/objective_c_generator.h"
 #include "src/compiler/objective_c_generator_helpers.h"
 
-#include <google/protobuf/compiler/objectivec/objectivec_helpers.h>
+#include "src/compiler/config.h"
 
-using ::google::protobuf::compiler::objectivec::ClassName;
+#include <sstream>
+
 using ::grpc::protobuf::io::Printer;
 using ::grpc::protobuf::MethodDescriptor;
 using ::grpc::protobuf::ServiceDescriptor;
-using ::grpc::string;
 using ::std::map;
+using ::grpc::string;
 
 namespace grpc_objective_c_generator {
 namespace {
@@ -70,7 +69,7 @@ void PrintMethodSignature(Printer *printer,
   if (method->client_streaming()) {
     printer->Print("RequestsWriter:(id<GRXWriter>)request");
   } else {
-    printer->Print(vars, "Request:($request_class$ *)request");
+    printer->Print(vars, "Request:($prefix$$request_type$ *)request");
   }
 
   // TODO(jcanizales): Put this on a new line and align colons.
@@ -79,7 +78,8 @@ void PrintMethodSignature(Printer *printer,
   if (method->server_streaming()) {
     printer->Print("BOOL done, ");
   }
-  printer->Print(vars, "$response_class$ *response, NSError *error))handler");
+  printer->Print(vars,
+      "$prefix$$response_type$ *response, NSError *error))handler");
 }
 
 void PrintSimpleSignature(Printer *printer,
@@ -99,17 +99,12 @@ void PrintAdvancedSignature(Printer *printer,
   PrintMethodSignature(printer, method, vars);
 }
 
-inline map<string, string> GetMethodVars(const MethodDescriptor *method) {
-  return {{ "method_name", method->name() },
-          { "request_type", method->input_type()->name() },
-          { "response_type", method->output_type()->name() },
-          { "request_class", ClassName(method->input_type()) },
-          { "response_class", ClassName(method->output_type()) }};
-}
-
 void PrintMethodDeclarations(Printer *printer,
-                             const MethodDescriptor *method) {
-  map<string, string> vars = GetMethodVars(method);
+                             const MethodDescriptor *method,
+                             map<string, string> vars) {
+  vars["method_name"] = method->name();
+  vars["request_type"] = method->input_type()->name();
+  vars["response_type"] = method->output_type()->name();
 
   PrintProtoRpcDeclarationAsPragma(printer, method, vars);
 
@@ -146,7 +141,8 @@ void PrintAdvancedImplementation(Printer *printer,
     printer->Print("[GRXWriter writerWithValue:request]\n");
   }
 
-  printer->Print(vars, "             responseClass:[$response_class$ class]\n");
+  printer->Print(vars,
+      "             responseClass:[$prefix$$response_type$ class]\n");
 
   printer->Print("        responsesWriteable:[GRXWriteable ");
   if (method->server_streaming()) {
@@ -159,8 +155,11 @@ void PrintAdvancedImplementation(Printer *printer,
 }
 
 void PrintMethodImplementations(Printer *printer,
-                                const MethodDescriptor *method) {
-  map<string, string> vars = GetMethodVars(method);
+                                const MethodDescriptor *method,
+                                map<string, string> vars) {
+  vars["method_name"] = method->name();
+  vars["request_type"] = method->input_type()->name();
+  vars["response_type"] = method->output_type()->name();
 
   PrintProtoRpcDeclarationAsPragma(printer, method, vars);
 
@@ -175,7 +174,7 @@ void PrintMethodImplementations(Printer *printer,
 
 } // namespace
 
-string GetHeader(const ServiceDescriptor *service) {
+string GetHeader(const ServiceDescriptor *service, const string prefix) {
   string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -185,19 +184,19 @@ string GetHeader(const ServiceDescriptor *service) {
     printer.Print("@protocol GRXWriteable;\n");
     printer.Print("@protocol GRXWriter;\n\n");
 
-    map<string, string> vars = {{"service_class", ServiceClassName(service)}};
-
-    printer.Print(vars, "@protocol $service_class$ <NSObject>\n\n");
+    map<string, string> vars = {{"service_name", service->name()},
+                                {"prefix",       prefix}};
+    printer.Print(vars, "@protocol $prefix$$service_name$ <NSObject>\n\n");
 
     for (int i = 0; i < service->method_count(); i++) {
-      PrintMethodDeclarations(&printer, service->method(i));
+      PrintMethodDeclarations(&printer, service->method(i), vars);
     }
     printer.Print("@end\n\n");
 
     printer.Print("// Basic service implementation, over gRPC, that only does"
         " marshalling and parsing.\n");
-    printer.Print(vars, "@interface $service_class$ :"
-      " ProtoService<$service_class$>\n");
+    printer.Print(vars, "@interface $prefix$$service_name$ :"
+      " ProtoService<$prefix$$service_name$>\n");
     printer.Print("- (instancetype)initWithHost:(NSString *)host"
       " NS_DESIGNATED_INITIALIZER;\n");
     printer.Print("@end\n");
@@ -205,7 +204,7 @@ string GetHeader(const ServiceDescriptor *service) {
   return output;
 }
 
-string GetSource(const ServiceDescriptor *service) {
+string GetSource(const ServiceDescriptor *service, const string prefix) {
   string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -213,15 +212,15 @@ string GetSource(const ServiceDescriptor *service) {
     Printer printer(&output_stream, '$');
 
     map<string, string> vars = {{"service_name", service->name()},
-                                {"service_class", ServiceClassName(service)},
-                                {"package", service->file()->package()}};
+                                {"package", service->file()->package()},
+                                {"prefix",       prefix}};
 
     printer.Print(vars,
         "static NSString *const kPackageName = @\"$package$\";\n");
     printer.Print(vars,
         "static NSString *const kServiceName = @\"$service_name$\";\n\n");
 
-    printer.Print(vars, "@implementation $service_class$\n\n");
+    printer.Print(vars, "@implementation $prefix$$service_name$\n\n");
   
     printer.Print("// Designated initializer\n");
     printer.Print("- (instancetype)initWithHost:(NSString *)host {\n");
@@ -237,7 +236,7 @@ string GetSource(const ServiceDescriptor *service) {
     printer.Print("}\n\n\n");
 
     for (int i = 0; i < service->method_count(); i++) {
-      PrintMethodImplementations(&printer, service->method(i));
+      PrintMethodImplementations(&printer, service->method(i), vars);
     }
 
     printer.Print("@end\n");

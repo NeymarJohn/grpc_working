@@ -31,15 +31,25 @@
  *
  */
 
-#import "AppDelegate.h"
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
 
-@interface AppDelegate ()
-@end
+#include "src/core/iomgr/fd_posix.h"
+#include "src/core/iomgr/pollset_posix.h"
 
-@implementation AppDelegate
+typedef struct grpc_pollset_set {
+  gpr_mu mu;
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-  return YES;
-}
+  size_t pollset_count;
+  size_t pollset_capacity;
+  grpc_pollset **pollsets;
 
-@end
+  size_t fd_count;
+  size_t fd_capacity;
+  grpc_fd **fds;
+} grpc_pollset_set;
+
+void grpc_pollset_set_add_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
+void grpc_pollset_set_del_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
+
+#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */

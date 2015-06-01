@@ -149,7 +149,7 @@ class NodeLanguage(object):
                             environ={'GRPC_TRACE': 'surface,batch'})]
 
   def make_targets(self):
-    return ['static_c', 'shared_c']
+    return ['static_c']
 
   def build_steps(self):
     return [['tools/run_tests/build_node.sh']]
@@ -168,7 +168,7 @@ class PhpLanguage(object):
                             environ={'GRPC_TRACE': 'surface,batch'})]
 
   def make_targets(self):
-    return ['static_c', 'shared_c']
+    return ['static_c']
 
   def build_steps(self):
     return [['tools/run_tests/build_php.sh']]
@@ -202,7 +202,7 @@ class PythonLanguage(object):
     return files + modules
 
   def make_targets(self):
-    return ['static_c', 'grpc_python_plugin', 'shared_c']
+    return ['static_c', 'grpc_python_plugin']
 
   def build_steps(self):
     return [['tools/run_tests/build_python.sh']]
@@ -347,9 +347,9 @@ argp.add_argument('--newline_on_success',
                   action='store_const',
                   const=True)
 argp.add_argument('-l', '--language',
-                  choices=sorted(_LANGUAGES.keys()),
+                  choices=['all'] + sorted(_LANGUAGES.keys()),
                   nargs='+',
-                  default=sorted(_LANGUAGES.keys()))
+                  default=['all'])
 argp.add_argument('-S', '--stop_on_failure',
                   default=False,
                   action='store_const',
@@ -365,7 +365,10 @@ run_configs = set(_CONFIGS[cfg]
 build_configs = set(cfg.build_config for cfg in run_configs)
 
 make_targets = []
-languages = set(_LANGUAGES[l] for l in args.language)
+languages = set(_LANGUAGES[l]
+                for l in itertools.chain.from_iterable(
+                      _LANGUAGES.iterkeys() if x == 'all' else [x]
+                      for x in args.language))
 
 if len(build_configs) > 1:
   for language in languages:
@@ -397,8 +400,8 @@ build_steps.extend(set(
 one_run = set(
     spec
     for config in run_configs
-    for language in args.language
-    for spec in _LANGUAGES[language].test_specs(config, args.travis)
+    for language in languages
+    for spec in language.test_specs(config, args.travis)
     if re.search(args.regex, spec.shortname))
 
 runs_per_test = args.runs_per_test

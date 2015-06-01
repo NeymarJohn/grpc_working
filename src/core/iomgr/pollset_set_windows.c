@@ -31,15 +31,17 @@
  *
  */
 
-#import "AppDelegate.h"
+#include <grpc/support/port_platform.h>
 
-@interface AppDelegate ()
-@end
+#ifdef GPR_WINSOCK_SOCKET
 
-@implementation AppDelegate
+#include "src/core/iomgr/pollset_set.h"
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-  return YES;
-}
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set) {}
 
-@end
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set) {}
+
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset) {}
+
+#endif /* GPR_WINSOCK_SOCKET */
