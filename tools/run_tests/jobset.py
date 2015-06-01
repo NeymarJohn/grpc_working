@@ -209,9 +209,8 @@ class Job(object):
         self._state = _FAILURE
         self._tempfile.seek(0)
         stdout = self._tempfile.read()
-        message('FAILED', '%s [ret=%d, pid=%d]' % (
-            self._spec.shortname, self._process.returncode, self._process.pid),
-            stdout, do_newline=True)
+        message('FAILED', '%s [ret=%d]' % (
+            self._spec.shortname, self._process.returncode), stdout, do_newline=True)
       else:
         self._state = _SUCCESS
         message('PASSED', '%s [time=%.1fsec]' % (self._spec.shortname, elapsed),
@@ -234,8 +233,7 @@ class Job(object):
 class Jobset(object):
   """Manages one run of jobs."""
 
-  def __init__(self, check_cancelled, maxjobs, newline_on_success, travis,
-               stop_on_failure, cache):
+  def __init__(self, check_cancelled, maxjobs, newline_on_success, travis, cache):
     self._running = set()
     self._check_cancelled = check_cancelled
     self._cancelled = False
@@ -245,7 +243,6 @@ class Jobset(object):
     self._newline_on_success = newline_on_success
     self._travis = travis
     self._cache = cache
-    self._stop_on_failure = stop_on_failure
 
   def start(self, spec):
     """Start a job. Return True on success, False on failure."""
@@ -282,12 +279,8 @@ class Jobset(object):
       for job in self._running:
         st = job.state(self._cache)
         if st == _RUNNING: continue
-        if st == _FAILURE or st == _KILLED:
-          self._failures += 1
-          if self._stop_on_failure:
-            self._cancelled = True
-            for job in self._running:
-              job.kill()
+        if st == _FAILURE: self._failures += 1
+        if st == _KILLED: self._failures += 1
         dead.add(job)
       for job in dead:
         self._completed += 1
@@ -339,11 +332,10 @@ def run(cmdlines,
         maxjobs=None,
         newline_on_success=False,
         travis=False,
-        stop_on_failure=False,
         cache=None):
   js = Jobset(check_cancelled,
               maxjobs if maxjobs is not None else _DEFAULT_MAX_JOBS,
-              newline_on_success, travis, stop_on_failure,
+              newline_on_success, travis,
               cache if cache is not None else NoCache())
   if not travis:
     cmdlines = shuffle_iteratable(cmdlines)

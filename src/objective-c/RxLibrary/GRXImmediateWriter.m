@@ -109,7 +109,7 @@
 - (void)writeUntilPausedOrStopped {
   id value;
   while (value = [_enumerator nextObject]) {
-    [_writeable writeValue:value];
+    [_writeable didReceiveValue:value];
     // If the writeable has a reference to us, it might change our state to paused or finished.
     if (_state == GRXWriterStatePaused || _state == GRXWriterStateFinished) {
       return;
@@ -130,7 +130,7 @@
   _errorOrNil = nil;
   id<GRXWriteable> writeable = _writeable;
   _writeable = nil;
-  [writeable writesFinishedWithError:errorOrNil];
+  [writeable didFinishWithError:errorOrNil];
 }
 
 - (void)setState:(GRXWriterState)newState {

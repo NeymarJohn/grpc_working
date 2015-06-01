@@ -34,8 +34,7 @@
 #ifndef GRPC_RB_CREDENTIALS_H_
 #define GRPC_RB_CREDENTIALS_H_
 
-#include <ruby/ruby.h>
-
+#include <ruby.h>
 #include <grpc/grpc_security.h>
 
 /* Initializes the ruby Credentials class. */

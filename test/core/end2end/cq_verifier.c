@@ -127,15 +127,11 @@ static gpr_slice merge_slices(gpr_slice *slices, size_t nslices) {
 }
 
 static int byte_buffer_eq_slice(grpc_byte_buffer *bb, gpr_slice b) {
-  gpr_slice a;
-  int ok;
-
-  if (!bb) return 0;
-
-  a = merge_slices(bb->data.slice_buffer.slices, bb->data.slice_buffer.count);
-  ok = GPR_SLICE_LENGTH(a) == GPR_SLICE_LENGTH(b) &&
-       0 == memcmp(GPR_SLICE_START_PTR(a), GPR_SLICE_START_PTR(b),
-                   GPR_SLICE_LENGTH(a));
+  gpr_slice a =
+      merge_slices(bb->data.slice_buffer.slices, bb->data.slice_buffer.count);
+  int ok = GPR_SLICE_LENGTH(a) == GPR_SLICE_LENGTH(b) &&
+           0 == memcmp(GPR_SLICE_START_PTR(a), GPR_SLICE_START_PTR(b),
+                       GPR_SLICE_LENGTH(a));
   gpr_slice_unref(a);
   gpr_slice_unref(b);
   return ok;
@@ -164,9 +160,6 @@ static void verify_matches(expectation *e, grpc_event *ev) {
 
 static void expectation_to_strvec(gpr_strvec *buf, expectation *e) {
   char *tmp;
-
-  gpr_asprintf(&tmp, "%p ", e->tag);
-  gpr_strvec_add(buf, tmp);
 
   switch (e->type) {
     case GRPC_OP_COMPLETE:

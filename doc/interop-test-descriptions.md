@@ -558,14 +558,20 @@ pushback (i.e., attempts to send succeed only after appropriate delays).
 
 Propagation of status code and message (yangg)
 
-Multiple thousand simultaneous calls on same Channel (ctiller)
+Cancel after sent headers (ctiller - done)
+
+Cancel after received first message (ctiller - done)
+
+Zero-message streams (ejona)
+
+Multiple thousand simultaneous calls on same Channel (ctiller - done)
 
 OAuth2 tokens + Service Credentials from GCE metadata server (GCE->prod only)
 (abhishek)
 
 OAuth2 tokens + JWT signing key (GCE->prod only) (abhishek)
 
-Metadata: client headers, server headers + trailers, binary+ascii
+Metadata: client headers, server headers + trailers, binary+ascii (chenw)
 
 #### Normal priority:
 
@@ -593,8 +599,6 @@ RPC method not implemented (yangg)
 Multiple thousand simultaneous calls on different Channels (ctiller)
 
 Failed TLS hostname verification (ejona?)
-
-Large amount of headers to cause CONTINUATIONs; 63K of 'X's, all in one header.
 
 #### To priorize:
 

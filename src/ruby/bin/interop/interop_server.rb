@@ -128,19 +128,16 @@ class TestTarget < Grpc::Testing::TestService::Service
     cls = StreamingOutputCallResponse
     Thread.new do
       begin
-        GRPC.logger.info('interop-server: started receiving')
         reqs.each do |req|
+          logger.info("read #{req.inspect}")
           resp_size = req.response_parameters[0].size
-          GRPC.logger.info("read a req, response size is #{resp_size}")
           resp = cls.new(payload: Payload.new(type: req.response_type,
                                               body: nulls(resp_size)))
           q.push(resp)
         end
-        GRPC.logger.info('interop-server: finished receiving')
+        logger.info('finished reads')
         q.push(self)
       rescue StandardError => e
-        GRPC.logger.info('interop-server: failed')
-        GRPC.logger.warn(e)
         q.push(e)  # share the exception with the enumerator
       end
     end
@@ -182,10 +179,10 @@ def main
   s = GRPC::RpcServer.new
   if opts['secure']
     s.add_http2_port(host, test_server_creds)
-    GRPC.logger.info("... running securely on #{host}")
+    logger.info("... running securely on #{host}")
   else
     s.add_http2_port(host)
-    GRPC.logger.info("... running insecurely on #{host}")
+    logger.info("... running insecurely on #{host}")
   end
   s.handle(TestTarget)
   s.run_till_terminated

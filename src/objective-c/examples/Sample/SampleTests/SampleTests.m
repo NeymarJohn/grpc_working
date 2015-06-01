@@ -123,7 +123,7 @@
 
   id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
     XCTAssertNotNil(value, @"nil value received as response.");
-    RGDFeature *feature = [RGDFeature parseFromData:value error:NULL];
+    RGDFeature *feature = [RGDFeature parseFromData:value];
     XCTAssertEqualObjects(point, feature.location);
     XCTAssertNotNil(feature.name, @"Response's name is nil.");
     [response fulfill];

@@ -31,11 +31,11 @@
  *
  */
 
+#include <grpc/census.h>
 #include <grpc/grpc.h>
 #include "src/core/channel/channel_stack.h"
 #include "src/core/debug/trace.h"
 #include "src/core/iomgr/iomgr.h"
-#include "src/core/statistics/census_interface.h"
 #include "src/core/profiling/timers.h"
 #include "src/core/surface/call.h"
 #include "src/core/surface/init.h"
@@ -64,7 +64,7 @@ void grpc_init(void) {
     grpc_security_pre_init();
     grpc_iomgr_init();
     grpc_tracer_init("GRPC_TRACE");
-    census_init();
+    census_initialize(CENSUS_NONE);
     grpc_timers_global_init();
   }
   gpr_mu_unlock(&g_init_mu);
