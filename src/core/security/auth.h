@@ -31,10 +31,11 @@
  *
  */
 
-#import <Foundation/Foundation.h>
+#ifndef GRPC_INTERNAL_CORE_SECURITY_AUTH_H
+#define GRPC_INTERNAL_CORE_SECURITY_AUTH_H
 
-@interface Tests : NSObject
-@end
+#include "src/core/channel/channel_stack.h"
 
-@implementation Tests
-@end
+extern const grpc_channel_filter grpc_client_auth_filter;
+
+#endif  /* GRPC_INTERNAL_CORE_SECURITY_AUTH_H */

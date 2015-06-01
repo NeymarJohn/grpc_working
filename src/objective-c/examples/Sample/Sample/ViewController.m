@@ -40,6 +40,9 @@
 #import <RemoteTest/Messages.pbobjc.h>
 #import <RemoteTest/Test.pbrpc.h>
 
+@interface ViewController ()
+@end
+
 @implementation ViewController
 
 - (void)viewDidLoad {

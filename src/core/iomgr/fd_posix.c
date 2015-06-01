@@ -41,6 +41,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "src/core/iomgr/iomgr_internal.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/useful.h>
@@ -118,7 +119,7 @@ static void unref_by(grpc_fd *fd, int n) {
     close(fd->fd);
     grpc_iomgr_add_callback(fd->on_done, fd->on_done_user_data);
     freelist_fd(fd);
-    grpc_iomgr_unregister_object(&fd->iomgr_object);
+    grpc_iomgr_unref();
   } else {
     GPR_ASSERT(old > n);
   }
@@ -137,9 +138,9 @@ void grpc_fd_global_shutdown(void) {
 
 static void do_nothing(void *ignored, int success) {}
 
-grpc_fd *grpc_fd_create(int fd, const char *name) {
+grpc_fd *grpc_fd_create(int fd) {
   grpc_fd *r = alloc_fd(fd);
-  grpc_iomgr_register_object(&r->iomgr_object, name);
+  grpc_iomgr_ref();
   grpc_pollset_add_fd(grpc_backup_pollset(), r);
   return r;
 }
@@ -164,7 +165,7 @@ static void maybe_wake_one_watcher(grpc_fd *fd) {
   gpr_mu_unlock(&fd->watcher_mu);
 }
 
-static void wake_all_watchers_locked(grpc_fd *fd) {
+static void wake_all_watchers(grpc_fd *fd) {
   grpc_fd_watcher *watcher;
   for (watcher = fd->inactive_watcher_root.next;
        watcher != &fd->inactive_watcher_root; watcher = watcher->next) {
@@ -183,9 +184,7 @@ void grpc_fd_orphan(grpc_fd *fd, grpc_iomgr_cb_func on_done, void *user_data) {
   fd->on_done_user_data = user_data;
   shutdown(fd->fd, SHUT_RDWR);
   ref_by(fd, 1); /* remove active status, but keep referenced */
-  gpr_mu_lock(&fd->watcher_mu);
-  wake_all_watchers_locked(fd);
-  gpr_mu_unlock(&fd->watcher_mu);
+  wake_all_watchers(fd);
   unref_by(fd, 2); /* drop the reference */
 }
 

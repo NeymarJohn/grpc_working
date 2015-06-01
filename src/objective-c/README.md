@@ -50,15 +50,13 @@ Pod::Spec.new do |s|
   s.osx.deployment_target = '10.8'
 
   s.subspec 'Messages' do |ms|
-    ms.source_files = '*.pbobjc.{h,m}', '**/*.pbobjc.{h,m}'
-    ms.header_mappings_dir = '.'
+    ms.source_files = '*.pbobjc.{h,m}'
     ms.requires_arc = false
     ms.dependency 'Protobuf', '~> 3.0'
   end
 
   s.subspec 'Services' do |ss|
-    ss.source_files = '*.pbrpc.{h,m}', '**/*.pbrpc.{h,m}'
-    ss.header_mappings_dir = '.'
+    ss.source_files = '*.pbrpc.{h,m}'
     ss.requires_arc = true
     ss.dependency 'gRPC', '~> 0.0'
     ss.dependency '<Podspec file name>/Messages'
