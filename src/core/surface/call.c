@@ -205,8 +205,8 @@ struct grpc_call {
   /* Received call statuses from various sources */
   received_status status[STATUS_SOURCE_COUNT];
 
-  void *context[GRPC_CONTEXT_COUNT];
-  void (*destroy_context[GRPC_CONTEXT_COUNT])(void *);
+  /* Contexts for various subsystems (security, tracing, ...). */
+  grpc_call_context_element context[GRPC_CONTEXT_COUNT];
 
   /* Deadline alarm - if have_alarm is non-zero */
   grpc_alarm alarm;
@@ -226,6 +226,7 @@ struct grpc_call {
 
   gpr_slice_buffer incoming_message;
   gpr_uint32 incoming_message_length;
+  grpc_iomgr_closure destroy_closure;
 };
 
 #define CALL_STACK_FROM_CALL(call) ((grpc_call_stack *)((call) + 1))
@@ -344,8 +345,8 @@ static void destroy_call(void *call, int ignored_success) {
     grpc_mdelem_unref(c->send_initial_metadata[i].md);
   }
   for (i = 0; i < GRPC_CONTEXT_COUNT; i++) {
-    if (c->destroy_context[i]) {
-      c->destroy_context[i](c->context[i]);
+    if (c->context[i].destroy) {
+      c->context[i].destroy(c->context[i].value);
     }
   }
   grpc_sopb_destroy(&c->send_ops);
@@ -367,7 +368,9 @@ void grpc_call_internal_unref(grpc_call *c, int allow_immediate_deletion) {
     if (allow_immediate_deletion) {
       destroy_call(c, 1);
     } else {
-      grpc_iomgr_add_callback(destroy_call, c);
+      c->destroy_closure.cb = destroy_call;
+      c->destroy_closure.cb_arg = c;
+      grpc_iomgr_add_callback(&c->destroy_closure);
     }
   }
 }
@@ -1300,15 +1303,15 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
 
 void grpc_call_context_set(grpc_call *call, grpc_context_index elem, void *value,
                            void (*destroy)(void *value)) {
-  if (call->destroy_context[elem]) {
-    call->destroy_context[elem](value);
+  if (call->context[elem].destroy) {
+    call->context[elem].destroy(call->context[elem].value);
   }
-  call->context[elem] = value;
-  call->destroy_context[elem] = destroy;
+  call->context[elem].value = value;
+  call->context[elem].destroy = destroy;
 }
 
 void *grpc_call_context_get(grpc_call *call, grpc_context_index elem) {
-  return call->context[elem];
+  return call->context[elem].value;
 }
 
 gpr_uint8 grpc_call_is_client(grpc_call *call) { return call->is_client; }
