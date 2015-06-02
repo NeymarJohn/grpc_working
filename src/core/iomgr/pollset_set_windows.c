@@ -31,53 +31,17 @@
  *
  */
 
-/* Test of gpr thread local storage support. */
+#include <grpc/support/port_platform.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <grpc/support/log.h>
-#include <grpc/support/sync.h>
-#include <grpc/support/thd.h>
-#include <grpc/support/tls.h>
-#include "test/core/util/test_config.h"
+#ifdef GPR_WINSOCK_SOCKET
 
-#define NUM_THREADS 100
+#include "src/core/iomgr/pollset_set.h"
 
-GPR_TLS_DECL(test_var);
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set) {}
 
-static void thd_body(void *arg) {
-  gpr_intptr i;
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set) {}
 
-  GPR_ASSERT(gpr_tls_get(&test_var) == 0);
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset) {}
 
-  for (i = 0; i < 10000000; i++) {
-    gpr_tls_set(&test_var, i);
-    GPR_ASSERT(gpr_tls_get(&test_var) == i);
-  }
-  gpr_tls_set(&test_var, 0);
-}
-
-/* ------------------------------------------------- */
-
-int main(int argc, char *argv[]) {
-  gpr_thd_options opt = gpr_thd_options_default();
-  int i;
-  gpr_thd_id threads[NUM_THREADS];
-
-  grpc_test_init(argc, argv);
-
-  gpr_tls_init(&test_var);
-
-  gpr_thd_options_set_joinable(&opt);
-
-  for (i = 0; i < NUM_THREADS; i++) {
-    gpr_thd_new(&threads[i], thd_body, NULL, &opt);
-  }
-  for (i = 0; i < NUM_THREADS; i++) {
-    gpr_thd_join(threads[i]);
-  }
-
-  gpr_tls_destroy(&test_var);
-
-  return 0;
-}
+#endif /* GPR_WINSOCK_SOCKET */
