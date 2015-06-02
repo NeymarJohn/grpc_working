@@ -1,5 +1,4 @@
-/*
- *
+<!---
  * Copyright 2015, Google Inc.
  * All rights reserved.
  *
@@ -28,41 +27,50 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
+-->
 
-#include "rb_byte_buffer.h"
+# Census - a resource measurement and tracing system
 
-#include <ruby/ruby.h>
+This directory contains code for Census, which will ultimately provide the
+following features for any gRPC-using system:
+* A [dapper](http://research.google.com/pubs/pub36356.html)-like tracing
+  system, enabling tracing across a distributed infrastructure.
+* RPC statistics and measurements for key metrics, such as latency, bytes
+  transferred, number of errors etc.
+* Resource measurement framework which can be used for measuring custom
+  metrics. Through the use of [tags](#Tags), these can be broken down across
+  the entire distributed stack.
+* Easy integration of the above with
+  [Google Cloud Trace](https://cloud.google.com/tools/cloud-trace) and
+  [Google Cloud Monitoring](https://cloud.google.com/monitoring/).
 
-#include <grpc/grpc.h>
-#include <grpc/byte_buffer_reader.h>
-#include <grpc/support/slice.h>
-#include "rb_grpc.h"
+## Concepts
 
-grpc_byte_buffer* grpc_rb_s_to_byte_buffer(char *string, size_t length) {
-  gpr_slice slice = gpr_slice_from_copied_buffer(string, length);
-  grpc_byte_buffer *buffer = grpc_byte_buffer_create(&slice, 1);
-  gpr_slice_unref(slice);
-  return buffer;
-}
+### Context
 
-VALUE grpc_rb_byte_buffer_to_s(grpc_byte_buffer *buffer) {
-  size_t length = 0;
-  char *string = NULL;
-  size_t offset = 0;
-  grpc_byte_buffer_reader reader;
-  gpr_slice next;
-  if (buffer == NULL) {
-    return Qnil;
+### Operations
 
-  }
-  length = grpc_byte_buffer_length(buffer);
-  string = xmalloc(length + 1);
-  grpc_byte_buffer_reader_init(&reader, buffer);
-  while (grpc_byte_buffer_reader_next(&reader, &next) != 0) {
-    memcpy(string + offset, GPR_SLICE_START_PTR(next), GPR_SLICE_LENGTH(next));
-    offset += GPR_SLICE_LENGTH(next);
-  }
-  return rb_str_new(string, length);
-}
+### Tags
+
+### Metrics
+
+## API
+
+### Internal/RPC API
+
+### External/Client API
+
+### RPC API
+
+## Files in this directory
+
+Note that files and functions in this directory can be split into two
+categories:
+* Files that define core census library functions. Functions etc. in these
+  files are named census\_\*, and constitute the core census library
+  functionality. At some time in the future, these will become a standalone
+  library.
+* Files that define functions etc. that provide a convenient interface between
+  grpc and the core census functionality. These files are all named
+  grpc\_\*.{c,h}, and define function names beginning with grpc\_census\_\*.
+

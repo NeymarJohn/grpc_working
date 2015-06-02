@@ -31,38 +31,12 @@
  *
  */
 
-#include "rb_byte_buffer.h"
+/* GRPC <--> CENSUS context interface */
 
-#include <ruby/ruby.h>
+#ifndef CENSUS_GRPC_CONTEXT_H
+#define CENSUS_GRPC_CONTEXT_H
 
-#include <grpc/grpc.h>
-#include <grpc/byte_buffer_reader.h>
-#include <grpc/support/slice.h>
-#include "rb_grpc.h"
+void *grpc_census_context_create();
+void grpc_census_context_destroy(void *context);
 
-grpc_byte_buffer* grpc_rb_s_to_byte_buffer(char *string, size_t length) {
-  gpr_slice slice = gpr_slice_from_copied_buffer(string, length);
-  grpc_byte_buffer *buffer = grpc_byte_buffer_create(&slice, 1);
-  gpr_slice_unref(slice);
-  return buffer;
-}
-
-VALUE grpc_rb_byte_buffer_to_s(grpc_byte_buffer *buffer) {
-  size_t length = 0;
-  char *string = NULL;
-  size_t offset = 0;
-  grpc_byte_buffer_reader reader;
-  gpr_slice next;
-  if (buffer == NULL) {
-    return Qnil;
-
-  }
-  length = grpc_byte_buffer_length(buffer);
-  string = xmalloc(length + 1);
-  grpc_byte_buffer_reader_init(&reader, buffer);
-  while (grpc_byte_buffer_reader_next(&reader, &next) != 0) {
-    memcpy(string + offset, GPR_SLICE_START_PTR(next), GPR_SLICE_LENGTH(next));
-    offset += GPR_SLICE_LENGTH(next);
-  }
-  return rb_str_new(string, length);
-}
+#endif /* CENSUS_GRPC_CONTEXT_H */

@@ -31,38 +31,29 @@
  *
  */
 
-#include "rb_byte_buffer.h"
+#include "context.h"
 
-#include <ruby/ruby.h>
+#include <string.h>
+#include <grpc/census.h>
+#include <grpc/support/alloc.h>
 
-#include <grpc/grpc.h>
-#include <grpc/byte_buffer_reader.h>
-#include <grpc/support/slice.h>
-#include "rb_grpc.h"
+/* Placeholder implementation only. */
 
-grpc_byte_buffer* grpc_rb_s_to_byte_buffer(char *string, size_t length) {
-  gpr_slice slice = gpr_slice_from_copied_buffer(string, length);
-  grpc_byte_buffer *buffer = grpc_byte_buffer_create(&slice, 1);
-  gpr_slice_unref(slice);
-  return buffer;
+size_t census_context_serialize(const census_context *context, char *buffer,
+                                size_t buf_size) {
+  /* TODO(aveitch): implement serialization */
+  return 0;
 }
 
-VALUE grpc_rb_byte_buffer_to_s(grpc_byte_buffer *buffer) {
-  size_t length = 0;
-  char *string = NULL;
-  size_t offset = 0;
-  grpc_byte_buffer_reader reader;
-  gpr_slice next;
-  if (buffer == NULL) {
-    return Qnil;
-
+int census_context_deserialize(const char *buffer, census_context **context) {
+  int ret = 0;
+  if (buffer != NULL) {
+    /* TODO(aveitch): implement deserialization. */
+    ret = 1;
   }
-  length = grpc_byte_buffer_length(buffer);
-  string = xmalloc(length + 1);
-  grpc_byte_buffer_reader_init(&reader, buffer);
-  while (grpc_byte_buffer_reader_next(&reader, &next) != 0) {
-    memcpy(string + offset, GPR_SLICE_START_PTR(next), GPR_SLICE_LENGTH(next));
-    offset += GPR_SLICE_LENGTH(next);
-  }
-  return rb_str_new(string, length);
+  *context = gpr_malloc(sizeof(census_context));
+  memset(*context, 0, sizeof(census_context));
+  return ret;
 }
+
+void census_context_destroy(census_context *context) { gpr_free(context); }
