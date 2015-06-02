@@ -34,16 +34,11 @@
 #ifndef GRPC_INTERNAL_CORE_IOMGR_FD_POSIX_H
 #define GRPC_INTERNAL_CORE_IOMGR_FD_POSIX_H
 
-#include "src/core/iomgr/iomgr.h"
+#include "src/core/iomgr/iomgr_internal.h"
 #include "src/core/iomgr/pollset.h"
 #include <grpc/support/atm.h>
 #include <grpc/support/sync.h>
 #include <grpc/support/time.h>
-
-typedef struct {
-  grpc_iomgr_cb_func cb;
-  void *cb_arg;
-} grpc_iomgr_closure;
 
 typedef struct grpc_fd grpc_fd;
 
@@ -96,22 +91,25 @@ struct grpc_fd {
   gpr_atm readst;
   gpr_atm writest;
 
-  grpc_iomgr_cb_func on_done;
-  void *on_done_user_data;
   struct grpc_fd *freelist_next;
+
+  grpc_iomgr_closure *on_done_closure;
+  grpc_iomgr_closure *shutdown_closures[2];
+
+  grpc_iomgr_object iomgr_object;
 };
 
 /* Create a wrapped file descriptor.
    Requires fd is a non-blocking file descriptor.
    This takes ownership of closing fd. */
-grpc_fd *grpc_fd_create(int fd);
+grpc_fd *grpc_fd_create(int fd, const char *name);
 
 /* Releases fd to be asynchronously destroyed.
    on_done is called when the underlying file descriptor is definitely close()d.
    If on_done is NULL, no callback will be made.
    Requires: *fd initialized; no outstanding notify_on_read or
    notify_on_write. */
-void grpc_fd_orphan(grpc_fd *fd, grpc_iomgr_cb_func on_done, void *user_data);
+void grpc_fd_orphan(grpc_fd *fd, grpc_iomgr_closure *on_done);
 
 /* Begin polling on an fd.
    Registers that the given pollset is interested in this fd - so that if read
@@ -161,8 +159,17 @@ void grpc_fd_become_readable(grpc_fd *fd, int allow_synchronous_callback);
 void grpc_fd_become_writable(grpc_fd *fd, int allow_synchronous_callback);
 
 /* Reference counting for fds */
+#ifdef GRPC_FD_REF_COUNT_DEBUG
+void grpc_fd_ref(grpc_fd *fd, const char *reason, const char *file, int line);
+void grpc_fd_unref(grpc_fd *fd, const char *reason, const char *file, int line);
+#define GRPC_FD_REF(fd, reason) grpc_fd_ref(fd, reason, __FILE__, __LINE__)
+#define GRPC_FD_UNREF(fd, reason) grpc_fd_unref(fd, reason, __FILE__, __LINE__)
+#else
 void grpc_fd_ref(grpc_fd *fd);
 void grpc_fd_unref(grpc_fd *fd);
+#define GRPC_FD_REF(fd, reason) grpc_fd_ref(fd)
+#define GRPC_FD_UNREF(fd, reason) grpc_fd_unref(fd)
+#endif
 
 void grpc_fd_global_init(void);
 void grpc_fd_global_shutdown(void);

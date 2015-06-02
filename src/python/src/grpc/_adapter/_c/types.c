@@ -31,35 +31,30 @@
  *
  */
 
-#include "grpc/_adapter/_tag.h"
+#include "grpc/_adapter/_c/types.h"
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <grpc/grpc.h>
-#include <grpc/support/alloc.h>
 
-pygrpc_tag *pygrpc_tag_new(pygrpc_tag_type type, PyObject *user_tag,
-                           Call *call) {
-  pygrpc_tag *self = (pygrpc_tag *)gpr_malloc(sizeof(pygrpc_tag));
-  memset(self, 0, sizeof(pygrpc_tag));
-  if (user_tag == NULL) {
-    self->user_tag = Py_None;
-  } else {
-    self->user_tag = user_tag;
+int pygrpc_module_add_types(PyObject *module) {
+  int i;
+  PyTypeObject *types[] = {
+      &pygrpc_ClientCredentials_type,
+      &pygrpc_ServerCredentials_type,
+      &pygrpc_CompletionQueue_type,
+      &pygrpc_Call_type,
+      &pygrpc_Channel_type,
+      &pygrpc_Server_type
+  };
+  for (i = 0; i < sizeof(types)/sizeof(PyTypeObject *); ++i) {
+    if (PyType_Ready(types[i]) < 0) {
+      return -1;
+    }
   }
-  Py_INCREF(self->user_tag);
-  self->type = type;
-  self->call = call;
-  Py_INCREF(call);
-  return self;
-}
-
-pygrpc_tag *pygrpc_tag_new_server_rpc_call(PyObject *user_tag) {
-  return pygrpc_tag_new(PYGRPC_SERVER_RPC_NEW, user_tag,
-                        (Call *)pygrpc_CallType.tp_alloc(&pygrpc_CallType, 0));
-}
-
-void pygrpc_tag_destroy(pygrpc_tag *self) {
-  Py_XDECREF(self->user_tag);
-  Py_XDECREF(self->call);
-  gpr_free(self);
+  for (i = 0; i < sizeof(types)/sizeof(PyTypeObject *); ++i) {
+    Py_INCREF(types[i]);
+    PyModule_AddObject(module, types[i]->tp_name, (PyObject *)types[i]);
+  }
+  return 0;
 }

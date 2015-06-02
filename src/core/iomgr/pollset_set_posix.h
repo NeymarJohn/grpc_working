@@ -31,21 +31,25 @@
  *
  */
 
-#ifndef _ADAPTER__SERVER_H_
-#define _ADAPTER__SERVER_H_
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
 
-#include <Python.h>
-#include <grpc/grpc.h>
+#include "src/core/iomgr/fd_posix.h"
+#include "src/core/iomgr/pollset_posix.h"
 
-#include "grpc/_adapter/_completion_queue.h"
+typedef struct grpc_pollset_set {
+  gpr_mu mu;
 
-typedef struct {
-  PyObject_HEAD
+  size_t pollset_count;
+  size_t pollset_capacity;
+  grpc_pollset **pollsets;
 
-  CompletionQueue *completion_queue;
-  grpc_server *c_server;
-} Server;
+  size_t fd_count;
+  size_t fd_capacity;
+  grpc_fd **fds;
+} grpc_pollset_set;
 
-int pygrpc_add_server(PyObject *module);
+void grpc_pollset_set_add_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
+void grpc_pollset_set_del_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
 
-#endif /* _ADAPTER__SERVER_H_ */
+#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */

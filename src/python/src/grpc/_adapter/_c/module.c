@@ -31,12 +31,31 @@
  *
  */
 
-#ifndef _ADAPTER__ERROR_H_
-#define _ADAPTER__ERROR_H_
+#include <stdlib.h>
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <grpc/grpc.h>
 
-const PyObject *pygrpc_translate_call_error(grpc_call_error call_error);
+#include "grpc/_adapter/_c/types.h"
 
-#endif /* _ADAPTER__ERROR_H_ */
+static PyMethodDef c_methods[] = {
+    {NULL}
+};
+
+PyMODINIT_FUNC init_c(void) {
+  PyObject *module;
+
+  module = Py_InitModule3("_c", c_methods,
+                          "Wrappings of C structures and functions.");
+
+  if (pygrpc_module_add_types(module) < 0) {
+    return;
+  }
+
+  /* GRPC maintains an internal counter of how many times it has been
+     initialized and handles multiple pairs of grpc_init()/grpc_shutdown()
+     invocations accordingly. */
+  grpc_init();
+  atexit(&grpc_shutdown);
+}

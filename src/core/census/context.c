@@ -31,19 +31,29 @@
  *
  */
 
-#ifndef _ADAPTER__CHANNEL_H_
-#define _ADAPTER__CHANNEL_H_
+#include "context.h"
 
-#include <Python.h>
-#include <grpc/grpc.h>
+#include <string.h>
+#include <grpc/census.h>
+#include <grpc/support/alloc.h>
 
-typedef struct {
-  PyObject_HEAD
-  grpc_channel *c_channel;
-} Channel;
+/* Placeholder implementation only. */
 
-extern PyTypeObject pygrpc_ChannelType;
+size_t census_context_serialize(const census_context *context, char *buffer,
+                                size_t buf_size) {
+  /* TODO(aveitch): implement serialization */
+  return 0;
+}
 
-int pygrpc_add_channel(PyObject *module);
+int census_context_deserialize(const char *buffer, census_context **context) {
+  int ret = 0;
+  if (buffer != NULL) {
+    /* TODO(aveitch): implement deserialization. */
+    ret = 1;
+  }
+  *context = gpr_malloc(sizeof(census_context));
+  memset(*context, 0, sizeof(census_context));
+  return ret;
+}
 
-#endif /* _ADAPTER__CHANNEL_H_ */
+void census_context_destroy(census_context *context) { gpr_free(context); }
