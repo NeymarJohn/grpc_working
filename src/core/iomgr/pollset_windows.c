@@ -48,6 +48,7 @@
 
 void grpc_pollset_init(grpc_pollset *pollset) {
   gpr_mu_init(&pollset->mu);
+  gpr_cv_init(&pollset->cv);
 }
 
 void grpc_pollset_shutdown(grpc_pollset *pollset,
@@ -58,21 +59,22 @@ void grpc_pollset_shutdown(grpc_pollset *pollset,
 
 void grpc_pollset_destroy(grpc_pollset *pollset) {
   gpr_mu_destroy(&pollset->mu);
+  gpr_cv_destroy(&pollset->cv);
 }
 
 int grpc_pollset_work(grpc_pollset *pollset, gpr_timespec deadline) {
   gpr_timespec now;
   now = gpr_now();
   if (gpr_time_cmp(now, deadline) > 0) {
-    return 0 /* GPR_FALSE */;
+    return 0;
   }
-  if (grpc_maybe_call_delayed_callbacks(NULL, 1 /* GPR_TRUE */)) {
-    return 1 /* GPR_TRUE */;
+  if (grpc_maybe_call_delayed_callbacks(NULL, 1)) {
+    return 1;
   }
   if (grpc_alarm_check(NULL, now, &deadline)) {
-    return 1 /* GPR_TRUE */;
+    return 1;
   }
-  return 0 /* GPR_FALSE */;
+  return 0;
 }
 
 void grpc_pollset_kick(grpc_pollset *p) { }

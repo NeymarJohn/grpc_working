@@ -31,12 +31,21 @@
  *
  */
 
-/* GRPC <--> CENSUS context interface */
+#ifndef _ADAPTER__SERVER_H_
+#define _ADAPTER__SERVER_H_
 
-#ifndef CENSUS_GRPC_CONTEXT_H
-#define CENSUS_GRPC_CONTEXT_H
+#include <Python.h>
+#include <grpc/grpc.h>
 
-void *grpc_census_context_create();
-void grpc_census_context_destroy(void *context);
+#include "grpc/_adapter/_completion_queue.h"
 
-#endif /* CENSUS_GRPC_CONTEXT_H */
+typedef struct {
+  PyObject_HEAD
+
+  CompletionQueue *completion_queue;
+  grpc_server *c_server;
+} Server;
+
+int pygrpc_add_server(PyObject *module);
+
+#endif /* _ADAPTER__SERVER_H_ */

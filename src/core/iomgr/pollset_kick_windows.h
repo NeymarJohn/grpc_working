@@ -31,19 +31,18 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
-#define GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
 
-#include <grpc/census.h>
+#include <grpc/support/sync.h>
 
-/* census_context is the in-memory representation of information needed to
- * maintain tracing, RPC statistics and resource usage information. */
-struct census_context {
-  gpr_uint64 op_id;    /* Operation identifier - unique per-context */
-  gpr_uint64 trace_id; /* Globally unique trace identifier */
-  /* TODO(aveitch) Add census tags:
-  const census_tag_set *tags;
-  */
-};
+/* There isn't really any such thing as a pollset under Windows, due to the
+   nature of the IO completion ports. */
 
-#endif /* GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H */
+struct grpc_kick_fd_info;
+
+typedef struct grpc_pollset_kick_state {
+  int unused;
+} grpc_pollset_kick_state;
+
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H */

@@ -31,17 +31,47 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef _ADAPTER__CALL_H_
+#define _ADAPTER__CALL_H_
 
-#ifdef GPR_WINSOCK_SOCKET
+#include <Python.h>
+#include <grpc/grpc.h>
 
-#include "src/core/iomgr/pollset_set.h"
+#include "grpc/_adapter/_completion_queue.h"
+#include "grpc/_adapter/_channel.h"
+#include "grpc/_adapter/_server.h"
 
-void grpc_pollset_set_init(grpc_pollset_set *pollset_set) {}
+typedef struct {
+  PyObject_HEAD
 
-void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set) {}
+  CompletionQueue *completion_queue;
+  Channel *channel;
+  Server *server;
 
-void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset) {}
+  /* Legacy state. */
+  grpc_call_details call_details;
+  grpc_metadata_array recv_metadata;
+  grpc_metadata_array recv_trailing_metadata;
+  grpc_metadata *send_metadata;
+  size_t send_metadata_count;
+  grpc_metadata *send_trailing_metadata;
+  size_t send_trailing_metadata_count;
+  int adding_to_trailing;
 
-#endif /* GPR_WINSOCK_SOCKET */
+  grpc_byte_buffer *send_message;
+  grpc_byte_buffer *recv_message;
+
+  grpc_status_code status;
+  char *status_details;
+  size_t status_details_capacity;
+
+  int cancelled;
+
+  grpc_call *c_call;
+} Call;
+
+extern PyTypeObject pygrpc_CallType;
+
+int pygrpc_add_call(PyObject *module);
+
+#endif /* _ADAPTER__CALL_H_ */

@@ -31,29 +31,12 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#ifndef _ADAPTER__ERROR_H_
+#define _ADAPTER__ERROR_H_
 
-#include "src/core/iomgr/pollset.h"
+#include <Python.h>
+#include <grpc/grpc.h>
 
-/* A grpc_pollset_set is a set of pollsets that are interested in an
-   action. Adding a pollset to a pollset_set automatically adds any
-   fd's (etc) that have been registered with the set_set with that pollset.
-   Registering fd's automatically iterates all current pollsets. */
+const PyObject *pygrpc_translate_call_error(grpc_call_error call_error);
 
-#ifdef GPR_POSIX_SOCKET
-#include "src/core/iomgr/pollset_set_posix.h"
-#endif
-
-#ifdef GPR_WIN32
-#include "src/core/iomgr/pollset_set_windows.h"
-#endif
-
-void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
-void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
-
-#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */
+#endif /* _ADAPTER__ERROR_H_ */

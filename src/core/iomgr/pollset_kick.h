@@ -31,25 +31,44 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_H
 
-#include "src/core/iomgr/fd_posix.h"
-#include "src/core/iomgr/pollset_posix.h"
+#include <grpc/support/port_platform.h>
 
-typedef struct grpc_pollset_set {
-  gpr_mu mu;
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/pollset_kick_posix.h"
+#endif
 
-  size_t pollset_count;
-  size_t pollset_capacity;
-  grpc_pollset **pollsets;
+#ifdef GPR_WIN32
+#include "src/core/iomgr/pollset_kick_windows.h"
+#endif
 
-  size_t fd_count;
-  size_t fd_capacity;
-  grpc_fd **fds;
-} grpc_pollset_set;
+/* This is an abstraction around the typical pipe mechanism for waking up a
+   thread sitting in a poll() style call. */
 
-void grpc_pollset_set_add_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
-void grpc_pollset_set_del_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
+void grpc_pollset_kick_global_init(void);
+void grpc_pollset_kick_global_destroy(void);
 
-#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */
+void grpc_pollset_kick_init(grpc_pollset_kick_state *kick_state);
+void grpc_pollset_kick_destroy(grpc_pollset_kick_state *kick_state);
+
+/* Guarantees a pure posix implementation rather than a specialized one, if
+ * applicable. Intended for testing. */
+void grpc_pollset_kick_global_init_fallback_fd(void);
+
+/* Must be called before entering poll(). If return value is -1, this consumed
+   an existing kick. Otherwise the return value is an FD to add to the poll set.
+ */
+int grpc_pollset_kick_pre_poll(grpc_pollset_kick_state *kick_state);
+
+/* Consume an existing kick. Must be called after poll returns that the fd was
+   readable, and before calling kick_post_poll. */
+void grpc_pollset_kick_consume(grpc_pollset_kick_state *kick_state);
+
+/* Must be called after pre_poll, and after consume if applicable */
+void grpc_pollset_kick_post_poll(grpc_pollset_kick_state *kick_state);
+
+void grpc_pollset_kick_kick(grpc_pollset_kick_state *kick_state);
+
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_H */

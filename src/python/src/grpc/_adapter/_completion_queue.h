@@ -31,11 +31,19 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_WINDOWS_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_WINDOWS_H
+#ifndef _ADAPTER__COMPLETION_QUEUE_H_
+#define _ADAPTER__COMPLETION_QUEUE_H_
 
-typedef struct grpc_pollset_set {
-	void *unused;
-} grpc_pollset_set;
+#include <Python.h>
+#include <grpc/grpc.h>
 
-#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */
+typedef struct {
+  PyObject_HEAD
+  grpc_completion_queue *c_completion_queue;
+} CompletionQueue;
+
+extern PyTypeObject pygrpc_CompletionQueueType;
+
+int pygrpc_add_completion_queue(PyObject *module);
+
+#endif /* _ADAPTER__COMPLETION_QUEUE_H_ */
