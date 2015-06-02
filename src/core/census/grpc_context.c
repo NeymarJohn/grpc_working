@@ -31,19 +31,15 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
-#define GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
+#include <grpc/census.h>
+#include "src/core/census/grpc_context.h"
 
-#include "src/core/iomgr/iomgr.h"
-#include <grpc/support/sync.h>
+void *grpc_census_context_create() {
+  census_context *context;
+  census_context_deserialize(NULL, &context);
+  return (void *)context;
+}
 
-int grpc_maybe_call_delayed_callbacks(gpr_mu *drop_mu, int success);
-void grpc_iomgr_add_delayed_callback(grpc_iomgr_closure *iocb, int success);
-
-void grpc_iomgr_ref(void);
-void grpc_iomgr_unref(void);
-
-void grpc_iomgr_platform_init(void);
-void grpc_iomgr_platform_shutdown(void);
-
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H */
+void grpc_census_context_destroy(void *context) {
+  census_context_destroy((census_context *)context);
+}

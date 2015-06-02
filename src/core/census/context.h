@@ -31,19 +31,19 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
-#define GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
+#ifndef GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
+#define GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
 
-#include "src/core/iomgr/iomgr.h"
-#include <grpc/support/sync.h>
+#include <grpc/census.h>
 
-int grpc_maybe_call_delayed_callbacks(gpr_mu *drop_mu, int success);
-void grpc_iomgr_add_delayed_callback(grpc_iomgr_closure *iocb, int success);
+/* census_context is the in-memory representation of information needed to
+ * maintain tracing, RPC statistics and resource usage information. */
+struct census_context {
+  gpr_uint64 op_id;    /* Operation identifier - unique per-context */
+  gpr_uint64 trace_id; /* Globally unique trace identifier */
+  /* TODO(aveitch) Add census tags:
+  const census_tag_set *tags;
+  */
+};
 
-void grpc_iomgr_ref(void);
-void grpc_iomgr_unref(void);
-
-void grpc_iomgr_platform_init(void);
-void grpc_iomgr_platform_shutdown(void);
-
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H */
+#endif /* GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H */

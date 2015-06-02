@@ -31,19 +31,20 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
-#define GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
+#include <grpc/census.h>
 
-#include "src/core/iomgr/iomgr.h"
-#include <grpc/support/sync.h>
+static int census_fns_enabled = CENSUS_NONE;
 
-int grpc_maybe_call_delayed_callbacks(gpr_mu *drop_mu, int success);
-void grpc_iomgr_add_delayed_callback(grpc_iomgr_closure *iocb, int success);
+int census_initialize(int functions) {
+  if (census_fns_enabled != CENSUS_NONE) {
+    return 1;
+  }
+  if (functions != CENSUS_NONE) {
+    return 1;
+  } else {
+    census_fns_enabled = functions;
+    return 0;
+  }
+}
 
-void grpc_iomgr_ref(void);
-void grpc_iomgr_unref(void);
-
-void grpc_iomgr_platform_init(void);
-void grpc_iomgr_platform_shutdown(void);
-
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H */
+void census_shutdown() { census_fns_enabled = CENSUS_NONE; }

@@ -31,19 +31,29 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
-#define GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
+#include "context.h"
 
-#include "src/core/iomgr/iomgr.h"
-#include <grpc/support/sync.h>
+#include <string.h>
+#include <grpc/census.h>
+#include <grpc/support/alloc.h>
 
-int grpc_maybe_call_delayed_callbacks(gpr_mu *drop_mu, int success);
-void grpc_iomgr_add_delayed_callback(grpc_iomgr_closure *iocb, int success);
+/* Placeholder implementation only. */
 
-void grpc_iomgr_ref(void);
-void grpc_iomgr_unref(void);
+size_t census_context_serialize(const census_context *context, char *buffer,
+                                size_t buf_size) {
+  /* TODO(aveitch): implement serialization */
+  return 0;
+}
 
-void grpc_iomgr_platform_init(void);
-void grpc_iomgr_platform_shutdown(void);
+int census_context_deserialize(const char *buffer, census_context **context) {
+  int ret = 0;
+  if (buffer != NULL) {
+    /* TODO(aveitch): implement deserialization. */
+    ret = 1;
+  }
+  *context = gpr_malloc(sizeof(census_context));
+  memset(*context, 0, sizeof(census_context));
+  return ret;
+}
 
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H */
+void census_context_destroy(census_context *context) { gpr_free(context); }
