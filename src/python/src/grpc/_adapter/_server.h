@@ -31,21 +31,21 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
-#define GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
+#ifndef _ADAPTER__SERVER_H_
+#define _ADAPTER__SERVER_H_
 
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/iomgr/iomgr_internal.h"
-#include <grpc/support/sync.h>
+#include <Python.h>
+#include <grpc/grpc.h>
 
-int grpc_maybe_call_delayed_callbacks(gpr_mu *drop_mu, int success);
-void grpc_iomgr_add_delayed_callback(grpc_iomgr_cb_func cb, void *cb_arg,
-                                     int success);
+#include "grpc/_adapter/_completion_queue.h"
 
-void grpc_iomgr_ref(void);
-void grpc_iomgr_unref(void);
+typedef struct {
+  PyObject_HEAD
 
-void grpc_iomgr_platform_init(void);
-void grpc_iomgr_platform_shutdown(void);
+  CompletionQueue *completion_queue;
+  grpc_server *c_server;
+} Server;
 
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H */
+int pygrpc_add_server(PyObject *module);
+
+#endif /* _ADAPTER__SERVER_H_ */

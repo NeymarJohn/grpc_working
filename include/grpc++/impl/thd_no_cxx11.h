@@ -82,10 +82,6 @@ class thread {
   thread_function_base *func_;
   gpr_thd_id thd_;
   bool joined_;
-
-  // Disallow copy and assign.
-  thread(const thread&);
-  void operator=(const thread&);
 };
 
 }  // namespace grpc

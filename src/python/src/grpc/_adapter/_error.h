@@ -31,15 +31,12 @@
  *
  */
 
-#include <grpc/census.h>
-#include "src/core/census/grpc_context.h"
+#ifndef _ADAPTER__ERROR_H_
+#define _ADAPTER__ERROR_H_
 
-void *grpc_census_context_create() {
-  census_context *context;
-  census_context_deserialize(NULL, &context);
-  return (void *)context;
-}
+#include <Python.h>
+#include <grpc/grpc.h>
 
-void grpc_census_context_destroy(void *context) {
-  census_context_destroy((census_context *)context);
-}
+const PyObject *pygrpc_translate_call_error(grpc_call_error call_error);
+
+#endif /* _ADAPTER__ERROR_H_ */

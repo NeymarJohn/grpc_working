@@ -31,29 +31,19 @@
  *
  */
 
-#include "context.h"
+#ifndef _ADAPTER__COMPLETION_QUEUE_H_
+#define _ADAPTER__COMPLETION_QUEUE_H_
 
-#include <string.h>
-#include <grpc/census.h>
-#include <grpc/support/alloc.h>
+#include <Python.h>
+#include <grpc/grpc.h>
 
-/* Placeholder implementation only. */
+typedef struct {
+  PyObject_HEAD
+  grpc_completion_queue *c_completion_queue;
+} CompletionQueue;
 
-size_t census_context_serialize(const census_context *context, char *buffer,
-                                size_t buf_size) {
-  /* TODO(aveitch): implement serialization */
-  return 0;
-}
+extern PyTypeObject pygrpc_CompletionQueueType;
 
-int census_context_deserialize(const char *buffer, census_context **context) {
-  int ret = 0;
-  if (buffer != NULL) {
-    /* TODO(aveitch): implement deserialization. */
-    ret = 1;
-  }
-  *context = gpr_malloc(sizeof(census_context));
-  memset(*context, 0, sizeof(census_context));
-  return ret;
-}
+int pygrpc_add_completion_queue(PyObject *module);
 
-void census_context_destroy(census_context *context) { gpr_free(context); }
+#endif /* _ADAPTER__COMPLETION_QUEUE_H_ */

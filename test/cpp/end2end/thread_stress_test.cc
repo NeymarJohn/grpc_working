@@ -31,7 +31,6 @@
  *
  */
 
-#include <mutex>
 #include <thread>
 
 #include "test/core/util/port.h"

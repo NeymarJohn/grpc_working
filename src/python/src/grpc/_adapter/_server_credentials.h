@@ -31,19 +31,19 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
-#define GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
+#ifndef _ADAPTER__SERVER_CREDENTIALS_H_
+#define _ADAPTER__SERVER_CREDENTIALS_H_
 
-#include <grpc/census.h>
+#include <Python.h>
+#include <grpc/grpc_security.h>
 
-/* census_context is the in-memory representation of information needed to
- * maintain tracing, RPC statistics and resource usage information. */
-struct census_context {
-  gpr_uint64 op_id;    /* Operation identifier - unique per-context */
-  gpr_uint64 trace_id; /* Globally unique trace identifier */
-  /* TODO(aveitch) Add census tags:
-  const census_tag_set *tags;
-  */
-};
+typedef struct {
+  PyObject_HEAD
+  grpc_server_credentials *c_server_credentials;
+} ServerCredentials;
 
-#endif /* GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H */
+extern PyTypeObject pygrpc_ServerCredentialsType;
+
+int pygrpc_add_server_credentials(PyObject *module);
+
+#endif /* _ADAPTER__SERVER_CREDENTIALS_H_ */

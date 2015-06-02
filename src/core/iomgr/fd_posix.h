@@ -40,6 +40,11 @@
 #include <grpc/support/sync.h>
 #include <grpc/support/time.h>
 
+typedef struct {
+  grpc_iomgr_cb_func cb;
+  void *cb_arg;
+} grpc_iomgr_closure;
+
 typedef struct grpc_fd grpc_fd;
 
 typedef struct grpc_fd_watcher {
@@ -91,10 +96,9 @@ struct grpc_fd {
   gpr_atm readst;
   gpr_atm writest;
 
+  grpc_iomgr_cb_func on_done;
+  void *on_done_user_data;
   struct grpc_fd *freelist_next;
-
-  grpc_iomgr_closure on_done_closure;
-  grpc_iomgr_closure *shutdown_closures[2];
 };
 
 /* Create a wrapped file descriptor.
