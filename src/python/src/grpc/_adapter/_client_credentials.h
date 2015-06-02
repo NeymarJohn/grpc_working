@@ -31,21 +31,19 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
-#define GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
+#ifndef _ADAPTER__CLIENT_CREDENTIALS_H_
+#define _ADAPTER__CLIENT_CREDENTIALS_H_
 
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/iomgr/iomgr_internal.h"
-#include <grpc/support/sync.h>
+#include <Python.h>
+#include <grpc/grpc_security.h>
 
-int grpc_maybe_call_delayed_callbacks(gpr_mu *drop_mu, int success);
-void grpc_iomgr_add_delayed_callback(grpc_iomgr_cb_func cb, void *cb_arg,
-                                     int success);
+typedef struct {
+  PyObject_HEAD
+  grpc_credentials *c_client_credentials;
+} ClientCredentials;
 
-void grpc_iomgr_ref(void);
-void grpc_iomgr_unref(void);
+extern PyTypeObject pygrpc_ClientCredentialsType;
 
-void grpc_iomgr_platform_init(void);
-void grpc_iomgr_platform_shutdown(void);
+int pygrpc_add_client_credentials(PyObject *module);
 
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H */
+#endif /* _ADAPTER__CLIENT_CREDENTIALS_H_ */

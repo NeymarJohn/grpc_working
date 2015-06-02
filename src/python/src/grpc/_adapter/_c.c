@@ -31,21 +31,56 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
-#define GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H
+#include <Python.h>
+#include <grpc/grpc.h>
 
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/iomgr/iomgr_internal.h"
-#include <grpc/support/sync.h>
+#include "grpc/_adapter/_completion_queue.h"
+#include "grpc/_adapter/_channel.h"
+#include "grpc/_adapter/_call.h"
+#include "grpc/_adapter/_server.h"
+#include "grpc/_adapter/_client_credentials.h"
+#include "grpc/_adapter/_server_credentials.h"
 
-int grpc_maybe_call_delayed_callbacks(gpr_mu *drop_mu, int success);
-void grpc_iomgr_add_delayed_callback(grpc_iomgr_cb_func cb, void *cb_arg,
-                                     int success);
+static PyObject *init(PyObject *self) {
+  grpc_init();
+  Py_RETURN_NONE;
+}
 
-void grpc_iomgr_ref(void);
-void grpc_iomgr_unref(void);
+static PyObject *shutdown(PyObject *self) {
+  grpc_shutdown();
+  Py_RETURN_NONE;
+}
 
-void grpc_iomgr_platform_init(void);
-void grpc_iomgr_platform_shutdown(void);
+static PyMethodDef _c_methods[] = {
+    {"init", (PyCFunction)init, METH_NOARGS,
+     "Initialize the module's static state."},
+    {"shut_down", (PyCFunction)shutdown, METH_NOARGS,
+     "Shut down the module's static state."},
+    {NULL},
+};
 
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_IOMGR_INTERNAL_H */
+PyMODINIT_FUNC init_c(void) {
+  PyObject *module;
+
+  module = Py_InitModule3("_c", _c_methods,
+                          "Wrappings of C structures and functions.");
+
+  if (pygrpc_add_completion_queue(module) == -1) {
+    return;
+  }
+  if (pygrpc_add_channel(module) == -1) {
+    return;
+  }
+  if (pygrpc_add_call(module) == -1) {
+    return;
+  }
+  if (pygrpc_add_server(module) == -1) {
+    return;
+  }
+  if (pygrpc_add_client_credentials(module) == -1) {
+    return;
+  }
+  if (pygrpc_add_server_credentials(module) == -1) {
+    return;
+  }
+}

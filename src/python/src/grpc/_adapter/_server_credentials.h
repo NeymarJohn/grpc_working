@@ -31,15 +31,19 @@
  *
  */
 
-#include <grpc/census.h>
-#include "src/core/census/grpc_context.h"
+#ifndef _ADAPTER__SERVER_CREDENTIALS_H_
+#define _ADAPTER__SERVER_CREDENTIALS_H_
 
-void *grpc_census_context_create() {
-  census_context *context;
-  census_context_deserialize(NULL, &context);
-  return (void *)context;
-}
+#include <Python.h>
+#include <grpc/grpc_security.h>
 
-void grpc_census_context_destroy(void *context) {
-  census_context_destroy((census_context *)context);
-}
+typedef struct {
+  PyObject_HEAD
+  grpc_server_credentials *c_server_credentials;
+} ServerCredentials;
+
+extern PyTypeObject pygrpc_ServerCredentialsType;
+
+int pygrpc_add_server_credentials(PyObject *module);
+
+#endif /* _ADAPTER__SERVER_CREDENTIALS_H_ */

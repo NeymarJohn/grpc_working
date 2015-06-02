@@ -51,8 +51,7 @@ typedef struct {
   int is_done;
 } synchronizer;
 
-static void on_oauth2_response(void *user_data,
-                               grpc_credentials_md *md_elems,
+static void on_oauth2_response(void *user_data, grpc_mdelem **md_elems,
                                size_t num_md, grpc_credentials_status status) {
   synchronizer *sync = user_data;
   char *token;
@@ -61,7 +60,7 @@ static void on_oauth2_response(void *user_data,
     gpr_log(GPR_ERROR, "Fetching token failed.");
   } else {
     GPR_ASSERT(num_md == 1);
-    token_slice = md_elems[0].value;
+    token_slice = md_elems[0]->value->slice;
     token = gpr_malloc(GPR_SLICE_LENGTH(token_slice) + 1);
     memcpy(token, GPR_SLICE_START_PTR(token_slice),
            GPR_SLICE_LENGTH(token_slice));
