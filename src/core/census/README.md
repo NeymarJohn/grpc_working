@@ -1,5 +1,4 @@
-/*
- *
+<!---
  * Copyright 2015, Google Inc.
  * All rights reserved.
  *
@@ -28,50 +27,50 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
+-->
 
-#ifndef _ADAPTER__CALL_H_
-#define _ADAPTER__CALL_H_
+# Census - a resource measurement and tracing system
 
-#include <Python.h>
-#include <grpc/grpc.h>
+This directory contains code for Census, which will ultimately provide the
+following features for any gRPC-using system:
+* A [dapper](http://research.google.com/pubs/pub36356.html)-like tracing
+  system, enabling tracing across a distributed infrastructure.
+* RPC statistics and measurements for key metrics, such as latency, bytes
+  transferred, number of errors etc.
+* Resource measurement framework which can be used for measuring custom
+  metrics. Through the use of [tags](#Tags), these can be broken down across
+  the entire distributed stack.
+* Easy integration of the above with
+  [Google Cloud Trace](https://cloud.google.com/tools/cloud-trace) and
+  [Google Cloud Monitoring](https://cloud.google.com/monitoring/).
 
-#include "grpc/_adapter/_completion_queue.h"
-#include "grpc/_adapter/_channel.h"
-#include "grpc/_adapter/_server.h"
+## Concepts
 
-typedef struct {
-  PyObject_HEAD
+### Context
 
-  CompletionQueue *completion_queue;
-  Channel *channel;
-  Server *server;
+### Operations
 
-  /* Legacy state. */
-  grpc_call_details call_details;
-  grpc_metadata_array recv_metadata;
-  grpc_metadata_array recv_trailing_metadata;
-  grpc_metadata *send_metadata;
-  size_t send_metadata_count;
-  grpc_metadata *send_trailing_metadata;
-  size_t send_trailing_metadata_count;
-  int adding_to_trailing;
+### Tags
 
-  grpc_byte_buffer *send_message;
-  grpc_byte_buffer *recv_message;
+### Metrics
 
-  grpc_status_code status;
-  char *status_details;
-  size_t status_details_capacity;
+## API
 
-  int cancelled;
+### Internal/RPC API
 
-  grpc_call *c_call;
-} Call;
+### External/Client API
 
-extern PyTypeObject pygrpc_CallType;
+### RPC API
 
-int pygrpc_add_call(PyObject *module);
+## Files in this directory
 
-#endif /* _ADAPTER__CALL_H_ */
+Note that files and functions in this directory can be split into two
+categories:
+* Files that define core census library functions. Functions etc. in these
+  files are named census\_\*, and constitute the core census library
+  functionality. At some time in the future, these will become a standalone
+  library.
+* Files that define functions etc. that provide a convenient interface between
+  grpc and the core census functionality. These files are all named
+  grpc\_\*.{c,h}, and define function names beginning with grpc\_census\_\*.
+

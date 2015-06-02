@@ -31,40 +31,31 @@
  *
  */
 
-#ifndef _ADAPTER__TAG_H_
-#define _ADAPTER__TAG_H_
+#include <stdlib.h>
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <grpc/grpc.h>
 
-#include "grpc/_adapter/_call.h"
-#include "grpc/_adapter/_completion_queue.h"
+#include "grpc/_adapter/_c/types.h"
 
-/* grpc_completion_type is becoming meaningless in grpc_event; this is a partial
-   replacement for its descriptive functionality until Python can move its whole
-   C and C adapter stack to more closely resemble the core batching API. */
-typedef enum {
-  PYGRPC_SERVER_RPC_NEW = 0,
-  PYGRPC_INITIAL_METADATA = 1,
-  PYGRPC_READ = 2,
-  PYGRPC_WRITE_ACCEPTED = 3,
-  PYGRPC_FINISH_ACCEPTED = 4,
-  PYGRPC_CLIENT_METADATA_READ = 5,
-  PYGRPC_FINISHED_CLIENT = 6,
-  PYGRPC_FINISHED_SERVER = 7
-} pygrpc_tag_type;
+static PyMethodDef c_methods[] = {
+    {NULL}
+};
 
-typedef struct {
-  pygrpc_tag_type type;
-  PyObject *user_tag;
+PyMODINIT_FUNC init_c(void) {
+  PyObject *module;
 
-  Call *call;
-} pygrpc_tag;
+  module = Py_InitModule3("_c", c_methods,
+                          "Wrappings of C structures and functions.");
 
-pygrpc_tag *pygrpc_tag_new(pygrpc_tag_type type, PyObject *user_tag,
-                           Call *call);
-pygrpc_tag *pygrpc_tag_new_server_rpc_call(PyObject *user_tag);
-void pygrpc_tag_destroy(pygrpc_tag *self);
+  if (pygrpc_module_add_types(module) < 0) {
+    return;
+  }
 
-#endif /* _ADAPTER__TAG_H_ */
-
+  /* GRPC maintains an internal counter of how many times it has been
+     initialized and handles multiple pairs of grpc_init()/grpc_shutdown()
+     invocations accordingly. */
+  grpc_init();
+  atexit(&grpc_shutdown);
+}
