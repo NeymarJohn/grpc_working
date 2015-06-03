@@ -62,8 +62,6 @@ class ThreadPool GRPC_FINAL : public ThreadPoolInterface {
   void ThreadFunc();
 };
 
-ThreadPoolInterface* CreateDefaultThreadPool();
-
 }  // namespace grpc
 
 #endif  // GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
