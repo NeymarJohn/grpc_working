@@ -31,31 +31,47 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_STRING_UTIL_H
-#define GRPC_SUPPORT_STRING_UTIL_H
+#include "test/cpp/qps/interarrival.h"
+#include <chrono>
+#include <iostream>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+// Use the C histogram rather than C++ to avoid depending on proto
+#include <grpc/support/histogram.h>
+#include <grpc++/config.h>
 
-/* String utility functions */
+using grpc::testing::ExpDist;
+using grpc::testing::InterarrivalTimer;
 
-/* Returns a copy of src that can be passed to gpr_free().
-   If allocation fails or if src is NULL, returns NULL. */
-char *gpr_strdup(const char *src);
-
-/* printf to a newly-allocated string.  The set of supported formats may vary
-   between platforms.
-
-   On success, returns the number of bytes printed (excluding the final '\0'),
-   and *strp points to a string which must later be destroyed with gpr_free().
-
-   On error, returns -1 and sets *strp to NULL. If the format string is bad,
-   the result is undefined. */
-int gpr_asprintf(char **strp, const char *format, ...);
-
-#ifdef __cplusplus
+void RunTest(InterarrivalTimer&& timer, std::string title) {
+  gpr_histogram *h(gpr_histogram_create(0.01,60e9));
+  
+  for (int i=0; i<10000000; i++) {
+    for (int j=0; j<5; j++) {
+      gpr_histogram_add(h, timer(j).count());
+    }
+  }
+  
+  std::cout << title <<  " Distribution" << std::endl;
+  std::cout << "Value, Percentile" << std::endl;
+  for (double pct = 0.0; pct < 100.0; pct += 1.0) {
+    std::cout << gpr_histogram_percentile(h, pct) << "," << pct << std::endl;
+  }
+  
+  gpr_histogram_destroy(h);
 }
-#endif
 
-#endif  /* GRPC_SUPPORT_STRING_UTIL_H */
+using grpc::testing::ExpDist;
+using grpc::testing::DetDist;
+using grpc::testing::UniformDist;
+using grpc::testing::ParetoDist;
+
+int main(int argc, char **argv) {
+  RunTest(InterarrivalTimer(ExpDist(10.0), 5), std::string("Exponential(10)"));
+  RunTest(InterarrivalTimer(DetDist(5.0), 5), std::string("Det(5)"));
+  RunTest(InterarrivalTimer(UniformDist(0.0,10.0), 5),
+          std::string("Uniform(1,10)"));
+  RunTest(InterarrivalTimer(ParetoDist(1.0,1.0), 5),
+          std::string("Pareto(1,1)"));
+
+  return 0;
+}

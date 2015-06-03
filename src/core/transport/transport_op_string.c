@@ -39,7 +39,6 @@
 
 #include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
-#include <grpc/support/string_util.h>
 #include <grpc/support/useful.h>
 
 /* These routines are here to facilitate debugging - they produce string

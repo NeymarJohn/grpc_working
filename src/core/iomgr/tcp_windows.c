@@ -41,7 +41,6 @@
 #include <grpc/support/log.h>
 #include <grpc/support/log_win32.h>
 #include <grpc/support/slice_buffer.h>
-#include <grpc/support/string_util.h>
 #include <grpc/support/useful.h>
 
 #include "src/core/iomgr/alarm.h"
