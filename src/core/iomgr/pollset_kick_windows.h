@@ -31,29 +31,18 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
 
-#include "src/core/iomgr/pollset.h"
+#include <grpc/support/sync.h>
 
-/* A grpc_pollset_set is a set of pollsets that are interested in an
-   action. Adding a pollset to a pollset_set automatically adds any
-   fd's (etc) that have been registered with the set_set with that pollset.
-   Registering fd's automatically iterates all current pollsets. */
+/* There isn't really any such thing as a pollset under Windows, due to the
+   nature of the IO completion ports. */
 
-#ifdef GPR_POSIX_SOCKET
-#include "src/core/iomgr/pollset_set_posix.h"
-#endif
+struct grpc_kick_fd_info;
 
-#ifdef GPR_WIN32
-#include "src/core/iomgr/pollset_set_windows.h"
-#endif
+typedef struct grpc_pollset_kick_state {
+  int unused;
+} grpc_pollset_kick_state;
 
-void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
-void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
-
-#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H */
