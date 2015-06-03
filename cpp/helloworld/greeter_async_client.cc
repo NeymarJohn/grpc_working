@@ -71,17 +71,13 @@ class GreeterClient {
     Status status;
 
     std::unique_ptr<ClientAsyncResponseReader<HelloReply> > rpc(
-        stub_->AsyncSayHello(&context, request, &cq, (void*)1));
+        stub_->AsyncSayHello(&context, request, &cq));
+    rpc->Finish(&reply, &status, (void*)1);
     void* got_tag;
-    bool ok;
+    bool ok = false;
     cq.Next(&got_tag, &ok);
     GPR_ASSERT(ok);
     GPR_ASSERT(got_tag == (void*)1);
-
-    rpc->Finish(&reply, &status, (void*)2);
-    cq.Next(&got_tag, &ok);
-    GPR_ASSERT(ok);
-    GPR_ASSERT(got_tag == (void*)2);
 
     if (status.IsOk()) {
       return reply.message();
@@ -90,22 +86,16 @@ class GreeterClient {
     }
   }
 
-  void Shutdown() { stub_.reset(); }
-
  private:
   std::unique_ptr<Greeter::Stub> stub_;
 };
 
 int main(int argc, char** argv) {
-  grpc_init();
-
   GreeterClient greeter(grpc::CreateChannel(
       "localhost:50051", grpc::InsecureCredentials(), ChannelArguments()));
   std::string user("world");
   std::string reply = greeter.SayHello(user);
   std::cout << "Greeter received: " << reply << std::endl;
 
-  greeter.Shutdown();
-
-  grpc_shutdown();
+  return 0;
 }
