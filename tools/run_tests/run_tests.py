@@ -36,15 +36,15 @@ import itertools
 import json
 import multiprocessing
 import os
-import platform
-import random
 import re
-import subprocess
 import sys
 import time
+import platform
+import subprocess
 
 import jobset
 import watch_dirs
+
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '../..'))
 os.chdir(ROOT)
@@ -385,9 +385,9 @@ argp.add_argument('--newline_on_success',
                   action='store_const',
                   const=True)
 argp.add_argument('-l', '--language',
-                  choices=sorted(_LANGUAGES.keys()),
+                  choices=['all'] + sorted(_LANGUAGES.keys()),
                   nargs='+',
-                  default=sorted(_LANGUAGES.keys()))
+                  default=['all'])
 argp.add_argument('-S', '--stop_on_failure',
                   default=False,
                   action='store_const',
@@ -403,7 +403,10 @@ run_configs = set(_CONFIGS[cfg]
 build_configs = set(cfg.build_config for cfg in run_configs)
 
 make_targets = []
-languages = set(_LANGUAGES[l] for l in args.language)
+languages = set(_LANGUAGES[l]
+                for l in itertools.chain.from_iterable(
+                      _LANGUAGES.iterkeys() if x == 'all' else [x]
+                      for x in args.language))
 
 if len(build_configs) > 1:
   for language in languages:
@@ -435,8 +438,8 @@ build_steps.extend(set(
 one_run = set(
     spec
     for config in run_configs
-    for language in args.language
-    for spec in _LANGUAGES[language].test_specs(config, args.travis)
+    for language in languages
+    for spec in language.test_specs(config, args.travis)
     if re.search(args.regex, spec.shortname))
 
 runs_per_test = args.runs_per_test
@@ -488,21 +491,13 @@ def _build_and_run(check_cancelled, newline_on_success, travis, cache):
     return 1
 
   # start antagonists
-  antagonists = [subprocess.Popen(['tools/run_tests/antagonist.py'])
+  antagonists = [subprocess.Popen(['tools/run_tests/antagonist.py']) 
                  for _ in range(0, args.antagonists)]
   try:
     infinite_runs = runs_per_test == 0
-    # When running on travis, we want out test runs to be as similar as possible
-    # for reproducibility purposes.
-    if travis:
-      massaged_one_run = sorted(one_run, key=lambda x: x.shortname)
-    else:
-      # whereas otherwise, we want to shuffle things up to give all tests a
-      # chance to run.
-      massaged_one_run = list(one_run)  # random.shuffle needs an indexable seq.
-      random.shuffle(massaged_one_run)  # which it modifies in-place.
-    runs_sequence = (itertools.repeat(massaged_one_run) if infinite_runs
-                     else itertools.repeat(massaged_one_run, runs_per_test))
+    # run all the tests
+    runs_sequence = (itertools.repeat(one_run) if infinite_runs
+                     else itertools.repeat(one_run, runs_per_test))
     all_runs = itertools.chain.from_iterable(runs_sequence)
     if not jobset.run(all_runs, check_cancelled,
                       newline_on_success=newline_on_success, travis=travis,
