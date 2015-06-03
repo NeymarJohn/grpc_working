@@ -83,7 +83,6 @@
         "src/cpp/common/rpc_method.cc",
         "src/cpp/proto/proto_utils.cc",
         "src/cpp/server/async_generic_service.cc",
-        "src/cpp/server/create_default_thread_pool.cc",
         "src/cpp/server/insecure_server_credentials.cc",
         "src/cpp/server/server.cc",
         "src/cpp/server/server_builder.cc",
@@ -315,7 +314,6 @@
         "include/grpc/support/port_platform.h",
         "include/grpc/support/slice.h",
         "include/grpc/support/slice_buffer.h",
-        "include/grpc/support/string_util.h",
         "include/grpc/support/subprocess.h",
         "include/grpc/support/sync.h",
         "include/grpc/support/sync_generic.h",
@@ -701,7 +699,6 @@
       "language": "c++",
       "headers": [
         "test/cpp/qps/driver.h",
-        "test/cpp/qps/interarrival.h",
         "test/cpp/qps/qps_worker.h",
         "test/cpp/qps/report.h",
         "test/cpp/qps/timer.h"
@@ -2073,24 +2070,6 @@
         "gpr",
         "grpc++_test_config",
         "grpc++_benchmark_config"
-      ]
-    },
-    {
-      "name": "qps_interarrival_test",
-      "build": "test",
-      "run": false,
-      "language": "c++",
-      "src": [
-        "test/cpp/qps/qps_interarrival_test.cc"
-      ],
-      "deps": [
-        "qps",
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
       ]
     },
     {
