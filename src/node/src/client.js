@@ -33,7 +33,7 @@
 
 'use strict';
 
-var _ = require('lodash');
+var _ = require('underscore');
 
 var grpc = require('bindings')('grpc.node');
 

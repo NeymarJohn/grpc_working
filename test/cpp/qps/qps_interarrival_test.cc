@@ -31,60 +31,47 @@
  *
  */
 
-'use strict';
+#include "test/cpp/qps/interarrival.h"
+#include <chrono>
+#include <iostream>
 
-var _ = require('underscore');
-var grpc = require('..');
-var examples = grpc.load(__dirname + '/stock.proto').examples;
+// Use the C histogram rather than C++ to avoid depending on proto
+#include <grpc/support/histogram.h>
+#include <grpc++/config.h>
 
-var StockServer = grpc.buildServer([examples.Stock.service]);
+using grpc::testing::ExpDist;
+using grpc::testing::InterarrivalTimer;
 
-function getLastTradePrice(call, callback) {
-  callback(null, {symbol: call.request.symbol, price: 88});
-}
-
-function watchFutureTrades(call) {
-  for (var i = 0; i < call.request.num_trades_to_watch; i++) {
-    call.write({price: 88.00 + i * 10.00});
-  }
-  call.end();
-}
-
-function getHighestTradePrice(call, callback) {
-  var trades = [];
-  call.on('data', function(data) {
-    trades.push({symbol: data.symbol, price: _.random(0, 100)});
-  });
-  call.on('end', function() {
-    if(_.isEmpty(trades)) {
-      callback(null, {});
-    } else {
-      callback(null, _.max(trades, function(trade){return trade.price;}));
+void RunTest(InterarrivalTimer&& timer, std::string title) {
+  gpr_histogram *h(gpr_histogram_create(0.01,60e9));
+  
+  for (int i=0; i<10000000; i++) {
+    for (int j=0; j<5; j++) {
+      gpr_histogram_add(h, timer(j).count());
     }
-  });
-}
-
-function getLastTradePriceMultiple(call) {
-  call.on('data', function(data) {
-    call.write({price: 88});
-  });
-  call.on('end', function() {
-    call.end();
-  });
-}
-
-var stockServer = new StockServer({
-  'examples.Stock' : {
-    getLastTradePrice: getLastTradePrice,
-    getLastTradePriceMultiple: getLastTradePriceMultiple,
-    watchFutureTrades: watchFutureTrades,
-    getHighestTradePrice: getHighestTradePrice
   }
-});
-
-if (require.main === module) {
-  stockServer.bind('0.0.0.0:50051');
-  stockServer.listen();
+  
+  std::cout << title <<  " Distribution" << std::endl;
+  std::cout << "Value, Percentile" << std::endl;
+  for (double pct = 0.0; pct < 100.0; pct += 1.0) {
+    std::cout << gpr_histogram_percentile(h, pct) << "," << pct << std::endl;
+  }
+  
+  gpr_histogram_destroy(h);
 }
 
-module.exports = stockServer;
+using grpc::testing::ExpDist;
+using grpc::testing::DetDist;
+using grpc::testing::UniformDist;
+using grpc::testing::ParetoDist;
+
+int main(int argc, char **argv) {
+  RunTest(InterarrivalTimer(ExpDist(10.0), 5), std::string("Exponential(10)"));
+  RunTest(InterarrivalTimer(DetDist(5.0), 5), std::string("Det(5)"));
+  RunTest(InterarrivalTimer(UniformDist(0.0,10.0), 5),
+          std::string("Uniform(1,10)"));
+  RunTest(InterarrivalTimer(ParetoDist(1.0,1.0), 5),
+          std::string("Pareto(1,1)"));
+
+  return 0;
+}
