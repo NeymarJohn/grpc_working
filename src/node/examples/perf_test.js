@@ -35,7 +35,7 @@
 
 var grpc = require('..');
 var testProto = grpc.load(__dirname + '/../interop/test.proto').grpc.testing;
-var _ = require('lodash');
+var _ = require('underscore');
 var interop_server = require('../interop/interop_server.js');
 
 function runTest(iterations, callback) {
