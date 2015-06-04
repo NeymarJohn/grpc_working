@@ -238,7 +238,6 @@ static int set_socket_nonblocking(thread_args *args) {
 
 static int do_nothing(thread_args *args) { return 0; }
 
-#ifdef __linux__
 /* Special case for epoll, where we need to create the fd ahead of time. */
 static int epoll_setup(thread_args *args) {
   int epoll_fd;
@@ -259,7 +258,6 @@ static int epoll_setup(thread_args *args) {
   }
   return 0;
 }
-#endif
 
 static void server_thread(thread_args *args) {
   char *buf = malloc(args->msg_size);
