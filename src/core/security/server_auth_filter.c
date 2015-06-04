@@ -78,6 +78,7 @@ static void init_call_elem(grpc_call_element *elem,
   calld->unused = 0;
 
   GPR_ASSERT(initial_op && initial_op->context != NULL &&
+             chand->security_connector->auth_context != NULL &&
              initial_op->context[GRPC_CONTEXT_SECURITY].value == NULL);
 
   /* Create a security context for the call and reference the auth context from

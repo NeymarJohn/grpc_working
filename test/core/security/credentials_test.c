@@ -40,7 +40,6 @@
 #include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
 #include <grpc/support/time.h>
 #include "test/core/util/test_config.h"
 #include <openssl/rsa.h>
