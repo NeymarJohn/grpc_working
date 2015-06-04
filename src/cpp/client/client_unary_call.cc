@@ -31,29 +31,34 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#include <grpc++/impl/client_unary_call.h>
+#include <grpc++/impl/call.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/client_context.h>
+#include <grpc++/completion_queue.h>
+#include <grpc++/status.h>
+#include <grpc/support/log.h>
 
-#include "src/core/iomgr/pollset.h"
+namespace grpc {
 
-/* A grpc_pollset_set is a set of pollsets that are interested in an
-   action. Adding a pollset to a pollset_set automatically adds any
-   fd's (etc) that have been registered with the set_set with that pollset.
-   Registering fd's automatically iterates all current pollsets. */
+// Wrapper that performs a blocking unary call
+Status BlockingUnaryCall(ChannelInterface* channel, const RpcMethod& method,
+                         ClientContext* context,
+                         const grpc::protobuf::Message& request,
+                         grpc::protobuf::Message* result) {
+  CompletionQueue cq;
+  Call call(channel->CreateCall(method, context, &cq));
+  CallOpBuffer buf;
+  Status status;
+  buf.AddSendInitialMetadata(context);
+  buf.AddSendMessage(request);
+  buf.AddRecvInitialMetadata(context);
+  buf.AddRecvMessage(result);
+  buf.AddClientSendClose();
+  buf.AddClientRecvStatus(context, &status);
+  call.PerformOps(&buf);
+  GPR_ASSERT((cq.Pluck(&buf) && buf.got_message) || !status.IsOk());
+  return status;
+}
 
-#ifdef GPR_POSIX_SOCKET
-#include "src/core/iomgr/pollset_set_posix.h"
-#endif
-
-#ifdef GPR_WIN32
-#include "src/core/iomgr/pollset_set_windows.h"
-#endif
-
-void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
-void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
-
-#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */
+}  // namespace grpc

@@ -35,6 +35,7 @@
 #define GRPCXX_COMPLETION_QUEUE_H
 
 #include <grpc/support/time.h>
+#include <grpc++/impl/client_unary_call.h>
 #include <grpc++/impl/grpc_library.h>
 #include <grpc++/time.h>
 
@@ -55,10 +56,7 @@ class ServerWriter;
 template <class R, class W>
 class ServerReaderWriter;
 
-class ChannelInterface;
-class ClientContext;
 class CompletionQueue;
-class RpcMethod;
 class Server;
 class ServerBuilder;
 class ServerContext;
@@ -122,12 +120,11 @@ class CompletionQueue : public GrpcLibrary {
   friend class ::grpc::ServerReaderWriter;
   friend class ::grpc::Server;
   friend class ::grpc::ServerContext;
-  template <class InputMessage, class OutputMessage>
   friend Status BlockingUnaryCall(ChannelInterface* channel,
                                   const RpcMethod& method,
                                   ClientContext* context,
-                                  const InputMessage& request,
-                                  OutputMessage* result);
+                                  const grpc::protobuf::Message& request,
+                                  grpc::protobuf::Message* result);
 
   NextStatus AsyncNextInternal(void** tag, bool* ok, gpr_timespec deadline);
 

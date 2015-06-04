@@ -53,13 +53,13 @@ class GenericServerContext;
 class AsyncGenericService;
 class RpcService;
 class RpcServiceMethod;
-class ServerAsyncStreamingInterface;
 class ServerCredentials;
 class ThreadPoolInterface;
 
 // Currently it only supports handling rpcs in a single thread.
 class Server GRPC_FINAL : public GrpcLibrary,
-                          private CallHook {
+                          private CallHook,
+                          private AsynchronousService::DispatchImpl {
  public:
   ~Server();
 
@@ -73,12 +73,10 @@ class Server GRPC_FINAL : public GrpcLibrary,
 
  private:
   friend class AsyncGenericService;
-  friend class AsynchronousService;
   friend class ServerBuilder;
 
   class SyncRequest;
   class AsyncRequest;
-  class ShutdownRequest;
 
   // ServerBuilder use only
   Server(ThreadPoolInterface* thread_pool, bool thread_pool_owned,
@@ -97,20 +95,15 @@ class Server GRPC_FINAL : public GrpcLibrary,
   void RunRpc();
   void ScheduleCallback();
 
-  void PerformOpsOnCall(CallOpSetInterface *ops, Call* call) GRPC_OVERRIDE;
+  void PerformOpsOnCall(CallOpBuffer* ops, Call* call) GRPC_OVERRIDE;
 
-  template <class Message>
+  // DispatchImpl
   void RequestAsyncCall(void* registered_method, ServerContext* context,
+                        grpc::protobuf::Message* request,
                         ServerAsyncStreamingInterface* stream,
                         CompletionQueue* call_cq,
                         ServerCompletionQueue* notification_cq,
-                        void* tag, Message *message);
-
-  void RequestAsyncCall(void* registered_method, ServerContext* context,
-                        ServerAsyncStreamingInterface* stream,
-                        CompletionQueue* call_cq,
-                        ServerCompletionQueue* notification_cq,
-                        void* tag);
+                        void* tag) GRPC_OVERRIDE;
 
   void RequestAsyncGenericCall(GenericServerContext* context,
                                ServerAsyncStreamingInterface* stream,

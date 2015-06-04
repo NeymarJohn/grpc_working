@@ -31,19 +31,18 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_SERIALIZATION_TRAITS_H
-#define GRPCXX_IMPL_SERIALIZATION_TRAITS_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
 
-struct grpc_byte_buffer;
+#include <grpc/support/sync.h>
 
-namespace grpc {
+/* There isn't really any such thing as a pollset under Windows, due to the
+   nature of the IO completion ports. */
 
-template <class Message>
-class SerializationTraits;
+struct grpc_kick_fd_info;
 
-typedef bool (*SerializationTraitsReadFunction)(grpc_byte_buffer* src, void* dest);
-typedef bool (*SerializationTraitsWriteFunction)(const void* src, grpc_byte_buffer* dst);
+typedef struct grpc_pollset_kick_state {
+  int unused;
+} grpc_pollset_kick_state;
 
-}  // namespace grpc
-
-#endif // GRPCXX_IMPL_SERIALIZATION_TRAITS_H
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H */
