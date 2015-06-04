@@ -31,11 +31,25 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_WINDOWS_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_WINDOWS_H
+#ifndef GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
+#define GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
 
-typedef struct grpc_pollset_set {
-	void *unused;
-} grpc_pollset_set;
+#include <grpc++/config.h>
 
-#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */
+struct grpc_byte_buffer;
+
+namespace grpc {
+
+// Serialize the msg into a buffer created inside the function. The caller
+// should destroy the returned buffer when done with it. If serialization fails,
+// false is returned and buffer is left unchanged.
+bool SerializeProto(const grpc::protobuf::Message& msg,
+                    grpc_byte_buffer** buffer);
+
+// The caller keeps ownership of buffer and msg.
+bool DeserializeProto(grpc_byte_buffer* buffer, grpc::protobuf::Message* msg,
+                      int max_message_size);
+
+}  // namespace grpc
+
+#endif  // GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H

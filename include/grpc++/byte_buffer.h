@@ -38,8 +38,6 @@
 #include <grpc/support/log.h>
 #include <grpc++/config.h>
 #include <grpc++/slice.h>
-#include <grpc++/status.h>
-#include <grpc++/impl/serialization_traits.h>
 
 #include <vector>
 
@@ -62,6 +60,9 @@ class ByteBuffer GRPC_FINAL {
   void Clear();
   size_t Length();
 
+ private:
+  friend class CallOpBuffer;
+
   // takes ownership
   void set_buffer(grpc_byte_buffer* buf) {
     if (buffer_) {
@@ -71,21 +72,9 @@ class ByteBuffer GRPC_FINAL {
     buffer_ = buf;
   }
 
- private:
-  friend class CallOpBuffer;
-
   grpc_byte_buffer* buffer() const { return buffer_; }
 
   grpc_byte_buffer* buffer_;
-};
-
-template <>
-class SerializationTraits<ByteBuffer, void> {
- public:
-  static Status Deserialize(grpc_byte_buffer* byte_buffer, ByteBuffer* dest, int max_message_size) {
-    dest->set_buffer(byte_buffer);
-    return Status::OK;
-  }
 };
 
 }  // namespace grpc

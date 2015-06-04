@@ -38,7 +38,6 @@
 #include <grpc++/completion_queue.h>
 #include <grpc++/config.h>
 #include <grpc++/status.h>
-#include <grpc++/impl/serialization_traits.h>
 
 #include <memory>
 #include <map>
@@ -51,184 +50,6 @@ namespace grpc {
 class ByteBuffer;
 class Call;
 
-class CallNoOp {
- protected:
-  void AddOp(grpc_op* ops, size_t* nops) {}
-  void FinishOp(void* tag, bool* status, int max_message_size) {}
-};
-
-class CallOpSendInitialMetadata {
- public:
-  void SendInitialMetadata(const std::multimap<grpc::string, grpc::string>& metadata);
-
- protected:
-  void AddOp(grpc_op* ops, size_t* nops);
-  void FinishOp(void* tag, bool* status, int max_message_size);
-};
-
-class CallOpSendMessage {
- public:
-  CallOpSendMessage() : send_buf_(nullptr) {}
-
-  template <class M>
-  bool SendMessage(const M& message) {
-    return SerializationTraits<M>::Serialize(message, &send_buf_);
-  }
-
- protected:
-  void AddOp(grpc_op* ops, size_t* nops) {
-    if (send_buf_ == nullptr) return;
-    grpc_op* op = &ops[(*nops)++];
-    op->op = GRPC_OP_SEND_MESSAGE;
-    op->data.send_message = send_buf_;
-  }
-  void FinishOp(void* tag, bool* status, int max_message_size) {
-    grpc_byte_buffer_destroy(send_buf_);
-  }
-
- private:
-  grpc_byte_buffer* send_buf_;
-};
-
-template <class R>
-class CallOpRecvMessage {
- public:
-  CallOpRecvMessage() : got_message(false), message_(nullptr) {}
-
-  void RecvMessage(R* message) {
-    message_ = message;
-  }
-
-  bool got_message;
-
- protected:
-  void AddOp(grpc_op* ops, size_t* nops) {
-    if (message_ == nullptr) return;
-    grpc_op *op = &ops[(*nops)++];
-    op->op = GRPC_OP_RECV_MESSAGE;
-    op->data.recv_message = &recv_buf_;
-  }
-
-  void FinishOp(void* tag, bool* status, int max_message_size) {
-    if (message_ == nullptr) return;
-    if (recv_buf_) {
-      if (*status) {
-        got_message = true;
-        *status = SerializationTraits<R>::Deserialize(recv_buf_, message_, max_message_size).IsOk();
-      } else {
-        got_message = false;
-        grpc_byte_buffer_destroy(recv_buf_);
-      }
-    } else {
-      got_message = false;
-      *status = false;
-    }
-  }
-
- private:
-  R* message_;
-  grpc_byte_buffer* recv_buf_;
-};
-
-class CallOpGenericRecvMessage {
- public:
-  template <class R>
-  void RecvMessage(R* message);
-
-  bool got_message;
-
- protected:
-  void AddOp(grpc_op* ops, size_t* nops);
-  void FinishOp(void* tag, bool* status, int max_message_size);
-};
-
-class CallOpClientSendClose {
- public:
-  void ClientSendClose();
-
- protected:
-  void AddOp(grpc_op* ops, size_t* nops);
-  void FinishOp(void* tag, bool* status, int max_message_size);
-};
-
-class CallOpServerSendStatus {
- public:
-  void ServerSendStatus(const std::multimap<grpc::string, grpc::string>& trailing_metadata, const Status& status);
-
- protected:
-  void AddOp(grpc_op* ops, size_t* nops);
-  void FinishOp(void* tag, bool* status, int max_message_size);
-};
-
-class CallOpRecvInitialMetadata {
- public:
-  void RecvInitialMetadata(ClientContext* context);
-
- protected:
-  void AddOp(grpc_op* ops, size_t* nops);
-  void FinishOp(void* tag, bool* status, int max_message_size);
-};
-
-class CallOpClientRecvStatus {
- public:
-  void ClientRecvStatus(ClientContext* context, Status* status);
-
- protected:
-  void AddOp(grpc_op* ops, size_t* nops);
-  void FinishOp(void* tag, bool* status, int max_message_size);
-};
-
-class CallOpSetInterface : public CompletionQueueTag {
- public:
-  CallOpSetInterface() : max_message_size_(0) {}
-  virtual void FillOps(grpc_op* ops, size_t* nops) = 0;
-
-  void set_max_message_size(int max_message_size) { max_message_size_ = max_message_size; }
-
- protected:
-  int max_message_size_;
-};
-
-template <class T, int I>
-class WrapAndDerive : public T {};
-
-template <class Op1 = CallNoOp, class Op2 = CallNoOp, class Op3 = CallNoOp, class Op4 = CallNoOp, class Op5 = CallNoOp, class Op6 = CallNoOp>
-class CallOpSet : public CallOpSetInterface, 
-public WrapAndDerive<Op1, 1>, 
-public WrapAndDerive<Op2, 2>, 
-public WrapAndDerive<Op3, 3>, 
-public WrapAndDerive<Op4, 4>, 
-public WrapAndDerive<Op5, 5>, 
-public WrapAndDerive<Op6, 6> {
- public:
-  CallOpSet() : return_tag_(this) {}
-  void FillOps(grpc_op* ops, size_t* nops) GRPC_OVERRIDE {
-    this->WrapAndDerive<Op1, 1>::AddOp(ops, nops);
-    this->WrapAndDerive<Op2, 2>::AddOp(ops, nops);
-    this->WrapAndDerive<Op3, 3>::AddOp(ops, nops);
-    this->WrapAndDerive<Op4, 4>::AddOp(ops, nops);
-    this->WrapAndDerive<Op5, 5>::AddOp(ops, nops);
-    this->WrapAndDerive<Op6, 6>::AddOp(ops, nops);
-  }
-
-  bool FinalizeResult(void** tag, bool* status) GRPC_OVERRIDE {
-    this->WrapAndDerive<Op1, 1>::FinishOp(*tag, status, max_message_size_);
-    this->WrapAndDerive<Op2, 2>::FinishOp(*tag, status, max_message_size_);
-    this->WrapAndDerive<Op3, 3>::FinishOp(*tag, status, max_message_size_);
-    this->WrapAndDerive<Op4, 4>::FinishOp(*tag, status, max_message_size_);
-    this->WrapAndDerive<Op5, 5>::FinishOp(*tag, status, max_message_size_);
-    this->WrapAndDerive<Op6, 6>::FinishOp(*tag, status, max_message_size_);
-    *tag = return_tag_;
-    return true;
-  }
-
-  void set_output_tag(void* return_tag) { return_tag_ = return_tag; }
-
- private:
-  void *return_tag_;
-};
-
-#if 0
 class CallOpBuffer : public CompletionQueueTag {
  public:
   CallOpBuffer();
@@ -301,14 +122,12 @@ class CallOpBuffer : public CompletionQueueTag {
   int cancelled_buf_;
   bool* recv_closed_;
 };
-#endif
 
 // SneakyCallOpBuffer does not post completions to the completion queue
-template <class Op1 = CallNoOp, class Op2 = CallNoOp, class Op3 = CallNoOp, class Op4 = CallNoOp, class Op5 = CallNoOp, class Op6 = CallNoOp>
-class SneakyCallOpSet GRPC_FINAL : public CallOpSet<Op1, Op2, Op3, Op4, Op5, Op6> {
+class SneakyCallOpBuffer GRPC_FINAL : public CallOpBuffer {
  public:
   bool FinalizeResult(void** tag, bool* status) GRPC_OVERRIDE {
-    return CallOpSet<Op1, Op2, Op3, Op4, Op5, Op6>::FinalizeResult(tag, status) && false;
+    return CallOpBuffer::FinalizeResult(tag, status) && false;
   }
 };
 
@@ -316,7 +135,7 @@ class SneakyCallOpSet GRPC_FINAL : public CallOpSet<Op1, Op2, Op3, Op4, Op5, Op6
 class CallHook {
  public:
   virtual ~CallHook() {}
-  virtual void PerformOpsOnCall(CallOpSetInterface* ops, Call* call) = 0;
+  virtual void PerformOpsOnCall(CallOpBuffer* ops, Call* call) = 0;
 };
 
 // Straightforward wrapping of the C call object
@@ -327,7 +146,7 @@ class Call GRPC_FINAL {
   Call(grpc_call* call, CallHook* call_hook_, CompletionQueue* cq,
        int max_message_size);
 
-  void PerformOps(CallOpSetInterface* ops);
+  void PerformOps(CallOpBuffer* buffer);
 
   grpc_call* call() { return call_; }
   CompletionQueue* cq() { return cq_; }
