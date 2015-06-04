@@ -39,10 +39,40 @@
 #include <grpc++/channel_interface.h>
 
 #include "src/core/profiling/timers.h"
-#include "src/cpp/proto/proto_utils.h"
 
 namespace grpc {
 
+void FillMetadataMap(grpc_metadata_array* arr,
+                     std::multimap<grpc::string, grpc::string>* metadata) {
+  for (size_t i = 0; i < arr->count; i++) {
+    // TODO(yangg) handle duplicates?
+    metadata->insert(std::pair<grpc::string, grpc::string>(
+        arr->metadata[i].key,
+        grpc::string(arr->metadata[i].value, arr->metadata[i].value_length)));
+  }
+  grpc_metadata_array_destroy(arr);
+  grpc_metadata_array_init(arr);
+}
+
+// TODO(yangg) if the map is changed before we send, the pointers will be a
+// mess. Make sure it does not happen.
+grpc_metadata* FillMetadataArray(
+    const std::multimap<grpc::string, grpc::string>& metadata) {
+  if (metadata.empty()) {
+    return nullptr;
+  }
+  grpc_metadata* metadata_array =
+      (grpc_metadata*)gpr_malloc(metadata.size() * sizeof(grpc_metadata));
+  size_t i = 0;
+  for (auto iter = metadata.cbegin(); iter != metadata.cend(); ++iter, ++i) {
+    metadata_array[i].key = iter->first.c_str();
+    metadata_array[i].value = iter->second.c_str();
+    metadata_array[i].value_length = iter->second.size();
+  }
+  return metadata_array;
+}
+
+#if 0
 CallOpBuffer::CallOpBuffer()
     : return_tag_(this),
       send_initial_metadata_(false),
@@ -147,17 +177,6 @@ grpc_metadata* FillMetadataArray(
   return metadata_array;
 }
 
-void FillMetadataMap(grpc_metadata_array* arr,
-                     std::multimap<grpc::string, grpc::string>* metadata) {
-  for (size_t i = 0; i < arr->count; i++) {
-    // TODO(yangg) handle duplicates?
-    metadata->insert(std::pair<grpc::string, grpc::string>(
-        arr->metadata[i].key,
-        grpc::string(arr->metadata[i].value, arr->metadata[i].value_length)));
-  }
-  grpc_metadata_array_destroy(arr);
-  grpc_metadata_array_init(arr);
-}
 }  // namespace
 
 void CallOpBuffer::AddSendInitialMetadata(
@@ -338,6 +357,7 @@ bool CallOpBuffer::FinalizeResult(void** tag, bool* status) {
   }
   return true;
 }
+#endif
 
 Call::Call(grpc_call* call, CallHook* call_hook, CompletionQueue* cq)
     : call_hook_(call_hook), cq_(cq), call_(call), max_message_size_(-1) {}
@@ -349,11 +369,11 @@ Call::Call(grpc_call* call, CallHook* call_hook, CompletionQueue* cq,
       call_(call),
       max_message_size_(max_message_size) {}
 
-void Call::PerformOps(CallOpBuffer* buffer) {
+void Call::PerformOps(CallOpSetInterface* ops) {
   if (max_message_size_ > 0) {
-    buffer->set_max_message_size(max_message_size_);
+    ops->set_max_message_size(max_message_size_);
   }
-  call_hook_->PerformOpsOnCall(buffer, this);
+  call_hook_->PerformOpsOnCall(ops, this);
 }
 
 }  // namespace grpc
