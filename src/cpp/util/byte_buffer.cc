@@ -31,7 +31,6 @@
  *
  */
 
-#include <grpc/byte_buffer_reader.h>
 #include <grpc++/byte_buffer.h>
 
 namespace grpc {
@@ -57,12 +56,12 @@ void ByteBuffer::Dump(std::vector<Slice>* slices) {
   if (!buffer_) {
     return;
   }
-  grpc_byte_buffer_reader reader;
-  grpc_byte_buffer_reader_init(&reader,buffer_);
+  grpc_byte_buffer_reader* reader = grpc_byte_buffer_reader_create(buffer_);
   gpr_slice s;
-  while (grpc_byte_buffer_reader_next(&reader, &s)) {
+  while (grpc_byte_buffer_reader_next(reader, &s)) {
     slices->push_back(Slice(s, Slice::STEAL_REF));
   }
+  grpc_byte_buffer_reader_destroy(reader);
 }
 
 size_t ByteBuffer::Length() {

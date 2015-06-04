@@ -1,30 +1,25 @@
 gRPC Python
 =========
+
 The Python facility of gRPC.
+
 
 Status
 -------
+
 Alpha : Ready for early adopters
 
-PREREQUISITES
--------------
-- Python 2.7, virtualenv, pip
-- [homebrew][] on Mac OS X, [linuxbrew][] on Linux.  These simplify the installation of the gRPC C core.
+Prerequisites
+-----------------------
 
-INSTALLATION
--------------
-On Mac OS X, install [homebrew][]. On Linux, install [linuxbrew][].
-Run the following command to install gRPC Python.
-```sh
-$ curl -fsSL https://goo.gl/getgrpc | bash -s python
-```
-This will download and run the [gRPC install script][], then install the latest version of the gRPC Python package.  It also installs the Protocol Buffers compiler (_protoc_) and the gRPC _protoc_ plugin for python.
+Python 2.7, virtualenv, pip, libprotobuf-dev, and libprotoc-dev.
 
-BUILDING FROM SOURCE
----------------------
-- Clone this repository
+
+Building from source
+----------------------
+
 - Build the gRPC core from the root of the
-  [gRPC Git repository](https://github.com/grpc/grpc)
+  [gRPC git repo](https://github.com/grpc/grpc)
 ```
 $ make shared_c static_c
 ```
@@ -34,16 +29,40 @@ $ make shared_c static_c
 $ tools/run_tests/build_python.sh
 ```
 
-TESTING
--------
+
+Testing
+-----------------------
 
 - Use run_python.sh to run gRPC as it was installed into the virtual environment
 ```
 $ tools/run_tests/run_python.sh
 ```
 
-PACKAGING
----------
+
+Installing
+-----------------------
+
+- Install the gRPC core
+  - [Debian package](https://github.com/grpc/grpc/releases)
+    ```
+    $ wget https://github.com/grpc/grpc/releases/download/release-0_5_0/libgrpc_0.5.0_amd64.deb
+    $ wget https://github.com/grpc/grpc/releases/download/release-0_5_0/libgrpc-dev_0.5.0_amd64.deb
+    $ sudo dpkg -i libgrpc_0.5.0_amd64.deb libgrpc-dev_0.5.0_amd64.deb
+    ```
+  - [From source](https://github.com/grpc/grpc/blob/master/INSTALL)
+
+- Install gRPC Python's dependencies
+```
+$ pip install -r src/python/requirements.txt
+```
+
+- Install gRPC Python
+```
+$ pip install src/python/src
+```
+
+Packaging to PyPI
+-----------------------
 
 - Install packaging dependencies
 ```
@@ -54,7 +73,3 @@ $ pip install setuptools twine
 ```
 $ ../../tools/distrib/python/submit.py
 ```
-
-[homebrew]:http://brew.sh
-[linuxbrew]:https://github.com/Homebrew/linuxbrew#installation
-[gRPC install script]:https://raw.githubusercontent.com/grpc/homebrew-grpc/master/scripts/install

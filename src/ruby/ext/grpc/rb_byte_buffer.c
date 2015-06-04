@@ -36,7 +36,6 @@
 #include <ruby/ruby.h>
 
 #include <grpc/grpc.h>
-#include <grpc/byte_buffer_reader.h>
 #include <grpc/support/slice.h>
 #include "rb_grpc.h"
 
@@ -51,7 +50,7 @@ VALUE grpc_rb_byte_buffer_to_s(grpc_byte_buffer *buffer) {
   size_t length = 0;
   char *string = NULL;
   size_t offset = 0;
-  grpc_byte_buffer_reader reader;
+  grpc_byte_buffer_reader *reader = NULL;
   gpr_slice next;
   if (buffer == NULL) {
     return Qnil;
@@ -59,8 +58,8 @@ VALUE grpc_rb_byte_buffer_to_s(grpc_byte_buffer *buffer) {
   }
   length = grpc_byte_buffer_length(buffer);
   string = xmalloc(length + 1);
-  grpc_byte_buffer_reader_init(&reader, buffer);
-  while (grpc_byte_buffer_reader_next(&reader, &next) != 0) {
+  reader = grpc_byte_buffer_reader_create(buffer);
+  while (grpc_byte_buffer_reader_next(reader, &next) != 0) {
     memcpy(string + offset, GPR_SLICE_START_PTR(next), GPR_SLICE_LENGTH(next));
     offset += GPR_SLICE_LENGTH(next);
   }
