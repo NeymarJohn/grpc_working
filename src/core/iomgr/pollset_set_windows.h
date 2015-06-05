@@ -31,19 +31,9 @@
  *
  */
 
-#include <grpc/support/cpu.h>
-#include "src/cpp/server/thread_pool.h"
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_WINDOWS_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_WINDOWS_H
 
-#ifndef GRPC_CUSTOM_DEFAULT_THREAD_POOL
+typedef struct grpc_pollset_set { void *unused; } grpc_pollset_set;
 
-namespace grpc {
-
-ThreadPoolInterface* CreateDefaultThreadPool() {
-   int cores = gpr_cpu_num_cores();
-   if (!cores) cores = 4;
-   return new ThreadPool(cores);
-}
-
-}  // namespace grpc
-
-#endif  // !GRPC_CUSTOM_DEFAULT_THREAD_POOL
+#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */

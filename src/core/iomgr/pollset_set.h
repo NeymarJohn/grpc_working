@@ -31,31 +31,29 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_STRING_UTIL_H
-#define GRPC_SUPPORT_STRING_UTIL_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
 
-#ifdef __cplusplus
-extern "C" {
+#include "src/core/iomgr/pollset.h"
+
+/* A grpc_pollset_set is a set of pollsets that are interested in an
+   action. Adding a pollset to a pollset_set automatically adds any
+   fd's (etc) that have been registered with the set_set with that pollset.
+   Registering fd's automatically iterates all current pollsets. */
+
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/pollset_set_posix.h"
 #endif
 
-/* String utility functions */
-
-/* Returns a copy of src that can be passed to gpr_free().
-   If allocation fails or if src is NULL, returns NULL. */
-char *gpr_strdup(const char *src);
-
-/* printf to a newly-allocated string.  The set of supported formats may vary
-   between platforms.
-
-   On success, returns the number of bytes printed (excluding the final '\0'),
-   and *strp points to a string which must later be destroyed with gpr_free().
-
-   On error, returns -1 and sets *strp to NULL. If the format string is bad,
-   the result is undefined. */
-int gpr_asprintf(char **strp, const char *format, ...);
-
-#ifdef __cplusplus
-}
+#ifdef GPR_WIN32
+#include "src/core/iomgr/pollset_set_windows.h"
 #endif
 
-#endif  /* GRPC_SUPPORT_STRING_UTIL_H */
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset);
+void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset);
+
+#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */

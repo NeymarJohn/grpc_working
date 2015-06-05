@@ -31,47 +31,17 @@
  *
  */
 
-#include "test/cpp/qps/interarrival.h"
-#include <chrono>
-#include <iostream>
+#include <grpc/support/port_platform.h>
 
-// Use the C histogram rather than C++ to avoid depending on proto
-#include <grpc/support/histogram.h>
-#include <grpc++/config.h>
+#ifdef GPR_WINSOCK_SOCKET
 
-using grpc::testing::ExpDist;
-using grpc::testing::InterarrivalTimer;
+#include "src/core/iomgr/pollset_set.h"
 
-void RunTest(InterarrivalTimer &&timer, std::string title) {
-  gpr_histogram *h(gpr_histogram_create(0.01, 60e9));
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set) {}
 
-  for (int i = 0; i < 10000000; i++) {
-    for (int j = 0; j < 5; j++) {
-      gpr_histogram_add(h, timer(j).count());
-    }
-  }
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set) {}
 
-  std::cout << title << " Distribution" << std::endl;
-  std::cout << "Value, Percentile" << std::endl;
-  for (double pct = 0.0; pct < 100.0; pct += 1.0) {
-    std::cout << gpr_histogram_percentile(h, pct) << "," << pct << std::endl;
-  }
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset) {}
 
-  gpr_histogram_destroy(h);
-}
-
-using grpc::testing::ExpDist;
-using grpc::testing::DetDist;
-using grpc::testing::UniformDist;
-using grpc::testing::ParetoDist;
-
-int main(int argc, char **argv) {
-  RunTest(InterarrivalTimer(ExpDist(10.0), 5), std::string("Exponential(10)"));
-  RunTest(InterarrivalTimer(DetDist(5.0), 5), std::string("Det(5)"));
-  RunTest(InterarrivalTimer(UniformDist(0.0, 10.0), 5),
-          std::string("Uniform(1,10)"));
-  RunTest(InterarrivalTimer(ParetoDist(1.0, 1.0), 5),
-          std::string("Pareto(1,1)"));
-
-  return 0;
-}
+#endif /* GPR_WINSOCK_SOCKET */
