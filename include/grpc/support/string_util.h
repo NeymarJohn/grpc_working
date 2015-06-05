@@ -31,20 +31,31 @@
  *
  */
 
-#ifndef GRPC_BYTE_BUFFER_H
-#define GRPC_BYTE_BUFFER_H
+#ifndef GRPC_SUPPORT_STRING_UTIL_H
+#define GRPC_SUPPORT_STRING_UTIL_H
 
-#include <grpc/grpc.h>
-#include <grpc/support/slice_buffer.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-typedef enum { GRPC_BB_SLICE_BUFFER } grpc_byte_buffer_type;
+/* String utility functions */
 
-/* byte buffers are containers for messages passed in from the public api's */
-struct grpc_byte_buffer {
-  grpc_byte_buffer_type type;
-  union {
-    gpr_slice_buffer slice_buffer;
-  } data;
-};
+/* Returns a copy of src that can be passed to gpr_free().
+   If allocation fails or if src is NULL, returns NULL. */
+char *gpr_strdup(const char *src);
 
-#endif  /* GRPC_BYTE_BUFFER_H */
+/* printf to a newly-allocated string.  The set of supported formats may vary
+   between platforms.
+
+   On success, returns the number of bytes printed (excluding the final '\0'),
+   and *strp points to a string which must later be destroyed with gpr_free().
+
+   On error, returns -1 and sets *strp to NULL. If the format string is bad,
+   the result is undefined. */
+int gpr_asprintf(char **strp, const char *format, ...);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* GRPC_SUPPORT_STRING_UTIL_H */

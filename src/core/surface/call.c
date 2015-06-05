@@ -42,6 +42,7 @@
 #include "src/core/surface/completion_queue.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
+#include <grpc/support/string_util.h>
 #include <assert.h>
 
 #include <stdio.h>
@@ -806,9 +807,6 @@ static void copy_byte_buffer_to_stream_ops(grpc_byte_buffer *byte_buffer,
 
   switch (byte_buffer->type) {
     case GRPC_BB_SLICE_BUFFER:
-    case GRPC_BB_COMPRESSED_NONE:
-    case GRPC_BB_COMPRESSED_DEFLATE:
-    case GRPC_BB_COMPRESSED_GZIP:
       for (i = 0; i < byte_buffer->data.slice_buffer.count; i++) {
         gpr_slice slice = byte_buffer->data.slice_buffer.slices[i];
         gpr_slice_ref(slice);

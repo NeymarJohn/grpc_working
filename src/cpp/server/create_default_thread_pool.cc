@@ -31,20 +31,19 @@
  *
  */
 
-#ifndef GRPC_BYTE_BUFFER_H
-#define GRPC_BYTE_BUFFER_H
+#include <grpc/support/cpu.h>
+#include "src/cpp/server/thread_pool.h"
 
-#include <grpc/grpc.h>
-#include <grpc/support/slice_buffer.h>
+#ifndef GRPC_CUSTOM_DEFAULT_THREAD_POOL
 
-typedef enum { GRPC_BB_SLICE_BUFFER } grpc_byte_buffer_type;
+namespace grpc {
 
-/* byte buffers are containers for messages passed in from the public api's */
-struct grpc_byte_buffer {
-  grpc_byte_buffer_type type;
-  union {
-    gpr_slice_buffer slice_buffer;
-  } data;
-};
+ThreadPoolInterface* CreateDefaultThreadPool() {
+   int cores = gpr_cpu_num_cores();
+   if (!cores) cores = 4;
+   return new ThreadPool(cores);
+}
 
-#endif  /* GRPC_BYTE_BUFFER_H */
+}  // namespace grpc
+
+#endif  // !GRPC_CUSTOM_DEFAULT_THREAD_POOL
