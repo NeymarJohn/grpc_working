@@ -31,34 +31,31 @@
  *
  */
 
-#include <grpc++/impl/client_unary_call.h>
-#include <grpc++/impl/call.h>
-#include <grpc++/channel_interface.h>
-#include <grpc++/client_context.h>
-#include <grpc++/completion_queue.h>
-#include <grpc++/status.h>
-#include <grpc/support/log.h>
+#ifndef GRPC_SUPPORT_STRING_UTIL_H
+#define GRPC_SUPPORT_STRING_UTIL_H
 
-namespace grpc {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-// Wrapper that performs a blocking unary call
-Status BlockingUnaryCall(ChannelInterface* channel, const RpcMethod& method,
-                         ClientContext* context,
-                         const grpc::protobuf::Message& request,
-                         grpc::protobuf::Message* result) {
-  CompletionQueue cq;
-  Call call(channel->CreateCall(method, context, &cq));
-  CallOpBuffer buf;
-  Status status;
-  buf.AddSendInitialMetadata(context);
-  buf.AddSendMessage(request);
-  buf.AddRecvInitialMetadata(context);
-  buf.AddRecvMessage(result);
-  buf.AddClientSendClose();
-  buf.AddClientRecvStatus(context, &status);
-  call.PerformOps(&buf);
-  GPR_ASSERT((cq.Pluck(&buf) && buf.got_message) || !status.IsOk());
-  return status;
+/* String utility functions */
+
+/* Returns a copy of src that can be passed to gpr_free().
+   If allocation fails or if src is NULL, returns NULL. */
+char *gpr_strdup(const char *src);
+
+/* printf to a newly-allocated string.  The set of supported formats may vary
+   between platforms.
+
+   On success, returns the number of bytes printed (excluding the final '\0'),
+   and *strp points to a string which must later be destroyed with gpr_free().
+
+   On error, returns -1 and sets *strp to NULL. If the format string is bad,
+   the result is undefined. */
+int gpr_asprintf(char **strp, const char *format, ...);
+
+#ifdef __cplusplus
 }
+#endif
 
-}  // namespace grpc
+#endif  /* GRPC_SUPPORT_STRING_UTIL_H */

@@ -31,11 +31,12 @@
  *
  */
 
-#include "src/cpp/proto/proto_utils.h"
+#include <grpc++/impl/proto_utils.h>
 #include <grpc++/config.h>
 
 #include <grpc/grpc.h>
 #include <grpc/byte_buffer.h>
+#include <grpc/byte_buffer_reader.h>
 #include <grpc/support/slice.h>
 #include <grpc/support/slice_buffer.h>
 #include <grpc/support/port_platform.h>
@@ -66,7 +67,7 @@ class GrpcBufferWriter GRPC_FINAL
       slice_ = gpr_slice_malloc(block_size_);
     }
     *data = GPR_SLICE_START_PTR(slice_);
-    byte_count_ += *size = GPR_SLICE_LENGTH(slice_);
+    byte_count_ += * size = GPR_SLICE_LENGTH(slice_);
     gpr_slice_buffer_add(slice_buffer_, slice_);
     return true;
   }
@@ -100,11 +101,9 @@ class GrpcBufferReader GRPC_FINAL
  public:
   explicit GrpcBufferReader(grpc_byte_buffer* buffer)
       : byte_count_(0), backup_count_(0) {
-    reader_ = grpc_byte_buffer_reader_create(buffer);
+    grpc_byte_buffer_reader_init(&reader_, buffer);
   }
-  ~GrpcBufferReader() GRPC_OVERRIDE {
-    grpc_byte_buffer_reader_destroy(reader_);
-  }
+  ~GrpcBufferReader() GRPC_OVERRIDE {}
 
   bool Next(const void** data, int* size) GRPC_OVERRIDE {
     if (backup_count_ > 0) {
@@ -114,12 +113,12 @@ class GrpcBufferReader GRPC_FINAL
       backup_count_ = 0;
       return true;
     }
-    if (!grpc_byte_buffer_reader_next(reader_, &slice_)) {
+    if (!grpc_byte_buffer_reader_next(&reader_, &slice_)) {
       return false;
     }
     gpr_slice_unref(slice_);
     *data = GPR_SLICE_START_PTR(slice_);
-    byte_count_ += *size = GPR_SLICE_LENGTH(slice_);
+    byte_count_ += * size = GPR_SLICE_LENGTH(slice_);
     return true;
   }
 
@@ -147,7 +146,7 @@ class GrpcBufferReader GRPC_FINAL
  private:
   gpr_int64 byte_count_;
   gpr_int64 backup_count_;
-  grpc_byte_buffer_reader* reader_;
+  grpc_byte_buffer_reader reader_;
   gpr_slice slice_;
 };
 
@@ -158,15 +157,23 @@ bool SerializeProto(const grpc::protobuf::Message& msg, grpc_byte_buffer** bp) {
   return msg.SerializeToZeroCopyStream(&writer);
 }
 
-bool DeserializeProto(grpc_byte_buffer* buffer, grpc::protobuf::Message* msg,
-                      int max_message_size) {
-  if (!buffer) return false;
+Status DeserializeProto(grpc_byte_buffer* buffer, grpc::protobuf::Message* msg,
+                        int max_message_size) {
+  if (!buffer) {
+    return Status(INVALID_ARGUMENT, "No payload");
+  }
   GrpcBufferReader reader(buffer);
   ::grpc::protobuf::io::CodedInputStream decoder(&reader);
   if (max_message_size > 0) {
     decoder.SetTotalBytesLimit(max_message_size, max_message_size);
   }
-  return msg->ParseFromCodedStream(&decoder) && decoder.ConsumedEntireMessage();
+  if (!msg->ParseFromCodedStream(&decoder)) {
+    return Status(INVALID_ARGUMENT, msg->InitializationErrorString());
+  }
+  if (!decoder.ConsumedEntireMessage()) {
+    return Status(INVALID_ARGUMENT, "Did not read entire message");
+  }
+  return Status::OK;
 }
 
 }  // namespace grpc
