@@ -1,9 +1,0 @@
-{
-  "name": "grpc/grpc-demo",
-  "description": "gRPC example for PHP",
-  "minimum-stability": "dev",
-  "require": {
-    "php": ">=5.5.0",
-    "grpc/grpc": "dev-master"
-  }
-}
