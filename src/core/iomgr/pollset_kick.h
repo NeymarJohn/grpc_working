@@ -31,40 +31,44 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_SERIALIZATION_TRAITS_H
-#define GRPCXX_IMPL_SERIALIZATION_TRAITS_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_H
 
-struct grpc_byte_buffer;
+#include <grpc/support/port_platform.h>
 
-namespace grpc {
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/pollset_kick_posix.h"
+#endif
 
-/// Defines how to serialize and deserialize some type.
-/// 
-/// Used for hooking different message serialization API's into GRPC.
-/// Each SerializationTraits implementation must provide the following
-/// functions:
-///   static Status Serialize(const Message& msg,
-///                           grpc_byte_buffer** buffer, 
-//                            bool* own_buffer);
-///   static Status Deserialize(grpc_byte_buffer* buffer,
-///                             Message* msg,
-///                             int max_message_size);
-///
-/// Serialize is required to convert message to a grpc_byte_buffer, and
-/// to store a pointer to that byte buffer at *buffer. *own_buffer should
-/// be set to true if the caller owns said byte buffer, or false if
-/// ownership is retained elsewhere.
-///
-/// Deserialize is required to convert buffer into the message stored at
-/// msg. max_message_size is passed in as a bound on the maximum number of
-/// message bytes Deserialize should accept.
-///
-/// Both functions return a Status, allowing them to explain what went 
-/// wrong if required.
-template <class Message,
-          class UnusedButHereForPartialTemplateSpecialization = void>
-class SerializationTraits;
+#ifdef GPR_WIN32
+#include "src/core/iomgr/pollset_kick_windows.h"
+#endif
 
-}  // namespace grpc
+/* This is an abstraction around the typical pipe mechanism for waking up a
+   thread sitting in a poll() style call. */
 
-#endif  // GRPCXX_IMPL_SERIALIZATION_TRAITS_H
+void grpc_pollset_kick_global_init(void);
+void grpc_pollset_kick_global_destroy(void);
+
+void grpc_pollset_kick_init(grpc_pollset_kick_state *kick_state);
+void grpc_pollset_kick_destroy(grpc_pollset_kick_state *kick_state);
+
+/* Guarantees a pure posix implementation rather than a specialized one, if
+ * applicable. Intended for testing. */
+void grpc_pollset_kick_global_init_fallback_fd(void);
+
+/* Must be called before entering poll(). If return value is -1, this consumed
+   an existing kick. Otherwise the return value is an FD to add to the poll set.
+ */
+int grpc_pollset_kick_pre_poll(grpc_pollset_kick_state *kick_state);
+
+/* Consume an existing kick. Must be called after poll returns that the fd was
+   readable, and before calling kick_post_poll. */
+void grpc_pollset_kick_consume(grpc_pollset_kick_state *kick_state);
+
+/* Must be called after pre_poll, and after consume if applicable */
+void grpc_pollset_kick_post_poll(grpc_pollset_kick_state *kick_state);
+
+void grpc_pollset_kick_kick(grpc_pollset_kick_state *kick_state);
+
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_H */
