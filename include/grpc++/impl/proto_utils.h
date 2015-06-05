@@ -31,18 +31,45 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
+#ifndef GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
+#define GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
 
-#include <grpc/support/sync.h>
+#include <type_traits>
 
-/* There isn't really any such thing as a pollset under Windows, due to the
-   nature of the IO completion ports. */
+#include <grpc++/impl/serialization_traits.h>
+#include <grpc++/config_protobuf.h>
+#include <grpc++/status.h>
 
-struct grpc_kick_fd_info;
+struct grpc_byte_buffer;
 
-typedef struct grpc_pollset_kick_state {
-  int unused;
-} grpc_pollset_kick_state;
+namespace grpc {
 
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H */
+// Serialize the msg into a buffer created inside the function. The caller
+// should destroy the returned buffer when done with it. If serialization fails,
+// false is returned and buffer is left unchanged.
+bool SerializeProto(const grpc::protobuf::Message& msg,
+                    grpc_byte_buffer** buffer);
+
+// The caller keeps ownership of buffer and msg.
+Status DeserializeProto(grpc_byte_buffer* buffer, grpc::protobuf::Message* msg,
+                        int max_message_size);
+
+template <class T>
+class SerializationTraits<T, typename std::enable_if<std::is_base_of<
+                                 grpc::protobuf::Message, T>::value>::type> {
+ public:
+  static bool Serialize(const grpc::protobuf::Message& msg,
+                        grpc_byte_buffer** buffer, bool* own_buffer) {
+    *own_buffer = true;
+    return SerializeProto(msg, buffer);
+  }
+  static Status Deserialize(grpc_byte_buffer* buffer,
+                            grpc::protobuf::Message* msg,
+                            int max_message_size) {
+    return DeserializeProto(buffer, msg, max_message_size);
+  }
+};
+
+}  // namespace grpc
+
+#endif  // GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
