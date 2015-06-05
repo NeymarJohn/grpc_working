@@ -34,7 +34,7 @@
 #ifndef GRPCXX_IMPL_CALL_H
 #define GRPCXX_IMPL_CALL_H
 
-#include <grpc/grpc.h>
+#include <grpc/support/alloc.h>
 #include <grpc++/client_context.h>
 #include <grpc++/completion_queue.h>
 #include <grpc++/config.h>
@@ -59,6 +59,9 @@ void FillMetadataMap(grpc_metadata_array* arr,
 grpc_metadata* FillMetadataArray(
     const std::multimap<grpc::string, grpc::string>& metadata);
 
+/// Default argument for CallOpSet. I is unused by the class, but can be
+/// used for generating multiple names for the same thing.
+template <int I>
 class CallNoOp {
  protected:
   void AddOp(grpc_op* ops, size_t* nops) {}
@@ -85,6 +88,8 @@ class CallOpSendInitialMetadata {
     op->data.send_initial_metadata.metadata = initial_metadata_;
   }
   void FinishOp(bool* status, int max_message_size) {
+    if (!send_) return;
+    gpr_free(initial_metadata_);
     send_ = false;
   }
 
@@ -244,6 +249,7 @@ class CallOpServerSendStatus {
 
  protected:
   void AddOp(grpc_op* ops, size_t* nops) {
+    if (!send_status_available_) return;
     grpc_op* op = &ops[(*nops)++];
     op->op = GRPC_OP_SEND_STATUS_FROM_SERVER;
     op->data.send_status_from_server.trailing_metadata_count =
@@ -255,7 +261,9 @@ class CallOpServerSendStatus {
   }
 
   void FinishOp(bool* status, int max_message_size) {
-    send_status_details_ = false;
+    if (!send_status_available_) return;
+    gpr_free(trailing_metadata_);
+    send_status_available_ = false;
   }
 
  private:
@@ -269,7 +277,6 @@ class CallOpServerSendStatus {
 class CallOpRecvInitialMetadata {
  public:
   CallOpRecvInitialMetadata() : recv_initial_metadata_(nullptr) {
-    memset(&recv_initial_metadata_arr_, 0, sizeof(recv_initial_metadata_arr_));
   }
 
   void RecvInitialMetadata(ClientContext* context) {
@@ -280,6 +287,7 @@ class CallOpRecvInitialMetadata {
  protected:
   void AddOp(grpc_op* ops, size_t* nops) {
     if (!recv_initial_metadata_) return;
+    memset(&recv_initial_metadata_arr_, 0, sizeof(recv_initial_metadata_arr_));
     grpc_op* op = &ops[(*nops)++];
     op->op = GRPC_OP_RECV_INITIAL_METADATA;
     op->data.recv_initial_metadata = &recv_initial_metadata_arr_;
@@ -297,7 +305,7 @@ class CallOpRecvInitialMetadata {
 
 class CallOpClientRecvStatus {
  public:
-  CallOpClientRecvStatus() { memset(this, 0, sizeof(*this)); }
+  CallOpClientRecvStatus() : recv_status_(nullptr) {}
 
   void ClientRecvStatus(ClientContext* context, Status* status) {
     recv_trailing_metadata_ = &context->trailing_metadata_;
@@ -307,6 +315,9 @@ class CallOpClientRecvStatus {
  protected:
   void AddOp(grpc_op* ops, size_t* nops) {
     if (recv_status_ == nullptr) return;
+    memset(&recv_trailing_metadata_arr_, 0, sizeof(recv_trailing_metadata_arr_));
+    status_details_ = nullptr;
+    status_details_capacity_ = 0;
     grpc_op* op = &ops[(*nops)++];
     op->op = GRPC_OP_RECV_STATUS_ON_CLIENT;
     op->data.recv_status_on_client.trailing_metadata =
@@ -323,6 +334,7 @@ class CallOpClientRecvStatus {
     *recv_status_ = Status(
         static_cast<StatusCode>(status_code_),
         status_details_ ? grpc::string(status_details_) : grpc::string());
+    gpr_free(status_details_);
     recv_status_ = nullptr;
   }
 
@@ -335,9 +347,16 @@ class CallOpClientRecvStatus {
   size_t status_details_capacity_;
 };
 
+/// An abstract collection of call ops, used to generate the
+/// grpc_call_op structure to pass down to the lower layers,
+/// and as it is-a CompletionQueueTag, also massages the final
+/// completion into the correct form for consumption in the C++
+/// API.
 class CallOpSetInterface : public CompletionQueueTag {
  public:
   CallOpSetInterface() : max_message_size_(0) {}
+  /// Fills in grpc_op, starting from ops[*nops] and moving
+  /// upwards.
   virtual void FillOps(grpc_op* ops, size_t* nops) = 0;
 
   void set_max_message_size(int max_message_size) {
@@ -348,36 +367,39 @@ class CallOpSetInterface : public CompletionQueueTag {
   int max_message_size_;
 };
 
-template <class T, int I>
-class WrapAndDerive : public T {};
-
-template <class Op1 = CallNoOp, class Op2 = CallNoOp, class Op3 = CallNoOp,
-          class Op4 = CallNoOp, class Op5 = CallNoOp, class Op6 = CallNoOp>
+/// Primary implementaiton of CallOpSetInterface.
+/// Since we cannot use variadic templates, we declare slots up to
+/// the maximum count of ops we'll need in a set. We leverage the
+/// empty base class optimization to slim this class (especially
+/// when there are many unused slots used). To avoid duplicate base classes,
+/// the template parmeter for CallNoOp is varied by argument position.
+template <class Op1 = CallNoOp<1>, class Op2 = CallNoOp<2>, class Op3 = CallNoOp<3>,
+          class Op4 = CallNoOp<4>, class Op5 = CallNoOp<5>, class Op6 = CallNoOp<6>>
 class CallOpSet : public CallOpSetInterface,
-                  public WrapAndDerive<Op1, 1>,
-                  public WrapAndDerive<Op2, 2>,
-                  public WrapAndDerive<Op3, 3>,
-                  public WrapAndDerive<Op4, 4>,
-                  public WrapAndDerive<Op5, 5>,
-                  public WrapAndDerive<Op6, 6> {
+                  public Op1,
+                  public Op2,
+                  public Op3,
+                  public Op4,
+                  public Op5,
+                  public Op6 {
  public:
   CallOpSet() : return_tag_(this) {}
   void FillOps(grpc_op* ops, size_t* nops) GRPC_OVERRIDE {
-    this->WrapAndDerive<Op1, 1>::AddOp(ops, nops);
-    this->WrapAndDerive<Op2, 2>::AddOp(ops, nops);
-    this->WrapAndDerive<Op3, 3>::AddOp(ops, nops);
-    this->WrapAndDerive<Op4, 4>::AddOp(ops, nops);
-    this->WrapAndDerive<Op5, 5>::AddOp(ops, nops);
-    this->WrapAndDerive<Op6, 6>::AddOp(ops, nops);
+    this->Op1::AddOp(ops, nops);
+    this->Op2::AddOp(ops, nops);
+    this->Op3::AddOp(ops, nops);
+    this->Op4::AddOp(ops, nops);
+    this->Op5::AddOp(ops, nops);
+    this->Op6::AddOp(ops, nops);
   }
 
   bool FinalizeResult(void** tag, bool* status) GRPC_OVERRIDE {
-    this->WrapAndDerive<Op1, 1>::FinishOp(status, max_message_size_);
-    this->WrapAndDerive<Op2, 2>::FinishOp(status, max_message_size_);
-    this->WrapAndDerive<Op3, 3>::FinishOp(status, max_message_size_);
-    this->WrapAndDerive<Op4, 4>::FinishOp(status, max_message_size_);
-    this->WrapAndDerive<Op5, 5>::FinishOp(status, max_message_size_);
-    this->WrapAndDerive<Op6, 6>::FinishOp(status, max_message_size_);
+    this->Op1::FinishOp(status, max_message_size_);
+    this->Op2::FinishOp(status, max_message_size_);
+    this->Op3::FinishOp(status, max_message_size_);
+    this->Op4::FinishOp(status, max_message_size_);
+    this->Op5::FinishOp(status, max_message_size_);
+    this->Op6::FinishOp(status, max_message_size_);
     *tag = return_tag_;
     return true;
   }
@@ -388,9 +410,12 @@ class CallOpSet : public CallOpSetInterface,
   void* return_tag_;
 };
 
-// SneakyCallOpBuffer does not post completions to the completion queue
-template <class Op1 = CallNoOp, class Op2 = CallNoOp, class Op3 = CallNoOp,
-          class Op4 = CallNoOp, class Op5 = CallNoOp, class Op6 = CallNoOp>
+/// A CallOpSet that does not post completions to the completion queue.
+///
+/// Allows hiding some completions that the C core must generate from
+/// C++ users.
+template <class Op1 = CallNoOp<1>, class Op2 = CallNoOp<2>, class Op3 = CallNoOp<3>,
+          class Op4 = CallNoOp<4>, class Op5 = CallNoOp<5>, class Op6 = CallNoOp<6>>
 class SneakyCallOpSet GRPC_FINAL
     : public CallOpSet<Op1, Op2, Op3, Op4, Op5, Op6> {
  public:
