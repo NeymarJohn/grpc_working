@@ -37,6 +37,8 @@
 DEFINE_bool(enable_log_reporter, true,
             "Enable reporting of benchmark results through GprLog");
 
+DEFINE_string(access_token, "", "Authorizing JSON string for leaderboard");
+
 // In some distros, gflags is in the namespace google, and in some others,
 // in gflags. This hack is enabling us to find both.
 namespace google {}
@@ -57,6 +59,10 @@ static std::shared_ptr<Reporter> InitBenchmarkReporters() {
     composite_reporter->add(
         std::unique_ptr<Reporter>(new GprLogReporter("LogReporter")));
   }
+  if(!FLAGS_access_token.empty())
+    composite_reporter->add(
+      std::unique_ptr<Reporter>(new UserDatabaseReporter("UserDataReporter", FLAGS_access_token)));
+
   return std::shared_ptr<Reporter>(composite_reporter);
 }
 

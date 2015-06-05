@@ -31,17 +31,58 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#include <iostream>
+#include <memory>
+#include <string>
 
-#ifdef GPR_WINSOCK_SOCKET
+#include <grpc/grpc.h>
+#include <grpc++/channel_arguments.h>
+#include <grpc++/channel_interface.h>
+#include <grpc++/client_context.h>
+#include <grpc++/create_channel.h>
+#include <grpc++/credentials.h>
+#include <grpc++/status.h>
+#include "test/cpp/qps/user_data.grpc.pb.h"
 
-#include "src/core/iomgr/pollset_set.h"
+using grpc::ChannelArguments;
+using grpc::ChannelInterface;
+using grpc::ClientContext;
+using grpc::Status;
+using UserData::UserDataTransfer;
+using UserData::Metrics;
+using UserData::SingleUserRecordRequest;
+using UserData::SingleUserRecordReply;
 
-void grpc_pollset_set_init(grpc_pollset_set *pollset_set) {}
+class UserDataClient {
+ public:
+  UserDataClient(std::shared_ptr<ChannelInterface> channel)
+    : stub_(UserDataTransfer::NewStub(channel)) {}
+  
+  ~UserDataClient() {}
 
-void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set) {}
+  void setAccessToken(std::string access_token);
+  
+  void setQPS(double QPS);
 
-void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset) {}
+  void setQPSPerCore(double qpsPerCore);
 
-#endif /* GPR_WINSOCK_SOCKET */
+  void setLatencies(double percentileLatency50, double percentileLatency90,
+     double percentileLatency95, double percentileLatency99, double percentileLatency99Point9);
+
+  void setTimes(double serverSystemTime, double serverUserTime, 
+    double clientSystemTime, double clientUserTime);
+
+  int sendDataIfReady();
+
+ private:
+  std::unique_ptr<UserDataTransfer::Stub> stub_;
+  std::string access_token_;
+  double QPS_;
+  double percentileLatency50_;
+  double percentileLatency90_;
+  double percentileLatency95_;
+  double percentileLatency99_;
+  double percentileLatency99Point9_;
+  bool qpsSet = false;
+  bool latenciesSet = false;
+};
