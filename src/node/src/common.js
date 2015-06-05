@@ -47,9 +47,7 @@ function deserializeCls(cls) {
    * @return {cls} The resulting object
    */
   return function deserialize(arg_buf) {
-    // Convert to a native object with binary fields as Buffers (first argument)
-    // and longs as strings (second argument)
-    return cls.decode(arg_buf).toRaw(false, true);
+    return cls.decode(arg_buf).toRaw();
   };
 }
 
