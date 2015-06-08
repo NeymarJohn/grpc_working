@@ -31,29 +31,57 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#include <set>
 
-#include "src/core/iomgr/pollset.h"
+#include <grpc/support/log.h>
 
-/* A grpc_pollset_set is a set of pollsets that are interested in an
-   action. Adding a pollset to a pollset_set automatically adds any
-   fd's (etc) that have been registered with the set_set with that pollset.
-   Registering fd's automatically iterates all current pollsets. */
+#include <signal.h>
 
-#ifdef GPR_POSIX_SOCKET
-#include "src/core/iomgr/pollset_set_posix.h"
-#endif
+#include "test/cpp/qps/driver.h"
+#include "test/cpp/qps/report.h"
+#include "test/cpp/util/benchmark_config.h"
 
-#ifdef GPR_WIN32
-#include "src/core/iomgr/pollset_set_windows.h"
-#endif
+namespace grpc {
+namespace testing {
 
-void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
-void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
+static const int WARMUP = 5;
+static const int BENCHMARK = 10;
 
-#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */
+static void RunQPS() {
+  gpr_log(GPR_INFO, "Running QPS test, open-loop");
+
+  ClientConfig client_config;
+  client_config.set_client_type(ASYNC_CLIENT);
+  client_config.set_enable_ssl(false);
+  client_config.set_outstanding_rpcs_per_channel(1000);
+  client_config.set_client_channels(8);
+  client_config.set_payload_size(1);
+  client_config.set_async_client_threads(8);
+  client_config.set_rpc_type(UNARY);
+  client_config.set_load_type(POISSON);
+  client_config.mutable_load_params()->
+    mutable_poisson()->set_offered_load(10000.0);
+  
+  ServerConfig server_config;
+  server_config.set_server_type(ASYNC_SERVER);
+  server_config.set_enable_ssl(false);
+  server_config.set_threads(4);
+
+  const auto result =
+      RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
+
+  GetReporter()->ReportQPSPerCore(*result);
+  GetReporter()->ReportLatency(*result);
+}
+
+}  // namespace testing
+}  // namespace grpc
+
+int main(int argc, char** argv) {
+  grpc::testing::InitBenchmark(&argc, &argv, true);
+
+  signal(SIGPIPE, SIG_IGN);
+  grpc::testing::RunQPS();
+
+  return 0;
+}

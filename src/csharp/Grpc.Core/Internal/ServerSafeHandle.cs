@@ -60,10 +60,10 @@ namespace Grpc.Core.Internal
         static extern void grpcsharp_server_start(ServerSafeHandle server);
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern void grpcsharp_server_shutdown_and_notify_callback(ServerSafeHandle server, CompletionQueueSafeHandle cq, [MarshalAs(UnmanagedType.FunctionPtr)] CompletionCallbackDelegate callback);
+        static extern void grpcsharp_server_shutdown(ServerSafeHandle server);
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern void grpcsharp_server_cancel_all_calls(ServerSafeHandle server);
+        static extern void grpcsharp_server_shutdown_and_notify_callback(ServerSafeHandle server, [MarshalAs(UnmanagedType.FunctionPtr)] CompletionCallbackDelegate callback);
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern void grpcsharp_server_destroy(IntPtr server);
@@ -92,9 +92,14 @@ namespace Grpc.Core.Internal
             grpcsharp_server_start(this);
         }
 
-        public void ShutdownAndNotify(CompletionQueueSafeHandle cq, CompletionCallbackDelegate callback)
+        public void Shutdown()
         {
-            grpcsharp_server_shutdown_and_notify_callback(this, cq, callback);
+            grpcsharp_server_shutdown(this);
+        }
+
+        public void ShutdownAndNotify(CompletionCallbackDelegate callback)
+        {
+            grpcsharp_server_shutdown_and_notify_callback(this, callback);
         }
 
         public void RequestCall(CompletionQueueSafeHandle cq, CompletionCallbackDelegate callback)
@@ -106,12 +111,6 @@ namespace Grpc.Core.Internal
         {
             grpcsharp_server_destroy(handle);
             return true;
-        }
-            
-        // Only to be called after ShutdownAndNotify.
-        public void CancelAllCalls()
-        {
-            grpcsharp_server_cancel_all_calls(this);
         }
 
         private static void AssertCallOk(GRPCCallError callError)
