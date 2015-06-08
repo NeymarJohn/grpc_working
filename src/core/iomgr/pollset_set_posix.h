@@ -31,46 +31,25 @@
  *
  */
 
-#include "test/cpp/qps/interarrival.h"
-#include <chrono>
-#include <iostream>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
 
-// Use the C histogram rather than C++ to avoid depending on proto
-#include <grpc/support/histogram.h>
-#include <grpc++/config.h>
+#include "src/core/iomgr/fd_posix.h"
+#include "src/core/iomgr/pollset_posix.h"
 
-using grpc::testing::RandomDist;
-using grpc::testing::InterarrivalTimer;
+typedef struct grpc_pollset_set {
+  gpr_mu mu;
 
-void RunTest(RandomDist&& r, int threads, std::string title) {
-  InterarrivalTimer timer;
-  timer.init(r, threads);
-  gpr_histogram *h(gpr_histogram_create(0.01, 60e9));
+  size_t pollset_count;
+  size_t pollset_capacity;
+  grpc_pollset **pollsets;
 
-  for (int i = 0; i < 10000000; i++) {
-    for (int j = 0; j < threads; j++) {
-      gpr_histogram_add(h, timer(j).count());
-    }
-  }
+  size_t fd_count;
+  size_t fd_capacity;
+  grpc_fd **fds;
+} grpc_pollset_set;
 
-  std::cout << title << " Distribution" << std::endl;
-  std::cout << "Value, Percentile" << std::endl;
-  for (double pct = 0.0; pct < 100.0; pct += 1.0) {
-    std::cout << gpr_histogram_percentile(h, pct) << "," << pct << std::endl;
-  }
+void grpc_pollset_set_add_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
+void grpc_pollset_set_del_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
 
-  gpr_histogram_destroy(h);
-}
-
-using grpc::testing::ExpDist;
-using grpc::testing::DetDist;
-using grpc::testing::UniformDist;
-using grpc::testing::ParetoDist;
-
-int main(int argc, char **argv) {
-  RunTest(ExpDist(10.0), 5, std::string("Exponential(10)"));
-  RunTest(DetDist(5.0), 5, std::string("Det(5)"));
-  RunTest(UniformDist(0.0, 10.0), 5, std::string("Uniform(1,10)"));
-  RunTest(ParetoDist(1.0, 1.0), 5, std::string("Pareto(1,1)"));
-  return 0;
-}
+#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */
