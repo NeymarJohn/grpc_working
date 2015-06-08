@@ -537,7 +537,9 @@
       "language": "c++",
       "src": [
         "test/cpp/qps/qpstest.proto",
+        "test/cpp/qps/user_data.proto",
         "test/cpp/qps/report.cc",
+        "test/cpp/qps/user_data_client.cc",
         "test/cpp/util/benchmark_config.cc"
       ]
     },
@@ -701,20 +703,21 @@
       "language": "c++",
       "headers": [
         "test/cpp/qps/driver.h",
-        "test/cpp/qps/interarrival.h",
         "test/cpp/qps/qps_worker.h",
         "test/cpp/qps/report.h",
         "test/cpp/qps/timer.h"
       ],
       "src": [
         "test/cpp/qps/qpstest.proto",
+        "test/cpp/qps/user_data.proto",
         "test/cpp/qps/client_async.cc",
         "test/cpp/qps/client_sync.cc",
         "test/cpp/qps/driver.cc",
         "test/cpp/qps/qps_worker.cc",
         "test/cpp/qps/server_async.cc",
         "test/cpp/qps/server_sync.cc",
-        "test/cpp/qps/timer.cc"
+        "test/cpp/qps/timer.cc",
+        "test/cpp/qps/user_data_client.cc"
       ],
       "deps": [
         "grpc_test_util",
@@ -2075,48 +2078,11 @@
       ]
     },
     {
-      "name": "qps_interarrival_test",
-      "build": "test",
-      "run": false,
-      "language": "c++",
-      "src": [
-        "test/cpp/qps/qps_interarrival_test.cc"
-      ],
-      "deps": [
-        "qps",
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
       "name": "qps_test",
-      "build": "test",
+      "build": "benchmark",
       "language": "c++",
       "src": [
         "test/cpp/qps/qps_test.cc"
-      ],
-      "deps": [
-        "qps",
-        "grpc++_test_util",
-        "grpc++_benchmark_config",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr",
-        "grpc++_test_config"
-      ]
-    },
-    {
-      "name": "qps_test_openloop",
-      "build": "test",
-      "language": "c++",
-      "src": [
-        "test/cpp/qps/qps_test_openloop.cc"
       ],
       "deps": [
         "qps",
