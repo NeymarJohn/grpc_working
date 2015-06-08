@@ -31,39 +31,46 @@
  *
  */
 
-#include <gflags/gflags.h>
-#include "test/cpp/util/benchmark_config.h"
+#include "test/cpp/qps/interarrival.h"
+#include <chrono>
+#include <iostream>
 
-DEFINE_bool(enable_log_reporter, true,
-            "Enable reporting of benchmark results through GprLog");
+// Use the C histogram rather than C++ to avoid depending on proto
+#include <grpc/support/histogram.h>
+#include <grpc++/config.h>
 
-// In some distros, gflags is in the namespace google, and in some others,
-// in gflags. This hack is enabling us to find both.
-namespace google {}
-namespace gflags {}
-using namespace google;
-using namespace gflags;
+using grpc::testing::RandomDist;
+using grpc::testing::InterarrivalTimer;
 
-namespace grpc {
-namespace testing {
+void RunTest(RandomDist&& r, int threads, std::string title) {
+  InterarrivalTimer timer;
+  timer.init(r, threads);
+  gpr_histogram *h(gpr_histogram_create(0.01, 60e9));
 
-void InitBenchmark(int* argc, char*** argv, bool remove_flags) {
-  ParseCommandLineFlags(argc, argv, remove_flags);
-}
-
-static std::shared_ptr<Reporter> InitBenchmarkReporters() {
-  auto* composite_reporter = new CompositeReporter;
-  if (FLAGS_enable_log_reporter) {
-    composite_reporter->add(
-        std::unique_ptr<Reporter>(new GprLogReporter("LogReporter")));
+  for (int i = 0; i < 10000000; i++) {
+    for (int j = 0; j < threads; j++) {
+      gpr_histogram_add(h, timer(j).count());
+    }
   }
-  return std::shared_ptr<Reporter>(composite_reporter);
+
+  std::cout << title << " Distribution" << std::endl;
+  std::cout << "Value, Percentile" << std::endl;
+  for (double pct = 0.0; pct < 100.0; pct += 1.0) {
+    std::cout << gpr_histogram_percentile(h, pct) << "," << pct << std::endl;
+  }
+
+  gpr_histogram_destroy(h);
 }
 
-std::shared_ptr<Reporter> GetReporter() {
-  static std::shared_ptr<Reporter> reporter(InitBenchmarkReporters());
-  return reporter;
-}
+using grpc::testing::ExpDist;
+using grpc::testing::DetDist;
+using grpc::testing::UniformDist;
+using grpc::testing::ParetoDist;
 
-}  // namespace testing
-}  // namespace grpc
+int main(int argc, char **argv) {
+  RunTest(ExpDist(10.0), 5, std::string("Exponential(10)"));
+  RunTest(DetDist(5.0), 5, std::string("Det(5)"));
+  RunTest(UniformDist(0.0, 10.0), 5, std::string("Uniform(1,10)"));
+  RunTest(ParetoDist(1.0, 1.0), 5, std::string("Pareto(1,1)"));
+  return 0;
+}
