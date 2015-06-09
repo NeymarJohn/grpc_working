@@ -6,18 +6,22 @@ Package for GRPC Python.
 Dependencies
 ------------
 
-Ensure you have installed the gRPC core.  On Mac OS X, install homebrew_. On Linux, install linuxbrew_.
-Run the following command to install gRPC Python.
+Ensure that you have installed GRPC core.
+
+On debian linux systems, install from our released deb package:
 
 ::
 
-  $ curl -fsSL https://goo.gl/getgrpc | bash -s python
+  $ wget https://github.com/grpc/grpc/releases/download/release-0_5_0/libgrpc_0.5.0_amd64.deb
+  $ wget https://github.com/grpc/grpc/releases/download/release-0_5_0/libgrpc-dev_0.5.0_amd64.deb
+  $ sudo dpkg -i libgrpc_0.5.0_amd64.deb libgrpc-dev_0.5.0_amd64.deb
 
-This will download and run the [gRPC install script][] to install grpc core. The script then uses pip to install this package.  It also installs the Protocol Buffers compiler (_protoc_) and the gRPC _protoc_ plugin for python.
+Otherwise, install from source:
 
-Otherwise, `install from source`_
+::
 
-.. _`install from source`: https://github.com/grpc/grpc/blob/master/src/python/README.md#building-from-source
-.. _homebrew: http://brew.sh
-.. _linuxbrew: https://github.com/Homebrew/linuxbrew#installation
-.. _`gRPC install script`: https://raw.githubusercontent.com/grpc/homebrew-grpc/master/scripts/install
+  git clone https://github.com/grpc/grpc.git
+  cd grpc
+  ./configure
+  make && make install
+
