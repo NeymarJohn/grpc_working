@@ -33,7 +33,10 @@
 
 'use strict';
 
-var _ = require('lodash');
+var _ = require('underscore');
+
+var capitalize = require('underscore.string/capitalize');
+var decapitalize = require('underscore.string/decapitalize');
 
 /**
  * Get a function that deserializes a specific type of protobuf.
@@ -78,7 +81,7 @@ function fullyQualifiedName(value) {
   }
   var name = value.name;
   if (value.className === 'Service.RPCMethod') {
-    name = _.capitalize(name);
+    name = capitalize(name);
   }
   if (value.hasOwnProperty('parent')) {
     var parent_name = fullyQualifiedName(value.parent);
@@ -115,8 +118,8 @@ function wrapIgnoreNull(func) {
 function getProtobufServiceAttrs(service) {
   var prefix = '/' + fullyQualifiedName(service) + '/';
   return _.object(_.map(service.children, function(method) {
-    return [_.camelCase(method.name), {
-      path: prefix + _.capitalize(method.name),
+    return [decapitalize(method.name), {
+      path: prefix + capitalize(method.name),
       requestStream: method.requestStream,
       responseStream: method.responseStream,
       requestSerialize: serializeCls(method.resolvedRequestType.build()),

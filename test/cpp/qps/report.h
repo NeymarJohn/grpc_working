@@ -62,7 +62,8 @@ class Reporter {
   virtual void ReportQPS(const ScenarioResult& result) const = 0;
 
   /** Reports QPS per core as (YYY/server core). */
-  virtual void ReportQPSPerCore(const ScenarioResult& result) const = 0;
+  virtual void ReportQPSPerCore(const ScenarioResult& result,
+                                const ServerConfig& config) const = 0;
 
   /** Reports latencies for the 50, 90, 95, 99 and 99.9 percentiles, in ms. */
   virtual void ReportLatency(const ScenarioResult& result) const = 0;
@@ -83,7 +84,8 @@ class CompositeReporter : public Reporter {
   void add(std::unique_ptr<Reporter> reporter);
 
   void ReportQPS(const ScenarioResult& result) const GRPC_OVERRIDE;
-  void ReportQPSPerCore(const ScenarioResult& result) const GRPC_OVERRIDE;
+  void ReportQPSPerCore(const ScenarioResult& result,
+                        const ServerConfig& config) const GRPC_OVERRIDE;
   void ReportLatency(const ScenarioResult& result) const GRPC_OVERRIDE;
   void ReportTimes(const ScenarioResult& result) const GRPC_OVERRIDE;
 
@@ -98,7 +100,8 @@ class GprLogReporter : public Reporter {
 
  private:
   void ReportQPS(const ScenarioResult& result) const GRPC_OVERRIDE;
-  void ReportQPSPerCore(const ScenarioResult& result) const GRPC_OVERRIDE;
+  void ReportQPSPerCore(const ScenarioResult& result,
+                        const ServerConfig& config) const GRPC_OVERRIDE;
   void ReportLatency(const ScenarioResult& result) const GRPC_OVERRIDE;
   void ReportTimes(const ScenarioResult& result) const GRPC_OVERRIDE;
 };
