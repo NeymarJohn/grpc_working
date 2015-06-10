@@ -61,16 +61,9 @@ namespace Grpc.Core
         bool startRequested;
         bool shutdownRequested;
 
-        /// <summary>
-        /// Create a new server.
-        /// </summary>
-        /// <param name="options">Channel options.</param>
-        public Server(IEnumerable<ChannelOption> options = null)
+        public Server()
         {
-            using (var channelArgs = ChannelOptions.CreateChannelArgs(options))
-            {
-                this.handle = ServerSafeHandle.NewServer(GetCompletionQueue(), channelArgs);
-            }
+            this.handle = ServerSafeHandle.NewServer(GetCompletionQueue(), IntPtr.Zero);
         }
 
         /// <summary>
@@ -143,7 +136,8 @@ namespace Grpc.Core
                 Preconditions.CheckState(!shutdownRequested);
                 shutdownRequested = true;
             }
-            handle.ShutdownAndNotify(HandleServerShutdown);
+
+            handle.ShutdownAndNotify(GetCompletionQueue(), HandleServerShutdown);
             await shutdownTcs.Task;
             handle.Dispose();
         }
@@ -159,8 +153,22 @@ namespace Grpc.Core
             }
         }
 
-        public void Kill()
+        /// <summary>
+        /// Requests server shutdown while cancelling all the in-progress calls.
+        /// The returned task finishes when shutdown procedure is complete.
+        /// </summary>
+        public async Task KillAsync()
         {
+            lock (myLock)
+            {
+                Preconditions.CheckState(startRequested);
+                Preconditions.CheckState(!shutdownRequested);
+                shutdownRequested = true;
+            }
+
+            handle.ShutdownAndNotify(GetCompletionQueue(), HandleServerShutdown);
+            handle.CancelAllCalls();
+            await shutdownTcs.Task;
             handle.Dispose();
         }
 
