@@ -34,7 +34,7 @@
 #ifndef GRPC_INTERNAL_CORE_COMPRESSION_MESSAGE_COMPRESS_H
 #define GRPC_INTERNAL_CORE_COMPRESSION_MESSAGE_COMPRESS_H
 
-#include <grpc/compression.h>
+#include "src/core/compression/algorithm.h"
 #include <grpc/support/slice_buffer.h>
 
 /* compress 'input' to 'output' using 'algorithm'.

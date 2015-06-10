@@ -31,31 +31,18 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_STRING_UTIL_H
-#define GRPC_SUPPORT_STRING_UTIL_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <grpc/support/sync.h>
 
-/* String utility functions */
+/* There isn't really any such thing as a pollset under Windows, due to the
+   nature of the IO completion ports. */
 
-/* Returns a copy of src that can be passed to gpr_free().
-   If allocation fails or if src is NULL, returns NULL. */
-char *gpr_strdup(const char *src);
+struct grpc_kick_fd_info;
 
-/* printf to a newly-allocated string.  The set of supported formats may vary
-   between platforms.
+typedef struct grpc_pollset_kick_state {
+  int unused;
+} grpc_pollset_kick_state;
 
-   On success, returns the number of bytes printed (excluding the final '\0'),
-   and *strp points to a string which must later be destroyed with gpr_free().
-
-   On error, returns -1 and sets *strp to NULL. If the format string is bad,
-   the result is undefined. */
-int gpr_asprintf(char **strp, const char *format, ...);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif  /* GRPC_SUPPORT_STRING_UTIL_H */
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H */

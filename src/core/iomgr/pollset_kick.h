@@ -31,57 +31,44 @@
  *
  */
 
-#include <set>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_H
 
-#include <grpc/support/log.h>
+#include <grpc/support/port_platform.h>
 
-#include <signal.h>
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/pollset_kick_posix.h"
+#endif
 
-#include "test/cpp/qps/driver.h"
-#include "test/cpp/qps/report.h"
-#include "test/cpp/util/benchmark_config.h"
+#ifdef GPR_WIN32
+#include "src/core/iomgr/pollset_kick_windows.h"
+#endif
 
-namespace grpc {
-namespace testing {
+/* This is an abstraction around the typical pipe mechanism for waking up a
+   thread sitting in a poll() style call. */
 
-static const int WARMUP = 5;
-static const int BENCHMARK = 10;
+void grpc_pollset_kick_global_init(void);
+void grpc_pollset_kick_global_destroy(void);
 
-static void RunQPS() {
-  gpr_log(GPR_INFO, "Running QPS test, open-loop");
+void grpc_pollset_kick_init(grpc_pollset_kick_state *kick_state);
+void grpc_pollset_kick_destroy(grpc_pollset_kick_state *kick_state);
 
-  ClientConfig client_config;
-  client_config.set_client_type(ASYNC_CLIENT);
-  client_config.set_enable_ssl(false);
-  client_config.set_outstanding_rpcs_per_channel(1000);
-  client_config.set_client_channels(8);
-  client_config.set_payload_size(1);
-  client_config.set_async_client_threads(8);
-  client_config.set_rpc_type(UNARY);
-  client_config.set_load_type(POISSON);
-  client_config.mutable_load_params()->
-    mutable_poisson()->set_offered_load(10000.0);
+/* Guarantees a pure posix implementation rather than a specialized one, if
+ * applicable. Intended for testing. */
+void grpc_pollset_kick_global_init_fallback_fd(void);
 
-  ServerConfig server_config;
-  server_config.set_server_type(ASYNC_SERVER);
-  server_config.set_enable_ssl(false);
-  server_config.set_threads(4);
+/* Must be called before entering poll(). If return value is -1, this consumed
+   an existing kick. Otherwise the return value is an FD to add to the poll set.
+ */
+int grpc_pollset_kick_pre_poll(grpc_pollset_kick_state *kick_state);
 
-  const auto result =
-      RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
+/* Consume an existing kick. Must be called after poll returns that the fd was
+   readable, and before calling kick_post_poll. */
+void grpc_pollset_kick_consume(grpc_pollset_kick_state *kick_state);
 
-  GetReporter()->ReportQPSPerCore(*result);
-  GetReporter()->ReportLatency(*result);
-}
+/* Must be called after pre_poll, and after consume if applicable */
+void grpc_pollset_kick_post_poll(grpc_pollset_kick_state *kick_state);
 
-}  // namespace testing
-}  // namespace grpc
+void grpc_pollset_kick_kick(grpc_pollset_kick_state *kick_state);
 
-int main(int argc, char** argv) {
-  grpc::testing::InitBenchmark(&argc, &argv, true);
-
-  signal(SIGPIPE, SIG_IGN);
-  grpc::testing::RunQPS();
-
-  return 0;
-}
+#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_H */

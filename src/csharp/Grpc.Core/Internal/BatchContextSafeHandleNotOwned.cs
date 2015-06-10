@@ -41,50 +41,32 @@ namespace Grpc.Core.Internal
     /// Not owned version of 
     /// grpcsharp_batch_context
     /// </summary>
-    internal class BatchContextSafeHandle : SafeHandleZeroIsInvalid
+    internal class BatchContextSafeHandleNotOwned : SafeHandleZeroIsInvalid
     {
         [DllImport("grpc_csharp_ext.dll")]
-        static extern BatchContextSafeHandle grpcsharp_batch_context_create();
+        static extern IntPtr grpcsharp_batch_context_recv_message_length(BatchContextSafeHandleNotOwned ctx);
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern IntPtr grpcsharp_batch_context_recv_message_length(BatchContextSafeHandle ctx);
+        static extern void grpcsharp_batch_context_recv_message_to_buffer(BatchContextSafeHandleNotOwned ctx, byte[] buffer, UIntPtr bufferLen);
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern void grpcsharp_batch_context_recv_message_to_buffer(BatchContextSafeHandle ctx, byte[] buffer, UIntPtr bufferLen);
+        static extern StatusCode grpcsharp_batch_context_recv_status_on_client_status(BatchContextSafeHandleNotOwned ctx);
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern StatusCode grpcsharp_batch_context_recv_status_on_client_status(BatchContextSafeHandle ctx);
+        static extern IntPtr grpcsharp_batch_context_recv_status_on_client_details(BatchContextSafeHandleNotOwned ctx);  // returns const char*
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern IntPtr grpcsharp_batch_context_recv_status_on_client_details(BatchContextSafeHandle ctx);  // returns const char*
+        static extern CallSafeHandle grpcsharp_batch_context_server_rpc_new_call(BatchContextSafeHandleNotOwned ctx);
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern CallSafeHandle grpcsharp_batch_context_server_rpc_new_call(BatchContextSafeHandle ctx);
+        static extern IntPtr grpcsharp_batch_context_server_rpc_new_method(BatchContextSafeHandleNotOwned ctx);  // returns const char*
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern IntPtr grpcsharp_batch_context_server_rpc_new_method(BatchContextSafeHandle ctx);  // returns const char*
+        static extern int grpcsharp_batch_context_recv_close_on_server_cancelled(BatchContextSafeHandleNotOwned ctx);
 
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern int grpcsharp_batch_context_recv_close_on_server_cancelled(BatchContextSafeHandle ctx);
-
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern void grpcsharp_batch_context_destroy(IntPtr ctx);
-
-        private BatchContextSafeHandle()
+        public BatchContextSafeHandleNotOwned(IntPtr handle) : base(false)
         {
-        }
-
-        public static BatchContextSafeHandle Create()
-        {
-            return grpcsharp_batch_context_create();
-        }
-
-        public IntPtr Handle
-        {
-            get
-            {
-                return handle;
-            }
+            SetHandle(handle);
         }
 
         public Status GetReceivedStatus()
@@ -119,12 +101,6 @@ namespace Grpc.Core.Internal
         public bool GetReceivedCloseOnServerCancelled()
         {
             return grpcsharp_batch_context_recv_close_on_server_cancelled(this) != 0;
-        }
-            
-        protected override bool ReleaseHandle()
-        {
-            grpcsharp_batch_context_destroy(handle);
-            return true;
         }
     }
 }

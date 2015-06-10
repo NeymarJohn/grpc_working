@@ -33,47 +33,35 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Grpc.Core.Utils;
 
 namespace Grpc.Core.Internal
 {
     /// <summary>
-    /// grpc_call_error from grpc/grpc.h
+    /// from grpc/grpc.h
     /// </summary>
     internal enum GRPCCallError
     {
         /* everything went ok */
-        OK = 0,
+        GRPC_CALL_OK = 0,
         /* something failed, we don't know what */
-        Error,
+        GRPC_CALL_ERROR,
         /* this method is not available on the server */
-        NotOnServer,
+        GRPC_CALL_ERROR_NOT_ON_SERVER,
         /* this method is not available on the client */
-        NotOnClient,
+        GRPC_CALL_ERROR_NOT_ON_CLIENT,
         /* this method must be called before server_accept */
-        AlreadyAccepted,
+        GRPC_CALL_ERROR_ALREADY_ACCEPTED,
         /* this method must be called before invoke */
-        AlreadyInvoked,
+        GRPC_CALL_ERROR_ALREADY_INVOKED,
         /* this method must be called after invoke */
-        NotInvoked,
+        GRPC_CALL_ERROR_NOT_INVOKED,
         /* this call is already finished
      (writes_done or write_status has already been called) */
-        AlreadyFinished,
+        GRPC_CALL_ERROR_ALREADY_FINISHED,
         /* there is already an outstanding read/write operation on the call */
-        TooManyOperations,
+        GRPC_CALL_ERROR_TOO_MANY_OPERATIONS,
         /* the flags value was illegal for this call */
-        InvalidFlags
-    }
-
-    internal static class CallErrorExtensions
-    {
-        /// <summary>
-        /// Checks the call API invocation's result is OK.
-        /// </summary>
-        public static void CheckOk(this GRPCCallError callError)
-        {
-            Preconditions.CheckState(callError == GRPCCallError.OK, "Call error: " + callError);
-        }
+        GRPC_CALL_ERROR_INVALID_FLAGS
     }
 
     /// <summary>
@@ -82,12 +70,12 @@ namespace Grpc.Core.Internal
     internal enum GRPCCompletionType
     {
         /* Shutting down */
-        Shutdown, 
+        GRPC_QUEUE_SHUTDOWN, 
 
         /* No event before timeout */
-        Timeout,  
+        GRPC_QUEUE_TIMEOUT,  
 
         /* operation completion */
-        OpComplete
+        GRPC_OP_COMPLETE
     }
 }

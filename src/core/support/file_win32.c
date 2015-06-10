@@ -42,7 +42,6 @@
 
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
 
 #include "src/core/support/file.h"
 #include "src/core/support/string_win32.h"

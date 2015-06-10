@@ -52,6 +52,11 @@ namespace Grpc.Core
         /// </summary>
         public const int PickUnusedPort = 0;
 
+        // TODO(jtattermusch) : make sure the delegate doesn't get garbage collected while
+        // native callbacks are in the completion queue.
+        readonly CompletionCallbackDelegate serverShutdownHandler;
+        readonly CompletionCallbackDelegate newServerRpcHandler;
+
         readonly ServerSafeHandle handle;
         readonly object myLock = new object();
 
@@ -64,6 +69,8 @@ namespace Grpc.Core
         public Server()
         {
             this.handle = ServerSafeHandle.NewServer(GetCompletionQueue(), IntPtr.Zero);
+            this.newServerRpcHandler = HandleNewServerRpc;
+            this.serverShutdownHandler = HandleServerShutdown;
         }
 
         /// <summary>
@@ -101,7 +108,7 @@ namespace Grpc.Core
         /// </summary>
         /// <returns>The port on which server will be listening.</returns>
         /// <param name="host">the host</param>
-        /// <param name="port">the port. If zero, an unused port is chosen automatically.</param>
+        /// <param name="port">the port. If zero, , an unused port is chosen automatically.</param>
         public int AddListeningPort(string host, int port, ServerCredentials credentials)
         {
             Preconditions.CheckNotNull(credentials);
@@ -137,7 +144,7 @@ namespace Grpc.Core
                 shutdownRequested = true;
             }
 
-            handle.ShutdownAndNotify(GetCompletionQueue(), HandleServerShutdown);
+            handle.ShutdownAndNotify(serverShutdownHandler);
             await shutdownTcs.Task;
             handle.Dispose();
         }
@@ -153,22 +160,8 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>
-        /// Requests server shutdown while cancelling all the in-progress calls.
-        /// The returned task finishes when shutdown procedure is complete.
-        /// </summary>
-        public async Task KillAsync()
+        public void Kill()
         {
-            lock (myLock)
-            {
-                Preconditions.CheckState(startRequested);
-                Preconditions.CheckState(!shutdownRequested);
-                shutdownRequested = true;
-            }
-
-            handle.ShutdownAndNotify(GetCompletionQueue(), HandleServerShutdown);
-            handle.CancelAllCalls();
-            await shutdownTcs.Task;
             handle.Dispose();
         }
 
@@ -201,7 +194,7 @@ namespace Grpc.Core
             {
                 if (!shutdownRequested)
                 {
-                    handle.RequestCall(GetCompletionQueue(), HandleNewServerRpc);
+                    handle.RequestCall(GetCompletionQueue(), newServerRpcHandler);
                 }
             }
         }
@@ -229,28 +222,44 @@ namespace Grpc.Core
         /// <summary>
         /// Handles the native callback.
         /// </summary>
-        private void HandleNewServerRpc(bool success, BatchContextSafeHandle ctx)
+        private void HandleNewServerRpc(bool success, IntPtr batchContextPtr)
         {
-            // TODO: handle error
-
-            CallSafeHandle call = ctx.GetServerRpcNewCall();
-            string method = ctx.GetServerRpcNewMethod();
-
-            // after server shutdown, the callback returns with null call
-            if (!call.IsInvalid)
+            try
             {
-                Task.Run(async () => await InvokeCallHandler(call, method));
-            }
+                var ctx = new BatchContextSafeHandleNotOwned(batchContextPtr);
 
-            AllowOneRpc();
+                // TODO: handle error
+
+                CallSafeHandle call = ctx.GetServerRpcNewCall();
+                string method = ctx.GetServerRpcNewMethod();
+
+                // after server shutdown, the callback returns with null call
+                if (!call.IsInvalid)
+                {
+                    Task.Run(async () => await InvokeCallHandler(call, method));
+                }
+
+                AllowOneRpc();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Caught exception in a native handler: " + e);
+            }
         }
 
         /// <summary>
         /// Handles native callback.
         /// </summary>
-        private void HandleServerShutdown(bool success, BatchContextSafeHandle ctx)
+        private void HandleServerShutdown(bool success, IntPtr batchContextPtr)
         {
-            shutdownTcs.SetResult(null);
+            try
+            {
+                shutdownTcs.SetResult(null);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Caught exception in a native handler: " + e);
+            }
         }
 
         private static CompletionQueueSafeHandle GetCompletionQueue()

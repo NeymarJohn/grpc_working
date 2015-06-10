@@ -47,6 +47,9 @@ namespace Grpc.Core.Internal
     /// </summary>
     internal class AsyncCall<TRequest, TResponse> : AsyncCallBase<TRequest, TResponse>
     {
+        readonly CompletionCallbackDelegate unaryResponseHandler;
+        readonly CompletionCallbackDelegate finishedHandler;
+
         // Completion of a pending unary response if not null.
         TaskCompletionSource<TResponse> unaryResponseTcs;
 
@@ -57,6 +60,8 @@ namespace Grpc.Core.Internal
 
         public AsyncCall(Func<TRequest, byte[]> serializer, Func<byte[], TResponse> deserializer) : base(serializer, deserializer)
         {
+            this.unaryResponseHandler = CreateBatchCompletionCallback(HandleUnaryResponse);
+            this.finishedHandler = CreateBatchCompletionCallback(HandleFinished);
         }
 
         public void Initialize(Channel channel, CompletionQueueSafeHandle cq, string methodName)
@@ -91,21 +96,7 @@ namespace Grpc.Core.Internal
 
                 using (var metadataArray = MetadataArraySafeHandle.Create(headers))
                 {
-                    using (var ctx = BatchContextSafeHandle.Create())
-                    {
-                        call.StartUnary(payload, ctx, metadataArray);
-                        var ev = cq.Pluck(ctx.Handle);
-
-                        bool success = (ev.success != 0);
-                        try
-                        {
-                            HandleUnaryResponse(success, ctx);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine("Exception occured while invoking completion delegate: " + e);
-                        }
-                    }
+                    call.BlockingUnary(cq, payload, unaryResponseHandler, metadataArray);
                 }
 
                 try
@@ -138,7 +129,7 @@ namespace Grpc.Core.Internal
                 unaryResponseTcs = new TaskCompletionSource<TResponse>();
                 using (var metadataArray = MetadataArraySafeHandle.Create(headers))
                 {
-                    call.StartUnary(payload, HandleUnaryResponse, metadataArray);
+                    call.StartUnary(payload, unaryResponseHandler, metadataArray);
                 }
                 return unaryResponseTcs.Task;
             }
@@ -160,7 +151,7 @@ namespace Grpc.Core.Internal
                 unaryResponseTcs = new TaskCompletionSource<TResponse>();
                 using (var metadataArray = MetadataArraySafeHandle.Create(headers))
                 {
-                    call.StartClientStreaming(HandleUnaryResponse, metadataArray);
+                    call.StartClientStreaming(unaryResponseHandler, metadataArray);
                 }
 
                 return unaryResponseTcs.Task;
@@ -184,7 +175,7 @@ namespace Grpc.Core.Internal
 
                 using (var metadataArray = MetadataArraySafeHandle.Create(headers))
                 {
-                    call.StartServerStreaming(payload, HandleFinished, metadataArray);
+                    call.StartServerStreaming(payload, finishedHandler, metadataArray);
                 }
             }
         }
@@ -203,7 +194,7 @@ namespace Grpc.Core.Internal
 
                 using (var metadataArray = MetadataArraySafeHandle.Create(headers))
                 {
-                    call.StartDuplexStreaming(HandleFinished, metadataArray);
+                    call.StartDuplexStreaming(finishedHandler, metadataArray);
                 }
             }
         }
@@ -238,7 +229,7 @@ namespace Grpc.Core.Internal
                 Preconditions.CheckNotNull(completionDelegate, "Completion delegate cannot be null");
                 CheckSendingAllowed();
 
-                call.StartSendCloseFromClient(HandleHalfclosed);
+                call.StartSendCloseFromClient(halfclosedHandler);
 
                 halfcloseRequested = true;
                 sendCompletionDelegate = completionDelegate;
@@ -283,7 +274,7 @@ namespace Grpc.Core.Internal
         /// <summary>
         /// Handler for unary response completion.
         /// </summary>
-        private void HandleUnaryResponse(bool success, BatchContextSafeHandle ctx)
+        private void HandleUnaryResponse(bool success, BatchContextSafeHandleNotOwned ctx)
         {
             lock (myLock)
             {
@@ -316,7 +307,7 @@ namespace Grpc.Core.Internal
         /// <summary>
         /// Handles receive status completion for calls with streaming response.
         /// </summary>
-        private void HandleFinished(bool success, BatchContextSafeHandle ctx)
+        private void HandleFinished(bool success, BatchContextSafeHandleNotOwned ctx)
         {
             var status = ctx.GetReceivedStatus();
 

@@ -48,7 +48,7 @@ namespace Grpc.Core.Tests
         int counter;
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern GRPCCallError grpcsharp_test_callback([MarshalAs(UnmanagedType.FunctionPtr)] OpCompletionDelegate callback);
+        static extern GRPCCallError grpcsharp_test_callback([MarshalAs(UnmanagedType.FunctionPtr)] CompletionCallbackDelegate callback);
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern IntPtr grpcsharp_test_nop(IntPtr ptr);
@@ -88,7 +88,7 @@ namespace Grpc.Core.Tests
         [Test]
         public void NativeCallbackBenchmark()
         {
-            OpCompletionDelegate handler = Handler;
+            CompletionCallbackDelegate handler = Handler;
 
             counter = 0;
             BenchmarkUtil.RunBenchmark(
@@ -114,7 +114,7 @@ namespace Grpc.Core.Tests
                 10000, 10000,
                 () =>
                 {
-                    grpcsharp_test_callback(new OpCompletionDelegate(Handler));
+                    grpcsharp_test_callback(new CompletionCallbackDelegate(Handler));
                 });
             Assert.AreNotEqual(0, counter);
         }
@@ -134,7 +134,7 @@ namespace Grpc.Core.Tests
                 });
         }
 
-        private void Handler(bool success)
+        private void Handler(bool success, IntPtr ptr)
         {
             counter++;
         }
