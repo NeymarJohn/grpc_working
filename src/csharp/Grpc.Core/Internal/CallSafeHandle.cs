@@ -192,5 +192,7 @@ namespace Grpc.Core.Internal
         {
             return buffered ? 0 : GRPC_WRITE_BUFFER_HINT;
         }
+
+
     }
 }
