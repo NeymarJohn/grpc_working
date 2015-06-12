@@ -30,21 +30,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#include <memory>
 
-#ifndef GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
-#define GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
+#include <grpc/grpc.h>
+#include <grpc++/auth_context.h>
 
-typedef struct gpr_stack_lockfree gpr_stack_lockfree;
+namespace grpc {
 
-/* This stack must specify the maximum number of entries to track.
-   The current implementation only allows up to 65534 entries */
-gpr_stack_lockfree *gpr_stack_lockfree_create(int entries);
-void gpr_stack_lockfree_destroy(gpr_stack_lockfree *);
+std::shared_ptr<const AuthContext> CreateAuthContext(grpc_call* call) {
+  (void)call;
+  return std::shared_ptr<const AuthContext>();
+}
 
-/* Pass in a valid entry number for the next stack entry */
-void gpr_stack_lockfree_push(gpr_stack_lockfree *, int entry);
-
-/* Returns -1 on empty or the actual entry number */
-int gpr_stack_lockfree_pop(gpr_stack_lockfree *);
-
-#endif  /* GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H */
+}  // namespace grpc
