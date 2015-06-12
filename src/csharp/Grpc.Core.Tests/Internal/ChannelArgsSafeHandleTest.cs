@@ -32,57 +32,44 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
+using Grpc.Core;
+using Grpc.Core.Internal;
 using Grpc.Core.Utils;
+using NUnit.Framework;
 
-namespace Grpc.Core.Internal
+namespace Grpc.Core.Internal.Tests
 {
-    internal delegate void OpCompletionDelegate(bool success);
-    internal delegate void BatchCompletionDelegate(bool success, BatchContextSafeHandle ctx);
-
-    internal class CompletionRegistry
+    public class ChannelArgsSafeHandleTest
     {
-        readonly ConcurrentDictionary<IntPtr, OpCompletionDelegate> dict = new ConcurrentDictionary<IntPtr, OpCompletionDelegate>();  
-
-        public void Register(IntPtr key, OpCompletionDelegate callback)
+        [Test]
+        public void CreateEmptyAndDestroy()
         {
-            DebugStats.PendingBatchCompletions.Increment();
-            Preconditions.CheckState(dict.TryAdd(key, callback));
+            var channelArgs = ChannelArgsSafeHandle.Create(0);
+            channelArgs.Dispose();
         }
 
-        public void RegisterBatchCompletion(BatchContextSafeHandle ctx, BatchCompletionDelegate callback)
+        [Test]
+        public void CreateNonEmptyAndDestroy()
         {
-            OpCompletionDelegate opCallback = ((success) => HandleBatchCompletion(success, ctx, callback));
-            Register(ctx.Handle, opCallback);
+            var channelArgs = ChannelArgsSafeHandle.Create(5);
+            channelArgs.Dispose();
         }
 
-        public OpCompletionDelegate Extract(IntPtr key)
+        [Test]
+        public void CreateNullAndDestroy()
         {
-            OpCompletionDelegate value;
-            Preconditions.CheckState(dict.TryRemove(key, out value));
-            DebugStats.PendingBatchCompletions.Decrement();
-            return value;
+            var channelArgs = ChannelArgsSafeHandle.CreateNull();
+            channelArgs.Dispose();
         }
 
-        private static void HandleBatchCompletion(bool success, BatchContextSafeHandle ctx, BatchCompletionDelegate callback)
+        [Test]
+        public void CreateFillAndDestroy()
         {
-            try
-            {
-                callback(success, ctx);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception occured while invoking completion delegate: " + e);
-            }
-            finally
-            {
-                if (ctx != null)
-                {
-                    ctx.Dispose();
-                }
-            }
+            var channelArgs = ChannelArgsSafeHandle.Create(3);
+            channelArgs.SetInteger(0, "somekey", 12345);
+            channelArgs.SetString(1, "somekey", "abcdefghijkl");
+            channelArgs.SetString(2, "somekey", "XYZ");
+            channelArgs.Dispose();
         }
     }
 }
