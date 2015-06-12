@@ -32,6 +32,8 @@
  *
  */
 require_once realpath(dirname(__FILE__) . '/../../vendor/autoload.php');
+require 'DrSlump/Protobuf.php';
+\DrSlump\Protobuf::autoload();
 require 'empty.php';
 require 'message_set.php';
 require 'messages.php';

@@ -849,9 +849,6 @@ void PrintSourceServerMethod(grpc::protobuf::io::Printer *printer,
                    "::grpc::Status $ns$$Service$::Service::$Method$("
                    "::grpc::ServerContext* context, "
                    "const $Request$* request, $Response$* response) {\n");
-    printer->Print("  (void) context;\n");
-    printer->Print("  (void) request;\n");
-    printer->Print("  (void) response;\n");
     printer->Print(
         "  return ::grpc::Status("
         "::grpc::StatusCode::UNIMPLEMENTED);\n");
@@ -862,9 +859,6 @@ void PrintSourceServerMethod(grpc::protobuf::io::Printer *printer,
                    "::grpc::ServerContext* context, "
                    "::grpc::ServerReader< $Request$>* reader, "
                    "$Response$* response) {\n");
-    printer->Print("  (void) context;\n");
-    printer->Print("  (void) reader;\n");
-    printer->Print("  (void) response;\n");
     printer->Print(
         "  return ::grpc::Status("
         "::grpc::StatusCode::UNIMPLEMENTED);\n");
@@ -875,9 +869,6 @@ void PrintSourceServerMethod(grpc::protobuf::io::Printer *printer,
                    "::grpc::ServerContext* context, "
                    "const $Request$* request, "
                    "::grpc::ServerWriter< $Response$>* writer) {\n");
-    printer->Print("  (void) context;\n");
-    printer->Print("  (void) request;\n");
-    printer->Print("  (void) writer;\n");
     printer->Print(
         "  return ::grpc::Status("
         "::grpc::StatusCode::UNIMPLEMENTED);\n");
@@ -888,8 +879,6 @@ void PrintSourceServerMethod(grpc::protobuf::io::Printer *printer,
                    "::grpc::ServerContext* context, "
                    "::grpc::ServerReaderWriter< $Response$, $Request$>* "
                    "stream) {\n");
-    printer->Print("  (void) context;\n");
-    printer->Print("  (void) stream;\n");
     printer->Print(
         "  return ::grpc::Status("
         "::grpc::StatusCode::UNIMPLEMENTED);\n");
