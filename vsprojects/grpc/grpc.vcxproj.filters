@@ -319,6 +319,9 @@
     <ClCompile Include="..\..\src\core\transport\chttp2\huffsyms.c">
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\core\transport\chttp2\parsing.c">
+      <Filter>src\core\transport\chttp2</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\status_conversion.c">
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
@@ -332,6 +335,9 @@
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\varint.c">
+      <Filter>src\core\transport\chttp2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\transport\chttp2\writing.c">
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2_transport.c">
@@ -605,9 +611,6 @@
     <ClInclude Include="..\..\src\core\transport\chttp2\bin_encoder.h">
       <Filter>src\core\transport\chttp2</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\core\transport\chttp2\frame.h">
-      <Filter>src\core\transport\chttp2</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\core\transport\chttp2\frame_data.h">
       <Filter>src\core\transport\chttp2</Filter>
     </ClInclude>
@@ -636,6 +639,9 @@
       <Filter>src\core\transport\chttp2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\transport\chttp2\huffsyms.h">
+      <Filter>src\core\transport\chttp2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\core\transport\chttp2\internal.h">
       <Filter>src\core\transport\chttp2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\transport\chttp2\status_conversion.h">

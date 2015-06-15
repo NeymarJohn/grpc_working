@@ -29,7 +29,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,10 +50,10 @@ namespace Grpc.Core
         /// </summary>
         /// <param name="host">The DNS name of IP address of the host.</param>
         /// <param name="credentials">Optional credentials to create a secure channel.</param>
-        /// <param name="options">Channel options.</param>
-        public Channel(string host, Credentials credentials = null, IEnumerable<ChannelOption> options = null)
+        /// <param name="channelArgs">Optional channel arguments.</param>
+        public Channel(string host, Credentials credentials = null, ChannelArgs channelArgs = null)
         {
-            using (ChannelArgsSafeHandle nativeChannelArgs = ChannelOptions.CreateChannelArgs(options))
+            using (ChannelArgsSafeHandle nativeChannelArgs = CreateNativeChannelArgs(channelArgs))
             {
                 if (credentials != null)
                 {
@@ -68,7 +67,7 @@ namespace Grpc.Core
                     this.handle = ChannelSafeHandle.Create(host, nativeChannelArgs);
                 }
             }
-            this.target = GetOverridenTarget(host, options);
+            this.target = GetOverridenTarget(host, channelArgs);
         }
 
         /// <summary>
@@ -77,9 +76,9 @@ namespace Grpc.Core
         /// <param name="host">DNS name or IP address</param>
         /// <param name="port">the port</param>
         /// <param name="credentials">Optional credentials to create a secure channel.</param>
-        /// <param name="options">Channel options.</param>
-        public Channel(string host, int port, Credentials credentials = null, IEnumerable<ChannelOption> options = null) :
-            this(string.Format("{0}:{1}", host, port), credentials, options)
+        /// <param name="channelArgs">Optional channel arguments.</param>
+        public Channel(string host, int port, Credentials credentials = null, ChannelArgs channelArgs = null) :
+            this(string.Format("{0}:{1}", host, port), credentials, channelArgs)
         {
         }
 
@@ -113,25 +112,22 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>
-        /// Look for SslTargetNameOverride option and return its value instead of originalTarget
-        /// if found.
-        /// </summary>
-        private static string GetOverridenTarget(string originalTarget, IEnumerable<ChannelOption> options)
+        private static string GetOverridenTarget(string target, ChannelArgs args)
         {
-            if (options == null)
+            if (args != null && !string.IsNullOrEmpty(args.GetSslTargetNameOverride()))
             {
-                return originalTarget;
+                return args.GetSslTargetNameOverride();
             }
-            foreach (var option in options)
+            return target;
+        }
+
+        private static ChannelArgsSafeHandle CreateNativeChannelArgs(ChannelArgs args)
+        {
+            if (args == null)
             {
-                if (option.Type == ChannelOption.OptionType.String
-                    && option.Name == ChannelOptions.SslTargetNameOverride)
-                {
-                    return option.StringValue;
-                }
+                return ChannelArgsSafeHandle.CreateNull();
             }
-            return originalTarget;
+            return args.ToNativeChannelArgs();
         }
     }
 }

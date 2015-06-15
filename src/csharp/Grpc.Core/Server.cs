@@ -61,16 +61,9 @@ namespace Grpc.Core
         bool startRequested;
         bool shutdownRequested;
 
-        /// <summary>
-        /// Create a new server.
-        /// </summary>
-        /// <param name="options">Channel options.</param>
-        public Server(IEnumerable<ChannelOption> options = null)
+        public Server()
         {
-            using (var channelArgs = ChannelOptions.CreateChannelArgs(options))
-            {
-                this.handle = ServerSafeHandle.NewServer(GetCompletionQueue(), channelArgs);
-            }
+            this.handle = ServerSafeHandle.NewServer(GetCompletionQueue(), IntPtr.Zero);
         }
 
         /// <summary>

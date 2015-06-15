@@ -144,10 +144,7 @@ typedef enum grpc_call_error {
   /* the flags value was illegal for this call */
   GRPC_CALL_ERROR_INVALID_FLAGS,
   /* invalid metadata was passed to this call */
-  GRPC_CALL_ERROR_INVALID_METADATA,
-  /* completion queue for notification has not been registered with the server
-     */
-  GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE
+  GRPC_CALL_ERROR_INVALID_METADATA
 } grpc_call_error;
 
 /* Write Flags: */
