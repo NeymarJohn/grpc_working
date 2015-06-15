@@ -36,13 +36,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "src/core/support/string.h"
 #include <grpc/byte_buffer.h>
-#include <grpc/grpc.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
 #include <grpc/support/useful.h>
+#include "src/core/transport/stream_op.h"
 #include "test/core/end2end/cq_verifier.h"
 
 enum { TIMEOUT = 200000 };
@@ -99,22 +98,32 @@ static void end_test(grpc_end2end_test_fixture *f) {
   grpc_completion_queue_destroy(f->client_cq);
 }
 
-static void simple_request_body(grpc_end2end_test_fixture f) {
+static void test_invoke_request_with_flags(
+    grpc_end2end_test_config config, gpr_uint32 *flags_for_op,
+    grpc_call_error call_start_batch_expected_result) {
   grpc_call *c;
+  gpr_slice request_payload_slice = gpr_slice_from_copied_string("hello world");
+  grpc_byte_buffer *request_payload =
+      grpc_raw_byte_buffer_create(&request_payload_slice, 1);
   gpr_timespec deadline = five_seconds_time();
+  grpc_end2end_test_fixture f =
+      begin_test(config, "test_invoke_request_with_flags", NULL, NULL);
   cq_verifier *v_client = cq_verifier_create(f.client_cq);
+  cq_verifier *v_server = cq_verifier_create(f.server_cq);
   grpc_op ops[6];
   grpc_op *op;
   grpc_metadata_array initial_metadata_recv;
   grpc_metadata_array trailing_metadata_recv;
   grpc_metadata_array request_metadata_recv;
+  grpc_byte_buffer *request_payload_recv = NULL;
   grpc_call_details call_details;
   grpc_status_code status;
   char *details = NULL;
   size_t details_capacity = 0;
+  grpc_call_error expectation;
 
   c = grpc_channel_create_call(f.client, f.client_cq, "/foo",
-                               "slartibartfast.local", deadline);
+                               "foo.test.google.fr", deadline);
   GPR_ASSERT(c);
 
   grpc_metadata_array_init(&initial_metadata_recv);
@@ -125,24 +134,28 @@ static void simple_request_body(grpc_end2end_test_fixture f) {
   op = ops;
   op->op = GRPC_OP_SEND_INITIAL_METADATA;
   op->data.send_initial_metadata.count = 0;
+  op->flags = flags_for_op[op->op];
+  op++;
+  op->op = GRPC_OP_SEND_MESSAGE;
+  op->data.send_message = request_payload;
+  op->flags = flags_for_op[op->op];
   op++;
   op->op = GRPC_OP_SEND_CLOSE_FROM_CLIENT;
+  op->flags = flags_for_op[op->op];
   op++;
   op->op = GRPC_OP_RECV_INITIAL_METADATA;
   op->data.recv_initial_metadata = &initial_metadata_recv;
+  op->flags = flags_for_op[op->op];
   op++;
   op->op = GRPC_OP_RECV_STATUS_ON_CLIENT;
   op->data.recv_status_on_client.trailing_metadata = &trailing_metadata_recv;
   op->data.recv_status_on_client.status = &status;
   op->data.recv_status_on_client.status_details = &details;
   op->data.recv_status_on_client.status_details_capacity = &details_capacity;
+  op->flags = flags_for_op[op->op];
   op++;
-  GPR_ASSERT(GRPC_CALL_OK == grpc_call_start_batch(c, ops, op - ops, tag(1)));
-
-  cq_expect_completion(v_client, tag(1), 1);
-  cq_verify(v_client);
-
-  GPR_ASSERT(status == GRPC_STATUS_UNAUTHENTICATED);
+  expectation = call_start_batch_expected_result;
+  GPR_ASSERT(expectation == grpc_call_start_batch(c, ops, op - ops, tag(1)));
 
   gpr_free(details);
   grpc_metadata_array_destroy(&initial_metadata_recv);
@@ -153,19 +166,41 @@ static void simple_request_body(grpc_end2end_test_fixture f) {
   grpc_call_destroy(c);
 
   cq_verifier_destroy(v_client);
-}
+  cq_verifier_destroy(v_server);
 
-static void test_invoke_simple_request(grpc_end2end_test_config config) {
-  grpc_end2end_test_fixture f;
+  grpc_byte_buffer_destroy(request_payload);
+  grpc_byte_buffer_destroy(request_payload_recv);
 
-  f = begin_test(config, "test_invoke_simple_request", NULL, NULL);
-  simple_request_body(f);
   end_test(&f);
   config.tear_down_data(&f);
 }
 
 void grpc_end2end_tests(grpc_end2end_test_config config) {
-  if (config.feature_mask & FEATURE_MASK_SUPPORTS_HOSTNAME_VERIFICATION) {
-    test_invoke_simple_request(config);
+  size_t i;
+  gpr_uint32 flags_for_op[GRPC_OP_RECV_CLOSE_ON_SERVER+1];
+
+  {
+    /* check that all grpc_op_types fail when their flag value is set to an
+     * invalid value */
+    int indices[] = {GRPC_OP_SEND_INITIAL_METADATA, GRPC_OP_SEND_MESSAGE,
+                     GRPC_OP_SEND_CLOSE_FROM_CLIENT,
+                     GRPC_OP_RECV_INITIAL_METADATA,
+                     GRPC_OP_RECV_STATUS_ON_CLIENT};
+    for (i = 0; i < GPR_ARRAY_SIZE(indices); ++i) {
+      memset(flags_for_op, 0, sizeof(flags_for_op));
+      flags_for_op[indices[i]] = 0xDEADBEEF;
+      test_invoke_request_with_flags(config, flags_for_op,
+                                     GRPC_CALL_ERROR_INVALID_FLAGS);
+    }
+  }
+  {
+    /* check valid operation with allowed flags for GRPC_OP_SEND_BUFFER */
+    gpr_uint32 flags[] = {GRPC_WRITE_BUFFER_HINT, GRPC_WRITE_NO_COMPRESS,
+                          GRPC_WRITE_INTERNAL_COMPRESS};
+    for (i = 0; i < GPR_ARRAY_SIZE(flags); ++i) {
+      memset(flags_for_op, 0, sizeof(flags_for_op));
+      flags_for_op[GRPC_OP_SEND_MESSAGE] = flags[i];
+      test_invoke_request_with_flags(config, flags_for_op, GRPC_CALL_OK);
+    }
   }
 }
