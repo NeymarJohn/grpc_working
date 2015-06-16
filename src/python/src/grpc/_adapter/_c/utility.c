@@ -41,6 +41,7 @@
 #include <grpc/support/slice.h>
 #include <grpc/support/time.h>
 #include <grpc/support/string_util.h>
+#include <grpc/support/log.h>
 
 #include "grpc/_adapter/_c/types.h"
 
@@ -123,7 +124,8 @@ PyObject *pygrpc_consume_event(grpc_event event) {
           event.success ? Py_True : Py_False);
     } else {
       result = Py_BuildValue("iOOONO", GRPC_OP_COMPLETE, tag->user_tag,
-          tag->call, Py_None, pygrpc_consume_ops(tag->ops, tag->nops),
+          tag->call ? tag->call : Py_None, Py_None,
+          pygrpc_consume_ops(tag->ops, tag->nops),
           event.success ? Py_True : Py_False);
     }
     break;
@@ -168,7 +170,6 @@ int pygrpc_produce_op(PyObject *op, grpc_op *result) {
     return 0;
   }
   c_op.op = type;
-  c_op.flags = 0;
   switch (type) {
   case GRPC_OP_SEND_INITIAL_METADATA:
     if (!pygrpc_cast_pylist_to_send_metadata(
