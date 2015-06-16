@@ -60,7 +60,7 @@ default_test_options = TestOptions(False, False)
 # maps test names to options
 END2END_TESTS = {
     'bad_hostname': default_test_options,
-    'cancel_after_accept': TestOptions(flaky=True, secure=False),
+    'cancel_after_accept': default_test_options,
     'cancel_after_accept_and_writes_closed': default_test_options,
     'cancel_after_invoke': default_test_options,
     'cancel_before_invoke': default_test_options,
@@ -71,7 +71,7 @@ END2END_TESTS = {
     'early_server_shutdown_finishes_tags': default_test_options,
     'empty_batch': default_test_options,
     'graceful_server_shutdown': default_test_options,
-    'invoke_large_request': TestOptions(flaky=True, secure=False),
+    'invoke_large_request': default_test_options,
     'max_concurrent_streams': default_test_options,
     'max_message_length': default_test_options,
     'no_op': default_test_options,
@@ -101,7 +101,7 @@ def main():
               'language': 'c',
               'secure': 'check' if END2END_FIXTURES[f].secure else 'no',
               'src': ['test/core/end2end/fixtures/%s.c' % f],
-              'platforms': [ 'posix' ] if f.endswith('_posix') else END2END_FIXTURES[f].platforms,
+              'platforms': [ 'posix' ] if f.endswith('_posix') else [ 'windows', 'posix' ],
           }
           for f in sorted(END2END_FIXTURES.keys())] + [
           {
