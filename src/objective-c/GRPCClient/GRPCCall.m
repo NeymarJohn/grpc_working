@@ -319,12 +319,9 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
     if (strongSelf) {
       [strongSelf->_responseMetadata addEntriesFromDictionary:trailers];
 
-      if (error) {
-        NSMutableDictionary *userInfo =
-            [NSMutableDictionary dictionaryWithDictionary:error.userInfo];
-        userInfo[kGRPCStatusMetadataKey] = strongSelf->_responseMetadata;
-        error = [NSError errorWithDomain:error.domain code:error.code userInfo:userInfo];
-      }
+      NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithDictionary:error.userInfo];
+      userInfo[kGRPCStatusMetadataKey] = strongSelf->_responseMetadata;
+      error = [NSError errorWithDomain:error.domain code:error.code userInfo:userInfo];
       [strongSelf finishWithError:error];
     }
   }];
