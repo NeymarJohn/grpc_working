@@ -98,18 +98,14 @@
 #pragma mark Category for metadata arrays
 
 @implementation NSDictionary (GRPC)
-+ (instancetype)grpc_dictionaryFromMetadataArray:(grpc_metadata_array)array {
-  return [self grpc_dictionaryFromMetadata:array.metadata count:array.count];
-}
-
 + (instancetype)grpc_dictionaryFromMetadata:(grpc_metadata *)entries count:(size_t)count {
   NSMutableDictionary *metadata = [NSMutableDictionary dictionaryWithCapacity:count];
   for (grpc_metadata *entry = entries; entry < entries + count; entry++) {
     // TODO(jcanizales): Verify in a C library test that it's converting header names to lower case
     // automatically.
     NSString *name = [NSString stringWithCString:entry->key encoding:NSASCIIStringEncoding];
-    if (!name || metadata[name]) {
-      // Log if name is nil?
+    if (!name) {
+      // log?
       continue;
     }
     id value;
@@ -119,7 +115,10 @@
     } else {
       value = [NSString grpc_stringFromMetadataValue:entry];
     }
-    metadata[name] = value;
+    if (!metadata[name]) {
+      metadata[name] = [NSMutableArray array];
+    }
+    [metadata[name] addObject:value];
   }
   return metadata;
 }
