@@ -62,11 +62,10 @@ namespace Grpc.IntegrationTesting
             int port = server.AddListeningPort(host, Server.PickUnusedPort, TestCredentials.CreateTestServerCredentials());
             server.Start();
 
-            var options = new List<ChannelOption>
-            {
-                new ChannelOption(ChannelOptions.SslTargetNameOverride, TestCredentials.DefaultHostOverride)
-            };
-            channel = new Channel(host, port, TestCredentials.CreateTestClientCredentials(true), options);
+            var channelArgs = ChannelArgs.CreateBuilder()
+                .AddString(ChannelArgs.SslTargetNameOverrideKey, TestCredentials.DefaultHostOverride).Build();
+
+            channel = new Channel(host, port, TestCredentials.CreateTestClientCredentials(true), channelArgs);
             client = TestService.NewStub(channel);
         }
 

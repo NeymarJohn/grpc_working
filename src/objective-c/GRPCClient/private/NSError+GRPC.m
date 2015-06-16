@@ -35,16 +35,17 @@
 
 #include <grpc.h>
 
-NSString * const kGRPCErrorDomain = @"io.grpc";
+NSString *const kGRPCErrorDomain = @"org.grpc";
 
 @implementation NSError (GRPC)
-+ (instancetype)grpc_errorFromStatusCode:(grpc_status_code)statusCode details:(char *)details {
-  if (statusCode == GRPC_STATUS_OK) {
++ (instancetype)grpc_errorFromStatus:(struct grpc_status *)status {
+  if (status->status == GRPC_STATUS_OK) {
     return nil;
   }
-  NSString *message = [NSString stringWithCString:details encoding:NSASCIIStringEncoding];
+  NSString *message =
+      [NSString stringWithFormat:@"Code=%i Message='%s'", status->status, status->details];
   return [NSError errorWithDomain:kGRPCErrorDomain
-                             code:statusCode
+                             code:status->status
                          userInfo:@{NSLocalizedDescriptionKey: message}];
 }
 @end
