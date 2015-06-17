@@ -100,9 +100,7 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
   if (!host || !method) {
     [NSException raise:NSInvalidArgumentException format:@"Neither host nor method can be nil."];
   }
-  if (requestWriter.state != GRXWriterStateNotStarted) {
-    [NSException raise:NSInvalidArgumentException format:@"The requests writer can't be already started."];
-  }
+  // TODO(jcanizales): Throw if the requestWriter was already started.
   if ((self = [super init])) {
     static dispatch_once_t initialization;
     dispatch_once(&initialization, ^{
@@ -321,9 +319,12 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
     if (strongSelf) {
       [strongSelf->_responseMetadata addEntriesFromDictionary:trailers];
 
-      NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithDictionary:error.userInfo];
-      userInfo[kGRPCStatusMetadataKey] = strongSelf->_responseMetadata;
-      error = [NSError errorWithDomain:error.domain code:error.code userInfo:userInfo];
+      if (error) {
+        NSMutableDictionary *userInfo =
+            [NSMutableDictionary dictionaryWithDictionary:error.userInfo];
+        userInfo[kGRPCStatusMetadataKey] = strongSelf->_responseMetadata;
+        error = [NSError errorWithDomain:error.domain code:error.code userInfo:userInfo];
+      }
       [strongSelf finishWithError:error];
     }
   }];
