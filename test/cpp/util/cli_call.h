@@ -34,23 +34,17 @@
 #ifndef GRPC_TEST_CPP_UTIL_CLI_CALL_H
 #define GRPC_TEST_CPP_UTIL_CLI_CALL_H
 
-#include <map>
-
 #include <grpc++/channel_interface.h>
 #include <grpc++/config.h>
-#include <grpc++/status.h>
 
 namespace grpc {
 namespace testing {
 
 class CliCall GRPC_FINAL {
  public:
-  typedef std::multimap<grpc::string, grpc::string> MetadataContainer;
-  static Status Call(std::shared_ptr<grpc::ChannelInterface> channel,
-                     const grpc::string& method, const grpc::string& request,
-                     grpc::string* response, const MetadataContainer& metadata,
-                     MetadataContainer* server_initial_metadata,
-                     MetadataContainer* server_trailing_metadata);
+  static void Call(std::shared_ptr<grpc::ChannelInterface> channel,
+                   const grpc::string& method, const grpc::string& request,
+                   grpc::string* response);
 };
 
 }  // namespace testing
