@@ -144,7 +144,10 @@ typedef enum grpc_call_error {
   /* the flags value was illegal for this call */
   GRPC_CALL_ERROR_INVALID_FLAGS,
   /* invalid metadata was passed to this call */
-  GRPC_CALL_ERROR_INVALID_METADATA
+  GRPC_CALL_ERROR_INVALID_METADATA,
+  /* completion queue for notification has not been registered with the server
+     */
+  GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE
 } grpc_call_error;
 
 /* Write Flags: */
@@ -252,7 +255,7 @@ typedef enum {
    no arguments) */
 typedef struct grpc_op {
   grpc_op_type op;
-  gpr_uint32 flags;  /**< Write flags bitset for grpc_begin_messages */
+  gpr_uint32 flags; /**< Write flags bitset for grpc_begin_messages */
   union {
     struct {
       size_t count;
@@ -316,7 +319,7 @@ typedef struct grpc_op {
 } grpc_op;
 
 /** Initialize the grpc library.
-    
+
     It is not safe to call any other grpc functions before calling this.
     (To avoid overhead, little checking is done, and some things may work. We
     do not warrant that they will continue to do so in future revisions of this
@@ -324,7 +327,7 @@ typedef struct grpc_op {
 void grpc_init(void);
 
 /** Shut down the grpc library.
-    
+
     No memory is used by grpc after this call returns, nor are any instructions
     executing within the grpc library.
     Prior to calling, all application owned grpc objects must have been
@@ -335,7 +338,7 @@ void grpc_shutdown(void);
 grpc_completion_queue *grpc_completion_queue_create(void);
 
 /** Blocks until an event is available, the completion queue is being shut down,
-    or deadline is reached. 
+    or deadline is reached.
 
     Returns a grpc_event with type GRPC_QUEUE_TIMEOUT on timeout,
     otherwise a grpc_event describing the event that occurred.
@@ -346,7 +349,7 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cq,
                                       gpr_timespec deadline);
 
 /** Blocks until an event with tag 'tag' is available, the completion queue is
-    being shutdown or deadline is reached. 
+    being shutdown or deadline is reached.
 
     Returns a grpc_event with type GRPC_QUEUE_TIMEOUT on timeout,
     otherwise a grpc_event describing the event that occurred.
@@ -494,7 +497,7 @@ void grpc_server_start(grpc_server *server);
 void grpc_server_shutdown_and_notify(grpc_server *server,
                                      grpc_completion_queue *cq, void *tag);
 
-/* Cancel all in-progress calls. 
+/* Cancel all in-progress calls.
    Only usable after shutdown. */
 void grpc_server_cancel_all_calls(grpc_server *server);
 
@@ -508,9 +511,9 @@ void grpc_server_destroy(grpc_server *server);
 
     Tracers (usually controlled by the environment variable GRPC_TRACE)
     allow printf-style debugging on GRPC internals, and are useful for
-    tracking down problems in the field. 
+    tracking down problems in the field.
 
-    Use of this function is not strictly thread-safe, but the 
+    Use of this function is not strictly thread-safe, but the
     thread-safety issues raised by it should not be of concern. */
 int grpc_tracer_set_enabled(const char *name, int enabled);
 

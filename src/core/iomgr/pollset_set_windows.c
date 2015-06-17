@@ -31,30 +31,20 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_TLS_PTHREAD_H
-#define GRPC_SUPPORT_TLS_PTHREAD_H
+#include <grpc/support/port_platform.h>
 
-#include <grpc/support/log.h> /* for GPR_ASSERT */
-#include <pthread.h>
+#ifdef GPR_WINSOCK_SOCKET
 
-/* Thread local storage based on pthread library calls.
-   #include tls.h to use this - and see that file for documentation */
+#include "src/core/iomgr/pollset_set.h"
 
-struct gpr_pthread_thread_local {
-  pthread_key_t key;
-};
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set) {}
 
-#define GPR_TLS_DECL(name) static struct gpr_pthread_thread_local name = {0}
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set) {}
 
-#define gpr_tls_init(tls) GPR_ASSERT(0 == pthread_key_create(&(tls)->key, NULL))
-#define gpr_tls_destroy(tls) pthread_key_delete((tls)->key)
-#define gpr_tls_get(tls) ((gpr_intptr)pthread_getspecific((tls)->key))
-#ifdef __cplusplus
-extern "C" {
-#endif
-gpr_intptr gpr_tls_set(struct gpr_pthread_thread_local *tls, gpr_intptr value);
-#ifdef __cplusplus
-}
-#endif
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset) {}
 
-#endif
+void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset) {}
+
+#endif /* GPR_WINSOCK_SOCKET */
