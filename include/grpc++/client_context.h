@@ -41,7 +41,6 @@
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
 #include <grpc++/config.h>
-#include <grpc++/status.h>
 #include <grpc++/time.h>
 
 struct grpc_call;
@@ -54,6 +53,7 @@ class ChannelInterface;
 class CompletionQueue;
 class Credentials;
 class RpcMethod;
+class Status;
 template <class R>
 class ClientReader;
 template <class W>

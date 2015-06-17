@@ -58,18 +58,11 @@ typedef enum grpc_stream_op_code {
   GRPC_OP_SLICE
 } grpc_stream_op_code;
 
-/** Internal bit flag for grpc_begin_message's \a flags signaling the use of
- * compression for the message */
-#define GRPC_WRITE_INTERNAL_COMPRESS (0x80000000u)
-/** Mask of all valid internal flags. */
-#define GRPC_WRITE_INTERNAL_USED_MASK (GRPC_WRITE_INTERNAL_COMPRESS)
-
 /* Arguments for GRPC_OP_BEGIN_MESSAGE */
 typedef struct grpc_begin_message {
   /* How many bytes of data will this message contain */
   gpr_uint32 length;
-  /* Write flags for the message: see grpc.h GRPC_WRITE_* for the public bits,
-   * GRPC_WRITE_INTERNAL_* for the internal ones. */
+  /* Write flags for the message: see grpc.h GRPC_WRITE_xxx */
   gpr_uint32 flags;
 } grpc_begin_message;
 
@@ -165,6 +158,8 @@ void grpc_sopb_add_slice(grpc_stream_op_buffer *sopb, gpr_slice slice);
 /* Append a buffer to a buffer - does not ref/unref any internal objects */
 void grpc_sopb_append(grpc_stream_op_buffer *sopb, grpc_stream_op *ops,
                       size_t nops);
+
+void grpc_sopb_move_to(grpc_stream_op_buffer *src, grpc_stream_op_buffer *dst);
 
 char *grpc_sopb_string(grpc_stream_op_buffer *sopb);
 
