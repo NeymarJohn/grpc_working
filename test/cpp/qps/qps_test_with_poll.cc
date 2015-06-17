@@ -31,27 +31,60 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_IOMGR_ENDPOINT_TESTS_H
-#define GRPC_TEST_CORE_IOMGR_ENDPOINT_TESTS_H
+#include <set>
 
-#include <sys/types.h>
+#include <grpc/support/log.h>
 
-#include "src/core/iomgr/endpoint.h"
+#include <signal.h>
 
-typedef struct grpc_endpoint_test_config grpc_endpoint_test_config;
-typedef struct grpc_endpoint_test_fixture grpc_endpoint_test_fixture;
+#include "test/cpp/qps/driver.h"
+#include "test/cpp/qps/report.h"
+#include "test/cpp/util/benchmark_config.h"
 
-struct grpc_endpoint_test_fixture {
-  grpc_endpoint *client_ep;
-  grpc_endpoint *server_ep;
-};
+extern "C" {
+#include "src/core/iomgr/pollset_posix.h"
+}
 
-struct grpc_endpoint_test_config {
-  const char *name;
-  grpc_endpoint_test_fixture (*create_fixture)(size_t slice_size);
-  void (*clean_up)();
-};
+namespace grpc {
+namespace testing {
 
-void grpc_endpoint_tests(grpc_endpoint_test_config config, grpc_pollset *pollset);
+static const int WARMUP = 5;
+static const int BENCHMARK = 5;
 
-#endif  /* GRPC_TEST_CORE_IOMGR_ENDPOINT_TESTS_H */
+static void RunQPS() {
+  gpr_log(GPR_INFO, "Running QPS test");
+
+  ClientConfig client_config;
+  client_config.set_client_type(ASYNC_CLIENT);
+  client_config.set_enable_ssl(false);
+  client_config.set_outstanding_rpcs_per_channel(1000);
+  client_config.set_client_channels(8);
+  client_config.set_payload_size(1);
+  client_config.set_async_client_threads(8);
+  client_config.set_rpc_type(UNARY);
+
+  ServerConfig server_config;
+  server_config.set_server_type(ASYNC_SERVER);
+  server_config.set_enable_ssl(false);
+  server_config.set_threads(4);
+
+  const auto result =
+      RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
+
+  GetReporter()->ReportQPSPerCore(*result);
+  GetReporter()->ReportLatency(*result);
+}
+
+}  // namespace testing
+}  // namespace grpc
+
+int main(int argc, char** argv) {
+  grpc::testing::InitBenchmark(&argc, &argv, true);
+
+  grpc_platform_become_multipoller = grpc_poll_become_multipoller;
+
+  signal(SIGPIPE, SIG_IGN);
+  grpc::testing::RunQPS();
+
+  return 0;
+}

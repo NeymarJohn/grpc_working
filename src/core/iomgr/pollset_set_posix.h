@@ -31,27 +31,25 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_IOMGR_ENDPOINT_TESTS_H
-#define GRPC_TEST_CORE_IOMGR_ENDPOINT_TESTS_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
 
-#include <sys/types.h>
+#include "src/core/iomgr/fd_posix.h"
+#include "src/core/iomgr/pollset_posix.h"
 
-#include "src/core/iomgr/endpoint.h"
+typedef struct grpc_pollset_set {
+  gpr_mu mu;
 
-typedef struct grpc_endpoint_test_config grpc_endpoint_test_config;
-typedef struct grpc_endpoint_test_fixture grpc_endpoint_test_fixture;
+  size_t pollset_count;
+  size_t pollset_capacity;
+  grpc_pollset **pollsets;
 
-struct grpc_endpoint_test_fixture {
-  grpc_endpoint *client_ep;
-  grpc_endpoint *server_ep;
-};
+  size_t fd_count;
+  size_t fd_capacity;
+  grpc_fd **fds;
+} grpc_pollset_set;
 
-struct grpc_endpoint_test_config {
-  const char *name;
-  grpc_endpoint_test_fixture (*create_fixture)(size_t slice_size);
-  void (*clean_up)();
-};
+void grpc_pollset_set_add_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
+void grpc_pollset_set_del_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
 
-void grpc_endpoint_tests(grpc_endpoint_test_config config, grpc_pollset *pollset);
-
-#endif  /* GRPC_TEST_CORE_IOMGR_ENDPOINT_TESTS_H */
+#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */
