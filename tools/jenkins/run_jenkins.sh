@@ -56,11 +56,9 @@ then
     $FETCH_PULL_REQUEST_CMD \
     && git checkout -f $GIT_COMMIT \
     && git submodule update \
-    && pip install simplejson mako \
     && nvm use 0.12 \
     && rvm use ruby-2.1 \
-    && CONFIG=$config tools/run_tests/prepare_travis.sh \
-    && CPPFLAGS=-I/tmp/prebuilt/include tools/run_tests/run_tests.py -t -c $config -l $language" || DOCKER_FAILED="true"
+    && tools/run_tests/run_tests.py -t -l $language" || DOCKER_FAILED="true"
 
   DOCKER_CID=`cat docker.cid`
   if [ "$DOCKER_FAILED" == "" ]
@@ -70,7 +68,6 @@ then
   else
     echo "Docker exited with failure, keeping container $DOCKER_CID."
     echo "You can SSH to the worker and use 'docker start CID' and 'docker exec -i -t CID bash' to debug the problem."
-    exit 1
   fi
 
 elif [ "$platform" == "windows" ]
