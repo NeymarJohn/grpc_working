@@ -35,7 +35,6 @@
 #define GRPCXX_IMPL_SERVICE_TYPE_H
 
 #include <grpc++/config.h>
-#include <grpc++/status.h>
 
 namespace grpc {
 
@@ -45,6 +44,7 @@ class RpcService;
 class Server;
 class ServerCompletionQueue;
 class ServerContext;
+class Status;
 
 class SynchronousService {
  public:

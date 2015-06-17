@@ -143,8 +143,7 @@ namespace Grpc.Core
                 Preconditions.CheckState(!shutdownRequested);
                 shutdownRequested = true;
             }
-
-            handle.ShutdownAndNotify(GetCompletionQueue(), HandleServerShutdown);
+            handle.ShutdownAndNotify(HandleServerShutdown);
             await shutdownTcs.Task;
             handle.Dispose();
         }
@@ -160,22 +159,8 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>
-        /// Requests server shutdown while cancelling all the in-progress calls.
-        /// The returned task finishes when shutdown procedure is complete.
-        /// </summary>
-        public async Task KillAsync()
+        public void Kill()
         {
-            lock (myLock)
-            {
-                Preconditions.CheckState(startRequested);
-                Preconditions.CheckState(!shutdownRequested);
-                shutdownRequested = true;
-            }
-
-            handle.ShutdownAndNotify(GetCompletionQueue(), HandleServerShutdown);
-            handle.CancelAllCalls();
-            await shutdownTcs.Task;
             handle.Dispose();
         }
 
