@@ -392,20 +392,18 @@ Asserts:
 * clients are free to assert that the response payload body contents are zero
   and comparing the entire response message against a golden response
 
-### custom_metadata
+### Metadata (TODO: fix name)
 
-Status: Ready for implementation, beta requirement.
+Status: Not yet implementable
 
 This test verifies that custom metadata in either binary or ascii format can be
-sent as initial-metadata by the client and as both initial- and trailing-metadata
-by the server.
+sent in header and trailer.
 
 Server features:
 * [UnaryCall][]
-* [FullDuplexCall][]
 * [Compressable Payload][]
 * Ability to receive custom metadata from client in header and send custom data
-  back to client in both header and trailer. 
+  back to client in both header and trailer. (TODO: this is not defined)
 
 Procedure:
  1. While sending custom metadata (ascii + binary) in the header, client calls
@@ -420,32 +418,21 @@ Procedure:
       }
     }
     ```
-The client attaches custom metadata with the following keys:
-    ```
-    "x-grpc-test-echo-initial"
-    or
-    "x-grpc-test-echo-trailing"
-    ```
- 2. Client repeats step 1. with FullDuplexCall instead of UnaryCall.
 
 Asserts:
 * call was successful
-* metadata with key `"x-grpc-test-echo-initial"` is received in the initial metadata.
-* metadata with key `"x-grpc-test-echo-trailing"` is received in the trailing metadata.
-
-
+* custom metadata is echoed back in the response header.
+* custom metadata is echoed back in the response trailer.
 
 ### status_code_and_message
 
-Status: Ready for implementation, beta requirement.
+Status: Not yet implementable
 
 This test verifies unary calls succeed in sending messages, and propagates back
 status code and message sent along with the messages.
 
 Server features:
 * [UnaryCall][]
-* [FullDuplexCall][]
-* [Echo Status][]
 
 Procedure:
  1. Client calls UnaryCall with:
@@ -458,8 +445,6 @@ Procedure:
       }
     }
     ```
-2. Client repeats step 1. with FullDuplexCall instead of UnaryCall.
-
 
 Asserts:
 * received status code is the same with sent code
@@ -467,9 +452,10 @@ Asserts:
 
 ### unimplemented_method
 
-Status: Ready for implementation. Blocking beta.
+Status: Not yet implementable
 
-This test verifies calling unimplemented RPC method returns the UNIMPLEMENTED status code.
+This test verifies calling unimplemented RPC method returns unimplemented
+status.
 
 Procedure:
 * Client calls UnimplementedCall with:
@@ -694,14 +680,6 @@ responses, it closes with OK.
 When the client requests COMPRESSABLE payload, the response includes a payload
 of the size requested containing all zeros and the payload type is
 COMPRESSABLE.
-
-### Echo Status
-[Echo Status]: #echo-status
-When the client sends a response_status in the request payload, the server returns
-exactly the status code and messsage contained within said response_status. This
-can be used by clients to verify correct handling of different status codes and
-associated status messages end-to-end.
-
 
 ### Observe ResponseParameters.interval_us
 [Observe ResponseParameters.interval_us]: #observe-responseparametersinterval_us
