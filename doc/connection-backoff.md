@@ -14,7 +14,7 @@ We have several parameters:
 ## Proposed Backoff Algorithm
 
 Exponentially back off the start time of connection attempts up to a limit of
-MAX_BACKOFF, with jitter.
+MAX_BACKOFF.
 
 ```
 ConnectWithBackoff()
@@ -24,22 +24,42 @@ ConnectWithBackoff()
          != SUCCESS)
     SleepUntil(current_deadline)
     current_backoff = Min(current_backoff * MULTIPLIER, MAX_BACKOFF)
-    current_deadline = now() + current_backoff +
-      UniformRandom(-JITTER * current_backoff, JITTER * current_backoff)
-
+    current_deadline = now() + current_backoff
 ```
 
-With specific parameters of
-MIN_CONNECT_TIMEOUT = 20 seconds
-INITIAL_BACKOFF = 1 second
-MULTIPLIER = 1.6
-MAX_BACKOFF = 120 seconds
-JITTER = 0.2
+## Historical Algorithm in Stubby
 
-Implementations with pressing concerns (such as minimizing the number of wakeups
-on a mobile phone) may wish to use a different algorithm, and in particular
-different jitter logic.
+Exponentially increase up to a limit of MAX_BACKOFF the intervals between
+connection attempts. This is what stubby 2 uses, and is equivalent if
+TryConnect() fails instantly.
 
-Alternate implementations must ensure that connection backoffs started at the
-same time disperse, and must not attempt connections substantially more often
-than the above algorithm.
+```
+LegacyConnectWithBackoff()
+  current_backoff = INITIAL_BACKOFF
+  while (TryConnect(MIN_CONNECT_TIMEOUT) != SUCCESS)
+    SleepFor(current_backoff)
+    current_backoff = Min(current_backoff * MULTIPLIER, MAX_BACKOFF)
+```
+
+The grpc C implementation currently uses this approach with an initial backoff
+of 1 second, multiplier of 2, and maximum backoff of 120 seconds. (This will
+change)
+
+Stubby, or at least rpc2, uses exactly this algorithm with an initial backoff
+of 1 second, multiplier of 1.2, and a maximum backoff of 120 seconds.
+
+## Use Cases to Consider
+
+* Client tries to connect to a server which is down for multiple hours, eg for
+  maintenance
+* Client tries to connect to a server which is overloaded
+* User is bringing up both a client and a server at the same time
+    * In particular, we would like to avoid a large unnecessary delay if the
+      client connects to a server which is about to come up
+* Client/server are misconfigured such that connection attempts always fail
+    * We want to make sure these don’t put too much load on the server by
+      default.
+* Server is overloaded and wants to transiently make clients back off
+* Application has out of band reason to believe a server is back
+    * We should consider an out of band mechanism for the client to hint that
+      we should short circuit the backoff.
