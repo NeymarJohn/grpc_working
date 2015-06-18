@@ -38,7 +38,6 @@
 #include <list>
 
 #include <grpc++/config.h>
-#include <grpc/compression.h>
 #include <grpc/grpc.h>
 
 namespace grpc {
@@ -58,9 +57,6 @@ class ChannelArguments {
   // Set target name override for SSL host name checking.
   void SetSslTargetNameOverride(const grpc::string& name);
   // TODO(yangg) add flow control options
-
-  // Set the compression level for the channel.
-  void SetCompressionLevel(grpc_compression_level level);
 
   // Generic channel argument setters. Only for advanced use cases.
   void SetInt(const grpc::string& key, int value);

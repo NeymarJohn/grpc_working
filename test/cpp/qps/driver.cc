@@ -241,11 +241,11 @@ std::unique_ptr<ScenarioResult> RunScenario(
 
   for (auto client = clients.begin(); client != clients.end(); client++) {
     GPR_ASSERT(client->stream->WritesDone());
-    GPR_ASSERT(client->stream->Finish().ok());
+    GPR_ASSERT(client->stream->Finish().IsOk());
   }
   for (auto server = servers.begin(); server != servers.end(); server++) {
     GPR_ASSERT(server->stream->WritesDone());
-    GPR_ASSERT(server->stream->Finish().ok());
+    GPR_ASSERT(server->stream->Finish().IsOk());
   }
   return result;
 }
