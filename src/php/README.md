@@ -9,11 +9,12 @@ Pre-Alpha : This gRPC PHP implementation is work-in-progress and is not expected
 
 ## ENVIRONMENT
 
-Prerequisite: PHP 5.5 or later, PHPUnit, pecl
+Install `php5` and `php5-dev`.
 
-```sh
-sudo apt-get install php5 php5-dev phpunit php-pear
-```
+To run the tests, additionally install `phpunit`.
+
+Alternatively, build and install PHP 5.5 or later from source with standard
+configuration options.
 
 ## Build from Homebrew
 
@@ -47,7 +48,7 @@ $ make check
 $ sudo make install
 ```
 
-Build and install the gRPC C core libraries
+Build and install the gRPC C core
 
 ```sh
 $ cd grpc
@@ -55,13 +56,7 @@ $ make
 $ sudo make install
 ```
 
-Install the gRPC PHP extension
-
-```sh
-$ sudo pecl install grpc
-```
-
-OR
+Build the gRPC PHP extension
 
 ```sh
 $ cd grpc/src/php/ext/grpc
@@ -130,3 +125,4 @@ $ ./bin/run_gen_code_test.sh
 [linuxbrew]:https://github.com/Homebrew/linuxbrew#installation
 [gRPC install script]:https://raw.githubusercontent.com/grpc/homebrew-grpc/master/scripts/install
 [Node]:https://github.com/grpc/grpc/tree/master/src/node/examples
+
