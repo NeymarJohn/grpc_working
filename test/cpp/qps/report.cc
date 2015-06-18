@@ -35,7 +35,6 @@
 
 #include <grpc/support/log.h>
 #include "test/cpp/qps/stats.h"
-#include "user_data_client.h"
 
 namespace grpc {
 namespace testing {
@@ -117,78 +116,6 @@ void GprLogReporter::ReportTimes(const ScenarioResult& result) const {
                       [](ResourceUsage u) { return u.user_time; }) /
               sum(result.client_resources,
                   [](ResourceUsage u) { return u.wall_time; }));
-}
-
-UserDataClient userDataClient(grpc::CreateChannel("localhost:50052", grpc::InsecureCredentials(),
-                          ChannelArguments()));
-
-//Leaderboard Reported implementation.
-void UserDatabaseReporter::ReportQPS(const ScenarioResult& result) const {
-  auto qps = result.latencies.Count() /
-              average(result.client_resources,
-                      [](ResourceUsage u) { return u.wall_time; });
-
-  userDataClient.setQPS(qps);
-  userDataClient.setConfigs(result.client_config, result.server_config);
-}
-
-void UserDatabaseReporter::ReportQPSPerCore(const ScenarioResult& result) const {
-  auto qps = result.latencies.Count() /
-            average(result.client_resources,
-                    [](ResourceUsage u) { return u.wall_time; });
-
-  auto qpsPerCore = qps / result.server_config.threads();
-
-  userDataClient.setQPS(qps);
-  userDataClient.setQPSPerCore(qpsPerCore);
-  userDataClient.setConfigs(result.client_config, result.server_config);
-}
-
-void UserDatabaseReporter::ReportLatency(const ScenarioResult& result) const {
-  userDataClient.setLatencies(result.latencies.Percentile(50) / 1000,
-                              result.latencies.Percentile(90) / 1000,
-                              result.latencies.Percentile(95) / 1000,
-                              result.latencies.Percentile(99) / 1000,
-                              result.latencies.Percentile(99.9) / 1000);
-  userDataClient.setConfigs(result.client_config, result.server_config);
-}
-
-void UserDatabaseReporter::ReportTimes(const ScenarioResult& result) const {
-  double serverSystemTime = 100.0 * sum(result.server_resources,
-                  [](ResourceUsage u) { return u.system_time; }) /
-                    sum(result.server_resources,
-                  [](ResourceUsage u) { return u.wall_time; });
-  double serverUserTime = 100.0 * sum(result.server_resources,
-                  [](ResourceUsage u) { return u.user_time; }) /
-                    sum(result.server_resources,
-                  [](ResourceUsage u) { return u.wall_time; });
-  double clientSystemTime = 100.0 * sum(result.client_resources,
-                  [](ResourceUsage u) { return u.system_time; }) /
-                    sum(result.client_resources,
-                  [](ResourceUsage u) { return u.wall_time; });
-  double clientUserTime = 100.0 * sum(result.client_resources,
-                  [](ResourceUsage u) { return u.user_time; }) /
-                    sum(result.client_resources,
-                  [](ResourceUsage u) { return u.wall_time; });
-
-  userDataClient.setTimes(serverSystemTime, serverUserTime, 
-    clientSystemTime, clientUserTime);
-  userDataClient.setConfigs(result.client_config, result.server_config);
-}
-
-void UserDatabaseReporter::SendData() const {
-  //send data to performance database
-  int userDataState = userDataClient.sendData(access_token_, test_name_, sys_info_);
-
-  //check state of data sending
-  switch(userDataState) {
-    case 1:
-      gpr_log(GPR_INFO, "Data sent to user database successfully");
-      break;
-    case -1:
-      gpr_log(GPR_INFO, "Data could not be sent to user database");
-      break;
-  }
 }
 
 }  // namespace testing
