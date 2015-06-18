@@ -38,12 +38,9 @@ RUN apt-get update && apt-get install -y \
   autotools-dev \
   build-essential \
   bzip2 \
-  clang \
-  clang++ \
   curl \
   gcc \
   git \
-  libc++-dev \
   libc6 \
   libc6-dbg \
   libc6-dev \
@@ -118,9 +115,6 @@ RUN apt-get update && apt-get install -y \
 
 # Install Python packages from PyPI
 RUN pip install futures==2.2.0 enum34==1.0.4 protobuf==3.0.0a2
-
-# For sanity test
-RUN pip install simplejson mako
 
 ##################
 # PHP dependencies

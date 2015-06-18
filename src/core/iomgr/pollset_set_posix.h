@@ -31,30 +31,25 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_TLS_PTHREAD_H
-#define GRPC_SUPPORT_TLS_PTHREAD_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
 
-#include <grpc/support/log.h> /* for GPR_ASSERT */
-#include <pthread.h>
+#include "src/core/iomgr/fd_posix.h"
+#include "src/core/iomgr/pollset_posix.h"
 
-/* Thread local storage based on pthread library calls.
-   #include tls.h to use this - and see that file for documentation */
+typedef struct grpc_pollset_set {
+  gpr_mu mu;
 
-struct gpr_pthread_thread_local {
-  pthread_key_t key;
-};
+  size_t pollset_count;
+  size_t pollset_capacity;
+  grpc_pollset **pollsets;
 
-#define GPR_TLS_DECL(name) static struct gpr_pthread_thread_local name = {0}
+  size_t fd_count;
+  size_t fd_capacity;
+  grpc_fd **fds;
+} grpc_pollset_set;
 
-#define gpr_tls_init(tls) GPR_ASSERT(0 == pthread_key_create(&(tls)->key, NULL))
-#define gpr_tls_destroy(tls) pthread_key_delete((tls)->key)
-#define gpr_tls_get(tls) ((gpr_intptr)pthread_getspecific((tls)->key))
-#ifdef __cplusplus
-extern "C" {
-#endif
-gpr_intptr gpr_tls_set(struct gpr_pthread_thread_local *tls, gpr_intptr value);
-#ifdef __cplusplus
-}
-#endif
+void grpc_pollset_set_add_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
+void grpc_pollset_set_del_fd(grpc_pollset_set *pollset_set, grpc_fd *fd);
 
-#endif
+#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */
