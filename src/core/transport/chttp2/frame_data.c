@@ -35,12 +35,10 @@
 
 #include <string.h>
 
+#include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/useful.h>
-
-#include "src/core/support/string.h"
-#include "src/core/transport/stream_op.h"
 #include "src/core/transport/transport.h"
 
 grpc_chttp2_parse_error grpc_chttp2_data_parser_init(
@@ -77,7 +75,6 @@ grpc_chttp2_parse_error grpc_chttp2_data_parser_parse(
   gpr_uint8 *const end = GPR_SLICE_END_PTR(slice);
   gpr_uint8 *cur = beg;
   grpc_chttp2_data_parser *p = parser;
-  gpr_uint32 message_flags = 0;
 
   if (is_last && p->is_last_frame) {
     state->end_of_stream = 1;
@@ -100,8 +97,8 @@ grpc_chttp2_parse_error grpc_chttp2_data_parser_parse(
         case 0:
           break;
         case 1:
-          p->is_frame_compressed = 1;  /* GPR_TRUE */
-          break;
+          gpr_log(GPR_ERROR, "Compressed GRPC frames not yet supported");
+          return GRPC_CHTTP2_STREAM_ERROR;
         default:
           gpr_log(GPR_ERROR, "Bad GRPC frame type 0x%02x", p->frame_type);
           return GRPC_CHTTP2_STREAM_ERROR;
@@ -133,11 +130,7 @@ grpc_chttp2_parse_error grpc_chttp2_data_parser_parse(
       p->state = GRPC_CHTTP2_DATA_FRAME;
       ++cur;
       state->need_flush_reads = 1;
-      if (p->is_frame_compressed) {
-        message_flags |= GRPC_WRITE_INTERNAL_COMPRESS;
-      }
-      grpc_sopb_add_begin_message(&p->incoming_sopb, p->frame_size,
-                                  message_flags);
+      grpc_sopb_add_begin_message(&p->incoming_sopb, p->frame_size, 0);
     /* fallthrough */
     case GRPC_CHTTP2_DATA_FRAME:
       if (cur == end) {

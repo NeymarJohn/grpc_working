@@ -118,5 +118,77 @@ void GprLogReporter::ReportTimes(const ScenarioResult& result) const {
                   [](ResourceUsage u) { return u.wall_time; }));
 }
 
+// perfDbClient perfDbClient(grpc::CreateChannel("localhost:50052", grpc::InsecureCredentials(),
+//                           ChannelArguments()));
+
+//Performance database reporter implementation.
+void PerfDbReporter::ReportQPS(const ScenarioResult& result) const {
+  auto qps = result.latencies.Count() /
+              average(result.client_resources,
+                      [](ResourceUsage u) { return u.wall_time; });
+
+  perfDbClient.setQPS(qps);
+  perfDbClient.setConfigs(result.client_config, result.server_config);
+}
+
+void PerfDbReporter::ReportQPSPerCore(const ScenarioResult& result) const {
+  auto qps = result.latencies.Count() /
+            average(result.client_resources,
+                    [](ResourceUsage u) { return u.wall_time; });
+
+  auto qpsPerCore = qps / result.server_config.threads();
+
+  perfDbClient.setQPS(qps);
+  perfDbClient.setQPSPerCore(qpsPerCore);
+  perfDbClient.setConfigs(result.client_config, result.server_config);
+}
+
+void PerfDbReporter::ReportLatency(const ScenarioResult& result) const {
+  perfDbClient.setLatencies(result.latencies.Percentile(50) / 1000,
+                              result.latencies.Percentile(90) / 1000,
+                              result.latencies.Percentile(95) / 1000,
+                              result.latencies.Percentile(99) / 1000,
+                              result.latencies.Percentile(99.9) / 1000);
+  perfDbClient.setConfigs(result.client_config, result.server_config);
+}
+
+void PerfDbReporter::ReportTimes(const ScenarioResult& result) const {
+  double serverSystemTime = 100.0 * sum(result.server_resources,
+                  [](ResourceUsage u) { return u.system_time; }) /
+                    sum(result.server_resources,
+                  [](ResourceUsage u) { return u.wall_time; });
+  double serverUserTime = 100.0 * sum(result.server_resources,
+                  [](ResourceUsage u) { return u.user_time; }) /
+                    sum(result.server_resources,
+                  [](ResourceUsage u) { return u.wall_time; });
+  double clientSystemTime = 100.0 * sum(result.client_resources,
+                  [](ResourceUsage u) { return u.system_time; }) /
+                    sum(result.client_resources,
+                  [](ResourceUsage u) { return u.wall_time; });
+  double clientUserTime = 100.0 * sum(result.client_resources,
+                  [](ResourceUsage u) { return u.user_time; }) /
+                    sum(result.client_resources,
+                  [](ResourceUsage u) { return u.wall_time; });
+
+  perfDbClient.setTimes(serverSystemTime, serverUserTime, 
+    clientSystemTime, clientUserTime);
+  perfDbClient.setConfigs(result.client_config, result.server_config);
+}
+
+void PerfDbReporter::SendData() const {
+  //send data to performance database
+  int dataState = perfDbClient.sendData(access_token_, test_name_, sys_info_);
+
+  //check state of data sending
+  switch(dataState) {
+    case 1:
+      gpr_log(GPR_INFO, "Data sent to performance database successfully");
+      break;
+    case -1:
+      gpr_log(GPR_INFO, "Data could not be sent to performance database");
+      break;
+  }
+}
+
 }  // namespace testing
 }  // namespace grpc

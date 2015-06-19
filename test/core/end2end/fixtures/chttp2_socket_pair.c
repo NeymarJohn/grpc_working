@@ -39,7 +39,6 @@
 #include "src/core/channel/connected_channel.h"
 #include "src/core/channel/http_client_filter.h"
 #include "src/core/channel/http_server_filter.h"
-#include "src/core/channel/compress_filter.h"
 #include "src/core/iomgr/endpoint_pair.h"
 #include "src/core/iomgr/iomgr.h"
 #include "src/core/surface/channel.h"
@@ -78,7 +77,6 @@ static grpc_transport_setup_result client_setup_transport(
 
   const grpc_channel_filter *filters[] = {&grpc_client_surface_filter,
                                           &grpc_http_client_filter,
-                                          &grpc_compress_filter,
                                           &grpc_connected_channel_filter};
   size_t nfilters = sizeof(filters) / sizeof(*filters);
   grpc_channel *channel = grpc_channel_create_from_filters(
@@ -97,8 +95,7 @@ static grpc_end2end_test_fixture chttp2_create_fixture_socketpair(
   grpc_end2end_test_fixture f;
   memset(&f, 0, sizeof(f));
   f.fixture_data = sfd;
-  f.client_cq = grpc_completion_queue_create();
-  f.server_cq = grpc_completion_queue_create();
+  f.cq = grpc_completion_queue_create();
 
   *sfd = grpc_iomgr_create_endpoint_pair("fixture", 65536);
 
@@ -121,7 +118,7 @@ static void chttp2_init_server_socketpair(grpc_end2end_test_fixture *f,
   grpc_endpoint_pair *sfd = f->fixture_data;
   GPR_ASSERT(!f->server);
   f->server = grpc_server_create_from_filters(NULL, 0, server_args);
-  grpc_server_register_completion_queue(f->server, f->server_cq);
+  grpc_server_register_completion_queue(f->server, f->cq);
   grpc_server_start(f->server);
   grpc_create_chttp2_transport(server_setup_transport, f, server_args,
                                sfd->server, NULL, 0, grpc_mdctx_create(), 0);
