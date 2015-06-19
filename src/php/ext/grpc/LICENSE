@@ -30,13 +30,3 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
-#define GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
-
-#include "src/core/channel/channel_stack.h"
-
-/* XXX */
-extern const grpc_channel_filter grpc_compress_filter;
-
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H */
