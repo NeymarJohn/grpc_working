@@ -58,14 +58,6 @@ Pod::Spec.new do |s|
 % endfor
 
     cs.header_mappings_dir = '.'
-    # The core library includes its headers as either "src/core/..." or "grpc/...", meaning we have
-    # to tell XCode to look for headers under the "include" subdirectory too.
-    #
-    # TODO(jcanizales): Instead of doing this, during installation move everything under
-    # "include/grpc" one directory up. The directory names under PODS_ROOT are implementation
-    # details of Cocoapods, and have changed in the past, breaking this podspec.
-    cs.xcconfig = { 'HEADER_SEARCH_PATHS' => '"$(PODS_ROOT)/Headers/Private/gRPC" ' +
-                                             '"$(PODS_ROOT)/Headers/Private/gRPC/include"' }
 
     cs.requires_arc = false
     cs.libraries = 'z'
