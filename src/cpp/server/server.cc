@@ -52,14 +52,6 @@
 
 namespace grpc {
 
-class Server::ShutdownRequest GRPC_FINAL : public CompletionQueueTag {
- public:
-  bool FinalizeResult(void** tag, bool* status) {
-    delete this;
-    return false;
-  }
-};
-
 class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
  public:
   SyncRequest(RpcServiceMethod* method, void* tag)
@@ -71,8 +63,7 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
                                  RpcMethod::SERVER_STREAMING),
         has_response_payload_(method->method_type() == RpcMethod::NORMAL_RPC ||
                               method->method_type() ==
-                              RpcMethod::CLIENT_STREAMING),
-        cq_(nullptr) {
+                                  RpcMethod::CLIENT_STREAMING) {
     grpc_metadata_array_init(&request_metadata_);
   }
 
@@ -91,18 +82,10 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
     return mrd;
   }
 
-  void SetupRequest() {
-    cq_ = grpc_completion_queue_create();
-  }
-
-  void TeardownRequest() {
-    grpc_completion_queue_destroy(cq_);
-    cq_ = nullptr;
-  }
-
   void Request(grpc_server* server, grpc_completion_queue* notify_cq) {
-    GPR_ASSERT(cq_ && !in_flight_);
+    GPR_ASSERT(!in_flight_);
     in_flight_ = true;
+    cq_ = grpc_completion_queue_create();
     GPR_ASSERT(GRPC_CALL_OK ==
                grpc_server_request_registered_call(
                    server, tag_, &call_, &deadline_, &request_metadata_,
@@ -234,9 +217,6 @@ Server::~Server() {
       Shutdown();
     }
   }
-  void* got_tag;
-  bool ok;
-  GPR_ASSERT(!cq_.Next(&got_tag, &ok));
   grpc_server_destroy(server_);
   if (thread_pool_owned_) {
     delete thread_pool_;
@@ -297,7 +277,6 @@ bool Server::Start() {
   // Start processing rpcs.
   if (!sync_methods_->empty()) {
     for (auto m = sync_methods_->begin(); m != sync_methods_->end(); m++) {
-      m->SetupRequest();
       m->Request(server_, cq_.cq());
     }
 
@@ -311,7 +290,7 @@ void Server::Shutdown() {
   grpc::unique_lock<grpc::mutex> lock(mu_);
   if (started_ && !shutdown_) {
     shutdown_ = true;
-    grpc_server_shutdown_and_notify(server_, cq_.cq(), new ShutdownRequest());
+    grpc_server_shutdown(server_);
     cq_.Shutdown();
 
     // Wait for running callbacks to finish.
@@ -482,13 +461,9 @@ void Server::RunRpc() {
     if (ok) {
       SyncRequest::CallData cd(this, mrd);
       {
-        mrd->SetupRequest();
         grpc::unique_lock<grpc::mutex> lock(mu_);
         if (!shutdown_) {
           mrd->Request(server_, cq_.cq());
-        } else {
-          // destroy the structure that was created
-          mrd->TeardownRequest();
         }
       }
       cd.Run();

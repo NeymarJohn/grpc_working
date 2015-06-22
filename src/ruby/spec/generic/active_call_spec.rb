@@ -51,7 +51,7 @@ describe GRPC::ActiveCall do
   end
 
   after(:each) do
-    @server.close(@server_queue, deadline)
+    @server.close
   end
 
   describe 'restricted view methods' do
