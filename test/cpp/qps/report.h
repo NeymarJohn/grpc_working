@@ -41,7 +41,6 @@
 
 #include "test/cpp/qps/driver.h"
 #include "test/cpp/qps/qpstest.grpc.pb.h"
-#include "test/cpp/qps/perf_db_client.h"
 
 namespace grpc {
 namespace testing {
@@ -60,16 +59,16 @@ class Reporter {
   string name() const { return name_; }
 
   /** Reports QPS for the given \a result. */
-  virtual void ReportQPS(const ScenarioResult& result) = 0;
+  virtual void ReportQPS(const ScenarioResult& result) const = 0;
 
   /** Reports QPS per core as (YYY/server core). */
-  virtual void ReportQPSPerCore(const ScenarioResult& result) = 0;
+  virtual void ReportQPSPerCore(const ScenarioResult& result) const = 0;
 
   /** Reports latencies for the 50, 90, 95, 99 and 99.9 percentiles, in ms. */
-  virtual void ReportLatency(const ScenarioResult& result) = 0;
+  virtual void ReportLatency(const ScenarioResult& result) const = 0;
 
   /** Reports system and user time for client and server systems. */
-  virtual void ReportTimes(const ScenarioResult& result) = 0;
+  virtual void ReportTimes(const ScenarioResult& result) const = 0;
 
  private:
   const string name_;
@@ -83,10 +82,10 @@ class CompositeReporter : public Reporter {
   /** Adds a \a reporter to the composite. */
   void add(std::unique_ptr<Reporter> reporter);
 
-  void ReportQPS(const ScenarioResult& result) GRPC_OVERRIDE;
-  void ReportQPSPerCore(const ScenarioResult& result) GRPC_OVERRIDE;
-  void ReportLatency(const ScenarioResult& result) GRPC_OVERRIDE;
-  void ReportTimes(const ScenarioResult& result) GRPC_OVERRIDE;
+  void ReportQPS(const ScenarioResult& result) const GRPC_OVERRIDE;
+  void ReportQPSPerCore(const ScenarioResult& result) const GRPC_OVERRIDE;
+  void ReportLatency(const ScenarioResult& result) const GRPC_OVERRIDE;
+  void ReportTimes(const ScenarioResult& result) const GRPC_OVERRIDE;
 
  private:
   std::vector<std::unique_ptr<Reporter> > reporters_;
@@ -98,31 +97,10 @@ class GprLogReporter : public Reporter {
   GprLogReporter(const string& name) : Reporter(name) {}
 
  private:
-  void ReportQPS(const ScenarioResult& result) GRPC_OVERRIDE;
-  void ReportQPSPerCore(const ScenarioResult& result) GRPC_OVERRIDE;
-  void ReportLatency(const ScenarioResult& result) GRPC_OVERRIDE;
-  void ReportTimes(const ScenarioResult& result) GRPC_OVERRIDE;
-};
-
-/** Reporter for performance database tool */
-class PerfDbReporter : public Reporter {
- public:
-  PerfDbReporter(const string& name, const string& access_token, const string& test_name, const string& sys_info, const string& server_address)
-   : Reporter(name), access_token_(access_token), test_name_(test_name), sys_info_(sys_info) {
-    perfDbClient_.init(grpc::CreateChannel(server_address, grpc::InsecureCredentials(), ChannelArguments()));
-  }
-  ~PerfDbReporter() { SendData(); };
-
- private:
-  PerfDbClient perfDbClient_;
-  std::string access_token_;
-  std::string test_name_;
-  std::string sys_info_;
-  void ReportQPS(const ScenarioResult& result) GRPC_OVERRIDE;
-  void ReportQPSPerCore(const ScenarioResult& result) GRPC_OVERRIDE;
-  void ReportLatency(const ScenarioResult& result) GRPC_OVERRIDE;
-  void ReportTimes(const ScenarioResult& result) GRPC_OVERRIDE;
-  void SendData();
+  void ReportQPS(const ScenarioResult& result) const GRPC_OVERRIDE;
+  void ReportQPSPerCore(const ScenarioResult& result) const GRPC_OVERRIDE;
+  void ReportLatency(const ScenarioResult& result) const GRPC_OVERRIDE;
+  void ReportTimes(const ScenarioResult& result) const GRPC_OVERRIDE;
 };
 
 }  // namespace testing

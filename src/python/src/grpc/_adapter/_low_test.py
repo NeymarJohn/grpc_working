@@ -27,40 +27,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import threading
 import time
 import unittest
 
 from grpc._adapter import _types
 from grpc._adapter import _low
 
-
-def WaitForEvents(completion_queues, deadline):
-  """
-  Args:
-    completion_queues: list of completion queues to wait for events on
-    deadline: absolute deadline to wait until
-
-  Returns:
-    a sequence of events of length len(completion_queues).
-  """
-
-  results = [None] * len(completion_queues)
-  lock = threading.Lock()
-  threads = []
-  def set_ith_result(i, completion_queue):
-    result = completion_queue.next(deadline)
-    with lock:
-      print i, completion_queue, result, time.time() - deadline
-      results[i] = result
-  for i, completion_queue in enumerate(completion_queues):
-    thread = threading.Thread(target=set_ith_result,
-                              args=[i, completion_queue])
-    thread.start()
-    threads.append(thread)
-  for thread in threads:
-    thread.join()
-  return results
 
 class InsecureServerInsecureClient(unittest.TestCase):
 
@@ -123,8 +95,7 @@ class InsecureServerInsecureClient(unittest.TestCase):
     ], client_call_tag)
     self.assertEquals(_types.CallError.OK, client_start_batch_result)
 
-    client_no_event, request_event, = WaitForEvents([self.client_completion_queue, self.server_completion_queue], time.time() + 2)
-    self.assertEquals(client_no_event, None)
+    request_event = self.server_completion_queue.next(DEADLINE)
     self.assertEquals(_types.EventType.OP_COMPLETE, request_event.type)
     self.assertIsInstance(request_event.call, _low.Call)
     self.assertIs(server_request_tag, request_event.tag)
@@ -147,7 +118,8 @@ class InsecureServerInsecureClient(unittest.TestCase):
     ], server_call_tag)
     self.assertEquals(_types.CallError.OK, server_start_batch_result)
 
-    client_event, server_event, = WaitForEvents([self.client_completion_queue, self.server_completion_queue], time.time() + 1)
+    client_event = self.client_completion_queue.next(DEADLINE)
+    server_event = self.server_completion_queue.next(DEADLINE)
 
     self.assertEquals(6, len(client_event.results))
     found_client_op_types = set()
