@@ -32,7 +32,6 @@
  */
 
 #include "src/core/transport/chttp2/frame_settings.h"
-#include "src/core/transport/chttp2/internal.h"
 
 #include <string.h>
 
@@ -138,8 +137,7 @@ grpc_chttp2_parse_error grpc_chttp2_settings_parser_begin_frame(
 }
 
 grpc_chttp2_parse_error grpc_chttp2_settings_parser_parse(
-    void *p, grpc_chttp2_transport_parsing *transport_parsing,
-    grpc_chttp2_stream_parsing *stream_parsing, gpr_slice slice, int is_last) {
+    void *p, grpc_chttp2_parse_state *state, gpr_slice slice, int is_last) {
   grpc_chttp2_settings_parser *parser = p;
   const gpr_uint8 *cur = GPR_SLICE_START_PTR(slice);
   const gpr_uint8 *end = GPR_SLICE_END_PTR(slice);
@@ -154,11 +152,9 @@ grpc_chttp2_parse_error grpc_chttp2_settings_parser_parse(
         if (cur == end) {
           parser->state = GRPC_CHTTP2_SPS_ID0;
           if (is_last) {
-            transport_parsing->settings_updated = 1;
             memcpy(parser->target_settings, parser->incoming_settings,
                    GRPC_CHTTP2_NUM_SETTINGS * sizeof(gpr_uint32));
-            gpr_slice_buffer_add(&transport_parsing->qbuf,
-                                 grpc_chttp2_settings_ack_create());
+            state->ack_settings = 1;
           }
           return GRPC_CHTTP2_PARSE_OK;
         }
@@ -224,16 +220,15 @@ grpc_chttp2_parse_error grpc_chttp2_settings_parser_parse(
           }
           if (parser->id == GRPC_CHTTP2_SETTINGS_INITIAL_WINDOW_SIZE &&
               parser->incoming_settings[parser->id] != parser->value) {
-            transport_parsing->initial_window_update =
+            state->initial_window_update =
                 (gpr_int64)parser->value -
                 parser->incoming_settings[parser->id];
             gpr_log(GPR_DEBUG, "adding %d for initial_window change",
-                    (int)transport_parsing->initial_window_update);
+                    (int)state->initial_window_update);
           }
           parser->incoming_settings[parser->id] = parser->value;
           if (grpc_http_trace) {
-            gpr_log(GPR_DEBUG, "CHTTP2:%s: got setting %d = %d",
-                    transport_parsing->is_client ? "CLI" : "SVR", parser->id,
+            gpr_log(GPR_DEBUG, "CHTTP2: got setting %d = %d", parser->id,
                     parser->value);
           }
         } else {

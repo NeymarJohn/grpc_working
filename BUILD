@@ -2,6 +2,8 @@
 # This currently builds C and C++ code.
 # This file has been automatically generated from a template file.
 # Please look at the templates directory instead.
+# This file can be regenerated from the template by running
+# tools/buildgen/generate_projects.sh
 
 # Copyright 2015, Google Inc.
 # All rights reserved.
@@ -171,6 +173,7 @@ cc_library(
     "src/core/iomgr/pollset.h",
     "src/core/iomgr/pollset_kick_posix.h",
     "src/core/iomgr/pollset_posix.h",
+    "src/core/iomgr/pollset_set.h",
     "src/core/iomgr/pollset_set_posix.h",
     "src/core/iomgr/pollset_set_windows.h",
     "src/core/iomgr/pollset_windows.h",
@@ -216,8 +219,6 @@ cc_library(
     "src/core/transport/chttp2/hpack_table.h",
     "src/core/transport/chttp2/http2_errors.h",
     "src/core/transport/chttp2/huffsyms.h",
-    "src/core/transport/chttp2/incoming_metadata.h",
-    "src/core/transport/chttp2/internal.h",
     "src/core/transport/chttp2/status_conversion.h",
     "src/core/transport/chttp2/stream_encoder.h",
     "src/core/transport/chttp2/stream_map.h",
@@ -335,15 +336,11 @@ cc_library(
     "src/core/transport/chttp2/hpack_parser.c",
     "src/core/transport/chttp2/hpack_table.c",
     "src/core/transport/chttp2/huffsyms.c",
-    "src/core/transport/chttp2/incoming_metadata.c",
-    "src/core/transport/chttp2/parsing.c",
     "src/core/transport/chttp2/status_conversion.c",
     "src/core/transport/chttp2/stream_encoder.c",
-    "src/core/transport/chttp2/stream_lists.c",
     "src/core/transport/chttp2/stream_map.c",
     "src/core/transport/chttp2/timeout_encoding.c",
     "src/core/transport/chttp2/varint.c",
-    "src/core/transport/chttp2/writing.c",
     "src/core/transport/chttp2_transport.c",
     "src/core/transport/metadata.c",
     "src/core/transport/stream_op.c",
@@ -402,6 +399,7 @@ cc_library(
     "src/core/iomgr/pollset.h",
     "src/core/iomgr/pollset_kick_posix.h",
     "src/core/iomgr/pollset_posix.h",
+    "src/core/iomgr/pollset_set.h",
     "src/core/iomgr/pollset_set_posix.h",
     "src/core/iomgr/pollset_set_windows.h",
     "src/core/iomgr/pollset_windows.h",
@@ -447,8 +445,6 @@ cc_library(
     "src/core/transport/chttp2/hpack_table.h",
     "src/core/transport/chttp2/http2_errors.h",
     "src/core/transport/chttp2/huffsyms.h",
-    "src/core/transport/chttp2/incoming_metadata.h",
-    "src/core/transport/chttp2/internal.h",
     "src/core/transport/chttp2/status_conversion.h",
     "src/core/transport/chttp2/stream_encoder.h",
     "src/core/transport/chttp2/stream_map.h",
@@ -544,15 +540,11 @@ cc_library(
     "src/core/transport/chttp2/hpack_parser.c",
     "src/core/transport/chttp2/hpack_table.c",
     "src/core/transport/chttp2/huffsyms.c",
-    "src/core/transport/chttp2/incoming_metadata.c",
-    "src/core/transport/chttp2/parsing.c",
     "src/core/transport/chttp2/status_conversion.c",
     "src/core/transport/chttp2/stream_encoder.c",
-    "src/core/transport/chttp2/stream_lists.c",
     "src/core/transport/chttp2/stream_map.c",
     "src/core/transport/chttp2/timeout_encoding.c",
     "src/core/transport/chttp2/varint.c",
-    "src/core/transport/chttp2/writing.c",
     "src/core/transport/chttp2_transport.c",
     "src/core/transport/metadata.c",
     "src/core/transport/stream_op.c",
