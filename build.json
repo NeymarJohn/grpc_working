@@ -45,6 +45,7 @@
         "include/grpc++/impl/internal_stub.h",
         "include/grpc++/impl/rpc_method.h",
         "include/grpc++/impl/rpc_service_method.h",
+        "include/grpc++/impl/serialization_traits.h",
         "include/grpc++/impl/service_type.h",
         "include/grpc++/impl/sync.h",
         "include/grpc++/impl/sync_cxx11.h",
@@ -72,7 +73,6 @@
         "src/cpp/client/channel.cc",
         "src/cpp/client/channel_arguments.cc",
         "src/cpp/client/client_context.cc",
-        "src/cpp/client/client_unary_call.cc",
         "src/cpp/client/create_channel.cc",
         "src/cpp/client/credentials.cc",
         "src/cpp/client/generic_stub.cc",
@@ -541,8 +541,6 @@
       "language": "c++",
       "src": [
         "test/cpp/qps/qpstest.proto",
-        "test/cpp/qps/perf_db.proto",
-        "test/cpp/qps/perf_db_client.cc",
         "test/cpp/qps/report.cc",
         "test/cpp/util/benchmark_config.cc"
       ]
@@ -714,11 +712,9 @@
       ],
       "src": [
         "test/cpp/qps/qpstest.proto",
-        "test/cpp/qps/perf_db.proto",
         "test/cpp/qps/client_async.cc",
         "test/cpp/qps/client_sync.cc",
         "test/cpp/qps/driver.cc",
-        "test/cpp/qps/perf_db_client.cc",
         "test/cpp/qps/qps_worker.cc",
         "test/cpp/qps/server_async.cc",
         "test/cpp/qps/server_sync.cc",
