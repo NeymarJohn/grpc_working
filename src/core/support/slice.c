@@ -194,7 +194,7 @@ gpr_slice gpr_slice_malloc(size_t length) {
   } else {
     /* small slice: just inline the data */
     slice.refcount = NULL;
-    slice.data.inlined.length = (gpr_uint8)length;
+    slice.data.inlined.length = length;
   }
   return slice;
 }
@@ -202,11 +202,11 @@ gpr_slice gpr_slice_malloc(size_t length) {
 gpr_slice gpr_slice_sub_no_ref(gpr_slice source, size_t begin, size_t end) {
   gpr_slice subset;
 
-  GPR_ASSERT(end >= begin);
-
   if (source.refcount) {
     /* Enforce preconditions */
+    GPR_ASSERT(source.data.refcounted.length >= begin);
     GPR_ASSERT(source.data.refcounted.length >= end);
+    GPR_ASSERT(end >= begin);
 
     /* Build the result */
     subset.refcount = source.refcount;
@@ -214,10 +214,8 @@ gpr_slice gpr_slice_sub_no_ref(gpr_slice source, size_t begin, size_t end) {
     subset.data.refcounted.bytes = source.data.refcounted.bytes + begin;
     subset.data.refcounted.length = end - begin;
   } else {
-    /* Enforce preconditions */
-    GPR_ASSERT(source.data.inlined.length >= end);
     subset.refcount = NULL;
-    subset.data.inlined.length = (gpr_uint8)(end - begin);
+    subset.data.inlined.length = end - begin;
     memcpy(subset.data.inlined.bytes, source.data.inlined.bytes + begin,
            end - begin);
   }
@@ -229,7 +227,7 @@ gpr_slice gpr_slice_sub(gpr_slice source, size_t begin, size_t end) {
 
   if (end - begin <= sizeof(subset.data.inlined.bytes)) {
     subset.refcount = NULL;
-    subset.data.inlined.length = (gpr_uint8)(end - begin);
+    subset.data.inlined.length = end - begin;
     memcpy(subset.data.inlined.bytes, GPR_SLICE_START_PTR(source) + begin,
            end - begin);
   } else {
@@ -247,17 +245,17 @@ gpr_slice gpr_slice_split_tail(gpr_slice *source, size_t split) {
     /* inlined data, copy it out */
     GPR_ASSERT(source->data.inlined.length >= split);
     tail.refcount = NULL;
-    tail.data.inlined.length = (gpr_uint8)(source->data.inlined.length - split);
+    tail.data.inlined.length = source->data.inlined.length - split;
     memcpy(tail.data.inlined.bytes, source->data.inlined.bytes + split,
            tail.data.inlined.length);
-    source->data.inlined.length = (gpr_uint8)split;
+    source->data.inlined.length = split;
   } else {
     size_t tail_length = source->data.refcounted.length - split;
     GPR_ASSERT(source->data.refcounted.length >= split);
     if (tail_length < sizeof(tail.data.inlined.bytes)) {
       /* Copy out the bytes - it'll be cheaper than refcounting */
       tail.refcount = NULL;
-      tail.data.inlined.length = (gpr_uint8)tail_length;
+      tail.data.inlined.length = tail_length;
       memcpy(tail.data.inlined.bytes, source->data.refcounted.bytes + split,
              tail_length);
     } else {
@@ -282,16 +280,16 @@ gpr_slice gpr_slice_split_head(gpr_slice *source, size_t split) {
     GPR_ASSERT(source->data.inlined.length >= split);
 
     head.refcount = NULL;
-    head.data.inlined.length = (gpr_uint8)split;
+    head.data.inlined.length = split;
     memcpy(head.data.inlined.bytes, source->data.inlined.bytes, split);
-    source->data.inlined.length = (gpr_uint8)(source->data.inlined.length - split);
+    source->data.inlined.length -= split;
     memmove(source->data.inlined.bytes, source->data.inlined.bytes + split,
             source->data.inlined.length);
   } else if (split < sizeof(head.data.inlined.bytes)) {
     GPR_ASSERT(source->data.refcounted.length >= split);
 
     head.refcount = NULL;
-    head.data.inlined.length = (gpr_uint8)split;
+    head.data.inlined.length = split;
     memcpy(head.data.inlined.bytes, source->data.refcounted.bytes, split);
     source->data.refcounted.bytes += split;
     source->data.refcounted.length -= split;
@@ -313,7 +311,7 @@ gpr_slice gpr_slice_split_head(gpr_slice *source, size_t split) {
 }
 
 int gpr_slice_cmp(gpr_slice a, gpr_slice b) {
-  int d = (int)(GPR_SLICE_LENGTH(a) - GPR_SLICE_LENGTH(b));
+  int d = GPR_SLICE_LENGTH(a) - GPR_SLICE_LENGTH(b);
   if (d != 0) return d;
   return memcmp(GPR_SLICE_START_PTR(a), GPR_SLICE_START_PTR(b),
                 GPR_SLICE_LENGTH(a));
@@ -321,7 +319,7 @@ int gpr_slice_cmp(gpr_slice a, gpr_slice b) {
 
 int gpr_slice_str_cmp(gpr_slice a, const char *b) {
   size_t b_length = strlen(b);
-  int d = (int)(GPR_SLICE_LENGTH(a) - b_length);
+  int d = GPR_SLICE_LENGTH(a) - b_length;
   if (d != 0) return d;
   return memcmp(GPR_SLICE_START_PTR(a), b, b_length);
 }
