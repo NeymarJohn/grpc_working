@@ -31,22 +31,46 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_TCP_CLIENT_H
-#define GRPC_INTERNAL_CORE_IOMGR_TCP_CLIENT_H
+#ifndef GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
+#define GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
 
-#include "src/core/iomgr/endpoint.h"
-#include "src/core/iomgr/pollset_set.h"
-#include "src/core/iomgr/sockaddr.h"
-#include <grpc/support/time.h>
+#include <type_traits>
 
-/* Asynchronously connect to an address (specified as (addr, len)), and call
-   cb with arg and the completed connection when done (or call cb with arg and
-   NULL on failure). 
-   interested_parties points to a set of pollsets that would be interested
-   in this connection being established (in order to continue their work) */
-void grpc_tcp_client_connect(void (*cb)(void *arg, grpc_endpoint *tcp),
-                             void *arg, grpc_pollset_set *interested_parties,
-                             const struct sockaddr *addr, int addr_len,
-                             gpr_timespec deadline);
+#include <grpc/grpc.h>
+#include <grpc++/impl/serialization_traits.h>
+#include <grpc++/config_protobuf.h>
+#include <grpc++/status.h>
 
-#endif /* GRPC_INTERNAL_CORE_IOMGR_TCP_CLIENT_H */
+namespace grpc {
+
+// Serialize the msg into a buffer created inside the function. The caller
+// should destroy the returned buffer when done with it. If serialization fails,
+// false is returned and buffer is left unchanged.
+Status SerializeProto(const grpc::protobuf::Message& msg,
+                      grpc_byte_buffer** buffer);
+
+// The caller keeps ownership of buffer and msg.
+Status DeserializeProto(grpc_byte_buffer* buffer, grpc::protobuf::Message* msg,
+                        int max_message_size);
+
+template <class T>
+class SerializationTraits<T, typename std::enable_if<std::is_base_of<
+                                 grpc::protobuf::Message, T>::value>::type> {
+ public:
+  static Status Serialize(const grpc::protobuf::Message& msg,
+                          grpc_byte_buffer** buffer, bool* own_buffer) {
+    *own_buffer = true;
+    return SerializeProto(msg, buffer);
+  }
+  static Status Deserialize(grpc_byte_buffer* buffer,
+                            grpc::protobuf::Message* msg,
+                            int max_message_size) {
+    auto status = DeserializeProto(buffer, msg, max_message_size);
+    grpc_byte_buffer_destroy(buffer);
+    return status;
+  }
+};
+
+}  // namespace grpc
+
+#endif  // GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
