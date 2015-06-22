@@ -541,8 +541,6 @@
       "language": "c++",
       "src": [
         "test/cpp/qps/qpstest.proto",
-        "test/cpp/qps/perf_db.proto",
-        "test/cpp/qps/perf_db_client.cc",
         "test/cpp/qps/report.cc",
         "test/cpp/util/benchmark_config.cc"
       ]
@@ -714,11 +712,9 @@
       ],
       "src": [
         "test/cpp/qps/qpstest.proto",
-        "test/cpp/qps/perf_db.proto",
         "test/cpp/qps/client_async.cc",
         "test/cpp/qps/client_sync.cc",
         "test/cpp/qps/driver.cc",
-        "test/cpp/qps/perf_db_client.cc",
         "test/cpp/qps/qps_worker.cc",
         "test/cpp/qps/server_async.cc",
         "test/cpp/qps/server_sync.cc",
@@ -1279,6 +1275,20 @@
       "language": "c",
       "src": [
         "test/core/security/print_google_default_creds_token.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "grpc_security_connector_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/security/security_connector_test.c"
       ],
       "deps": [
         "grpc_test_util",
