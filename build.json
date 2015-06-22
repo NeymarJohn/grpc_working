@@ -133,7 +133,6 @@
         "src/core/iomgr/pollset.h",
         "src/core/iomgr/pollset_kick_posix.h",
         "src/core/iomgr/pollset_posix.h",
-        "src/core/iomgr/pollset_set.h",
         "src/core/iomgr/pollset_set_posix.h",
         "src/core/iomgr/pollset_set_windows.h",
         "src/core/iomgr/pollset_windows.h",
@@ -1826,6 +1825,36 @@
       "deps": [
         "grpc++",
         "grpc",
+        "gpr"
+      ]
+    },
+    {
+      "name": "cxx_byte_buffer_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "test/cpp/util/byte_buffer_test.cc"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc++",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "cxx_slice_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "test/cpp/util/slice_test.cc"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc++",
+        "grpc",
+        "gpr_test_util",
         "gpr"
       ]
     },

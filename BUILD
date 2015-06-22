@@ -2,8 +2,6 @@
 # This currently builds C and C++ code.
 # This file has been automatically generated from a template file.
 # Please look at the templates directory instead.
-# This file can be regenerated from the template by running
-# tools/buildgen/generate_projects.sh
 
 # Copyright 2015, Google Inc.
 # All rights reserved.
@@ -173,7 +171,6 @@ cc_library(
     "src/core/iomgr/pollset.h",
     "src/core/iomgr/pollset_kick_posix.h",
     "src/core/iomgr/pollset_posix.h",
-    "src/core/iomgr/pollset_set.h",
     "src/core/iomgr/pollset_set_posix.h",
     "src/core/iomgr/pollset_set_windows.h",
     "src/core/iomgr/pollset_windows.h",
@@ -399,7 +396,6 @@ cc_library(
     "src/core/iomgr/pollset.h",
     "src/core/iomgr/pollset_kick_posix.h",
     "src/core/iomgr/pollset_posix.h",
-    "src/core/iomgr/pollset_set.h",
     "src/core/iomgr/pollset_set_posix.h",
     "src/core/iomgr/pollset_set_windows.h",
     "src/core/iomgr/pollset_windows.h",
