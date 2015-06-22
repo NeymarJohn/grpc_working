@@ -35,6 +35,7 @@
 #define GRPCXX_COMPLETION_QUEUE_H
 
 #include <grpc/support/time.h>
+#include <grpc++/impl/client_unary_call.h>
 #include <grpc++/impl/grpc_library.h>
 #include <grpc++/time.h>
 
@@ -54,23 +55,11 @@ template <class W>
 class ServerWriter;
 template <class R, class W>
 class ServerReaderWriter;
-template <class ServiceType, class RequestType, class ResponseType>
-class RpcMethodHandler;
-template <class ServiceType, class RequestType, class ResponseType>
-class ClientStreamingHandler;
-template <class ServiceType, class RequestType, class ResponseType>
-class ServerStreamingHandler;
-template <class ServiceType, class RequestType, class ResponseType>
-class BidiStreamingHandler;
 
-class ChannelInterface;
-class ClientContext;
 class CompletionQueue;
-class RpcMethod;
 class Server;
 class ServerBuilder;
 class ServerContext;
-class Status;
 
 class CompletionQueueTag {
  public:
@@ -95,7 +84,7 @@ class CompletionQueue : public GrpcLibrary {
 
   // Nonblocking (until deadline) read from queue.
   // Cannot rely on result of tag or ok if return is TIMEOUT
-  template <typename T>
+  template<typename T>
   NextStatus AsyncNext(void** tag, bool* ok, const T& deadline) {
     TimePoint<T> deadline_tp(deadline);
     return AsyncNextInternal(tag, ok, deadline_tp.raw_time());
@@ -129,22 +118,13 @@ class CompletionQueue : public GrpcLibrary {
   friend class ::grpc::ServerWriter;
   template <class R, class W>
   friend class ::grpc::ServerReaderWriter;
-  template <class ServiceType, class RequestType, class ResponseType>
-  friend class RpcMethodHandler;
-  template <class ServiceType, class RequestType, class ResponseType>
-  friend class ClientStreamingHandler;
-  template <class ServiceType, class RequestType, class ResponseType>
-  friend class ServerStreamingHandler;
-  template <class ServiceType, class RequestType, class ResponseType>
-  friend class BidiStreamingHandler;
   friend class ::grpc::Server;
   friend class ::grpc::ServerContext;
-  template <class InputMessage, class OutputMessage>
   friend Status BlockingUnaryCall(ChannelInterface* channel,
                                   const RpcMethod& method,
                                   ClientContext* context,
-                                  const InputMessage& request,
-                                  OutputMessage* result);
+                                  const grpc::protobuf::Message& request,
+                                  grpc::protobuf::Message* result);
 
   NextStatus AsyncNextInternal(void** tag, bool* ok, gpr_timespec deadline);
 
