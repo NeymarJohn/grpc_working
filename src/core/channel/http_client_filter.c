@@ -43,9 +43,8 @@ typedef struct call_data {
 
   int got_initial_metadata;
   grpc_stream_op_buffer *recv_ops;
-  grpc_iomgr_closure *on_done_recv;
-
-  grpc_iomgr_closure hc_on_recv;
+  void (*on_done_recv)(void *user_data, int success);
+  void *recv_user_data;
 } call_data;
 
 typedef struct channel_data {
@@ -85,7 +84,7 @@ static void hc_on_recv(void *user_data, int success) {
       grpc_metadata_batch_filter(&op->data.metadata, client_filter, elem);
     }
   }
-  calld->on_done_recv->cb(calld->on_done_recv->cb_arg, success);
+  calld->on_done_recv(calld->recv_user_data, success);
 }
 
 static void hc_mutate_op(grpc_call_element *elem, grpc_transport_op *op) {
@@ -118,7 +117,9 @@ static void hc_mutate_op(grpc_call_element *elem, grpc_transport_op *op) {
     /* substitute our callback for the higher callback */
     calld->recv_ops = op->recv_ops;
     calld->on_done_recv = op->on_done_recv;
-    op->on_done_recv = &calld->hc_on_recv;
+    calld->recv_user_data = op->recv_user_data;
+    op->on_done_recv = hc_on_recv;
+    op->recv_user_data = elem;
   }
 }
 
@@ -153,8 +154,6 @@ static void init_call_elem(grpc_call_element *elem,
   call_data *calld = elem->call_data;
   calld->sent_initial_metadata = 0;
   calld->got_initial_metadata = 0;
-  calld->on_done_recv = NULL;
-  grpc_iomgr_closure_init(&calld->hc_on_recv, hc_on_recv, elem);
   if (initial_op) hc_mutate_op(elem, initial_op);
 }
 
