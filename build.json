@@ -45,6 +45,7 @@
         "include/grpc++/impl/internal_stub.h",
         "include/grpc++/impl/rpc_method.h",
         "include/grpc++/impl/rpc_service_method.h",
+        "include/grpc++/impl/serialization_traits.h",
         "include/grpc++/impl/service_type.h",
         "include/grpc++/impl/sync.h",
         "include/grpc++/impl/sync_cxx11.h",
@@ -72,7 +73,6 @@
         "src/cpp/client/channel.cc",
         "src/cpp/client/channel_arguments.cc",
         "src/cpp/client/client_context.cc",
-        "src/cpp/client/client_unary_call.cc",
         "src/cpp/client/create_channel.cc",
         "src/cpp/client/credentials.cc",
         "src/cpp/client/generic_stub.cc",
@@ -118,11 +118,6 @@
         "src/core/channel/http_client_filter.h",
         "src/core/channel/http_server_filter.h",
         "src/core/channel/noop_filter.h",
-        "src/core/client_config/client_config.h",
-        "src/core/client_config/lb_policy.h",
-        "src/core/client_config/resolver.h",
-        "src/core/client_config/subchannel.h",
-        "src/core/client_config/subchannel_factory.h",
         "src/core/compression/message_compress.h",
         "src/core/debug/trace.h",
         "src/core/iomgr/alarm.h",
@@ -138,6 +133,7 @@
         "src/core/iomgr/pollset.h",
         "src/core/iomgr/pollset_kick_posix.h",
         "src/core/iomgr/pollset_posix.h",
+        "src/core/iomgr/pollset_set.h",
         "src/core/iomgr/pollset_set_posix.h",
         "src/core/iomgr/pollset_set_windows.h",
         "src/core/iomgr/pollset_windows.h",
@@ -205,11 +201,6 @@
         "src/core/channel/http_client_filter.c",
         "src/core/channel/http_server_filter.c",
         "src/core/channel/noop_filter.c",
-        "src/core/client_config/client_config.c",
-        "src/core/client_config/lb_policy.c",
-        "src/core/client_config/resolver.c",
-        "src/core/client_config/subchannel.c",
-        "src/core/client_config/subchannel_factory.c",
         "src/core/compression/algorithm.c",
         "src/core/compression/message_compress.c",
         "src/core/debug/trace.c",
@@ -551,6 +542,8 @@
       "language": "c++",
       "src": [
         "test/cpp/qps/qpstest.proto",
+        "test/cpp/qps/perf_db.proto",
+        "test/cpp/qps/perf_db_client.cc",
         "test/cpp/qps/report.cc",
         "test/cpp/util/benchmark_config.cc"
       ]
@@ -722,9 +715,11 @@
       ],
       "src": [
         "test/cpp/qps/qpstest.proto",
+        "test/cpp/qps/perf_db.proto",
         "test/cpp/qps/client_async.cc",
         "test/cpp/qps/client_sync.cc",
         "test/cpp/qps/driver.cc",
+        "test/cpp/qps/perf_db_client.cc",
         "test/cpp/qps/qps_worker.cc",
         "test/cpp/qps/server_async.cc",
         "test/cpp/qps/server_sync.cc",
@@ -1294,6 +1289,20 @@
       ]
     },
     {
+      "name": "grpc_security_connector_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/security/security_connector_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
       "name": "grpc_stream_op_test",
       "build": "test",
       "language": "c",
@@ -1821,6 +1830,36 @@
       "deps": [
         "grpc++",
         "grpc",
+        "gpr"
+      ]
+    },
+    {
+      "name": "cxx_byte_buffer_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "test/cpp/util/byte_buffer_test.cc"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc++",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "cxx_slice_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "test/cpp/util/slice_test.cc"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc++",
+        "grpc",
+        "gpr_test_util",
         "gpr"
       ]
     },

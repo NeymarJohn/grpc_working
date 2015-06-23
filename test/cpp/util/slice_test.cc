@@ -31,34 +31,47 @@
  *
  */
 
-#include <grpc++/impl/client_unary_call.h>
-#include <grpc++/impl/call.h>
-#include <grpc++/channel_interface.h>
-#include <grpc++/client_context.h>
-#include <grpc++/completion_queue.h>
-#include <grpc++/status.h>
-#include <grpc/support/log.h>
+#include <grpc++/slice.h>
+
+#include <grpc/support/slice.h>
+#include <gtest/gtest.h>
 
 namespace grpc {
+namespace {
 
-// Wrapper that performs a blocking unary call
-Status BlockingUnaryCall(ChannelInterface* channel, const RpcMethod& method,
-                         ClientContext* context,
-                         const grpc::protobuf::Message& request,
-                         grpc::protobuf::Message* result) {
-  CompletionQueue cq;
-  Call call(channel->CreateCall(method, context, &cq));
-  CallOpBuffer buf;
-  Status status;
-  buf.AddSendInitialMetadata(context);
-  buf.AddSendMessage(request);
-  buf.AddRecvInitialMetadata(context);
-  buf.AddRecvMessage(result);
-  buf.AddClientSendClose();
-  buf.AddClientRecvStatus(context, &status);
-  call.PerformOps(&buf);
-  GPR_ASSERT((cq.Pluck(&buf) && buf.got_message) || !status.ok());
-  return status;
+const char* kContent = "hello xxxxxxxxxxxxxxxxxxxx world";
+
+class SliceTest : public ::testing::Test {
+ protected:
+  void CheckSlice(const Slice& s, const grpc::string& content) {
+    EXPECT_EQ(content.size(), s.size());
+    EXPECT_EQ(content,
+              grpc::string(reinterpret_cast<const char*>(s.begin()), s.size()));
+  }
+};
+
+TEST_F(SliceTest, Steal) {
+  gpr_slice s = gpr_slice_from_copied_string(kContent);
+  Slice spp(s, Slice::STEAL_REF);
+  CheckSlice(spp, kContent);
 }
 
+TEST_F(SliceTest, Add) {
+  gpr_slice s = gpr_slice_from_copied_string(kContent);
+  Slice spp(s, Slice::ADD_REF);
+  gpr_slice_unref(s);
+  CheckSlice(spp, kContent);
+}
+
+TEST_F(SliceTest, Empty) {
+  Slice empty_slice;
+  CheckSlice(empty_slice, "");
+}
+
+}  // namespace
 }  // namespace grpc
+
+int main(int argc, char** argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
