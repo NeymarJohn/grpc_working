@@ -31,15 +31,47 @@
  *
  */
 
-/* This is just a compilation test, to see if we have a version of OpenSSL with
-   NPN support installed. It's not meant to be run, and all of the values and
-   function calls there are non-sensical. The code is only meant to test the
-   presence of symbols, and we're expecting a compilation failure otherwise. */
+#include <grpc++/slice.h>
 
-#include <stdlib.h>
-#include <openssl/ssl.h>
+#include <grpc/support/slice.h>
+#include <gtest/gtest.h>
 
-int main() {
-  SSL_get0_next_proto_negotiated(NULL, NULL, NULL);
-  return OPENSSL_NPN_UNSUPPORTED;
+namespace grpc {
+namespace {
+
+const char* kContent = "hello xxxxxxxxxxxxxxxxxxxx world";
+
+class SliceTest : public ::testing::Test {
+ protected:
+  void CheckSlice(const Slice& s, const grpc::string& content) {
+    EXPECT_EQ(content.size(), s.size());
+    EXPECT_EQ(content,
+              grpc::string(reinterpret_cast<const char*>(s.begin()), s.size()));
+  }
+};
+
+TEST_F(SliceTest, Steal) {
+  gpr_slice s = gpr_slice_from_copied_string(kContent);
+  Slice spp(s, Slice::STEAL_REF);
+  CheckSlice(spp, kContent);
+}
+
+TEST_F(SliceTest, Add) {
+  gpr_slice s = gpr_slice_from_copied_string(kContent);
+  Slice spp(s, Slice::ADD_REF);
+  gpr_slice_unref(s);
+  CheckSlice(spp, kContent);
+}
+
+TEST_F(SliceTest, Empty) {
+  Slice empty_slice;
+  CheckSlice(empty_slice, "");
+}
+
+}  // namespace
+}  // namespace grpc
+
+int main(int argc, char** argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
