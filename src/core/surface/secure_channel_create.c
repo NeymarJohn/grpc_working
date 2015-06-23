@@ -42,7 +42,6 @@
 #include "src/core/channel/channel_args.h"
 #include "src/core/channel/client_channel.h"
 #include "src/core/channel/client_setup.h"
-#include "src/core/channel/compress_filter.h"
 #include "src/core/channel/connected_channel.h"
 #include "src/core/channel/http_client_filter.h"
 #include "src/core/iomgr/resolve_address.h"
@@ -98,12 +97,13 @@ static void on_secure_transport_setup_done(void *rp,
   if (status != GRPC_SECURITY_OK) {
     gpr_log(GPR_ERROR, "Secure transport setup failed with error %d.", status);
     done(r, 0);
-  } else if (grpc_client_setup_cb_begin(r->cs_request)) {
+  } else if (grpc_client_setup_cb_begin(r->cs_request,
+                                        "on_secure_transport_setup_done")) {
     grpc_create_chttp2_transport(
         r->setup->setup_callback, r->setup->setup_user_data,
         grpc_client_setup_get_channel_args(r->cs_request), secure_endpoint,
         NULL, 0, grpc_client_setup_get_mdctx(r->cs_request), 1);
-    grpc_client_setup_cb_end(r->cs_request);
+    grpc_client_setup_cb_end(r->cs_request, "on_secure_transport_setup_done");
     done(r, 1);
   } else {
     done(r, 0);
@@ -114,7 +114,8 @@ static void on_secure_transport_setup_done(void *rp,
 static void on_connect(void *rp, grpc_endpoint *tcp) {
   request *r = rp;
 
-  if (!grpc_client_setup_request_should_continue(r->cs_request)) {
+  if (!grpc_client_setup_request_should_continue(r->cs_request,
+                                                 "on_connect.secure")) {
     if (tcp) {
       grpc_endpoint_shutdown(tcp);
       grpc_endpoint_destroy(tcp);
@@ -142,9 +143,10 @@ static int maybe_try_next_resolved(request *r) {
   if (!r->resolved) return 0;
   if (r->resolved_index == r->resolved->naddrs) return 0;
   addr = &r->resolved->addrs[r->resolved_index++];
-  grpc_tcp_client_connect(on_connect, r, (struct sockaddr *)&addr->addr,
-                          addr->len,
-                          grpc_client_setup_request_deadline(r->cs_request));
+  grpc_tcp_client_connect(
+      on_connect, r, grpc_client_setup_get_interested_parties(r->cs_request),
+      (struct sockaddr *)&addr->addr, addr->len,
+      grpc_client_setup_request_deadline(r->cs_request));
   return 1;
 }
 
@@ -153,7 +155,8 @@ static void on_resolved(void *rp, grpc_resolved_addresses *resolved) {
   request *r = rp;
 
   /* if we're not still the active request, abort */
-  if (!grpc_client_setup_request_should_continue(r->cs_request)) {
+  if (!grpc_client_setup_request_should_continue(r->cs_request,
+                                                 "on_resolved.secure")) {
     if (resolved) {
       grpc_resolved_addresses_destroy(resolved);
     }
@@ -240,10 +243,6 @@ grpc_channel *grpc_secure_channel_create(grpc_credentials *creds,
   if (grpc_channel_args_is_census_enabled(args)) {
     filters[n++] = &grpc_client_census_filter;
     } */
-  if (grpc_channel_args_get_compression_level(args) >
-      GRPC_COMPRESS_LEVEL_NONE) {
-    filters[n++] = &grpc_compress_filter;
-  }
   filters[n++] = &grpc_client_channel_filter;
   GPR_ASSERT(n <= MAX_FILTERS);
   channel = grpc_channel_create_from_filters(filters, n, args_copy, mdctx, 1);

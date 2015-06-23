@@ -31,18 +31,19 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H
 
-#include <grpc/support/sync.h>
+/** Total configuration for a client. Provided, and updated, by
+    grpc_resolver */
+typedef struct grpc_client_config grpc_client_config;
 
-/* There isn't really any such thing as a pollset under Windows, due to the
-   nature of the IO completion ports. */
+void grpc_client_config_ref(grpc_client_config *client_config);
+void grpc_client_config_unref(grpc_client_config *client_config);
 
-struct grpc_kick_fd_info;
+void grpc_client_config_set_lb_policy(grpc_client_config *client_config,
+                                      grpc_lb_policy *lb_policy);
+grpc_lb_policy *grpc_client_config_get_lb_policy(
+    grpc_client_config *client_config);
 
-typedef struct grpc_pollset_kick_state {
-  int unused;
-} grpc_pollset_kick_state;
-
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_WINDOWS_H */
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H */

@@ -31,23 +31,29 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
-#define GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
 
-#include "src/core/channel/channel_stack.h"
+#include "src/core/iomgr/pollset.h"
 
-/** Message-level compression filter.
- *
- * See <grpc/compression.h> for the available compression levels.
- *
- * Use grpc_channel_args_set_compression_level and
- * grpc_channel_args_get_compression_level to interact with the compression
- * settings for a channel.
- *
- * grpc_op instances of type GRPC_OP_SEND_MESSAGE can have the bit specified by
- * the GRPC_WRITE_NO_COMPRESS mask in order to disable compression in an
- * otherwise compressed channel.
- * */
-extern const grpc_channel_filter grpc_compress_filter;
+/* A grpc_pollset_set is a set of pollsets that are interested in an
+   action. Adding a pollset to a pollset_set automatically adds any
+   fd's (etc) that have been registered with the set_set with that pollset.
+   Registering fd's automatically adds them to all current pollsets. */
 
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H */
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/pollset_set_posix.h"
+#endif
+
+#ifdef GPR_WIN32
+#include "src/core/iomgr/pollset_set_windows.h"
+#endif
+
+void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
+void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset);
+void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set,
+                                  grpc_pollset *pollset);
+
+#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */
