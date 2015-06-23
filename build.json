@@ -957,9 +957,10 @@
       "build": "tool",
       "language": "c",
       "src": [
-        "tools/codegen/core/gen_hpack_tables.c"
+        "src/core/transport/chttp2/gen_hpack_tables.c"
       ],
       "deps": [
+        "grpc_test_util",
         "gpr",
         "grpc"
       ]
