@@ -31,42 +31,21 @@
  *
  */
 
-#ifndef GRPCXX_CONFIG_PROTOBUF_H
-#define GRPCXX_CONFIG_PROTOBUF_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H
 
-#ifndef GRPC_CUSTOM_PROTOBUF_INT64
-#include <google/protobuf/stubs/common.h>
-#define GRPC_CUSTOM_PROTOBUF_INT64 ::google::protobuf::int64
-#endif
+#include "src/core/client_config/lb_policy.h"
 
-#ifndef GRPC_CUSTOM_MESSAGE
-#include <google/protobuf/message.h>
-#define GRPC_CUSTOM_MESSAGE ::google::protobuf::Message
-#endif
+/** Total configuration for a client. Provided, and updated, by
+    grpc_resolver */
+typedef struct grpc_client_config grpc_client_config;
 
-#ifndef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#define GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM \
-  ::google::protobuf::io::ZeroCopyOutputStream
-#define GRPC_CUSTOM_ZEROCOPYINPUTSTREAM \
-  ::google::protobuf::io::ZeroCopyInputStream
-#define GRPC_CUSTOM_CODEDINPUTSTREAM ::google::protobuf::io::CodedInputStream
-#endif
+void grpc_client_config_ref(grpc_client_config *client_config);
+void grpc_client_config_unref(grpc_client_config *client_config);
 
-namespace grpc {
-namespace protobuf {
+void grpc_client_config_set_lb_policy(grpc_client_config *client_config,
+                                      grpc_lb_policy *lb_policy);
+grpc_lb_policy *grpc_client_config_get_lb_policy(
+    grpc_client_config *client_config);
 
-typedef GRPC_CUSTOM_MESSAGE Message;
-typedef GRPC_CUSTOM_PROTOBUF_INT64 int64;
-
-namespace io {
-typedef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM ZeroCopyOutputStream;
-typedef GRPC_CUSTOM_ZEROCOPYINPUTSTREAM ZeroCopyInputStream;
-typedef GRPC_CUSTOM_CODEDINPUTSTREAM CodedInputStream;
-}  // namespace io
-
-}  // namespace protobuf
-}  // namespace grpc
-
-#endif  // GRPCXX_CONFIG_PROTOBUF_H
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H */

@@ -34,42 +34,21 @@
 #ifndef GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
 #define GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
 
-#include <type_traits>
+#include <grpc++/config.h>
 
-#include <grpc/grpc.h>
-#include <grpc++/impl/serialization_traits.h>
-#include <grpc++/config_protobuf.h>
-#include <grpc++/status.h>
+struct grpc_byte_buffer;
 
 namespace grpc {
 
 // Serialize the msg into a buffer created inside the function. The caller
 // should destroy the returned buffer when done with it. If serialization fails,
 // false is returned and buffer is left unchanged.
-Status SerializeProto(const grpc::protobuf::Message& msg,
-                      grpc_byte_buffer** buffer);
+bool SerializeProto(const grpc::protobuf::Message& msg,
+                    grpc_byte_buffer** buffer);
 
 // The caller keeps ownership of buffer and msg.
-Status DeserializeProto(grpc_byte_buffer* buffer, grpc::protobuf::Message* msg,
-                        int max_message_size);
-
-template <class T>
-class SerializationTraits<T, typename std::enable_if<std::is_base_of<
-                                 grpc::protobuf::Message, T>::value>::type> {
- public:
-  static Status Serialize(const grpc::protobuf::Message& msg,
-                          grpc_byte_buffer** buffer, bool* own_buffer) {
-    *own_buffer = true;
-    return SerializeProto(msg, buffer);
-  }
-  static Status Deserialize(grpc_byte_buffer* buffer,
-                            grpc::protobuf::Message* msg,
-                            int max_message_size) {
-    auto status = DeserializeProto(buffer, msg, max_message_size);
-    grpc_byte_buffer_destroy(buffer);
-    return status;
-  }
-};
+bool DeserializeProto(grpc_byte_buffer* buffer, grpc::protobuf::Message* msg,
+                      int max_message_size);
 
 }  // namespace grpc
 

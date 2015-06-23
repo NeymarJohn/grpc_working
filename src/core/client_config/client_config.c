@@ -31,25 +31,4 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_CLIENT_UNARY_CALL_H
-#define GRPCXX_IMPL_CLIENT_UNARY_CALL_H
-
-#include <grpc++/config.h>
-#include <grpc++/status.h>
-
-namespace grpc {
-
-class ChannelInterface;
-class ClientContext;
-class CompletionQueue;
-class RpcMethod;
-
-// Wrapper that performs a blocking unary call
-Status BlockingUnaryCall(ChannelInterface* channel, const RpcMethod& method,
-                         ClientContext* context,
-                         const grpc::protobuf::Message& request,
-                         grpc::protobuf::Message* result);
-
-}  // namespace grpc
-
-#endif  // GRPCXX_IMPL_CLIENT_UNARY_CALL_H
+#include "src/core/client_config/client_config.h"
