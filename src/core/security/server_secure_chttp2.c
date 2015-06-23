@@ -66,10 +66,6 @@ static void state_ref(grpc_server_secure_state *state) {
 
 static void state_unref(grpc_server_secure_state *state) {
   if (gpr_unref(&state->refcount)) {
-    /* ensure all threads have unlocked */
-    gpr_mu_lock(&state->mu);
-    gpr_mu_unlock(&state->mu);
-    /* clean up */
     grpc_security_connector_unref(state->sc);
     gpr_free(state);
   }
@@ -128,22 +124,16 @@ static void start(grpc_server *server, void *statep, grpc_pollset **pollsets,
   grpc_tcp_server_start(state->tcp, pollsets, pollset_count, on_accept, state);
 }
 
-static void destroy_done(void *statep) {
-  grpc_server_secure_state *state = statep;
-  grpc_server_listener_destroy_done(state->server);
-  state_unref(state);
-}
-
 /* Server callback: destroy the tcp listener (so we don't generate further
    callbacks) */
 static void destroy(grpc_server *server, void *statep) {
   grpc_server_secure_state *state = statep;
-  grpc_tcp_server *tcp;
   gpr_mu_lock(&state->mu);
   state->is_shutdown = 1;
-  tcp = state->tcp;
+  grpc_tcp_server_destroy(state->tcp, grpc_server_listener_destroy_done,
+                          server);
   gpr_mu_unlock(&state->mu);
-  grpc_tcp_server_destroy(tcp, destroy_done, state);
+  state_unref(state);
 }
 
 int grpc_server_add_secure_http2_port(grpc_server *server, const char *addr,

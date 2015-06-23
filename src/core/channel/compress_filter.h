@@ -31,20 +31,23 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
+#define GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
 
-#ifdef GPR_WINSOCK_SOCKET
+#include "src/core/channel/channel_stack.h"
 
-#include "src/core/iomgr/pollset_set.h"
+/** Message-level compression filter.
+ *
+ * See <grpc/compression.h> for the available compression levels.
+ *
+ * Use grpc_channel_args_set_compression_level and
+ * grpc_channel_args_get_compression_level to interact with the compression
+ * settings for a channel.
+ *
+ * grpc_op instances of type GRPC_OP_SEND_MESSAGE can have the bit specified by
+ * the GRPC_WRITE_NO_COMPRESS mask in order to disable compression in an
+ * otherwise compressed channel.
+ * */
+extern const grpc_channel_filter grpc_compress_filter;
 
-void grpc_pollset_set_init(grpc_pollset_set *pollset_set) {}
-
-void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set) {}
-
-void grpc_pollset_set_add_pollset(grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset) {}
-
-void grpc_pollset_set_del_pollset(grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset) {}
-
-#endif /* GPR_WINSOCK_SOCKET */
+#endif  /* GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H */
