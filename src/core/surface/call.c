@@ -150,6 +150,8 @@ struct grpc_call {
   gpr_uint8 receiving;
   /* are we currently completing requests */
   gpr_uint8 completing;
+  /** has grpc_call_destroy been called */
+  gpr_uint8 destroy_called;
   /* pairs with completed_requests */
   gpr_uint8 num_completed_requests;
   /* are we currently reading a message? */
@@ -240,6 +242,9 @@ struct grpc_call {
   gpr_uint32 incoming_message_length;
   gpr_uint32 incoming_message_flags;
   grpc_iomgr_closure destroy_closure;
+  grpc_iomgr_closure on_done_recv;
+  grpc_iomgr_closure on_done_send;
+  grpc_iomgr_closure on_done_bind;
 };
 
 #define CALL_STACK_FROM_CALL(call) ((grpc_call_stack *)((call) + 1))
@@ -258,6 +263,7 @@ static void recv_metadata(grpc_call *call, grpc_metadata_batch *metadata);
 static void finish_read_ops(grpc_call *call);
 static grpc_call_error cancel_with_status(grpc_call *c, grpc_status_code status,
                                           const char *description);
+static void finished_loose_op(void *call, int success);
 
 static void lock(grpc_call *call);
 static void unlock(grpc_call *call);
@@ -301,16 +307,18 @@ grpc_call *grpc_call_create(grpc_channel *channel, grpc_completion_queue *cq,
   grpc_sopb_init(&call->send_ops);
   grpc_sopb_init(&call->recv_ops);
   gpr_slice_buffer_init(&call->incoming_message);
-  /* dropped in destroy */
-  gpr_ref_init(&call->internal_refcount, 1);
+  grpc_iomgr_closure_init(&call->on_done_recv, call_on_done_recv, call);
+  grpc_iomgr_closure_init(&call->on_done_send, call_on_done_send, call);
+  grpc_iomgr_closure_init(&call->on_done_bind, finished_loose_op, call);
+  /* dropped in destroy and when READ_STATE_STREAM_CLOSED received */
+  gpr_ref_init(&call->internal_refcount, 2);
   /* server hack: start reads immediately so we can get initial metadata.
      TODO(ctiller): figure out a cleaner solution */
   if (!call->is_client) {
     memset(&initial_op, 0, sizeof(initial_op));
     initial_op.recv_ops = &call->recv_ops;
     initial_op.recv_state = &call->recv_state;
-    initial_op.on_done_recv = call_on_done_recv;
-    initial_op.recv_user_data = call;
+    initial_op.on_done_recv = &call->on_done_recv;
     initial_op.context = call->context;
     call->receiving = 1;
     GRPC_CALL_INTERNAL_REF(call, "receiving");
@@ -405,6 +413,8 @@ void grpc_call_internal_unref(grpc_call *c, int allow_immediate_deletion) {
 
 static void set_status_code(grpc_call *call, status_source source,
                             gpr_uint32 status) {
+  if (call->status[source].is_set) return;
+
   call->status[source].is_set = 1;
   call->status[source].code = status;
 
@@ -448,7 +458,8 @@ static int need_more_data(grpc_call *call) {
          (is_op_live(call, GRPC_IOREQ_RECV_CLOSE) &&
           grpc_bbq_empty(&call->incoming_queue)) ||
          (call->write_state == WRITE_STATE_INITIAL && !call->is_client) ||
-         (call->cancel_with_status != GRPC_STATUS_OK);
+         (call->cancel_with_status != GRPC_STATUS_OK) ||
+         call->destroy_called;
 }
 
 static void unlock(grpc_call *call) {
@@ -467,8 +478,7 @@ static void unlock(grpc_call *call) {
   if (!call->receiving && need_more_data(call)) {
     op.recv_ops = &call->recv_ops;
     op.recv_state = &call->recv_state;
-    op.on_done_recv = call_on_done_recv;
-    op.recv_user_data = call;
+    op.on_done_recv = &call->on_done_recv;
     call->receiving = 1;
     GRPC_CALL_INTERNAL_REF(call, "receiving");
     start_op = 1;
@@ -795,6 +805,7 @@ static void call_on_done_recv(void *pc, int success) {
         grpc_alarm_cancel(&call->alarm);
         call->have_alarm = 0;
       }
+      GRPC_CALL_INTERNAL_UNREF(call, "closed", 0);
     }
     finish_read_ops(call);
   } else {
@@ -938,8 +949,7 @@ static int fill_send_ops(grpc_call *call, grpc_transport_op *op) {
       break;
   }
   if (op->send_ops) {
-    op->on_done_send = call_on_done_send;
-    op->send_user_data = call;
+    op->on_done_send = &call->on_done_send;
   }
   return op->send_ops != NULL;
 }
@@ -1069,6 +1079,8 @@ grpc_call_error grpc_call_start_ioreq_and_call_back(
 void grpc_call_destroy(grpc_call *c) {
   int cancel;
   lock(c);
+  GPR_ASSERT(!c->destroy_called);
+  c->destroy_called = 1;
   if (c->have_alarm) {
     grpc_alarm_cancel(&c->alarm);
     c->have_alarm = 0;
@@ -1113,14 +1125,31 @@ static void finished_loose_op(void *call, int success_ignored) {
   GRPC_CALL_INTERNAL_UNREF(call, "loose-op", 0);
 }
 
+typedef struct {
+  grpc_call *call;
+  grpc_iomgr_closure closure;
+} finished_loose_op_allocated_args;
+
+static void finished_loose_op_allocated(void *alloc, int success) {
+  finished_loose_op_allocated_args *args = alloc;
+  finished_loose_op(args->call, success);
+  gpr_free(args);
+}
+
 static void execute_op(grpc_call *call, grpc_transport_op *op) {
   grpc_call_element *elem;
 
   GPR_ASSERT(op->on_consumed == NULL);
   if (op->cancel_with_status != GRPC_STATUS_OK || op->bind_pollset) {
     GRPC_CALL_INTERNAL_REF(call, "loose-op");
-    op->on_consumed = finished_loose_op;
-    op->on_consumed_user_data = call;
+    if (op->bind_pollset) {
+      op->on_consumed = &call->on_done_bind;
+    } else {
+      finished_loose_op_allocated_args *args = gpr_malloc(sizeof(*args));
+      args->call = call;
+      grpc_iomgr_closure_init(&args->closure, finished_loose_op_allocated, args);
+      op->on_consumed = &args->closure;
+    }
   }
 
   elem = CALL_ELEM_FROM_CALL(call, 0);
@@ -1188,9 +1217,14 @@ static gpr_uint32 decode_compression(grpc_mdelem *md) {
   if (user_data) {
     clevel = ((grpc_compression_level)(gpr_intptr)user_data) - COMPRESS_OFFSET;
   } else {
-    if (!gpr_parse_bytes_to_uint32(grpc_mdstr_as_c_string(md->value),
+    gpr_uint32 parsed_clevel_bytes;
+    if (gpr_parse_bytes_to_uint32(grpc_mdstr_as_c_string(md->value),
                                    GPR_SLICE_LENGTH(md->value->slice),
-                                   &clevel)) {
+                                   &parsed_clevel_bytes)) {
+      /* the following cast is safe, as a gpr_uint32 should be able to hold all
+       * possible values of the grpc_compression_level enum */
+      clevel = (grpc_compression_level) parsed_clevel_bytes;
+    } else {
       clevel = GRPC_COMPRESS_LEVEL_NONE;  /* could not parse, no compression */
     }
     grpc_mdelem_set_user_data(md, destroy_compression,
