@@ -88,7 +88,7 @@ void ParseMetadataFlag(
     return;
   }
   std::vector<grpc::string> fields;
-  const char* delim = ":";
+  grpc::string delim(":");
   size_t cur, next = -1;
   do {
     cur = next + 1;
