@@ -51,9 +51,7 @@
 static int ncpus = 0;
 
 static void init_num_cpus() {
-  /* This must be signed. sysconf returns -1 when the number cannot be
-     determined */
-  ncpus = (int)sysconf(_SC_NPROCESSORS_ONLN);
+  ncpus = sysconf(_SC_NPROCESSORS_ONLN);
   if (ncpus < 1) {
     gpr_log(GPR_ERROR, "Cannot determine number of CPUs: assuming 1");
     ncpus = 1;
@@ -63,7 +61,7 @@ static void init_num_cpus() {
 unsigned gpr_cpu_num_cores(void) {
   static gpr_once once = GPR_ONCE_INIT;
   gpr_once_init(&once, init_num_cpus);
-  return (unsigned)ncpus;
+  return ncpus;
 }
 
 unsigned gpr_cpu_current_cpu(void) {
@@ -72,7 +70,7 @@ unsigned gpr_cpu_current_cpu(void) {
     gpr_log(GPR_ERROR, "Error determining current CPU: %s\n", strerror(errno));
     return 0;
   }
-  return (unsigned)cpu;
+  return cpu;
 }
 
 #endif /* GPR_CPU_LINUX */
