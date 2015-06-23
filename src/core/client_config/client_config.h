@@ -31,47 +31,19 @@
  *
  */
 
-#include <grpc++/slice.h>
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H
 
-#include <grpc/support/slice.h>
-#include <gtest/gtest.h>
+/** Total configuration for a client. Provided, and updated, by
+    grpc_resolver */
+typedef struct grpc_client_config grpc_client_config;
 
-namespace grpc {
-namespace {
+void grpc_client_config_ref(grpc_client_config *client_config);
+void grpc_client_config_unref(grpc_client_config *client_config);
 
-const char* kContent = "hello xxxxxxxxxxxxxxxxxxxx world";
+void grpc_client_config_set_lb_policy(grpc_client_config *client_config,
+                                      grpc_lb_policy *lb_policy);
+grpc_lb_policy *grpc_client_config_get_lb_policy(
+    grpc_client_config *client_config);
 
-class SliceTest : public ::testing::Test {
- protected:
-  void CheckSlice(const Slice& s, const grpc::string& content) {
-    EXPECT_EQ(content.size(), s.size());
-    EXPECT_EQ(content,
-              grpc::string(reinterpret_cast<const char*>(s.begin()), s.size()));
-  }
-};
-
-TEST_F(SliceTest, Steal) {
-  gpr_slice s = gpr_slice_from_copied_string(kContent);
-  Slice spp(s, Slice::STEAL_REF);
-  CheckSlice(spp, kContent);
-}
-
-TEST_F(SliceTest, Add) {
-  gpr_slice s = gpr_slice_from_copied_string(kContent);
-  Slice spp(s, Slice::ADD_REF);
-  gpr_slice_unref(s);
-  CheckSlice(spp, kContent);
-}
-
-TEST_F(SliceTest, Empty) {
-  Slice empty_slice;
-  CheckSlice(empty_slice, "");
-}
-
-}  // namespace
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H */

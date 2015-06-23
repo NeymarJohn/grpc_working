@@ -31,22 +31,42 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_RST_STREAM_H
-#define GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_RST_STREAM_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_H
 
-#include <grpc/support/slice.h>
-#include "src/core/transport/chttp2/frame.h"
+typedef struct grpc_subchannel_factory grpc_subchannel_factory;
+typedef struct grpc_subchannel_factory_vtable grpc_subchannel_factory_vtable;
 
-typedef struct {
-  gpr_uint8 byte;
-  gpr_uint8 reason_bytes[4];
-} grpc_chttp2_rst_stream_parser;
+/** Constructor for new configured channels.
+    Creating decorators around this type is encouraged to adapt behavior. */
+struct grpc_subchannel_factory {
+  const grpc_subchannel_factory_vtable *vtable;
+};
 
-gpr_slice grpc_chttp2_rst_stream_create(gpr_uint32 stream_id, gpr_uint32 code);
+struct grpc_subchannel_args {
+  /** Channel filters for this channel - wrapped factories will likely
+      want to mutate this */
+  const grpc_channel_filter **filters;
+  /** The number of filters in the above array */
+  size_t filter_count;
+  /** Channel arguments to be supplied to the newly created channel */
+  const grpc_channel_args *args;
 
-grpc_chttp2_parse_error grpc_chttp2_rst_stream_parser_begin_frame(
-    grpc_chttp2_rst_stream_parser *parser, gpr_uint32 length, gpr_uint8 flags);
-grpc_chttp2_parse_error grpc_chttp2_rst_stream_parser_parse(
-    void *parser, grpc_chttp2_parse_state *state, gpr_slice slice, int is_last);
+  struct sockaddr *addr;
+};
 
-#endif  /* GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_RST_STREAM_H */
+struct grpc_subchannel_factory_vtable {
+  void (*ref)(grpc_subchannel_factory *factory);
+  void (*unref)(grpc_subchannel_factory *factory);
+  grpc_subchannel *(*create_subchannel)(grpc_subchannel_factory *factory,
+                                        grpc_subchannel_args *args);
+};
+
+void grpc_subchannel_factory_ref(grpc_subchannel_factory *factory);
+void grpc_subchannel_factory_unref(grpc_subchannel_factory *factory);
+
+/** Create a new grpc_subchannel */
+void grpc_subchannel_factory_create_subchannel(grpc_subchannel_factory *factory,
+                                               grpc_subchannel_args *args);
+
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_H */
