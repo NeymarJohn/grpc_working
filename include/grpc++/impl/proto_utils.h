@@ -31,42 +31,46 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_H
+#ifndef GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
+#define GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
 
-typedef struct grpc_subchannel_factory grpc_subchannel_factory;
-typedef struct grpc_subchannel_factory_vtable grpc_subchannel_factory_vtable;
+#include <type_traits>
 
-/** Constructor for new configured channels.
-    Creating decorators around this type is encouraged to adapt behavior. */
-struct grpc_subchannel_factory {
-  const grpc_subchannel_factory_vtable *vtable;
+#include <grpc/grpc.h>
+#include <grpc++/impl/serialization_traits.h>
+#include <grpc++/config_protobuf.h>
+#include <grpc++/status.h>
+
+namespace grpc {
+
+// Serialize the msg into a buffer created inside the function. The caller
+// should destroy the returned buffer when done with it. If serialization fails,
+// false is returned and buffer is left unchanged.
+Status SerializeProto(const grpc::protobuf::Message& msg,
+                      grpc_byte_buffer** buffer);
+
+// The caller keeps ownership of buffer and msg.
+Status DeserializeProto(grpc_byte_buffer* buffer, grpc::protobuf::Message* msg,
+                        int max_message_size);
+
+template <class T>
+class SerializationTraits<T, typename std::enable_if<std::is_base_of<
+                                 grpc::protobuf::Message, T>::value>::type> {
+ public:
+  static Status Serialize(const grpc::protobuf::Message& msg,
+                          grpc_byte_buffer** buffer, bool* own_buffer) {
+    *own_buffer = true;
+    return SerializeProto(msg, buffer);
+  }
+  static Status Deserialize(grpc_byte_buffer* buffer,
+                            grpc::protobuf::Message* msg,
+                            int max_message_size) {
+    auto status = DeserializeProto(buffer, msg, max_message_size);
+    grpc_byte_buffer_destroy(buffer);
+    return status;
+  }
 };
 
-struct grpc_subchannel_args {
-  /** Channel filters for this channel - wrapped factories will likely
-      want to mutate this */
-  const grpc_channel_filter **filters;
-  /** The number of filters in the above array */
-  size_t filter_count;
-  /** Channel arguments to be supplied to the newly created channel */
-  const grpc_channel_args *args;
+}  // namespace grpc
 
-  struct sockaddr *addr;
-};
-
-struct grpc_subchannel_factory_vtable {
-  void (*ref)(grpc_subchannel_factory *factory);
-  void (*unref)(grpc_subchannel_factory *factory);
-  grpc_subchannel *(*create_subchannel)(grpc_subchannel_factory *factory,
-                                        grpc_subchannel_args *args);
-};
-
-void grpc_subchannel_factory_ref(grpc_subchannel_factory *factory);
-void grpc_subchannel_factory_unref(grpc_subchannel_factory *factory);
-
-/** Create a new grpc_subchannel */
-void grpc_subchannel_factory_create_subchannel(grpc_subchannel_factory *factory,
-                                               grpc_subchannel_args *args);
-
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_H */
+#endif  // GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
