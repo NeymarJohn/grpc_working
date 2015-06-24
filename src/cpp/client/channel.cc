@@ -41,6 +41,7 @@
 #include <grpc/support/slice.h>
 
 #include "src/core/profiling/timers.h"
+#include "src/cpp/proto/proto_utils.h"
 #include <grpc++/channel_arguments.h>
 #include <grpc++/client_context.h>
 #include <grpc++/completion_queue.h>
@@ -74,14 +75,14 @@ Call Channel::CreateCall(const RpcMethod& method, ClientContext* context,
   return Call(c_call, this, cq);
 }
 
-void Channel::PerformOpsOnCall(CallOpSetInterface* ops, Call* call) {
+void Channel::PerformOpsOnCall(CallOpBuffer* buf, Call* call) {
   static const size_t MAX_OPS = 8;
-  size_t nops = 0;
-  grpc_op cops[MAX_OPS];
+  size_t nops = MAX_OPS;
+  grpc_op ops[MAX_OPS];
   GRPC_TIMER_BEGIN(GRPC_PTAG_CPP_PERFORM_OPS, call->call());
-  ops->FillOps(cops, &nops);
+  buf->FillOps(ops, &nops);
   GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_call_start_batch(call->call(), cops, nops, ops));
+             grpc_call_start_batch(call->call(), ops, nops, buf));
   GRPC_TIMER_END(GRPC_PTAG_CPP_PERFORM_OPS, call->call());
 }
 

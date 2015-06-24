@@ -3093,11 +3093,15 @@ LIBGRPC_SRC = \
     src/core/transport/chttp2/hpack_parser.c \
     src/core/transport/chttp2/hpack_table.c \
     src/core/transport/chttp2/huffsyms.c \
+    src/core/transport/chttp2/incoming_metadata.c \
+    src/core/transport/chttp2/parsing.c \
     src/core/transport/chttp2/status_conversion.c \
     src/core/transport/chttp2/stream_encoder.c \
+    src/core/transport/chttp2/stream_lists.c \
     src/core/transport/chttp2/stream_map.c \
     src/core/transport/chttp2/timeout_encoding.c \
     src/core/transport/chttp2/varint.c \
+    src/core/transport/chttp2/writing.c \
     src/core/transport/chttp2_transport.c \
     src/core/transport/metadata.c \
     src/core/transport/stream_op.c \
@@ -3339,11 +3343,15 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/transport/chttp2/hpack_parser.c \
     src/core/transport/chttp2/hpack_table.c \
     src/core/transport/chttp2/huffsyms.c \
+    src/core/transport/chttp2/incoming_metadata.c \
+    src/core/transport/chttp2/parsing.c \
     src/core/transport/chttp2/status_conversion.c \
     src/core/transport/chttp2/stream_encoder.c \
+    src/core/transport/chttp2/stream_lists.c \
     src/core/transport/chttp2/stream_map.c \
     src/core/transport/chttp2/timeout_encoding.c \
     src/core/transport/chttp2/varint.c \
+    src/core/transport/chttp2/writing.c \
     src/core/transport/chttp2_transport.c \
     src/core/transport/metadata.c \
     src/core/transport/stream_op.c \
@@ -3402,6 +3410,7 @@ LIBGRPC++_SRC = \
     src/cpp/client/channel.cc \
     src/cpp/client/channel_arguments.cc \
     src/cpp/client/client_context.cc \
+    src/cpp/client/client_unary_call.cc \
     src/cpp/client/create_channel.cc \
     src/cpp/client/credentials.cc \
     src/cpp/client/generic_stub.cc \
@@ -3433,7 +3442,6 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/client_context.h \
     include/grpc++/completion_queue.h \
     include/grpc++/config.h \
-    include/grpc++/config_protobuf.h \
     include/grpc++/create_channel.h \
     include/grpc++/credentials.h \
     include/grpc++/generic_stub.h \
@@ -3441,10 +3449,8 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/impl/client_unary_call.h \
     include/grpc++/impl/grpc_library.h \
     include/grpc++/impl/internal_stub.h \
-    include/grpc++/impl/proto_utils.h \
     include/grpc++/impl/rpc_method.h \
     include/grpc++/impl/rpc_service_method.h \
-    include/grpc++/impl/serialization_traits.h \
     include/grpc++/impl/service_type.h \
     include/grpc++/impl/sync.h \
     include/grpc++/impl/sync_cxx11.h \
@@ -3692,6 +3698,7 @@ LIBGRPC++_UNSECURE_SRC = \
     src/cpp/client/channel.cc \
     src/cpp/client/channel_arguments.cc \
     src/cpp/client/client_context.cc \
+    src/cpp/client/client_unary_call.cc \
     src/cpp/client/create_channel.cc \
     src/cpp/client/credentials.cc \
     src/cpp/client/generic_stub.cc \
@@ -3723,7 +3730,6 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/client_context.h \
     include/grpc++/completion_queue.h \
     include/grpc++/config.h \
-    include/grpc++/config_protobuf.h \
     include/grpc++/create_channel.h \
     include/grpc++/credentials.h \
     include/grpc++/generic_stub.h \
@@ -3731,10 +3737,8 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/impl/client_unary_call.h \
     include/grpc++/impl/grpc_library.h \
     include/grpc++/impl/internal_stub.h \
-    include/grpc++/impl/proto_utils.h \
     include/grpc++/impl/rpc_method.h \
     include/grpc++/impl/rpc_service_method.h \
-    include/grpc++/impl/serialization_traits.h \
     include/grpc++/impl/service_type.h \
     include/grpc++/impl/sync.h \
     include/grpc++/impl/sync_cxx11.h \
