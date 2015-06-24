@@ -36,7 +36,7 @@
 
 namespace grpc {
 
-ByteBuffer::ByteBuffer(const Slice* slices, size_t nslices) {
+ByteBuffer::ByteBuffer(Slice* slices, size_t nslices) {
   // TODO(yangg) maybe expose some core API to simplify this
   std::vector<gpr_slice> c_slices(nslices);
   for (size_t i = 0; i < nslices; i++) {
@@ -52,20 +52,20 @@ void ByteBuffer::Clear() {
   }
 }
 
-void ByteBuffer::Dump(std::vector<Slice>* slices) const {
+void ByteBuffer::Dump(std::vector<Slice>* slices) {
   slices->clear();
   if (!buffer_) {
     return;
   }
   grpc_byte_buffer_reader reader;
-  grpc_byte_buffer_reader_init(&reader, buffer_);
+  grpc_byte_buffer_reader_init(&reader,buffer_);
   gpr_slice s;
   while (grpc_byte_buffer_reader_next(&reader, &s)) {
     slices->push_back(Slice(s, Slice::STEAL_REF));
   }
 }
 
-size_t ByteBuffer::Length() const {
+size_t ByteBuffer::Length() {
   if (buffer_) {
     return grpc_byte_buffer_length(buffer_);
   } else {

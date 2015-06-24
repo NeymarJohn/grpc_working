@@ -2,8 +2,6 @@
 # This currently builds C and C++ code.
 # This file has been automatically generated from a template file.
 # Please look at the templates directory instead.
-# This file can be regenerated from the template by running
-# tools/buildgen/generate_projects.sh
 
 # Copyright 2015, Google Inc.
 # All rights reserved.
@@ -153,7 +151,6 @@ cc_library(
     "src/core/channel/child_channel.h",
     "src/core/channel/client_channel.h",
     "src/core/channel/client_setup.h",
-    "src/core/channel/compress_filter.h",
     "src/core/channel/connected_channel.h",
     "src/core/channel/context.h",
     "src/core/channel/http_client_filter.h",
@@ -174,7 +171,6 @@ cc_library(
     "src/core/iomgr/pollset.h",
     "src/core/iomgr/pollset_kick_posix.h",
     "src/core/iomgr/pollset_posix.h",
-    "src/core/iomgr/pollset_set.h",
     "src/core/iomgr/pollset_set_posix.h",
     "src/core/iomgr/pollset_set_windows.h",
     "src/core/iomgr/pollset_windows.h",
@@ -260,7 +256,6 @@ cc_library(
     "src/core/channel/child_channel.c",
     "src/core/channel/client_channel.c",
     "src/core/channel/client_setup.c",
-    "src/core/channel/compress_filter.c",
     "src/core/channel/connected_channel.c",
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_server_filter.c",
@@ -381,7 +376,6 @@ cc_library(
     "src/core/channel/child_channel.h",
     "src/core/channel/client_channel.h",
     "src/core/channel/client_setup.h",
-    "src/core/channel/compress_filter.h",
     "src/core/channel/connected_channel.h",
     "src/core/channel/context.h",
     "src/core/channel/http_client_filter.h",
@@ -402,7 +396,6 @@ cc_library(
     "src/core/iomgr/pollset.h",
     "src/core/iomgr/pollset_kick_posix.h",
     "src/core/iomgr/pollset_posix.h",
-    "src/core/iomgr/pollset_set.h",
     "src/core/iomgr/pollset_set_posix.h",
     "src/core/iomgr/pollset_set_windows.h",
     "src/core/iomgr/pollset_windows.h",
@@ -466,7 +459,6 @@ cc_library(
     "src/core/channel/child_channel.c",
     "src/core/channel/client_channel.c",
     "src/core/channel/client_setup.c",
-    "src/core/channel/compress_filter.c",
     "src/core/channel/connected_channel.c",
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_server_filter.c",
@@ -588,6 +580,7 @@ cc_library(
     "src/cpp/client/channel.cc",
     "src/cpp/client/channel_arguments.cc",
     "src/cpp/client/client_context.cc",
+    "src/cpp/client/client_unary_call.cc",
     "src/cpp/client/create_channel.cc",
     "src/cpp/client/credentials.cc",
     "src/cpp/client/generic_stub.cc",
@@ -628,7 +621,6 @@ cc_library(
     "include/grpc++/impl/internal_stub.h",
     "include/grpc++/impl/rpc_method.h",
     "include/grpc++/impl/rpc_service_method.h",
-    "include/grpc++/impl/serialization_traits.h",
     "include/grpc++/impl/service_type.h",
     "include/grpc++/impl/sync.h",
     "include/grpc++/impl/sync_cxx11.h",
@@ -668,6 +660,7 @@ cc_library(
     "src/cpp/client/channel.cc",
     "src/cpp/client/channel_arguments.cc",
     "src/cpp/client/client_context.cc",
+    "src/cpp/client/client_unary_call.cc",
     "src/cpp/client/create_channel.cc",
     "src/cpp/client/credentials.cc",
     "src/cpp/client/generic_stub.cc",
@@ -708,7 +701,6 @@ cc_library(
     "include/grpc++/impl/internal_stub.h",
     "include/grpc++/impl/rpc_method.h",
     "include/grpc++/impl/rpc_service_method.h",
-    "include/grpc++/impl/serialization_traits.h",
     "include/grpc++/impl/service_type.h",
     "include/grpc++/impl/sync.h",
     "include/grpc++/impl/sync_cxx11.h",

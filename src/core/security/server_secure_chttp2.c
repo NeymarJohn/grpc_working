@@ -138,12 +138,10 @@ static void destroy_done(void *statep) {
    callbacks) */
 static void destroy(grpc_server *server, void *statep) {
   grpc_server_secure_state *state = statep;
-  grpc_tcp_server *tcp;
   gpr_mu_lock(&state->mu);
   state->is_shutdown = 1;
-  tcp = state->tcp;
+  grpc_tcp_server_destroy(state->tcp, destroy_done, state);
   gpr_mu_unlock(&state->mu);
-  grpc_tcp_server_destroy(tcp, destroy_done, state);
 }
 
 int grpc_server_add_secure_http2_port(grpc_server *server, const char *addr,

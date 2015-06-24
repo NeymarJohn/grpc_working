@@ -30,25 +30,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <grpc/compression.h>
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
 
 #include "src/core/census/grpc_context.h"
+#include "src/core/surface/call.h"
 #include "src/core/channel/channel_stack.h"
 #include "src/core/iomgr/alarm.h"
 #include "src/core/profiling/timers.h"
 #include "src/core/support/string.h"
 #include "src/core/surface/byte_buffer_queue.h"
-#include "src/core/surface/call.h"
 #include "src/core/surface/channel.h"
 #include "src/core/surface/completion_queue.h"
+#include <grpc/support/alloc.h>
+#include <grpc/support/log.h>
+#include <grpc/support/string_util.h>
+#include <assert.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef enum { REQ_INITIAL = 0, REQ_READY, REQ_DONE } req_state;
 
@@ -214,9 +213,6 @@ struct grpc_call {
 
   /* Received call statuses from various sources */
   received_status status[STATUS_SOURCE_COUNT];
-
-  /** Compression algorithm for the call */
-  grpc_compression_algorithm compression_algorithm;
 
   /* Contexts for various subsystems (security, tracing, ...). */
   grpc_call_context_element context[GRPC_CONTEXT_COUNT];
@@ -406,19 +402,12 @@ void grpc_call_internal_unref(grpc_call *c, int allow_immediate_deletion) {
 
 static void set_status_code(grpc_call *call, status_source source,
                             gpr_uint32 status) {
-  if (call->status[source].is_set) return;
-
   call->status[source].is_set = 1;
   call->status[source].code = status;
 
   if (status != GRPC_STATUS_OK && !grpc_bbq_empty(&call->incoming_queue)) {
     grpc_bbq_flush(&call->incoming_queue);
   }
-}
-
-static void set_compression_algorithm(grpc_call *call,
-                                      grpc_compression_algorithm algo) {
-  call->compression_algorithm = algo;
 }
 
 static void set_status_details(grpc_call *call, status_source source,
@@ -688,17 +677,8 @@ static void call_on_done_send(void *pc, int success) {
 
 static void finish_message(grpc_call *call) {
   /* TODO(ctiller): this could be a lot faster if coded directly */
-  grpc_byte_buffer *byte_buffer;
-  /* some aliases for readability */
-  gpr_slice *slices = call->incoming_message.slices;
-  const size_t nslices = call->incoming_message.count;
-
-  if (call->compression_algorithm > GRPC_COMPRESS_NONE) {
-    byte_buffer = grpc_raw_compressed_byte_buffer_create(
-        slices, nslices, call->compression_algorithm);
-  } else {
-    byte_buffer = grpc_raw_byte_buffer_create(slices, nslices);
-  }
+  grpc_byte_buffer *byte_buffer = grpc_raw_byte_buffer_create(
+      call->incoming_message.slices, call->incoming_message.count);
   gpr_slice_buffer_reset_and_unref(&call->incoming_message);
 
   grpc_bbq_push(&call->incoming_queue, byte_buffer);
@@ -717,17 +697,6 @@ static int begin_message(grpc_call *call, grpc_begin_message msg) {
     cancel_with_status(call, GRPC_STATUS_INVALID_ARGUMENT, message);
     gpr_free(message);
     return 0;
-  }
-  /* sanity check: if message flags indicate a compressed message, the
-   * compression level should already be present in the call, as parsed off its
-   * corresponding metadata. */
-  if ((msg.flags & GRPC_WRITE_INTERNAL_COMPRESS) &&
-      (call->compression_algorithm == GRPC_COMPRESS_NONE)) {
-    char *message = NULL;
-    gpr_asprintf(
-        &message, "Invalid compression algorithm (%s) for compressed message.",
-        grpc_compression_algorithm_name(call->compression_algorithm));
-    cancel_with_status(call, GRPC_STATUS_FAILED_PRECONDITION, message);
   }
   /* stash away parameters, and prepare for incoming slices */
   if (msg.length > grpc_channel_get_max_message_length(call->channel)) {
@@ -1200,25 +1169,6 @@ static gpr_uint32 decode_status(grpc_mdelem *md) {
   return status;
 }
 
-/* just as for status above, we need to offset: metadata userdata can't hold a
- * zero (null), which in this case is used to signal no compression */
-#define COMPRESS_OFFSET 1
-static void destroy_compression(void *ignored) {}
-
-static gpr_uint32 decode_compression(grpc_mdelem *md) {
-  grpc_compression_level clevel;
-  void *user_data = grpc_mdelem_get_user_data(md, destroy_compression);
-  if (user_data) {
-    clevel = ((grpc_compression_level)(gpr_intptr)user_data) - COMPRESS_OFFSET;
-  } else {
-    GPR_ASSERT(sizeof(clevel) == GPR_SLICE_LENGTH(md->value->slice));
-    memcpy(&clevel, GPR_SLICE_START_PTR(md->value->slice), sizeof(clevel));
-    grpc_mdelem_set_user_data(md, destroy_compression,
-                              (void *)(gpr_intptr)(clevel + COMPRESS_OFFSET));
-  }
-  return clevel;
-}
-
 static void recv_metadata(grpc_call *call, grpc_metadata_batch *md) {
   grpc_linked_mdelem *l;
   grpc_metadata_array *dest;
@@ -1234,9 +1184,6 @@ static void recv_metadata(grpc_call *call, grpc_metadata_batch *md) {
       set_status_code(call, STATUS_FROM_WIRE, decode_status(md));
     } else if (key == grpc_channel_get_message_string(call->channel)) {
       set_status_details(call, STATUS_FROM_WIRE, grpc_mdstr_ref(md->value));
-    } else if (key ==
-               grpc_channel_get_compresssion_algorithm_string(call->channel)) {
-      set_compression_algorithm(call, decode_compression(md));
     } else {
       dest = &call->buffered_metadata[is_trailing];
       if (dest->count == dest->capacity) {
@@ -1347,7 +1294,7 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
         req = &reqs[out++];
         req->op = GRPC_IOREQ_SEND_MESSAGE;
         req->data.send_message = op->data.send_message;
-        req->flags = op->flags;
+        req->flags = ops->flags;
         break;
       case GRPC_OP_SEND_CLOSE_FROM_CLIENT:
         /* Flag validation: currently allow no flags */

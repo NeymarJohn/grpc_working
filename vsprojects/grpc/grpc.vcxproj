@@ -179,7 +179,6 @@
     <ClInclude Include="..\..\src\core\channel\child_channel.h" />
     <ClInclude Include="..\..\src\core\channel\client_channel.h" />
     <ClInclude Include="..\..\src\core\channel\client_setup.h" />
-    <ClInclude Include="..\..\src\core\channel\compress_filter.h" />
     <ClInclude Include="..\..\src\core\channel\connected_channel.h" />
     <ClInclude Include="..\..\src\core\channel\context.h" />
     <ClInclude Include="..\..\src\core\channel\http_client_filter.h" />
@@ -200,7 +199,6 @@
     <ClInclude Include="..\..\src\core\iomgr\pollset.h" />
     <ClInclude Include="..\..\src\core\iomgr\pollset_kick_posix.h" />
     <ClInclude Include="..\..\src\core\iomgr\pollset_posix.h" />
-    <ClInclude Include="..\..\src\core\iomgr\pollset_set.h" />
     <ClInclude Include="..\..\src\core\iomgr\pollset_set_posix.h" />
     <ClInclude Include="..\..\src\core\iomgr\pollset_set_windows.h" />
     <ClInclude Include="..\..\src\core\iomgr\pollset_windows.h" />
@@ -316,8 +314,6 @@
     <ClCompile Include="..\..\src\core\channel\client_channel.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\channel\client_setup.c">
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\channel\compress_filter.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\channel\connected_channel.c">
     </ClCompile>

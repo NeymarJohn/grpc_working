@@ -140,8 +140,7 @@ TEST_F(CrashTest, KillAfterWrite) {
 
   KillServer();
 
-  // This may succeed or fail depending on how quick the server was
-  stream->Read(&response);
+  EXPECT_FALSE(stream->Read(&response));
 
   EXPECT_FALSE(stream->Finish().ok());
 }
