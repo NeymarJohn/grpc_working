@@ -31,25 +31,22 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
-#define GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_URI_PARSER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_URI_PARSER_H
 
-#include <grpc++/config.h>
+typedef struct {
+  char *scheme;
+  char *authority;
+  char *path;
+} grpc_uri;
 
-struct grpc_byte_buffer;
+/** parse a uri, return NULL on failure */
+grpc_uri *grpc_uri_parse(const char *uri_text);
 
-namespace grpc {
+/** return 1 if uri_text has something that is likely a scheme, 0 otherwise */
+int grpc_has_scheme(const char *uri_text);
 
-// Serialize the msg into a buffer created inside the function. The caller
-// should destroy the returned buffer when done with it. If serialization fails,
-// false is returned and buffer is left unchanged.
-bool SerializeProto(const grpc::protobuf::Message& msg,
-                    grpc_byte_buffer** buffer);
+/** destroy a uri */
+void grpc_uri_destroy(grpc_uri *uri);
 
-// The caller keeps ownership of buffer and msg.
-bool DeserializeProto(grpc_byte_buffer* buffer, grpc::protobuf::Message* msg,
-                      int max_message_size);
-
-}  // namespace grpc
-
-#endif  // GRPC_INTERNAL_CPP_PROTO_PROTO_UTILS_H
+#endif

@@ -35,6 +35,7 @@
 #define GRPC_INTERNAL_CORE_SURFACE_CHANNEL_H
 
 #include "src/core/channel/channel_stack.h"
+#include "src/core/client_config/subchannel_factory.h"
 
 grpc_channel *grpc_channel_create_from_filters(
     const grpc_channel_filter **filters, size_t count,
@@ -42,6 +43,11 @@ grpc_channel *grpc_channel_create_from_filters(
 
 /** Get a (borrowed) pointer to this channels underlying channel stack */
 grpc_channel_stack *grpc_channel_get_channel_stack(grpc_channel *channel);
+
+/** Get a (borrowed) pointer to this channels subchannel factory (if it exists)
+ */
+grpc_subchannel_factory *grpc_channel_get_subchannel_factory(
+    grpc_channel *channel);
 
 /** Get a (borrowed) pointer to the channel wide metadata context */
 grpc_mdctx *grpc_channel_get_metadata_context(grpc_channel *channel);
@@ -53,6 +59,7 @@ grpc_mdctx *grpc_channel_get_metadata_context(grpc_channel *channel);
 grpc_mdelem *grpc_channel_get_reffed_status_elem(grpc_channel *channel,
                                                  int status_code);
 grpc_mdstr *grpc_channel_get_status_string(grpc_channel *channel);
+grpc_mdstr *grpc_channel_get_compresssion_level_string(grpc_channel *channel);
 grpc_mdstr *grpc_channel_get_message_string(grpc_channel *channel);
 gpr_uint32 grpc_channel_get_max_message_length(grpc_channel *channel);
 

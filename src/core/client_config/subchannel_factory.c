@@ -31,34 +31,4 @@
  *
  */
 
-#include <grpc++/impl/client_unary_call.h>
-#include <grpc++/impl/call.h>
-#include <grpc++/channel_interface.h>
-#include <grpc++/client_context.h>
-#include <grpc++/completion_queue.h>
-#include <grpc++/status.h>
-#include <grpc/support/log.h>
-
-namespace grpc {
-
-// Wrapper that performs a blocking unary call
-Status BlockingUnaryCall(ChannelInterface* channel, const RpcMethod& method,
-                         ClientContext* context,
-                         const grpc::protobuf::Message& request,
-                         grpc::protobuf::Message* result) {
-  CompletionQueue cq;
-  Call call(channel->CreateCall(method, context, &cq));
-  CallOpBuffer buf;
-  Status status;
-  buf.AddSendInitialMetadata(context);
-  buf.AddSendMessage(request);
-  buf.AddRecvInitialMetadata(context);
-  buf.AddRecvMessage(result);
-  buf.AddClientSendClose();
-  buf.AddClientRecvStatus(context, &status);
-  call.PerformOps(&buf);
-  GPR_ASSERT((cq.Pluck(&buf) && buf.got_message) || !status.ok());
-  return status;
-}
-
-}  // namespace grpc
+#include "src/core/client_config/subchannel_factory.h"
