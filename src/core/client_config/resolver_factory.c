@@ -31,6 +31,4 @@
  *
  */
 
-#include "src/core/client_config/resolvers/dns_resolver.h"
-
- 
+#include "src/core/client_config/resolver_factory.h"
