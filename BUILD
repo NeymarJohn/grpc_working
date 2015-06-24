@@ -2,6 +2,8 @@
 # This currently builds C and C++ code.
 # This file has been automatically generated from a template file.
 # Please look at the templates directory instead.
+# This file can be regenerated from the template by running
+# tools/buildgen/generate_projects.sh
 
 # Copyright 2015, Google Inc.
 # All rights reserved.
@@ -169,10 +171,11 @@ cc_library(
     "src/core/iomgr/iomgr_internal.h",
     "src/core/iomgr/iomgr_posix.h",
     "src/core/iomgr/pollset.h",
-    "src/core/iomgr/pollset_kick.h",
     "src/core/iomgr/pollset_kick_posix.h",
-    "src/core/iomgr/pollset_kick_windows.h",
     "src/core/iomgr/pollset_posix.h",
+    "src/core/iomgr/pollset_set.h",
+    "src/core/iomgr/pollset_set_posix.h",
+    "src/core/iomgr/pollset_set_windows.h",
     "src/core/iomgr/pollset_windows.h",
     "src/core/iomgr/resolve_address.h",
     "src/core/iomgr/sockaddr.h",
@@ -273,10 +276,12 @@ cc_library(
     "src/core/iomgr/iomgr.c",
     "src/core/iomgr/iomgr_posix.c",
     "src/core/iomgr/iomgr_windows.c",
-    "src/core/iomgr/pollset_kick.c",
+    "src/core/iomgr/pollset_kick_posix.c",
     "src/core/iomgr/pollset_multipoller_with_epoll.c",
     "src/core/iomgr/pollset_multipoller_with_poll_posix.c",
     "src/core/iomgr/pollset_posix.c",
+    "src/core/iomgr/pollset_set_posix.c",
+    "src/core/iomgr/pollset_set_windows.c",
     "src/core/iomgr/pollset_windows.c",
     "src/core/iomgr/resolve_address_posix.c",
     "src/core/iomgr/resolve_address_windows.c",
@@ -392,10 +397,11 @@ cc_library(
     "src/core/iomgr/iomgr_internal.h",
     "src/core/iomgr/iomgr_posix.h",
     "src/core/iomgr/pollset.h",
-    "src/core/iomgr/pollset_kick.h",
     "src/core/iomgr/pollset_kick_posix.h",
-    "src/core/iomgr/pollset_kick_windows.h",
     "src/core/iomgr/pollset_posix.h",
+    "src/core/iomgr/pollset_set.h",
+    "src/core/iomgr/pollset_set_posix.h",
+    "src/core/iomgr/pollset_set_windows.h",
     "src/core/iomgr/pollset_windows.h",
     "src/core/iomgr/resolve_address.h",
     "src/core/iomgr/sockaddr.h",
@@ -474,10 +480,12 @@ cc_library(
     "src/core/iomgr/iomgr.c",
     "src/core/iomgr/iomgr_posix.c",
     "src/core/iomgr/iomgr_windows.c",
-    "src/core/iomgr/pollset_kick.c",
+    "src/core/iomgr/pollset_kick_posix.c",
     "src/core/iomgr/pollset_multipoller_with_epoll.c",
     "src/core/iomgr/pollset_multipoller_with_poll_posix.c",
     "src/core/iomgr/pollset_posix.c",
+    "src/core/iomgr/pollset_set_posix.c",
+    "src/core/iomgr/pollset_set_windows.c",
     "src/core/iomgr/pollset_windows.c",
     "src/core/iomgr/resolve_address_posix.c",
     "src/core/iomgr/resolve_address_windows.c",
@@ -569,14 +577,12 @@ cc_library(
     "src/cpp/client/secure_credentials.h",
     "src/cpp/server/secure_server_credentials.h",
     "src/cpp/client/channel.h",
-    "src/cpp/proto/proto_utils.h",
     "src/cpp/server/thread_pool.h",
     "src/cpp/client/secure_credentials.cc",
     "src/cpp/server/secure_server_credentials.cc",
     "src/cpp/client/channel.cc",
     "src/cpp/client/channel_arguments.cc",
     "src/cpp/client/client_context.cc",
-    "src/cpp/client/client_unary_call.cc",
     "src/cpp/client/create_channel.cc",
     "src/cpp/client/credentials.cc",
     "src/cpp/client/generic_stub.cc",
@@ -608,6 +614,7 @@ cc_library(
     "include/grpc++/client_context.h",
     "include/grpc++/completion_queue.h",
     "include/grpc++/config.h",
+    "include/grpc++/config_protobuf.h",
     "include/grpc++/create_channel.h",
     "include/grpc++/credentials.h",
     "include/grpc++/generic_stub.h",
@@ -615,8 +622,10 @@ cc_library(
     "include/grpc++/impl/client_unary_call.h",
     "include/grpc++/impl/grpc_library.h",
     "include/grpc++/impl/internal_stub.h",
+    "include/grpc++/impl/proto_utils.h",
     "include/grpc++/impl/rpc_method.h",
     "include/grpc++/impl/rpc_service_method.h",
+    "include/grpc++/impl/serialization_traits.h",
     "include/grpc++/impl/service_type.h",
     "include/grpc++/impl/sync.h",
     "include/grpc++/impl/sync_cxx11.h",
@@ -651,12 +660,10 @@ cc_library(
   name = "grpc++_unsecure",
   srcs = [
     "src/cpp/client/channel.h",
-    "src/cpp/proto/proto_utils.h",
     "src/cpp/server/thread_pool.h",
     "src/cpp/client/channel.cc",
     "src/cpp/client/channel_arguments.cc",
     "src/cpp/client/client_context.cc",
-    "src/cpp/client/client_unary_call.cc",
     "src/cpp/client/create_channel.cc",
     "src/cpp/client/credentials.cc",
     "src/cpp/client/generic_stub.cc",
@@ -688,6 +695,7 @@ cc_library(
     "include/grpc++/client_context.h",
     "include/grpc++/completion_queue.h",
     "include/grpc++/config.h",
+    "include/grpc++/config_protobuf.h",
     "include/grpc++/create_channel.h",
     "include/grpc++/credentials.h",
     "include/grpc++/generic_stub.h",
@@ -695,8 +703,10 @@ cc_library(
     "include/grpc++/impl/client_unary_call.h",
     "include/grpc++/impl/grpc_library.h",
     "include/grpc++/impl/internal_stub.h",
+    "include/grpc++/impl/proto_utils.h",
     "include/grpc++/impl/rpc_method.h",
     "include/grpc++/impl/rpc_service_method.h",
+    "include/grpc++/impl/serialization_traits.h",
     "include/grpc++/impl/service_type.h",
     "include/grpc++/impl/sync.h",
     "include/grpc++/impl/sync_cxx11.h",
@@ -843,3 +853,30 @@ cc_binary(
 
 
 
+
+objc_path = "src/objective-c"
+
+rx_library_path = objc_path + "/RxLibrary"
+
+objc_library(
+    name = "rx_library",
+    hdrs = glob([
+        rx_library_path + "/*.h",
+        rx_library_path + "/transformations/*.h",
+    ]),
+    srcs = glob([
+        rx_library_path + "/*.m",
+        rx_library_path + "/transformations/*.m",
+    ]),
+    includes = [objc_path],
+    deps = [
+        ":rx_library_private",
+    ],
+)
+
+objc_library(
+    name = "rx_library_private",
+    hdrs = glob([rx_library_path + "/private/*.h"]),
+    srcs = glob([rx_library_path + "/private/*.m"]),
+    visibility = ["//visibility:private"],
+)
