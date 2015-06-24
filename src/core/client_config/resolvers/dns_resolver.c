@@ -31,10 +31,6 @@
  *
  */
 
-#import <Foundation/Foundation.h>
+#include "src/core/client_config/resolvers/dns_resolver.h"
 
-#import "GRPCMethodName.h"
-
-@interface GRPCMethodName (HTTP2Encoding)
-- (NSString *)HTTP2Path;
-@end
+ 

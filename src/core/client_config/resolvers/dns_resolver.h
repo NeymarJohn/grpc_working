@@ -31,10 +31,10 @@
  *
  */
 
-#import <Foundation/Foundation.h>
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_DNS_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_DNS_RESOLVER_H
 
-#import "GRPCMethodName.h"
+/** Create a dns resolver for \a name */
+grpc_resolver *grpc_dns_resolver_create(const char *name);
 
-@interface GRPCMethodName (HTTP2Encoding)
-- (NSString *)HTTP2Path;
-@end
+#endif  /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_DNS_RESOLVER_H */

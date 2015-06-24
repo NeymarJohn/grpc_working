@@ -158,6 +158,11 @@ cc_library(
     "src/core/channel/http_client_filter.h",
     "src/core/channel/http_server_filter.h",
     "src/core/channel/noop_filter.h",
+    "src/core/client_config/client_config.h",
+    "src/core/client_config/lb_policy.h",
+    "src/core/client_config/resolver.h",
+    "src/core/client_config/subchannel.h",
+    "src/core/client_config/subchannel_factory.h",
     "src/core/compression/message_compress.h",
     "src/core/debug/trace.h",
     "src/core/iomgr/alarm.h",
@@ -263,6 +268,11 @@ cc_library(
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_server_filter.c",
     "src/core/channel/noop_filter.c",
+    "src/core/client_config/client_config.c",
+    "src/core/client_config/lb_policy.c",
+    "src/core/client_config/resolver.c",
+    "src/core/client_config/subchannel.c",
+    "src/core/client_config/subchannel_factory.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
     "src/core/debug/trace.c",
@@ -384,6 +394,11 @@ cc_library(
     "src/core/channel/http_client_filter.h",
     "src/core/channel/http_server_filter.h",
     "src/core/channel/noop_filter.h",
+    "src/core/client_config/client_config.h",
+    "src/core/client_config/lb_policy.h",
+    "src/core/client_config/resolver.h",
+    "src/core/client_config/subchannel.h",
+    "src/core/client_config/subchannel_factory.h",
     "src/core/compression/message_compress.h",
     "src/core/debug/trace.h",
     "src/core/iomgr/alarm.h",
@@ -467,6 +482,11 @@ cc_library(
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_server_filter.c",
     "src/core/channel/noop_filter.c",
+    "src/core/client_config/client_config.c",
+    "src/core/client_config/lb_policy.c",
+    "src/core/client_config/resolver.c",
+    "src/core/client_config/subchannel.c",
+    "src/core/client_config/subchannel_factory.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
     "src/core/debug/trace.c",
@@ -853,30 +873,3 @@ cc_binary(
 
 
 
-
-objc_path = "src/objective-c"
-
-rx_library_path = objc_path + "/RxLibrary"
-
-objc_library(
-    name = "rx_library",
-    hdrs = glob([
-        rx_library_path + "/*.h",
-        rx_library_path + "/transformations/*.h",
-    ]),
-    srcs = glob([
-        rx_library_path + "/*.m",
-        rx_library_path + "/transformations/*.m",
-    ]),
-    includes = [objc_path],
-    deps = [
-        ":rx_library_private",
-    ],
-)
-
-objc_library(
-    name = "rx_library_private",
-    hdrs = glob([rx_library_path + "/private/*.h"]),
-    srcs = glob([rx_library_path + "/private/*.m"]),
-    visibility = ["//visibility:private"],
-)

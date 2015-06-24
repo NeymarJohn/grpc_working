@@ -31,10 +31,4 @@
  *
  */
 
-#import <Foundation/Foundation.h>
-
-#import "GRPCMethodName.h"
-
-@interface GRPCMethodName (HTTP2Encoding)
-- (NSString *)HTTP2Path;
-@end
+#include "src/core/client_config/subchannel_factory.h"
