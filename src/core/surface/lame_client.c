@@ -50,13 +50,13 @@ typedef struct {
 typedef struct { grpc_mdctx *mdctx; } channel_data;
 
 static void lame_start_transport_op(grpc_call_element *elem,
-                                    grpc_transport_op *op) {
+                                    grpc_transport_stream_op *op) {
   call_data *calld = elem->call_data;
   channel_data *chand = elem->channel_data;
   GRPC_CALL_LOG_OP(GPR_INFO, elem, op);
   if (op->send_ops) {
     grpc_stream_ops_unref_owned_objects(op->send_ops->ops, op->send_ops->nops);
-    op->on_done_send(op->send_user_data, 0);
+    op->on_done_send->cb(op->on_done_send->cb_arg, 0);
   }
   if (op->recv_ops) {
     char tmp[GPR_LTOA_MIN_BUFSIZE];
@@ -75,10 +75,10 @@ static void lame_start_transport_op(grpc_call_element *elem,
     mdb.deadline = gpr_inf_future;
     grpc_sopb_add_metadata(op->recv_ops, mdb);
     *op->recv_state = GRPC_STREAM_CLOSED;
-    op->on_done_recv(op->recv_user_data, 1);
+    op->on_done_recv->cb(op->on_done_recv->cb_arg, 1);
   }
   if (op->on_consumed) {
-    op->on_consumed(op->on_consumed_user_data, 0);
+    op->on_consumed->cb(op->on_consumed->cb_arg, 0);
   }
 }
 
@@ -98,9 +98,9 @@ static void channel_op(grpc_channel_element *elem,
 
 static void init_call_elem(grpc_call_element *elem,
                            const void *transport_server_data,
-                           grpc_transport_op *initial_op) {
+                           grpc_transport_stream_op *initial_op) {
   if (initial_op) {
-    grpc_transport_op_finish_with_failure(initial_op);
+    grpc_transport_stream_op_finish_with_failure(initial_op);
   }
 }
 
