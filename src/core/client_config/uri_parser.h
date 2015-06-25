@@ -31,24 +31,22 @@
  *
  */
 
-#include <grpc++/channel_arguments.h>
-#include <grpc/grpc_security.h>
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_URI_PARSER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_URI_PARSER_H
 
-#include "src/core/channel/channel_args.h"
+typedef struct {
+  char *scheme;
+  char *authority;
+  char *path;
+} grpc_uri;
 
-namespace grpc {
+/** parse a uri, return NULL on failure */
+grpc_uri *grpc_uri_parse(const char *uri_text);
 
-void ChannelArguments::SetSslTargetNameOverride(const grpc::string& name) {
-  SetString(GRPC_SSL_TARGET_NAME_OVERRIDE_ARG, name);
-}
+/** return 1 if uri_text has something that is likely a scheme, 0 otherwise */
+int grpc_has_scheme(const char *uri_text);
 
-grpc::string ChannelArguments::GetSslTargetNameOverride() const {
-  for (unsigned int i = 0; i < args_.size(); i++) {
-    if (grpc::string(GRPC_SSL_TARGET_NAME_OVERRIDE_ARG) == args_[i].key) {
-      return args_[i].value.string;
-    }
-  }
-  return "";
-}
+/** destroy a uri */
+void grpc_uri_destroy(grpc_uri *uri);
 
-}  // namespace grpc
+#endif
