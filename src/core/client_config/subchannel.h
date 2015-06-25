@@ -31,11 +31,42 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
-#define GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_H
 
 #include "src/core/channel/channel_stack.h"
+#include "src/core/iomgr/iomgr.h"
+#include "src/core/iomgr/sockaddr.h"
+#include "src/core/transport/transport.h"
 
-extern const grpc_channel_filter grpc_client_surface_filter;
+/** A (sub-)channel that knows how to connect to exactly one target
+    address. Provides a target for load balancing. */
+typedef struct grpc_subchannel grpc_subchannel;
+typedef struct grpc_subchannel_call grpc_subchannel_call;
 
-#endif  /* GRPC_INTERNAL_CORE_SURFACE_CLIENT_H */
+void grpc_subchannel_ref(grpc_subchannel *channel);
+void grpc_subchannel_unref(grpc_subchannel *channel);
+
+void grpc_subchannel_call_ref(grpc_subchannel_call *call);
+void grpc_subchannel_call_unref(grpc_subchannel_call *call);
+
+/** poll the current connectivity state of a channel */
+grpc_connectivity_state grpc_subchannel_check_connectivity(
+    grpc_subchannel *channel);
+
+/** call notify when the connectivity state of a channel changes from *state.
+    Updates *state with the new state of the channel */
+void grpc_subchannel_notify_on_state_change(grpc_subchannel *channel,
+                                            grpc_connectivity_state *state,
+                                            grpc_iomgr_closure *notify);
+
+/** construct a call */
+grpc_subchannel_call *grpc_subchannel_create_call(
+    grpc_subchannel *subchannel, grpc_call_element *parent,
+    grpc_transport_stream_op *initial_op);
+
+/** continue processing a transport op */
+void grpc_subchannel_call_process_op(grpc_subchannel_call *subchannel_call,
+                                     grpc_transport_stream_op *op);
+
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_H */
