@@ -164,9 +164,7 @@ static double threshold_for_count_below(gpr_histogram *h, double count_below) {
   size_t lower_idx;
   size_t upper_idx;
 
-  if (h->count == 0) {
-    return 0.0;
-  }
+  GPR_ASSERT(h->count >= 1);
 
   if (count_below <= 0) {
     return h->min_seen;

@@ -578,6 +578,7 @@ cc_library(
     "src/cpp/server/secure_server_credentials.h",
     "src/cpp/client/channel.h",
     "src/cpp/server/thread_pool.h",
+    "src/cpp/client/secure_channel_arguments.cc",
     "src/cpp/client/secure_credentials.cc",
     "src/cpp/server/secure_server_credentials.cc",
     "src/cpp/client/channel.cc",
@@ -740,6 +741,8 @@ cc_library(
 cc_library(
   name = "grpc_plugin_support",
   srcs = [
+    "include/grpc++/config.h",
+    "include/grpc++/config_protobuf.h",
     "src/compiler/config.h",
     "src/compiler/cpp_generator.h",
     "src/compiler/cpp_generator_helpers.h",
@@ -853,30 +856,3 @@ cc_binary(
 
 
 
-
-objc_path = "src/objective-c"
-
-rx_library_path = objc_path + "/RxLibrary"
-
-objc_library(
-    name = "rx_library",
-    hdrs = glob([
-        rx_library_path + "/*.h",
-        rx_library_path + "/transformations/*.h",
-    ]),
-    srcs = glob([
-        rx_library_path + "/*.m",
-        rx_library_path + "/transformations/*.m",
-    ]),
-    includes = [objc_path],
-    deps = [
-        ":rx_library_private",
-    ],
-)
-
-objc_library(
-    name = "rx_library_private",
-    hdrs = glob([rx_library_path + "/private/*.h"]),
-    srcs = glob([rx_library_path + "/private/*.m"]),
-    visibility = ["//visibility:private"],
-)
