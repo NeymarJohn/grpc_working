@@ -31,22 +31,11 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_URI_PARSER_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_URI_PARSER_H
+#ifndef GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
+#define GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
 
-typedef struct {
-  char *scheme;
-  char *authority;
-  char *path;
-} grpc_uri;
+#include "src/core/channel/channel_stack.h"
 
-/** parse a uri, return NULL on failure */
-grpc_uri *grpc_uri_parse(const char *uri_text);
+extern const grpc_channel_filter grpc_client_surface_filter;
 
-/** return 1 if uri_text has something that is likely a scheme, 0 otherwise */
-int grpc_has_scheme(const char *uri_text);
-
-/** destroy a uri */
-void grpc_uri_destroy(grpc_uri *uri);
-
-#endif
+#endif  /* GRPC_INTERNAL_CORE_SURFACE_CLIENT_H */
