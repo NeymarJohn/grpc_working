@@ -31,11 +31,26 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
-#define GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_CONNECTOR_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_CONNECTOR_H
 
-#include "src/core/channel/channel_stack.h"
+#include "src/core/transport/transport.h"
 
-extern const grpc_channel_filter grpc_client_surface_filter;
+typedef struct grpc_connector grpc_connector;
+typedef struct grpc_connector_vtable grpc_connector_vtable;
 
-#endif  /* GRPC_INTERNAL_CORE_SURFACE_CLIENT_H */
+struct grpc_connector {
+  const grpc_connector_vtable *vtable;
+};
+
+struct grpc_connector_vtable {
+  void (*ref)(grpc_connector *connector);
+  void (*unref)(grpc_connector *connector);
+  void (*connect)(grpc_connector *connector, const grpc_channel_args *channel_args, grpc_mdctx *metadata_context, grpc_transport **transport, grpc_iomgr_closure *notify);
+};
+
+void grpc_connector_ref(grpc_connector *connector);
+void grpc_connector_unref(grpc_connector *connector);
+void grpc_connector_connect(grpc_connector *connector, const grpc_channel_args *channel_args, grpc_mdctx *metadata_context, grpc_transport **transport, grpc_iomgr_closure *notify);
+
+#endif

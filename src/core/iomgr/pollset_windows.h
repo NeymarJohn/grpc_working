@@ -46,7 +46,6 @@
 typedef struct grpc_pollset {
   gpr_mu mu;
   gpr_cv cv;
-  int shutting_down;
 } grpc_pollset;
 
 #define GRPC_POLLSET_MU(pollset) (&(pollset)->mu)
