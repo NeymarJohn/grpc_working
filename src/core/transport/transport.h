@@ -63,19 +63,16 @@ typedef enum grpc_stream_state {
 } grpc_stream_state;
 
 /* Transport op: a set of operations to perform on a transport */
-typedef struct grpc_transport_stream_op {
-  void (*on_consumed)(void *user_data, int success);
-  void *on_consumed_user_data;
+typedef struct grpc_transport_op {
+  grpc_iomgr_closure *on_consumed;
 
   grpc_stream_op_buffer *send_ops;
   int is_last_send;
-  void (*on_done_send)(void *user_data, int success);
-  void *send_user_data;
+  grpc_iomgr_closure *on_done_send;
 
   grpc_stream_op_buffer *recv_ops;
   grpc_stream_state *recv_state;
-  void (*on_done_recv)(void *user_data, int success);
-  void *recv_user_data;
+  grpc_iomgr_closure *on_done_recv;
 
   grpc_pollset *bind_pollset;
 
@@ -84,7 +81,7 @@ typedef struct grpc_transport_stream_op {
 
   /* Indexes correspond to grpc_context_index enum values */
   grpc_call_context_element *context;
-} grpc_transport_stream_op;
+} grpc_transport_op;
 
 /* Callbacks made from the transport to the upper layers of grpc. */
 struct grpc_transport_callbacks {
@@ -126,7 +123,7 @@ size_t grpc_transport_stream_size(grpc_transport *transport);
                    supplied from the accept_stream callback function */
 int grpc_transport_init_stream(grpc_transport *transport, grpc_stream *stream,
                                const void *server_data,
-                               grpc_transport_stream_op *initial_op);
+                               grpc_transport_op *initial_op);
 
 /* Destroy transport data for a stream.
 
@@ -141,17 +138,17 @@ int grpc_transport_init_stream(grpc_transport *transport, grpc_stream *stream,
 void grpc_transport_destroy_stream(grpc_transport *transport,
                                    grpc_stream *stream);
 
-void grpc_transport_stream_op_finish_with_failure(grpc_transport_stream_op *op);
+void grpc_transport_op_finish_with_failure(grpc_transport_op *op);
 
-void grpc_transport_stream_op_add_cancellation(grpc_transport_stream_op *op,
-                                               grpc_status_code status,
-                                               grpc_mdstr *message);
+void grpc_transport_op_add_cancellation(grpc_transport_op *op,
+                                        grpc_status_code status,
+                                        grpc_mdstr *message);
 
 /* TODO(ctiller): remove this */
 void grpc_transport_add_to_pollset(grpc_transport *transport,
                                    grpc_pollset *pollset);
 
-char *grpc_transport_stream_op_string(grpc_transport_stream_op *op);
+char *grpc_transport_op_string(grpc_transport_op *op);
 
 /* Send a batch of operations on a transport
 
@@ -161,17 +158,14 @@ char *grpc_transport_stream_op_string(grpc_transport_stream_op *op);
      transport - the transport on which to initiate the stream
      stream    - the stream on which to send the operations. This must be
                  non-NULL and previously initialized by the same transport.
-     op        - a grpc_transport_stream_op specifying the op to perform */
+     op        - a grpc_transport_op specifying the op to perform */
 void grpc_transport_perform_op(grpc_transport *transport, grpc_stream *stream,
-                               grpc_transport_stream_op *op);
+                               grpc_transport_op *op);
 
 /* Send a ping on a transport
 
-   Calls cb with user data when a response is received.
-   cb *MAY* be called with arbitrary transport level locks held. It is not safe
-   to call into the transport during cb. */
-void grpc_transport_ping(grpc_transport *transport, void (*cb)(void *user_data),
-                         void *user_data);
+   Calls cb with user data when a response is received. */
+void grpc_transport_ping(grpc_transport *transport, grpc_iomgr_closure *cb);
 
 /* Advise peer of pending connection termination. */
 void grpc_transport_goaway(grpc_transport *transport, grpc_status_code status,
