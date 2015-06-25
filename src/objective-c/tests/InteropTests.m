@@ -174,7 +174,7 @@
 
   __block int index = 0;
   [_service streamingOutputCallWithRequest:request
-                              eventHandler:^(BOOL done,
+                                   handler:^(BOOL done,
                                              RMTStreamingOutputCallResponse *response,
                                              NSError *error){
     XCTAssertNil(error, @"Finished with unexpected error: %@", error);
@@ -211,7 +211,7 @@
   [requestsBuffer writeValue:request];
 
   [_service fullDuplexCallWithRequestsWriter:requestsBuffer
-                                eventHandler:^(BOOL done,
+                                     handler:^(BOOL done,
                                                RMTStreamingOutputCallResponse *response,
                                                NSError *error) {
     XCTAssertNil(error, @"Finished with unexpected error: %@", error);
@@ -242,7 +242,7 @@
 - (void)testEmptyStreamRPC {
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"EmptyStream"];
   [_service fullDuplexCallWithRequestsWriter:[GRXWriter emptyWriter]
-                                eventHandler:^(BOOL done,
+                                     handler:^(BOOL done,
                                                RMTStreamingOutputCallResponse *response,
                                                NSError *error) {
     XCTAssertNil(error, @"Finished with unexpected error: %@", error);
@@ -283,7 +283,7 @@
   [requestsBuffer writeValue:request];
   
   __block ProtoRPC *call = [_service RPCToFullDuplexCallWithRequestsWriter:requestsBuffer
-                                                              eventHandler:^(BOOL done,
+                                                                   handler:^(BOOL done,
                                                                              RMTStreamingOutputCallResponse *response,
                                                                              NSError *error) {
     if (receivedResponse) {
