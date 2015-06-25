@@ -181,8 +181,7 @@ static void hs_on_recv(void *user_data, int success) {
   calld->on_done_recv->cb(calld->on_done_recv->cb_arg, success);
 }
 
-static void hs_mutate_op(grpc_call_element *elem,
-                         grpc_transport_stream_op *op) {
+static void hs_mutate_op(grpc_call_element *elem, grpc_transport_op *op) {
   /* grab pointers to our data from the call element */
   call_data *calld = elem->call_data;
   channel_data *channeld = elem->channel_data;
@@ -210,7 +209,7 @@ static void hs_mutate_op(grpc_call_element *elem,
 }
 
 static void hs_start_transport_op(grpc_call_element *elem,
-                                  grpc_transport_stream_op *op) {
+                                  grpc_transport_op *op) {
   GRPC_CALL_LOG_OP(GPR_INFO, elem, op);
   hs_mutate_op(elem, op);
   grpc_call_next_op(elem, op);
@@ -236,7 +235,7 @@ static void channel_op(grpc_channel_element *elem,
 /* Constructor for call_data */
 static void init_call_elem(grpc_call_element *elem,
                            const void *server_transport_data,
-                           grpc_transport_stream_op *initial_op) {
+                           grpc_transport_op *initial_op) {
   /* grab pointers to our data from the call element */
   call_data *calld = elem->call_data;
   /* initialize members */

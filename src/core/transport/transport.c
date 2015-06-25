@@ -53,19 +53,14 @@ void grpc_transport_destroy(grpc_transport *transport) {
 
 int grpc_transport_init_stream(grpc_transport *transport, grpc_stream *stream,
                                const void *server_data,
-                               grpc_transport_stream_op *initial_op) {
+                               grpc_transport_op *initial_op) {
   return transport->vtable->init_stream(transport, stream, server_data,
                                         initial_op);
 }
 
-void grpc_transport_perform_stream_op(grpc_transport *transport, grpc_stream *stream,
-                               grpc_transport_stream_op *op) {
-  transport->vtable->perform_stream_op(transport, stream, op);
-}
-
-void grpc_transport_perform_op(grpc_transport *transport,
+void grpc_transport_perform_op(grpc_transport *transport, grpc_stream *stream,
                                grpc_transport_op *op) {
-  transport->vtable->perform_op(transport, op);
+  transport->vtable->perform_op(transport, stream, op);
 }
 
 void grpc_transport_add_to_pollset(grpc_transport *transport,
@@ -100,8 +95,7 @@ void grpc_transport_setup_del_interested_party(grpc_transport_setup *setup,
   setup->vtable->del_interested_party(setup, pollset);
 }
 
-void grpc_transport_stream_op_finish_with_failure(
-    grpc_transport_stream_op *op) {
+void grpc_transport_op_finish_with_failure(grpc_transport_op *op) {
   if (op->send_ops) {
     op->on_done_send->cb(op->on_done_send->cb_arg, 0);
   }
@@ -113,9 +107,9 @@ void grpc_transport_stream_op_finish_with_failure(
   }
 }
 
-void grpc_transport_stream_op_add_cancellation(grpc_transport_stream_op *op,
-                                               grpc_status_code status,
-                                               grpc_mdstr *message) {
+void grpc_transport_op_add_cancellation(grpc_transport_op *op,
+                                        grpc_status_code status,
+                                        grpc_mdstr *message) {
   if (op->cancel_with_status == GRPC_STATUS_OK) {
     op->cancel_with_status = status;
     op->cancel_message = message;

@@ -35,7 +35,6 @@
 #define GRPC_INTERNAL_CORE_CHANNEL_CLIENT_CHANNEL_H
 
 #include "src/core/channel/channel_stack.h"
-#include "src/core/client_config/resolver.h"
 
 /* A client channel is a channel that begins disconnected, and can connect
    to some endpoint on demand. If that endpoint disconnects, it will be
@@ -49,8 +48,8 @@ extern const grpc_channel_filter grpc_client_channel_filter;
 /* post-construction initializer to let the client channel know which
    transport setup it should cancel upon destruction, or initiate when it needs
    a connection */
-void grpc_client_channel_set_resolver(grpc_channel_stack *channel_stack,
-                                      grpc_resolver *resolver);
+void grpc_client_channel_set_transport_setup(grpc_channel_stack *channel_stack,
+                                             grpc_transport_setup *setup);
 
 /* grpc_transport_setup_callback for binding new transports into a client
    channel - user_data should be the channel stack containing the client
