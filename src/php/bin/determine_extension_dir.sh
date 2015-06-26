@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -27,7 +28,22 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# GRPC contains the General RPC module.
-module GRPC
-  VERSION = '0.9.4'
-end
+set -e
+default_extension_dir=$(php -i | grep extension_dir | sed 's/.*=> //g')
+if command -v brew >/dev/null && [ -d $(brew --prefix)/opt/grpc-php ]; then
+  # homebrew and the grpc-php formula are installed
+  extension_dir="-d extension_dir="$(brew --prefix)/opt/grpc-php
+elif [ ! -f $default_extension_dir/grpc.so ]; then
+  # the grpc extension is not found in the default PHP extension dir
+  # try the source modules directory
+  module_dir=../ext/grpc/modules
+  if [ ! -f $module_dir/grpc.so ]; then
+    echo "Please run 'phpize && ./configure && make' from ext/grpc first"
+    exit 1
+  fi
+  # sym-link in system supplied extensions
+  for f in $default_extension_dir/*.so; do
+    ln -s $f $module_dir/$(basename $f) &> /dev/null || true
+  done
+  extension_dir="-d extension_dir="$module_dir
+fi

@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -26,8 +27,19 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# This script is invoked by run_jekins.sh when piggy-backing into docker.
+set -e
 
-# GRPC contains the General RPC module.
-module GRPC
-  VERSION = '0.9.4'
-end
+export CONFIG=$config
+export ASAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer-3.5
+export CPPFLAGS=-I/tmp/prebuilt/include
+
+mkdir -p /var/local/git
+git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
+
+cd /var/local/git/grpc
+nvm use 0.12
+rvm use ruby-2.1
+tools/run_tests/prepare_travis.sh
+tools/run_tests/run_tests.py -t -c $config -l $language -x report.xml
