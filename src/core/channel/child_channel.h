@@ -31,22 +31,35 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_URI_PARSER_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_URI_PARSER_H
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
+#define GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
 
-typedef struct {
-  char *scheme;
-  char *authority;
-  char *path;
-} grpc_uri;
+#include "src/core/channel/channel_stack.h"
 
-/** parse a uri, return NULL on failure */
-grpc_uri *grpc_uri_parse(const char *uri_text);
+/* helper for filters that need to host child channel stacks... handles
+   lifetime and upwards propagation cleanly */
 
-/** return 1 if uri_text has something that is likely a scheme, 0 otherwise */
-int grpc_has_scheme(const char *uri_text);
+extern const grpc_channel_filter grpc_child_channel_top_filter;
 
-/** destroy a uri */
-void grpc_uri_destroy(grpc_uri *uri);
+typedef grpc_channel_stack grpc_child_channel;
+typedef grpc_call_stack grpc_child_call;
 
-#endif
+/* filters[0] must be &grpc_child_channel_top_filter */
+grpc_child_channel *grpc_child_channel_create(
+    grpc_channel_element *parent, const grpc_channel_filter **filters,
+    size_t filter_count, const grpc_channel_args *args,
+    grpc_mdctx *metadata_context);
+void grpc_child_channel_handle_op(grpc_child_channel *channel,
+                                  grpc_channel_op *op);
+grpc_channel_element *grpc_child_channel_get_bottom_element(
+    grpc_child_channel *channel);
+void grpc_child_channel_destroy(grpc_child_channel *channel,
+                                int wait_for_callbacks);
+
+grpc_child_call *grpc_child_channel_create_call(grpc_child_channel *channel,
+                                                grpc_call_element *parent,
+                                                grpc_transport_op *initial_op);
+grpc_call_element *grpc_child_call_get_top_element(grpc_child_call *call);
+void grpc_child_call_destroy(grpc_child_call *call);
+
+#endif /* GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H */
