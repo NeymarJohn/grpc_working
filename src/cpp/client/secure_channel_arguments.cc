@@ -31,38 +31,24 @@
  *
  */
 
-#include "src/core/client_config/uri_parser.h"
+#include <grpc++/channel_arguments.h>
+#include <grpc/grpc_security.h>
 
-#include <string.h>
+#include "src/core/channel/channel_args.h"
 
-#include <grpc/support/log.h>
+namespace grpc {
 
-#include "test/core/util/test_config.h"
-
-static void test_succeeds(const char *uri_text, const char *scheme,
-                          const char *authority, const char *path) {
-  grpc_uri *uri = grpc_uri_parse(uri_text);
-  GPR_ASSERT(uri);
-  GPR_ASSERT(0 == strcmp(scheme, uri->scheme));
-  GPR_ASSERT(0 == strcmp(authority, uri->authority));
-  GPR_ASSERT(0 == strcmp(path, uri->path));
-  grpc_uri_destroy(uri);
+void ChannelArguments::SetSslTargetNameOverride(const grpc::string& name) {
+  SetString(GRPC_SSL_TARGET_NAME_OVERRIDE_ARG, name);
 }
 
-static void test_fails(const char *uri_text) {
-  GPR_ASSERT(NULL == grpc_uri_parse(uri_text));
+grpc::string ChannelArguments::GetSslTargetNameOverride() const {
+  for (unsigned int i = 0; i < args_.size(); i++) {
+    if (grpc::string(GRPC_SSL_TARGET_NAME_OVERRIDE_ARG) == args_[i].key) {
+      return args_[i].value.string;
+    }
+  }
+  return "";
 }
 
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  test_succeeds("http://www.google.com", "http", "www.google.com", "");
-  test_succeeds("dns:///foo", "dns", "", "/foo");
-  test_succeeds("http://www.google.com:90", "http", "www.google.com:90", "");
-  test_fails("xyz");
-  test_fails("http://www.google.com?why-are-you-using-queries");
-
-  GPR_ASSERT(grpc_has_scheme("http:adfhadf"));
-  GPR_ASSERT(grpc_has_scheme("http://adfhadf"));
-  GPR_ASSERT(!grpc_has_scheme("adfhadf"));
-  return 0;
-}
+}  // namespace grpc

@@ -158,6 +158,9 @@ struct grpc_call {
   gpr_uint8 reading_message;
   /* have we bound a pollset yet? */
   gpr_uint8 bound_pollset;
+  /* is an error status set */
+  gpr_uint8 error_status_set;
+
   /* flags with bits corresponding to write states allowing us to determine
      what was sent */
   gpr_uint16 last_send_contains;
@@ -216,7 +219,7 @@ struct grpc_call {
   /* Received call statuses from various sources */
   received_status status[STATUS_SOURCE_COUNT];
 
-  /** Compression level for the call */
+  /* Compression level for the call */
   grpc_compression_level compression_level;
 
   /* Contexts for various subsystems (security, tracing, ...). */
@@ -257,8 +260,8 @@ struct grpc_call {
 static void set_deadline_alarm(grpc_call *call, gpr_timespec deadline);
 static void call_on_done_recv(void *call, int success);
 static void call_on_done_send(void *call, int success);
-static int fill_send_ops(grpc_call *call, grpc_transport_stream_op *op);
-static void execute_op(grpc_call *call, grpc_transport_stream_op *op);
+static int fill_send_ops(grpc_call *call, grpc_transport_op *op);
+static void execute_op(grpc_call *call, grpc_transport_op *op);
 static void recv_metadata(grpc_call *call, grpc_metadata_batch *metadata);
 static void finish_read_ops(grpc_call *call);
 static grpc_call_error cancel_with_status(grpc_call *c, grpc_status_code status,
@@ -274,8 +277,8 @@ grpc_call *grpc_call_create(grpc_channel *channel, grpc_completion_queue *cq,
                             size_t add_initial_metadata_count,
                             gpr_timespec send_deadline) {
   size_t i;
-  grpc_transport_stream_op initial_op;
-  grpc_transport_stream_op *initial_op_ptr = NULL;
+  grpc_transport_op initial_op;
+  grpc_transport_op *initial_op_ptr = NULL;
   grpc_channel_stack *channel_stack = grpc_channel_get_channel_stack(channel);
   grpc_call *call =
       gpr_malloc(sizeof(grpc_call) + channel_stack->call_stack_size);
@@ -417,6 +420,7 @@ static void set_status_code(grpc_call *call, status_source source,
 
   call->status[source].is_set = 1;
   call->status[source].code = status;
+  call->error_status_set = status != GRPC_STATUS_OK;
 
   if (status != GRPC_STATUS_OK && !grpc_bbq_empty(&call->incoming_queue)) {
     grpc_bbq_flush(&call->incoming_queue);
@@ -463,7 +467,7 @@ static int need_more_data(grpc_call *call) {
 }
 
 static void unlock(grpc_call *call) {
-  grpc_transport_stream_op op;
+  grpc_transport_op op;
   completed_request completed_requests[GRPC_IOREQ_OP_COUNT];
   int completing_requests = 0;
   int start_op = 0;
@@ -694,13 +698,13 @@ static void call_on_done_send(void *pc, int success) {
 }
 
 static void finish_message(grpc_call *call) {
-  /* TODO(ctiller): this could be a lot faster if coded directly */
-  grpc_byte_buffer *byte_buffer = grpc_raw_byte_buffer_create(
-      call->incoming_message.slices, call->incoming_message.count);
+  if (call->error_status_set == 0) {
+    /* TODO(ctiller): this could be a lot faster if coded directly */
+    grpc_byte_buffer *byte_buffer = grpc_raw_byte_buffer_create(
+        call->incoming_message.slices, call->incoming_message.count);
+    grpc_bbq_push(&call->incoming_queue, byte_buffer);
+  }
   gpr_slice_buffer_reset_and_unref(&call->incoming_message);
-
-  grpc_bbq_push(&call->incoming_queue, byte_buffer);
-
   GPR_ASSERT(call->incoming_message.count == 0);
   call->reading_message = 0;
 }
@@ -877,7 +881,7 @@ static void copy_byte_buffer_to_stream_ops(grpc_byte_buffer *byte_buffer,
   }
 }
 
-static int fill_send_ops(grpc_call *call, grpc_transport_stream_op *op) {
+static int fill_send_ops(grpc_call *call, grpc_transport_op *op) {
   grpc_ioreq_data data;
   gpr_uint32 flags;
   grpc_metadata_batch mdb;
@@ -1136,7 +1140,7 @@ static void finished_loose_op_allocated(void *alloc, int success) {
   gpr_free(args);
 }
 
-static void execute_op(grpc_call *call, grpc_transport_stream_op *op) {
+static void execute_op(grpc_call *call, grpc_transport_op *op) {
   grpc_call_element *elem;
 
   GPR_ASSERT(op->on_consumed == NULL);
@@ -1154,7 +1158,7 @@ static void execute_op(grpc_call *call, grpc_transport_stream_op *op) {
 
   elem = CALL_ELEM_FROM_CALL(call, 0);
   op->context = call->context;
-  elem->filter->start_transport_stream_op(elem, op);
+  elem->filter->start_transport_op(elem, op);
 }
 
 grpc_call *grpc_call_from_top_element(grpc_call_element *elem) {
