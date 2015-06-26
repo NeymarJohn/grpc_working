@@ -153,6 +153,7 @@ cc_library(
     "src/core/channel/child_channel.h",
     "src/core/channel/client_channel.h",
     "src/core/channel/client_setup.h",
+    "src/core/channel/compress_filter.h",
     "src/core/channel/connected_channel.h",
     "src/core/channel/context.h",
     "src/core/channel/http_client_filter.h",
@@ -259,6 +260,7 @@ cc_library(
     "src/core/channel/child_channel.c",
     "src/core/channel/client_channel.c",
     "src/core/channel/client_setup.c",
+    "src/core/channel/compress_filter.c",
     "src/core/channel/connected_channel.c",
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_server_filter.c",
@@ -379,6 +381,7 @@ cc_library(
     "src/core/channel/child_channel.h",
     "src/core/channel/client_channel.h",
     "src/core/channel/client_setup.h",
+    "src/core/channel/compress_filter.h",
     "src/core/channel/connected_channel.h",
     "src/core/channel/context.h",
     "src/core/channel/http_client_filter.h",
@@ -463,6 +466,7 @@ cc_library(
     "src/core/channel/child_channel.c",
     "src/core/channel/client_channel.c",
     "src/core/channel/client_setup.c",
+    "src/core/channel/compress_filter.c",
     "src/core/channel/connected_channel.c",
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_server_filter.c",
@@ -577,6 +581,7 @@ cc_library(
     "src/cpp/client/secure_credentials.h",
     "src/cpp/server/secure_server_credentials.h",
     "src/cpp/client/channel.h",
+    "src/cpp/proto/proto_utils.h",
     "src/cpp/server/thread_pool.h",
     "src/cpp/client/secure_credentials.cc",
     "src/cpp/server/secure_server_credentials.cc",
@@ -614,7 +619,6 @@ cc_library(
     "include/grpc++/client_context.h",
     "include/grpc++/completion_queue.h",
     "include/grpc++/config.h",
-    "include/grpc++/config_protobuf.h",
     "include/grpc++/create_channel.h",
     "include/grpc++/credentials.h",
     "include/grpc++/generic_stub.h",
@@ -622,7 +626,6 @@ cc_library(
     "include/grpc++/impl/client_unary_call.h",
     "include/grpc++/impl/grpc_library.h",
     "include/grpc++/impl/internal_stub.h",
-    "include/grpc++/impl/proto_utils.h",
     "include/grpc++/impl/rpc_method.h",
     "include/grpc++/impl/rpc_service_method.h",
     "include/grpc++/impl/serialization_traits.h",
@@ -660,6 +663,7 @@ cc_library(
   name = "grpc++_unsecure",
   srcs = [
     "src/cpp/client/channel.h",
+    "src/cpp/proto/proto_utils.h",
     "src/cpp/server/thread_pool.h",
     "src/cpp/client/channel.cc",
     "src/cpp/client/channel_arguments.cc",
@@ -695,7 +699,6 @@ cc_library(
     "include/grpc++/client_context.h",
     "include/grpc++/completion_queue.h",
     "include/grpc++/config.h",
-    "include/grpc++/config_protobuf.h",
     "include/grpc++/create_channel.h",
     "include/grpc++/credentials.h",
     "include/grpc++/generic_stub.h",
@@ -703,7 +706,6 @@ cc_library(
     "include/grpc++/impl/client_unary_call.h",
     "include/grpc++/impl/grpc_library.h",
     "include/grpc++/impl/internal_stub.h",
-    "include/grpc++/impl/proto_utils.h",
     "include/grpc++/impl/rpc_method.h",
     "include/grpc++/impl/rpc_service_method.h",
     "include/grpc++/impl/serialization_traits.h",
@@ -853,30 +855,3 @@ cc_binary(
 
 
 
-
-objc_path = "src/objective-c"
-
-rx_library_path = objc_path + "/RxLibrary"
-
-objc_library(
-    name = "rx_library",
-    hdrs = glob([
-        rx_library_path + "/*.h",
-        rx_library_path + "/transformations/*.h",
-    ]),
-    srcs = glob([
-        rx_library_path + "/*.m",
-        rx_library_path + "/transformations/*.m",
-    ]),
-    includes = [objc_path],
-    deps = [
-        ":rx_library_private",
-    ],
-)
-
-objc_library(
-    name = "rx_library_private",
-    hdrs = glob([rx_library_path + "/private/*.h"]),
-    srcs = glob([rx_library_path + "/private/*.m"]),
-    visibility = ["//visibility:private"],
-)
