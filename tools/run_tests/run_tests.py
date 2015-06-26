@@ -42,7 +42,6 @@ import re
 import subprocess
 import sys
 import time
-import xml.etree.cElementTree as ET
 
 import jobset
 import watch_dirs
@@ -397,8 +396,6 @@ argp.add_argument('-S', '--stop_on_failure',
                   action='store_const',
                   const=True)
 argp.add_argument('-a', '--antagonists', default=0, type=int)
-argp.add_argument('-x', '--xml_report', default=None, type=str,
-        help='Generates a JUnit-compatible XML report')
 args = argp.parse_args()
 
 # grab config
@@ -495,7 +492,7 @@ class TestCache(object):
         self.parse(json.loads(f.read()))
 
 
-def _build_and_run(check_cancelled, newline_on_success, travis, cache, xml_report):
+def _build_and_run(check_cancelled, newline_on_success, travis, cache):
   """Do one pass of building & running tests."""
   # build latest sequentially
   if not jobset.run(build_steps, maxjobs=1,
@@ -521,24 +518,16 @@ def _build_and_run(check_cancelled, newline_on_success, travis, cache, xml_repor
     runs_sequence = (itertools.repeat(massaged_one_run) if infinite_runs
                      else itertools.repeat(massaged_one_run, runs_per_test))
     all_runs = itertools.chain.from_iterable(runs_sequence)
-
-    root = ET.Element('testsuites') if xml_report else None
-    testsuite = ET.SubElement(root, 'testsuite', id='1', package='grpc', name='tests') if xml_report else None
-
     if not jobset.run(all_runs, check_cancelled,
                       newline_on_success=newline_on_success, travis=travis,
                       infinite_runs=infinite_runs,
                       maxjobs=args.jobs,
                       stop_on_failure=args.stop_on_failure,
-                      cache=cache if not xml_report else None,
-                      xml_report=testsuite):
+                      cache=cache):
       return 2
   finally:
     for antagonist in antagonists:
       antagonist.kill()
-    if xml_report:
-      tree = ET.ElementTree(root)
-      tree.write(xml_report, encoding='UTF-8')
 
   if cache: cache.save()
 
@@ -570,8 +559,7 @@ else:
   result = _build_and_run(check_cancelled=lambda: False,
                           newline_on_success=args.newline_on_success,
                           travis=args.travis,
-                          cache=test_cache,
-                          xml_report=args.xml_report)
+                          cache=test_cache)
   if result == 0:
     jobset.message('SUCCESS', 'All tests passed', do_newline=True)
   else:
