@@ -31,24 +31,32 @@
  *
  */
 
-#include <grpc++/channel_arguments.h>
-#include <grpc/grpc_security.h>
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVER_REGISTRY_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVER_REGISTRY_H
 
-#include "src/core/channel/channel_args.h"
+#include "src/core/client_config/resolver_factory.h"
 
-namespace grpc {
+void grpc_resolver_registry_init(const char *default_prefix);
+void grpc_resolver_registry_shutdown(void);
 
-void ChannelArguments::SetSslTargetNameOverride(const grpc::string& name) {
-  SetString(GRPC_SSL_TARGET_NAME_OVERRIDE_ARG, name);
-}
+/** Register a resolver type.
+    URI's of \a scheme will be resolved with the given resolver.
+    If \a priority is greater than zero, then the resolver will be eligible
+    to resolve names that are passed in with no scheme. Higher priority
+    resolvers will be tried before lower priority schemes. */
+void grpc_register_resolver_type(const char *scheme,
+                                 grpc_resolver_factory *factory);
 
-grpc::string ChannelArguments::GetSslTargetNameOverride() const {
-  for (unsigned int i = 0; i < args_.size(); i++) {
-    if (grpc::string(GRPC_SSL_TARGET_NAME_OVERRIDE_ARG) == args_[i].key) {
-      return args_[i].value.string;
-    }
-  }
-  return "";
-}
+/** Create a resolver given \a name.
+    First tries to parse \a name as a URI. If this succeeds, tries
+    to locate a registered resolver factory based on the URI scheme.
+    If parsing or location fails, prefixes default_prefix from
+    grpc_resolver_registry_init to name, and tries again (if default_prefix
+    was not NULL).
+    If a resolver factory was found, use it to instantiate a resolver and
+    return it.
+    If a resolver factory was not found, return NULL. */
+grpc_resolver *grpc_resolver_create(
+    const char *name, grpc_subchannel_factory *subchannel_factory);
 
-}  // namespace grpc
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVER_REGISTRY_H */
