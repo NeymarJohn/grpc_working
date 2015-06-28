@@ -176,14 +176,24 @@
     <ClInclude Include="..\..\src\core\channel\census_filter.h" />
     <ClInclude Include="..\..\src\core\channel\channel_args.h" />
     <ClInclude Include="..\..\src\core\channel\channel_stack.h" />
-    <ClInclude Include="..\..\src\core\channel\child_channel.h" />
     <ClInclude Include="..\..\src\core\channel\client_channel.h" />
-    <ClInclude Include="..\..\src\core\channel\client_setup.h" />
     <ClInclude Include="..\..\src\core\channel\connected_channel.h" />
+    <ClInclude Include="..\..\src\core\channel\connectivity_state.h" />
     <ClInclude Include="..\..\src\core\channel\context.h" />
     <ClInclude Include="..\..\src\core\channel\http_client_filter.h" />
     <ClInclude Include="..\..\src\core\channel\http_server_filter.h" />
     <ClInclude Include="..\..\src\core\channel\noop_filter.h" />
+    <ClInclude Include="..\..\src\core\client_config\client_config.h" />
+    <ClInclude Include="..\..\src\core\client_config\connector.h" />
+    <ClInclude Include="..\..\src\core\client_config\lb_policies\pick_first.h" />
+    <ClInclude Include="..\..\src\core\client_config\lb_policy.h" />
+    <ClInclude Include="..\..\src\core\client_config\resolver.h" />
+    <ClInclude Include="..\..\src\core\client_config\resolver_factory.h" />
+    <ClInclude Include="..\..\src\core\client_config\resolver_registry.h" />
+    <ClInclude Include="..\..\src\core\client_config\resolvers\dns_resolver.h" />
+    <ClInclude Include="..\..\src\core\client_config\subchannel.h" />
+    <ClInclude Include="..\..\src\core\client_config\subchannel_factory.h" />
+    <ClInclude Include="..\..\src\core\client_config\uri_parser.h" />
     <ClInclude Include="..\..\src\core\compression\message_compress.h" />
     <ClInclude Include="..\..\src\core\debug\trace.h" />
     <ClInclude Include="..\..\src\core\iomgr\alarm.h" />
@@ -226,7 +236,6 @@
     <ClInclude Include="..\..\src\core\surface\byte_buffer_queue.h" />
     <ClInclude Include="..\..\src\core\surface\call.h" />
     <ClInclude Include="..\..\src\core\surface\channel.h" />
-    <ClInclude Include="..\..\src\core\surface\client.h" />
     <ClInclude Include="..\..\src\core\surface\completion_queue.h" />
     <ClInclude Include="..\..\src\core\surface\event_string.h" />
     <ClInclude Include="..\..\src\core\surface\init.h" />
@@ -312,19 +321,39 @@
     </ClCompile>
     <ClCompile Include="..\..\src\core\channel\channel_stack.c">
     </ClCompile>
-    <ClCompile Include="..\..\src\core\channel\child_channel.c">
-    </ClCompile>
     <ClCompile Include="..\..\src\core\channel\client_channel.c">
     </ClCompile>
-    <ClCompile Include="..\..\src\core\channel\client_setup.c">
-    </ClCompile>
     <ClCompile Include="..\..\src\core\channel\connected_channel.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\channel\connectivity_state.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\channel\http_client_filter.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\channel\http_server_filter.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\channel\noop_filter.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\client_config\client_config.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\client_config\connector.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\client_config\lb_policies\pick_first.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\client_config\lb_policy.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\client_config\resolver.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\client_config\resolver_factory.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\client_config\resolver_registry.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\client_config\resolvers\dns_resolver.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\client_config\subchannel.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\client_config\subchannel_factory.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\client_config\uri_parser.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\compression\algorithm.c">
     </ClCompile>
@@ -429,8 +458,6 @@
     <ClCompile Include="..\..\src\core\surface\channel.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\surface\channel_create.c">
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\surface\client.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\surface\completion_queue.c">
     </ClCompile>
