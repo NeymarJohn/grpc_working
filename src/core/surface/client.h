@@ -31,29 +31,11 @@
  *
  */
 
-#include "src/core/client_config/resolver.h"
+#ifndef GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
+#define GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
 
-void grpc_resolver_ref(grpc_resolver *resolver) {
-  resolver->vtable->ref(resolver);
-}
+#include "src/core/channel/channel_stack.h"
 
-void grpc_resolver_unref(grpc_resolver *resolver) {
-  resolver->vtable->unref(resolver);
-}
+extern const grpc_channel_filter grpc_client_surface_filter;
 
-void grpc_resolver_shutdown(grpc_resolver *resolver) {
-  resolver->vtable->shutdown(resolver);
-}
-
-void grpc_resolver_channel_saw_error(grpc_resolver *resolver,
-                                     struct sockaddr *failing_address,
-                                     int failing_address_len) {
-  resolver->vtable->channel_saw_error(resolver, failing_address,
-                                      failing_address_len);
-}
-
-void grpc_resolver_next(grpc_resolver *resolver,
-                        grpc_client_config **target_config,
-                        grpc_iomgr_closure *on_complete) {
-  resolver->vtable->next(resolver, target_config, on_complete);
-}
+#endif  /* GRPC_INTERNAL_CORE_SURFACE_CLIENT_H */
