@@ -31,32 +31,33 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVER_REGISTRY_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVER_REGISTRY_H
+#include <sys/resource.h>
 
-#include "src/core/client_config/resolver_factory.h"
+#include <grpc/support/log.h>
 
-void grpc_resolver_registry_init(const char *default_prefix);
-void grpc_resolver_registry_shutdown(void);
+#include "test/core/util/test_config.h"
+#include "src/core/iomgr/endpoint_pair.h"
+#include "src/core/iomgr/iomgr.h"
 
-/** Register a resolver type.
-    URI's of \a scheme will be resolved with the given resolver.
-    If \a priority is greater than zero, then the resolver will be eligible
-    to resolve names that are passed in with no scheme. Higher priority
-    resolvers will be tried before lower priority schemes. */
-void grpc_register_resolver_type(const char *scheme,
-                                 grpc_resolver_factory *factory);
+int main(int argc, char **argv) {
+	int i;
+	struct rlimit rlim;
+	grpc_endpoint_pair p;
+  grpc_test_init(argc, argv);
+  grpc_iomgr_init();
 
-/** Create a resolver given \a name.
-    First tries to parse \a name as a URI. If this succeeds, tries
-    to locate a registered resolver factory based on the URI scheme.
-    If parsing or location fails, prefixes default_prefix from
-    grpc_resolver_registry_init to name, and tries again (if default_prefix
-    was not NULL).
-    If a resolver factory was found, use it to instantiate a resolver and
-    return it.
-    If a resolver factory was not found, return NULL. */
-grpc_resolver *grpc_resolver_create(
-    const char *name, grpc_subchannel_factory *subchannel_factory);
+  /* set max # of file descriptors to a low value, and
+     verify we can create and destroy many more than this number
+     of descriptors */
+  rlim.rlim_cur = rlim.rlim_max = 10;
+  GPR_ASSERT(0 == setrlimit(RLIMIT_NOFILE, &rlim));
 
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVER_REGISTRY_H */
+  for (i = 0; i < 100; i++) {
+  	p = grpc_iomgr_create_endpoint_pair("test", 1);
+  	grpc_endpoint_destroy(p.client);
+  	grpc_endpoint_destroy(p.server);
+  }
+
+  grpc_iomgr_shutdown();
+  return 0;
+}

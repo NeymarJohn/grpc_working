@@ -31,12 +31,30 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_DNS_RESOLVER_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_DNS_RESOLVER_H
+#include <grpc/grpc.h>
+#include "test/core/util/test_config.h"
 
-#include "src/core/client_config/resolver_factory.h"
+int main(int argc, char **argv) {
+  grpc_completion_queue *cq1;
+  grpc_completion_queue *cq2;
+  grpc_server *server;
 
-/** Create a dns resolver for \a name */
-grpc_resolver_factory *grpc_dns_resolver_factory_create(void);
-
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_DNS_RESOLVER_H */
+  grpc_test_init(argc, argv);
+  grpc_init();
+  cq1 = grpc_completion_queue_create();
+  cq2 = grpc_completion_queue_create();
+  server = grpc_server_create(NULL);
+  grpc_server_register_completion_queue(server, cq1);
+  grpc_server_add_http2_port(server, "[::]:0");
+  grpc_server_register_completion_queue(server, cq2);
+  grpc_server_start(server);
+  grpc_server_shutdown_and_notify(server, cq2, NULL);
+  grpc_completion_queue_next(cq2, gpr_inf_future);  /* cue queue hang */
+  grpc_completion_queue_shutdown(cq1);
+  grpc_completion_queue_shutdown(cq2);
+  grpc_completion_queue_next(cq1, gpr_inf_future);
+  grpc_completion_queue_next(cq2, gpr_inf_future);
+  grpc_server_destroy(server);
+  grpc_shutdown();
+  return 0;
+}

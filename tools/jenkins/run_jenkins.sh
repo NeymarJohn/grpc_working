@@ -73,7 +73,15 @@ then
   DOCKER_CID=`cat docker.cid`
   docker kill $DOCKER_CID
   docker cp $DOCKER_CID:/var/local/git/grpc/report.xml $git_root
-  docker rm $DOCKER_CID
+  if [ "$DOCKER_FAILED" == "" ]
+  then
+    echo "Docker finished successfully, deleting the container $DOCKER_CID"
+    docker rm $DOCKER_CID
+  else
+    echo "Docker exited with failure, keeping container $DOCKER_CID."
+    echo "You can SSH to the worker and use 'docker commit CID YOUR_IMAGE_NAME' and 'docker run -i -t YOUR_IMAGE_NAME bash' to debug the problem."
+    exit 1
+  fi
 
 elif [ "$platform" == "windows" ]
 then

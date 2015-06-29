@@ -31,29 +31,35 @@
  *
  */
 
-#include "src/core/client_config/resolver.h"
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
+#define GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
 
-void grpc_resolver_ref(grpc_resolver *resolver) {
-  resolver->vtable->ref(resolver);
-}
+#include "src/core/channel/channel_stack.h"
 
-void grpc_resolver_unref(grpc_resolver *resolver) {
-  resolver->vtable->unref(resolver);
-}
+/* helper for filters that need to host child channel stacks... handles
+   lifetime and upwards propagation cleanly */
 
-void grpc_resolver_shutdown(grpc_resolver *resolver) {
-  resolver->vtable->shutdown(resolver);
-}
+extern const grpc_channel_filter grpc_child_channel_top_filter;
 
-void grpc_resolver_channel_saw_error(grpc_resolver *resolver,
-                                     struct sockaddr *failing_address,
-                                     int failing_address_len) {
-  resolver->vtable->channel_saw_error(resolver, failing_address,
-                                      failing_address_len);
-}
+typedef grpc_channel_stack grpc_child_channel;
+typedef grpc_call_stack grpc_child_call;
 
-void grpc_resolver_next(grpc_resolver *resolver,
-                        grpc_client_config **target_config,
-                        grpc_iomgr_closure *on_complete) {
-  resolver->vtable->next(resolver, target_config, on_complete);
-}
+/* filters[0] must be &grpc_child_channel_top_filter */
+grpc_child_channel *grpc_child_channel_create(
+    grpc_channel_element *parent, const grpc_channel_filter **filters,
+    size_t filter_count, const grpc_channel_args *args,
+    grpc_mdctx *metadata_context);
+void grpc_child_channel_handle_op(grpc_child_channel *channel,
+                                  grpc_channel_op *op);
+grpc_channel_element *grpc_child_channel_get_bottom_element(
+    grpc_child_channel *channel);
+void grpc_child_channel_destroy(grpc_child_channel *channel,
+                                int wait_for_callbacks);
+
+grpc_child_call *grpc_child_channel_create_call(grpc_child_channel *channel,
+                                                grpc_call_element *parent,
+                                                grpc_transport_op *initial_op);
+grpc_call_element *grpc_child_call_get_top_element(grpc_child_call *call);
+void grpc_child_call_destroy(grpc_child_call *call);
+
+#endif /* GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H */

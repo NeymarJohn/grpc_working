@@ -84,6 +84,14 @@
   {
     "flaky": false, 
     "language": "c", 
+    "name": "fd_conservation_posix_test", 
+    "platforms": [
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
     "name": "fd_posix_test", 
     "platforms": [
       "posix"
@@ -413,6 +421,15 @@
   {
     "flaky": false, 
     "language": "c", 
+    "name": "multiple_server_queues_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
     "name": "murmur_hash_test", 
     "platforms": [
       "windows", 
@@ -536,15 +553,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "transport_security_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
-    "name": "uri_parser_test", 
     "platforms": [
       "windows", 
       "posix"
