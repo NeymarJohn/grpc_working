@@ -68,19 +68,18 @@ void PrintMethodSignature(Printer *printer,
 
   printer->Print(vars, "- ($return_type$)$method_name$With");
   if (method->client_streaming()) {
-    printer->Print("RequestsWriter:(id<GRXWriter>)requestWriter");
+    printer->Print("RequestsWriter:(id<GRXWriter>)request");
   } else {
     printer->Print(vars, "Request:($request_class$ *)request");
   }
 
   // TODO(jcanizales): Put this on a new line and align colons.
+  // TODO(jcanizales): eventHandler for server streaming?
+  printer->Print(" handler:(void(^)(");
   if (method->server_streaming()) {
-    printer->Print(vars, " eventHandler:(void(^)(BOOL done, "
-      "$response_class$ *response, NSError *error))eventHandler");
-  } else {
-    printer->Print(vars, " handler:(void(^)($response_class$ *response, "
-      "NSError *error))handler");
+    printer->Print("BOOL done, ");
   }
+  printer->Print(vars, "$response_class$ *response, NSError *error))handler");
 }
 
 void PrintSimpleSignature(Printer *printer,
@@ -126,15 +125,11 @@ void PrintSimpleImplementation(Printer *printer,
   printer->Print("{\n");
   printer->Print(vars, "  [[self RPCTo$method_name$With");
   if (method->client_streaming()) {
-    printer->Print("RequestsWriter:requestWriter");
+    printer->Print("RequestsWriter:request");
   } else {
     printer->Print("Request:request");
   }
-  if (method->server_streaming()) {
-    printer->Print(" eventHandler:eventHandler] start];\n");
-  } else {
-    printer->Print(" handler:handler] start];\n");
-  }
+  printer->Print(" handler:handler] start];\n");
   printer->Print("}\n");
 }
 
@@ -146,7 +141,7 @@ void PrintAdvancedImplementation(Printer *printer,
 
   printer->Print("            requestsWriter:");
   if (method->client_streaming()) {
-    printer->Print("requestWriter\n");
+    printer->Print("request\n");
   } else {
     printer->Print("[GRXWriter writerWithValue:request]\n");
   }
@@ -155,7 +150,7 @@ void PrintAdvancedImplementation(Printer *printer,
 
   printer->Print("        responsesWriteable:[GRXWriteable ");
   if (method->server_streaming()) {
-    printer->Print("writeableWithStreamHandler:eventHandler]];\n");
+    printer->Print("writeableWithStreamHandler:handler]];\n");
   } else {
     printer->Print("writeableWithSingleValueHandler:handler]];\n");
   }

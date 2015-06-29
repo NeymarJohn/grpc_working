@@ -39,7 +39,6 @@
 
 #include "src/core/iomgr/alarm_internal.h"
 #include "src/core/iomgr/iomgr_internal.h"
-#include "src/core/iomgr/pollset.h"
 #include "src/core/iomgr/pollset_windows.h"
 
 /* There isn't really any such thing as a pollset under Windows, due to the
@@ -48,7 +47,6 @@
    won't actually do any polling, and return as quickly as possible. */
 
 void grpc_pollset_init(grpc_pollset *pollset) {
-  memset(pollset, 0, sizeof(*pollset));
   gpr_mu_init(&pollset->mu);
   gpr_cv_init(&pollset->cv);
 }
@@ -56,10 +54,6 @@ void grpc_pollset_init(grpc_pollset *pollset) {
 void grpc_pollset_shutdown(grpc_pollset *pollset,
                            void (*shutdown_done)(void *arg),
                            void *shutdown_done_arg) {
-  gpr_mu_lock(&pollset->mu);
-  pollset->shutting_down = 1;
-  gpr_cv_broadcast(&pollset->cv);
-  gpr_mu_unlock(&pollset->mu);
   shutdown_done(shutdown_done_arg);
 }
 
@@ -74,15 +68,13 @@ int grpc_pollset_work(grpc_pollset *pollset, gpr_timespec deadline) {
   if (gpr_time_cmp(now, deadline) > 0) {
     return 0 /* GPR_FALSE */;
   }
-  if (grpc_maybe_call_delayed_callbacks(&pollset->mu, 1 /* GPR_TRUE */)) {
+  if (grpc_maybe_call_delayed_callbacks(NULL, 1 /* GPR_TRUE */)) {
     return 1 /* GPR_TRUE */;
   }
-  if (grpc_alarm_check(&pollset->mu, now, &deadline)) {
+  if (grpc_alarm_check(NULL, now, &deadline)) {
     return 1 /* GPR_TRUE */;
   }
-  if (!pollset->shutting_down) {
-    gpr_cv_wait(&pollset->cv, &pollset->mu, deadline);
-  }
+  gpr_cv_wait(&pollset->cv, &pollset->mu, deadline);
   return 1 /* GPR_TRUE */;
 }
 
