@@ -118,20 +118,6 @@ typedef struct {
 #define GRPC_ARG_HTTP2_INITIAL_SEQUENCE_NUMBER \
   "grpc.http2.initial_sequence_number"
 
-/** Connectivity state of a channel. */
-typedef enum {
-  /** channel is idle */
-  GRPC_CHANNEL_IDLE,
-  /** channel is connecting */
-  GRPC_CHANNEL_CONNECTING,
-  /** channel is ready for work */
-  GRPC_CHANNEL_READY,
-  /** channel has seen a failure but expects to recover */
-  GRPC_CHANNEL_TRANSIENT_FAILURE,
-  /** channel has seen a failure that it cannot recover from */
-  GRPC_CHANNEL_FATAL_FAILURE
-} grpc_connectivity_state;
-
 /* Result of a grpc call. If the caller satisfies the prerequisites of a
    particular operation, the grpc_call_error returned will be GRPC_CALL_OK.
    Receiving any other value listed here is an indication of a bug in the

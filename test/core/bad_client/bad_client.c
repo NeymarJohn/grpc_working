@@ -63,12 +63,12 @@ static void done_write(void *arg, grpc_endpoint_cb_status status) {
   gpr_event_set(&a->done_write, (void *)1);
 }
 
-static void server_setup_transport(
+static grpc_transport_setup_result server_setup_transport(
     void *ts, grpc_transport *transport, grpc_mdctx *mdctx) {
   thd_args *a = ts;
   static grpc_channel_filter const *extra_filters[] = {
       &grpc_http_server_filter};
-  grpc_server_setup_transport(a->server, transport, extra_filters,
+  return grpc_server_setup_transport(a->server, transport, extra_filters,
                                      GPR_ARRAY_SIZE(extra_filters), mdctx,
                                      grpc_server_get_channel_args(a->server));
 }
@@ -80,8 +80,6 @@ void grpc_run_bad_client_test(grpc_bad_client_server_side_validator validator,
   thd_args a;
   gpr_thd_id id;
   char *hex;
-  grpc_transport *transport;
-  grpc_mdctx *mdctx = grpc_mdctx_create();
   gpr_slice slice =
       gpr_slice_from_copied_buffer(client_payload, client_payload_length);
 
@@ -105,9 +103,8 @@ void grpc_run_bad_client_test(grpc_bad_client_server_side_validator validator,
   a.validator = validator;
   grpc_server_register_completion_queue(a.server, a.cq);
   grpc_server_start(a.server);
-  transport = grpc_create_chttp2_transport(NULL, sfd.server,
-                               NULL, 0, mdctx, 0);
-  server_setup_transport(&a, transport, mdctx);
+  grpc_create_chttp2_transport(server_setup_transport, &a, NULL, sfd.server,
+                               NULL, 0, grpc_mdctx_create(), 0);
 
   /* Bind everything into the same pollset */
   grpc_endpoint_add_to_pollset(sfd.client, grpc_cq_pollset(a.cq));
