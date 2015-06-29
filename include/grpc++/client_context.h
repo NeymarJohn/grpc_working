@@ -38,7 +38,6 @@
 #include <memory>
 #include <string>
 
-#include <grpc/census.h>
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
 #include <grpc++/config.h>
@@ -108,10 +107,6 @@ class ClientContext {
     creds_ = creds;
   }
 
-  // Get and set census context
-  void set_census_context(census_context* ccp) { census_context_ = ccp; }
-  census_context* get_census_context() const { return census_context_; }
-
   void TryCancel();
 
  private:
@@ -159,7 +154,6 @@ class ClientContext {
   gpr_timespec deadline_;
   grpc::string authority_;
   std::shared_ptr<Credentials> creds_;
-  census_context* census_context_;
   std::multimap<grpc::string, grpc::string> send_initial_metadata_;
   std::multimap<grpc::string, grpc::string> recv_initial_metadata_;
   std::multimap<grpc::string, grpc::string> trailing_metadata_;
