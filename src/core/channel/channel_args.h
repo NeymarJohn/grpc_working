@@ -45,6 +45,8 @@ grpc_channel_args *grpc_channel_args_copy(const grpc_channel_args *src);
 grpc_channel_args *grpc_channel_args_copy_and_add(const grpc_channel_args *src,
                                                   const grpc_arg *to_add);
 
+grpc_channel_args *grpc_channel_args_merge(const grpc_channel_args *a, const grpc_channel_args *b);
+
 /** Destroy arguments created by grpc_channel_args_copy */
 void grpc_channel_args_destroy(grpc_channel_args *a);
 
