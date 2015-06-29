@@ -34,12 +34,10 @@ import multiprocessing
 import os
 import platform
 import signal
-import string
 import subprocess
 import sys
 import tempfile
 import time
-import xml.etree.cElementTree as ET
 
 
 _DEFAULT_MAX_JOBS = 16 * multiprocessing.cpu_count()
@@ -161,7 +159,7 @@ class JobSpec(object):
 class Job(object):
   """Manages one job."""
 
-  def __init__(self, spec, bin_hash, newline_on_success, travis, xml_report):
+  def __init__(self, spec, bin_hash, newline_on_success, travis):
     self._spec = spec
     self._bin_hash = bin_hash
     self._tempfile = tempfile.TemporaryFile()
@@ -178,27 +176,19 @@ class Job(object):
     self._state = _RUNNING
     self._newline_on_success = newline_on_success
     self._travis = travis
-    self._xml_test = ET.SubElement(xml_report, 'testcase',
-                                   name=self._spec.shortname) if xml_report is not None else None
     message('START', spec.shortname, do_newline=self._travis)
 
   def state(self, update_cache):
     """Poll current state of the job. Prints messages at completion."""
     if self._state == _RUNNING and self._process.poll() is not None:
       elapsed = time.time() - self._start
-      self._tempfile.seek(0)
-      stdout = self._tempfile.read()
-      filtered_stdout = filter(lambda x: x in string.printable, stdout.decode(errors='ignore'))
-      if self._xml_test is not None:
-        self._xml_test.set('time', str(elapsed))
-        ET.SubElement(self._xml_test, 'system-out').text = filtered_stdout
       if self._process.returncode != 0:
         self._state = _FAILURE
+        self._tempfile.seek(0)
+        stdout = self._tempfile.read()
         message('FAILED', '%s [ret=%d, pid=%d]' % (
             self._spec.shortname, self._process.returncode, self._process.pid),
             stdout, do_newline=True)
-        if self._xml_test is not None:
-          ET.SubElement(self._xml_test, 'failure', message='Failure').text
       else:
         self._state = _SUCCESS
         message('PASSED', '%s [time=%.1fsec]' % (self._spec.shortname, elapsed),
@@ -210,9 +200,6 @@ class Job(object):
       stdout = self._tempfile.read()
       message('TIMEOUT', self._spec.shortname, stdout, do_newline=True)
       self.kill()
-      if self._xml_test is not None:
-        ET.SubElement(self._xml_test, 'system-out').text = stdout
-        ET.SubElement(self._xml_test, 'error', message='Timeout')
     return self._state
 
   def kill(self):
@@ -225,7 +212,7 @@ class Jobset(object):
   """Manages one run of jobs."""
 
   def __init__(self, check_cancelled, maxjobs, newline_on_success, travis,
-               stop_on_failure, cache, xml_report):
+               stop_on_failure, cache):
     self._running = set()
     self._check_cancelled = check_cancelled
     self._cancelled = False
@@ -237,7 +224,6 @@ class Jobset(object):
     self._cache = cache
     self._stop_on_failure = stop_on_failure
     self._hashes = {}
-    self._xml_report = xml_report
 
   def start(self, spec):
     """Start a job. Return True on success, False on failure."""
@@ -264,8 +250,7 @@ class Jobset(object):
         self._running.add(Job(spec,
                               bin_hash,
                               self._newline_on_success,
-                              self._travis,
-                              self._xml_report))
+                              self._travis))
       except:
         message('FAILED', spec.shortname)
         self._cancelled = True
@@ -339,13 +324,11 @@ def run(cmdlines,
         travis=False,
         infinite_runs=False,
         stop_on_failure=False,
-        cache=None,
-        xml_report=None):
+        cache=None):
   js = Jobset(check_cancelled,
               maxjobs if maxjobs is not None else _DEFAULT_MAX_JOBS,
               newline_on_success, travis, stop_on_failure,
-              cache if cache is not None else NoCache(),
-              xml_report)
+              cache if cache is not None else NoCache())
   for cmdline in cmdlines:
     if not js.start(cmdline):
       break
