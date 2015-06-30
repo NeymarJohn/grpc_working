@@ -31,44 +31,44 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_H
+#include "src/core/client_config/client_config.h"
 
-#include <grpc/support/port_platform.h>
+#include <string.h>
 
-#ifdef GPR_POSIX_SOCKET
-#include "src/core/iomgr/pollset_kick_posix.h"
-#endif
+#include <grpc/support/alloc.h>
 
-#ifdef GPR_WIN32
-#include "src/core/iomgr/pollset_kick_windows.h"
-#endif
+struct grpc_client_config {
+  gpr_refcount refs;
+  grpc_lb_policy *lb_policy;
+};
 
-/* This is an abstraction around the typical pipe mechanism for waking up a
-   thread sitting in a poll() style call. */
+grpc_client_config *grpc_client_config_create() {
+  grpc_client_config *c = gpr_malloc(sizeof(*c));
+  memset(c, 0, sizeof(*c));
+  gpr_ref_init(&c->refs, 1);
+  return c;
+}
 
-void grpc_pollset_kick_global_init(void);
-void grpc_pollset_kick_global_destroy(void);
+void grpc_client_config_ref(grpc_client_config *c) { gpr_ref(&c->refs); }
 
-void grpc_pollset_kick_init(grpc_pollset_kick_state *kick_state);
-void grpc_pollset_kick_destroy(grpc_pollset_kick_state *kick_state);
+void grpc_client_config_unref(grpc_client_config *c) {
+  if (gpr_unref(&c->refs)) {
+    GRPC_LB_POLICY_UNREF(c->lb_policy, "client_config");
+    gpr_free(c);
+  }
+}
 
-/* Guarantees a pure posix implementation rather than a specialized one, if
- * applicable. Intended for testing. */
-void grpc_pollset_kick_global_init_fallback_fd(void);
+void grpc_client_config_set_lb_policy(grpc_client_config *c,
+                                      grpc_lb_policy *lb_policy) {
+  if (lb_policy) {
+    GRPC_LB_POLICY_REF(lb_policy, "client_config");
+  }
+  if (c->lb_policy) {
+    GRPC_LB_POLICY_UNREF(c->lb_policy, "client_config");
+  }
+  c->lb_policy = lb_policy;
+}
 
-/* Must be called before entering poll(). If return value is -1, this consumed
-   an existing kick. Otherwise the return value is an FD to add to the poll set.
- */
-int grpc_pollset_kick_pre_poll(grpc_pollset_kick_state *kick_state);
-
-/* Consume an existing kick. Must be called after poll returns that the fd was
-   readable, and before calling kick_post_poll. */
-void grpc_pollset_kick_consume(grpc_pollset_kick_state *kick_state);
-
-/* Must be called after pre_poll, and after consume if applicable */
-void grpc_pollset_kick_post_poll(grpc_pollset_kick_state *kick_state);
-
-void grpc_pollset_kick_kick(grpc_pollset_kick_state *kick_state);
-
-#endif  /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_KICK_H */
+grpc_lb_policy *grpc_client_config_get_lb_policy(grpc_client_config *c) {
+  return c->lb_policy;
+}

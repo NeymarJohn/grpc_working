@@ -31,38 +31,32 @@
  *
  */
 
-#ifndef GRPCXX_AUTH_CONTEXT_H
-#define GRPCXX_AUTH_CONTEXT_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVER_REGISTRY_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVER_REGISTRY_H
 
-#include <memory>
+#include "src/core/client_config/resolver_factory.h"
 
-#include <grpc++/impl/grpc_library.h>
+void grpc_resolver_registry_init(const char *default_prefix);
+void grpc_resolver_registry_shutdown(void);
 
-#include <grpc/grpc_security.h>
+/** Register a resolver type.
+    URI's of \a scheme will be resolved with the given resolver.
+    If \a priority is greater than zero, then the resolver will be eligible
+    to resolve names that are passed in with no scheme. Higher priority
+    resolvers will be tried before lower priority schemes. */
+void grpc_register_resolver_type(const char *scheme,
+                                 grpc_resolver_factory *factory);
 
-namespace grpc {
+/** Create a resolver given \a name.
+    First tries to parse \a name as a URI. If this succeeds, tries
+    to locate a registered resolver factory based on the URI scheme.
+    If parsing or location fails, prefixes default_prefix from
+    grpc_resolver_registry_init to name, and tries again (if default_prefix
+    was not NULL).
+    If a resolver factory was found, use it to instantiate a resolver and
+    return it.
+    If a resolver factory was not found, return NULL. */
+grpc_resolver *grpc_resolver_create(
+    const char *name, grpc_subchannel_factory *subchannel_factory);
 
-class AuthContext GRPC_FINAL : {
- public:
-  typedef std::pair<grpc::string, grpc::string> Property;
-
-  // A peer identity, in general is one or more properties (in which case they
-  // have the same name).
-  std::vector<grpc::string> GetPeerIdentity() const;
-  grpc::string GetPeerIdentityPropertyName() const;
-
-  // Returns all the property values with the given name.
-  std::vector<grpc::string> FindPropertyValues(const grpc::string& name) const;
-
-  // Iteration over all the properties.
-  std::const_iterator<Property> begin() const;
-  std::const_iterator<Property> end() const;
-
- private:
-  grpc_auth_context *ctx_;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_AUTH_CONTEXT_H
-
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVER_REGISTRY_H */

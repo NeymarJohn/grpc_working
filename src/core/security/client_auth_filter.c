@@ -53,10 +53,14 @@ typedef struct {
   grpc_credentials *creds;
   grpc_mdstr *host;
   grpc_mdstr *method;
-  grpc_transport_op op;
+  /* pollset bound to this call; if we need to make external
+     network requests, they should be done under this pollset
+     so that work can progress when this call wants work to
+     progress */
+  grpc_pollset *pollset;
+  grpc_transport_stream_op op;
   size_t op_md_idx;
   int sent_initial_metadata;
-  gpr_uint8 security_context_set;
   grpc_linked_mdelem md_links[MAX_CREDENTIALS_METADATA_COUNT];
 } call_data;
 
@@ -73,7 +77,7 @@ typedef struct {
 static void bubble_up_error(grpc_call_element *elem, const char *error_msg) {
   call_data *calld = elem->call_data;
   channel_data *chand = elem->channel_data;
-  grpc_transport_op_add_cancellation(
+  grpc_transport_stream_op_add_cancellation(
       &calld->op, GRPC_STATUS_UNAUTHENTICATED,
       grpc_mdstr_from_string(chand->md_ctx, error_msg));
   grpc_call_next_op(elem, &calld->op);
@@ -86,7 +90,7 @@ static void on_credentials_metadata(void *user_data,
   grpc_call_element *elem = (grpc_call_element *)user_data;
   call_data *calld = elem->call_data;
   channel_data *chand = elem->channel_data;
-  grpc_transport_op *op = &calld->op;
+  grpc_transport_stream_op *op = &calld->op;
   grpc_metadata_batch *mdb;
   size_t i;
   if (status != GRPC_CREDENTIALS_OK) {
@@ -127,7 +131,7 @@ static char *build_service_url(const char *url_scheme, call_data *calld) {
 }
 
 static void send_security_metadata(grpc_call_element *elem,
-                                   grpc_transport_op *op) {
+                                   grpc_transport_stream_op *op) {
   call_data *calld = elem->call_data;
   channel_data *chand = elem->channel_data;
   grpc_client_security_context *ctx =
@@ -162,8 +166,9 @@ static void send_security_metadata(grpc_call_element *elem,
   service_url =
       build_service_url(chand->security_connector->base.url_scheme, calld);
   calld->op = *op; /* Copy op (originates from the caller's stack). */
-  grpc_credentials_get_request_metadata(calld->creds, service_url,
-                                        on_credentials_metadata, elem);
+  GPR_ASSERT(calld->pollset);
+  grpc_credentials_get_request_metadata(
+      calld->creds, calld->pollset, service_url, on_credentials_metadata, elem);
   gpr_free(service_url);
 }
 
@@ -188,31 +193,17 @@ static void on_host_checked(void *user_data, grpc_security_status status) {
    op contains type and call direction information, in addition to the data
    that is being sent or received. */
 static void auth_start_transport_op(grpc_call_element *elem,
-                                    grpc_transport_op *op) {
+                                    grpc_transport_stream_op *op) {
   /* grab pointers to our data from the call element */
   call_data *calld = elem->call_data;
   channel_data *chand = elem->channel_data;
   grpc_linked_mdelem *l;
   size_t i;
-  grpc_client_security_context* sec_ctx = NULL;
 
-  if (calld->security_context_set == 0) {
-    calld->security_context_set = 1;
-    GPR_ASSERT(op->context);
-    if (op->context[GRPC_CONTEXT_SECURITY].value == NULL) {
-      op->context[GRPC_CONTEXT_SECURITY].value =
-          grpc_client_security_context_create();
-      op->context[GRPC_CONTEXT_SECURITY].destroy =
-          grpc_client_security_context_destroy;
-    }
-    sec_ctx = op->context[GRPC_CONTEXT_SECURITY].value;
-    if (sec_ctx->auth_context == NULL) {
-      sec_ctx->auth_context =
-          grpc_auth_context_ref(chand->security_connector->base.auth_context);
-    } else {
-      sec_ctx->auth_context->chained =
-          grpc_auth_context_ref(chand->security_connector->base.auth_context);
-    }
+  /* TODO(jboeuf): write the call auth context. */
+
+  if (op->bind_pollset) {
+    calld->pollset = op->bind_pollset;
   }
 
   if (op->send_ops && !calld->sent_initial_metadata) {
@@ -262,23 +253,16 @@ static void auth_start_transport_op(grpc_call_element *elem,
   grpc_call_next_op(elem, op);
 }
 
-/* Called on special channel events, such as disconnection or new incoming
-   calls on the server */
-static void channel_op(grpc_channel_element *elem,
-                       grpc_channel_element *from_elem, grpc_channel_op *op) {
-  grpc_channel_next_op(elem, op);
-}
-
 /* Constructor for call_data */
 static void init_call_elem(grpc_call_element *elem,
                            const void *server_transport_data,
-                           grpc_transport_op *initial_op) {
+                           grpc_transport_stream_op *initial_op) {
   call_data *calld = elem->call_data;
   calld->creds = NULL;
   calld->host = NULL;
   calld->method = NULL;
+  calld->pollset = NULL;
   calld->sent_initial_metadata = 0;
-  calld->security_context_set = 0;
 
   GPR_ASSERT(!initial_op || !initial_op->send_ops);
 }
@@ -296,7 +280,7 @@ static void destroy_call_elem(grpc_call_element *elem) {
 }
 
 /* Constructor for channel_data */
-static void init_channel_elem(grpc_channel_element *elem,
+static void init_channel_elem(grpc_channel_element *elem,grpc_channel *master,
                               const grpc_channel_args *args,
                               grpc_mdctx *metadata_context, int is_first,
                               int is_last) {
@@ -307,7 +291,6 @@ static void init_channel_elem(grpc_channel_element *elem,
   /* The first and the last filters tend to be implemented differently to
      handle the case that there's no 'next' filter to call on the up or down
      path */
-  GPR_ASSERT(!is_first);
   GPR_ASSERT(!is_last);
   GPR_ASSERT(sc != NULL);
 
@@ -316,13 +299,10 @@ static void init_channel_elem(grpc_channel_element *elem,
   chand->security_connector =
       (grpc_channel_security_connector *)grpc_security_connector_ref(sc);
   chand->md_ctx = metadata_context;
-  chand->authority_string =
-      grpc_mdstr_from_string(chand->md_ctx, ":authority");
+  chand->authority_string = grpc_mdstr_from_string(chand->md_ctx, ":authority");
   chand->path_string = grpc_mdstr_from_string(chand->md_ctx, ":path");
-  chand->error_msg_key =
-      grpc_mdstr_from_string(chand->md_ctx, "grpc-message");
-  chand->status_key =
-      grpc_mdstr_from_string(chand->md_ctx, "grpc-status");
+  chand->error_msg_key = grpc_mdstr_from_string(chand->md_ctx, "grpc-message");
+  chand->status_key = grpc_mdstr_from_string(chand->md_ctx, "grpc-status");
 }
 
 /* Destructor for channel data */
@@ -346,6 +326,6 @@ static void destroy_channel_elem(grpc_channel_element *elem) {
 }
 
 const grpc_channel_filter grpc_client_auth_filter = {
-    auth_start_transport_op, channel_op, sizeof(call_data), init_call_elem,
-    destroy_call_elem, sizeof(channel_data), init_channel_elem,
-    destroy_channel_elem, "client-auth"};
+    auth_start_transport_op, grpc_channel_next_op,           sizeof(call_data),
+    init_call_elem,          destroy_call_elem,    sizeof(channel_data),
+    init_channel_elem,       destroy_channel_elem, "client-auth"};
