@@ -31,30 +31,11 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "test/core/util/test_config.h"
+#ifndef GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
+#define GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
 
-int main(int argc, char **argv) {
-  grpc_completion_queue *cq1;
-  grpc_completion_queue *cq2;
-  grpc_server *server;
+#include "src/core/channel/channel_stack.h"
 
-  grpc_test_init(argc, argv);
-  grpc_init();
-  cq1 = grpc_completion_queue_create();
-  cq2 = grpc_completion_queue_create();
-  server = grpc_server_create(NULL);
-  grpc_server_register_completion_queue(server, cq1);
-  grpc_server_add_http2_port(server, "[::]:0");
-  grpc_server_register_completion_queue(server, cq2);
-  grpc_server_start(server);
-  grpc_server_shutdown_and_notify(server, cq2, NULL);
-  grpc_completion_queue_next(cq2, gpr_inf_future);  /* cue queue hang */
-  grpc_completion_queue_shutdown(cq1);
-  grpc_completion_queue_shutdown(cq2);
-  grpc_completion_queue_next(cq1, gpr_inf_future);
-  grpc_completion_queue_next(cq2, gpr_inf_future);
-  grpc_server_destroy(server);
-  grpc_shutdown();
-  return 0;
-}
+extern const grpc_channel_filter grpc_client_surface_filter;
+
+#endif  /* GRPC_INTERNAL_CORE_SURFACE_CLIENT_H */

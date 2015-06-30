@@ -39,6 +39,7 @@
 #include "src/core/channel/connected_channel.h"
 #include "src/core/channel/http_server_filter.h"
 #include "src/core/surface/channel.h"
+#include "src/core/surface/client.h"
 #include "src/core/surface/server.h"
 #include "src/core/transport/chttp2_transport.h"
 #include <grpc/support/alloc.h>
@@ -64,7 +65,8 @@ static grpc_end2end_test_fixture chttp2_create_fixture_fullstack(
   gpr_join_host_port(&ffd->localaddr, "localhost", port);
 
   f.fixture_data = ffd;
-  f.cq = grpc_completion_queue_create();
+  f.client_cq = grpc_completion_queue_create();
+  f.server_cq = grpc_completion_queue_create();
 
   return f;
 }
@@ -82,7 +84,7 @@ void chttp2_init_server_fullstack(grpc_end2end_test_fixture *f,
     grpc_server_destroy(f->server);
   }
   f->server = grpc_server_create(server_args);
-  grpc_server_register_completion_queue(f->server, f->cq);
+  grpc_server_register_completion_queue(f->server, f->server_cq);
   GPR_ASSERT(grpc_server_add_http2_port(f->server, ffd->localaddr));
   grpc_server_start(f->server);
 }
@@ -102,8 +104,6 @@ static grpc_end2end_test_config configs[] = {
 
 int main(int argc, char **argv) {
   size_t i;
-
-  grpc_platform_become_multipoller = grpc_poll_become_multipoller;
 
   grpc_test_init(argc, argv);
   grpc_init();
