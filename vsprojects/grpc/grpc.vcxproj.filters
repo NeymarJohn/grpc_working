@@ -37,9 +37,6 @@
     <ClCompile Include="..\..\src\core\security\json_token.c">
       <Filter>src\core\security</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\security\jwt_verifier.c">
-      <Filter>src\core\security</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\core\security\secure_endpoint.c">
       <Filter>src\core\security</Filter>
     </ClCompile>
@@ -322,19 +319,10 @@
     <ClCompile Include="..\..\src\core\transport\chttp2\huffsyms.c">
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\transport\chttp2\incoming_metadata.c">
-      <Filter>src\core\transport\chttp2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\transport\chttp2\parsing.c">
-      <Filter>src\core\transport\chttp2</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\status_conversion.c">
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\stream_encoder.c">
-      <Filter>src\core\transport\chttp2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\transport\chttp2\stream_lists.c">
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\stream_map.c">
@@ -344,9 +332,6 @@
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\varint.c">
-      <Filter>src\core\transport\chttp2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\transport\chttp2\writing.c">
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2_transport.c">
@@ -417,9 +402,6 @@
       <Filter>src\core\security</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\security\json_token.h">
-      <Filter>src\core\security</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\security\jwt_verifier.h">
       <Filter>src\core\security</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\security\secure_endpoint.h">
@@ -663,12 +645,6 @@
       <Filter>src\core\transport\chttp2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\transport\chttp2\huffsyms.h">
-      <Filter>src\core\transport\chttp2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\transport\chttp2\incoming_metadata.h">
-      <Filter>src\core\transport\chttp2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\transport\chttp2\internal.h">
       <Filter>src\core\transport\chttp2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\transport\chttp2\status_conversion.h">

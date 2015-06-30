@@ -140,7 +140,6 @@ Pod::Spec.new do |s|
                       'src/core/security/base64.h',
                       'src/core/security/credentials.h',
                       'src/core/security/json_token.h',
-                      'src/core/security/jwt_verifier.h',
                       'src/core/security/secure_endpoint.h',
                       'src/core/security/secure_transport_setup.h',
                       'src/core/security/security_connector.h',
@@ -222,8 +221,6 @@ Pod::Spec.new do |s|
                       'src/core/transport/chttp2/hpack_table.h',
                       'src/core/transport/chttp2/http2_errors.h',
                       'src/core/transport/chttp2/huffsyms.h',
-                      'src/core/transport/chttp2/incoming_metadata.h',
-                      'src/core/transport/chttp2/internal.h',
                       'src/core/transport/chttp2/status_conversion.h',
                       'src/core/transport/chttp2/stream_encoder.h',
                       'src/core/transport/chttp2/stream_map.h',
@@ -254,7 +251,6 @@ Pod::Spec.new do |s|
                       'src/core/security/credentials_win32.c',
                       'src/core/security/google_default_credentials.c',
                       'src/core/security/json_token.c',
-                      'src/core/security/jwt_verifier.c',
                       'src/core/security/secure_endpoint.c',
                       'src/core/security/secure_transport_setup.c',
                       'src/core/security/security_connector.c',
@@ -349,15 +345,11 @@ Pod::Spec.new do |s|
                       'src/core/transport/chttp2/hpack_parser.c',
                       'src/core/transport/chttp2/hpack_table.c',
                       'src/core/transport/chttp2/huffsyms.c',
-                      'src/core/transport/chttp2/incoming_metadata.c',
-                      'src/core/transport/chttp2/parsing.c',
                       'src/core/transport/chttp2/status_conversion.c',
                       'src/core/transport/chttp2/stream_encoder.c',
-                      'src/core/transport/chttp2/stream_lists.c',
                       'src/core/transport/chttp2/stream_map.c',
                       'src/core/transport/chttp2/timeout_encoding.c',
                       'src/core/transport/chttp2/varint.c',
-                      'src/core/transport/chttp2/writing.c',
                       'src/core/transport/chttp2_transport.c',
                       'src/core/transport/metadata.c',
                       'src/core/transport/stream_op.c',
@@ -380,7 +372,6 @@ Pod::Spec.new do |s|
                               'src/core/security/base64.h',
                               'src/core/security/credentials.h',
                               'src/core/security/json_token.h',
-                              'src/core/security/jwt_verifier.h',
                               'src/core/security/secure_endpoint.h',
                               'src/core/security/secure_transport_setup.h',
                               'src/core/security/security_connector.h',
@@ -462,8 +453,6 @@ Pod::Spec.new do |s|
                               'src/core/transport/chttp2/hpack_table.h',
                               'src/core/transport/chttp2/http2_errors.h',
                               'src/core/transport/chttp2/huffsyms.h',
-                              'src/core/transport/chttp2/incoming_metadata.h',
-                              'src/core/transport/chttp2/internal.h',
                               'src/core/transport/chttp2/status_conversion.h',
                               'src/core/transport/chttp2/stream_encoder.h',
                               'src/core/transport/chttp2/stream_map.h',
@@ -523,7 +512,7 @@ Pod::Spec.new do |s|
     ss.dependency 'gRPC/RxLibrary'
 
     # Certificates, to be able to establish TLS connections:
-    ss.resource_bundles = { 'gRPCCertificates' => ['etc/roots.pem'] }
+    ss.resource_bundles = { 'gRPC' => ['etc/roots.pem'] }
   end
 
   # RPC library for ProtocolBuffers, based on gRPC

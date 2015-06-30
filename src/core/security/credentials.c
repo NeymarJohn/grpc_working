@@ -461,6 +461,7 @@ typedef struct {
   grpc_credentials_md_store *access_token_md;
   gpr_timespec token_expiration;
   grpc_httpcli_context httpcli_context;
+  grpc_pollset_set pollset_set;
   grpc_fetch_oauth2_func fetch_func;
 } grpc_oauth2_token_fetcher_credentials;
 
@@ -634,7 +635,7 @@ static void init_oauth2_token_fetcher(grpc_oauth2_token_fetcher_credentials *c,
   gpr_mu_init(&c->mu);
   c->token_expiration = gpr_inf_past;
   c->fetch_func = fetch_func;
-  grpc_httpcli_context_init(&c->httpcli_context);
+  grpc_pollset_set_init(&c->pollset_set);
 }
 
 /* -- ComputeEngine credentials. -- */
