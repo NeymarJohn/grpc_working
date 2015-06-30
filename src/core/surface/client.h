@@ -31,34 +31,11 @@
  *
  */
 
-#include "src/core/client_config/uri_parser.h"
+#ifndef GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
+#define GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
 
-#include <string.h>
+#include "src/core/channel/channel_stack.h"
 
-#include <grpc/support/log.h>
+extern const grpc_channel_filter grpc_client_surface_filter;
 
-#include "test/core/util/test_config.h"
-
-static void test_succeeds(const char *uri_text, const char *scheme,
-                          const char *authority, const char *path) {
-  grpc_uri *uri = grpc_uri_parse(uri_text, 0);
-  GPR_ASSERT(uri);
-  GPR_ASSERT(0 == strcmp(scheme, uri->scheme));
-  GPR_ASSERT(0 == strcmp(authority, uri->authority));
-  GPR_ASSERT(0 == strcmp(path, uri->path));
-  grpc_uri_destroy(uri);
-}
-
-static void test_fails(const char *uri_text) {
-  GPR_ASSERT(NULL == grpc_uri_parse(uri_text, 0));
-}
-
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  test_succeeds("http://www.google.com", "http", "www.google.com", "");
-  test_succeeds("dns:///foo", "dns", "", "/foo");
-  test_succeeds("http://www.google.com:90", "http", "www.google.com:90", "");
-  test_fails("xyz");
-  test_fails("http://www.google.com?why-are-you-using-queries");
-  return 0;
-}
+#endif  /* GRPC_INTERNAL_CORE_SURFACE_CLIENT_H */
