@@ -196,12 +196,12 @@ typedef struct {
 static void fake_channel_destroy(grpc_security_connector *sc) {
   grpc_channel_security_connector *c = (grpc_channel_security_connector *)sc;
   grpc_credentials_unref(c->request_metadata_creds);
-  GRPC_AUTH_CONTEXT_UNREF(sc->auth_context, "connector");
+  grpc_auth_context_unref(sc->auth_context);
   gpr_free(sc);
 }
 
 static void fake_server_destroy(grpc_security_connector *sc) {
-  GRPC_AUTH_CONTEXT_UNREF(sc->auth_context, "connector");
+  grpc_auth_context_unref(sc->auth_context);
   gpr_free(sc);
 }
 
@@ -242,7 +242,7 @@ static grpc_security_status fake_check_peer(grpc_security_connector *sc,
     status = GRPC_SECURITY_ERROR;
     goto end;
   }
-  GRPC_AUTH_CONTEXT_UNREF(sc->auth_context, "connector");
+  grpc_auth_context_unref(sc->auth_context);
   sc->auth_context = grpc_auth_context_create(NULL, 1);
   sc->auth_context->properties[0] = grpc_auth_property_init_from_cstring(
       GRPC_TRANSPORT_SECURITY_TYPE_PROPERTY_NAME,
@@ -323,7 +323,7 @@ static void ssl_channel_destroy(grpc_security_connector *sc) {
   if (c->target_name != NULL) gpr_free(c->target_name);
   if (c->overridden_target_name != NULL) gpr_free(c->overridden_target_name);
   tsi_peer_destruct(&c->peer);
-  GRPC_AUTH_CONTEXT_UNREF(sc->auth_context, "connector");
+  grpc_auth_context_unref(sc->auth_context);
   gpr_free(sc);
 }
 
@@ -333,7 +333,7 @@ static void ssl_server_destroy(grpc_security_connector *sc) {
   if (c->handshaker_factory != NULL) {
     tsi_ssl_handshaker_factory_destroy(c->handshaker_factory);
   }
-  GRPC_AUTH_CONTEXT_UNREF(sc->auth_context, "connector");
+  grpc_auth_context_unref(sc->auth_context);
   gpr_free(sc);
 }
 
@@ -436,9 +436,6 @@ static grpc_security_status ssl_check_peer(grpc_security_connector *sc,
   if (peer_name != NULL && !ssl_host_matches_name(peer, peer_name)) {
     gpr_log(GPR_ERROR, "Peer name %s is not in peer certificate", peer_name);
     return GRPC_SECURITY_ERROR;
-  }
-  if (sc->auth_context != NULL) {
-    GRPC_AUTH_CONTEXT_UNREF(sc->auth_context, "connector");
   }
   sc->auth_context = tsi_ssl_peer_to_auth_context(peer);
   return GRPC_SECURITY_OK;
