@@ -39,6 +39,7 @@
 
 #include <grpc/support/time.h>
 #include <sys/timeb.h>
+#include <windows.h>
 
 gpr_timespec gpr_now(void) {
   gpr_timespec now_tv;

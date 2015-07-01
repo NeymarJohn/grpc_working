@@ -37,6 +37,8 @@
 /* Win32 variant of atm_platform.h */
 #include <grpc/support/port_platform.h>
 
+#include <windows.h>
+
 typedef gpr_intptr gpr_atm;
 
 #define gpr_atm_full_barrier MemoryBarrier
