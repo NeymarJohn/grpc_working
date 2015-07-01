@@ -75,9 +75,13 @@ static void init_call_elem(grpc_call_element *elem,
 
   /* Create a security context for the call and reference the auth context from
      the channel. */
+  if (initial_op->context[GRPC_CONTEXT_SECURITY].value != NULL) {
+    initial_op->context[GRPC_CONTEXT_SECURITY].destroy(
+        initial_op->context[GRPC_CONTEXT_SECURITY].value);
+  }
   server_ctx = grpc_server_security_context_create();
-  server_ctx->auth_context =
-      grpc_auth_context_ref(chand->security_connector->auth_context);
+  server_ctx->auth_context = GRPC_AUTH_CONTEXT_REF(
+      chand->security_connector->auth_context, "server_security_context");
   initial_op->context[GRPC_CONTEXT_SECURITY].value = server_ctx;
   initial_op->context[GRPC_CONTEXT_SECURITY].destroy =
       grpc_server_security_context_destroy;
@@ -103,14 +107,14 @@ static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
 
   /* initialize members */
   GPR_ASSERT(!sc->is_client_side);
-  chand->security_connector = grpc_security_connector_ref(sc);
+  chand->security_connector = GRPC_SECURITY_CONNECTOR_REF(sc, "server_auth_filter");
 }
 
 /* Destructor for channel data */
 static void destroy_channel_elem(grpc_channel_element *elem) {
   /* grab pointers to our data from the channel element */
   channel_data *chand = elem->channel_data;
-  grpc_security_connector_unref(chand->security_connector);
+  GRPC_SECURITY_CONNECTOR_UNREF(chand->security_connector, "server_auth_filter");
 }
 
 const grpc_channel_filter grpc_server_auth_filter = {
