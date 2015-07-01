@@ -68,6 +68,8 @@ namespace testing {
 
 namespace {
 
+const char* kServerCancelAfterReads = "cancel_after_reads";
+
 // When echo_deadline is requested, deadline seen in the ServerContext is set in
 // the response in seconds.
 void MaybeEchoDeadline(ServerContext* context, const EchoRequest* request,
@@ -131,7 +133,23 @@ class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
                        EchoResponse* response) GRPC_OVERRIDE {
     EchoRequest request;
     response->set_message("");
+    int cancel_after_reads = 0;
+    const std::multimap<grpc::string, grpc::string> client_initial_metadata =
+        context->client_metadata();
+    if (client_initial_metadata.find(kServerCancelAfterReads) !=
+        client_initial_metadata.end()) {
+      std::istringstream iss(
+          client_initial_metadata.find(kServerCancelAfterReads)->second);
+      iss >> cancel_after_reads;
+      gpr_log(GPR_INFO, "cancel_after_reads %d", cancel_after_reads);
+    }
     while (reader->Read(&request)) {
+      if (cancel_after_reads == 1) {
+        gpr_log(GPR_INFO, "return cancel status");
+        return Status::CANCELLED;
+      } else if (cancel_after_reads > 0) {
+        cancel_after_reads--;
+      }
       response->mutable_message()->append(request.message());
     }
     return Status::OK;
@@ -226,11 +244,10 @@ static void SendRpc(grpc::cpp::test::util::TestService::Stub* stub,
                     int num_rpcs) {
   EchoRequest request;
   EchoResponse response;
-  request.set_message("Hello hello hello hello");
+  request.set_message("Hello");
 
   for (int i = 0; i < num_rpcs; ++i) {
     ClientContext context;
-    context.set_compression_level(GRPC_COMPRESS_LEVEL_HIGH);
     Status s = stub->Echo(&context, request, &response);
     EXPECT_EQ(response.message(), request.message());
     EXPECT_TRUE(s.ok());
@@ -686,6 +703,27 @@ TEST_F(End2endTest, OverridePerCallCredentials) {
                                 "fake_selector1"));
   EXPECT_EQ(request.message(), response.message());
   EXPECT_TRUE(s.ok());
+}
+
+// Client sends 20 requests and the server returns CANCELLED status after
+// reading 10 requests.
+TEST_F(End2endTest, RequestStreamServerEarlyCancelTest) {
+  ResetStub();
+  EchoRequest request;
+  EchoResponse response;
+  ClientContext context;
+
+  context.AddMetadata(kServerCancelAfterReads, "10");
+  auto stream = stub_->RequestStream(&context, &response);
+  request.set_message("hello");
+  int send_messages = 20;
+  while (send_messages > 0) {
+    EXPECT_TRUE(stream->Write(request));
+    send_messages--;
+  }
+  stream->WritesDone();
+  Status s = stream->Finish();
+  EXPECT_EQ(s.error_code(), StatusCode::CANCELLED);
 }
 
 }  // namespace testing

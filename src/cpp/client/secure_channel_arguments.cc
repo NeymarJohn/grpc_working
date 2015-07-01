@@ -31,25 +31,24 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
-#define GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
+#include <grpc++/channel_arguments.h>
+#include <grpc/grpc_security.h>
 
-#include "src/core/channel/channel_stack.h"
+#include "src/core/channel/channel_args.h"
 
-#define GRPC_COMPRESS_REQUEST_ALGORITHM_KEY "internal:grpc-encoding-request"
+namespace grpc {
 
-/** Message-level compression filter.
- *
- * See <grpc/compression.h> for the available compression levels.
- *
- * Use grpc_channel_args_set_compression_level and
- * grpc_channel_args_get_compression_level to interact with the compression
- * settings for a channel.
- *
- * grpc_op instances of type GRPC_OP_SEND_MESSAGE can have the bit specified by
- * the GRPC_WRITE_NO_COMPRESS mask in order to disable compression in an
- * otherwise compressed channel.
- * */
-extern const grpc_channel_filter grpc_compress_filter;
+void ChannelArguments::SetSslTargetNameOverride(const grpc::string& name) {
+  SetString(GRPC_SSL_TARGET_NAME_OVERRIDE_ARG, name);
+}
 
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H */
+grpc::string ChannelArguments::GetSslTargetNameOverride() const {
+  for (unsigned int i = 0; i < args_.size(); i++) {
+    if (grpc::string(GRPC_SSL_TARGET_NAME_OVERRIDE_ARG) == args_[i].key) {
+      return args_[i].value.string;
+    }
+  }
+  return "";
+}
+
+}  // namespace grpc

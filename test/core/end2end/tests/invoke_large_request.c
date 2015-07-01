@@ -97,7 +97,7 @@ static void end_test(grpc_end2end_test_fixture *f) {
 
 static gpr_slice large_slice(void) {
   gpr_slice slice = gpr_slice_malloc(1000000);
-  memset(GPR_SLICE_START_PTR(slice), 0xab, GPR_SLICE_LENGTH(slice));
+  memset(GPR_SLICE_START_PTR(slice), 'x', GPR_SLICE_LENGTH(slice));
   return slice;
 }
 
@@ -228,6 +228,7 @@ static void test_invoke_large_request(grpc_end2end_test_config config) {
   grpc_byte_buffer_destroy(response_payload);
   grpc_byte_buffer_destroy(request_payload_recv);
   grpc_byte_buffer_destroy(response_payload_recv);
+  gpr_slice_unref(request_payload_slice);
   gpr_slice_unref(response_payload_slice);
 
   end_test(&f);
