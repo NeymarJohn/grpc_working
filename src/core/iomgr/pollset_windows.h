@@ -34,7 +34,6 @@
 #ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H
 #define GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H
 
-#include <windows.h>
 #include <grpc/support/sync.h>
 
 #include "src/core/iomgr/socket_windows.h"
@@ -46,6 +45,7 @@
 typedef struct grpc_pollset {
   gpr_mu mu;
   gpr_cv cv;
+  int shutting_down;
 } grpc_pollset;
 
 #define GRPC_POLLSET_MU(pollset) (&(pollset)->mu)

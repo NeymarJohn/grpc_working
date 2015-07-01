@@ -118,6 +118,20 @@ typedef struct {
 #define GRPC_ARG_HTTP2_INITIAL_SEQUENCE_NUMBER \
   "grpc.http2.initial_sequence_number"
 
+/** Connectivity state of a channel. */
+typedef enum {
+  /** channel is idle */
+  GRPC_CHANNEL_IDLE,
+  /** channel is connecting */
+  GRPC_CHANNEL_CONNECTING,
+  /** channel is ready for work */
+  GRPC_CHANNEL_READY,
+  /** channel has seen a failure but expects to recover */
+  GRPC_CHANNEL_TRANSIENT_FAILURE,
+  /** channel has seen a failure that it cannot recover from */
+  GRPC_CHANNEL_FATAL_FAILURE
+} grpc_connectivity_state;
+
 /* Result of a grpc call. If the caller satisfies the prerequisites of a
    particular operation, the grpc_call_error returned will be GRPC_CALL_OK.
    Receiving any other value listed here is an indication of a bug in the
@@ -396,7 +410,9 @@ grpc_call *grpc_channel_create_registered_call(
    completion of type 'tag' to the completion queue bound to the call.
    The order of ops specified in the batch has no significance.
    Only one operation of each type can be active at once in any given
-   batch. 
+   batch. You must call grpc_completion_queue_next or
+   grpc_completion_queue_pluck on the completion queue associated with 'call'
+   for work to be performed.
    THREAD SAFETY: access to grpc_call_start_batch in multi-threaded environment
    needs to be synchronized. As an optimization, you may synchronize batches
    containing just send operations independently from batches containing just
@@ -425,7 +441,7 @@ void grpc_channel_destroy(grpc_channel *channel);
    has been made. */
 
 /* Called by clients to cancel an RPC on the server.
-   Can be called multiple times, from any thread. 
+   Can be called multiple times, from any thread.
    THREAD-SAFETY grpc_call_cancel and grpc_call_cancel_with_status
    are thread-safe, and can be called at any point before grpc_call_destroy
    is called.*/
@@ -441,7 +457,7 @@ grpc_call_error grpc_call_cancel_with_status(grpc_call *call,
                                              grpc_status_code status,
                                              const char *description);
 
-/* Destroy a call. 
+/* Destroy a call.
    THREAD SAFETY: grpc_call_destroy is thread-compatible */
 void grpc_call_destroy(grpc_call *call);
 
