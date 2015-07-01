@@ -1,11 +1,5 @@
 [
   {
-    "module": "grpc._cython.cygrpc_test"
-  },
-  {
-    "module": "grpc._cython.adapter_low_test"
-  },
-  {
     "module": "grpc._adapter._c_test"
   },
   {
