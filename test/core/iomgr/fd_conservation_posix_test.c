@@ -31,22 +31,33 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_BASE64_H
-#define GRPC_INTERNAL_CORE_SECURITY_BASE64_H
+#include <sys/resource.h>
 
-#include <grpc/support/slice.h>
+#include <grpc/support/log.h>
 
-/* Encodes data using base64. It is the caller's responsability to free
-   the returned char * using gpr_free. Returns NULL on NULL input. */
-char *grpc_base64_encode(const void *data, size_t data_size, int url_safe,
-                         int multiline);
+#include "test/core/util/test_config.h"
+#include "src/core/iomgr/endpoint_pair.h"
+#include "src/core/iomgr/iomgr.h"
 
-/* Decodes data according to the base64 specification. Returns an empty
-   slice in case of failure. */
-gpr_slice grpc_base64_decode(const char *b64, int url_safe);
+int main(int argc, char **argv) {
+	int i;
+	struct rlimit rlim;
+	grpc_endpoint_pair p;
+  grpc_test_init(argc, argv);
+  grpc_iomgr_init();
 
-/* Same as above except that the length is provided by the caller. */
-gpr_slice grpc_base64_decode_with_len(const char *b64, size_t b64_len,
-                                      int url_safe);
+  /* set max # of file descriptors to a low value, and
+     verify we can create and destroy many more than this number
+     of descriptors */
+  rlim.rlim_cur = rlim.rlim_max = 10;
+  GPR_ASSERT(0 == setrlimit(RLIMIT_NOFILE, &rlim));
 
-#endif  /* GRPC_INTERNAL_CORE_SECURITY_BASE64_H */
+  for (i = 0; i < 100; i++) {
+  	p = grpc_iomgr_create_endpoint_pair("test", 1);
+  	grpc_endpoint_destroy(p.client);
+  	grpc_endpoint_destroy(p.server);
+  }
+
+  grpc_iomgr_shutdown();
+  return 0;
+}

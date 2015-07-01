@@ -31,22 +31,32 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_BASE64_H
-#define GRPC_INTERNAL_CORE_SECURITY_BASE64_H
+#include <grpc/grpc.h>
+#include "test/core/util/test_config.h"
 
-#include <grpc/support/slice.h>
+int main(int argc, char **argv) {
+  grpc_completion_queue *cq1;
+  grpc_completion_queue *cq2;
+  grpc_server *server;
 
-/* Encodes data using base64. It is the caller's responsability to free
-   the returned char * using gpr_free. Returns NULL on NULL input. */
-char *grpc_base64_encode(const void *data, size_t data_size, int url_safe,
-                         int multiline);
-
-/* Decodes data according to the base64 specification. Returns an empty
-   slice in case of failure. */
-gpr_slice grpc_base64_decode(const char *b64, int url_safe);
-
-/* Same as above except that the length is provided by the caller. */
-gpr_slice grpc_base64_decode_with_len(const char *b64, size_t b64_len,
-                                      int url_safe);
-
-#endif  /* GRPC_INTERNAL_CORE_SECURITY_BASE64_H */
+  grpc_test_init(argc, argv);
+  grpc_init();
+  cq1 = grpc_completion_queue_create();
+  cq2 = grpc_completion_queue_create();
+  server = grpc_server_create(NULL);
+  grpc_server_register_completion_queue(server, cq1);
+  grpc_server_add_http2_port(server, "[::]:0");
+  grpc_server_register_completion_queue(server, cq2);
+  grpc_server_start(server);
+  grpc_server_shutdown_and_notify(server, cq2, NULL);
+  grpc_completion_queue_next(cq2, gpr_inf_future);  /* cue queue hang */
+  grpc_completion_queue_shutdown(cq1);
+  grpc_completion_queue_shutdown(cq2);
+  grpc_completion_queue_next(cq1, gpr_inf_future);
+  grpc_completion_queue_next(cq2, gpr_inf_future);
+  grpc_server_destroy(server);
+  grpc_completion_queue_destroy(cq1);
+  grpc_completion_queue_destroy(cq2);
+  grpc_shutdown();
+  return 0;
+}
