@@ -92,7 +92,6 @@ void grpc_shutdown(void) {
     census_shutdown();
     grpc_timers_global_destroy();
     grpc_tracer_shutdown();
-    grpc_resolver_registry_shutdown();
   }
   gpr_mu_unlock(&g_init_mu);
 }
