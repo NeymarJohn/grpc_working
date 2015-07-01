@@ -103,7 +103,7 @@ static void end_polling(grpc_pollset *pollset) {
   }
 }
 
-static void multipoll_with_poll_pollset_maybe_work(
+static int multipoll_with_poll_pollset_maybe_work(
     grpc_pollset *pollset, gpr_timespec deadline, gpr_timespec now,
     int allow_synchronous_callback) {
   int timeout;
@@ -126,7 +126,7 @@ static void multipoll_with_poll_pollset_maybe_work(
   kfd = grpc_pollset_kick_pre_poll(&pollset->kick_state);
   if (kfd == NULL) {
     /* Already kicked */
-    return;
+    return 1;
   }
   h->pfds[0].fd = GRPC_POLLSET_KICK_GET_FD(kfd);
   h->pfds[0].events = POLLIN;
@@ -154,7 +154,7 @@ static void multipoll_with_poll_pollset_maybe_work(
   h->del_count = 0;
   if (h->pfd_count == 0) {
     end_polling(pollset);
-    return;
+    return 0;
   }
   pollset->counter++;
   gpr_mu_unlock(&pollset->mu);
@@ -191,6 +191,8 @@ static void multipoll_with_poll_pollset_maybe_work(
 
   gpr_mu_lock(&pollset->mu);
   pollset->counter--;
+
+  return 1;
 }
 
 static void multipoll_with_poll_pollset_kick(grpc_pollset *p) {

@@ -22,6 +22,9 @@
     <ClCompile Include="..\..\src\core\channel\client_setup.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\core\channel\compress_filter.c">
+      <Filter>src\core\channel</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\core\channel\connected_channel.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
@@ -253,19 +256,10 @@
     <ClCompile Include="..\..\src\core\transport\chttp2\huffsyms.c">
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\transport\chttp2\incoming_metadata.c">
-      <Filter>src\core\transport\chttp2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\transport\chttp2\parsing.c">
-      <Filter>src\core\transport\chttp2</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\status_conversion.c">
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\stream_encoder.c">
-      <Filter>src\core\transport\chttp2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\transport\chttp2\stream_lists.c">
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\stream_map.c">
@@ -275,9 +269,6 @@
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\varint.c">
-      <Filter>src\core\transport\chttp2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\transport\chttp2\writing.c">
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2_transport.c">
@@ -342,6 +333,9 @@
       <Filter>src\core\channel</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\channel\client_setup.h">
+      <Filter>src\core\channel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\core\channel\compress_filter.h">
       <Filter>src\core\channel</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\channel\connected_channel.h">
@@ -540,12 +534,6 @@
       <Filter>src\core\transport\chttp2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\transport\chttp2\huffsyms.h">
-      <Filter>src\core\transport\chttp2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\transport\chttp2\incoming_metadata.h">
-      <Filter>src\core\transport\chttp2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\transport\chttp2\internal.h">
       <Filter>src\core\transport\chttp2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\transport\chttp2\status_conversion.h">

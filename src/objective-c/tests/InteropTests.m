@@ -36,13 +36,13 @@
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 
-#import <ProtoRPC/ProtoRPC.h>
+#import <gRPC/GRXWriter+Immediate.h>
+#import <gRPC/GRXBufferedPipe.h>
+#import <gRPC/ProtoRPC.h>
 #import <RemoteTest/Empty.pbobjc.h>
 #import <RemoteTest/Messages.pbobjc.h>
 #import <RemoteTest/Test.pbobjc.h>
 #import <RemoteTest/Test.pbrpc.h>
-#import <RxLibrary/GRXBufferedPipe.h>
-#import <RxLibrary/GRXWriter+Immediate.h>
 
 // Convenience constructors for the generated proto messages:
 
@@ -174,7 +174,7 @@
 
   __block int index = 0;
   [_service streamingOutputCallWithRequest:request
-                              eventHandler:^(BOOL done,
+                                   handler:^(BOOL done,
                                              RMTStreamingOutputCallResponse *response,
                                              NSError *error){
     XCTAssertNil(error, @"Finished with unexpected error: %@", error);
@@ -211,7 +211,7 @@
   [requestsBuffer writeValue:request];
 
   [_service fullDuplexCallWithRequestsWriter:requestsBuffer
-                                eventHandler:^(BOOL done,
+                                     handler:^(BOOL done,
                                                RMTStreamingOutputCallResponse *response,
                                                NSError *error) {
     XCTAssertNil(error, @"Finished with unexpected error: %@", error);
@@ -242,7 +242,7 @@
 - (void)testEmptyStreamRPC {
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"EmptyStream"];
   [_service fullDuplexCallWithRequestsWriter:[GRXWriter emptyWriter]
-                                eventHandler:^(BOOL done,
+                                     handler:^(BOOL done,
                                                RMTStreamingOutputCallResponse *response,
                                                NSError *error) {
     XCTAssertNil(error, @"Finished with unexpected error: %@", error);
@@ -283,7 +283,7 @@
   [requestsBuffer writeValue:request];
   
   __block ProtoRPC *call = [_service RPCToFullDuplexCallWithRequestsWriter:requestsBuffer
-                                                              eventHandler:^(BOOL done,
+                                                                   handler:^(BOOL done,
                                                                              RMTStreamingOutputCallResponse *response,
                                                                              NSError *error) {
     if (receivedResponse) {

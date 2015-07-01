@@ -35,6 +35,7 @@
 #include <utility>
 
 #include <grpc/grpc.h>
+#include <grpc/grpc_security.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc++/completion_queue.h>
@@ -367,11 +368,8 @@ Server::GenericAsyncRequest::GenericAsyncRequest(
 
 bool Server::GenericAsyncRequest::FinalizeResult(void** tag, bool* status) {
   // TODO(yangg) remove the copy here.
-  if (*status) {
-    static_cast<GenericServerContext*>(context_)->method_ =
-        call_details_.method;
-    static_cast<GenericServerContext*>(context_)->host_ = call_details_.host;
-  }
+  static_cast<GenericServerContext*>(context_)->method_ = call_details_.method;
+  static_cast<GenericServerContext*>(context_)->host_ = call_details_.host;
   gpr_free(call_details_.method);
   gpr_free(call_details_.host);
   return BaseAsyncRequest::FinalizeResult(tag, status);
