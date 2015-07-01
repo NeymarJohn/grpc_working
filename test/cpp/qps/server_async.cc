@@ -64,7 +64,7 @@ namespace testing {
 
 class AsyncQpsServerTest : public Server {
  public:
-  AsyncQpsServerTest(const ServerConfig &config, int port) {
+  AsyncQpsServerTest(const ServerConfig &config, int port) : shutdown_(false) {
     char *server_address = NULL;
     gpr_join_host_port(&server_address, "::", port);
 
@@ -97,9 +97,6 @@ class AsyncQpsServerTest : public Server {
       }
     }
     for (int i = 0; i < config.threads(); i++) {
-      shutdown_state_.emplace_back(new PerThreadShutdownState());
-    }
-    for (int i = 0; i < config.threads(); i++) {
       threads_.push_back(std::thread([=]() {
         // Wait until work is available or we are shutting down
         bool ok;
@@ -108,9 +105,11 @@ class AsyncQpsServerTest : public Server {
           ServerRpcContext *ctx = detag(got_tag);
           // The tag is a pointer to an RPC context to invoke
           bool still_going = ctx->RunNextState(ok);
-          if (!shutdown_state_[i]->shutdown()) {
+          std::unique_lock<std::mutex> g(shutdown_mutex_);
+          if (!shutdown_) {
             // this RPC context is done, so refresh it
             if (!still_going) {
+              g.unlock();
               ctx->Reset();
             }
           } else {
@@ -123,8 +122,9 @@ class AsyncQpsServerTest : public Server {
   }
   ~AsyncQpsServerTest() {
     server_->Shutdown();
-    for (auto ss = shutdown_state_.begin(); ss != shutdown_state_.end(); ++ss) {
-      (*ss)->set_shutdown();
+    {
+      std::lock_guard<std::mutex> g(shutdown_mutex_);
+      shutdown_ = true;
     }
     for (auto thr = threads_.begin(); thr != threads_.end(); thr++) {
       thr->join();
@@ -316,25 +316,8 @@ class AsyncQpsServerTest : public Server {
   TestService::AsyncService async_service_;
   std::forward_list<ServerRpcContext *> contexts_;
 
-  class PerThreadShutdownState {
-   public:
-    PerThreadShutdownState() : shutdown_(false) {}
-
-    bool shutdown() const {
-      std::lock_guard<std::mutex> lock(mutex_);
-      return shutdown_;
-    }
-
-    void set_shutdown() {
-      std::lock_guard<std::mutex> lock(mutex_);
-      shutdown_ = true;
-    }
-
-   private:
-    mutable std::mutex mutex_;
-    bool shutdown_;
-  };
-  std::vector<std::unique_ptr<PerThreadShutdownState>> shutdown_state_;
+  std::mutex shutdown_mutex_;
+  bool shutdown_;
 };
 
 std::unique_ptr<Server> CreateAsyncServer(const ServerConfig &config,
