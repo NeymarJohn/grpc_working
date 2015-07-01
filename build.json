@@ -748,6 +748,7 @@
         "test/cpp/qps/driver.h",
         "test/cpp/qps/histogram.h",
         "test/cpp/qps/interarrival.h",
+        "test/cpp/qps/perf_db_client.h",
         "test/cpp/qps/qps_worker.h",
         "test/cpp/qps/report.h",
         "test/cpp/qps/server.h",
@@ -757,9 +758,11 @@
       ],
       "src": [
         "test/cpp/qps/qpstest.proto",
+        "test/cpp/qps/perf_db.proto",
         "test/cpp/qps/client_async.cc",
         "test/cpp/qps/client_sync.cc",
         "test/cpp/qps/driver.cc",
+        "test/cpp/qps/perf_db_client.cc",
         "test/cpp/qps/qps_worker.cc",
         "test/cpp/qps/report.cc",
         "test/cpp/qps/server_async.cc",
@@ -906,6 +909,23 @@
       "language": "c",
       "src": [
         "test/core/end2end/dualstack_socket_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ],
+      "platforms": [
+        "posix"
+      ]
+    },
+    {
+      "name": "fd_conservation_posix_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/iomgr/fd_conservation_posix_test.c"
       ],
       "deps": [
         "grpc_test_util",
@@ -1520,6 +1540,20 @@
       "language": "c",
       "src": [
         "test/core/surface/multi_init_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "multiple_server_queues_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/end2end/multiple_server_queues_test.c"
       ],
       "deps": [
         "grpc_test_util",

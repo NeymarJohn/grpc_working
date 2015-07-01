@@ -136,6 +136,20 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "fd_conservation_posix_test", 
+    "src": [
+      "test/core/iomgr/fd_conservation_posix_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "fd_posix_test", 
     "src": [
       "test/core/iomgr/fd_posix_test.c"
@@ -721,6 +735,20 @@
     "name": "multi_init_test", 
     "src": [
       "test/core/surface/multi_init_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "multiple_server_queues_test", 
+    "src": [
+      "test/core/end2end/multiple_server_queues_test.c"
     ]
   }, 
   {
@@ -9779,6 +9807,9 @@
       "test/cpp/qps/driver.h", 
       "test/cpp/qps/histogram.h", 
       "test/cpp/qps/interarrival.h", 
+      "test/cpp/qps/perf_db.grpc.pb.h", 
+      "test/cpp/qps/perf_db.pb.h", 
+      "test/cpp/qps/perf_db_client.h", 
       "test/cpp/qps/qps_worker.h", 
       "test/cpp/qps/qpstest.grpc.pb.h", 
       "test/cpp/qps/qpstest.pb.h", 
@@ -9798,6 +9829,8 @@
       "test/cpp/qps/driver.h", 
       "test/cpp/qps/histogram.h", 
       "test/cpp/qps/interarrival.h", 
+      "test/cpp/qps/perf_db_client.cc", 
+      "test/cpp/qps/perf_db_client.h", 
       "test/cpp/qps/qps_worker.cc", 
       "test/cpp/qps/qps_worker.h", 
       "test/cpp/qps/report.cc", 
