@@ -160,8 +160,6 @@ struct grpc_call {
   gpr_uint8 bound_pollset;
   /* is an error status set */
   gpr_uint8 error_status_set;
-  /** should the alarm be cancelled */
-  gpr_uint8 cancel_alarm;
 
   /* flags with bits corresponding to write states allowing us to determine
      what was sent */
@@ -474,16 +472,12 @@ static void unlock(grpc_call *call) {
   int completing_requests = 0;
   int start_op = 0;
   int i;
-  int cancel_alarm = 0;
 
   memset(&op, 0, sizeof(op));
 
   op.cancel_with_status = call->cancel_with_status;
   start_op = op.cancel_with_status != GRPC_STATUS_OK;
   call->cancel_with_status = GRPC_STATUS_OK; /* reset */
-
-  cancel_alarm = call->cancel_alarm;
-  call->cancel_alarm = 0;
 
   if (!call->receiving && need_more_data(call)) {
     op.recv_ops = &call->recv_ops;
@@ -518,10 +512,6 @@ static void unlock(grpc_call *call) {
   }
 
   gpr_mu_unlock(&call->mu);
-
-  if (cancel_alarm) {
-    grpc_alarm_cancel(&call->alarm);
-  }
 
   if (start_op) {
     execute_op(call, &op);
@@ -815,7 +805,10 @@ static void call_on_done_recv(void *pc, int success) {
     if (call->recv_state == GRPC_STREAM_CLOSED) {
       GPR_ASSERT(call->read_state <= READ_STATE_STREAM_CLOSED);
       call->read_state = READ_STATE_STREAM_CLOSED;
-      call->cancel_alarm |= call->have_alarm;
+      if (call->have_alarm) {
+        grpc_alarm_cancel(&call->alarm);
+        call->have_alarm = 0;
+      }
       GRPC_CALL_INTERNAL_UNREF(call, "closed", 0);
     }
     finish_read_ops(call);
@@ -994,7 +987,7 @@ static void finish_read_ops(grpc_call *call) {
 
   switch (call->read_state) {
     case READ_STATE_STREAM_CLOSED:
-      if (empty && !call->have_alarm) {
+      if (empty) {
         finish_ioreq_op(call, GRPC_IOREQ_RECV_CLOSE, 1);
       }
     /* fallthrough */
@@ -1092,7 +1085,10 @@ void grpc_call_destroy(grpc_call *c) {
   lock(c);
   GPR_ASSERT(!c->destroy_called);
   c->destroy_called = 1;
-  c->cancel_alarm |= c->have_alarm;
+  if (c->have_alarm) {
+    grpc_alarm_cancel(&c->alarm);
+    c->have_alarm = 0;
+  }
   cancel = c->read_state != READ_STATE_STREAM_CLOSED;
   unlock(c);
   if (cancel) grpc_call_cancel(c);
@@ -1171,14 +1167,12 @@ grpc_call *grpc_call_from_top_element(grpc_call_element *elem) {
 
 static void call_alarm(void *arg, int success) {
   grpc_call *call = arg;
-  lock(call);
-  call->have_alarm = 0;
   if (success) {
+    lock(call);
     cancel_with_status(call, GRPC_STATUS_DEADLINE_EXCEEDED,
                        "Deadline Exceeded");
+    unlock(call);
   }
-  finish_read_ops(call);
-  unlock(call);
   GRPC_CALL_INTERNAL_UNREF(call, "alarm", 1);
 }
 
@@ -1190,7 +1184,7 @@ static void set_deadline_alarm(grpc_call *call, gpr_timespec deadline) {
   }
   GRPC_CALL_INTERNAL_REF(call, "alarm");
   call->have_alarm = 1;
-  grpc_alarm_init(&call->alarm, deadline, call_alarm, call, gpr_now(GPR_CLOCK_REALTIME));
+  grpc_alarm_init(&call->alarm, deadline, call_alarm, call, gpr_now());
 }
 
 /* we offset status by a small amount when storing it into transport metadata
