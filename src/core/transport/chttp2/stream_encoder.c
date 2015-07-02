@@ -437,7 +437,7 @@ static void deadline_enc(grpc_chttp2_hpack_compressor *c, gpr_timespec deadline,
                          framer_state *st) {
   char timeout_str[GRPC_CHTTP2_TIMEOUT_ENCODE_MIN_BUFSIZE];
   grpc_mdelem *mdelem;
-  grpc_chttp2_encode_timeout(gpr_time_sub(deadline, gpr_now()), timeout_str);
+  grpc_chttp2_encode_timeout(gpr_time_sub(deadline, gpr_now(GPR_CLOCK_REALTIME)), timeout_str);
   mdelem = grpc_mdelem_from_metadata_strings(
       c->mdctx, grpc_mdstr_ref(c->timeout_key_str),
       grpc_mdstr_from_string(c->mdctx, timeout_str));
@@ -497,7 +497,7 @@ gpr_uint32 grpc_chttp2_preencode(grpc_stream_op *inops, size_t *inops_count,
            through - this lets us reuse the slice framing code below */
         slice = gpr_slice_malloc(5);
         p = GPR_SLICE_START_PTR(slice);
-        p[0] = !!(op->data.begin_message.flags & GRPC_WRITE_INTERNAL_COMPRESS);
+        p[0] = 0;
         p[1] = op->data.begin_message.length >> 24;
         p[2] = op->data.begin_message.length >> 16;
         p[3] = op->data.begin_message.length >> 8;
