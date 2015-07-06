@@ -58,13 +58,14 @@ void gpr_sleep_until(gpr_timespec until) {
   for (;;) {
     /* We could simplify by using clock_nanosleep instead, but it might be
      * slightly less portable. */
-    now = gpr_now();
+    now = gpr_now(GPR_CLOCK_REALTIME);
     if (gpr_time_cmp(until, now) <= 0) {
       return;
     }
 
     delta = gpr_time_sub(until, now);
-    sleep_millis = (DWORD)delta.tv_sec * GPR_MS_PER_SEC + delta.tv_nsec / GPR_NS_PER_MS;
+    sleep_millis =
+        (DWORD)delta.tv_sec * GPR_MS_PER_SEC + delta.tv_nsec / GPR_NS_PER_MS;
     Sleep(sleep_millis);
   }
 }
