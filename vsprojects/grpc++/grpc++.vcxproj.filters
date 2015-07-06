@@ -7,12 +7,6 @@
     <ClCompile Include="..\..\src\cpp\client\secure_credentials.cc">
       <Filter>src\cpp\client</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\cpp\common\secure_auth_context.cc">
-      <Filter>src\cpp\common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\cpp\common\secure_create_auth_context.cc">
-      <Filter>src\cpp\common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\cpp\server\secure_server_credentials.cc">
       <Filter>src\cpp\server</Filter>
     </ClCompile>
@@ -94,9 +88,6 @@
       <Filter>include\grpc++</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\grpc++\async_unary_call.h">
-      <Filter>include\grpc++</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\grpc++\auth_context.h">
       <Filter>include\grpc++</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\grpc++\byte_buffer.h">
@@ -209,17 +200,11 @@
     <ClInclude Include="..\..\src\cpp\client\secure_credentials.h">
       <Filter>src\cpp\client</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\cpp\common\secure_auth_context.h">
-      <Filter>src\cpp\common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\cpp\server\secure_server_credentials.h">
       <Filter>src\cpp\server</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\cpp\client\channel.h">
       <Filter>src\cpp\client</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\cpp\common\create_auth_context.h">
-      <Filter>src\cpp\common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\cpp\server\thread_pool.h">
       <Filter>src\cpp\server</Filter>

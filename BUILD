@@ -1,5 +1,5 @@
 # GRPC Bazel BUILD file.
-# This currently builds C and C++ code.
+# This currently builds C, C++ and Objective-C code.
 # This file has been automatically generated from a template file.
 # Please look at the templates directory instead.
 # This file can be regenerated from the template by running
@@ -587,15 +587,11 @@ cc_library(
   name = "grpc++",
   srcs = [
     "src/cpp/client/secure_credentials.h",
-    "src/cpp/common/secure_auth_context.h",
     "src/cpp/server/secure_server_credentials.h",
     "src/cpp/client/channel.h",
-    "src/cpp/common/create_auth_context.h",
     "src/cpp/server/thread_pool.h",
     "src/cpp/client/secure_channel_arguments.cc",
     "src/cpp/client/secure_credentials.cc",
-    "src/cpp/common/secure_auth_context.cc",
-    "src/cpp/common/secure_create_auth_context.cc",
     "src/cpp/server/secure_server_credentials.cc",
     "src/cpp/client/channel.cc",
     "src/cpp/client/channel_arguments.cc",
@@ -625,7 +621,6 @@ cc_library(
   hdrs = [
     "include/grpc++/async_generic_service.h",
     "include/grpc++/async_unary_call.h",
-    "include/grpc++/auth_context.h",
     "include/grpc++/byte_buffer.h",
     "include/grpc++/channel_arguments.h",
     "include/grpc++/channel_interface.h",
@@ -677,11 +672,8 @@ cc_library(
 cc_library(
   name = "grpc++_unsecure",
   srcs = [
-    "src/cpp/common/insecure_auth_context.h",
     "src/cpp/client/channel.h",
-    "src/cpp/common/create_auth_context.h",
     "src/cpp/server/thread_pool.h",
-    "src/cpp/common/insecure_create_auth_context.cc",
     "src/cpp/client/channel.cc",
     "src/cpp/client/channel_arguments.cc",
     "src/cpp/client/client_context.cc",
@@ -710,7 +702,6 @@ cc_library(
   hdrs = [
     "include/grpc++/async_generic_service.h",
     "include/grpc++/async_unary_call.h",
-    "include/grpc++/auth_context.h",
     "include/grpc++/byte_buffer.h",
     "include/grpc++/channel_arguments.h",
     "include/grpc++/channel_interface.h",
