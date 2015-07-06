@@ -31,32 +31,25 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVER_REGISTRY_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVER_REGISTRY_H
+#import "ProtoMethod.h"
 
-#include "src/core/client_config/resolver_factory.h"
+@implementation ProtoMethod
+- (instancetype)initWithPackage:(NSString *)package
+                        service:(NSString *)service
+                         method:(NSString *)method {
+  if ((self = [super init])) {
+    _package = [package copy];
+    _service = [service copy];
+    _method = [method copy];
+  }
+  return self;
+}
 
-void grpc_resolver_registry_init(const char *default_prefix);
-void grpc_resolver_registry_shutdown(void);
-
-/** Register a resolver type.
-    URI's of \a scheme will be resolved with the given resolver.
-    If \a priority is greater than zero, then the resolver will be eligible
-    to resolve names that are passed in with no scheme. Higher priority
-    resolvers will be tried before lower priority schemes. */
-void grpc_register_resolver_type(const char *scheme,
-                                 grpc_resolver_factory *factory);
-
-/** Create a resolver given \a name.
-    First tries to parse \a name as a URI. If this succeeds, tries
-    to locate a registered resolver factory based on the URI scheme.
-    If parsing or location fails, prefixes default_prefix from
-    grpc_resolver_registry_init to name, and tries again (if default_prefix
-    was not NULL).
-    If a resolver factory was found, use it to instantiate a resolver and
-    return it.
-    If a resolver factory was not found, return NULL. */
-grpc_resolver *grpc_resolver_create(
-    const char *name, grpc_subchannel_factory *subchannel_factory);
-
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVER_REGISTRY_H */
+- (NSString *)HTTPPath {
+  if (_package) {
+    return [NSString stringWithFormat:@"/%@.%@/%@", _package, _service, _method];
+  } else {
+    return [NSString stringWithFormat:@"/%@/%@", _service, _method];
+  }
+}
+@end
