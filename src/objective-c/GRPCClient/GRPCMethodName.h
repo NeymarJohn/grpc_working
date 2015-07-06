@@ -31,20 +31,19 @@
  *
  */
 
-#include "src/core/client_config/resolver_factory.h"
+#import <Foundation/Foundation.h>
 
-void grpc_resolver_factory_ref(grpc_resolver_factory *factory) {
-  factory->vtable->ref(factory);
-}
+// See the README file for an introduction to this library.
 
-void grpc_resolver_factory_unref(grpc_resolver_factory *factory) {
-  factory->vtable->unref(factory);
-}
-
-/** Create a resolver instance for a name */
-grpc_resolver *grpc_resolver_factory_create_resolver(
-    grpc_resolver_factory *factory, grpc_uri *uri,
-    grpc_subchannel_factory *subchannel_factory) {
-  if (!factory) return NULL;
-  return factory->vtable->create_resolver(factory, uri, subchannel_factory);
-}
+// A fully-qualified gRPC method name. Full qualification is needed because a gRPC endpoint can
+// implement multiple interfaces.
+// TODO(jcanizales): Move to ProtoRPC package.
+// TODO(jcanizales): Rename interface -> service.
+@interface GRPCMethodName : NSObject
+@property(nonatomic, readonly) NSString *package;
+@property(nonatomic, readonly) NSString *interface;
+@property(nonatomic, readonly) NSString *method;
+- (instancetype)initWithPackage:(NSString *)package
+                      interface:(NSString *)interface
+                         method:(NSString *)method;
+@end

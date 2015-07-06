@@ -31,14 +31,11 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
+#ifndef GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
+#define GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
 
-#include <grpc/support/port_platform.h>
+#include "src/core/channel/channel_stack.h"
 
-#include "src/core/client_config/resolver_factory.h"
+extern const grpc_channel_filter grpc_client_surface_filter;
 
-/** Create a unix resolver factory */
-grpc_resolver_factory *grpc_unix_resolver_factory_create(void);
-
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H */
+#endif  /* GRPC_INTERNAL_CORE_SURFACE_CLIENT_H */

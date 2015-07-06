@@ -72,6 +72,9 @@ typedef struct channel_data {
   grpc_mdctx *mdctx;
 } channel_data;
 
+/* used to silence 'variable not used' warnings */
+static void ignore_unused(void *ignored) {}
+
 static grpc_mdelem *server_filter(void *user_data, grpc_mdelem *md) {
   grpc_call_element *elem = user_data;
   channel_data *channeld = elem->channel_data;
@@ -129,9 +132,9 @@ static grpc_mdelem *server_filter(void *user_data, grpc_mdelem *md) {
     /* translate host to :authority since :authority may be
        omitted */
     grpc_mdelem *authority = grpc_mdelem_from_metadata_strings(
-        channeld->mdctx, GRPC_MDSTR_REF(channeld->authority_key),
-        GRPC_MDSTR_REF(md->value));
-    GRPC_MDELEM_UNREF(md);
+        channeld->mdctx, grpc_mdstr_ref(channeld->authority_key),
+        grpc_mdstr_ref(md->value));
+    grpc_mdelem_unref(md);
     return authority;
   } else {
     return md;
@@ -178,8 +181,7 @@ static void hs_on_recv(void *user_data, int success) {
   calld->on_done_recv->cb(calld->on_done_recv->cb_arg, success);
 }
 
-static void hs_mutate_op(grpc_call_element *elem,
-                         grpc_transport_stream_op *op) {
+static void hs_mutate_op(grpc_call_element *elem, grpc_transport_op *op) {
   /* grab pointers to our data from the call element */
   call_data *calld = elem->call_data;
   channel_data *channeld = elem->channel_data;
@@ -193,7 +195,7 @@ static void hs_mutate_op(grpc_call_element *elem,
       if (op->type != GRPC_OP_METADATA) continue;
       calld->sent_status = 1;
       grpc_metadata_batch_add_head(&op->data.metadata, &calld->status,
-                                   GRPC_MDELEM_REF(channeld->status_ok));
+                                   grpc_mdelem_ref(channeld->status_ok));
       break;
     }
   }
@@ -207,16 +209,33 @@ static void hs_mutate_op(grpc_call_element *elem,
 }
 
 static void hs_start_transport_op(grpc_call_element *elem,
-                                  grpc_transport_stream_op *op) {
+                                  grpc_transport_op *op) {
   GRPC_CALL_LOG_OP(GPR_INFO, elem, op);
   hs_mutate_op(elem, op);
   grpc_call_next_op(elem, op);
 }
 
+/* Called on special channel events, such as disconnection or new incoming
+   calls on the server */
+static void channel_op(grpc_channel_element *elem,
+                       grpc_channel_element *from_elem, grpc_channel_op *op) {
+  /* grab pointers to our data from the channel element */
+  channel_data *channeld = elem->channel_data;
+
+  ignore_unused(channeld);
+
+  switch (op->type) {
+    default:
+      /* pass control up or down the stack depending on op->dir */
+      grpc_channel_next_op(elem, op);
+      break;
+  }
+}
+
 /* Constructor for call_data */
 static void init_call_elem(grpc_call_element *elem,
                            const void *server_transport_data,
-                           grpc_transport_stream_op *initial_op) {
+                           grpc_transport_op *initial_op) {
   /* grab pointers to our data from the call element */
   call_data *calld = elem->call_data;
   /* initialize members */
@@ -229,7 +248,7 @@ static void init_call_elem(grpc_call_element *elem,
 static void destroy_call_elem(grpc_call_element *elem) {}
 
 /* Constructor for channel_data */
-static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
+static void init_channel_elem(grpc_channel_element *elem,
                               const grpc_channel_args *args, grpc_mdctx *mdctx,
                               int is_first, int is_last) {
   /* grab pointers to our data from the channel element */
@@ -264,20 +283,20 @@ static void destroy_channel_elem(grpc_channel_element *elem) {
   /* grab pointers to our data from the channel element */
   channel_data *channeld = elem->channel_data;
 
-  GRPC_MDELEM_UNREF(channeld->te_trailers);
-  GRPC_MDELEM_UNREF(channeld->status_ok);
-  GRPC_MDELEM_UNREF(channeld->status_not_found);
-  GRPC_MDELEM_UNREF(channeld->method_post);
-  GRPC_MDELEM_UNREF(channeld->http_scheme);
-  GRPC_MDELEM_UNREF(channeld->https_scheme);
-  GRPC_MDELEM_UNREF(channeld->grpc_scheme);
-  GRPC_MDELEM_UNREF(channeld->content_type);
-  GRPC_MDSTR_UNREF(channeld->path_key);
-  GRPC_MDSTR_UNREF(channeld->authority_key);
-  GRPC_MDSTR_UNREF(channeld->host_key);
+  grpc_mdelem_unref(channeld->te_trailers);
+  grpc_mdelem_unref(channeld->status_ok);
+  grpc_mdelem_unref(channeld->status_not_found);
+  grpc_mdelem_unref(channeld->method_post);
+  grpc_mdelem_unref(channeld->http_scheme);
+  grpc_mdelem_unref(channeld->https_scheme);
+  grpc_mdelem_unref(channeld->grpc_scheme);
+  grpc_mdelem_unref(channeld->content_type);
+  grpc_mdstr_unref(channeld->path_key);
+  grpc_mdstr_unref(channeld->authority_key);
+  grpc_mdstr_unref(channeld->host_key);
 }
 
 const grpc_channel_filter grpc_http_server_filter = {
-    hs_start_transport_op, grpc_channel_next_op, sizeof(call_data),
-    init_call_elem,        destroy_call_elem,    sizeof(channel_data),
-    init_channel_elem,     destroy_channel_elem, "http-server"};
+    hs_start_transport_op, channel_op, sizeof(call_data), init_call_elem,
+    destroy_call_elem, sizeof(channel_data), init_channel_elem,
+    destroy_channel_elem, "http-server"};
