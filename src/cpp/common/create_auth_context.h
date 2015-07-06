@@ -30,33 +30,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#include <memory>
 
 #include <grpc/grpc.h>
-#include "test/core/util/test_config.h"
+#include <grpc++/auth_context.h>
 
-int main(int argc, char **argv) {
-  grpc_completion_queue *cq1;
-  grpc_completion_queue *cq2;
-  grpc_server *server;
+namespace grpc {
 
-  grpc_test_init(argc, argv);
-  grpc_init();
-  cq1 = grpc_completion_queue_create();
-  cq2 = grpc_completion_queue_create();
-  server = grpc_server_create(NULL);
-  grpc_server_register_completion_queue(server, cq1);
-  grpc_server_add_http2_port(server, "[::]:0");
-  grpc_server_register_completion_queue(server, cq2);
-  grpc_server_start(server);
-  grpc_server_shutdown_and_notify(server, cq2, NULL);
-  grpc_completion_queue_next(cq2, gpr_inf_future);  /* cue queue hang */
-  grpc_completion_queue_shutdown(cq1);
-  grpc_completion_queue_shutdown(cq2);
-  grpc_completion_queue_next(cq1, gpr_inf_future);
-  grpc_completion_queue_next(cq2, gpr_inf_future);
-  grpc_server_destroy(server);
-  grpc_completion_queue_destroy(cq1);
-  grpc_completion_queue_destroy(cq2);
-  grpc_shutdown();
-  return 0;
-}
+std::unique_ptr<const AuthContext> CreateAuthContext(grpc_call* call);
+
+}  // namespace grpc

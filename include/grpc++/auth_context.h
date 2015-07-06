@@ -31,38 +31,32 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_SERIALIZATION_TRAITS_H
-#define GRPCXX_IMPL_SERIALIZATION_TRAITS_H
+#ifndef GRPCXX_AUTH_CONTEXT_H
+#define GRPCXX_AUTH_CONTEXT_H
+
+#include <vector>
+
+#include <grpc++/config.h>
 
 namespace grpc {
 
-/// Defines how to serialize and deserialize some type.
-/// 
-/// Used for hooking different message serialization API's into GRPC.
-/// Each SerializationTraits implementation must provide the following
-/// functions:
-///   static Status Serialize(const Message& msg,
-///                           grpc_byte_buffer** buffer, 
-//                            bool* own_buffer);
-///   static Status Deserialize(grpc_byte_buffer* buffer,
-///                             Message* msg,
-///                             int max_message_size);
-///
-/// Serialize is required to convert message to a grpc_byte_buffer, and
-/// to store a pointer to that byte buffer at *buffer. *own_buffer should
-/// be set to true if the caller owns said byte buffer, or false if
-/// ownership is retained elsewhere.
-///
-/// Deserialize is required to convert buffer into the message stored at
-/// msg. max_message_size is passed in as a bound on the maximum number of
-/// message bytes Deserialize should accept.
-///
-/// Both functions return a Status, allowing them to explain what went 
-/// wrong if required.
-template <class Message,
-          class UnusedButHereForPartialTemplateSpecialization = void>
-class SerializationTraits;
+class AuthContext {
+ public:
+  typedef std::pair<grpc::string, grpc::string> Property;
+
+  virtual ~AuthContext() {}
+
+  // A peer identity, in general is one or more properties (in which case they
+  // have the same name).
+  virtual std::vector<grpc::string> GetPeerIdentity() const = 0;
+  virtual grpc::string GetPeerIdentityPropertyName() const = 0;
+
+  // Returns all the property values with the given name.
+  virtual std::vector<grpc::string> FindPropertyValues(
+      const grpc::string& name) const = 0;
+};
 
 }  // namespace grpc
 
-#endif  // GRPCXX_IMPL_SERIALIZATION_TRAITS_H
+#endif  // GRPCXX_AUTH_CONTEXT_H
+

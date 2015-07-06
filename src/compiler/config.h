@@ -35,7 +35,6 @@
 #define SRC_COMPILER_CONFIG_H
 
 #include <grpc++/config.h>
-#include <grpc++/config_protobuf.h>
 
 #ifndef GRPC_CUSTOM_DESCRIPTOR
 #include <google/protobuf/descriptor.h>
@@ -49,8 +48,7 @@
 #ifndef GRPC_CUSTOM_CODEGENERATOR
 #include <google/protobuf/compiler/code_generator.h>
 #define GRPC_CUSTOM_CODEGENERATOR ::google::protobuf::compiler::CodeGenerator
-#define GRPC_CUSTOM_GENERATORCONTEXT \
-  ::google::protobuf::compiler::GeneratorContext
+#define GRPC_CUSTOM_GENERATORCONTEXT ::google::protobuf::compiler::GeneratorContext
 #endif
 
 #ifndef GRPC_CUSTOM_PRINTER
@@ -59,8 +57,7 @@
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #define GRPC_CUSTOM_PRINTER ::google::protobuf::io::Printer
 #define GRPC_CUSTOM_CODEDOUTPUTSTREAM ::google::protobuf::io::CodedOutputStream
-#define GRPC_CUSTOM_STRINGOUTPUTSTREAM \
-  ::google::protobuf::io::StringOutputStream
+#define GRPC_CUSTOM_STRINGOUTPUTSTREAM ::google::protobuf::io::StringOutputStream
 #endif
 
 #ifndef GRPC_CUSTOM_PLUGINMAIN

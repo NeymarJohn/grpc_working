@@ -30,25 +30,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#include <memory>
 
-#include <grpc++/channel_arguments.h>
+#include <grpc/grpc.h>
 #include <grpc/grpc_security.h>
-
-#include "src/core/channel/channel_args.h"
+#include <grpc++/auth_context.h>
+#include "src/cpp/common/secure_auth_context.h"
 
 namespace grpc {
 
-void ChannelArguments::SetSslTargetNameOverride(const grpc::string& name) {
-  SetString(GRPC_SSL_TARGET_NAME_OVERRIDE_ARG, name);
-}
-
-grpc::string ChannelArguments::GetSslTargetNameOverride() const {
-  for (unsigned int i = 0; i < args_.size(); i++) {
-    if (grpc::string(GRPC_SSL_TARGET_NAME_OVERRIDE_ARG) == args_[i].key) {
-      return args_[i].value.string;
-    }
+std::unique_ptr<const AuthContext> CreateAuthContext(grpc_call* call) {
+  grpc_auth_context* context = nullptr;
+  if (call) {
+    context = const_cast<grpc_auth_context*>(grpc_call_auth_context(call));
   }
-  return "";
+  return std::unique_ptr<const AuthContext>(new SecureAuthContext(context));
 }
 
 }  // namespace grpc

@@ -31,33 +31,29 @@
  *
  */
 
-#include <sys/resource.h>
+#ifndef GRPC_INTERNAL_CPP_COMMON_INSECURE_AUTH_CONTEXT_H
+#define GRPC_INTERNAL_CPP_COMMON_INSECURE_AUTH_CONTEXT_H
 
-#include <grpc/support/log.h>
+#include <grpc++/auth_context.h>
 
-#include "test/core/util/test_config.h"
-#include "src/core/iomgr/endpoint_pair.h"
-#include "src/core/iomgr/iomgr.h"
+namespace grpc {
 
-int main(int argc, char **argv) {
-	int i;
-	struct rlimit rlim;
-	grpc_endpoint_pair p;
-  grpc_test_init(argc, argv);
-  grpc_iomgr_init();
+class InsecureAuthContext : public AuthContext {
+ public:
+  ~InsecureAuthContext() GRPC_OVERRIDE {}
 
-  /* set max # of file descriptors to a low value, and
-     verify we can create and destroy many more than this number
-     of descriptors */
-  rlim.rlim_cur = rlim.rlim_max = 10;
-  GPR_ASSERT(0 == setrlimit(RLIMIT_NOFILE, &rlim));
-
-  for (i = 0; i < 100; i++) {
-  	p = grpc_iomgr_create_endpoint_pair("test", 1);
-  	grpc_endpoint_destroy(p.client);
-  	grpc_endpoint_destroy(p.server);
+  std::vector<grpc::string> GetPeerIdentity() const GRPC_OVERRIDE {
+    return std::vector<grpc::string>();
   }
 
-  grpc_iomgr_shutdown();
-  return 0;
-}
+  grpc::string GetPeerIdentityPropertyName() const GRPC_OVERRIDE { return ""; }
+
+  std::vector<grpc::string> FindPropertyValues(const grpc::string& name) const
+      GRPC_OVERRIDE {
+    return std::vector<grpc::string>();
+  }
+};
+
+}  // namespace grpc
+
+#endif  // GRPC_INTERNAL_CPP_COMMON_INSECURE_AUTH_CONTEXT_H

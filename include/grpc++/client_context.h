@@ -40,6 +40,7 @@
 
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
+#include <grpc++/auth_context.h>
 #include <grpc++/config.h>
 #include <grpc++/status.h>
 #include <grpc++/time.h>
@@ -49,6 +50,7 @@ struct grpc_completion_queue;
 
 namespace grpc {
 
+class CallOpBuffer;
 class ChannelInterface;
 class CompletionQueue;
 class Credentials;
@@ -107,6 +109,8 @@ class ClientContext {
     creds_ = creds;
   }
 
+  std::unique_ptr<const AuthContext> auth_context() const;
+
   void TryCancel();
 
  private:
@@ -114,8 +118,7 @@ class ClientContext {
   ClientContext(const ClientContext&);
   ClientContext& operator=(const ClientContext&);
 
-  friend class CallOpClientRecvStatus;
-  friend class CallOpRecvInitialMetadata;
+  friend class CallOpBuffer;
   friend class Channel;
   template <class R>
   friend class ::grpc::ClientReader;
@@ -131,12 +134,6 @@ class ClientContext {
   friend class ::grpc::ClientAsyncReaderWriter;
   template <class R>
   friend class ::grpc::ClientAsyncResponseReader;
-  template <class InputMessage, class OutputMessage>
-  friend Status BlockingUnaryCall(ChannelInterface* channel,
-                                  const RpcMethod& method,
-                                  ClientContext* context,
-                                  const InputMessage& request,
-                                  OutputMessage* result);
 
   grpc_call* call() { return call_; }
   void set_call(grpc_call* call,
