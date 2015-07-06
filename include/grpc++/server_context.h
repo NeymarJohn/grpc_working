@@ -35,10 +35,8 @@
 #define GRPCXX_SERVER_CONTEXT_H
 
 #include <map>
-#include <memory>
 
 #include <grpc/support/time.h>
-#include <grpc++/auth_context.h>
 #include <grpc++/config.h>
 #include <grpc++/time.h>
 
@@ -62,6 +60,14 @@ template <class W>
 class ServerWriter;
 template <class R, class W>
 class ServerReaderWriter;
+template <class ServiceType, class RequestType, class ResponseType>
+class RpcMethodHandler;
+template <class ServiceType, class RequestType, class ResponseType>
+class ClientStreamingHandler;
+template <class ServiceType, class RequestType, class ResponseType>
+class ServerStreamingHandler;
+template <class ServiceType, class RequestType, class ResponseType>
+class BidiStreamingHandler;
 
 class Call;
 class CallOpBuffer;
@@ -91,8 +97,6 @@ class ServerContext {
     return client_metadata_;
   }
 
-  std::unique_ptr<const AuthContext> auth_context() const;
-
  private:
   friend class ::grpc::Server;
   template <class W, class R>
@@ -109,6 +113,14 @@ class ServerContext {
   friend class ::grpc::ServerWriter;
   template <class R, class W>
   friend class ::grpc::ServerReaderWriter;
+  template <class ServiceType, class RequestType, class ResponseType>
+  friend class RpcMethodHandler;
+  template <class ServiceType, class RequestType, class ResponseType>
+  friend class ClientStreamingHandler;
+  template <class ServiceType, class RequestType, class ResponseType>
+  friend class ServerStreamingHandler;
+  template <class ServiceType, class RequestType, class ResponseType>
+  friend class BidiStreamingHandler;
 
   // Prevent copying.
   ServerContext(const ServerContext&);

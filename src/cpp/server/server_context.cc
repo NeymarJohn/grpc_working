@@ -39,18 +39,16 @@
 #include <grpc++/impl/sync.h>
 #include <grpc++/time.h>
 
-#include "src/cpp/common/create_auth_context.h"
-
 namespace grpc {
 
 // CompletionOp
 
-class ServerContext::CompletionOp GRPC_FINAL : public CallOpBuffer {
+class ServerContext::CompletionOp GRPC_FINAL : public CallOpSetInterface {
  public:
   // initial refs: one in the server context, one in the cq
-  CompletionOp() : refs_(2), finalized_(false), cancelled_(false) {
-    AddServerRecvClose(&cancelled_);
-  }
+  CompletionOp() : refs_(2), finalized_(false), cancelled_(0) {}
+
+  void FillOps(grpc_op* ops, size_t* nops) GRPC_OVERRIDE;
   bool FinalizeResult(void** tag, bool* status) GRPC_OVERRIDE;
 
   bool CheckCancelled(CompletionQueue* cq);
@@ -61,7 +59,7 @@ class ServerContext::CompletionOp GRPC_FINAL : public CallOpBuffer {
   grpc::mutex mu_;
   int refs_;
   bool finalized_;
-  bool cancelled_;
+  int cancelled_;
 };
 
 void ServerContext::CompletionOp::Unref() {
@@ -75,14 +73,20 @@ void ServerContext::CompletionOp::Unref() {
 bool ServerContext::CompletionOp::CheckCancelled(CompletionQueue* cq) {
   cq->TryPluck(this);
   grpc::lock_guard<grpc::mutex> g(mu_);
-  return finalized_ ? cancelled_ : false;
+  return finalized_ ? cancelled_ != 0 : false;
+}
+
+void ServerContext::CompletionOp::FillOps(grpc_op* ops, size_t* nops) {
+  ops->op = GRPC_OP_RECV_CLOSE_ON_SERVER;
+  ops->data.recv_close_on_server.cancelled = &cancelled_;
+  ops->flags = 0;
+  *nops = 1;
 }
 
 bool ServerContext::CompletionOp::FinalizeResult(void** tag, bool* status) {
-  GPR_ASSERT(CallOpBuffer::FinalizeResult(tag, status));
   grpc::unique_lock<grpc::mutex> lock(mu_);
   finalized_ = true;
-  if (!*status) cancelled_ = true;
+  if (!*status) cancelled_ = 1;
   if (--refs_ == 0) {
     lock.unlock();
     delete this;
@@ -140,10 +144,6 @@ void ServerContext::AddTrailingMetadata(const grpc::string& key,
 
 bool ServerContext::IsCancelled() {
   return completion_op_ && completion_op_->CheckCancelled(cq_);
-}
-
-std::unique_ptr<const AuthContext> ServerContext::auth_context() const {
-  return CreateAuthContext(call_);
 }
 
 }  // namespace grpc
