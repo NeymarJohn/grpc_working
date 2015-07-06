@@ -31,51 +31,10 @@
  *
  */
 
-#import "ProtoService.h"
+#import <Foundation/Foundation.h>
 
-#import <GRPCClient/GRPCMethodName.h>
-#import <RxLibrary/GRXWriteable.h>
-#import <RxLibrary/GRXWriter.h>
+#import "GRPCClient/GRPCMethodName.h"
 
-#import "ProtoRPC.h"
-
-@implementation ProtoService {
-  NSString *_host;
-  NSString *_packageName;
-  NSString *_serviceName;
-}
-
-- (instancetype)init {
-  return [self initWithHost:nil packageName:nil serviceName:nil];
-}
-
-// Designated initializer
-- (instancetype)initWithHost:(NSString *)host
-                 packageName:(NSString *)packageName
-                 serviceName:(NSString *)serviceName {
-  if (!host || !serviceName) {
-    [NSException raise:NSInvalidArgumentException
-                format:@"Neither host nor serviceName can be nil."];
-  }
-  if ((self = [super init])) {
-    _host = [host copy];
-    _packageName = [packageName copy];
-    _serviceName = [serviceName copy];
-  }
-  return self;
-}
-
-- (ProtoRPC *)RPCToMethod:(NSString *)method
-           requestsWriter:(id<GRXWriter>)requestsWriter
-            responseClass:(Class)responseClass
-       responsesWriteable:(id<GRXWriteable>)responsesWriteable {
-  GRPCMethodName *methodName = [[GRPCMethodName alloc] initWithPackage:_packageName
-                                                             interface:_serviceName
-                                                                method:method];
-  return [[ProtoRPC alloc] initWithHost:_host
-                                 method:methodName
-                         requestsWriter:requestsWriter
-                          responseClass:responseClass
-                     responsesWriteable:responsesWriteable];
-}
+@interface GRPCMethodName (HTTP2Encoding)
+- (NSString *)HTTP2Path;
 @end

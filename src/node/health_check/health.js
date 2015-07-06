@@ -31,18 +31,31 @@
  *
  */
 
-#import <Foundation/Foundation.h>
+'use strict';
 
-// A fully-qualified proto service method name. Full qualification is needed because a gRPC endpoint
-// can implement multiple services.
-@interface ProtoMethod : NSObject
-@property(nonatomic, readonly) NSString *package;
-@property(nonatomic, readonly) NSString *service;
-@property(nonatomic, readonly) NSString *method;
+var grpc = require('../');
 
-@property(nonatomic, readonly) NSString *HTTPPath;
+var _ = require('lodash');
 
-- (instancetype)initWithPackage:(NSString *)package
-                        service:(NSString *)service
-                         method:(NSString *)method;
-@end
+var health_proto = grpc.load(__dirname + '/health.proto');
+
+var HealthClient = health_proto.grpc.health.v1alpha.Health;
+
+function HealthImplementation(statusMap) {
+  this.statusMap = _.clone(statusMap);
+}
+
+HealthImplementation.prototype.setStatus = function(service, status) {
+  this.statusMap[service] = status;
+};
+
+HealthImplementation.prototype.check = function(call, callback){
+  var service = call.request.service;
+  callback(null, {status: _.get(this.statusMap, service, 'UNSPECIFIED')});
+};
+
+module.exports = {
+  Client: HealthClient,
+  service: HealthClient.service,
+  Implementation: HealthImplementation
+};

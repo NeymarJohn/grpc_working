@@ -84,7 +84,7 @@
 @interface GRPCWrappedCall : NSObject
 
 - (instancetype)initWithChannel:(GRPCChannel *)channel
-                           path:(NSString *)path
+                         method:(NSString *)method
                            host:(NSString *)host NS_DESIGNATED_INITIALIZER;
 
 - (void)startBatchWithOperations:(NSArray *)ops errorHandler:(void(^)())errorHandler;
