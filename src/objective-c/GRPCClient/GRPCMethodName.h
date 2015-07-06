@@ -31,51 +31,19 @@
  *
  */
 
-#import "ProtoService.h"
+#import <Foundation/Foundation.h>
 
-#import <GRPCClient/GRPCMethodName.h>
-#import <RxLibrary/GRXWriteable.h>
-#import <RxLibrary/GRXWriter.h>
+// See the README file for an introduction to this library.
 
-#import "ProtoRPC.h"
-
-@implementation ProtoService {
-  NSString *_host;
-  NSString *_packageName;
-  NSString *_serviceName;
-}
-
-- (instancetype)init {
-  return [self initWithHost:nil packageName:nil serviceName:nil];
-}
-
-// Designated initializer
-- (instancetype)initWithHost:(NSString *)host
-                 packageName:(NSString *)packageName
-                 serviceName:(NSString *)serviceName {
-  if (!host || !serviceName) {
-    [NSException raise:NSInvalidArgumentException
-                format:@"Neither host nor serviceName can be nil."];
-  }
-  if ((self = [super init])) {
-    _host = [host copy];
-    _packageName = [packageName copy];
-    _serviceName = [serviceName copy];
-  }
-  return self;
-}
-
-- (ProtoRPC *)RPCToMethod:(NSString *)method
-           requestsWriter:(id<GRXWriter>)requestsWriter
-            responseClass:(Class)responseClass
-       responsesWriteable:(id<GRXWriteable>)responsesWriteable {
-  GRPCMethodName *methodName = [[GRPCMethodName alloc] initWithPackage:_packageName
-                                                             interface:_serviceName
-                                                                method:method];
-  return [[ProtoRPC alloc] initWithHost:_host
-                                 method:methodName
-                         requestsWriter:requestsWriter
-                          responseClass:responseClass
-                     responsesWriteable:responsesWriteable];
-}
+// A fully-qualified gRPC method name. Full qualification is needed because a gRPC endpoint can
+// implement multiple interfaces.
+// TODO(jcanizales): Move to ProtoRPC package.
+// TODO(jcanizales): Rename interface -> service.
+@interface GRPCMethodName : NSObject
+@property(nonatomic, readonly) NSString *package;
+@property(nonatomic, readonly) NSString *interface;
+@property(nonatomic, readonly) NSString *method;
+- (instancetype)initWithPackage:(NSString *)package
+                      interface:(NSString *)interface
+                         method:(NSString *)method;
 @end
