@@ -45,12 +45,6 @@ fi
 
 . tools/buildgen/generate_build_additions.sh
 
-tools/buildgen/generate_projects.py build.json $gen_build_files
-
-rm $gen_build_files
-
-exit
-
 global_plugins=`find ./tools/buildgen/plugins -name '*.py' |
   sort | grep -v __init__ | awk ' { printf "-p %s ", $0 } '`
 
