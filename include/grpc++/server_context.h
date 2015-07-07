@@ -35,10 +35,8 @@
 #define GRPCXX_SERVER_CONTEXT_H
 
 #include <map>
-#include <memory>
 
 #include <grpc/support/time.h>
-#include <grpc++/auth_context.h>
 #include <grpc++/config.h>
 #include <grpc++/time.h>
 
@@ -98,8 +96,6 @@ class ServerContext {
   const std::multimap<grpc::string, grpc::string>& client_metadata() {
     return client_metadata_;
   }
-
-  std::unique_ptr<const AuthContext> auth_context() const;
 
  private:
   friend class ::grpc::Server;

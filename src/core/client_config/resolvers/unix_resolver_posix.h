@@ -30,17 +30,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include <memory>
 
-#include <grpc/grpc.h>
-#include <grpc++/auth_context.h>
-#include "src/cpp/common/insecure_auth_context.h"
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
 
-namespace grpc {
+#include <grpc/support/port_platform.h>
 
-std::unique_ptr<const AuthContext> CreateAuthContext(grpc_call* call) {
-  (void)call;
-  return std::unique_ptr<const AuthContext>(new InsecureAuthContext);
-}
+#include "src/core/client_config/resolver_factory.h"
 
-}  // namespace grpc
+/** Create a unix resolver factory */
+grpc_resolver_factory *grpc_unix_resolver_factory_create(void);
+
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H */

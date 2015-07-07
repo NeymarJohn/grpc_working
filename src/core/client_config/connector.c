@@ -31,53 +31,19 @@
  *
  */
 
-#include "src/cpp/common/secure_auth_context.h"
+#include "src/core/client_config/connector.h"
 
-#include "src/core/security/security_context.h"
-
-namespace grpc {
-
-SecureAuthContext::SecureAuthContext(grpc_auth_context* ctx)
-    : ctx_(GRPC_AUTH_CONTEXT_REF(ctx, "SecureAuthContext")) {}
-
-SecureAuthContext::~SecureAuthContext() {
-  GRPC_AUTH_CONTEXT_UNREF(ctx_, "SecureAuthContext");
+void grpc_connector_ref(grpc_connector *connector) {
+  connector->vtable->ref(connector);
 }
 
-std::vector<grpc::string> SecureAuthContext::GetPeerIdentity() const {
-  if (!ctx_) {
-    return std::vector<grpc::string>();
-  }
-  grpc_auth_property_iterator iter = grpc_auth_context_peer_identity(ctx_);
-  std::vector<grpc::string> identity;
-  const grpc_auth_property* property = nullptr;
-  while ((property = grpc_auth_property_iterator_next(&iter))) {
-    identity.push_back(grpc::string(property->value, property->value_length));
-  }
-  return identity;
+void grpc_connector_unref(grpc_connector *connector) {
+  connector->vtable->unref(connector);
 }
 
-grpc::string SecureAuthContext::GetPeerIdentityPropertyName() const {
-  if (!ctx_) {
-    return "";
-  }
-  const char* name = grpc_auth_context_peer_identity_property_name(ctx_);
-  return name == nullptr ? "" : name;
+void grpc_connector_connect(grpc_connector *connector,
+                            const grpc_connect_in_args *in_args,
+                            grpc_connect_out_args *out_args,
+                            grpc_iomgr_closure *notify) {
+  connector->vtable->connect(connector, in_args, out_args, notify);
 }
-
-std::vector<grpc::string> SecureAuthContext::FindPropertyValues(
-    const grpc::string& name) const {
-  if (!ctx_) {
-    return std::vector<grpc::string>();
-  }
-  grpc_auth_property_iterator iter =
-      grpc_auth_context_find_properties_by_name(ctx_, name.c_str());
-  const grpc_auth_property* property = nullptr;
-  std::vector<grpc::string> values;
-  while ((property = grpc_auth_property_iterator_next(&iter))) {
-    values.push_back(grpc::string(property->value, property->value_length));
-  }
-  return values;
-}
-
-}  // namespace grpc

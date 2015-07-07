@@ -31,29 +31,12 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_COMMON_INSECURE_AUTH_CONTEXT_H
-#define GRPC_INTERNAL_CPP_COMMON_INSECURE_AUTH_CONTEXT_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_PICK_FIRST_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_PICK_FIRST_H
 
-#include <grpc++/auth_context.h>
+#include "src/core/client_config/lb_policy.h"
 
-namespace grpc {
+grpc_lb_policy *grpc_create_pick_first_lb_policy(grpc_subchannel **subchannels,
+                                                 size_t num_subchannels);
 
-class InsecureAuthContext : public AuthContext {
- public:
-  ~InsecureAuthContext() GRPC_OVERRIDE {}
-
-  std::vector<grpc::string> GetPeerIdentity() const GRPC_OVERRIDE {
-    return std::vector<grpc::string>();
-  }
-
-  grpc::string GetPeerIdentityPropertyName() const GRPC_OVERRIDE { return ""; }
-
-  std::vector<grpc::string> FindPropertyValues(const grpc::string& name) const
-      GRPC_OVERRIDE {
-    return std::vector<grpc::string>();
-  }
-};
-
-}  // namespace grpc
-
-#endif  // GRPC_INTERNAL_CPP_COMMON_INSECURE_AUTH_CONTEXT_H
+#endif

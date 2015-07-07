@@ -560,6 +560,15 @@
   }, 
   {
     "flaky": false, 
+    "language": "c", 
+    "name": "uri_parser_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
     "language": "c++", 
     "name": "async_end2end_test", 
     "platforms": [
@@ -697,15 +706,6 @@
     "flaky": false, 
     "language": "c++", 
     "name": "qps_test_openloop", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c++", 
-    "name": "secure_auth_context_test", 
     "platforms": [
       "windows", 
       "posix"

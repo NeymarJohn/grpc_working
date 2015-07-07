@@ -31,31 +31,20 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_COMMON_SECURE_AUTH_CONTEXT_H
-#define GRPC_INTERNAL_CPP_COMMON_SECURE_AUTH_CONTEXT_H
+#include "src/core/client_config/resolver_factory.h"
 
-#include <grpc++/auth_context.h>
-#include "src/core/security/security_context.h"
+void grpc_resolver_factory_ref(grpc_resolver_factory *factory) {
+  factory->vtable->ref(factory);
+}
 
-namespace grpc {
+void grpc_resolver_factory_unref(grpc_resolver_factory *factory) {
+  factory->vtable->unref(factory);
+}
 
-class SecureAuthContext : public AuthContext {
- public:
-  SecureAuthContext(grpc_auth_context* ctx);
-
-  ~SecureAuthContext() GRPC_OVERRIDE;
-
-  std::vector<grpc::string> GetPeerIdentity() const GRPC_OVERRIDE;
-
-  grpc::string GetPeerIdentityPropertyName() const GRPC_OVERRIDE;
-
-  std::vector<grpc::string> FindPropertyValues(const grpc::string& name) const
-      GRPC_OVERRIDE;
-
- private:
-  grpc_auth_context* ctx_;
-};
-
-}  // namespace grpc
-
-#endif  // GRPC_INTERNAL_CPP_COMMON_SECURE_AUTH_CONTEXT_H
+/** Create a resolver instance for a name */
+grpc_resolver *grpc_resolver_factory_create_resolver(
+    grpc_resolver_factory *factory, grpc_uri *uri,
+    grpc_subchannel_factory *subchannel_factory) {
+  if (!factory) return NULL;
+  return factory->vtable->create_resolver(factory, uri, subchannel_factory);
+}

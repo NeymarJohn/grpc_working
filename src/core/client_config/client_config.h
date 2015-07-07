@@ -31,35 +31,22 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
-#define GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H
 
-#include "src/core/channel/channel_stack.h"
+#include "src/core/client_config/lb_policy.h"
 
-/* helper for filters that need to host child channel stacks... handles
-   lifetime and upwards propagation cleanly */
+/** Total configuration for a client. Provided, and updated, by
+    grpc_resolver */
+typedef struct grpc_client_config grpc_client_config;
 
-extern const grpc_channel_filter grpc_child_channel_top_filter;
+grpc_client_config *grpc_client_config_create();
+void grpc_client_config_ref(grpc_client_config *client_config);
+void grpc_client_config_unref(grpc_client_config *client_config);
 
-typedef grpc_channel_stack grpc_child_channel;
-typedef grpc_call_stack grpc_child_call;
+void grpc_client_config_set_lb_policy(grpc_client_config *client_config,
+                                      grpc_lb_policy *lb_policy);
+grpc_lb_policy *grpc_client_config_get_lb_policy(
+    grpc_client_config *client_config);
 
-/* filters[0] must be &grpc_child_channel_top_filter */
-grpc_child_channel *grpc_child_channel_create(
-    grpc_channel_element *parent, const grpc_channel_filter **filters,
-    size_t filter_count, const grpc_channel_args *args,
-    grpc_mdctx *metadata_context);
-void grpc_child_channel_handle_op(grpc_child_channel *channel,
-                                  grpc_channel_op *op);
-grpc_channel_element *grpc_child_channel_get_bottom_element(
-    grpc_child_channel *channel);
-void grpc_child_channel_destroy(grpc_child_channel *channel,
-                                int wait_for_callbacks);
-
-grpc_child_call *grpc_child_channel_create_call(grpc_child_channel *channel,
-                                                grpc_call_element *parent,
-                                                grpc_transport_op *initial_op);
-grpc_call_element *grpc_child_call_get_top_element(grpc_child_call *call);
-void grpc_child_call_destroy(grpc_child_call *call);
-
-#endif /* GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H */
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H */

@@ -31,11 +31,12 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
-#define GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_DNS_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_DNS_RESOLVER_H
 
-#include "src/core/channel/channel_stack.h"
+#include "src/core/client_config/resolver_factory.h"
 
-extern const grpc_channel_filter grpc_client_surface_filter;
+/** Create a dns resolver factory */
+grpc_resolver_factory *grpc_dns_resolver_factory_create(void);
 
-#endif  /* GRPC_INTERNAL_CORE_SURFACE_CLIENT_H */
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_DNS_RESOLVER_H */
