@@ -30,11 +30,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#include <memory>
 
-#import <Foundation/Foundation.h>
+#include <grpc/grpc.h>
+#include <grpc++/auth_context.h>
 
-#import "GRPCClient/GRPCMethodName.h"
+namespace grpc {
 
-@interface GRPCMethodName (HTTP2Encoding)
-- (NSString *)HTTP2Path;
-@end
+std::unique_ptr<const AuthContext> CreateAuthContext(grpc_call* call);
+
+}  // namespace grpc

@@ -31,14 +31,32 @@
  *
  */
 
-#import "GRPCMethodName+HTTP2Encoding.h"
+#ifndef GRPCXX_AUTH_CONTEXT_H
+#define GRPCXX_AUTH_CONTEXT_H
 
-@implementation GRPCMethodName (HTTP2Encoding)
-- (NSString *)HTTP2Path {
-  if (self.package) {
-    return [NSString stringWithFormat:@"/%@.%@/%@", self.package, self.interface, self.method];
-  } else {
-    return [NSString stringWithFormat:@"/%@/%@", self.interface, self.method];
-  }
-}
-@end
+#include <vector>
+
+#include <grpc++/config.h>
+
+namespace grpc {
+
+class AuthContext {
+ public:
+  typedef std::pair<grpc::string, grpc::string> Property;
+
+  virtual ~AuthContext() {}
+
+  // A peer identity, in general is one or more properties (in which case they
+  // have the same name).
+  virtual std::vector<grpc::string> GetPeerIdentity() const = 0;
+  virtual grpc::string GetPeerIdentityPropertyName() const = 0;
+
+  // Returns all the property values with the given name.
+  virtual std::vector<grpc::string> FindPropertyValues(
+      const grpc::string& name) const = 0;
+};
+
+}  // namespace grpc
+
+#endif  // GRPCXX_AUTH_CONTEXT_H
+

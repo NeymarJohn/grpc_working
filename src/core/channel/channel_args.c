@@ -106,7 +106,7 @@ void grpc_channel_args_destroy(grpc_channel_args *a) {
 }
 
 int grpc_channel_args_is_census_enabled(const grpc_channel_args *a) {
-  size_t i;
+  unsigned i;
   if (a == NULL) return 0;
   for (i = 0; i < a->num_args; i++) {
     if (0 == strcmp(a->args[i].key, GRPC_ARG_ENABLE_CENSUS)) {
@@ -119,22 +119,23 @@ int grpc_channel_args_is_census_enabled(const grpc_channel_args *a) {
 grpc_compression_level grpc_channel_args_get_compression_level(
     const grpc_channel_args *a) {
   size_t i;
-  if (a == NULL) return 0;
-  for (i = 0; i < a->num_args; ++i) {
-    if (a->args[i].type == GRPC_ARG_INTEGER &&
-        !strcmp(GRPC_COMPRESSION_LEVEL_ARG, a->args[i].key)) {
-      return a->args[i].value.integer;
-      break;
+  if (a) {
+    for (i = 0; a && i < a->num_args; ++i) {
+      if (a->args[i].type == GRPC_ARG_INTEGER &&
+          !strcmp(GRPC_COMPRESSION_LEVEL_ARG, a->args[i].key)) {
+        return a->args[i].value.integer;
+        break;
+      }
     }
   }
   return GRPC_COMPRESS_LEVEL_NONE;
 }
 
-grpc_channel_args *grpc_channel_args_set_compression_level(
-    grpc_channel_args *a, grpc_compression_level level) {
+void grpc_channel_args_set_compression_level(
+    grpc_channel_args **a, grpc_compression_level level) {
   grpc_arg tmp;
   tmp.type = GRPC_ARG_INTEGER;
   tmp.key = GRPC_COMPRESSION_LEVEL_ARG;
   tmp.value.integer = level;
-  return grpc_channel_args_copy_and_add(a, &tmp);
+  *a = grpc_channel_args_copy_and_add(*a, &tmp);
 }

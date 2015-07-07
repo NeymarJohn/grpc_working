@@ -31,65 +31,29 @@
  *
  */
 
-#import <Foundation/Foundation.h>
-#include <grpc/grpc.h>
+#ifndef GRPC_INTERNAL_CPP_COMMON_INSECURE_AUTH_CONTEXT_H
+#define GRPC_INTERNAL_CPP_COMMON_INSECURE_AUTH_CONTEXT_H
 
-#import "GRPCChannel.h"
+#include <grpc++/auth_context.h>
 
-@interface GRPCOperation : NSObject
-@property(nonatomic, readonly) grpc_op op;
-// Guaranteed to be called when the operation has finished.
-- (void)finish;
-@end
+namespace grpc {
 
-@interface GRPCOpSendMetadata : GRPCOperation
+class InsecureAuthContext : public AuthContext {
+ public:
+  ~InsecureAuthContext() GRPC_OVERRIDE {}
 
-- (instancetype)initWithMetadata:(NSDictionary *)metadata
-                         handler:(void(^)())handler NS_DESIGNATED_INITIALIZER;
+  std::vector<grpc::string> GetPeerIdentity() const GRPC_OVERRIDE {
+    return std::vector<grpc::string>();
+  }
 
-@end
+  grpc::string GetPeerIdentityPropertyName() const GRPC_OVERRIDE { return ""; }
 
-@interface GRPCOpSendMessage : GRPCOperation
+  std::vector<grpc::string> FindPropertyValues(const grpc::string& name) const
+      GRPC_OVERRIDE {
+    return std::vector<grpc::string>();
+  }
+};
 
-- (instancetype)initWithMessage:(NSData *)message
-                        handler:(void(^)())handler NS_DESIGNATED_INITIALIZER;
+}  // namespace grpc
 
-@end
-
-@interface GRPCOpSendClose : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)())handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpRecvMetadata : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)(NSDictionary *))handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpRecvMessage : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)(grpc_byte_buffer *))handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpRecvStatus : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)(NSError *, NSDictionary *))handler
-    NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCWrappedCall : NSObject
-
-- (instancetype)initWithChannel:(GRPCChannel *)channel
-                           path:(NSString *)path
-                           host:(NSString *)host NS_DESIGNATED_INITIALIZER;
-
-- (void)startBatchWithOperations:(NSArray *)ops errorHandler:(void(^)())errorHandler;
-
-- (void)startBatchWithOperations:(NSArray *)ops;
-
-- (void)cancel;
-@end
+#endif  // GRPC_INTERNAL_CPP_COMMON_INSECURE_AUTH_CONTEXT_H

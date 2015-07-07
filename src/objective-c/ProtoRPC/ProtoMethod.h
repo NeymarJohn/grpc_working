@@ -32,64 +32,17 @@
  */
 
 #import <Foundation/Foundation.h>
-#include <grpc/grpc.h>
 
-#import "GRPCChannel.h"
+// A fully-qualified proto service method name. Full qualification is needed because a gRPC endpoint
+// can implement multiple services.
+@interface ProtoMethod : NSObject
+@property(nonatomic, readonly) NSString *package;
+@property(nonatomic, readonly) NSString *service;
+@property(nonatomic, readonly) NSString *method;
 
-@interface GRPCOperation : NSObject
-@property(nonatomic, readonly) grpc_op op;
-// Guaranteed to be called when the operation has finished.
-- (void)finish;
-@end
+@property(nonatomic, readonly) NSString *HTTPPath;
 
-@interface GRPCOpSendMetadata : GRPCOperation
-
-- (instancetype)initWithMetadata:(NSDictionary *)metadata
-                         handler:(void(^)())handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpSendMessage : GRPCOperation
-
-- (instancetype)initWithMessage:(NSData *)message
-                        handler:(void(^)())handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpSendClose : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)())handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpRecvMetadata : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)(NSDictionary *))handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpRecvMessage : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)(grpc_byte_buffer *))handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpRecvStatus : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)(NSError *, NSDictionary *))handler
-    NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCWrappedCall : NSObject
-
-- (instancetype)initWithChannel:(GRPCChannel *)channel
-                           path:(NSString *)path
-                           host:(NSString *)host NS_DESIGNATED_INITIALIZER;
-
-- (void)startBatchWithOperations:(NSArray *)ops errorHandler:(void(^)())errorHandler;
-
-- (void)startBatchWithOperations:(NSArray *)ops;
-
-- (void)cancel;
+- (instancetype)initWithPackage:(NSString *)package
+                        service:(NSString *)service
+                         method:(NSString *)method;
 @end

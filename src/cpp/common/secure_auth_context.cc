@@ -31,37 +31,53 @@
  *
  */
 
-#include <stdlib.h>
-#include <grpc/compression.h>
+#include "src/cpp/common/secure_auth_context.h"
 
-const char *grpc_compression_algorithm_name(
-    grpc_compression_algorithm algorithm) {
-  switch (algorithm) {
-    case GRPC_COMPRESS_NONE:
-      return "none";
-    case GRPC_COMPRESS_DEFLATE:
-      return "deflate";
-    case GRPC_COMPRESS_GZIP:
-      return "gzip";
-    case GRPC_COMPRESS_ALGORITHMS_COUNT:
-      return "error";
-  }
-  return "error";
+#include "src/core/security/security_context.h"
+
+namespace grpc {
+
+SecureAuthContext::SecureAuthContext(grpc_auth_context* ctx)
+    : ctx_(GRPC_AUTH_CONTEXT_REF(ctx, "SecureAuthContext")) {}
+
+SecureAuthContext::~SecureAuthContext() {
+  GRPC_AUTH_CONTEXT_UNREF(ctx_, "SecureAuthContext");
 }
 
-/* TODO(dgq): Add the ability to specify parameters to the individual
- * compression algorithms */
-grpc_compression_algorithm grpc_compression_algorithm_for_level(
-    grpc_compression_level level) {
-  switch (level) {
-    case GRPC_COMPRESS_LEVEL_NONE:
-      return GRPC_COMPRESS_NONE;
-    case GRPC_COMPRESS_LEVEL_LOW:
-    case GRPC_COMPRESS_LEVEL_MED:
-    case GRPC_COMPRESS_LEVEL_HIGH:
-      return GRPC_COMPRESS_DEFLATE;
-    default:
-      /* we shouldn't be making it here */
-      abort();
+std::vector<grpc::string> SecureAuthContext::GetPeerIdentity() const {
+  if (!ctx_) {
+    return std::vector<grpc::string>();
   }
+  grpc_auth_property_iterator iter = grpc_auth_context_peer_identity(ctx_);
+  std::vector<grpc::string> identity;
+  const grpc_auth_property* property = nullptr;
+  while ((property = grpc_auth_property_iterator_next(&iter))) {
+    identity.push_back(grpc::string(property->value, property->value_length));
+  }
+  return identity;
 }
+
+grpc::string SecureAuthContext::GetPeerIdentityPropertyName() const {
+  if (!ctx_) {
+    return "";
+  }
+  const char* name = grpc_auth_context_peer_identity_property_name(ctx_);
+  return name == nullptr ? "" : name;
+}
+
+std::vector<grpc::string> SecureAuthContext::FindPropertyValues(
+    const grpc::string& name) const {
+  if (!ctx_) {
+    return std::vector<grpc::string>();
+  }
+  grpc_auth_property_iterator iter =
+      grpc_auth_context_find_properties_by_name(ctx_, name.c_str());
+  const grpc_auth_property* property = nullptr;
+  std::vector<grpc::string> values;
+  while ((property = grpc_auth_property_iterator_next(&iter))) {
+    values.push_back(grpc::string(property->value, property->value_length));
+  }
+  return values;
+}
+
+}  // namespace grpc

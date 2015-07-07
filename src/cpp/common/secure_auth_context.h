@@ -31,19 +31,31 @@
  *
  */
 
-#import <Foundation/Foundation.h>
+#ifndef GRPC_INTERNAL_CPP_COMMON_SECURE_AUTH_CONTEXT_H
+#define GRPC_INTERNAL_CPP_COMMON_SECURE_AUTH_CONTEXT_H
 
-// See the README file for an introduction to this library.
+#include <grpc++/auth_context.h>
+#include "src/core/security/security_context.h"
 
-// A fully-qualified gRPC method name. Full qualification is needed because a gRPC endpoint can
-// implement multiple interfaces.
-// TODO(jcanizales): Move to ProtoRPC package.
-// TODO(jcanizales): Rename interface -> service.
-@interface GRPCMethodName : NSObject
-@property(nonatomic, readonly) NSString *package;
-@property(nonatomic, readonly) NSString *interface;
-@property(nonatomic, readonly) NSString *method;
-- (instancetype)initWithPackage:(NSString *)package
-                      interface:(NSString *)interface
-                         method:(NSString *)method;
-@end
+namespace grpc {
+
+class SecureAuthContext : public AuthContext {
+ public:
+  SecureAuthContext(grpc_auth_context* ctx);
+
+  ~SecureAuthContext() GRPC_OVERRIDE;
+
+  std::vector<grpc::string> GetPeerIdentity() const GRPC_OVERRIDE;
+
+  grpc::string GetPeerIdentityPropertyName() const GRPC_OVERRIDE;
+
+  std::vector<grpc::string> FindPropertyValues(const grpc::string& name) const
+      GRPC_OVERRIDE;
+
+ private:
+  grpc_auth_context* ctx_;
+};
+
+}  // namespace grpc
+
+#endif  // GRPC_INTERNAL_CPP_COMMON_SECURE_AUTH_CONTEXT_H

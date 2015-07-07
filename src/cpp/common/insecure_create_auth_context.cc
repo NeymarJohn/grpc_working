@@ -30,18 +30,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#include <memory>
 
-#import "GRPCMethodName.h"
+#include <grpc/grpc.h>
+#include <grpc++/auth_context.h>
+#include "src/cpp/common/insecure_auth_context.h"
 
-@implementation GRPCMethodName
-- (instancetype)initWithPackage:(NSString *)package
-                      interface:(NSString *)interface
-                         method:(NSString *)method {
-  if ((self = [super init])) {
-    _package = [package copy];
-    _interface = [interface copy];
-    _method = [method copy];
-  }
-  return self;
+namespace grpc {
+
+std::unique_ptr<const AuthContext> CreateAuthContext(grpc_call* call) {
+  (void)call;
+  return std::unique_ptr<const AuthContext>(new InsecureAuthContext);
 }
-@end
+
+}  // namespace grpc

@@ -30,66 +30,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#include <memory>
 
-#import <Foundation/Foundation.h>
 #include <grpc/grpc.h>
+#include <grpc/grpc_security.h>
+#include <grpc++/auth_context.h>
+#include "src/cpp/common/secure_auth_context.h"
 
-#import "GRPCChannel.h"
+namespace grpc {
 
-@interface GRPCOperation : NSObject
-@property(nonatomic, readonly) grpc_op op;
-// Guaranteed to be called when the operation has finished.
-- (void)finish;
-@end
+std::unique_ptr<const AuthContext> CreateAuthContext(grpc_call* call) {
+  grpc_auth_context* context = nullptr;
+  if (call) {
+    context = const_cast<grpc_auth_context*>(grpc_call_auth_context(call));
+  }
+  return std::unique_ptr<const AuthContext>(new SecureAuthContext(context));
+}
 
-@interface GRPCOpSendMetadata : GRPCOperation
-
-- (instancetype)initWithMetadata:(NSDictionary *)metadata
-                         handler:(void(^)())handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpSendMessage : GRPCOperation
-
-- (instancetype)initWithMessage:(NSData *)message
-                        handler:(void(^)())handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpSendClose : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)())handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpRecvMetadata : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)(NSDictionary *))handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpRecvMessage : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)(grpc_byte_buffer *))handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpRecvStatus : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)(NSError *, NSDictionary *))handler
-    NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCWrappedCall : NSObject
-
-- (instancetype)initWithChannel:(GRPCChannel *)channel
-                           path:(NSString *)path
-                           host:(NSString *)host NS_DESIGNATED_INITIALIZER;
-
-- (void)startBatchWithOperations:(NSArray *)ops errorHandler:(void(^)())errorHandler;
-
-- (void)startBatchWithOperations:(NSArray *)ops;
-
-- (void)cancel;
-@end
+}  // namespace grpc

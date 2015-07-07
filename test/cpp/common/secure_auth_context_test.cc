@@ -31,57 +31,49 @@
  *
  */
 
-#include <set>
-
-#include <grpc/support/log.h>
-
-#include <signal.h>
-
-#include "test/cpp/qps/driver.h"
-#include "test/cpp/qps/report.h"
-#include "test/cpp/util/benchmark_config.h"
+#include <grpc++/auth_context.h>
+#include <gtest/gtest.h>
+#include "src/cpp/common/secure_auth_context.h"
+#include "src/core/security/security_context.h"
 
 namespace grpc {
-namespace testing {
+namespace {
 
-static const int WARMUP = 5;
-static const int BENCHMARK = 10;
+class SecureAuthContextTest : public ::testing::Test {};
 
-static void RunQPS() {
-  gpr_log(GPR_INFO, "Running QPS test, open-loop");
-
-  ClientConfig client_config;
-  client_config.set_client_type(ASYNC_CLIENT);
-  client_config.set_enable_ssl(false);
-  client_config.set_outstanding_rpcs_per_channel(1000);
-  client_config.set_client_channels(8);
-  client_config.set_payload_size(1);
-  client_config.set_async_client_threads(8);
-  client_config.set_rpc_type(UNARY);
-  client_config.set_load_type(POISSON);
-  client_config.mutable_load_params()->
-    mutable_poisson()->set_offered_load(1000.0);
-
-  ServerConfig server_config;
-  server_config.set_server_type(ASYNC_SERVER);
-  server_config.set_enable_ssl(false);
-  server_config.set_threads(4);
-
-  const auto result =
-      RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
-
-  GetReporter()->ReportQPSPerCore(*result);
-  GetReporter()->ReportLatency(*result);
+// Created with nullptr
+TEST_F(SecureAuthContextTest, EmptyContext) {
+  SecureAuthContext context(nullptr);
+  EXPECT_TRUE(context.GetPeerIdentity().empty());
+  EXPECT_TRUE(context.GetPeerIdentityPropertyName().empty());
+  EXPECT_TRUE(context.FindPropertyValues("").empty());
+  EXPECT_TRUE(context.FindPropertyValues("whatever").empty());
 }
 
-}  // namespace testing
+TEST_F(SecureAuthContextTest, Properties) {
+  grpc_auth_context* ctx = grpc_auth_context_create(NULL, 3);
+  ctx->properties[0] = grpc_auth_property_init_from_cstring("name", "chapi");
+  ctx->properties[1] = grpc_auth_property_init_from_cstring("name", "chapo");
+  ctx->properties[2] = grpc_auth_property_init_from_cstring("foo", "bar");
+  ctx->peer_identity_property_name = ctx->properties[0].name;
+
+  SecureAuthContext context(ctx);
+  std::vector<grpc::string> peer_identity = context.GetPeerIdentity();
+  EXPECT_EQ(2, peer_identity.size());
+  EXPECT_EQ("chapi", peer_identity[0]);
+  EXPECT_EQ("chapo", peer_identity[1]);
+  EXPECT_EQ("name", context.GetPeerIdentityPropertyName());
+  std::vector<grpc::string> bar = context.FindPropertyValues("foo");
+  EXPECT_EQ(1, bar.size());
+  EXPECT_EQ("bar", bar[0]);
+
+  GRPC_AUTH_CONTEXT_UNREF(ctx, "SecureAuthContextTest");
+}
+
+}  // namespace
 }  // namespace grpc
 
-int main(int argc, char** argv) {
-  grpc::testing::InitBenchmark(&argc, &argv, true);
-
-  signal(SIGPIPE, SIG_IGN);
-  grpc::testing::RunQPS();
-
-  return 0;
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
