@@ -31,44 +31,35 @@
  *
  */
 
-#include "src/core/client_config/client_config.h"
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
+#define GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
 
-#include <string.h>
+#include "src/core/channel/channel_stack.h"
 
-#include <grpc/support/alloc.h>
+/* helper for filters that need to host child channel stacks... handles
+   lifetime and upwards propagation cleanly */
 
-struct grpc_client_config {
-  gpr_refcount refs;
-  grpc_lb_policy *lb_policy;
-};
+extern const grpc_channel_filter grpc_child_channel_top_filter;
 
-grpc_client_config *grpc_client_config_create() {
-  grpc_client_config *c = gpr_malloc(sizeof(*c));
-  memset(c, 0, sizeof(*c));
-  gpr_ref_init(&c->refs, 1);
-  return c;
-}
+typedef grpc_channel_stack grpc_child_channel;
+typedef grpc_call_stack grpc_child_call;
 
-void grpc_client_config_ref(grpc_client_config *c) { gpr_ref(&c->refs); }
+/* filters[0] must be &grpc_child_channel_top_filter */
+grpc_child_channel *grpc_child_channel_create(
+    grpc_channel_element *parent, const grpc_channel_filter **filters,
+    size_t filter_count, const grpc_channel_args *args,
+    grpc_mdctx *metadata_context);
+void grpc_child_channel_handle_op(grpc_child_channel *channel,
+                                  grpc_channel_op *op);
+grpc_channel_element *grpc_child_channel_get_bottom_element(
+    grpc_child_channel *channel);
+void grpc_child_channel_destroy(grpc_child_channel *channel,
+                                int wait_for_callbacks);
 
-void grpc_client_config_unref(grpc_client_config *c) {
-  if (gpr_unref(&c->refs)) {
-    GRPC_LB_POLICY_UNREF(c->lb_policy, "client_config");
-    gpr_free(c);
-  }
-}
+grpc_child_call *grpc_child_channel_create_call(grpc_child_channel *channel,
+                                                grpc_call_element *parent,
+                                                grpc_transport_op *initial_op);
+grpc_call_element *grpc_child_call_get_top_element(grpc_child_call *call);
+void grpc_child_call_destroy(grpc_child_call *call);
 
-void grpc_client_config_set_lb_policy(grpc_client_config *c,
-                                      grpc_lb_policy *lb_policy) {
-  if (lb_policy) {
-    GRPC_LB_POLICY_REF(lb_policy, "client_config");
-  }
-  if (c->lb_policy) {
-    GRPC_LB_POLICY_UNREF(c->lb_policy, "client_config");
-  }
-  c->lb_policy = lb_policy;
-}
-
-grpc_lb_policy *grpc_client_config_get_lb_policy(grpc_client_config *c) {
-  return c->lb_policy;
-}
+#endif /* GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H */
