@@ -91,9 +91,7 @@ typedef struct grpc_transport_op {
   grpc_connectivity_state *connectivity_state;
   /** should the transport be disconnected */
   int disconnect;
-  /** should we send a goaway?
-      after a goaway is sent, once there are no more active calls on
-      the transport, the transport should disconnect */
+  /** should we send a goaway? */
   int send_goaway;
   /** what should the goaway contain? */
   grpc_status_code goaway_status;
