@@ -31,25 +31,31 @@
  *
  */
 
-#import "ProtoMethod.h"
+'use strict';
 
-@implementation ProtoMethod
-- (instancetype)initWithPackage:(NSString *)package
-                        service:(NSString *)service
-                         method:(NSString *)method {
-  if ((self = [super init])) {
-    _package = [package copy];
-    _service = [service copy];
-    _method = [method copy];
-  }
-  return self;
+var grpc = require('../');
+
+var _ = require('lodash');
+
+var health_proto = grpc.load(__dirname + '/health.proto');
+
+var HealthClient = health_proto.grpc.health.v1alpha.Health;
+
+function HealthImplementation(statusMap) {
+  this.statusMap = _.clone(statusMap);
 }
 
-- (NSString *)HTTPPath {
-  if (_package) {
-    return [NSString stringWithFormat:@"/%@.%@/%@", _package, _service, _method];
-  } else {
-    return [NSString stringWithFormat:@"/%@/%@", _service, _method];
-  }
-}
-@end
+HealthImplementation.prototype.setStatus = function(service, status) {
+  this.statusMap[service] = status;
+};
+
+HealthImplementation.prototype.check = function(call, callback){
+  var service = call.request.service;
+  callback(null, {status: _.get(this.statusMap, service, 'UNKNOWN')});
+};
+
+module.exports = {
+  Client: HealthClient,
+  service: HealthClient.service,
+  Implementation: HealthImplementation
+};

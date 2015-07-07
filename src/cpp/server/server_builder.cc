@@ -51,21 +51,11 @@ std::unique_ptr<ServerCompletionQueue> ServerBuilder::AddCompletionQueue() {
 }
 
 void ServerBuilder::RegisterService(SynchronousService* service) {
-  services_.emplace_back(service->service());
+  services_.push_back(service->service());
 }
 
 void ServerBuilder::RegisterAsyncService(AsynchronousService* service) {
-  async_services_.emplace_back(service);
-}
-
-void ServerBuilder::RegisterService(
-    const grpc::string& addr, SynchronousService* service) {
-  services_.emplace_back(addr, service->service());
-}
-
-void ServerBuilder::RegisterAsyncService(
-    const grpc::string& addr, AsynchronousService* service) {
-  async_services_.emplace_back(addr, service);
+  async_services_.push_back(service);
 }
 
 void ServerBuilder::RegisterAsyncGenericService(AsyncGenericService* service) {
@@ -107,13 +97,13 @@ std::unique_ptr<Server> ServerBuilder::BuildAndStart() {
   }
   for (auto service = services_.begin(); service != services_.end();
        service++) {
-    if (!server->RegisterService(service->host.get(), service->service)) {
+    if (!server->RegisterService(*service)) {
       return nullptr;
     }
   }
   for (auto service = async_services_.begin();
        service != async_services_.end(); service++) {
-    if (!server->RegisterAsyncService(service->host.get(), service->service)) {
+    if (!server->RegisterAsyncService(*service)) {
       return nullptr;
     }
   }

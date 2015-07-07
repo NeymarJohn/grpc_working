@@ -29,43 +29,21 @@
 
 syntax = "proto3";
 
-import "test/cpp/qps/qpstest.proto";
+package grpc.health.v1alpha;
 
-package grpc.testing;
+message HealthCheckRequest {
+  string service = 1;
+}
 
-service PerfDbTransfer {
-  // Sends client info
-  rpc RecordSingleClientData(SingleUserRecordRequest)
-      returns (SingleUserRecordReply) {
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
   }
+  ServingStatus status = 1;
 }
 
-// Metrics to be stored
-message Metrics {
-  double qps = 1;
-  double qps_per_core = 2;
-  double perc_lat_50 = 3;
-  double perc_lat_90 = 4;
-  double perc_lat_95 = 5;
-  double perc_lat_99 = 6;
-  double perc_lat_99_point_9 = 7;
-  double server_system_time = 8;
-  double server_user_time = 9;
-  double client_system_time = 10;
-  double client_user_time = 11;
-}
-
-// Request for storing a single user's data
-message SingleUserRecordRequest {
-  string hashed_id = 1;
-  string test_name = 2;
-  string sys_info = 3;
-  string tag = 4;
-  Metrics metrics = 5;
-  ClientConfig client_config = 6;
-  ServerConfig server_config = 7;
-}
-
-// Reply to request for storing single user's data
-message SingleUserRecordReply {
+service Health {
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
 }
