@@ -155,6 +155,7 @@ Pod::Spec.new do |s|
                       'src/core/channel/child_channel.h',
                       'src/core/channel/client_channel.h',
                       'src/core/channel/client_setup.h',
+                      'src/core/channel/compress_filter.h',
                       'src/core/channel/connected_channel.h',
                       'src/core/channel/context.h',
                       'src/core/channel/http_client_filter.h',
@@ -270,6 +271,7 @@ Pod::Spec.new do |s|
                       'src/core/channel/child_channel.c',
                       'src/core/channel/client_channel.c',
                       'src/core/channel/client_setup.c',
+                      'src/core/channel/compress_filter.c',
                       'src/core/channel/connected_channel.c',
                       'src/core/channel/http_client_filter.c',
                       'src/core/channel/http_server_filter.c',
@@ -393,6 +395,7 @@ Pod::Spec.new do |s|
                               'src/core/channel/child_channel.h',
                               'src/core/channel/client_channel.h',
                               'src/core/channel/client_setup.h',
+                              'src/core/channel/compress_filter.h',
                               'src/core/channel/connected_channel.h',
                               'src/core/channel/context.h',
                               'src/core/channel/http_client_filter.h',
@@ -494,9 +497,9 @@ Pod::Spec.new do |s|
     BAD_TIME="$DIR_TIME/time.h"
     GOOD_TIME="$DIR_TIME/grpc_time.h"
     grep -rl "$BAD_TIME" grpc src/core src/objective-c/GRPCClient | xargs sed -i '' -e s@$BAD_TIME@$GOOD_TIME@g
-    if [ -f "$BAD_TIME" ];
+    if [ -f "include/$BAD_TIME" ];
     then
-      mv -f "$BAD_TIME" "$GOOD_TIME"
+      mv -f "include/$BAD_TIME" "include/$GOOD_TIME"
     fi
 
     DIR_STRING="src/core/support"

@@ -31,13 +31,17 @@
  *
  */
 
-#include <grpc/grpc.h>
+#import "GRPCMethodName.h"
 
-#include "src/core/channel/compress_filter.h"
-#include "src/core/surface/completion_queue.h"
-#include "src/core/surface/server.h"
-
-grpc_server *grpc_server_create(const grpc_channel_args *args) {
-  const grpc_channel_filter *filters[] = {&grpc_compress_filter};
-  return grpc_server_create_from_filters(filters, 0, args);
+@implementation GRPCMethodName
+- (instancetype)initWithPackage:(NSString *)package
+                      interface:(NSString *)interface
+                         method:(NSString *)method {
+  if ((self = [super init])) {
+    _package = [package copy];
+    _interface = [interface copy];
+    _method = [method copy];
+  }
+  return self;
 }
+@end

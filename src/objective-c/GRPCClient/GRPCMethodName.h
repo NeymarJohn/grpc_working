@@ -31,13 +31,19 @@
  *
  */
 
-#include <grpc/grpc.h>
+#import <Foundation/Foundation.h>
 
-#include "src/core/channel/compress_filter.h"
-#include "src/core/surface/completion_queue.h"
-#include "src/core/surface/server.h"
+// See the README file for an introduction to this library.
 
-grpc_server *grpc_server_create(const grpc_channel_args *args) {
-  const grpc_channel_filter *filters[] = {&grpc_compress_filter};
-  return grpc_server_create_from_filters(filters, 0, args);
-}
+// A fully-qualified gRPC method name. Full qualification is needed because a gRPC endpoint can
+// implement multiple interfaces.
+// TODO(jcanizales): Move to ProtoRPC package.
+// TODO(jcanizales): Rename interface -> service.
+@interface GRPCMethodName : NSObject
+@property(nonatomic, readonly) NSString *package;
+@property(nonatomic, readonly) NSString *interface;
+@property(nonatomic, readonly) NSString *method;
+- (instancetype)initWithPackage:(NSString *)package
+                      interface:(NSString *)interface
+                         method:(NSString *)method;
+@end

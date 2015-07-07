@@ -31,13 +31,10 @@
  *
  */
 
-#include <grpc/grpc.h>
+#import <Foundation/Foundation.h>
 
-#include "src/core/channel/compress_filter.h"
-#include "src/core/surface/completion_queue.h"
-#include "src/core/surface/server.h"
+#import "GRPCClient/GRPCMethodName.h"
 
-grpc_server *grpc_server_create(const grpc_channel_args *args) {
-  const grpc_channel_filter *filters[] = {&grpc_compress_filter};
-  return grpc_server_create_from_filters(filters, 0, args);
-}
+@interface GRPCMethodName (HTTP2Encoding)
+- (NSString *)HTTP2Path;
+@end
