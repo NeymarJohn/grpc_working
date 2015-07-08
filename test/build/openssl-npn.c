@@ -31,12 +31,15 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+/* This is just a compilation test, to see if we have a version of OpenSSL with
+   NPN support installed. It's not meant to be run, and all of the values and
+   function calls there are non-sensical. The code is only meant to test the
+   presence of symbols, and we're expecting a compilation failure otherwise. */
 
-#include "src/core/client_config/resolver_factory.h"
+#include <stdlib.h>
+#include <openssl/ssl.h>
 
-/** Create a zookeeper resolver for \a name */
-grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
-
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */
+int main() {
+  SSL_get0_next_proto_negotiated(NULL, NULL, NULL);
+  return OPENSSL_NPN_UNSUPPORTED;
+}
