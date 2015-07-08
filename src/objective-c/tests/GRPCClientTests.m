@@ -35,7 +35,7 @@
 #import <XCTest/XCTest.h>
 
 #import <GRPCClient/GRPCCall.h>
-#import <ProtoRPC/ProtoMethod.h>
+#import <GRPCClient/GRPCMethodName.h>
 #import <RemoteTest/Messages.pbobjc.h>
 #import <RxLibrary/GRXWriteable.h>
 #import <RxLibrary/GRXWriter+Immediate.h>
@@ -47,9 +47,9 @@ static NSString * const kHostAddress = @"grpc-test.sandbox.google.com";
 static NSString * const kPackage = @"grpc.testing";
 static NSString * const kService = @"TestService";
 
-static ProtoMethod *kInexistentMethod;
-static ProtoMethod *kEmptyCallMethod;
-static ProtoMethod *kUnaryCallMethod;
+static GRPCMethodName *kInexistentMethod;
+static GRPCMethodName *kEmptyCallMethod;
+static GRPCMethodName *kUnaryCallMethod;
 
 @interface GRPCClientTests : XCTestCase
 @end
@@ -58,22 +58,22 @@ static ProtoMethod *kUnaryCallMethod;
 
 - (void)setUp {
   // This method isn't implemented by the remote server.
-  kInexistentMethod = [[ProtoMethod alloc] initWithPackage:kPackage
-                                                   service:kService
-                                                    method:@"Inexistent"];
-  kEmptyCallMethod = [[ProtoMethod alloc] initWithPackage:kPackage
-                                                  service:kService
-                                                   method:@"EmptyCall"];
-  kUnaryCallMethod = [[ProtoMethod alloc] initWithPackage:kPackage
-                                                  service:kService
-                                                   method:@"UnaryCall"];
+  kInexistentMethod = [[GRPCMethodName alloc] initWithPackage:kPackage
+                                                    interface:kService
+                                                       method:@"Inexistent"];
+  kEmptyCallMethod = [[GRPCMethodName alloc] initWithPackage:kPackage
+                                                   interface:kService
+                                                      method:@"EmptyCall"];
+  kUnaryCallMethod = [[GRPCMethodName alloc] initWithPackage:kPackage
+                                                   interface:kService
+                                                      method:@"UnaryCall"];
 }
 
 - (void)testConnectionToRemoteServer {
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"Server reachable."];
 
   GRPCCall *call = [[GRPCCall alloc] initWithHost:kHostAddress
-                                             path:kInexistentMethod.HTTPPath
+                                           method:kInexistentMethod
                                    requestsWriter:[GRXWriter writerWithValue:[NSData data]]];
 
   id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
@@ -95,7 +95,7 @@ static ProtoMethod *kUnaryCallMethod;
   __weak XCTestExpectation *completion = [self expectationWithDescription:@"Empty RPC completed."];
 
   GRPCCall *call = [[GRPCCall alloc] initWithHost:kHostAddress
-                                             path:kEmptyCallMethod.HTTPPath
+                                           method:kEmptyCallMethod
                                    requestsWriter:[GRXWriter writerWithValue:[NSData data]]];
 
   id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
@@ -123,7 +123,7 @@ static ProtoMethod *kUnaryCallMethod;
   id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[request data]];
 
   GRPCCall *call = [[GRPCCall alloc] initWithHost:kHostAddress
-                                             path:kUnaryCallMethod.HTTPPath
+                                           method:kUnaryCallMethod
                                    requestsWriter:requestsWriter];
 
   id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
@@ -153,7 +153,7 @@ static ProtoMethod *kUnaryCallMethod;
   id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[request data]];
 
   GRPCCall *call = [[GRPCCall alloc] initWithHost:kHostAddress
-                                             path:kUnaryCallMethod.HTTPPath
+                                           method:kUnaryCallMethod
                                    requestsWriter:requestsWriter];
 
   call.requestMetadata[@"Authorization"] = @"Bearer bogusToken";
