@@ -31,32 +31,35 @@
  *
  */
 
-#ifndef GRPCXX_AUTH_CONTEXT_H
-#define GRPCXX_AUTH_CONTEXT_H
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
+#define GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H
 
-#include <vector>
+#include "src/core/channel/channel_stack.h"
 
-#include <grpc++/config.h>
+/* helper for filters that need to host child channel stacks... handles
+   lifetime and upwards propagation cleanly */
 
-namespace grpc {
+extern const grpc_channel_filter grpc_child_channel_top_filter;
 
-class AuthContext {
- public:
-  typedef std::pair<grpc::string, grpc::string> Property;
+typedef grpc_channel_stack grpc_child_channel;
+typedef grpc_call_stack grpc_child_call;
 
-  virtual ~AuthContext() {}
+/* filters[0] must be &grpc_child_channel_top_filter */
+grpc_child_channel *grpc_child_channel_create(
+    grpc_channel_element *parent, const grpc_channel_filter **filters,
+    size_t filter_count, const grpc_channel_args *args,
+    grpc_mdctx *metadata_context);
+void grpc_child_channel_handle_op(grpc_child_channel *channel,
+                                  grpc_channel_op *op);
+grpc_channel_element *grpc_child_channel_get_bottom_element(
+    grpc_child_channel *channel);
+void grpc_child_channel_destroy(grpc_child_channel *channel,
+                                int wait_for_callbacks);
 
-  // A peer identity, in general is one or more properties (in which case they
-  // have the same name).
-  virtual std::vector<grpc::string> GetPeerIdentity() const = 0;
-  virtual grpc::string GetPeerIdentityPropertyName() const = 0;
+grpc_child_call *grpc_child_channel_create_call(grpc_child_channel *channel,
+                                                grpc_call_element *parent,
+                                                grpc_transport_op *initial_op);
+grpc_call_element *grpc_child_call_get_top_element(grpc_child_call *call);
+void grpc_child_call_destroy(grpc_child_call *call);
 
-  // Returns all the property values with the given name.
-  virtual std::vector<grpc::string> FindPropertyValues(
-      const grpc::string& name) const = 0;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_AUTH_CONTEXT_H
-
+#endif /* GRPC_INTERNAL_CORE_CHANNEL_CHILD_CHANNEL_H */

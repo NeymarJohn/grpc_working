@@ -31,22 +31,19 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H
+#import <Foundation/Foundation.h>
 
-#include "src/core/client_config/lb_policy.h"
+// See the README file for an introduction to this library.
 
-/** Total configuration for a client. Provided, and updated, by
-    grpc_resolver */
-typedef struct grpc_client_config grpc_client_config;
-
-grpc_client_config *grpc_client_config_create();
-void grpc_client_config_ref(grpc_client_config *client_config);
-void grpc_client_config_unref(grpc_client_config *client_config);
-
-void grpc_client_config_set_lb_policy(grpc_client_config *client_config,
-                                      grpc_lb_policy *lb_policy);
-grpc_lb_policy *grpc_client_config_get_lb_policy(
-    grpc_client_config *client_config);
-
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H */
+// A fully-qualified gRPC method name. Full qualification is needed because a gRPC endpoint can
+// implement multiple interfaces.
+// TODO(jcanizales): Move to ProtoRPC package.
+// TODO(jcanizales): Rename interface -> service.
+@interface GRPCMethodName : NSObject
+@property(nonatomic, readonly) NSString *package;
+@property(nonatomic, readonly) NSString *interface;
+@property(nonatomic, readonly) NSString *method;
+- (instancetype)initWithPackage:(NSString *)package
+                      interface:(NSString *)interface
+                         method:(NSString *)method;
+@end

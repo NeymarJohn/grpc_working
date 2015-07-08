@@ -30,22 +30,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include <memory>
 
-#include <grpc/grpc.h>
-#include <grpc/grpc_security.h>
-#include <grpc++/auth_context.h>
-#include "src/cpp/common/secure_auth_context.h"
+#import <Foundation/Foundation.h>
 
-namespace grpc {
+#import "GRPCClient/GRPCMethodName.h"
 
-std::shared_ptr<const AuthContext> CreateAuthContext(grpc_call* call) {
-  if (call == nullptr) {
-    return std::shared_ptr<const AuthContext>();
-  }
-  grpc_auth_context* context =
-      const_cast<grpc_auth_context*>(grpc_call_auth_context(call));
-  return std::shared_ptr<const AuthContext>(new SecureAuthContext(context));
-}
-
-}  // namespace grpc
+@interface GRPCMethodName (HTTP2Encoding)
+- (NSString *)HTTP2Path;
+@end
