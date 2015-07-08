@@ -398,14 +398,14 @@ module GRPC
       nil
     end
 
-    # Sends UNIMPLEMENTED if the method is not implemented by this server
+    # Sends NOT_FOUND if the method can't be found
     def found?(an_rpc)
       mth = an_rpc.method.to_sym
       return an_rpc if rpc_descs.key?(mth)
-      GRPC.logger.warn("UNIMPLEMENTED: #{an_rpc}")
+      GRPC.logger.warn("NOT_FOUND: #{an_rpc}")
       noop = proc { |x| x }
       c = ActiveCall.new(an_rpc.call, @cq, noop, noop, an_rpc.deadline)
-      c.send_status(StatusCodes::UNIMPLEMENTED, '')
+      c.send_status(StatusCodes::NOT_FOUND, '')
       nil
     end
 
