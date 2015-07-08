@@ -145,113 +145,11 @@ static void test_asprintf(void) {
   }
 }
 
-static void test_strjoin(void) {
-  const char *parts[4] = {"one", "two", "three", "four"};
-  size_t joined_len;
-  char *joined;
-
-  LOG_TEST_NAME("test_strjoin");
-
-  joined = gpr_strjoin(parts, 4, &joined_len);
-  GPR_ASSERT(0 == strcmp("onetwothreefour", joined));
-  gpr_free(joined);
-
-  joined = gpr_strjoin(parts, 0, &joined_len);
-  GPR_ASSERT(0 == strcmp("", joined));
-  gpr_free(joined);
-
-  joined = gpr_strjoin(parts, 1, &joined_len);
-  GPR_ASSERT(0 == strcmp("one", joined));
-  gpr_free(joined);
-}
-
-static void test_strjoin_sep(void) {
-  const char *parts[4] = {"one", "two", "three", "four"};
-  size_t joined_len;
-  char *joined;
-
-  LOG_TEST_NAME("test_strjoin_sep");
-
-  joined = gpr_strjoin_sep(parts, 4, ", ", &joined_len);
-  GPR_ASSERT(0 == strcmp("one, two, three, four", joined));
-  gpr_free(joined);
-
-  /* empty separator */
-  joined = gpr_strjoin_sep(parts, 4, "", &joined_len);
-  GPR_ASSERT(0 == strcmp("onetwothreefour", joined));
-  gpr_free(joined);
-
-  /* degenerated case specifying zero input parts */
-  joined = gpr_strjoin_sep(parts, 0, ", ", &joined_len);
-  GPR_ASSERT(0 == strcmp("", joined));
-  gpr_free(joined);
-
-  /* single part should have no separator */
-  joined = gpr_strjoin_sep(parts, 1, ", ", &joined_len);
-  GPR_ASSERT(0 == strcmp("one", joined));
-  gpr_free(joined);
-}
-
-static void test_strsplit(void) {
-  gpr_slice_buffer* parts;
-  LOG_TEST_NAME("test_strsplit");
-
-  parts = gpr_strsplit("one, two, three, four", ", ");
-  GPR_ASSERT(4 == parts->count);
-  GPR_ASSERT(0 == gpr_slice_str_cmp(parts->slices[0], "one"));
-  GPR_ASSERT(0 == gpr_slice_str_cmp(parts->slices[1], "two"));
-  GPR_ASSERT(0 == gpr_slice_str_cmp(parts->slices[2], "three"));
-  GPR_ASSERT(0 == gpr_slice_str_cmp(parts->slices[3], "four"));
-  gpr_slice_buffer_destroy(parts);
-  gpr_free(parts);
-
-  /* separator not present in string */
-  parts = gpr_strsplit("one two three four", ", ");
-  GPR_ASSERT(1 == parts->count);
-  GPR_ASSERT(0 == gpr_slice_str_cmp(parts->slices[0], "one two three four"));
-  gpr_slice_buffer_destroy(parts);
-  gpr_free(parts);
-
-  /* separator at the end */
-  parts = gpr_strsplit("foo,", ",");
-  GPR_ASSERT(2 == parts->count);
-  GPR_ASSERT(0 == gpr_slice_str_cmp(parts->slices[0], "foo"));
-  GPR_ASSERT(0 == gpr_slice_str_cmp(parts->slices[1], ""));
-  gpr_slice_buffer_destroy(parts);
-  gpr_free(parts);
-
-  /* separator at the beginning */
-  parts = gpr_strsplit(",foo", ",");
-  GPR_ASSERT(2 == parts->count);
-  GPR_ASSERT(0 == gpr_slice_str_cmp(parts->slices[0], ""));
-  GPR_ASSERT(0 == gpr_slice_str_cmp(parts->slices[1], "foo"));
-  gpr_slice_buffer_destroy(parts);
-  gpr_free(parts);
-
-  /* standalone separator */
-  parts = gpr_strsplit(",", ",");
-  GPR_ASSERT(2 == parts->count);
-  GPR_ASSERT(0 == gpr_slice_str_cmp(parts->slices[0], ""));
-  GPR_ASSERT(0 == gpr_slice_str_cmp(parts->slices[1], ""));
-  gpr_slice_buffer_destroy(parts);
-  gpr_free(parts);
-
-  /* empty input */
-  parts = gpr_strsplit("", ",");
-  GPR_ASSERT(1 == parts->count);
-  GPR_ASSERT(0 == gpr_slice_str_cmp(parts->slices[0], ""));
-  gpr_slice_buffer_destroy(parts);
-  gpr_free(parts);
-}
-
 int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
   test_strdup();
   test_hexdump();
   test_parse_uint32();
   test_asprintf();
-  test_strjoin();
-  test_strjoin_sep();
-  test_strsplit();
   return 0;
 }

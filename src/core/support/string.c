@@ -38,7 +38,6 @@
 #include <string.h>
 
 #include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
 #include <grpc/support/port_platform.h>
 #include <grpc/support/useful.h>
 
@@ -154,12 +153,6 @@ int gpr_ltoa(long value, char *string) {
 }
 
 char *gpr_strjoin(const char **strs, size_t nstrs, size_t *final_length) {
-  return gpr_strjoin_sep(strs, nstrs, "", final_length);
-}
-
-char *gpr_strjoin_sep(const char **strs, size_t nstrs, const char *sep,
-                      size_t *final_length) {
-  const size_t sep_len = strlen(sep);
   size_t out_length = 0;
   size_t i;
   char *out;
@@ -167,17 +160,10 @@ char *gpr_strjoin_sep(const char **strs, size_t nstrs, const char *sep,
     out_length += strlen(strs[i]);
   }
   out_length += 1;  /* null terminator */
-  if (nstrs > 0) {
-    out_length += sep_len * (nstrs - 1);  /* separators */
-  }
   out = gpr_malloc(out_length);
   out_length = 0;
   for (i = 0; i < nstrs; i++) {
-    const size_t slen = strlen(strs[i]);
-    if (i != 0) {
-      memcpy(out + out_length, sep, sep_len);
-      out_length += sep_len;
-    }
+    size_t slen = strlen(strs[i]);
     memcpy(out + out_length, strs[i], slen);
     out_length += slen;
   }
@@ -186,27 +172,6 @@ char *gpr_strjoin_sep(const char **strs, size_t nstrs, const char *sep,
     *final_length = out_length;
   }
   return out;
-}
-
-static void do_nothing(void *ignored) {}
-gpr_slice_buffer *gpr_strsplit(const char *str, const char *sep) {
-  const size_t sep_len = strlen(sep);
-  const char *splitpoint = str;
-  gpr_slice_buffer *parts;
-
-  GPR_ASSERT(sep_len > 0);
-
-  parts = gpr_malloc(sizeof(gpr_slice_buffer));
-  gpr_slice_buffer_init(parts);
-
-  for (; (splitpoint = strstr(str, sep)) != NULL; splitpoint += sep_len) {
-    gpr_slice_buffer_add(
-        parts, gpr_slice_new((void *)str, splitpoint - str, do_nothing));
-    str += (splitpoint - str + sep_len);
-  }
-  gpr_slice_buffer_add(parts,
-                       gpr_slice_new((void *)str, strlen(str), do_nothing));
-  return parts;
 }
 
 void gpr_strvec_init(gpr_strvec *sv) {
