@@ -31,14 +31,18 @@
  *
  */
 
-#import "GRPCMethodName+HTTP2Encoding.h"
+#import <Foundation/Foundation.h>
 
-@implementation GRPCMethodName (HTTP2Encoding)
-- (NSString *)HTTP2Path {
-  if (self.package) {
-    return [NSString stringWithFormat:@"/%@.%@/%@", self.package, self.interface, self.method];
-  } else {
-    return [NSString stringWithFormat:@"/%@/%@", self.interface, self.method];
-  }
-}
+// A fully-qualified proto service method name. Full qualification is needed because a gRPC endpoint
+// can implement multiple services.
+@interface ProtoMethod : NSObject
+@property(nonatomic, readonly) NSString *package;
+@property(nonatomic, readonly) NSString *service;
+@property(nonatomic, readonly) NSString *method;
+
+@property(nonatomic, readonly) NSString *HTTPPath;
+
+- (instancetype)initWithPackage:(NSString *)package
+                        service:(NSString *)service
+                         method:(NSString *)method;
 @end

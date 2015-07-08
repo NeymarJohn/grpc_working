@@ -1,5 +1,5 @@
 # GRPC Bazel BUILD file.
-# This currently builds C and C++ code.
+# This currently builds C, C++ and Objective-C code.
 # This file has been automatically generated from a template file.
 # Please look at the templates directory instead.
 # This file can be regenerated from the template by running
@@ -153,7 +153,6 @@ cc_library(
     "src/core/channel/child_channel.h",
     "src/core/channel/client_channel.h",
     "src/core/channel/client_setup.h",
-    "src/core/channel/compress_filter.h",
     "src/core/channel/connected_channel.h",
     "src/core/channel/context.h",
     "src/core/channel/http_client_filter.h",
@@ -262,7 +261,6 @@ cc_library(
     "src/core/channel/child_channel.c",
     "src/core/channel/client_channel.c",
     "src/core/channel/client_setup.c",
-    "src/core/channel/compress_filter.c",
     "src/core/channel/connected_channel.c",
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_server_filter.c",
@@ -387,7 +385,6 @@ cc_library(
     "src/core/channel/child_channel.h",
     "src/core/channel/client_channel.h",
     "src/core/channel/client_setup.h",
-    "src/core/channel/compress_filter.h",
     "src/core/channel/connected_channel.h",
     "src/core/channel/context.h",
     "src/core/channel/http_client_filter.h",
@@ -474,7 +471,6 @@ cc_library(
     "src/core/channel/child_channel.c",
     "src/core/channel/client_channel.c",
     "src/core/channel/client_setup.c",
-    "src/core/channel/compress_filter.c",
     "src/core/channel/connected_channel.c",
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_server_filter.c",
@@ -927,7 +923,6 @@ objc_library(
     "src/core/channel/child_channel.c",
     "src/core/channel/client_channel.c",
     "src/core/channel/client_setup.c",
-    "src/core/channel/compress_filter.c",
     "src/core/channel/connected_channel.c",
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_server_filter.c",
@@ -1053,7 +1048,6 @@ objc_library(
     "src/core/channel/child_channel.h",
     "src/core/channel/client_channel.h",
     "src/core/channel/client_setup.h",
-    "src/core/channel/compress_filter.h",
     "src/core/channel/connected_channel.h",
     "src/core/channel/context.h",
     "src/core/channel/http_client_filter.h",

@@ -74,6 +74,7 @@ static void freelist_fd(grpc_fd *fd) {
   gpr_mu_lock(&fd_freelist_mu);
   fd->freelist_next = fd_freelist;
   fd_freelist = fd;
+  grpc_iomgr_unregister_object(&fd->iomgr_object);
   gpr_mu_unlock(&fd_freelist_mu);
 }
 
@@ -139,7 +140,6 @@ static void unref_by(grpc_fd *fd, int n) {
 #endif
   old = gpr_atm_full_fetch_add(&fd->refst, -n);
   if (old == n) {
-    grpc_iomgr_unregister_object(&fd->iomgr_object);
     freelist_fd(fd);
   } else {
     GPR_ASSERT(old > n);
@@ -368,16 +368,17 @@ gpr_uint32 grpc_fd_begin_poll(grpc_fd *fd, grpc_pollset *pollset,
     watcher->fd = NULL;
     watcher->pollset = NULL;
     gpr_mu_unlock(&fd->watcher_mu);
+    GRPC_FD_UNREF(fd, "poll");
     return 0;
   }
   /* if there is nobody polling for read, but we need to, then start doing so */
-  if (!fd->read_watcher && gpr_atm_acq_load(&fd->readst) > READY) {
+  if (read_mask && !fd->read_watcher && gpr_atm_acq_load(&fd->readst) > READY) {
     fd->read_watcher = watcher;
     mask |= read_mask;
   }
   /* if there is nobody polling for write, but we need to, then start doing so
    */
-  if (!fd->write_watcher && gpr_atm_acq_load(&fd->writest) > READY) {
+  if (write_mask && !fd->write_watcher && gpr_atm_acq_load(&fd->writest) > READY) {
     fd->write_watcher = watcher;
     mask |= write_mask;
   }
