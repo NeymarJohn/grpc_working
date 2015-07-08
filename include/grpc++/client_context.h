@@ -40,6 +40,7 @@
 
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
+#include <grpc++/auth_context.h>
 #include <grpc++/config.h>
 #include <grpc++/status.h>
 #include <grpc++/time.h>
@@ -107,6 +108,8 @@ class ClientContext {
     creds_ = creds;
   }
 
+  std::shared_ptr<const AuthContext> auth_context() const;
+
   void TryCancel();
 
  private:
@@ -154,6 +157,7 @@ class ClientContext {
   gpr_timespec deadline_;
   grpc::string authority_;
   std::shared_ptr<Credentials> creds_;
+  mutable std::shared_ptr<const AuthContext> auth_context_;
   std::multimap<grpc::string, grpc::string> send_initial_metadata_;
   std::multimap<grpc::string, grpc::string> recv_initial_metadata_;
   std::multimap<grpc::string, grpc::string> trailing_metadata_;
