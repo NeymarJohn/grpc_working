@@ -374,6 +374,7 @@ ifeq ($(HAS_PKG_CONFIG),true)
 OPENSSL_ALPN_CHECK_CMD = pkg-config --atleast-version=1.0.2 openssl
 OPENSSL_NPN_CHECK_CMD = pkg-config --alteast-version=1.0.1 openssl
 ZLIB_CHECK_CMD = pkg-config --exists zlib
+PERFTOOLS_CHECK_CMD = pkg-config --exists profiler
 PROTOBUF_CHECK_CMD = pkg-config --atleast-version=3.0.0-alpha-3 protobuf
 else # HAS_PKG_CONFIG
 
@@ -386,6 +387,7 @@ endif
 OPENSSL_ALPN_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/openssl-alpn.c $(addprefix -l, $(OPENSSL_LIBS)) $(LDFLAGS)
 OPENSSL_NPN_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/openssl-npn.c $(addprefix -l, $(OPENSSL_LIBS)) $(LDFLAGS)
 ZLIB_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/zlib.c -lz $(LDFLAGS)
+PERFTOOLS_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/perftools.c -lprofiler $(LDFLAGS)
 PROTOBUF_CHECK_CMD = $(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/protobuf.cc -lprotobuf $(LDFLAGS)
 
 ifeq ($(OPENSSL_REQUIRES_DL),true)
@@ -394,8 +396,6 @@ OPENSSL_NPN_CHECK_CMD += -ldl
 endif
 
 endif # HAS_PKG_CONFIG
-
-PERFTOOLS_CHECK_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -o $(TMPOUT) test/build/perftools.c -lprofiler $(LDFLAGS)
 
 PROTOC_CHECK_CMD = which protoc > /dev/null
 PROTOC_CHECK_VERSION_CMD = protoc --version | grep -q libprotoc.3
@@ -5744,7 +5744,7 @@ FD_CONSERVATION_POSIX_TEST_SRC = \
 FD_CONSERVATION_POSIX_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(FD_CONSERVATION_POSIX_TEST_SRC))))
 ifeq ($(NO_SECURE),true)
 
-# You can't build secure targets if you don't have OpenSSL.
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 $(BINDIR)/$(CONFIG)/fd_conservation_posix_test: openssl_dep_error
 
@@ -7078,7 +7078,7 @@ MULTIPLE_SERVER_QUEUES_TEST_SRC = \
 MULTIPLE_SERVER_QUEUES_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(MULTIPLE_SERVER_QUEUES_TEST_SRC))))
 ifeq ($(NO_SECURE),true)
 
-# You can't build secure targets if you don't have OpenSSL.
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 $(BINDIR)/$(CONFIG)/multiple_server_queues_test: openssl_dep_error
 
@@ -7542,7 +7542,7 @@ URI_PARSER_TEST_SRC = \
 URI_PARSER_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(URI_PARSER_TEST_SRC))))
 ifeq ($(NO_SECURE),true)
 
-# You can't build secure targets if you don't have OpenSSL.
+# You can't build secure targets if you don't have OpenSSL with ALPN.
 
 $(BINDIR)/$(CONFIG)/uri_parser_test: openssl_dep_error
 
