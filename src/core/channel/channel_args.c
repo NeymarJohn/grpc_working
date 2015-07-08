@@ -62,8 +62,7 @@ static grpc_arg copy_arg(const grpc_arg *src) {
 }
 
 grpc_channel_args *grpc_channel_args_copy_and_add(const grpc_channel_args *src,
-                                                  const grpc_arg *to_add,
-                                                  size_t num_to_add) {
+                                                  const grpc_arg *to_add) {
   grpc_channel_args *dst = gpr_malloc(sizeof(grpc_channel_args));
   size_t i;
   size_t src_num_args = (src == NULL) ? 0 : src->num_args;
@@ -72,24 +71,17 @@ grpc_channel_args *grpc_channel_args_copy_and_add(const grpc_channel_args *src,
     dst->args = NULL;
     return dst;
   }
-  dst->num_args = src_num_args + num_to_add;
+  dst->num_args = src_num_args + ((to_add == NULL) ? 0 : 1);
   dst->args = gpr_malloc(sizeof(grpc_arg) * dst->num_args);
   for (i = 0; i < src_num_args; i++) {
     dst->args[i] = copy_arg(&src->args[i]);
   }
-  for (i = 0; i < num_to_add; i++) {
-    dst->args[i + src_num_args] = copy_arg(&to_add[i]);
-  }
+  if (to_add != NULL) dst->args[src_num_args] = copy_arg(to_add);
   return dst;
 }
 
 grpc_channel_args *grpc_channel_args_copy(const grpc_channel_args *src) {
-  return grpc_channel_args_copy_and_add(src, NULL, 0);
-}
-
-grpc_channel_args *grpc_channel_args_merge(const grpc_channel_args *a,
-                                           const grpc_channel_args *b) {
-  return grpc_channel_args_copy_and_add(a, b->args, b->num_args);
+  return grpc_channel_args_copy_and_add(src, NULL);
 }
 
 void grpc_channel_args_destroy(grpc_channel_args *a) {
@@ -139,11 +131,11 @@ grpc_compression_level grpc_channel_args_get_compression_level(
   return GRPC_COMPRESS_LEVEL_NONE;
 }
 
-void grpc_channel_args_set_compression_level(grpc_channel_args **a,
-                                             grpc_compression_level level) {
+void grpc_channel_args_set_compression_level(
+    grpc_channel_args **a, grpc_compression_level level) {
   grpc_arg tmp;
   tmp.type = GRPC_ARG_INTEGER;
   tmp.key = GRPC_COMPRESSION_LEVEL_ARG;
   tmp.value.integer = level;
-  *a = grpc_channel_args_copy_and_add(*a, &tmp, 1);
+  *a = grpc_channel_args_copy_and_add(*a, &tmp);
 }

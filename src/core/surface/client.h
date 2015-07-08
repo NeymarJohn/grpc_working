@@ -31,32 +31,11 @@
  *
  */
 
-#ifndef GRPCXX_AUTH_CONTEXT_H
-#define GRPCXX_AUTH_CONTEXT_H
+#ifndef GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
+#define GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
 
-#include <vector>
+#include "src/core/channel/channel_stack.h"
 
-#include <grpc++/config.h>
+extern const grpc_channel_filter grpc_client_surface_filter;
 
-namespace grpc {
-
-class AuthContext {
- public:
-  typedef std::pair<grpc::string, grpc::string> Property;
-
-  virtual ~AuthContext() {}
-
-  // A peer identity, in general is one or more properties (in which case they
-  // have the same name).
-  virtual std::vector<grpc::string> GetPeerIdentity() const = 0;
-  virtual grpc::string GetPeerIdentityPropertyName() const = 0;
-
-  // Returns all the property values with the given name.
-  virtual std::vector<grpc::string> FindPropertyValues(
-      const grpc::string& name) const = 0;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_AUTH_CONTEXT_H
-
+#endif  /* GRPC_INTERNAL_CORE_SURFACE_CLIENT_H */

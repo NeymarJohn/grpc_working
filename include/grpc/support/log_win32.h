@@ -34,6 +34,8 @@
 #ifndef GRPC_SUPPORT_LOG_WIN32_H
 #define GRPC_SUPPORT_LOG_WIN32_H
 
+#include <windows.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
