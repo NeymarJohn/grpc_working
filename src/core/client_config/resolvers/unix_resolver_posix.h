@@ -31,17 +31,14 @@
  *
  */
 
-#import "GRPCMethodName.h"
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
 
-@implementation GRPCMethodName
-- (instancetype)initWithPackage:(NSString *)package
-                      interface:(NSString *)interface
-                         method:(NSString *)method {
-  if ((self = [super init])) {
-    _package = [package copy];
-    _interface = [interface copy];
-    _method = [method copy];
-  }
-  return self;
-}
-@end
+#include <grpc/support/port_platform.h>
+
+#include "src/core/client_config/resolver_factory.h"
+
+/** Create a unix resolver factory */
+grpc_resolver_factory *grpc_unix_resolver_factory_create(void);
+
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H */

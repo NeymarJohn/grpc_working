@@ -31,25 +31,25 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
-#define GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
+#import "ProtoMethod.h"
 
-#include "src/core/channel/channel_stack.h"
+@implementation ProtoMethod
+- (instancetype)initWithPackage:(NSString *)package
+                        service:(NSString *)service
+                         method:(NSString *)method {
+  if ((self = [super init])) {
+    _package = [package copy];
+    _service = [service copy];
+    _method = [method copy];
+  }
+  return self;
+}
 
-#define GRPC_COMPRESS_REQUEST_ALGORITHM_KEY "internal:grpc-encoding-request"
-
-/** Message-level compression filter.
- *
- * See <grpc/compression.h> for the available compression levels.
- *
- * Use grpc_channel_args_set_compression_level and
- * grpc_channel_args_get_compression_level to interact with the compression
- * settings for a channel.
- *
- * grpc_op instances of type GRPC_OP_SEND_MESSAGE can have the bit specified by
- * the GRPC_WRITE_NO_COMPRESS mask in order to disable compression in an
- * otherwise compressed channel.
- * */
-extern const grpc_channel_filter grpc_compress_filter;
-
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H */
+- (NSString *)HTTPPath {
+  if (_package) {
+    return [NSString stringWithFormat:@"/%@.%@/%@", _package, _service, _method];
+  } else {
+    return [NSString stringWithFormat:@"/%@/%@", _service, _method];
+  }
+}
+@end
