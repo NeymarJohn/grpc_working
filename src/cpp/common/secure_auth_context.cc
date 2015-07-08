@@ -31,62 +31,53 @@
  *
  */
 
-#include <grpc++/client_context.h>
+#include "src/cpp/common/secure_auth_context.h"
 
-#include <grpc/grpc.h>
-#include <grpc++/credentials.h>
-#include <grpc++/time.h>
-#include "src/cpp/common/create_auth_context.h"
+#include "src/core/security/security_context.h"
 
 namespace grpc {
 
-ClientContext::ClientContext()
-    : initial_metadata_received_(false),
-      call_(nullptr),
-      cq_(nullptr),
-      deadline_(gpr_inf_future) {}
+SecureAuthContext::SecureAuthContext(grpc_auth_context* ctx)
+    : ctx_(GRPC_AUTH_CONTEXT_REF(ctx, "SecureAuthContext")) {}
 
-ClientContext::~ClientContext() {
-  if (call_) {
-    grpc_call_destroy(call_);
-  }
-  if (cq_) {
-    // Drain cq_.
-    grpc_completion_queue_shutdown(cq_);
-    while (grpc_completion_queue_next(cq_, gpr_inf_future).type !=
-           GRPC_QUEUE_SHUTDOWN)
-      ;
-    grpc_completion_queue_destroy(cq_);
-  }
+SecureAuthContext::~SecureAuthContext() {
+  GRPC_AUTH_CONTEXT_UNREF(ctx_, "SecureAuthContext");
 }
 
-void ClientContext::AddMetadata(const grpc::string& meta_key,
-                                const grpc::string& meta_value) {
-  send_initial_metadata_.insert(std::make_pair(meta_key, meta_value));
+std::vector<grpc::string> SecureAuthContext::GetPeerIdentity() const {
+  if (!ctx_) {
+    return std::vector<grpc::string>();
+  }
+  grpc_auth_property_iterator iter = grpc_auth_context_peer_identity(ctx_);
+  std::vector<grpc::string> identity;
+  const grpc_auth_property* property = nullptr;
+  while ((property = grpc_auth_property_iterator_next(&iter))) {
+    identity.push_back(grpc::string(property->value, property->value_length));
+  }
+  return identity;
 }
 
-void ClientContext::set_call(grpc_call* call,
-                             const std::shared_ptr<ChannelInterface>& channel) {
-  GPR_ASSERT(call_ == nullptr);
-  call_ = call;
-  channel_ = channel;
-  if (creds_ && !creds_->ApplyToCall(call_)) {
-    grpc_call_cancel_with_status(call, GRPC_STATUS_CANCELLED,
-                                 "Failed to set credentials to rpc.");
+grpc::string SecureAuthContext::GetPeerIdentityPropertyName() const {
+  if (!ctx_) {
+    return "";
   }
+  const char* name = grpc_auth_context_peer_identity_property_name(ctx_);
+  return name == nullptr ? "" : name;
 }
 
-std::shared_ptr<const AuthContext> ClientContext::auth_context() const {
-  if (auth_context_.get() == nullptr) {
-    auth_context_ = CreateAuthContext(call_);
+std::vector<grpc::string> SecureAuthContext::FindPropertyValues(
+    const grpc::string& name) const {
+  if (!ctx_) {
+    return std::vector<grpc::string>();
   }
-  return auth_context_;
-}
-
-void ClientContext::TryCancel() {
-  if (call_) {
-    grpc_call_cancel(call_);
+  grpc_auth_property_iterator iter =
+      grpc_auth_context_find_properties_by_name(ctx_, name.c_str());
+  const grpc_auth_property* property = nullptr;
+  std::vector<grpc::string> values;
+  while ((property = grpc_auth_property_iterator_next(&iter))) {
+    values.push_back(grpc::string(property->value, property->value_length));
   }
+  return values;
 }
 
 }  // namespace grpc

@@ -30,16 +30,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#include <memory>
 
-/* This is just a compilation test, to see if we have a version of OpenSSL with
-   NPN support installed. It's not meant to be run, and all of the values and
-   function calls there are non-sensical. The code is only meant to test the
-   presence of symbols, and we're expecting a compilation failure otherwise. */
+#include <grpc/grpc.h>
+#include <grpc++/auth_context.h>
 
-#include <stdlib.h>
-#include <openssl/ssl.h>
+namespace grpc {
 
-int main() {
-  SSL_get0_next_proto_negotiated(NULL, NULL, NULL);
-  return OPENSSL_NPN_UNSUPPORTED;
+std::shared_ptr<const AuthContext> CreateAuthContext(grpc_call* call) {
+  (void)call;
+  return std::shared_ptr<const AuthContext>();
 }
+
+}  // namespace grpc
