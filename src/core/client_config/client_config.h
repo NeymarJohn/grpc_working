@@ -31,40 +31,22 @@
  *
  */
 
-'use strict';
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H
 
-var grpc = require('../');
+#include "src/core/client_config/lb_policy.h"
 
-var _ = require('lodash');
+/** Total configuration for a client. Provided, and updated, by
+    grpc_resolver */
+typedef struct grpc_client_config grpc_client_config;
 
-var health_proto = grpc.load(__dirname + '/health.proto');
+grpc_client_config *grpc_client_config_create();
+void grpc_client_config_ref(grpc_client_config *client_config);
+void grpc_client_config_unref(grpc_client_config *client_config);
 
-var HealthClient = health_proto.grpc.health.v1alpha.Health;
+void grpc_client_config_set_lb_policy(grpc_client_config *client_config,
+                                      grpc_lb_policy *lb_policy);
+grpc_lb_policy *grpc_client_config_get_lb_policy(
+    grpc_client_config *client_config);
 
-function HealthImplementation(statusMap) {
-  this.statusMap = _.clone(statusMap);
-}
-
-HealthImplementation.prototype.setStatus = function(host, service, status) {
-  if (!this.statusMap[host]) {
-    this.statusMap[host] = {};
-  }
-  this.statusMap[host][service] = status;
-};
-
-HealthImplementation.prototype.check = function(call, callback){
-  var host = call.request.host;
-  var service = call.request.service;
-  var status = _.get(this.statusMap, [host, service], null);
-  if (status === null) {
-    callback({code:grpc.status.NOT_FOUND});
-  } else {
-    callback(null, {status: status});
-  }
-};
-
-module.exports = {
-  Client: HealthClient,
-  service: HealthClient.service,
-  Implementation: HealthImplementation
-};
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_CLIENT_CONFIG_H */

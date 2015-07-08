@@ -31,11 +31,20 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
-#define GRPC_INTERNAL_CORE_SURFACE_CLIENT_H
+#include "src/core/client_config/resolver_factory.h"
 
-#include "src/core/channel/channel_stack.h"
+void grpc_resolver_factory_ref(grpc_resolver_factory *factory) {
+  factory->vtable->ref(factory);
+}
 
-extern const grpc_channel_filter grpc_client_surface_filter;
+void grpc_resolver_factory_unref(grpc_resolver_factory *factory) {
+  factory->vtable->unref(factory);
+}
 
-#endif  /* GRPC_INTERNAL_CORE_SURFACE_CLIENT_H */
+/** Create a resolver instance for a name */
+grpc_resolver *grpc_resolver_factory_create_resolver(
+    grpc_resolver_factory *factory, grpc_uri *uri,
+    grpc_subchannel_factory *subchannel_factory) {
+  if (!factory) return NULL;
+  return factory->vtable->create_resolver(factory, uri, subchannel_factory);
+}
