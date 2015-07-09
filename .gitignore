@@ -1,26 +1,33 @@
+# C/C++ build outputs
+bins
+gens
+libs
+objs
+
+# Python virtual environments
+python*_virtual_environment
+
+# gcov coverage data
+coverage
+*.gcno
+
+# profiler output
+*.prof
+
+# python compiled objects
+*.pyc
+
+#eclipse project files
+.cproject
+.project
+.settings
+
+# cache for run_tests.py
+.run_tests_cache
+
+# emacs temp files
 *~
-target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
 
-# OS X
-.DS_Store
+# vim temp files
+.*.swp
 
-# XCode
-build/
-DerivedData
-*.pbxuser
-!default.pbxuser
-*.mode1v3
-!default.mode1v3
-*.mode2v3
-!default.mode2v3
-*.perspectivev3
-!default.perspectivev3
-xcuserdata
-*.xccheckout
-*.moved-aside
-*.xcuserstate
