@@ -34,10 +34,6 @@
 #ifndef GRPC_COMPRESSION_H
 #define GRPC_COMPRESSION_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** To be used in channel arguments */
 #define GRPC_COMPRESSION_LEVEL_ARG "grpc.compression_level"
 
@@ -54,34 +50,13 @@ typedef enum {
   GRPC_COMPRESS_LEVEL_NONE = 0,
   GRPC_COMPRESS_LEVEL_LOW,
   GRPC_COMPRESS_LEVEL_MED,
-  GRPC_COMPRESS_LEVEL_HIGH,
-  GRPC_COMPRESS_LEVEL_COUNT
+  GRPC_COMPRESS_LEVEL_HIGH
 } grpc_compression_level;
 
-/** Parses \a name as a grpc_compression_algorithm instance, updating \a
- * algorithm. Returns 1 upon success, 0 otherwise. */
-int grpc_compression_algorithm_parse(const char *name,
-                                     grpc_compression_algorithm *algorithm);
-
-/** Updates \a name with the encoding name corresponding to a valid \a
- * algorithm.  Returns 1 upon success, 0 otherwise. */
-int grpc_compression_algorithm_name(grpc_compression_algorithm algorithm,
-                                    char **name);
-
-/** Returns the compression level corresponding to \a algorithm.
- *
- * It abort()s for unknown algorithms. */
-grpc_compression_level grpc_compression_level_for_algorithm(
+const char *grpc_compression_algorithm_name(
     grpc_compression_algorithm algorithm);
 
-/** Returns the compression algorithm corresponding to \a level.
- *
- * It abort()s for unknown levels . */
 grpc_compression_algorithm grpc_compression_algorithm_for_level(
     grpc_compression_level level);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* GRPC_COMPRESSION_H */
