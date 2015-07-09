@@ -1,3 +1,5 @@
+#!/usr/bin/env python2.7
+
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -27,17 +29,49 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Dockerfile for the gRPC Java dev image
-FROM grpc/java_base
+import glob
+import os
+import sys
+import tempfile
+sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..', 'run_tests'))
 
-RUN git clone --recursive --depth 1 https://github.com/grpc/grpc-java.git /var/local/git/grpc-java
-RUN cd /var/local/git/grpc-java/lib/netty && \
-  mvn -pl codec-http2 -am -DskipTests install clean
-RUN cd /var/local/git/grpc-java && \
-  ./gradlew :grpc-interop-testing:installDist -PskipCodegen=true
+assert sys.argv[1:], 'run generate_projects.sh instead of this directly'
 
-# Add a service_account directory containing the auth creds file
-ADD service_account service_account
+import jobset
 
-# Specify the default command such that the interop server runs on its known testing port
-CMD ["/var/local/git/grpc-java/run-test-server.sh", "--use_tls=true", "--port=8030"]
+os.chdir(os.path.join(os.path.dirname(sys.argv[0]), '..', '..'))
+json = sys.argv[1:]
+
+test = {} if 'TEST' in os.environ else None
+
+plugins = sorted(glob.glob('tools/buildgen/plugins/*.py'))
+
+jobs = []
+for root, dirs, files in os.walk('templates'):
+	for f in files:
+		if os.path.splitext(f)[1] == '.template':
+			out = '.' + root[len('templates'):] + '/' + os.path.splitext(f)[0]
+			cmd = ['tools/buildgen/mako_renderer.py']
+			for plugin in plugins:
+				cmd.append('-p')
+				cmd.append(plugin)
+			for js in json:
+				cmd.append('-d')
+				cmd.append(js)
+			cmd.append('-o')
+			if test is None:
+				cmd.append(out)
+			else:
+				tf = tempfile.mkstemp()
+				test[out] = tf[1]
+				os.close(tf[0])
+				cmd.append(test[out])
+			cmd.append(root + '/' + f)
+			jobs.append(jobset.JobSpec(cmd, shortname=out))
+
+jobset.run(jobs)
+
+if test is not None:
+	for s, g in test.iteritems():
+		assert(0 == os.system('diff %s %s' % (s, g)))
+		os.unlink(g)
