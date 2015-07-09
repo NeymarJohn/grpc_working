@@ -49,7 +49,7 @@ void grpc_chttp2_incoming_metadata_buffer_destroy(
     grpc_chttp2_incoming_metadata_buffer *buffer) {
   size_t i;
   for (i = 0; i < buffer->count; i++) {
-    grpc_mdelem_unref(buffer->elems[i].md);
+    GRPC_MDELEM_UNREF(buffer->elems[i].md);
   }
   gpr_free(buffer->elems);
 }
@@ -124,6 +124,7 @@ void grpc_incoming_metadata_buffer_move_to_referencing_sopb(
     sopb->ops[i].data.metadata.list.tail =
         (void *)(delta + (gpr_intptr)sopb->ops[i].data.metadata.list.tail);
   }
+  src->count = 0;
 }
 
 void grpc_chttp2_incoming_metadata_buffer_postprocess_sopb_and_begin_live_op(

@@ -84,6 +84,14 @@
   {
     "flaky": false, 
     "language": "c", 
+    "name": "fd_conservation_posix_test", 
+    "platforms": [
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
     "name": "fd_posix_test", 
     "platforms": [
       "posix"
@@ -306,6 +314,15 @@
   {
     "flaky": false, 
     "language": "c", 
+    "name": "grpc_jwt_verifier_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
     "name": "grpc_security_connector_test", 
     "platforms": [
       "windows", 
@@ -405,6 +422,15 @@
     "flaky": false, 
     "language": "c", 
     "name": "multi_init_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
+    "name": "multiple_server_queues_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -536,6 +562,15 @@
     "flaky": false, 
     "language": "c", 
     "name": "transport_security_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
+    "name": "uri_parser_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -680,6 +715,15 @@
     "flaky": false, 
     "language": "c++", 
     "name": "qps_test_openloop", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c++", 
+    "name": "secure_auth_context_test", 
     "platforms": [
       "windows", 
       "posix"
