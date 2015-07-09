@@ -30,44 +30,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#include <memory>
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H
-#define GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H
-
-/* Internal API for completion channels */
-
-#include "src/core/iomgr/pollset.h"
 #include <grpc/grpc.h>
+#include <grpc++/auth_context.h>
 
-#ifdef GRPC_CQ_REF_COUNT_DEBUG
-void grpc_cq_internal_ref(grpc_completion_queue *cc, const char *reason,
-                          const char *file, int line);
-void grpc_cq_internal_unref(grpc_completion_queue *cc, const char *reason,
-                            const char *file, int line);
-#define GRPC_CQ_INTERNAL_REF(cc, reason) \
-  grpc_cq_internal_ref(cc, reason, __FILE__, __LINE__)
-#define GRPC_CQ_INTERNAL_UNREF(cc, reason) \
-  grpc_cq_internal_unref(cc, reason, __FILE__, __LINE__)
-#else
-void grpc_cq_internal_ref(grpc_completion_queue *cc);
-void grpc_cq_internal_unref(grpc_completion_queue *cc);
-#define GRPC_CQ_INTERNAL_REF(cc, reason) grpc_cq_internal_ref(cc)
-#define GRPC_CQ_INTERNAL_UNREF(cc, reason) grpc_cq_internal_unref(cc)
-#endif
+namespace grpc {
 
-/* Flag that an operation is beginning: the completion channel will not finish
-   shutdown until a corrensponding grpc_cq_end_* call is made */
-void grpc_cq_begin_op(grpc_completion_queue *cc, grpc_call *call);
+std::shared_ptr<const AuthContext> CreateAuthContext(grpc_call* call) {
+  (void)call;
+  return std::shared_ptr<const AuthContext>();
+}
 
-/* Queue a GRPC_OP_COMPLETED operation */
-void grpc_cq_end_op(grpc_completion_queue *cc, void *tag, grpc_call *call,
-                    int success);
-
-grpc_pollset *grpc_cq_pollset(grpc_completion_queue *cc);
-
-void grpc_cq_hack_spin_pollset(grpc_completion_queue *cc);
-
-void grpc_cq_mark_server_cq(grpc_completion_queue *cc);
-int grpc_cq_is_server_cq(grpc_completion_queue *cc);
-
-#endif /* GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H */
+}  // namespace grpc
