@@ -83,12 +83,12 @@ then
   /cygdrive/c/nuget/nuget.exe restore vsprojects/grpc.sln
   /cygdrive/c/nuget/nuget.exe restore src/csharp/Grpc.sln
 
-  python tools/run_tests/run_tests.py -t -l $language -x report.xml || true
+  python tools/run_tests/run_tests.py -t -l $language -x report.xml
 elif [ "$platform" == "macos" ]
 then
   echo "building $language on MacOS"
 
-  ./tools/run_tests/run_tests.py -t -l $language -c $config -x report.xml || true
+  ./tools/run_tests/run_tests.py -t -l $language -c $config -x report.xml
 else
   echo "Unknown platform $platform"
   exit 1

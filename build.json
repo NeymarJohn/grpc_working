@@ -30,7 +30,6 @@
       "public_headers": [
         "include/grpc++/async_generic_service.h",
         "include/grpc++/async_unary_call.h",
-        "include/grpc++/auth_context.h",
         "include/grpc++/byte_buffer.h",
         "include/grpc++/channel_arguments.h",
         "include/grpc++/channel_interface.h",
@@ -69,7 +68,6 @@
       ],
       "headers": [
         "src/cpp/client/channel.h",
-        "src/cpp/common/create_auth_context.h",
         "src/cpp/server/thread_pool.h"
       ],
       "src": [
@@ -162,6 +160,7 @@
         "src/core/iomgr/tcp_server.h",
         "src/core/iomgr/tcp_windows.h",
         "src/core/iomgr/time_averaged_stats.h",
+        "src/core/iomgr/udp_server.h",
         "src/core/iomgr/wakeup_fd_pipe.h",
         "src/core/iomgr/wakeup_fd_posix.h",
         "src/core/json/json.h",
@@ -260,6 +259,7 @@
         "src/core/iomgr/tcp_server_windows.c",
         "src/core/iomgr/tcp_windows.c",
         "src/core/iomgr/time_averaged_stats.c",
+        "src/core/iomgr/udp_server.c",
         "src/core/iomgr/wakeup_fd_eventfd.c",
         "src/core/iomgr/wakeup_fd_nospecial.c",
         "src/core/iomgr/wakeup_fd_pipe.c",
@@ -561,14 +561,11 @@
       "language": "c++",
       "headers": [
         "src/cpp/client/secure_credentials.h",
-        "src/cpp/common/secure_auth_context.h",
         "src/cpp/server/secure_server_credentials.h"
       ],
       "src": [
         "src/cpp/client/secure_channel_arguments.cc",
         "src/cpp/client/secure_credentials.cc",
-        "src/cpp/common/secure_auth_context.cc",
-        "src/cpp/common/secure_create_auth_context.cc",
         "src/cpp/server/secure_server_credentials.cc"
       ],
       "deps": [
@@ -621,9 +618,6 @@
       "name": "grpc++_unsecure",
       "build": "all",
       "language": "c++",
-      "src": [
-        "src/cpp/common/insecure_create_auth_context.cc"
-      ],
       "deps": [
         "gpr",
         "grpc_unsecure"
@@ -1841,6 +1835,23 @@
       ]
     },
     {
+      "name": "udp_server_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/iomgr/udp_server_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ],
+      "platforms": [
+        "posix"
+      ]
+    },
+    {
       "name": "uri_parser_test",
       "build": "test",
       "language": "c",
@@ -2349,19 +2360,6 @@
         "gpr_test_util",
         "gpr",
         "grpc++_test_config"
-      ]
-    },
-    {
-      "name": "secure_auth_context_test",
-      "build": "test",
-      "language": "c++",
-      "src": [
-        "test/cpp/common/secure_auth_context_test.cc"
-      ],
-      "deps": [
-        "grpc++",
-        "grpc",
-        "gpr"
       ]
     },
     {
