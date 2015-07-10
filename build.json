@@ -30,6 +30,7 @@
       "public_headers": [
         "include/grpc++/async_generic_service.h",
         "include/grpc++/async_unary_call.h",
+        "include/grpc++/auth_context.h",
         "include/grpc++/byte_buffer.h",
         "include/grpc++/channel_arguments.h",
         "include/grpc++/channel_interface.h",
@@ -68,6 +69,7 @@
       ],
       "headers": [
         "src/cpp/client/channel.h",
+        "src/cpp/common/create_auth_context.h",
         "src/cpp/server/thread_pool.h"
       ],
       "src": [
@@ -373,7 +375,6 @@
         "src/core/support/env.h",
         "src/core/support/file.h",
         "src/core/support/murmur_hash.h",
-        "src/core/support/stack_lockfree.h",
         "src/core/support/string.h",
         "src/core/support/string_win32.h",
         "src/core/support/thd_internal.h"
@@ -402,7 +403,6 @@
         "src/core/support/murmur_hash.c",
         "src/core/support/slice.c",
         "src/core/support/slice_buffer.c",
-        "src/core/support/stack_lockfree.c",
         "src/core/support/string.c",
         "src/core/support/string_posix.c",
         "src/core/support/string_win32.c",
@@ -561,11 +561,14 @@
       "language": "c++",
       "headers": [
         "src/cpp/client/secure_credentials.h",
+        "src/cpp/common/secure_auth_context.h",
         "src/cpp/server/secure_server_credentials.h"
       ],
       "src": [
         "src/cpp/client/secure_channel_arguments.cc",
         "src/cpp/client/secure_credentials.cc",
+        "src/cpp/common/secure_auth_context.cc",
+        "src/cpp/common/secure_create_auth_context.cc",
         "src/cpp/server/secure_server_credentials.cc"
       ],
       "deps": [
@@ -618,6 +621,9 @@
       "name": "grpc++_unsecure",
       "build": "all",
       "language": "c++",
+      "src": [
+        "src/cpp/common/insecure_create_auth_context.cc"
+      ],
       "deps": [
         "gpr",
         "grpc_unsecure"
@@ -2343,6 +2349,19 @@
         "gpr_test_util",
         "gpr",
         "grpc++_test_config"
+      ]
+    },
+    {
+      "name": "secure_auth_context_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "test/cpp/common/secure_auth_context_test.cc"
+      ],
+      "deps": [
+        "grpc++",
+        "grpc",
+        "gpr"
       ]
     },
     {
