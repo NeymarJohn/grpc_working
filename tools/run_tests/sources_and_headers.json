@@ -996,20 +996,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "udp_server_test", 
-    "src": [
-      "test/core/iomgr/udp_server_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "uri_parser_test", 
     "src": [
       "test/core/client_config/uri_parser_test.c"
@@ -1495,6 +1481,19 @@
       "test/cpp/qps/client.h", 
       "test/cpp/qps/server.h", 
       "test/cpp/qps/worker.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "grpc", 
+      "grpc++"
+    ], 
+    "headers": [], 
+    "language": "c++", 
+    "name": "secure_auth_context_test", 
+    "src": [
+      "test/cpp/common/secure_auth_context_test.cc"
     ]
   }, 
   {
@@ -8773,7 +8772,6 @@
       "src/core/iomgr/tcp_server.h", 
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.h", 
-      "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.h", 
       "src/core/json/json.h", 
@@ -8958,8 +8956,6 @@
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.c", 
       "src/core/iomgr/time_averaged_stats.h", 
-      "src/core/iomgr/udp_server.c", 
-      "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_eventfd.c", 
       "src/core/iomgr/wakeup_fd_nospecial.c", 
       "src/core/iomgr/wakeup_fd_pipe.c", 
@@ -9224,7 +9220,6 @@
       "src/core/iomgr/tcp_server.h", 
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.h", 
-      "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.h", 
       "src/core/json/json.h", 
@@ -9387,8 +9382,6 @@
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.c", 
       "src/core/iomgr/time_averaged_stats.h", 
-      "src/core/iomgr/udp_server.c", 
-      "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_eventfd.c", 
       "src/core/iomgr/wakeup_fd_nospecial.c", 
       "src/core/iomgr/wakeup_fd_pipe.c", 
@@ -9495,6 +9488,7 @@
     "headers": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
+      "include/grpc++/auth_context.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -9532,6 +9526,8 @@
       "include/grpc++/time.h", 
       "src/cpp/client/channel.h", 
       "src/cpp/client/secure_credentials.h", 
+      "src/cpp/common/create_auth_context.h", 
+      "src/cpp/common/secure_auth_context.h", 
       "src/cpp/server/secure_server_credentials.h", 
       "src/cpp/server/thread_pool.h"
     ], 
@@ -9540,6 +9536,7 @@
     "src": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
+      "include/grpc++/auth_context.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -9589,7 +9586,11 @@
       "src/cpp/client/secure_credentials.h", 
       "src/cpp/common/call.cc", 
       "src/cpp/common/completion_queue.cc", 
+      "src/cpp/common/create_auth_context.h", 
       "src/cpp/common/rpc_method.cc", 
+      "src/cpp/common/secure_auth_context.cc", 
+      "src/cpp/common/secure_auth_context.h", 
+      "src/cpp/common/secure_create_auth_context.cc", 
       "src/cpp/proto/proto_utils.cc", 
       "src/cpp/server/async_generic_service.cc", 
       "src/cpp/server/create_default_thread_pool.cc", 
@@ -9658,6 +9659,7 @@
     "headers": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
+      "include/grpc++/auth_context.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -9694,6 +9696,7 @@
       "include/grpc++/thread_pool_interface.h", 
       "include/grpc++/time.h", 
       "src/cpp/client/channel.h", 
+      "src/cpp/common/create_auth_context.h", 
       "src/cpp/server/thread_pool.h"
     ], 
     "language": "c++", 
@@ -9701,6 +9704,7 @@
     "src": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
+      "include/grpc++/auth_context.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -9747,6 +9751,8 @@
       "src/cpp/client/internal_stub.cc", 
       "src/cpp/common/call.cc", 
       "src/cpp/common/completion_queue.cc", 
+      "src/cpp/common/create_auth_context.h", 
+      "src/cpp/common/insecure_create_auth_context.cc", 
       "src/cpp/common/rpc_method.cc", 
       "src/cpp/proto/proto_utils.cc", 
       "src/cpp/server/async_generic_service.cc", 
