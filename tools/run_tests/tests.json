@@ -525,6 +525,15 @@
   {
     "flaky": false, 
     "language": "c", 
+    "name": "time_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
     "name": "timeout_encoding_test", 
     "platforms": [
       "windows", 
@@ -555,6 +564,14 @@
     "name": "transport_security_test", 
     "platforms": [
       "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
+    "name": "udp_server_test", 
+    "platforms": [
       "posix"
     ]
   }, 
@@ -696,15 +713,6 @@
   {
     "flaky": false, 
     "language": "c++", 
-    "name": "qps_openloop_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c++", 
     "name": "qps_test", 
     "platforms": [
       "windows", 
@@ -714,7 +722,7 @@
   {
     "flaky": false, 
     "language": "c++", 
-    "name": "secure_auth_context_test", 
+    "name": "qps_test_openloop", 
     "platforms": [
       "windows", 
       "posix"

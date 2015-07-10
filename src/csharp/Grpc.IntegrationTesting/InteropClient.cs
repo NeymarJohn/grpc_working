@@ -102,6 +102,8 @@ namespace Grpc.IntegrationTesting
 
         private void Run()
         {
+            GrpcEnvironment.Initialize();
+
             Credentials credentials = null;
             if (options.useTls)
             {
@@ -133,6 +135,7 @@ namespace Grpc.IntegrationTesting
                 TestService.ITestServiceClient client = new TestService.TestServiceClient(channel, stubConfig);
                 RunTestCase(options.testCase, client);
             }
+
             GrpcEnvironment.Shutdown();
         }
 

@@ -36,7 +36,6 @@
 #include <grpc/grpc.h>
 #include <grpc++/credentials.h>
 #include <grpc++/time.h>
-#include "src/cpp/common/create_auth_context.h"
 
 namespace grpc {
 
@@ -44,7 +43,7 @@ ClientContext::ClientContext()
     : initial_metadata_received_(false),
       call_(nullptr),
       cq_(nullptr),
-      deadline_(gpr_inf_future(GPR_CLOCK_REALTIME)) {}
+      deadline_(gpr_inf_future) {}
 
 ClientContext::~ClientContext() {
   if (call_) {
@@ -53,8 +52,8 @@ ClientContext::~ClientContext() {
   if (cq_) {
     // Drain cq_.
     grpc_completion_queue_shutdown(cq_);
-    while (grpc_completion_queue_next(cq_, gpr_inf_future(GPR_CLOCK_REALTIME))
-               .type != GRPC_QUEUE_SHUTDOWN)
+    while (grpc_completion_queue_next(cq_, gpr_inf_future).type !=
+           GRPC_QUEUE_SHUTDOWN)
       ;
     grpc_completion_queue_destroy(cq_);
   }
@@ -74,13 +73,6 @@ void ClientContext::set_call(grpc_call* call,
     grpc_call_cancel_with_status(call, GRPC_STATUS_CANCELLED,
                                  "Failed to set credentials to rpc.");
   }
-}
-
-std::shared_ptr<const AuthContext> ClientContext::auth_context() const {
-  if (auth_context_.get() == nullptr) {
-    auth_context_ = CreateAuthContext(call_);
-  }
-  return auth_context_;
 }
 
 void ClientContext::TryCancel() {
