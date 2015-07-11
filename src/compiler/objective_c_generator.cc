@@ -100,14 +100,12 @@ void PrintAdvancedSignature(Printer *printer,
   PrintMethodSignature(printer, method, vars);
 }
 
-inline map<string, string>&& GetMethodVars(const MethodDescriptor *method) {
-  map<string,string> res;
-  res["method_name"] = method->name();
-  res["request_type"] = method->input_type()->name();
-  res["response_type"] = method->output_type()->name();
-  res["request_class"] = ClassName(method->input_type());
-  res["response_class"] = ClassName(method->output_type());
-  return std::forward<map<string,string>>(res);
+inline map<string, string> GetMethodVars(const MethodDescriptor *method) {
+  return {{ "method_name", method->name() },
+          { "request_type", method->input_type()->name() },
+          { "response_type", method->output_type()->name() },
+          { "request_class", ClassName(method->input_type()) },
+          { "response_class", ClassName(method->output_type()) }};
 }
 
 void PrintMethodDeclarations(Printer *printer,
