@@ -31,8 +31,6 @@
 # This script is invoked by Jenkins and triggers a test run based on
 # env variable settings.
 #
-# Setting up rvm environment BEFORE we set -ex.
-[[ -s /etc/profile.d/rvm.sh ]] && . /etc/profile.d/rvm.sh
 # To prevent cygwin bash complaining about empty lines ending with \r
 # we set the igncr option. The option doesn't exist on Linux, so we fallback
 # to just 'set -ex' there.
@@ -72,8 +70,7 @@ then
   DOCKER_CID=`cat docker.cid`
   docker kill $DOCKER_CID
   docker cp $DOCKER_CID:/var/local/git/grpc/report.xml $git_root
-  sleep 4
-  docker rm $DOCKER_CID || true
+  docker rm $DOCKER_CID
 
 elif [ "$platform" == "windows" ]
 then
@@ -86,12 +83,12 @@ then
   /cygdrive/c/nuget/nuget.exe restore vsprojects/grpc.sln
   /cygdrive/c/nuget/nuget.exe restore src/csharp/Grpc.sln
 
-  python tools/run_tests/run_tests.py -t -l $language -x report.xml || true
+  python tools/run_tests/run_tests.py -t -l $language -x report.xml
 elif [ "$platform" == "macos" ]
 then
   echo "building $language on MacOS"
 
-  ./tools/run_tests/run_tests.py -t -l $language -c $config -x report.xml || true
+  ./tools/run_tests/run_tests.py -t -l $language -c $config -x report.xml
 else
   echo "Unknown platform $platform"
   exit 1
