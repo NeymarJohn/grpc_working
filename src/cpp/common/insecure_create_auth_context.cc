@@ -30,46 +30,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#include <memory>
 
-#include "src/core/support/stack_lockfree.h"
+#include <grpc/grpc.h>
+#include <grpc++/auth_context.h>
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+namespace grpc {
 
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
-#include <grpc/support/useful.h>
-#include "test/core/util/test_config.h"
-
-void test_serial() {
-  gpr_stack_lockfree *stack = gpr_stack_lockfree_create(128);
-  int i;
-  
-  /* First try popping empty */
-  GPR_ASSERT(gpr_stack_lockfree_pop(stack) == -1);
-
-  /* Now add one item and check it */
-  gpr_stack_lockfree_push(stack, 3);
-  GPR_ASSERT(gpr_stack_lockfree_pop(stack) == 3);
-  GPR_ASSERT(gpr_stack_lockfree_pop(stack) == -1);
-  
-  /* Now add repeatedly more items and check them */
-  for (i=0; i<128; i++) {
-    int j;
-    for (j=0; j<=i; j++) {
-      gpr_stack_lockfree_push(stack, j);
-    }
-    for (j=0; j<=i; j++) {
-      GPR_ASSERT(gpr_stack_lockfree_pop(stack) == i-j);      
-    }
-    GPR_ASSERT(gpr_stack_lockfree_pop(stack) == -1);
-  }
+std::shared_ptr<const AuthContext> CreateAuthContext(grpc_call* call) {
+  (void)call;
+  return std::shared_ptr<const AuthContext>();
 }
 
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  test_serial();
-  return 0;
-}
+}  // namespace grpc

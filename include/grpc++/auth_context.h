@@ -31,20 +31,32 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
-#define GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
+#ifndef GRPCXX_AUTH_CONTEXT_H
+#define GRPCXX_AUTH_CONTEXT_H
 
-typedef struct gpr_stack_lockfree gpr_stack_lockfree;
+#include <vector>
 
-/* This stack must specify the maximum number of entries to track.
-   The current implementation only allows up to 65534 entries */
-gpr_stack_lockfree *gpr_stack_lockfree_create(int entries);
-void gpr_stack_lockfree_destroy(gpr_stack_lockfree *);
+#include <grpc++/config.h>
 
-/* Pass in a valid entry number for the next stack entry */
-void gpr_stack_lockfree_push(gpr_stack_lockfree *, int entry);
+namespace grpc {
 
-/* Returns -1 on empty or the actual entry number */
-int gpr_stack_lockfree_pop(gpr_stack_lockfree *);
+class AuthContext {
+ public:
+  typedef std::pair<grpc::string, grpc::string> Property;
 
-#endif  /* GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H */
+  virtual ~AuthContext() {}
+
+  // A peer identity, in general is one or more properties (in which case they
+  // have the same name).
+  virtual std::vector<grpc::string> GetPeerIdentity() const = 0;
+  virtual grpc::string GetPeerIdentityPropertyName() const = 0;
+
+  // Returns all the property values with the given name.
+  virtual std::vector<grpc::string> FindPropertyValues(
+      const grpc::string& name) const = 0;
+};
+
+}  // namespace grpc
+
+#endif  // GRPCXX_AUTH_CONTEXT_H
+
