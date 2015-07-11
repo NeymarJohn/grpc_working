@@ -1437,9 +1437,9 @@
     ], 
     "headers": [], 
     "language": "c++", 
-    "name": "qps_openloop_test", 
+    "name": "qps_test", 
     "src": [
-      "test/cpp/qps/qps_openloop_test.cc"
+      "test/cpp/qps/qps_test.cc"
     ]
   }, 
   {
@@ -1455,9 +1455,9 @@
     ], 
     "headers": [], 
     "language": "c++", 
-    "name": "qps_test", 
+    "name": "qps_test_openloop", 
     "src": [
-      "test/cpp/qps/qps_test.cc"
+      "test/cpp/qps/qps_test_openloop.cc"
     ]
   }, 
   {
@@ -1481,19 +1481,6 @@
       "test/cpp/qps/client.h", 
       "test/cpp/qps/server.h", 
       "test/cpp/qps/worker.cc"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "grpc", 
-      "grpc++"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "secure_auth_context_test", 
-    "src": [
-      "test/cpp/common/secure_auth_context_test.cc"
     ]
   }, 
   {
@@ -8608,6 +8595,7 @@
       "src/core/support/env.h", 
       "src/core/support/file.h", 
       "src/core/support/murmur_hash.h", 
+      "src/core/support/stack_lockfree.h", 
       "src/core/support/string.h", 
       "src/core/support/string_win32.h", 
       "src/core/support/thd_internal.h"
@@ -8669,6 +8657,8 @@
       "src/core/support/murmur_hash.h", 
       "src/core/support/slice.c", 
       "src/core/support/slice_buffer.c", 
+      "src/core/support/stack_lockfree.c", 
+      "src/core/support/stack_lockfree.h", 
       "src/core/support/string.c", 
       "src/core/support/string.h", 
       "src/core/support/string_posix.c", 
@@ -9025,7 +9015,6 @@
       "src/core/surface/server_create.c", 
       "src/core/surface/surface_trace.c", 
       "src/core/surface/surface_trace.h", 
-      "src/core/surface/version.c", 
       "src/core/transport/chttp2/alpn.c", 
       "src/core/transport/chttp2/alpn.h", 
       "src/core/transport/chttp2/bin_encoder.c", 
@@ -9427,7 +9416,6 @@
       "src/core/surface/server_create.c", 
       "src/core/surface/surface_trace.c", 
       "src/core/surface/surface_trace.h", 
-      "src/core/surface/version.c", 
       "src/core/transport/chttp2/alpn.c", 
       "src/core/transport/chttp2/alpn.h", 
       "src/core/transport/chttp2/bin_encoder.c", 
@@ -9490,7 +9478,6 @@
     "headers": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
-      "include/grpc++/auth_context.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -9528,8 +9515,6 @@
       "include/grpc++/time.h", 
       "src/cpp/client/channel.h", 
       "src/cpp/client/secure_credentials.h", 
-      "src/cpp/common/create_auth_context.h", 
-      "src/cpp/common/secure_auth_context.h", 
       "src/cpp/server/secure_server_credentials.h", 
       "src/cpp/server/thread_pool.h"
     ], 
@@ -9538,7 +9523,6 @@
     "src": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
-      "include/grpc++/auth_context.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -9588,11 +9572,7 @@
       "src/cpp/client/secure_credentials.h", 
       "src/cpp/common/call.cc", 
       "src/cpp/common/completion_queue.cc", 
-      "src/cpp/common/create_auth_context.h", 
       "src/cpp/common/rpc_method.cc", 
-      "src/cpp/common/secure_auth_context.cc", 
-      "src/cpp/common/secure_auth_context.h", 
-      "src/cpp/common/secure_create_auth_context.cc", 
       "src/cpp/proto/proto_utils.cc", 
       "src/cpp/server/async_generic_service.cc", 
       "src/cpp/server/create_default_thread_pool.cc", 
@@ -9661,7 +9641,6 @@
     "headers": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
-      "include/grpc++/auth_context.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -9698,7 +9677,6 @@
       "include/grpc++/thread_pool_interface.h", 
       "include/grpc++/time.h", 
       "src/cpp/client/channel.h", 
-      "src/cpp/common/create_auth_context.h", 
       "src/cpp/server/thread_pool.h"
     ], 
     "language": "c++", 
@@ -9706,7 +9684,6 @@
     "src": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
-      "include/grpc++/auth_context.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -9753,8 +9730,6 @@
       "src/cpp/client/internal_stub.cc", 
       "src/cpp/common/call.cc", 
       "src/cpp/common/completion_queue.cc", 
-      "src/cpp/common/create_auth_context.h", 
-      "src/cpp/common/insecure_create_auth_context.cc", 
       "src/cpp/common/rpc_method.cc", 
       "src/cpp/proto/proto_utils.cc", 
       "src/cpp/server/async_generic_service.cc", 
