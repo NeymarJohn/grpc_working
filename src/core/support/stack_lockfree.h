@@ -31,25 +31,20 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
-#define GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
+#ifndef GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
+#define GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
 
-#include "src/core/channel/channel_stack.h"
+typedef struct gpr_stack_lockfree gpr_stack_lockfree;
 
-#define GRPC_COMPRESS_REQUEST_ALGORITHM_KEY "internal:grpc-encoding-request"
+/* This stack must specify the maximum number of entries to track.
+   The current implementation only allows up to 65534 entries */
+gpr_stack_lockfree *gpr_stack_lockfree_create(int entries);
+void gpr_stack_lockfree_destroy(gpr_stack_lockfree *);
 
-/** Message-level compression filter.
- *
- * See <grpc/compression.h> for the available compression levels.
- *
- * Use grpc_channel_args_set_compression_level and
- * grpc_channel_args_get_compression_level to interact with the compression
- * settings for a channel.
- *
- * grpc_op instances of type GRPC_OP_SEND_MESSAGE can have the bit specified by
- * the GRPC_WRITE_NO_COMPRESS mask in order to disable compression in an
- * otherwise compressed channel.
- * */
-extern const grpc_channel_filter grpc_compress_filter;
+/* Pass in a valid entry number for the next stack entry */
+void gpr_stack_lockfree_push(gpr_stack_lockfree *, int entry);
 
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H */
+/* Returns -1 on empty or the actual entry number */
+int gpr_stack_lockfree_pop(gpr_stack_lockfree *);
+
+#endif  /* GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H */
