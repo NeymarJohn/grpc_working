@@ -51,6 +51,8 @@
 #include <grpc/support/string_util.h>
 #include <grpc/support/useful.h>
 
+typedef enum { PENDING_START, CALL_LIST_COUNT } call_list;
+
 typedef struct listener {
   void *arg;
   void (*start)(grpc_server *server, void *arg, grpc_pollset **pollsets,
@@ -92,6 +94,14 @@ typedef struct requested_call {
   } data;
 } requested_call;
 
+struct registered_method {
+  char *method;
+  char *host;
+  call_data *pending;
+  requested_call *requests;
+  registered_method *next;
+};
+
 typedef struct channel_registered_method {
   registered_method *server_registered_method;
   grpc_mdstr *method;
@@ -120,6 +130,44 @@ typedef struct shutdown_tag {
   grpc_cq_completion completion;
 } shutdown_tag;
 
+struct grpc_server {
+  size_t channel_filter_count;
+  const grpc_channel_filter **channel_filters;
+  grpc_channel_args *channel_args;
+
+  grpc_completion_queue **cqs;
+  grpc_pollset **pollsets;
+  size_t cq_count;
+
+  /* The two following mutexes control access to server-state
+     mu_global controls access to non-call-related state (e.g., channel state)
+     mu_call controls access to call-related state (e.g., the call lists)
+
+     If they are ever required to be nested, you must lock mu_global
+     before mu_call. This is currently used in shutdown processing
+     (grpc_server_shutdown_and_notify and maybe_finish_shutdown) */
+  gpr_mu mu_global; /* mutex for server and channel state */
+  gpr_mu mu_call;   /* mutex for call-specific state */
+
+  registered_method *registered_methods;
+  requested_call *requests;
+
+  gpr_uint8 shutdown;
+  gpr_uint8 shutdown_published;
+  size_t num_shutdown_tags;
+  shutdown_tag *shutdown_tags;
+
+  call_data *lists[CALL_LIST_COUNT];
+  channel_data root_channel_data;
+
+  listener *listeners;
+  int listeners_destroyed;
+  gpr_refcount internal_refcount;
+
+  /** when did we print the last shutdown progress message */
+  gpr_timespec last_shutdown_message_time;
+};
+
 typedef enum {
   /* waiting for metadata */
   NOT_STARTED,
@@ -130,8 +178,6 @@ typedef enum {
   /* cancelled before being queued */
   ZOMBIED
 } call_state;
-
-typedef struct request_matcher request_matcher;
 
 struct call_data {
   grpc_call *call;
@@ -155,63 +201,14 @@ struct call_data {
   grpc_iomgr_closure server_on_recv;
   grpc_iomgr_closure kill_zombie_closure;
 
-  call_data *pending_next;
-};
-
-struct request_matcher {
-  call_data *pending_head;
-  call_data *pending_tail;
-  requested_call *requests;
-};
-
-struct registered_method {
-  char *method;
-  char *host;
-  request_matcher request_matcher;
-  registered_method *next;
+  call_data **root[CALL_LIST_COUNT];
+  call_link links[CALL_LIST_COUNT];
 };
 
 typedef struct {
   grpc_channel **channels;
   size_t num_channels;
 } channel_broadcaster;
-
-struct grpc_server {
-  size_t channel_filter_count;
-  const grpc_channel_filter **channel_filters;
-  grpc_channel_args *channel_args;
-
-  grpc_completion_queue **cqs;
-  grpc_pollset **pollsets;
-  size_t cq_count;
-
-  /* The two following mutexes control access to server-state
-     mu_global controls access to non-call-related state (e.g., channel state)
-     mu_call controls access to call-related state (e.g., the call lists)
-
-     If they are ever required to be nested, you must lock mu_global
-     before mu_call. This is currently used in shutdown processing
-     (grpc_server_shutdown_and_notify and maybe_finish_shutdown) */
-  gpr_mu mu_global; /* mutex for server and channel state */
-  gpr_mu mu_call;   /* mutex for call-specific state */
-
-  registered_method *registered_methods;
-  request_matcher unregistered_request_matcher;
-
-  gpr_uint8 shutdown;
-  gpr_uint8 shutdown_published;
-  size_t num_shutdown_tags;
-  shutdown_tag *shutdown_tags;
-
-  channel_data root_channel_data;
-
-  listener *listeners;
-  int listeners_destroyed;
-  gpr_refcount internal_refcount;
-
-  /** when did we print the last shutdown progress message */
-  gpr_timespec last_shutdown_message_time;
-};
 
 #define SERVER_FROM_CALL_ELEM(elem) \
   (((channel_data *)(elem)->channel_data)->server)
@@ -223,9 +220,7 @@ static void fail_call(grpc_server *server, requested_call *rc);
    hold mu_call */
 static void maybe_finish_shutdown(grpc_server *server);
 
-/*
- * channel broadcaster
- */
+/* channel broadcaster */
 
 /* assumes server locked */
 static void channel_broadcaster_init(grpc_server *s, channel_broadcaster *cb) {
@@ -286,34 +281,54 @@ static void channel_broadcaster_shutdown(channel_broadcaster *cb,
   gpr_free(cb->channels);
 }
 
-/*
- * request_matcher
- */
+/* call list */
 
-static void request_matcher_init(request_matcher *request_matcher) {
-  memset(request_matcher, 0, sizeof(*request_matcher));
-}
-
-static void kill_zombie(void *elem, int success) {
-  grpc_call_destroy(grpc_call_from_top_element(elem));
-}
-
-static void request_matcher_zombify_all_pending_calls(
-    request_matcher *request_matcher) {
-  while (request_matcher->pending_head) {
-    call_data *calld = request_matcher->pending_head;
-    request_matcher->pending_head = calld->pending_next;
-    calld->state = ZOMBIED;
-    grpc_iomgr_closure_init(
-        &calld->kill_zombie_closure, kill_zombie,
-        grpc_call_stack_element(grpc_call_get_call_stack(calld->call), 0));
-    grpc_iomgr_add_callback(&calld->kill_zombie_closure);
+static int call_list_join(call_data **root, call_data *call, call_list list) {
+  GPR_ASSERT(!call->root[list]);
+  call->root[list] = root;
+  if (!*root) {
+    *root = call;
+    call->links[list].next = call->links[list].prev = call;
+  } else {
+    call->links[list].next = *root;
+    call->links[list].prev = (*root)->links[list].prev;
+    call->links[list].next->links[list].prev =
+        call->links[list].prev->links[list].next = call;
   }
+  return 1;
 }
 
-/*
- * server proper
- */
+static call_data *call_list_remove_head(call_data **root, call_list list) {
+  call_data *out = *root;
+  if (out) {
+    out->root[list] = NULL;
+    if (out->links[list].next == out) {
+      *root = NULL;
+    } else {
+      *root = out->links[list].next;
+      out->links[list].next->links[list].prev = out->links[list].prev;
+      out->links[list].prev->links[list].next = out->links[list].next;
+    }
+  }
+  return out;
+}
+
+static int call_list_remove(call_data *call, call_list list) {
+  call_data **root = call->root[list];
+  if (root == NULL) return 0;
+  call->root[list] = NULL;
+  if (*root == call) {
+    *root = call->links[list].next;
+    if (*root == call) {
+      *root = NULL;
+      return 1;
+    }
+  }
+  GPR_ASSERT(*root != call);
+  call->links[list].next->links[list].prev = call->links[list].prev;
+  call->links[list].prev->links[list].next = call->links[list].next;
+  return 1;
+}
 
 static void server_ref(grpc_server *server) {
   gpr_ref(&server->internal_refcount);
@@ -376,25 +391,20 @@ static void destroy_channel(channel_data *chand) {
 }
 
 static void finish_start_new_rpc(grpc_server *server, grpc_call_element *elem,
-                                 request_matcher *request_matcher) {
+                                 call_data **pending_root,
+                                 requested_call **requests) {
   requested_call *rc;
   call_data *calld = elem->call_data;
   gpr_mu_lock(&server->mu_call);
-  rc = request_matcher->requests;
+  rc = *requests;
   if (rc == NULL) {
     gpr_mu_lock(&calld->mu_state);
     calld->state = PENDING;
     gpr_mu_unlock(&calld->mu_state);
-    if (request_matcher->pending_head == NULL) {
-      request_matcher->pending_tail = request_matcher->pending_head = calld;
-    } else {
-      request_matcher->pending_tail->pending_next = calld;
-      request_matcher->pending_tail = calld;
-    }
-    calld->pending_next = NULL;
+    call_list_join(pending_root, calld, PENDING_START);
     gpr_mu_unlock(&server->mu_call);
   } else {
-    request_matcher->requests = rc->next;
+    *requests = rc->next;
     gpr_mu_lock(&calld->mu_state);
     calld->state = ACTIVATED;
     gpr_mu_unlock(&calld->mu_state);
@@ -421,8 +431,8 @@ static void start_new_rpc(grpc_call_element *elem) {
       if (!rm) break;
       if (rm->host != calld->host) continue;
       if (rm->method != calld->path) continue;
-      finish_start_new_rpc(server, elem,
-                           &rm->server_registered_method->request_matcher);
+      finish_start_new_rpc(server, elem, &rm->server_registered_method->pending,
+                           &rm->server_registered_method->requests);
       return;
     }
     /* check for a wildcard method definition (no host set) */
@@ -433,12 +443,17 @@ static void start_new_rpc(grpc_call_element *elem) {
       if (!rm) break;
       if (rm->host != NULL) continue;
       if (rm->method != calld->path) continue;
-      finish_start_new_rpc(server, elem,
-                           &rm->server_registered_method->request_matcher);
+      finish_start_new_rpc(server, elem, &rm->server_registered_method->pending,
+                           &rm->server_registered_method->requests);
       return;
     }
   }
-  finish_start_new_rpc(server, elem, &server->unregistered_request_matcher);
+  finish_start_new_rpc(server, elem, &server->lists[PENDING_START],
+                       &server->requests);
+}
+
+static void kill_zombie(void *elem, int success) {
+  grpc_call_destroy(grpc_call_from_top_element(elem));
 }
 
 static int num_listeners(grpc_server *server) {
@@ -511,6 +526,7 @@ static grpc_mdelem *server_filter(void *user_data, grpc_mdelem *md) {
 static void server_on_recv(void *ptr, int success) {
   grpc_call_element *elem = ptr;
   call_data *calld = elem->call_data;
+  channel_data *chand = elem->channel_data;
 
   if (success && !calld->got_initial_metadata) {
     size_t i;
@@ -555,8 +571,11 @@ static void server_on_recv(void *ptr, int success) {
       } else if (calld->state == PENDING) {
         calld->state = ZOMBIED;
         gpr_mu_unlock(&calld->mu_state);
-        /* zombied call will be destroyed when it's removed from the pending
-           queue... later */
+        gpr_mu_lock(&chand->server->mu_call);
+        call_list_remove(calld, PENDING_START);
+        gpr_mu_unlock(&chand->server->mu_call);
+        grpc_iomgr_closure_init(&calld->kill_zombie_closure, kill_zombie, elem);
+        grpc_iomgr_add_callback(&calld->kill_zombie_closure);
       } else {
         gpr_mu_unlock(&calld->mu_state);
       }
@@ -634,7 +653,11 @@ static void destroy_call_elem(grpc_call_element *elem) {
   channel_data *chand = elem->channel_data;
   call_data *calld = elem->call_data;
 
-  GPR_ASSERT(calld->state != PENDING);
+  if (calld->state == PENDING) {
+    gpr_mu_lock(&chand->server->mu_call);
+    call_list_remove(elem->call_data, PENDING_START);
+    gpr_mu_unlock(&chand->server->mu_call);
+  }
 
   if (calld->host) {
     GRPC_MDSTR_UNREF(calld->host);
@@ -741,8 +764,6 @@ grpc_server *grpc_server_create_from_filters(grpc_channel_filter **filters,
   server->root_channel_data.next = server->root_channel_data.prev =
       &server->root_channel_data;
 
-  request_matcher_init(&server->unregistered_request_matcher);
-
   /* Server filter stack is:
 
      server_surface_filter - for making surface API calls
@@ -790,7 +811,6 @@ void *grpc_server_register_method(grpc_server *server, const char *method,
   }
   m = gpr_malloc(sizeof(registered_method));
   memset(m, 0, sizeof(*m));
-  request_matcher_init(&m->request_matcher);
   m->method = gpr_strdup(method);
   m->host = gpr_strdup(host);
   m->next = server->registered_methods;
@@ -934,18 +954,15 @@ void grpc_server_shutdown_and_notify(grpc_server *server,
 
   /* collect all unregistered then registered calls */
   gpr_mu_lock(&server->mu_call);
-  requests = server->unregistered_request_matcher.requests;
-  server->unregistered_request_matcher.requests = NULL;
-  request_matcher_zombify_all_pending_calls(
-      &server->unregistered_request_matcher);
+  requests = server->requests;
+  server->requests = NULL;
   for (rm = server->registered_methods; rm; rm = rm->next) {
-    while (rm->request_matcher.requests != NULL) {
-      requested_call *c = rm->request_matcher.requests;
-      rm->request_matcher.requests = c->next;
+    while (rm->requests != NULL) {
+      requested_call *c = rm->requests;
+      rm->requests = c->next;
       c->next = requests;
       requests = c;
     }
-    request_matcher_zombify_all_pending_calls(&rm->request_matcher);
   }
   gpr_mu_unlock(&server->mu_call);
 
@@ -1020,7 +1037,7 @@ void grpc_server_add_listener(grpc_server *server, void *arg,
 static grpc_call_error queue_call_request(grpc_server *server,
                                           requested_call *rc) {
   call_data *calld = NULL;
-  request_matcher *request_matcher = NULL;
+  requested_call **requests = NULL;
   gpr_mu_lock(&server->mu_call);
   if (server->shutdown) {
     gpr_mu_unlock(&server->mu_call);
@@ -1029,35 +1046,27 @@ static grpc_call_error queue_call_request(grpc_server *server,
   }
   switch (rc->type) {
     case BATCH_CALL:
-      request_matcher = &server->unregistered_request_matcher;
+      calld =
+          call_list_remove_head(&server->lists[PENDING_START], PENDING_START);
+      requests = &server->requests;
       break;
     case REGISTERED_CALL:
-      request_matcher = &rc->data.registered.registered_method->request_matcher;
+      calld = call_list_remove_head(
+          &rc->data.registered.registered_method->pending, PENDING_START);
+      requests = &rc->data.registered.registered_method->requests;
       break;
-  }
-  if (request_matcher->pending_head != NULL) {
-    calld = request_matcher->pending_head;
-    request_matcher->pending_head = calld->pending_next;
   }
   if (calld != NULL) {
     gpr_mu_unlock(&server->mu_call);
     gpr_mu_lock(&calld->mu_state);
-    if (calld->state == ZOMBIED) {
-      gpr_mu_unlock(&calld->mu_state);
-      grpc_iomgr_closure_init(
-          &calld->kill_zombie_closure, kill_zombie,
-          grpc_call_stack_element(grpc_call_get_call_stack(calld->call), 0));
-      grpc_iomgr_add_callback(&calld->kill_zombie_closure);
-      return queue_call_request(server, rc); /* retry */
-    }
     GPR_ASSERT(calld->state == PENDING);
     calld->state = ACTIVATED;
     gpr_mu_unlock(&calld->mu_state);
     begin_call(server, calld, rc);
     return GRPC_CALL_OK;
   } else {
-    rc->next = request_matcher->requests;
-    request_matcher->requests = rc;
+    rc->next = *requests;
+    *requests = rc;
     gpr_mu_unlock(&server->mu_call);
     return GRPC_CALL_OK;
   }
