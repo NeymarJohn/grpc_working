@@ -338,6 +338,18 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "gpr_stack_lockfree_test", 
+    "src": [
+      "test/core/support/stack_lockfree_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "gpr_string_test", 
     "src": [
       "test/core/support/string_test.c"
@@ -1437,9 +1449,9 @@
     ], 
     "headers": [], 
     "language": "c++", 
-    "name": "qps_test", 
+    "name": "qps_openloop_test", 
     "src": [
-      "test/cpp/qps/qps_test.cc"
+      "test/cpp/qps/qps_openloop_test.cc"
     ]
   }, 
   {
@@ -1455,9 +1467,9 @@
     ], 
     "headers": [], 
     "language": "c++", 
-    "name": "qps_test_openloop", 
+    "name": "qps_test", 
     "src": [
-      "test/cpp/qps/qps_test_openloop.cc"
+      "test/cpp/qps/qps_test.cc"
     ]
   }, 
   {
@@ -8608,6 +8620,7 @@
       "src/core/support/env.h", 
       "src/core/support/file.h", 
       "src/core/support/murmur_hash.h", 
+      "src/core/support/stack_lockfree.h", 
       "src/core/support/string.h", 
       "src/core/support/string_win32.h", 
       "src/core/support/thd_internal.h"
@@ -8669,6 +8682,8 @@
       "src/core/support/murmur_hash.h", 
       "src/core/support/slice.c", 
       "src/core/support/slice_buffer.c", 
+      "src/core/support/stack_lockfree.c", 
+      "src/core/support/stack_lockfree.h", 
       "src/core/support/string.c", 
       "src/core/support/string.h", 
       "src/core/support/string_posix.c", 
@@ -9025,6 +9040,7 @@
       "src/core/surface/server_create.c", 
       "src/core/surface/surface_trace.c", 
       "src/core/surface/surface_trace.h", 
+      "src/core/surface/version.c", 
       "src/core/transport/chttp2/alpn.c", 
       "src/core/transport/chttp2/alpn.h", 
       "src/core/transport/chttp2/bin_encoder.c", 
@@ -9096,7 +9112,6 @@
       "test/core/end2end/cq_verifier.h", 
       "test/core/end2end/data/ssl_test_data.h", 
       "test/core/iomgr/endpoint_tests.h", 
-      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.h", 
       "test/core/util/port.h", 
@@ -9113,8 +9128,6 @@
       "test/core/end2end/data/test_root_cert.c", 
       "test/core/iomgr/endpoint_tests.c", 
       "test/core/iomgr/endpoint_tests.h", 
-      "test/core/security/oauth2_utils.c", 
-      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.c", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.c", 
@@ -9135,7 +9148,6 @@
     "headers": [
       "test/core/end2end/cq_verifier.h", 
       "test/core/iomgr/endpoint_tests.h", 
-      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.h", 
       "test/core/util/port.h", 
@@ -9148,8 +9160,6 @@
       "test/core/end2end/cq_verifier.h", 
       "test/core/iomgr/endpoint_tests.c", 
       "test/core/iomgr/endpoint_tests.h", 
-      "test/core/security/oauth2_utils.c", 
-      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.c", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.c", 
@@ -9432,6 +9442,7 @@
       "src/core/surface/server_create.c", 
       "src/core/surface/surface_trace.c", 
       "src/core/surface/surface_trace.h", 
+      "src/core/surface/version.c", 
       "src/core/transport/chttp2/alpn.c", 
       "src/core/transport/chttp2/alpn.h", 
       "src/core/transport/chttp2/bin_encoder.c", 

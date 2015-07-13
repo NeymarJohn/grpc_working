@@ -31,42 +31,20 @@
  *
  */
 
-#include "test/cpp/qps/timer.h"
+#ifndef GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
+#define GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
 
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <grpc/support/time.h>
-#include <grpc++/config.h>
+typedef struct gpr_stack_lockfree gpr_stack_lockfree;
 
-Timer::Timer() : start_(Sample()) {}
+/* This stack must specify the maximum number of entries to track.
+   The current implementation only allows up to 65534 entries */
+gpr_stack_lockfree *gpr_stack_lockfree_create(int entries);
+void gpr_stack_lockfree_destroy(gpr_stack_lockfree *);
 
-double Timer::Now() {
-  auto ts = gpr_now(GPR_CLOCK_REALTIME);
-  return ts.tv_sec + 1e-9 * ts.tv_nsec;
-}
+/* Pass in a valid entry number for the next stack entry */
+void gpr_stack_lockfree_push(gpr_stack_lockfree *, int entry);
 
-static double time_double(struct timeval* tv) {
-  return tv->tv_sec + 1e-6 * tv->tv_usec;
-}
+/* Returns -1 on empty or the actual entry number */
+int gpr_stack_lockfree_pop(gpr_stack_lockfree *);
 
-Timer::Result Timer::Sample() {
-  struct rusage usage;
-  struct timeval tv;
-  gettimeofday(&tv, nullptr);
-  getrusage(RUSAGE_SELF, &usage);
-
-  Result r;
-  r.wall = time_double(&tv);
-  r.user = time_double(&usage.ru_utime);
-  r.system = time_double(&usage.ru_stime);
-  return r;
-}
-
-Timer::Result Timer::Mark() {
-  Result s = Sample();
-  Result r;
-  r.wall = s.wall - start_.wall;
-  r.user = s.user - start_.user;
-  r.system = s.system - start_.system;
-  return r;
-}
+#endif  /* GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H */

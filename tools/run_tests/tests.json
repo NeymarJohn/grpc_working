@@ -197,6 +197,15 @@
   {
     "flaky": false, 
     "language": "c", 
+    "name": "gpr_stack_lockfree_test", 
+    "platforms": [
+      "windows", 
+      "posix"
+    ]
+  }, 
+  {
+    "flaky": false, 
+    "language": "c", 
     "name": "gpr_string_test", 
     "platforms": [
       "windows", 
@@ -705,7 +714,7 @@
   {
     "flaky": false, 
     "language": "c++", 
-    "name": "qps_test", 
+    "name": "qps_openloop_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -714,7 +723,7 @@
   {
     "flaky": false, 
     "language": "c++", 
-    "name": "qps_test_openloop", 
+    "name": "qps_test", 
     "platforms": [
       "windows", 
       "posix"
