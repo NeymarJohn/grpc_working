@@ -525,15 +525,6 @@
   {
     "flaky": false, 
     "language": "c", 
-    "name": "time_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
     "name": "timeout_encoding_test", 
     "platforms": [
       "windows", 
@@ -705,7 +696,7 @@
   {
     "flaky": false, 
     "language": "c++", 
-    "name": "qps_openloop_test", 
+    "name": "qps_test", 
     "platforms": [
       "windows", 
       "posix"
@@ -714,7 +705,7 @@
   {
     "flaky": false, 
     "language": "c++", 
-    "name": "qps_test", 
+    "name": "qps_test_openloop", 
     "platforms": [
       "windows", 
       "posix"
