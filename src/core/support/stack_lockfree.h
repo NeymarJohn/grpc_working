@@ -31,32 +31,21 @@
  *
  */
 
-#include "test/cpp/interop/server_helper.h"
+#ifndef GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
+#define GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
 
-#include <memory>
+typedef struct gpr_stack_lockfree gpr_stack_lockfree;
 
-#include <gflags/gflags.h>
-#include "test/core/end2end/data/ssl_test_data.h"
-#include <grpc++/config.h>
-#include <grpc++/server_credentials.h>
+/* This stack must specify the maximum number of entries to track.
+   The current implementation only allows up to 65534 entries */
+gpr_stack_lockfree *gpr_stack_lockfree_create(int entries);
+void gpr_stack_lockfree_destroy(gpr_stack_lockfree *);
 
-DECLARE_bool(enable_ssl);
+/* Pass in a valid entry number for the next stack entry */
+/* Returns 1 if this is the first element on the stack, 0 otherwise */
+int gpr_stack_lockfree_push(gpr_stack_lockfree *, int entry);
 
-namespace grpc {
-namespace testing {
+/* Returns -1 on empty or the actual entry number */
+int gpr_stack_lockfree_pop(gpr_stack_lockfree *);
 
-std::shared_ptr<ServerCredentials> CreateInteropServerCredentials() {
-  if (FLAGS_enable_ssl) {
-    SslServerCredentialsOptions::PemKeyCertPair pkcp = {test_server1_key,
-                                                        test_server1_cert};
-    SslServerCredentialsOptions ssl_opts;
-    ssl_opts.pem_root_certs = "";
-    ssl_opts.pem_key_cert_pairs.push_back(pkcp);
-    return SslServerCredentials(ssl_opts);
-  } else {
-    return InsecureServerCredentials();
-  }
-}
-
-}  // namespace testing
-}  // namespace grpc
+#endif  /* GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H */
