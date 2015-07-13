@@ -31,77 +31,62 @@
  *
  */
 
-#include <stdio.h>
+#include "test/core/security/oauth2_utils.h"
+
 #include <string.h>
 
-#include "src/core/security/credentials.h"
-#include "src/core/support/string.h"
 #include <grpc/grpc.h>
 #include <grpc/grpc_security.h>
 #include <grpc/support/alloc.h>
-#include <grpc/support/cmdline.h>
 #include <grpc/support/log.h>
 #include <grpc/support/slice.h>
 #include <grpc/support/sync.h>
 
+#include "src/core/security/credentials.h"
+
 typedef struct {
   grpc_pollset pollset;
   int is_done;
+  char *token;
 } synchronizer;
 
-static void on_metadata_response(void *user_data,
-                                 grpc_credentials_md *md_elems,
-                                 size_t num_md,
-                                 grpc_credentials_status status) {
+static void on_oauth2_response(void *user_data, grpc_credentials_md *md_elems,
+                               size_t num_md, grpc_credentials_status status) {
   synchronizer *sync = user_data;
+  char *token = NULL;
+  gpr_slice token_slice;
   if (status == GRPC_CREDENTIALS_ERROR) {
-    fprintf(stderr, "Fetching token failed.\n");
+    gpr_log(GPR_ERROR, "Fetching token failed.");
   } else {
-    char *token;
     GPR_ASSERT(num_md == 1);
-    token = gpr_dump_slice(md_elems[0].value, GPR_DUMP_ASCII);
-    printf("\nGot token: %s\n\n", token);
-    gpr_free(token);
+    token_slice = md_elems[0].value;
+    token = gpr_malloc(GPR_SLICE_LENGTH(token_slice) + 1);
+    memcpy(token, GPR_SLICE_START_PTR(token_slice),
+           GPR_SLICE_LENGTH(token_slice));
+    token[GPR_SLICE_LENGTH(token_slice)] = '\0';
   }
   gpr_mu_lock(GRPC_POLLSET_MU(&sync->pollset));
   sync->is_done = 1;
+  sync->token = token;
   grpc_pollset_kick(&sync->pollset);
   gpr_mu_unlock(GRPC_POLLSET_MU(&sync->pollset));
 }
 
-int main(int argc, char **argv) {
-  int result = 0;
+static void do_nothing(void *unused) {}
+
+char *grpc_test_fetch_oauth2_token_with_credentials(grpc_credentials *creds) {
   synchronizer sync;
-  grpc_credentials *creds = NULL;
-  char *service_url = "https://test.foo.google.com/Foo";
-  gpr_cmdline *cl = gpr_cmdline_create("print_google_default_creds_token");
-  gpr_cmdline_add_string(cl, "service_url",
-                         "Service URL for the token request.", &service_url);
-  gpr_cmdline_parse(cl, argc, argv);
-
-  grpc_init();
-
-  creds = grpc_google_default_credentials_create();
-  if (creds == NULL) {
-    fprintf(stderr, "\nCould not find default credentials.\n\n");
-    result = 1;
-    goto end;
-  }
-
   grpc_pollset_init(&sync.pollset);
   sync.is_done = 0;
 
-  grpc_credentials_get_request_metadata(creds, &sync.pollset, service_url,
-                                        on_metadata_response, &sync);
+  grpc_credentials_get_request_metadata(creds, &sync.pollset, "",
+                                        on_oauth2_response, &sync);
 
   gpr_mu_lock(GRPC_POLLSET_MU(&sync.pollset));
   while (!sync.is_done) grpc_pollset_work(&sync.pollset, gpr_inf_future);
   gpr_mu_unlock(GRPC_POLLSET_MU(&sync.pollset));
 
-  grpc_credentials_release(creds);
-
-end:
-  gpr_cmdline_destroy(cl);
-  grpc_shutdown();
-  return result;
+  grpc_pollset_shutdown(&sync.pollset, do_nothing, NULL);
+  grpc_pollset_destroy(&sync.pollset);
+  return sync.token;
 }

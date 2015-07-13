@@ -926,6 +926,20 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "time_test", 
+    "src": [
+      "test/core/support/time_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "timeout_encoding_test", 
     "src": [
       "test/core/transport/chttp2/timeout_encoding_test.c"
@@ -1423,9 +1437,9 @@
     ], 
     "headers": [], 
     "language": "c++", 
-    "name": "qps_openloop_test", 
+    "name": "qps_test", 
     "src": [
-      "test/cpp/qps/qps_openloop_test.cc"
+      "test/cpp/qps/qps_test.cc"
     ]
   }, 
   {
@@ -1441,9 +1455,9 @@
     ], 
     "headers": [], 
     "language": "c++", 
-    "name": "qps_test", 
+    "name": "qps_test_openloop", 
     "src": [
-      "test/cpp/qps/qps_test.cc"
+      "test/cpp/qps/qps_test_openloop.cc"
     ]
   }, 
   {
@@ -9011,7 +9025,6 @@
       "src/core/surface/server_create.c", 
       "src/core/surface/surface_trace.c", 
       "src/core/surface/surface_trace.h", 
-      "src/core/surface/version.c", 
       "src/core/transport/chttp2/alpn.c", 
       "src/core/transport/chttp2/alpn.h", 
       "src/core/transport/chttp2/bin_encoder.c", 
@@ -9083,6 +9096,7 @@
       "test/core/end2end/cq_verifier.h", 
       "test/core/end2end/data/ssl_test_data.h", 
       "test/core/iomgr/endpoint_tests.h", 
+      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.h", 
       "test/core/util/port.h", 
@@ -9099,6 +9113,8 @@
       "test/core/end2end/data/test_root_cert.c", 
       "test/core/iomgr/endpoint_tests.c", 
       "test/core/iomgr/endpoint_tests.h", 
+      "test/core/security/oauth2_utils.c", 
+      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.c", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.c", 
@@ -9119,6 +9135,7 @@
     "headers": [
       "test/core/end2end/cq_verifier.h", 
       "test/core/iomgr/endpoint_tests.h", 
+      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.h", 
       "test/core/util/port.h", 
@@ -9131,6 +9148,8 @@
       "test/core/end2end/cq_verifier.h", 
       "test/core/iomgr/endpoint_tests.c", 
       "test/core/iomgr/endpoint_tests.h", 
+      "test/core/security/oauth2_utils.c", 
+      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.c", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.c", 
@@ -9413,7 +9432,6 @@
       "src/core/surface/server_create.c", 
       "src/core/surface/surface_trace.c", 
       "src/core/surface/surface_trace.h", 
-      "src/core/surface/version.c", 
       "src/core/transport/chttp2/alpn.c", 
       "src/core/transport/chttp2/alpn.h", 
       "src/core/transport/chttp2/bin_encoder.c", 

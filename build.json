@@ -287,7 +287,6 @@
         "src/core/surface/server_chttp2.c",
         "src/core/surface/server_create.c",
         "src/core/surface/surface_trace.c",
-        "src/core/surface/version.c",
         "src/core/transport/chttp2/alpn.c",
         "src/core/transport/chttp2/bin_encoder.c",
         "src/core/transport/chttp2/frame_data.c",
@@ -321,6 +320,7 @@
       "headers": [
         "test/core/end2end/cq_verifier.h",
         "test/core/iomgr/endpoint_tests.h",
+        "test/core/security/oauth2_utils.h",
         "test/core/util/grpc_profiler.h",
         "test/core/util/parse_hexstring.h",
         "test/core/util/port.h",
@@ -329,6 +329,7 @@
       "src": [
         "test/core/end2end/cq_verifier.c",
         "test/core/iomgr/endpoint_tests.c",
+        "test/core/security/oauth2_utils.c",
         "test/core/util/grpc_profiler.c",
         "test/core/util/parse_hexstring.c",
         "test/core/util/port_posix.c",
@@ -1772,6 +1773,20 @@
       ]
     },
     {
+      "name": "time_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/support/time_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
       "name": "timeout_encoding_test",
       "build": "test",
       "language": "c",
@@ -2281,11 +2296,11 @@
       ]
     },
     {
-      "name": "qps_openloop_test",
+      "name": "qps_test",
       "build": "test",
       "language": "c++",
       "src": [
-        "test/cpp/qps/qps_openloop_test.cc"
+        "test/cpp/qps/qps_test.cc"
       ],
       "deps": [
         "qps",
@@ -2299,11 +2314,11 @@
       ]
     },
     {
-      "name": "qps_test",
+      "name": "qps_test_openloop",
       "build": "test",
       "language": "c++",
       "src": [
-        "test/cpp/qps/qps_test.cc"
+        "test/cpp/qps/qps_test_openloop.cc"
       ],
       "deps": [
         "qps",
