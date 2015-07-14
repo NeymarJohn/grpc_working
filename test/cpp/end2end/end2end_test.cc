@@ -68,8 +68,6 @@ namespace testing {
 
 namespace {
 
-const char* kServerCancelAfterReads = "cancel_after_reads";
-
 // When echo_deadline is requested, deadline seen in the ServerContext is set in
 // the response in seconds.
 void MaybeEchoDeadline(ServerContext* context, const EchoRequest* request,
@@ -83,31 +81,16 @@ void MaybeEchoDeadline(ServerContext* context, const EchoRequest* request,
   }
 }
 
-template <typename T>
-void CheckAuthContext(T* context) {
-  std::shared_ptr<const AuthContext> auth_ctx = context->auth_context();
-  std::vector<grpc::string> fake =
-      auth_ctx->FindPropertyValues("transport_security_type");
-  EXPECT_EQ(1u, fake.size());
-  EXPECT_EQ("fake", fake[0]);
-  EXPECT_TRUE(auth_ctx->GetPeerIdentityPropertyName().empty());
-  EXPECT_TRUE(auth_ctx->GetPeerIdentity().empty());
-}
-
 }  // namespace
 
 class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
  public:
-  TestServiceImpl() : signal_client_(false), host_(nullptr) {}
-  explicit TestServiceImpl(const grpc::string& host) : signal_client_(false), host_(new grpc::string(host)) {}
+  TestServiceImpl() : signal_client_(false) {}
 
   Status Echo(ServerContext* context, const EchoRequest* request,
               EchoResponse* response) GRPC_OVERRIDE {
     response->set_message(request->message());
     MaybeEchoDeadline(context, request, response);
-    if (host_) {
-      response->mutable_param()->set_host(*host_);
-    }
     if (request->has_param() && request->param().client_cancel_after_us()) {
       {
         std::unique_lock<std::mutex> lock(mu_);
@@ -115,16 +98,16 @@ class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
       }
       while (!context->IsCancelled()) {
         gpr_sleep_until(gpr_time_add(
-            gpr_now(GPR_CLOCK_REALTIME),
+            gpr_now(),
             gpr_time_from_micros(request->param().client_cancel_after_us())));
       }
-      return Status::CANCELLED;
+      return Status::Cancelled;
     } else if (request->has_param() &&
                request->param().server_cancel_after_us()) {
       gpr_sleep_until(gpr_time_add(
-          gpr_now(GPR_CLOCK_REALTIME),
-          gpr_time_from_micros(request->param().server_cancel_after_us())));
-      return Status::CANCELLED;
+            gpr_now(),
+            gpr_time_from_micros(request->param().server_cancel_after_us())));
+      return Status::Cancelled;
     } else {
       EXPECT_FALSE(context->IsCancelled());
     }
@@ -138,9 +121,6 @@ class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
         context->AddTrailingMetadata((*iter).first, (*iter).second);
       }
     }
-    if (request->has_param() && request->param().check_auth_context()) {
-      CheckAuthContext(context);
-    }
     return Status::OK;
   }
 
@@ -151,23 +131,7 @@ class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
                        EchoResponse* response) GRPC_OVERRIDE {
     EchoRequest request;
     response->set_message("");
-    int cancel_after_reads = 0;
-    const std::multimap<grpc::string, grpc::string> client_initial_metadata =
-        context->client_metadata();
-    if (client_initial_metadata.find(kServerCancelAfterReads) !=
-        client_initial_metadata.end()) {
-      std::istringstream iss(
-          client_initial_metadata.find(kServerCancelAfterReads)->second);
-      iss >> cancel_after_reads;
-      gpr_log(GPR_INFO, "cancel_after_reads %d", cancel_after_reads);
-    }
     while (reader->Read(&request)) {
-      if (cancel_after_reads == 1) {
-        gpr_log(GPR_INFO, "return cancel status");
-        return Status::CANCELLED;
-      } else if (cancel_after_reads > 0) {
-        cancel_after_reads--;
-      }
       response->mutable_message()->append(request.message());
     }
     return Status::OK;
@@ -209,7 +173,6 @@ class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
  private:
   bool signal_client_;
   std::mutex mu_;
-  std::unique_ptr<grpc::string> host_;
 };
 
 class TestServiceImplDupPkg
@@ -224,7 +187,7 @@ class TestServiceImplDupPkg
 
 class End2endTest : public ::testing::Test {
  protected:
-  End2endTest() : kMaxMessageSize_(8192), special_service_("special"), thread_pool_(2) {}
+  End2endTest() : kMaxMessageSize_(8192), thread_pool_(2) {}
 
   void SetUp() GRPC_OVERRIDE {
     int port = grpc_pick_unused_port_or_die();
@@ -234,7 +197,6 @@ class End2endTest : public ::testing::Test {
     builder.AddListeningPort(server_address_.str(),
                              FakeTransportSecurityServerCredentials());
     builder.RegisterService(&service_);
-    builder.RegisterService("special", &special_service_);
     builder.SetMaxMessageSize(
         kMaxMessageSize_);  // For testing max message size.
     builder.RegisterService(&dup_pkg_service_);
@@ -256,7 +218,6 @@ class End2endTest : public ::testing::Test {
   std::ostringstream server_address_;
   const int kMaxMessageSize_;
   TestServiceImpl service_;
-  TestServiceImpl special_service_;
   TestServiceImplDupPkg dup_pkg_service_;
   ThreadPool thread_pool_;
 };
@@ -271,24 +232,8 @@ static void SendRpc(grpc::cpp::test::util::TestService::Stub* stub,
     ClientContext context;
     Status s = stub->Echo(&context, request, &response);
     EXPECT_EQ(response.message(), request.message());
-    EXPECT_TRUE(s.ok());
+    EXPECT_TRUE(s.IsOk());
   }
-}
-
-TEST_F(End2endTest, SimpleRpcWithHost) {
-  ResetStub();
-
-  EchoRequest request;
-  EchoResponse response;
-  request.set_message("Hello");
-
-  ClientContext context;
-  context.set_authority("special");
-  Status s = stub_->Echo(&context, request, &response);
-  EXPECT_EQ(response.message(), request.message());
-  EXPECT_TRUE(response.has_param());
-  EXPECT_EQ(response.param().host(), "special");
-  EXPECT_TRUE(s.ok());
 }
 
 TEST_F(End2endTest, SimpleRpc) {
@@ -320,7 +265,7 @@ TEST_F(End2endTest, RpcDeadlineExpires) {
       std::chrono::system_clock::now() + std::chrono::microseconds(10);
   context.set_deadline(deadline);
   Status s = stub_->Echo(&context, request, &response);
-  EXPECT_EQ(StatusCode::DEADLINE_EXCEEDED, s.error_code());
+  EXPECT_EQ(StatusCode::DEADLINE_EXCEEDED, s.code());
 }
 
 // Set a long but finite deadline.
@@ -336,7 +281,7 @@ TEST_F(End2endTest, RpcLongDeadline) {
   context.set_deadline(deadline);
   Status s = stub_->Echo(&context, request, &response);
   EXPECT_EQ(response.message(), request.message());
-  EXPECT_TRUE(s.ok());
+  EXPECT_TRUE(s.IsOk());
 }
 
 // Ask server to echo back the deadline it sees.
@@ -353,7 +298,7 @@ TEST_F(End2endTest, EchoDeadline) {
   context.set_deadline(deadline);
   Status s = stub_->Echo(&context, request, &response);
   EXPECT_EQ(response.message(), request.message());
-  EXPECT_TRUE(s.ok());
+  EXPECT_TRUE(s.IsOk());
   gpr_timespec sent_deadline;
   Timepoint2Timespec(deadline, &sent_deadline);
   // Allow 1 second error.
@@ -372,7 +317,7 @@ TEST_F(End2endTest, EchoDeadlineForNoDeadlineRpc) {
   ClientContext context;
   Status s = stub_->Echo(&context, request, &response);
   EXPECT_EQ(response.message(), request.message());
-  EXPECT_TRUE(s.ok());
+  EXPECT_TRUE(s.IsOk());
   EXPECT_EQ(response.param().request_deadline(), gpr_inf_future.tv_sec);
 }
 
@@ -384,9 +329,9 @@ TEST_F(End2endTest, UnimplementedRpc) {
 
   ClientContext context;
   Status s = stub_->Unimplemented(&context, request, &response);
-  EXPECT_FALSE(s.ok());
-  EXPECT_EQ(s.error_code(), grpc::StatusCode::UNIMPLEMENTED);
-  EXPECT_EQ(s.error_message(), "");
+  EXPECT_FALSE(s.IsOk());
+  EXPECT_EQ(s.code(), grpc::StatusCode::UNIMPLEMENTED);
+  EXPECT_EQ(s.details(), "");
   EXPECT_EQ(response.message(), "");
 }
 
@@ -402,7 +347,7 @@ TEST_F(End2endTest, RequestStreamOneRequest) {
   stream->WritesDone();
   Status s = stream->Finish();
   EXPECT_EQ(response.message(), request.message());
-  EXPECT_TRUE(s.ok());
+  EXPECT_TRUE(s.IsOk());
 }
 
 TEST_F(End2endTest, RequestStreamTwoRequests) {
@@ -418,7 +363,7 @@ TEST_F(End2endTest, RequestStreamTwoRequests) {
   stream->WritesDone();
   Status s = stream->Finish();
   EXPECT_EQ(response.message(), "hellohello");
-  EXPECT_TRUE(s.ok());
+  EXPECT_TRUE(s.IsOk());
 }
 
 TEST_F(End2endTest, ResponseStream) {
@@ -438,7 +383,7 @@ TEST_F(End2endTest, ResponseStream) {
   EXPECT_FALSE(stream->Read(&response));
 
   Status s = stream->Finish();
-  EXPECT_TRUE(s.ok());
+  EXPECT_TRUE(s.IsOk());
 }
 
 TEST_F(End2endTest, BidiStream) {
@@ -469,7 +414,7 @@ TEST_F(End2endTest, BidiStream) {
   EXPECT_FALSE(stream->Read(&response));
 
   Status s = stream->Finish();
-  EXPECT_TRUE(s.ok());
+  EXPECT_TRUE(s.IsOk());
 }
 
 // Talk to the two services with the same name but different package names.
@@ -488,7 +433,7 @@ TEST_F(End2endTest, DiffPackageServices) {
   ClientContext context;
   Status s = stub->Echo(&context, request, &response);
   EXPECT_EQ(response.message(), request.message());
-  EXPECT_TRUE(s.ok());
+  EXPECT_TRUE(s.IsOk());
 
   std::unique_ptr<grpc::cpp::test::util::duplicate::TestService::Stub>
       dup_pkg_stub(
@@ -496,7 +441,7 @@ TEST_F(End2endTest, DiffPackageServices) {
   ClientContext context2;
   s = dup_pkg_stub->Echo(&context2, request, &response);
   EXPECT_EQ("no package", response.message());
-  EXPECT_TRUE(s.ok());
+  EXPECT_TRUE(s.IsOk());
 }
 
 // rpc and stream should fail on bad credentials.
@@ -514,21 +459,20 @@ TEST_F(End2endTest, BadCredentials) {
 
   Status s = stub->Echo(&context, request, &response);
   EXPECT_EQ("", response.message());
-  EXPECT_FALSE(s.ok());
-  EXPECT_EQ(StatusCode::UNKNOWN, s.error_code());
-  EXPECT_EQ("Rpc sent on a lame channel.", s.error_message());
+  EXPECT_FALSE(s.IsOk());
+  EXPECT_EQ(StatusCode::UNKNOWN, s.code());
+  EXPECT_EQ("Rpc sent on a lame channel.", s.details());
 
   ClientContext context2;
   auto stream = stub->BidiStream(&context2);
   s = stream->Finish();
-  EXPECT_FALSE(s.ok());
-  EXPECT_EQ(StatusCode::UNKNOWN, s.error_code());
-  EXPECT_EQ("Rpc sent on a lame channel.", s.error_message());
+  EXPECT_FALSE(s.IsOk());
+  EXPECT_EQ(StatusCode::UNKNOWN, s.code());
+  EXPECT_EQ("Rpc sent on a lame channel.", s.details());
 }
 
 void CancelRpc(ClientContext* context, int delay_us, TestServiceImpl* service) {
-  gpr_sleep_until(gpr_time_add(gpr_now(GPR_CLOCK_REALTIME),
-                               gpr_time_from_micros(delay_us)));
+  gpr_sleep_until(gpr_time_add(gpr_now(), gpr_time_from_micros(delay_us)));
   while (!service->signal_client()) {
   }
   context->TryCancel();
@@ -547,8 +491,8 @@ TEST_F(End2endTest, ClientCancelsRpc) {
   std::thread cancel_thread(CancelRpc, &context, kCancelDelayUs, &service_);
   Status s = stub_->Echo(&context, request, &response);
   cancel_thread.join();
-  EXPECT_EQ(StatusCode::CANCELLED, s.error_code());
-  EXPECT_EQ(s.error_message(), "Cancelled");
+  EXPECT_EQ(StatusCode::CANCELLED, s.code());
+  EXPECT_EQ(s.details(), "Cancelled");
 }
 
 // Server cancels rpc after 1ms
@@ -561,8 +505,8 @@ TEST_F(End2endTest, ServerCancelsRpc) {
 
   ClientContext context;
   Status s = stub_->Echo(&context, request, &response);
-  EXPECT_EQ(StatusCode::CANCELLED, s.error_code());
-  EXPECT_TRUE(s.error_message().empty());
+  EXPECT_EQ(StatusCode::CANCELLED, s.code());
+  EXPECT_TRUE(s.details().empty());
 }
 
 // Client cancels request stream after sending two messages
@@ -580,7 +524,7 @@ TEST_F(End2endTest, ClientCancelsRequestStream) {
   context.TryCancel();
 
   Status s = stream->Finish();
-  EXPECT_EQ(grpc::StatusCode::CANCELLED, s.error_code());
+  EXPECT_EQ(grpc::StatusCode::CANCELLED, s.code());
 
   EXPECT_EQ(response.message(), "");
 }
@@ -614,7 +558,7 @@ TEST_F(End2endTest, ClientCancelsResponseStream) {
   Status s = stream->Finish();
   // The final status could be either of CANCELLED or OK depending on
   // who won the race.
-  EXPECT_GE(grpc::StatusCode::CANCELLED, s.error_code());
+  EXPECT_GE(grpc::StatusCode::CANCELLED, s.code());
 }
 
 // Client cancels bidi stream after sending some messages
@@ -647,7 +591,7 @@ TEST_F(End2endTest, ClientCancelsBidi) {
   }
 
   Status s = stream->Finish();
-  EXPECT_EQ(grpc::StatusCode::CANCELLED, s.error_code());
+  EXPECT_EQ(grpc::StatusCode::CANCELLED, s.code());
 }
 
 TEST_F(End2endTest, RpcMaxMessageSize) {
@@ -658,7 +602,7 @@ TEST_F(End2endTest, RpcMaxMessageSize) {
 
   ClientContext context;
   Status s = stub_->Echo(&context, request, &response);
-  EXPECT_FALSE(s.ok());
+  EXPECT_FALSE(s.IsOk());
 }
 
 bool MetadataContains(const std::multimap<grpc::string, grpc::string>& metadata,
@@ -688,7 +632,7 @@ TEST_F(End2endTest, SetPerCallCredentials) {
 
   Status s = stub_->Echo(&context, request, &response);
   EXPECT_EQ(request.message(), response.message());
-  EXPECT_TRUE(s.ok());
+  EXPECT_TRUE(s.IsOk());
   EXPECT_TRUE(MetadataContains(context.GetServerTrailingMetadata(),
                                GRPC_IAM_AUTHORIZATION_TOKEN_METADATA_KEY,
                                "fake_token"));
@@ -708,8 +652,8 @@ TEST_F(End2endTest, InsecurePerCallCredentials) {
   request.mutable_param()->set_echo_metadata(true);
 
   Status s = stub_->Echo(&context, request, &response);
-  EXPECT_EQ(StatusCode::CANCELLED, s.error_code());
-  EXPECT_EQ("Failed to set credentials to rpc.", s.error_message());
+  EXPECT_EQ(StatusCode::CANCELLED, s.code());
+  EXPECT_EQ("Failed to set credentials to rpc.", s.details());
 }
 
 TEST_F(End2endTest, OverridePerCallCredentials) {
@@ -740,43 +684,7 @@ TEST_F(End2endTest, OverridePerCallCredentials) {
                                 GRPC_IAM_AUTHORITY_SELECTOR_METADATA_KEY,
                                 "fake_selector1"));
   EXPECT_EQ(request.message(), response.message());
-  EXPECT_TRUE(s.ok());
-}
-
-// Client sends 20 requests and the server returns CANCELLED status after
-// reading 10 requests.
-TEST_F(End2endTest, RequestStreamServerEarlyCancelTest) {
-  ResetStub();
-  EchoRequest request;
-  EchoResponse response;
-  ClientContext context;
-
-  context.AddMetadata(kServerCancelAfterReads, "10");
-  auto stream = stub_->RequestStream(&context, &response);
-  request.set_message("hello");
-  int send_messages = 20;
-  while (send_messages > 0) {
-    EXPECT_TRUE(stream->Write(request));
-    send_messages--;
-  }
-  stream->WritesDone();
-  Status s = stream->Finish();
-  EXPECT_EQ(s.error_code(), StatusCode::CANCELLED);
-}
-
-TEST_F(End2endTest, ClientAuthContext) {
-  ResetStub();
-  EchoRequest request;
-  EchoResponse response;
-  request.set_message("Hello");
-  request.mutable_param()->set_check_auth_context(true);
-
-  ClientContext context;
-  Status s = stub_->Echo(&context, request, &response);
-  EXPECT_EQ(response.message(), request.message());
-  EXPECT_TRUE(s.ok());
-
-  CheckAuthContext(&context);
+  EXPECT_TRUE(s.IsOk());
 }
 
 }  // namespace testing

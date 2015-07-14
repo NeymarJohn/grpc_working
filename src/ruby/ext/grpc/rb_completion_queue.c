@@ -91,7 +91,7 @@ static void grpc_rb_completion_queue_shutdown_drain(grpc_completion_queue *cq) {
    * - investigate further, this is probably another example of C-level cleanup
    * not working consistently in all cases.
    */
-  next_call.timeout = gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), gpr_time_from_micros(5e3));
+  next_call.timeout = gpr_time_add(gpr_now(), gpr_time_from_micros(5e3));
   do {
     rb_thread_call_without_gvl(grpc_rb_completion_queue_next_no_gil,
                                (void *)&next_call, NULL, NULL);
@@ -142,16 +142,8 @@ grpc_event grpc_rb_completion_queue_pluck_event(VALUE self, VALUE tag,
   MEMZERO(&next_call, next_call_stack, 1);
   TypedData_Get_Struct(self, grpc_completion_queue,
                        &grpc_rb_completion_queue_data_type, next_call.cq);
-  if (TYPE(timeout) == T_NIL) {
-    next_call.timeout = gpr_inf_future;
-  } else {
-    next_call.timeout = grpc_rb_time_timeval(timeout, /* absolute time*/ 0);
-  }
-  if (TYPE(tag) == T_NIL) {
-    next_call.tag = NULL;
-  } else {
-    next_call.tag = ROBJECT(tag);
-  }
+  next_call.timeout = grpc_rb_time_timeval(timeout, /* absolute time*/ 0);
+  next_call.tag = ROBJECT(tag);
   next_call.event.type = GRPC_QUEUE_TIMEOUT;
   rb_thread_call_without_gvl(grpc_rb_completion_queue_pluck_no_gil,
                              (void *)&next_call, NULL, NULL);

@@ -39,8 +39,6 @@
 #include <grpc/support/log.h>
 #include <grpc++/config.h>
 #include <grpc++/slice.h>
-#include <grpc++/status.h>
-#include <grpc++/impl/serialization_traits.h>
 
 #include <vector>
 
@@ -50,7 +48,7 @@ class ByteBuffer GRPC_FINAL {
  public:
   ByteBuffer() : buffer_(nullptr) {}
 
-  ByteBuffer(const Slice* slices, size_t nslices);
+  ByteBuffer(Slice* slices, size_t nslices);
 
   ~ByteBuffer() {
     if (buffer_) {
@@ -58,16 +56,13 @@ class ByteBuffer GRPC_FINAL {
     }
   }
 
-  void Dump(std::vector<Slice>* slices) const;
+  void Dump(std::vector<Slice>* slices);
 
   void Clear();
-  size_t Length() const;
+  size_t Length();
 
  private:
-  friend class SerializationTraits<ByteBuffer, void>;
-
-  ByteBuffer(const ByteBuffer&);
-  ByteBuffer& operator=(const ByteBuffer&);
+  friend class CallOpBuffer;
 
   // takes ownership
   void set_buffer(grpc_byte_buffer* buf) {
@@ -81,22 +76,6 @@ class ByteBuffer GRPC_FINAL {
   grpc_byte_buffer* buffer() const { return buffer_; }
 
   grpc_byte_buffer* buffer_;
-};
-
-template <>
-class SerializationTraits<ByteBuffer, void> {
- public:
-  static Status Deserialize(grpc_byte_buffer* byte_buffer, ByteBuffer* dest,
-                            int max_message_size) {
-    dest->set_buffer(byte_buffer);
-    return Status::OK;
-  }
-  static Status Serialize(const ByteBuffer& source, grpc_byte_buffer** buffer, 
-                        bool* own_buffer) {
-    *buffer = source.buffer();
-    *own_buffer = false;
-    return Status::OK;
-  }
 };
 
 }  // namespace grpc

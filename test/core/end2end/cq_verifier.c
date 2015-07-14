@@ -167,9 +167,6 @@ static void verify_matches(expectation *e, grpc_event *ev) {
 static void expectation_to_strvec(gpr_strvec *buf, expectation *e) {
   char *tmp;
 
-  gpr_asprintf(&tmp, "%p ", e->tag);
-  gpr_strvec_add(buf, tmp);
-
   switch (e->type) {
     case GRPC_OP_COMPLETE:
       gpr_asprintf(&tmp, "GRPC_OP_COMPLETE result=%d", e->success);
@@ -248,8 +245,7 @@ void cq_verify(cq_verifier *v) {
 }
 
 void cq_verify_empty(cq_verifier *v) {
-  gpr_timespec deadline =
-      gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), gpr_time_from_seconds(1));
+  gpr_timespec deadline = gpr_time_add(gpr_now(), gpr_time_from_seconds(1));
   grpc_event ev;
 
   GPR_ASSERT(v->expect.next == &v->expect && "expectation queue must be empty");

@@ -33,29 +33,28 @@
 
 #import "ProtoRPC.h"
 
-#import <GPBProtocolBuffers.h>
-#import <RxLibrary/GRXWriteable.h>
-#import <RxLibrary/GRXWriter.h>
-#import <RxLibrary/GRXWriter+Transformations.h>
+#import <gRPC/GRXWriteable.h>
+#import <gRPC/GRXWriter.h>
+#import <gRPC/GRXWriter+Transformations.h>
+#import <Protobuf/GPBProtocolBuffers.h>
 
 @implementation ProtoRPC {
   id<GRXWriteable> _responseWriteable;
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wobjc-designated-initializers"
 - (instancetype)initWithHost:(NSString *)host
-                        path:(NSString *)path
+                      method:(GRPCMethodName *)method
               requestsWriter:(id<GRXWriter>)requestsWriter {
-  [NSException raise:NSInvalidArgumentException
-              format:@"Please use ProtoRPC's designated initializer instead."];
-  return nil;
+  return [self initWithHost:host
+                     method:method
+             requestsWriter:requestsWriter
+              responseClass:nil
+        responsesWriteable:nil];
 }
-#pragma clang diagnostic pop
 
 // Designated initializer
 - (instancetype)initWithHost:(NSString *)host
-                      method:(ProtoMethod *)method
+                      method:(GRPCMethodName *)method
               requestsWriter:(id<GRXWriter>)requestsWriter
                responseClass:(Class)responseClass
           responsesWriteable:(id<GRXWriteable>)responsesWriteable {
@@ -67,11 +66,9 @@
   // A writer that serializes the proto messages to send.
   id<GRXWriter> bytesWriter =
       [[[GRXWriter alloc] initWithWriter:requestsWriter] map:^id(GPBMessage *proto) {
-        // TODO(jcanizales): Fail with an understandable error message if the requestsWriter isn't
-        // sending GPBMessages.
         return [proto data];
       }];
-  if ((self = [super initWithHost:host path:method.HTTPPath requestsWriter:bytesWriter])) {
+  if ((self = [super initWithHost:host method:method requestsWriter:bytesWriter])) {
     // A writeable that parses the proto messages received.
     _responseWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
       [responsesWriteable writeValue:[responseClass parseFromData:value error:NULL]];

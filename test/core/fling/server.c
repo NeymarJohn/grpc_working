@@ -233,16 +233,12 @@ int main(int argc, char **argv) {
   while (!shutdown_finished) {
     if (got_sigint && !shutdown_started) {
       gpr_log(GPR_INFO, "Shutting down due to SIGINT");
-      grpc_server_shutdown_and_notify(server, cq, tag(1000));
-      GPR_ASSERT(grpc_completion_queue_pluck(
-                     cq, tag(1000), GRPC_TIMEOUT_SECONDS_TO_DEADLINE(5))
-                     .type == GRPC_OP_COMPLETE);
+      grpc_server_shutdown(server);
       grpc_completion_queue_shutdown(cq);
       shutdown_started = 1;
     }
     ev = grpc_completion_queue_next(
-        cq, gpr_time_add(gpr_now(GPR_CLOCK_REALTIME),
-                         gpr_time_from_micros(1000000)));
+        cq, gpr_time_add(gpr_now(), gpr_time_from_micros(1000000)));
     s = ev.tag;
     switch (ev.type) {
       case GRPC_OP_COMPLETE:

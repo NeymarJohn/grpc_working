@@ -42,17 +42,18 @@ namespace grpc {
 class Status {
  public:
   Status() : code_(StatusCode::OK) {}
+  explicit Status(StatusCode code) : code_(code) {}
   Status(StatusCode code, const grpc::string& details)
       : code_(code), details_(details) {}
 
   // Pre-defined special status objects.
   static const Status& OK;
-  static const Status& CANCELLED;
+  static const Status& Cancelled;
 
-  StatusCode error_code() const { return code_; }
-  grpc::string error_message() const { return details_; }
+  StatusCode code() const { return code_; }
+  grpc::string details() const { return details_; }
 
-  bool ok() const { return code_ == StatusCode::OK; }
+  bool IsOk() const { return code_ == StatusCode::OK; }
 
  private:
   StatusCode code_;

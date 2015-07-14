@@ -34,19 +34,21 @@
 #import "GRPCCall.h"
 
 #include <grpc/grpc.h>
-#include <grpc/support/time.h>
+#include <grpc/support/grpc_time.h>
 
+#import "GRPCMethodName.h"
 #import "private/GRPCChannel.h"
 #import "private/GRPCCompletionQueue.h"
 #import "private/GRPCDelegateWrapper.h"
+#import "private/GRPCMethodName+HTTP2Encoding.h"
 #import "private/GRPCWrappedCall.h"
 #import "private/NSData+GRPC.h"
 #import "private/NSDictionary+GRPC.h"
 #import "private/NSError+GRPC.h"
 
-NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
-
 @interface GRPCCall () <GRXWriteable>
+// Makes it readwrite.
+@property(atomic, strong) NSDictionary *responseMetadata;
 @end
 
 // The following methods of a C gRPC call object aren't reentrant, and thus
@@ -80,27 +82,22 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
   // correct ordering.
   GRPCDelegateWrapper *_responseWriteable;
   id<GRXWriter> _requestWriter;
-
-  NSMutableDictionary *_requestMetadata;
-  NSMutableDictionary *_responseMetadata;
 }
 
 @synthesize state = _state;
 
 - (instancetype)init {
-  return [self initWithHost:nil path:nil requestsWriter:nil];
+  return [self initWithHost:nil method:nil requestsWriter:nil];
 }
 
 // Designated initializer
 - (instancetype)initWithHost:(NSString *)host
-                        path:(NSString *)path
+                      method:(GRPCMethodName *)method
               requestsWriter:(id<GRXWriter>)requestWriter {
-  if (!host || !path) {
+  if (!host || !method) {
     [NSException raise:NSInvalidArgumentException format:@"Neither host nor method can be nil."];
   }
-  if (requestWriter.state != GRXWriterStateNotStarted) {
-    [NSException raise:NSInvalidArgumentException format:@"The requests writer can't be already started."];
-  }
+  // TODO(jcanizales): Throw if the requestWriter was already started.
   if ((self = [super init])) {
     static dispatch_once_t initialization;
     dispatch_once(&initialization, ^{
@@ -112,32 +109,15 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
     _channel = [GRPCChannel channelToHost:host];
 
     _wrappedCall = [[GRPCWrappedCall alloc] initWithChannel:_channel
-                                                       path:path
+                                                     method:method.HTTP2Path
                                                        host:host];
 
     // Serial queue to invoke the non-reentrant methods of the grpc_call object.
     _callQueue = dispatch_queue_create("org.grpc.call", NULL);
 
     _requestWriter = requestWriter;
-
-    _requestMetadata = [NSMutableDictionary dictionary];
-    _responseMetadata = [NSMutableDictionary dictionary];
   }
   return self;
-}
-
-#pragma mark Metadata
-
-- (NSMutableDictionary *)requestMetadata {
-  return _requestMetadata;
-}
-
-- (void)setRequestMetadata:(NSDictionary *)requestMetadata {
-  _requestMetadata = [NSMutableDictionary dictionaryWithDictionary:requestMetadata];
-}
-
-- (NSDictionary *)responseMetadata {
-  return _responseMetadata;
 }
 
 #pragma mark Finish
@@ -297,7 +277,7 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
 // The first one (metadataHandler), when the response headers are received.
 // The second one (completionHandler), whenever the RPC finishes for any reason.
 - (void)invokeCallWithMetadataHandler:(void(^)(NSDictionary *))metadataHandler
-                    completionHandler:(void(^)(NSError *, NSDictionary *))completionHandler {
+                    completionHandler:(void(^)(NSError *))completionHandler {
   // TODO(jcanizales): Add error handlers for async failures
   [_wrappedCall startBatchWithOperations:@[[[GRPCOpRecvMetadata alloc]
                                             initWithHandler:metadataHandler]]];
@@ -307,26 +287,16 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
 
 - (void)invokeCall {
   __weak GRPCCall *weakSelf = self;
-  [self invokeCallWithMetadataHandler:^(NSDictionary *headers) {
-    // Response headers received.
+  [self invokeCallWithMetadataHandler:^(NSDictionary *metadata) {
+    // Response metadata received.
     GRPCCall *strongSelf = weakSelf;
     if (strongSelf) {
-      [strongSelf->_responseMetadata addEntriesFromDictionary:headers];
+      strongSelf.responseMetadata = metadata;
       [strongSelf startNextRead];
     }
-  } completionHandler:^(NSError *error, NSDictionary *trailers) {
-    GRPCCall *strongSelf = weakSelf;
-    if (strongSelf) {
-      [strongSelf->_responseMetadata addEntriesFromDictionary:trailers];
-
-      if (error) {
-        NSMutableDictionary *userInfo =
-            [NSMutableDictionary dictionaryWithDictionary:error.userInfo];
-        userInfo[kGRPCStatusMetadataKey] = strongSelf->_responseMetadata;
-        error = [NSError errorWithDomain:error.domain code:error.code userInfo:userInfo];
-      }
-      [strongSelf finishWithError:error];
-    }
+  } completionHandler:^(NSError *error) {
+    // TODO(jcanizales): Merge HTTP2 trailers into response metadata.
+    [weakSelf finishWithError:error];
   }];
   // Now that the RPC has been initiated, request writes can start.
   [_requestWriter startWithWriteable:self];

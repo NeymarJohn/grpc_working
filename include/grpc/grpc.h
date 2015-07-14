@@ -99,8 +99,7 @@ typedef struct {
     These configuration options are modelled as key-value pairs as defined
     by grpc_arg; keys are strings to allow easy backwards-compatible extension
     by arbitrary parties.
-    All evaluation is performed at channel creation time (i.e. the values in
-    this structure need only live through the creation invocation). */
+    All evaluation is performed at channel creation time. */
 typedef struct {
   size_t num_args;
   grpc_arg *args;
@@ -117,20 +116,6 @@ typedef struct {
 /* Initial sequence number for http2 transports */
 #define GRPC_ARG_HTTP2_INITIAL_SEQUENCE_NUMBER \
   "grpc.http2.initial_sequence_number"
-
-/** Connectivity state of a channel. */
-typedef enum {
-  /** channel is idle */
-  GRPC_CHANNEL_IDLE,
-  /** channel is connecting */
-  GRPC_CHANNEL_CONNECTING,
-  /** channel is ready for work */
-  GRPC_CHANNEL_READY,
-  /** channel has seen a failure but expects to recover */
-  GRPC_CHANNEL_TRANSIENT_FAILURE,
-  /** channel has seen a failure that it cannot recover from */
-  GRPC_CHANNEL_FATAL_FAILURE
-} grpc_connectivity_state;
 
 /* Result of a grpc call. If the caller satisfies the prerequisites of a
    particular operation, the grpc_call_error returned will be GRPC_CALL_OK.
@@ -159,10 +144,7 @@ typedef enum grpc_call_error {
   /* the flags value was illegal for this call */
   GRPC_CALL_ERROR_INVALID_FLAGS,
   /* invalid metadata was passed to this call */
-  GRPC_CALL_ERROR_INVALID_METADATA,
-  /* completion queue for notification has not been registered with the server
-     */
-  GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE
+  GRPC_CALL_ERROR_INVALID_METADATA
 } grpc_call_error;
 
 /* Write Flags: */
@@ -173,8 +155,6 @@ typedef enum grpc_call_error {
 /* Force compression to be disabled for a particular write
    (start_write/add_metadata). Illegal on invoke/accept. */
 #define GRPC_WRITE_NO_COMPRESS (0x00000002u)
-/* Mask of all valid flags. */
-#define GRPC_WRITE_USED_MASK (GRPC_WRITE_BUFFER_HINT | GRPC_WRITE_NO_COMPRESS)
 
 /* A single metadata element */
 typedef struct grpc_metadata {
@@ -193,11 +173,11 @@ typedef struct grpc_metadata {
 /** The type of completion (for grpc_event) */
 typedef enum grpc_completion_type {
   /** Shutting down */
-  GRPC_QUEUE_SHUTDOWN,
+  GRPC_QUEUE_SHUTDOWN, 
   /** No event before timeout */
-  GRPC_QUEUE_TIMEOUT,
+  GRPC_QUEUE_TIMEOUT,  
   /** Operation completion */
-  GRPC_OP_COMPLETE
+  GRPC_OP_COMPLETE     
 } grpc_completion_type;
 
 /** The result of an operation.
@@ -206,7 +186,7 @@ typedef enum grpc_completion_type {
 typedef struct grpc_event {
   /** The type of the completion. */
   grpc_completion_type type;
-  /** non-zero if the operation was successful, 0 upon failure.
+  /** non-zero if the operation was successful, 0 upon failure. 
       Only GRPC_OP_COMPLETE can succeed or fail. */
   int success;
   /** The tag passed to grpc_call_start_batch etc to start this operation.
@@ -241,7 +221,7 @@ typedef enum {
   GRPC_OP_SEND_INITIAL_METADATA = 0,
   /* Send a message: 0 or more of these operations can occur for each call */
   GRPC_OP_SEND_MESSAGE,
-  /* Send a close from the client: one and only one instance MUST be sent from
+  /* Send a close from the server: one and only one instance MUST be sent from
      the client,
      unless the call was cancelled - in which case this can be skipped */
   GRPC_OP_SEND_CLOSE_FROM_CLIENT,
@@ -260,7 +240,7 @@ typedef enum {
      the status will indicate some failure.
      */
   GRPC_OP_RECV_STATUS_ON_CLIENT,
-  /* Receive close on the server: one and only one must be made on the server
+  /* Receive status on the server: one and only one must be made on the server
      */
   GRPC_OP_RECV_CLOSE_ON_SERVER
 } grpc_op_type;
@@ -270,7 +250,6 @@ typedef enum {
    no arguments) */
 typedef struct grpc_op {
   grpc_op_type op;
-  gpr_uint32 flags; /**< Write flags bitset for grpc_begin_messages */
   union {
     struct {
       size_t count;
@@ -289,8 +268,6 @@ typedef struct grpc_op {
        After the operation completes, call grpc_metadata_array_destroy on this
        value, or reuse it in a future op. */
     grpc_metadata_array *recv_initial_metadata;
-    /* ownership of the byte buffer is moved to the caller; the caller must call
-       grpc_byte_buffer_destroy on this value, or reuse it in a future op. */
     grpc_byte_buffer **recv_message;
     struct {
       /* ownership of the array is with the caller, but ownership of the
@@ -336,7 +313,7 @@ typedef struct grpc_op {
 } grpc_op;
 
 /** Initialize the grpc library.
-
+    
     It is not safe to call any other grpc functions before calling this.
     (To avoid overhead, little checking is done, and some things may work. We
     do not warrant that they will continue to do so in future revisions of this
@@ -344,21 +321,18 @@ typedef struct grpc_op {
 void grpc_init(void);
 
 /** Shut down the grpc library.
-
+    
     No memory is used by grpc after this call returns, nor are any instructions
     executing within the grpc library.
     Prior to calling, all application owned grpc objects must have been
     destroyed. */
 void grpc_shutdown(void);
 
-/** Return a string representing the current version of grpc */
-const char *grpc_version_string(void);
-
 /** Create a completion queue */
 grpc_completion_queue *grpc_completion_queue_create(void);
 
 /** Blocks until an event is available, the completion queue is being shut down,
-    or deadline is reached.
+    or deadline is reached. 
 
     Returns a grpc_event with type GRPC_QUEUE_TIMEOUT on timeout,
     otherwise a grpc_event describing the event that occurred.
@@ -369,7 +343,7 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cq,
                                       gpr_timespec deadline);
 
 /** Blocks until an event with tag 'tag' is available, the completion queue is
-    being shutdown or deadline is reached.
+    being shutdown or deadline is reached. 
 
     Returns a grpc_event with type GRPC_QUEUE_TIMEOUT on timeout,
     otherwise a grpc_event describing the event that occurred.
@@ -392,9 +366,9 @@ void grpc_completion_queue_shutdown(grpc_completion_queue *cq);
    drained and no threads are executing grpc_completion_queue_next */
 void grpc_completion_queue_destroy(grpc_completion_queue *cq);
 
-/* Create a call given a grpc_channel, in order to call 'method'. All
-   completions are sent to 'completion_queue'. 'method' and 'host' need only
-   live through the invocation of this function. */
+/* Create a call given a grpc_channel, in order to call 'method'. The request
+   is not sent until grpc_call_invoke is called. All completions are sent to
+   'completion_queue'. */
 grpc_call *grpc_channel_create_call(grpc_channel *channel,
                                     grpc_completion_queue *completion_queue,
                                     const char *method, const char *host,
@@ -413,21 +387,14 @@ grpc_call *grpc_channel_create_registered_call(
    completion of type 'tag' to the completion queue bound to the call.
    The order of ops specified in the batch has no significance.
    Only one operation of each type can be active at once in any given
-   batch. You must call grpc_completion_queue_next or
-   grpc_completion_queue_pluck on the completion queue associated with 'call'
-   for work to be performed.
-   THREAD SAFETY: access to grpc_call_start_batch in multi-threaded environment
-   needs to be synchronized. As an optimization, you may synchronize batches
-   containing just send operations independently from batches containing just
-   receive operations. */
+   batch. */
 grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
                                       size_t nops, void *tag);
 
 /* Create a client channel to 'target'. Additional channel level configuration
    MAY be provided by grpc_channel_args, though the expectation is that most
-   clients will want to simply pass NULL. See grpc_channel_args definition for
-   more on this. The data in 'args' need only live through the invocation of
-   this function. */
+   clients will want to simply pass NULL. See grpc_channel_args definition
+   for more on this. */
 grpc_channel *grpc_channel_create(const char *target,
                                   const grpc_channel_args *args);
 
@@ -437,6 +404,17 @@ grpc_channel *grpc_lame_client_channel_create(void);
 /* Close and destroy a grpc channel */
 void grpc_channel_destroy(grpc_channel *channel);
 
+/* THREAD-SAFETY for grpc_call
+   The following functions are thread-compatible for any given call:
+     grpc_call_add_metadata
+     grpc_call_invoke
+     grpc_call_start_write
+     grpc_call_writes_done
+     grpc_call_start_read
+     grpc_call_destroy
+   The function grpc_call_cancel is thread-safe, and can be called at any
+   point before grpc_call_destroy is called. */
+
 /* Error handling for grpc_call
    Most grpc_call functions return a grpc_error. If the error is not GRPC_OK
    then the operation failed due to some unsatisfied precondition.
@@ -444,10 +422,7 @@ void grpc_channel_destroy(grpc_channel *channel);
    has been made. */
 
 /* Called by clients to cancel an RPC on the server.
-   Can be called multiple times, from any thread.
-   THREAD-SAFETY grpc_call_cancel and grpc_call_cancel_with_status
-   are thread-safe, and can be called at any point before grpc_call_destroy
-   is called.*/
+   Can be called multiple times, from any thread. */
 grpc_call_error grpc_call_cancel(grpc_call *call);
 
 /* Called by clients to cancel an RPC on the server.
@@ -460,13 +435,10 @@ grpc_call_error grpc_call_cancel_with_status(grpc_call *call,
                                              grpc_status_code status,
                                              const char *description);
 
-/* Destroy a call.
-   THREAD SAFETY: grpc_call_destroy is thread-compatible */
+/* Destroy a call. */
 void grpc_call_destroy(grpc_call *call);
 
-/* Request notification of a new call. 'cq_for_notification' must
-   have been registered to the server via grpc_server_register_completion_queue.
-   */
+/* Request notification of a new call */
 grpc_call_error grpc_server_request_call(
     grpc_server *server, grpc_call **call, grpc_call_details *details,
     grpc_metadata_array *request_metadata,
@@ -483,9 +455,7 @@ grpc_call_error grpc_server_request_call(
 void *grpc_server_register_method(grpc_server *server, const char *method,
                                   const char *host);
 
-/* Request notification of a new pre-registered call. 'cq_for_notification' must
-   have been registered to the server via grpc_server_register_completion_queue.
-   */
+/* Request notification of a new pre-registered call */
 grpc_call_error grpc_server_request_registered_call(
     grpc_server *server, void *registered_method, grpc_call **call,
     gpr_timespec *deadline, grpc_metadata_array *request_metadata,
@@ -495,14 +465,12 @@ grpc_call_error grpc_server_request_registered_call(
 
 /* Create a server. Additional configuration for each incoming channel can
    be specified with args. If no additional configuration is needed, args can
-   be NULL. See grpc_channel_args for more. The data in 'args' need only live
-   through the invocation of this function. */
+   be NULL. See grpc_channel_args for more. */
 grpc_server *grpc_server_create(const grpc_channel_args *args);
 
-/* Register a completion queue with the server. Must be done for any
-   notification completion queue that is passed to grpc_server_request_*_call
-   and to grpc_server_shutdown_and_notify. Must be performed prior to
-   grpc_server_start. */
+/* Register a completion queue with the server. Must be done for any completion
+   queue that is passed to grpc_server_request_* call. Must be performed prior
+   to grpc_server_start. */
 void grpc_server_register_completion_queue(grpc_server *server,
                                            grpc_completion_queue *cq);
 
@@ -517,30 +485,27 @@ void grpc_server_start(grpc_server *server);
 /* Begin shutting down a server.
    After completion, no new calls or connections will be admitted.
    Existing calls will be allowed to complete.
-   Send a GRPC_OP_COMPLETE event when there are no more calls being serviced.
-   Shutdown is idempotent, and all tags will be notified at once if multiple
-   grpc_server_shutdown_and_notify calls are made. 'cq' must have been
-   registered to this server via grpc_server_register_completion_queue. */
-void grpc_server_shutdown_and_notify(grpc_server *server,
-                                     grpc_completion_queue *cq, void *tag);
+   Shutdown is idempotent. */
+void grpc_server_shutdown(grpc_server *server);
 
-/* Cancel all in-progress calls.
-   Only usable after shutdown. */
-void grpc_server_cancel_all_calls(grpc_server *server);
+/* As per grpc_server_shutdown, but send a GRPC_OP_COMPLETE event when
+   there are no more calls being serviced.
+   Shutdown is idempotent, and all tags will be notified at once if multiple
+   grpc_server_shutdown_and_notify calls are made. */
+void grpc_server_shutdown_and_notify(grpc_server *server, void *tag);
 
 /* Destroy a server.
-   Shutdown must have completed beforehand (i.e. all tags generated by
-   grpc_server_shutdown_and_notify must have been received, and at least
-   one call to grpc_server_shutdown_and_notify must have been made). */
+   Forcefully cancels all existing calls.
+   Implies grpc_server_shutdown() if one was not previously performed. */
 void grpc_server_destroy(grpc_server *server);
 
 /** Enable or disable a tracer.
 
     Tracers (usually controlled by the environment variable GRPC_TRACE)
     allow printf-style debugging on GRPC internals, and are useful for
-    tracking down problems in the field.
+    tracking down problems in the field. 
 
-    Use of this function is not strictly thread-safe, but the
+    Use of this function is not strictly thread-safe, but the 
     thread-safety issues raised by it should not be of concern. */
 int grpc_tracer_set_enabled(const char *name, int enabled);
 
