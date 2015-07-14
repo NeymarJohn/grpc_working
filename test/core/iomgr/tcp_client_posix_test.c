@@ -95,7 +95,8 @@ void test_succeeds(void) {
   /* connect to it */
   GPR_ASSERT(getsockname(svr_fd, (struct sockaddr *)&addr, &addr_len) == 0);
   grpc_tcp_client_connect(must_succeed, NULL, &g_pollset_set,
-                          (struct sockaddr *)&addr, addr_len, gpr_inf_future);
+                          (struct sockaddr *)&addr, addr_len,
+                          gpr_inf_future(GPR_CLOCK_REALTIME));
 
   /* await the connection */
   do {
@@ -128,7 +129,8 @@ void test_fails(void) {
 
   /* connect to a broken address */
   grpc_tcp_client_connect(must_fail, NULL, &g_pollset_set,
-                          (struct sockaddr *)&addr, addr_len, gpr_inf_future);
+                          (struct sockaddr *)&addr, addr_len,
+                          gpr_inf_future(GPR_CLOCK_REALTIME));
 
   gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
 
@@ -186,12 +188,14 @@ void test_times_out(void) {
 
   /* Make sure the event doesn't trigger early */
   gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
-  while (gpr_time_cmp(gpr_time_add(connect_deadline, gpr_time_from_seconds(2)),
+  while (gpr_time_cmp(gpr_time_add(connect_deadline,
+                                   gpr_time_from_seconds(2, GPR_TIMESPAN)),
                       gpr_now(GPR_CLOCK_REALTIME)) > 0) {
     int is_after_deadline =
         gpr_time_cmp(connect_deadline, gpr_now(GPR_CLOCK_REALTIME)) <= 0;
     if (is_after_deadline &&
-        gpr_time_cmp(gpr_time_add(connect_deadline, gpr_time_from_seconds(1)),
+        gpr_time_cmp(gpr_time_add(connect_deadline,
+                                  gpr_time_from_seconds(1, GPR_TIMESPAN)),
                      gpr_now(GPR_CLOCK_REALTIME)) > 0) {
       /* allow some slack before insisting that things be done */
     } else {
