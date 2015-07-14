@@ -185,7 +185,7 @@ std::unique_ptr<ScenarioResult> RunScenario(
 
   // Let everything warmup
   gpr_log(GPR_INFO, "Warming up");
-  gpr_timespec start = gpr_now();
+  gpr_timespec start = gpr_now(GPR_CLOCK_REALTIME);
   gpr_sleep_until(gpr_time_add(start, gpr_time_from_seconds(warmup_seconds)));
 
   // Start a run
@@ -241,11 +241,11 @@ std::unique_ptr<ScenarioResult> RunScenario(
 
   for (auto client = clients.begin(); client != clients.end(); client++) {
     GPR_ASSERT(client->stream->WritesDone());
-    GPR_ASSERT(client->stream->Finish().IsOk());
+    GPR_ASSERT(client->stream->Finish().ok());
   }
   for (auto server = servers.begin(); server != servers.end(); server++) {
     GPR_ASSERT(server->stream->WritesDone());
-    GPR_ASSERT(server->stream->Finish().IsOk());
+    GPR_ASSERT(server->stream->Finish().ok());
   }
   return result;
 }
