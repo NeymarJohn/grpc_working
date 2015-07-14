@@ -105,12 +105,14 @@ void grpc_pollset_init(grpc_pollset *pollset) {
 
 void grpc_pollset_add_fd(grpc_pollset *pollset, grpc_fd *fd) {
   gpr_mu_lock(&pollset->mu);
-  pollset->vtable->add_fd(pollset, fd, 1);
+  pollset->vtable->add_fd(pollset, fd);
+  gpr_mu_unlock(&pollset->mu);
 }
 
 void grpc_pollset_del_fd(grpc_pollset *pollset, grpc_fd *fd) {
   gpr_mu_lock(&pollset->mu);
-  pollset->vtable->del_fd(pollset, fd, 1);
+  pollset->vtable->del_fd(pollset, fd);
+  gpr_mu_unlock(&pollset->mu);
 }
 
 static void finish_shutdown(grpc_pollset *pollset) {
@@ -255,7 +257,7 @@ static void basic_do_promote(void *args, int success) {
   } else if (grpc_fd_is_orphaned(fd)) {
     /* Don't try to add it to anything, we'll drop our ref on it below */
   } else if (pollset->vtable != original_vtable) {
-    pollset->vtable->add_fd(pollset, fd, 0);
+    pollset->vtable->add_fd(pollset, fd);
   } else if (fd != pollset->data.ptr) {
     grpc_fd *fds[2];
     fds[0] = pollset->data.ptr;
@@ -285,11 +287,10 @@ static void basic_do_promote(void *args, int success) {
   GRPC_FD_UNREF(fd, "basicpoll_add");
 }
 
-static void basic_pollset_add_fd(grpc_pollset *pollset, grpc_fd *fd,
-                                 int and_unlock_pollset) {
+static void basic_pollset_add_fd(grpc_pollset *pollset, grpc_fd *fd) {
   grpc_unary_promote_args *up_args;
   GPR_ASSERT(fd);
-  if (fd == pollset->data.ptr) goto exit;
+  if (fd == pollset->data.ptr) return;
 
   if (!pollset->counter) {
     /* Fast path -- no in flight cbs */
@@ -312,7 +313,7 @@ static void basic_pollset_add_fd(grpc_pollset *pollset, grpc_fd *fd,
       pollset->data.ptr = fd;
       GRPC_FD_REF(fd, "basicpoll");
     }
-    goto exit;
+    return;
   }
 
   /* Now we need to promote. This needs to happen when we're not polling. Since
@@ -328,23 +329,13 @@ static void basic_pollset_add_fd(grpc_pollset *pollset, grpc_fd *fd,
   grpc_iomgr_add_callback(&up_args->promotion_closure);
 
   grpc_pollset_kick(pollset);
-
-exit:
-  if (and_unlock_pollset) {
-    gpr_mu_unlock(&pollset->mu);
-  }
 }
 
-static void basic_pollset_del_fd(grpc_pollset *pollset, grpc_fd *fd,
-                                 int and_unlock_pollset) {
+static void basic_pollset_del_fd(grpc_pollset *pollset, grpc_fd *fd) {
   GPR_ASSERT(fd);
   if (fd == pollset->data.ptr) {
     GRPC_FD_UNREF(pollset->data.ptr, "basicpoll");
     pollset->data.ptr = NULL;
-  }
-
-  if (and_unlock_pollset) {
-    gpr_mu_unlock(&pollset->mu);
   }
 }
 
