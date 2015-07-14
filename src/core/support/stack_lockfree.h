@@ -31,46 +31,21 @@
  *
  */
 
-#include <sys/signal.h>
+#ifndef GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
+#define GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
 
-#include <chrono>
-#include <thread>
+typedef struct gpr_stack_lockfree gpr_stack_lockfree;
 
-#include <grpc/grpc.h>
-#include <grpc/support/time.h>
-#include <gflags/gflags.h>
+/* This stack must specify the maximum number of entries to track.
+   The current implementation only allows up to 65534 entries */
+gpr_stack_lockfree *gpr_stack_lockfree_create(int entries);
+void gpr_stack_lockfree_destroy(gpr_stack_lockfree *);
 
-#include "test/cpp/qps/qps_worker.h"
-#include "test/cpp/util/test_config.h"
+/* Pass in a valid entry number for the next stack entry */
+/* Returns 1 if this is the first element on the stack, 0 otherwise */
+int gpr_stack_lockfree_push(gpr_stack_lockfree *, int entry);
 
-DEFINE_int32(driver_port, 0, "Driver server port.");
-DEFINE_int32(server_port, 0, "Spawned server port.");
+/* Returns -1 on empty or the actual entry number */
+int gpr_stack_lockfree_pop(gpr_stack_lockfree *);
 
-static bool got_sigint = false;
-
-static void sigint_handler(int x) { got_sigint = true; }
-
-namespace grpc {
-namespace testing {
-
-static void RunServer() {
-  QpsWorker worker(FLAGS_driver_port, FLAGS_server_port);
-
-  while (!got_sigint) {
-    gpr_sleep_until(
-        gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), gpr_time_from_seconds(5)));
-  }
-}
-
-}  // namespace testing
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  grpc::testing::InitTest(&argc, &argv, true);
-
-  signal(SIGINT, sigint_handler);
-
-  grpc::testing::RunServer();
-
-  return 0;
-}
+#endif  /* GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H */

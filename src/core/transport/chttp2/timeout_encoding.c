@@ -147,7 +147,7 @@ int grpc_chttp2_decode_timeout(const char *buffer, gpr_timespec *timeout) {
     gpr_uint32 xp = x * 10 + *p - '0';
     have_digit = 1;
     if (xp < x) {
-      *timeout = gpr_inf_future(GPR_CLOCK_REALTIME);
+      *timeout = gpr_inf_future;
       return 1;
     }
     x = xp;
@@ -159,22 +159,22 @@ int grpc_chttp2_decode_timeout(const char *buffer, gpr_timespec *timeout) {
   /* decode unit specifier */
   switch (*p) {
     case 'n':
-      *timeout = gpr_time_from_nanos(x, GPR_TIMESPAN);
+      *timeout = gpr_time_from_nanos(x);
       break;
     case 'u':
-      *timeout = gpr_time_from_micros(x, GPR_TIMESPAN);
+      *timeout = gpr_time_from_micros(x);
       break;
     case 'm':
-      *timeout = gpr_time_from_millis(x, GPR_TIMESPAN);
+      *timeout = gpr_time_from_millis(x);
       break;
     case 'S':
-      *timeout = gpr_time_from_seconds(x, GPR_TIMESPAN);
+      *timeout = gpr_time_from_seconds(x);
       break;
     case 'M':
-      *timeout = gpr_time_from_minutes(x, GPR_TIMESPAN);
+      *timeout = gpr_time_from_minutes(x);
       break;
     case 'H':
-      *timeout = gpr_time_from_hours(x, GPR_TIMESPAN);
+      *timeout = gpr_time_from_hours(x);
       break;
     default:
       return 0;
