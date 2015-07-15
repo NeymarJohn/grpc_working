@@ -51,8 +51,8 @@
 #include <grpc++/server_credentials.h>
 #include <grpc++/status.h>
 #include <grpc++/stream.h>
+#include <grpc++/thread_pool.h>
 #include <gtest/gtest.h>
-#include "src/cpp/server/thread_pool.h"
 #include "test/cpp/qps/qpstest.grpc.pb.h"
 #include "test/cpp/qps/server.h"
 
@@ -80,7 +80,7 @@ class AsyncQpsServerTest : public Server {
     server_ = builder.BuildAndStart();
 
     using namespace std::placeholders;
-    for (int i = 0; i < 10000 / config.threads(); i++) {
+    for (int i = 0; i < 10; i++) {
       for (int j = 0; j < config.threads(); j++) {
         auto request_unary = std::bind(
             &TestService::AsyncService::RequestUnaryCall, &async_service_, _1,
