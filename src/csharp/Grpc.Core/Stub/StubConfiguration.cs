@@ -32,58 +32,33 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-
 using Grpc.Core.Internal;
+using Grpc.Core.Utils;
 
 namespace Grpc.Core
 {
-    public delegate void MetadataInterceptorDelegate(Metadata metadata);
+    public delegate void HeaderInterceptorDelegate(Metadata.Builder headerBuilder);
 
-    /// <summary>
-    /// Base class for client-side stubs.
-    /// </summary>
-    public abstract class ClientBase
+    public class StubConfiguration
     {
-        readonly Channel channel;
+        /// <summary>
+        /// The default stub configuration.
+        /// </summary>
+        public static readonly StubConfiguration Default = new StubConfiguration((headerBuilder) => { });
 
-        public ClientBase(Channel channel)
+        readonly HeaderInterceptorDelegate headerInterceptor;
+
+        public StubConfiguration(HeaderInterceptorDelegate headerInterceptor)
         {
-            this.channel = channel;
+            this.headerInterceptor = Preconditions.CheckNotNull(headerInterceptor);
         }
 
-        /// <summary>
-        /// Can be used to register a custom header (initial metadata) interceptor.
-        /// The delegate each time before a new call on this client is started.
-        /// </summary>
-        public MetadataInterceptorDelegate HeaderInterceptor
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Channel associated with this client.
-        /// </summary>
-        public Channel Channel
+        public HeaderInterceptorDelegate HeaderInterceptor
         {
             get
             {
-                return this.channel;
+                return headerInterceptor;
             }
-        }
-
-        /// <summary>
-        /// Creates a new call to given method.
-        /// </summary>
-        protected Call<TRequest, TResponse> CreateCall<TRequest, TResponse>(string serviceName, Method<TRequest, TResponse> method)
-            where TRequest : class
-            where TResponse : class
-        {
-            var metadata = new Metadata();
-            HeaderInterceptor(metadata);
-            metadata.Freeze();
-            return new Call<TRequest, TResponse>(serviceName, method, channel, metadata);
         }
     }
 }

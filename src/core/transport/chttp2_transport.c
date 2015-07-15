@@ -358,7 +358,9 @@ static int init_stream(grpc_transport *gt, grpc_stream *gs,
     s->global.outgoing_window =
         t->global.settings[GRPC_PEER_SETTINGS]
                           [GRPC_CHTTP2_SETTINGS_INITIAL_WINDOW_SIZE];
-    s->parsing.incoming_window = s->global.incoming_window =
+    s->global.max_recv_bytes = 
+        s->parsing.incoming_window = 
+        s->global.incoming_window =
         t->global.settings[GRPC_SENT_SETTINGS]
                           [GRPC_CHTTP2_SETTINGS_INITIAL_WINDOW_SIZE];
     *t->accepting_stream = s;
@@ -562,6 +564,8 @@ static void maybe_start_some_streams(
     stream_global->incoming_window =
         transport_global->settings[GRPC_SENT_SETTINGS]
                                   [GRPC_CHTTP2_SETTINGS_INITIAL_WINDOW_SIZE];
+    stream_global->max_recv_bytes = 
+        GPR_MAX(stream_global->incoming_window, stream_global->max_recv_bytes);
     grpc_chttp2_stream_map_add(
         &TRANSPORT_FROM_GLOBAL(transport_global)->new_stream_map,
         stream_global->id, STREAM_FROM_GLOBAL(stream_global));
@@ -570,6 +574,9 @@ static void maybe_start_some_streams(
     grpc_chttp2_list_add_incoming_window_updated(transport_global,
                                                  stream_global);
     grpc_chttp2_list_add_writable_stream(transport_global, stream_global);
+    grpc_chttp2_list_add_writable_window_update_stream(transport_global,
+                                                       stream_global);
+
   }
   /* cancel out streams that will never be started */
   while (transport_global->next_stream_id >= MAX_CLIENT_STREAM_ID &&
@@ -620,6 +627,14 @@ static void perform_stream_op_locked(
     stream_global->publish_sopb = op->recv_ops;
     stream_global->publish_sopb->nops = 0;
     stream_global->publish_state = op->recv_state;
+    if (stream_global->max_recv_bytes < op->max_recv_bytes) {
+      GRPC_CHTTP2_FLOWCTL_TRACE_STREAM("op", transport_global, stream_global,
+          unannounced_incoming_window, op->max_recv_bytes - stream_global->max_recv_bytes);
+      GRPC_CHTTP2_FLOWCTL_TRACE_STREAM("op", transport_global, stream_global,
+          max_recv_bytes, op->max_recv_bytes - stream_global->max_recv_bytes);
+      stream_global->unannounced_incoming_window += op->max_recv_bytes - stream_global->max_recv_bytes;
+      stream_global->max_recv_bytes = op->max_recv_bytes;
+    }
     grpc_chttp2_incoming_metadata_live_op_buffer_end(
         &stream_global->outstanding_metadata);
     grpc_chttp2_list_add_read_write_state_changed(transport_global,
