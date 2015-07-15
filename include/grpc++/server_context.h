@@ -75,10 +75,6 @@ class CallOpBuffer;
 class CompletionQueue;
 class Server;
 
-namespace testing {
-class InteropContextInspector;
-}  // namespace testing
-
 // Interface of server side rpc context.
 class ServerContext {
  public:
@@ -113,7 +109,6 @@ class ServerContext {
   void set_compression_algorithm(grpc_compression_algorithm algorithm);
 
  private:
-  friend class ::grpc::testing::InteropContextInspector;
   friend class ::grpc::Server;
   template <class W, class R>
   friend class ::grpc::ServerAsyncReader;
