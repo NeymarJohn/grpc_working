@@ -70,8 +70,7 @@ then
   DOCKER_CID=`cat docker.cid`
   docker kill $DOCKER_CID
   docker cp $DOCKER_CID:/var/local/git/grpc/report.xml $git_root
-  sleep 4
-  docker rm $DOCKER_CID || true
+  docker rm $DOCKER_CID
 
 elif [ "$platform" == "windows" ]
 then
@@ -84,12 +83,12 @@ then
   /cygdrive/c/nuget/nuget.exe restore vsprojects/grpc.sln
   /cygdrive/c/nuget/nuget.exe restore src/csharp/Grpc.sln
 
-  python tools/run_tests/run_tests.py -t -l $language -x report.xml || true
+  python tools/run_tests/run_tests.py -t -l $language -x report.xml
 elif [ "$platform" == "macos" ]
 then
   echo "building $language on MacOS"
 
-  ./tools/run_tests/run_tests.py -t -l $language -c $config -x report.xml || true
+  ./tools/run_tests/run_tests.py -t -l $language -c $config -x report.xml
 else
   echo "Unknown platform $platform"
   exit 1

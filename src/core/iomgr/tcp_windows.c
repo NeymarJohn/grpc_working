@@ -148,11 +148,9 @@ static void on_read(void *tcpp, int from_iocp) {
   GPR_ASSERT(tcp->socket->read_info.outstanding);
 
   if (socket->read_info.wsa_error != 0) {
-    if (socket->read_info.wsa_error != WSAECONNRESET) {
-      char *utf8_message = gpr_format_message(info->wsa_error);
-      gpr_log(GPR_ERROR, "ReadFile overlapped error: %s", utf8_message);
-      gpr_free(utf8_message);
-    }
+    char *utf8_message = gpr_format_message(info->wsa_error);
+    gpr_log(GPR_ERROR, "ReadFile overlapped error: %s", utf8_message);
+    gpr_free(utf8_message);
     status = GRPC_ENDPOINT_CB_ERROR;
   } else {
     if (info->bytes_transfered != 0) {
@@ -261,11 +259,9 @@ static void on_write(void *tcpp, int from_iocp) {
   GPR_ASSERT(tcp->socket->write_info.outstanding);
 
   if (info->wsa_error != 0) {
-    if (info->wsa_error != WSAECONNRESET) {
-      char *utf8_message = gpr_format_message(info->wsa_error);
-      gpr_log(GPR_ERROR, "WSASend overlapped error: %s", utf8_message);
-      gpr_free(utf8_message);
-    }
+    char *utf8_message = gpr_format_message(info->wsa_error);
+    gpr_log(GPR_ERROR, "WSASend overlapped error: %s", utf8_message);
+    gpr_free(utf8_message);
     status = GRPC_ENDPOINT_CB_ERROR;
   } else {
     GPR_ASSERT(info->bytes_transfered == tcp->write_slices.length);
@@ -329,11 +325,9 @@ static grpc_endpoint_write_status win_write(grpc_endpoint *ep,
       ret = GRPC_ENDPOINT_WRITE_DONE;
       GPR_ASSERT(bytes_sent == tcp->write_slices.length);
     } else {
-      if (socket->read_info.wsa_error != WSAECONNRESET) {
-        char *utf8_message = gpr_format_message(info->wsa_error);
-        gpr_log(GPR_ERROR, "WSASend error: %s", utf8_message);
-        gpr_free(utf8_message);
-      }
+      char *utf8_message = gpr_format_message(info->wsa_error);
+      gpr_log(GPR_ERROR, "WSASend error: %s", utf8_message);
+      gpr_free(utf8_message);
     }
     if (allocated) gpr_free(allocated);
     gpr_slice_buffer_reset_and_unref(&tcp->write_slices);
