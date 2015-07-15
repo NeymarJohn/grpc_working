@@ -166,9 +166,6 @@
     <ClCompile Include="..\..\src\core\iomgr\time_averaged_stats.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\iomgr\udp_server.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\core\iomgr\wakeup_fd_eventfd.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
@@ -248,6 +245,9 @@
       <Filter>src\core\surface</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\surface\surface_trace.c">
+      <Filter>src\core\surface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\surface\version.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\alpn.c">
@@ -513,9 +513,6 @@
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\iomgr\time_averaged_stats.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\iomgr\udp_server.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\iomgr\wakeup_fd_pipe.h">
