@@ -88,6 +88,8 @@ namespace Grpc.IntegrationTesting
 
         private void Run()
         {
+            GrpcEnvironment.Initialize();
+
             var server = new Server();
             server.AddServiceDefinition(TestService.BindService(new TestServiceImpl()));
 
