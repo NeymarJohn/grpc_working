@@ -351,9 +351,6 @@ void grpc_init(void);
     destroyed. */
 void grpc_shutdown(void);
 
-/** Return a string representing the current version of grpc */
-const char *grpc_version_string(void);
-
 /** Create a completion queue */
 grpc_completion_queue *grpc_completion_queue_create(void);
 
