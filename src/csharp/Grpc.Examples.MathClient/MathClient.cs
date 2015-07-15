@@ -39,20 +39,22 @@ namespace math
     {
         public static void Main(string[] args)
         {
+            GrpcEnvironment.Initialize();
+
             using (Channel channel = new Channel("127.0.0.1", 23456))
             {
-                Math.IMathClient client = new Math.MathClient(channel);
-                MathExamples.DivExample(client);
+                Math.IMathClient stub = new Math.MathClient(channel);
+                MathExamples.DivExample(stub);
 
-                MathExamples.DivAsyncExample(client).Wait();
+                MathExamples.DivAsyncExample(stub).Wait();
 
-                MathExamples.FibExample(client).Wait();
+                MathExamples.FibExample(stub).Wait();
 
-                MathExamples.SumExample(client).Wait();
+                MathExamples.SumExample(stub).Wait();
 
-                MathExamples.DivManyExample(client).Wait();
+                MathExamples.DivManyExample(stub).Wait();
 
-                MathExamples.DependendRequestsExample(client).Wait();
+                MathExamples.DependendRequestsExample(stub).Wait();
             }
 
             GrpcEnvironment.Shutdown();

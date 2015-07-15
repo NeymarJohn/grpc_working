@@ -76,7 +76,6 @@ _PACKAGES = (
     'grpc',
     'grpc._adapter',
     'grpc._junkdrawer',
-    'grpc._links',
     'grpc.early_adopter',
     'grpc.framework',
     'grpc.framework.alpha',
@@ -85,15 +84,12 @@ _PACKAGES = (
     'grpc.framework.face',
     'grpc.framework.face.testing',
     'grpc.framework.foundation',
-    'grpc.framework.interfaces',
-    'grpc.framework.interfaces.links',
 )
 
 _PACKAGE_DIRECTORIES = {
     'grpc': 'grpc',
     'grpc._adapter': 'grpc/_adapter',
     'grpc._junkdrawer': 'grpc/_junkdrawer',
-    'grpc._links': 'grpc/_links',
     'grpc.early_adopter': 'grpc/early_adopter',
     'grpc.framework': 'grpc/framework',
 }

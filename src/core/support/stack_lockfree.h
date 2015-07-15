@@ -31,29 +31,21 @@
  *
  */
 
-#include "test/core/util/test_config.h"
+#ifndef GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
+#define GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
 
-#include <grpc/support/port_platform.h>
-#include <grpc/support/log.h>
-#include <stdlib.h>
-#include <signal.h>
+typedef struct gpr_stack_lockfree gpr_stack_lockfree;
 
-#if GPR_GETPID_IN_UNISTD_H
-#include <unistd.h>
-static int seed(void) { return getpid(); }
-#endif
+/* This stack must specify the maximum number of entries to track.
+   The current implementation only allows up to 65534 entries */
+gpr_stack_lockfree *gpr_stack_lockfree_create(int entries);
+void gpr_stack_lockfree_destroy(gpr_stack_lockfree *);
 
-#if GPR_GETPID_IN_PROCESS_H
-#include <process.h>
-static int seed(void) { return _getpid(); }
-#endif
+/* Pass in a valid entry number for the next stack entry */
+/* Returns 1 if this is the first element on the stack, 0 otherwise */
+int gpr_stack_lockfree_push(gpr_stack_lockfree *, int entry);
 
-void grpc_test_init(int argc, char **argv) {
-  gpr_log(GPR_DEBUG, "test slowdown: machine=%f build=%f total=%f",
-          (double)GRPC_TEST_SLOWDOWN_MACHINE_FACTOR,
-          (double)GRPC_TEST_SLOWDOWN_BUILD_FACTOR,
-          (double)GRPC_TEST_SLOWDOWN_FACTOR);
-  /* seed rng with pid, so we don't end up with the same random numbers as a
-     concurrently running test binary */
-  srand(seed());
-}
+/* Returns -1 on empty or the actual entry number */
+int gpr_stack_lockfree_pop(gpr_stack_lockfree *);
+
+#endif  /* GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H */

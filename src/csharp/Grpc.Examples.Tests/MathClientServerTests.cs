@@ -49,30 +49,33 @@ namespace math.Tests
         string host = "localhost";
         Server server;
         Channel channel;
-        Math.MathClient client;
+        Math.IMathClient client;
 
         [TestFixtureSetUp]
         public void Init()
         {
+            GrpcEnvironment.Initialize();
+
             server = new Server();
             server.AddServiceDefinition(Math.BindService(new MathServiceImpl()));
             int port = server.AddListeningPort(host, Server.PickUnusedPort);
             server.Start();
             channel = new Channel(host, port);
-            client = Math.NewClient(channel);
 
             // TODO(jtattermusch): get rid of the custom header here once we have dedicated tests
             // for header support.
-            client.HeaderInterceptor = (metadata) =>
+            var stubConfig = new StubConfiguration((headerBuilder) =>
             {
-                metadata.Add(new Metadata.Entry("customHeader", "abcdef"));
-            };
+                headerBuilder.Add(new Metadata.MetadataEntry("customHeader", "abcdef"));
+            });
+            client = Math.NewStub(channel, stubConfig);
         }
 
         [TestFixtureTearDown]
         public void Cleanup()
         {
             channel.Dispose();
+
             server.ShutdownAsync().Wait();
             GrpcEnvironment.Shutdown();
         }
