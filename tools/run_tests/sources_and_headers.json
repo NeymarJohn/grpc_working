@@ -338,18 +338,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "gpr_stack_lockfree_test", 
-    "src": [
-      "test/core/support/stack_lockfree_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "gpr_string_test", 
     "src": [
       "test/core/support/string_test.c"
@@ -1204,6 +1192,21 @@
       "gpr_test_util", 
       "grpc", 
       "grpc++", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c++", 
+    "name": "fixed_size_thread_pool_test", 
+    "src": [
+      "test/cpp/server/fixed_size_thread_pool_test.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc++", 
       "grpc++_test_util", 
       "grpc_test_util"
     ], 
@@ -1587,21 +1590,6 @@
     "name": "sync_unary_ping_pong_test", 
     "src": [
       "test/cpp/qps/sync_unary_ping_pong_test.cc"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc++", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "thread_pool_test", 
-    "src": [
-      "test/cpp/server/thread_pool_test.cc"
     ]
   }, 
   {
@@ -8620,7 +8608,6 @@
       "src/core/support/env.h", 
       "src/core/support/file.h", 
       "src/core/support/murmur_hash.h", 
-      "src/core/support/stack_lockfree.h", 
       "src/core/support/string.h", 
       "src/core/support/string_win32.h", 
       "src/core/support/thd_internal.h"
@@ -8682,8 +8669,6 @@
       "src/core/support/murmur_hash.h", 
       "src/core/support/slice.c", 
       "src/core/support/slice_buffer.c", 
-      "src/core/support/stack_lockfree.c", 
-      "src/core/support/stack_lockfree.h", 
       "src/core/support/string.c", 
       "src/core/support/string.h", 
       "src/core/support/string_posix.c", 
@@ -9023,7 +9008,6 @@
       "src/core/surface/call_log_batch.c", 
       "src/core/surface/channel.c", 
       "src/core/surface/channel.h", 
-      "src/core/surface/channel_connectivity.c", 
       "src/core/surface/channel_create.c", 
       "src/core/surface/completion_queue.c", 
       "src/core/surface/completion_queue.h", 
@@ -9427,7 +9411,6 @@
       "src/core/surface/call_log_batch.c", 
       "src/core/surface/channel.c", 
       "src/core/surface/channel.h", 
-      "src/core/surface/channel_connectivity.c", 
       "src/core/surface/channel_create.c", 
       "src/core/surface/completion_queue.c", 
       "src/core/surface/completion_queue.h", 
@@ -9517,6 +9500,7 @@
       "include/grpc++/config_protobuf.h", 
       "include/grpc++/create_channel.h", 
       "include/grpc++/credentials.h", 
+      "include/grpc++/fixed_size_thread_pool.h", 
       "include/grpc++/generic_stub.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
@@ -9547,8 +9531,7 @@
       "src/cpp/client/secure_credentials.h", 
       "src/cpp/common/create_auth_context.h", 
       "src/cpp/common/secure_auth_context.h", 
-      "src/cpp/server/secure_server_credentials.h", 
-      "src/cpp/server/thread_pool.h"
+      "src/cpp/server/secure_server_credentials.h"
     ], 
     "language": "c++", 
     "name": "grpc++", 
@@ -9565,6 +9548,7 @@
       "include/grpc++/config_protobuf.h", 
       "include/grpc++/create_channel.h", 
       "include/grpc++/credentials.h", 
+      "include/grpc++/fixed_size_thread_pool.h", 
       "include/grpc++/generic_stub.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
@@ -9613,6 +9597,7 @@
       "src/cpp/proto/proto_utils.cc", 
       "src/cpp/server/async_generic_service.cc", 
       "src/cpp/server/create_default_thread_pool.cc", 
+      "src/cpp/server/fixed_size_thread_pool.cc", 
       "src/cpp/server/insecure_server_credentials.cc", 
       "src/cpp/server/secure_server_credentials.cc", 
       "src/cpp/server/secure_server_credentials.h", 
@@ -9620,8 +9605,6 @@
       "src/cpp/server/server_builder.cc", 
       "src/cpp/server/server_context.cc", 
       "src/cpp/server/server_credentials.cc", 
-      "src/cpp/server/thread_pool.cc", 
-      "src/cpp/server/thread_pool.h", 
       "src/cpp/util/byte_buffer.cc", 
       "src/cpp/util/slice.cc", 
       "src/cpp/util/status.cc", 
@@ -9688,6 +9671,7 @@
       "include/grpc++/config_protobuf.h", 
       "include/grpc++/create_channel.h", 
       "include/grpc++/credentials.h", 
+      "include/grpc++/fixed_size_thread_pool.h", 
       "include/grpc++/generic_stub.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
@@ -9715,8 +9699,7 @@
       "include/grpc++/thread_pool_interface.h", 
       "include/grpc++/time.h", 
       "src/cpp/client/channel.h", 
-      "src/cpp/common/create_auth_context.h", 
-      "src/cpp/server/thread_pool.h"
+      "src/cpp/common/create_auth_context.h"
     ], 
     "language": "c++", 
     "name": "grpc++_unsecure", 
@@ -9733,6 +9716,7 @@
       "include/grpc++/config_protobuf.h", 
       "include/grpc++/create_channel.h", 
       "include/grpc++/credentials.h", 
+      "include/grpc++/fixed_size_thread_pool.h", 
       "include/grpc++/generic_stub.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
@@ -9776,13 +9760,12 @@
       "src/cpp/proto/proto_utils.cc", 
       "src/cpp/server/async_generic_service.cc", 
       "src/cpp/server/create_default_thread_pool.cc", 
+      "src/cpp/server/fixed_size_thread_pool.cc", 
       "src/cpp/server/insecure_server_credentials.cc", 
       "src/cpp/server/server.cc", 
       "src/cpp/server/server_builder.cc", 
       "src/cpp/server/server_context.cc", 
       "src/cpp/server/server_credentials.cc", 
-      "src/cpp/server/thread_pool.cc", 
-      "src/cpp/server/thread_pool.h", 
       "src/cpp/util/byte_buffer.cc", 
       "src/cpp/util/slice.cc", 
       "src/cpp/util/status.cc", 
