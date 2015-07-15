@@ -46,7 +46,7 @@
 #include <grpc++/server_credentials.h>
 #include <grpc++/status.h>
 #include <grpc++/stream.h>
-#include <grpc++/thread_pool.h>
+#include "src/cpp/server/thread_pool.h"
 #include "test/cpp/qps/qpstest.grpc.pb.h"
 #include "test/cpp/qps/server.h"
 #include "test/cpp/qps/timer.h"
@@ -111,7 +111,7 @@ class SynchronousServer GRPC_FINAL : public grpc::testing::Server {
   }
 
   TestServiceImpl service_;
-  FixedSizeThreadPool thread_pool_;
+  ThreadPool thread_pool_;
   std::unique_ptr<grpc::Server> impl_;
 };
 

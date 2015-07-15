@@ -45,10 +45,10 @@
 
 namespace grpc {
 
-class FixedSizeThreadPool GRPC_FINAL : public ThreadPoolInterface {
+class ThreadPool GRPC_FINAL : public ThreadPoolInterface {
  public:
-  explicit FixedSizeThreadPool(int num_threads);
-  ~FixedSizeThreadPool();
+  explicit ThreadPool(int num_threads);
+  ~ThreadPool();
 
   void ScheduleCallback(const std::function<void()>& callback) GRPC_OVERRIDE;
 
@@ -61,6 +61,8 @@ class FixedSizeThreadPool GRPC_FINAL : public ThreadPoolInterface {
 
   void ThreadFunc();
 };
+
+ThreadPoolInterface* CreateDefaultThreadPool();
 
 }  // namespace grpc
 
