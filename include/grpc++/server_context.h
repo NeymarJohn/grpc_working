@@ -35,9 +35,10 @@
 #define GRPCXX_SERVER_CONTEXT_H
 
 #include <map>
+#include <memory>
 
-#include <grpc/compression.h>
 #include <grpc/support/time.h>
+#include <grpc++/auth_context.h>
 #include <grpc++/config.h>
 #include <grpc++/time.h>
 
@@ -75,6 +76,10 @@ class CallOpBuffer;
 class CompletionQueue;
 class Server;
 
+namespace testing {
+class InteropContextInspector;
+}  // namespace testing
+
 // Interface of server side rpc context.
 class ServerContext {
  public:
@@ -98,17 +103,12 @@ class ServerContext {
     return client_metadata_;
   }
 
-  grpc_compression_level get_compression_level() const {
-    return compression_level_;
+  std::shared_ptr<const AuthContext> auth_context() const {
+    return auth_context_;
   }
-  void set_compression_level(grpc_compression_level level);
-
-  grpc_compression_algorithm get_compression_algorithm() const {
-    return compression_algorithm_;
-  }
-  void set_compression_algorithm(grpc_compression_algorithm algorithm);
 
  private:
+  friend class ::grpc::testing::InteropContextInspector;
   friend class ::grpc::Server;
   template <class W, class R>
   friend class ::grpc::ServerAsyncReader;
@@ -144,18 +144,18 @@ class ServerContext {
   ServerContext(gpr_timespec deadline, grpc_metadata* metadata,
                 size_t metadata_count);
 
+  void set_call(grpc_call* call);
+
   CompletionOp* completion_op_;
 
   gpr_timespec deadline_;
   grpc_call* call_;
   CompletionQueue* cq_;
   bool sent_initial_metadata_;
+  std::shared_ptr<const AuthContext> auth_context_;
   std::multimap<grpc::string, grpc::string> client_metadata_;
   std::multimap<grpc::string, grpc::string> initial_metadata_;
   std::multimap<grpc::string, grpc::string> trailing_metadata_;
-
-  grpc_compression_level compression_level_;
-  grpc_compression_algorithm compression_algorithm_;
 };
 
 }  // namespace grpc
