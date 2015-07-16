@@ -31,23 +31,20 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_SECURE_TRANSPORT_SETUP_H
-#define GRPC_INTERNAL_CORE_SECURITY_SECURE_TRANSPORT_SETUP_H
+#ifndef GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
+#define GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
 
-#include "src/core/iomgr/endpoint.h"
-#include "src/core/security/security_connector.h"
+typedef struct gpr_stack_lockfree gpr_stack_lockfree;
 
-/* --- Secure transport setup --- */
+/* This stack must specify the maximum number of entries to track.
+   The current implementation only allows up to 65534 entries */
+gpr_stack_lockfree* gpr_stack_lockfree_create(int entries);
+void gpr_stack_lockfree_destroy(gpr_stack_lockfree* stack);
 
-/* Ownership of the secure_endpoint is transfered. */
-typedef void (*grpc_secure_transport_setup_done_cb)(
-    void *user_data, grpc_security_status status,
-    grpc_endpoint *wrapped_endpoint, grpc_endpoint *secure_endpoint);
+/* Pass in a valid entry number for the next stack entry */
+void gpr_stack_lockfree_push(gpr_stack_lockfree* stack, int entry);
 
-/* Calls the callback upon completion. */
-void grpc_setup_secure_transport(grpc_security_connector *connector,
-                                 grpc_endpoint *nonsecure_endpoint,
-                                 grpc_secure_transport_setup_done_cb cb,
-                                 void *user_data);
+/* Returns -1 on empty or the actual entry number */
+int gpr_stack_lockfree_pop(gpr_stack_lockfree* stack);
 
-#endif  /* GRPC_INTERNAL_CORE_SECURITY_SECURE_TRANSPORT_SETUP_H */
+#endif /* GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H */
