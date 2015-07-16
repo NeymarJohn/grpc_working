@@ -775,7 +775,6 @@ src/core/security/auth_filters.h \
 src/core/security/base64.h \
 src/core/security/credentials.h \
 src/core/security/json_token.h \
-src/core/security/jwt_verifier.h \
 src/core/security/secure_endpoint.h \
 src/core/security/secure_transport_setup.h \
 src/core/security/security_connector.h \
@@ -803,6 +802,7 @@ src/core/client_config/resolver_factory.h \
 src/core/client_config/resolver_registry.h \
 src/core/client_config/resolvers/dns_resolver.h \
 src/core/client_config/resolvers/unix_resolver_posix.h \
+src/core/client_config/resolvers/zookeeper_resolver.h \
 src/core/client_config/subchannel.h \
 src/core/client_config/subchannel_factory.h \
 src/core/client_config/uri_parser.h \
@@ -892,7 +892,6 @@ src/core/security/credentials_posix.c \
 src/core/security/credentials_win32.c \
 src/core/security/google_default_credentials.c \
 src/core/security/json_token.c \
-src/core/security/jwt_verifier.c \
 src/core/security/secure_endpoint.c \
 src/core/security/secure_transport_setup.c \
 src/core/security/security_connector.c \
@@ -921,6 +920,7 @@ src/core/client_config/resolver_factory.c \
 src/core/client_config/resolver_registry.c \
 src/core/client_config/resolvers/dns_resolver.c \
 src/core/client_config/resolvers/unix_resolver_posix.c \
+src/core/client_config/resolvers/zookeeper_resolver.c \
 src/core/client_config/subchannel.c \
 src/core/client_config/subchannel_factory.c \
 src/core/client_config/uri_parser.c \
@@ -985,7 +985,6 @@ src/core/surface/server.c \
 src/core/surface/server_chttp2.c \
 src/core/surface/server_create.c \
 src/core/surface/surface_trace.c \
-src/core/surface/version.c \
 src/core/transport/chttp2/alpn.c \
 src/core/transport/chttp2/bin_encoder.c \
 src/core/transport/chttp2/frame_data.c \
@@ -1045,7 +1044,6 @@ include/grpc/support/useful.h \
 src/core/support/env.h \
 src/core/support/file.h \
 src/core/support/murmur_hash.h \
-src/core/support/stack_lockfree.h \
 src/core/support/string.h \
 src/core/support/string_win32.h \
 src/core/support/thd_internal.h \
@@ -1072,7 +1070,6 @@ src/core/support/log_win32.c \
 src/core/support/murmur_hash.c \
 src/core/support/slice.c \
 src/core/support/slice_buffer.c \
-src/core/support/stack_lockfree.c \
 src/core/support/string.c \
 src/core/support/string_posix.c \
 src/core/support/string_win32.c \
