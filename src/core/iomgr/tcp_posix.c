@@ -313,9 +313,7 @@ static void call_read_cb(grpc_tcp *tcp, gpr_slice *slices, size_t nslices,
     size_t i;
     gpr_log(GPR_DEBUG, "read: status=%d", status);
     for (i = 0; i < nslices; i++) {
-      char *dump =
-          gpr_hexdump((char *)GPR_SLICE_START_PTR(slices[i]),
-                      GPR_SLICE_LENGTH(slices[i]), GPR_HEXDUMP_PLAINTEXT);
+      char *dump = gpr_dump_slice(slices[i], GPR_DUMP_HEX | GPR_DUMP_ASCII);
       gpr_log(GPR_DEBUG, "READ: %s", dump);
       gpr_free(dump);
     }
@@ -540,9 +538,7 @@ static grpc_endpoint_write_status grpc_tcp_write(grpc_endpoint *ep,
     size_t i;
 
     for (i = 0; i < nslices; i++) {
-      char *data =
-          gpr_hexdump((char *)GPR_SLICE_START_PTR(slices[i]),
-                      GPR_SLICE_LENGTH(slices[i]), GPR_HEXDUMP_PLAINTEXT);
+      char *data = gpr_dump_slice(slices[i], GPR_DUMP_HEX | GPR_DUMP_ASCII);
       gpr_log(GPR_DEBUG, "WRITE %p: %s", tcp, data);
       gpr_free(data);
     }
@@ -571,9 +567,14 @@ static void grpc_tcp_add_to_pollset(grpc_endpoint *ep, grpc_pollset *pollset) {
   grpc_pollset_add_fd(pollset, tcp->em_fd);
 }
 
+static void grpc_tcp_add_to_pollset_set(grpc_endpoint *ep, grpc_pollset_set *pollset_set) {
+  grpc_tcp *tcp = (grpc_tcp *)ep;
+  grpc_pollset_set_add_fd(pollset_set, tcp->em_fd);
+}
+
 static const grpc_endpoint_vtable vtable = {
     grpc_tcp_notify_on_read, grpc_tcp_write, grpc_tcp_add_to_pollset,
-    grpc_tcp_shutdown, grpc_tcp_destroy};
+    grpc_tcp_add_to_pollset_set, grpc_tcp_shutdown, grpc_tcp_destroy};
 
 grpc_endpoint *grpc_tcp_create(grpc_fd *em_fd, size_t slice_size) {
   grpc_tcp *tcp = (grpc_tcp *)gpr_malloc(sizeof(grpc_tcp));

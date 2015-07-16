@@ -35,6 +35,7 @@
 
 #include <grpc/census.h>
 #include <grpc/grpc.h>
+#include <grpc/support/time.h>
 #include "src/core/channel/channel_stack.h"
 #include "src/core/client_config/resolver_registry.h"
 #include "src/core/client_config/resolvers/dns_resolver.h"
@@ -45,12 +46,11 @@
 #include "src/core/surface/init.h"
 #include "src/core/surface/surface_trace.h"
 #include "src/core/transport/chttp2_transport.h"
+#include "src/core/transport/connectivity_state.h"
 
 #ifdef GPR_POSIX_SOCKET
 #include "src/core/client_config/resolvers/unix_resolver_posix.h"
 #endif
-
-#include "src/core/client_config/resolvers/zookeeper_resolver.h"
 
 static gpr_once g_basic_init = GPR_ONCE_INIT;
 static gpr_mu g_init_mu;
@@ -66,17 +66,18 @@ void grpc_init(void) {
 
   gpr_mu_lock(&g_init_mu);
   if (++g_initializations == 1) {
+    gpr_time_init();
     grpc_resolver_registry_init("dns:///");
     grpc_register_resolver_type("dns", grpc_dns_resolver_factory_create());
 #ifdef GPR_POSIX_SOCKET
     grpc_register_resolver_type("unix", grpc_unix_resolver_factory_create());
 #endif
-    grpc_register_resolver_type("zookeeper", grpc_zookeeper_resolver_factory_create());
     grpc_register_tracer("channel", &grpc_trace_channel);
     grpc_register_tracer("surface", &grpc_surface_trace);
     grpc_register_tracer("http", &grpc_http_trace);
     grpc_register_tracer("flowctl", &grpc_flowctl_trace);
     grpc_register_tracer("batch", &grpc_trace_batch);
+    grpc_register_tracer("connectivity_state", &grpc_connectivity_state_trace);
     grpc_security_pre_init();
     grpc_iomgr_init();
     grpc_tracer_init("GRPC_TRACE");

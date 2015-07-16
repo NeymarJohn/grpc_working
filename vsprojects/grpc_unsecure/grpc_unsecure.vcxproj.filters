@@ -217,6 +217,9 @@
     <ClCompile Include="..\..\src\core\surface\channel.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\core\surface\channel_connectivity.c">
+      <Filter>src\core\surface</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\core\surface\channel_create.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
@@ -245,6 +248,9 @@
       <Filter>src\core\surface</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\surface\surface_trace.c">
+      <Filter>src\core\surface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\surface\version.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\alpn.c">

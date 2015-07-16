@@ -91,7 +91,9 @@ typedef struct grpc_transport_op {
   grpc_connectivity_state *connectivity_state;
   /** should the transport be disconnected */
   int disconnect;
-  /** should we send a goaway? */
+  /** should we send a goaway?
+      after a goaway is sent, once there are no more active calls on
+      the transport, the transport should disconnect */
   int send_goaway;
   /** what should the goaway contain? */
   grpc_status_code goaway_status;
@@ -103,6 +105,8 @@ typedef struct grpc_transport_op {
   void *set_accept_stream_user_data;
   /** add this transport to a pollset */
   grpc_pollset *bind_pollset;
+  /** add this transport to a pollset_set */
+  grpc_pollset_set *bind_pollset_set;
   /** send a ping, call this back if not NULL */
   grpc_iomgr_closure *send_ping;
 } grpc_transport_op;

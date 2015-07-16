@@ -110,6 +110,8 @@ static void cancel_from_api(grpc_chttp2_transport_global *transport_global,
 /** Add endpoint from this transport to pollset */
 static void add_to_pollset_locked(grpc_chttp2_transport *t,
                                   grpc_pollset *pollset);
+static void add_to_pollset_set_locked(grpc_chttp2_transport *t,
+                                  grpc_pollset_set *pollset_set);
 
 /** Start new streams that have been created if we can */
 static void maybe_start_some_streams(
@@ -139,7 +141,7 @@ static void destruct_transport(grpc_chttp2_transport *t) {
   grpc_chttp2_hpack_parser_destroy(&t->parsing.hpack_parser);
   grpc_chttp2_goaway_parser_destroy(&t->parsing.goaway_parser);
 
-  grpc_mdstr_unref(t->parsing.str_grpc_timeout);
+  GRPC_MDSTR_UNREF(t->parsing.str_grpc_timeout);
 
   for (i = 0; i < STREAM_LIST_COUNT; i++) {
     GPR_ASSERT(t->lists[i].head == NULL);
@@ -233,7 +235,7 @@ static void init_transport(grpc_chttp2_transport *t,
       is_client ? GRPC_DTS_FH_0 : GRPC_DTS_CLIENT_PREFIX_0;
   t->writing.is_client = is_client;
   grpc_connectivity_state_init(&t->channel_callback.state_tracker,
-                               GRPC_CHANNEL_READY);
+                               GRPC_CHANNEL_READY, "transport");
 
   gpr_slice_buffer_init(&t->global.qbuf);
 
@@ -382,7 +384,9 @@ static void destroy_stream(grpc_transport *gt, grpc_stream *gs) {
   GPR_ASSERT(s->global.published_state == GRPC_STREAM_CLOSED ||
              s->global.id == 0);
   GPR_ASSERT(!s->global.in_stream_map);
-  grpc_chttp2_unregister_stream(t, s);
+  if (grpc_chttp2_unregister_stream(t, s) && t->global.sent_goaway) {
+    close_transport_locked(t);
+  }
   if (!t->parsing_active && s->global.id) {
     GPR_ASSERT(grpc_chttp2_stream_map_find(&t->parsing_stream_map,
                                            s->global.id) == NULL);
@@ -521,8 +525,7 @@ static void writing_action(void *gt, int iomgr_success_ignored) {
 void grpc_chttp2_add_incoming_goaway(
     grpc_chttp2_transport_global *transport_global, gpr_uint32 goaway_error,
     gpr_slice goaway_text) {
-  char *msg = gpr_hexdump((char *)GPR_SLICE_START_PTR(goaway_text),
-                          GPR_SLICE_LENGTH(goaway_text), GPR_HEXDUMP_PLAINTEXT);
+  char *msg = gpr_dump_slice(goaway_text, GPR_DUMP_HEX | GPR_DUMP_ASCII);
   gpr_log(GPR_DEBUG, "got goaway [%d]: %s", goaway_error, msg);
   gpr_free(msg);
   gpr_slice_unref(goaway_text);
@@ -667,6 +670,7 @@ static void send_ping_locked(grpc_chttp2_transport *t,
 
 static void perform_transport_op(grpc_transport *gt, grpc_transport_op *op) {
   grpc_chttp2_transport *t = (grpc_chttp2_transport *)gt;
+  int close_transport = 0;
 
   lock(t);
 
@@ -681,10 +685,12 @@ static void perform_transport_op(grpc_transport *gt, grpc_transport_op *op) {
   }
 
   if (op->send_goaway) {
+    t->global.sent_goaway = 1;
     grpc_chttp2_goaway_append(
         t->global.last_incoming_stream_id,
         grpc_chttp2_grpc_status_to_http2_error(op->goaway_status),
         gpr_slice_ref(*op->goaway_message), &t->global.qbuf);
+    close_transport = !grpc_chttp2_has_streams(t);
   }
 
   if (op->set_accept_stream != NULL) {
@@ -697,6 +703,10 @@ static void perform_transport_op(grpc_transport *gt, grpc_transport_op *op) {
     add_to_pollset_locked(t, op->bind_pollset);
   }
 
+  if (op->bind_pollset_set) {
+    add_to_pollset_set_locked(t, op->bind_pollset_set);
+  }
+
   if (op->send_ping) {
     send_ping_locked(t, op->send_ping);
   }
@@ -706,6 +716,12 @@ static void perform_transport_op(grpc_transport *gt, grpc_transport_op *op) {
   }
 
   unlock(t);
+
+  if (close_transport) {
+    lock(t);
+    close_transport_locked(t);
+    unlock(t);
+  }
 }
 
 /*
@@ -732,6 +748,9 @@ static void remove_stream(grpc_chttp2_transport *t, gpr_uint32 id) {
   if (t->parsing.incoming_stream == &s->parsing) {
     t->parsing.incoming_stream = NULL;
     grpc_chttp2_parsing_become_skip_parser(&t->parsing);
+  }
+  if (grpc_chttp2_unregister_stream(t, s) && t->global.sent_goaway) {
+    close_transport_locked(t);
   }
 
   new_stream_count = grpc_chttp2_stream_map_size(&t->parsing_stream_map) +
@@ -868,11 +887,19 @@ static void update_global_window(void *args, gpr_uint32 id, void *stream) {
   grpc_chttp2_stream *s = stream;
   grpc_chttp2_transport_global *transport_global = &t->global;
   grpc_chttp2_stream_global *stream_global = &s->global;
+  int was_zero;
+  int is_zero;
 
   GRPC_CHTTP2_FLOWCTL_TRACE_STREAM("settings", transport_global, stream_global,
                                    outgoing_window,
                                    t->parsing.initial_window_update);
+  was_zero = stream_global->outgoing_window <= 0;
   stream_global->outgoing_window += t->parsing.initial_window_update;
+  is_zero = stream_global->outgoing_window <= 0;
+
+  if (was_zero && !is_zero) {
+    grpc_chttp2_list_add_writable_stream(transport_global, stream_global);
+  }
 }
 
 static void read_error_locked(grpc_chttp2_transport *t) {
@@ -997,6 +1024,13 @@ static void add_to_pollset_locked(grpc_chttp2_transport *t,
                                   grpc_pollset *pollset) {
   if (t->ep) {
     grpc_endpoint_add_to_pollset(t->ep, pollset);
+  }
+}
+
+static void add_to_pollset_set_locked(grpc_chttp2_transport *t,
+                                  grpc_pollset_set *pollset_set) {
+  if (t->ep) {
+    grpc_endpoint_add_to_pollset_set(t->ep, pollset_set);
   }
 }
 
