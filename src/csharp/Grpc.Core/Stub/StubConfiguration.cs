@@ -32,31 +32,33 @@
 #endregion
 
 using System;
-using Grpc.Core;
 using Grpc.Core.Internal;
 using Grpc.Core.Utils;
-using NUnit.Framework;
 
-namespace Grpc.Core.Internal.Tests
+namespace Grpc.Core
 {
-    public class MetadataArraySafeHandleTest
+    public delegate void HeaderInterceptorDelegate(Metadata.Builder headerBuilder);
+
+    public class StubConfiguration
     {
-        [Test]
-        public void CreateEmptyAndDestroy()
+        /// <summary>
+        /// The default stub configuration.
+        /// </summary>
+        public static readonly StubConfiguration Default = new StubConfiguration((headerBuilder) => { });
+
+        readonly HeaderInterceptorDelegate headerInterceptor;
+
+        public StubConfiguration(HeaderInterceptorDelegate headerInterceptor)
         {
-            var metadata = Metadata.CreateBuilder().Build();
-            var nativeMetadata = MetadataArraySafeHandle.Create(metadata);
-            nativeMetadata.Dispose();
+            this.headerInterceptor = Preconditions.CheckNotNull(headerInterceptor);
         }
 
-        [Test]
-        public void CreateAndDestroy()
+        public HeaderInterceptorDelegate HeaderInterceptor
         {
-            var metadata = Metadata.CreateBuilder()
-                .Add(new Metadata.MetadataEntry("host", "somehost"))
-                .Add(new Metadata.MetadataEntry("header2", "header value")).Build();
-            var nativeMetadata = MetadataArraySafeHandle.Create(metadata);
-            nativeMetadata.Dispose();
+            get
+            {
+                return headerInterceptor;
+            }
         }
     }
 }

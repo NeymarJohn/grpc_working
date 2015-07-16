@@ -119,7 +119,7 @@ namespace Grpc.IntegrationTesting
 
             using (Channel channel = new Channel(options.serverHost, options.serverPort.Value, credentials, channelOptions))
             {
-                TestService.TestServiceClient client = new TestService.TestServiceClient(channel);
+                var stubConfig = StubConfiguration.Default;
                 if (options.testCase == "service_account_creds" || options.testCase == "compute_engine_creds")
                 {
                     var credential = GoogleCredential.GetApplicationDefault();
@@ -127,9 +127,10 @@ namespace Grpc.IntegrationTesting
                     {
                         credential = credential.CreateScoped(new[] { AuthScope });
                     }
-                    client.HeaderInterceptor = OAuth2InterceptorFactory.Create(credential);
+                    stubConfig = new StubConfiguration(OAuth2InterceptorFactory.Create(credential));
                 }
 
+                TestService.ITestServiceClient client = new TestService.TestServiceClient(channel, stubConfig);
                 RunTestCase(options.testCase, client);
             }
             GrpcEnvironment.Shutdown();
@@ -362,7 +363,7 @@ namespace Grpc.IntegrationTesting
                 Console.WriteLine("running cancel_after_begin");
 
                 var cts = new CancellationTokenSource();
-                using (var call = client.StreamingInputCall(cancellationToken: cts.Token))
+                using (var call = client.StreamingInputCall(cts.Token))
                 {
                     // TODO(jtattermusch): we need this to ensure call has been initiated once we cancel it.
                     await Task.Delay(1000);
@@ -389,7 +390,7 @@ namespace Grpc.IntegrationTesting
                 Console.WriteLine("running cancel_after_first_response");
 
                 var cts = new CancellationTokenSource();
-                using (var call = client.FullDuplexCall(cancellationToken: cts.Token))
+                using (var call = client.FullDuplexCall(cts.Token))
                 {
                     await call.RequestStream.WriteAsync(StreamingOutputCallRequest.CreateBuilder()
                         .SetResponseType(PayloadType.COMPRESSABLE)
