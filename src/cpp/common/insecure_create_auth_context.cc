@@ -30,13 +30,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#include <memory>
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#include <grpc/grpc.h>
+#include <grpc++/auth_context.h>
 
-#include "src/core/client_config/resolver_factory.h"
+namespace grpc {
 
-/** Create a zookeeper resolver for \a name */
-grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
+std::shared_ptr<const AuthContext> CreateAuthContext(grpc_call* call) {
+  (void)call;
+  return std::shared_ptr<const AuthContext>();
+}
 
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */
+}  // namespace grpc
