@@ -31,13 +31,25 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "src/core/surface/completion_queue.h"
-#include "src/core/surface/server.h"
-#include "src/core/channel/compress_filter.h"
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
+#define GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
 
-grpc_server *grpc_server_create(const grpc_channel_args *args) {
-  const grpc_channel_filter *filters[] = {&grpc_compress_filter};
-  return grpc_server_create_from_filters(filters, GPR_ARRAY_SIZE(filters),
-                                         args);
-}
+#include "src/core/channel/channel_stack.h"
+
+#define GRPC_COMPRESS_REQUEST_ALGORITHM_KEY "internal:grpc-encoding-request"
+
+/** Message-level compression filter.
+ *
+ * See <grpc/compression.h> for the available compression levels.
+ *
+ * Use grpc_channel_args_set_compression_level and
+ * grpc_channel_args_get_compression_level to interact with the compression
+ * settings for a channel.
+ *
+ * grpc_op instances of type GRPC_OP_SEND_MESSAGE can have the bit specified by
+ * the GRPC_WRITE_NO_COMPRESS mask in order to disable compression in an
+ * otherwise compressed channel.
+ * */
+extern const grpc_channel_filter grpc_compress_filter;
+
+#endif  /* GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H */
