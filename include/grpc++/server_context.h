@@ -37,7 +37,6 @@
 #include <map>
 #include <memory>
 
-#include <grpc/compression.h>
 #include <grpc/support/time.h>
 #include <grpc++/auth_context.h>
 #include <grpc++/config.h>
@@ -100,17 +99,9 @@ class ServerContext {
     return client_metadata_;
   }
 
-  grpc_compression_level get_compression_level() const {
-    return compression_level_;
+  std::shared_ptr<const AuthContext> auth_context() const {
+    return auth_context_;
   }
-  void set_compression_level(grpc_compression_level level);
-
-  grpc_compression_algorithm get_compression_algorithm() const {
-    return compression_algorithm_;
-  }
-  void set_compression_algorithm(grpc_compression_algorithm algorithm);
-
-  std::shared_ptr<const AuthContext> auth_context() const;
 
  private:
   friend class ::grpc::Server;
@@ -156,13 +147,10 @@ class ServerContext {
   grpc_call* call_;
   CompletionQueue* cq_;
   bool sent_initial_metadata_;
-  mutable std::shared_ptr<const AuthContext> auth_context_;
+  std::shared_ptr<const AuthContext> auth_context_;
   std::multimap<grpc::string, grpc::string> client_metadata_;
   std::multimap<grpc::string, grpc::string> initial_metadata_;
   std::multimap<grpc::string, grpc::string> trailing_metadata_;
-
-  grpc_compression_level compression_level_;
-  grpc_compression_algorithm compression_algorithm_;
 };
 
 }  // namespace grpc
