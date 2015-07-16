@@ -55,8 +55,7 @@ namespace Grpc.Core.Internal
         // NOTE: on linux 64bit  sizeof(gpr_timespec) = 16, on windows 32bit sizeof(gpr_timespec) = 8
         // so IntPtr seems to have the right size to work on both.
         public System.IntPtr tv_sec;
-        public int tv_nsec;
-        public GPRClockType clock_type;
+        public System.IntPtr tv_nsec;
 
         /// <summary>
         /// Timespec a long time in the future.
@@ -100,13 +99,12 @@ namespace Grpc.Core.Internal
 
         public Timespec Add(TimeSpan timeSpan)
         {
-            long nanos = (long)tv_nsec + (timeSpan.Ticks % TimeSpan.TicksPerSecond) * NanosPerTick;
+            long nanos = tv_nsec.ToInt64() + (timeSpan.Ticks % TimeSpan.TicksPerSecond) * NanosPerTick;
             long overflow_sec = (nanos > NanosPerSecond) ? 1 : 0;
 
             Timespec result;
-            result.tv_nsec = (int)(nanos % NanosPerSecond);
+            result.tv_nsec = new IntPtr(nanos % NanosPerSecond);
             result.tv_sec = new IntPtr(tv_sec.ToInt64() + (timeSpan.Ticks / TimeSpan.TicksPerSecond) + overflow_sec);
-            result.clock_type = GPRClockType.Realtime;
             return result;
         }
     }

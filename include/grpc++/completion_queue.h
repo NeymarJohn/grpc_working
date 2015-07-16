@@ -105,8 +105,7 @@ class CompletionQueue : public GrpcLibrary {
   // Returns false if the queue is ready for destruction, true if event
 
   bool Next(void** tag, bool* ok) {
-    return (AsyncNextInternal(tag, ok, gpr_inf_future(GPR_CLOCK_REALTIME)) !=
-            SHUTDOWN);
+    return (AsyncNextInternal(tag, ok, gpr_inf_future) != SHUTDOWN);
   }
 
   // Shutdown has to be called, and the CompletionQueue can only be

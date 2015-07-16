@@ -68,9 +68,6 @@ class InteropClient {
   // username is a string containing the user email
   void DoServiceAccountCreds(const grpc::string& username,
                              const grpc::string& oauth_scope);
-  // username is a string containing the user email
-  void DoOauth2AuthToken(const grpc::string& username,
-                         const grpc::string& oauth_scope);
 
  private:
   void PerformLargeUnary(SimpleRequest* request, SimpleResponse* response);

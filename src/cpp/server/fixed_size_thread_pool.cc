@@ -76,7 +76,8 @@ FixedSizeThreadPool::~FixedSizeThreadPool() {
   }
 }
 
-void FixedSizeThreadPool::Add(const std::function<void()>& callback) {
+void FixedSizeThreadPool::ScheduleCallback(
+    const std::function<void()>& callback) {
   grpc::lock_guard<grpc::mutex> lock(mu_);
   callbacks_.push(callback);
   cv_.notify_one();
