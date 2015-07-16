@@ -36,10 +36,6 @@
 
 #include "src/core/security/credentials.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* --- grpc_auth_context ---
 
    High level authentication context object. Can optionally be chained. */
@@ -106,10 +102,6 @@ typedef struct {
 
 grpc_server_security_context *grpc_server_security_context_create(void);
 void grpc_server_security_context_destroy(void *ctx);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif  /* GRPC_INTERNAL_CORE_SECURITY_SECURITY_CONTEXT_H */
 
