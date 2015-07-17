@@ -35,7 +35,7 @@
 
 #import <GPBProtocolBuffers.h>
 #import <RxLibrary/GRXWriteable.h>
-#import <RxLibrary/GRXWriter.h>
+#import <RxLibrary/GRXForwardingWriter.h>
 #import <RxLibrary/GRXWriter+Transformations.h>
 
 @implementation ProtoRPC {
@@ -46,7 +46,7 @@
 #pragma clang diagnostic ignored "-Wobjc-designated-initializers"
 - (instancetype)initWithHost:(NSString *)host
                         path:(NSString *)path
-              requestsWriter:(id<GRXWriter>)requestsWriter {
+              requestsWriter:(GRXWriter *)requestsWriter {
   [NSException raise:NSInvalidArgumentException
               format:@"Please use ProtoRPC's designated initializer instead."];
   return nil;
@@ -56,7 +56,7 @@
 // Designated initializer
 - (instancetype)initWithHost:(NSString *)host
                       method:(ProtoMethod *)method
-              requestsWriter:(id<GRXWriter>)requestsWriter
+              requestsWriter:(GRXWriter *)requestsWriter
                responseClass:(Class)responseClass
           responsesWriteable:(id<GRXWriteable>)responsesWriteable {
   // Because we can't tell the type system to constrain the class, we need to check at runtime:
@@ -66,7 +66,7 @@
   }
   // A writer that serializes the proto messages to send.
   id<GRXWriter> bytesWriter =
-      [[[GRXWriter alloc] initWithWriter:requestsWriter] map:^id(GPBMessage *proto) {
+      [[[GRXForwardingWriter alloc] initWithWriter:requestsWriter] map:^id(GPBMessage *proto) {
         // TODO(jcanizales): Fail with an understandable error message if the requestsWriter isn't
         // sending GPBMessages.
         return [proto data];
