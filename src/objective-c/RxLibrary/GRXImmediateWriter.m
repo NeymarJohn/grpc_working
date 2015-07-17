@@ -63,19 +63,19 @@
   return [[self alloc] initWithEnumerator:enumerator error:errorOrNil];
 }
 
-+ (GRXWriter *)writerWithEnumerator:(NSEnumerator *)enumerator {
++ (id<GRXWriter>)writerWithEnumerator:(NSEnumerator *)enumerator {
   return [self writerWithEnumerator:enumerator error:nil];
 }
 
-+ (GRXWriter *)writerWithValueSupplier:(id (^)())block {
++ (id<GRXWriter>)writerWithValueSupplier:(id (^)())block {
   return [self writerWithEnumerator:[NSEnumerator grx_enumeratorWithValueSupplier:block]];
 }
 
-+ (GRXWriter *)writerWithContainer:(id<NSFastEnumeration>)container {
++ (id<GRXWriter>)writerWithContainer:(id<NSFastEnumeration>)container {
   return [self writerWithEnumerator:[NSEnumerator grx_enumeratorWithContainer:container]];;
 }
 
-+ (GRXWriter *)writerWithValue:(id)value {
++ (id<GRXWriter>)writerWithValue:(id)value {
   if (value) {
     return [self writerWithEnumerator:[NSEnumerator grx_enumeratorWithSingleValue:value]];
   } else {
@@ -83,7 +83,7 @@
   }
 }
 
-+ (GRXWriter *)writerWithError:(NSError *)error {
++ (id<GRXWriter>)writerWithError:(NSError *)error {
   if (error) {
     return [self writerWithEnumerator:nil error:error];
   } else {
@@ -91,7 +91,7 @@
   }
 }
 
-+ (GRXWriter *)emptyWriter {
++ (id<GRXWriter>)emptyWriter {
   static GRXImmediateWriter *emptyWriter;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{

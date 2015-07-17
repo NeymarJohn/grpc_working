@@ -51,7 +51,7 @@
 // pipe will keep buffering all data written to it, your application could run out of memory and
 // crash. If you want to react to flow control signals to prevent that, instead of using this class
 // you can implement an object that conforms to GRXWriter.
-@interface GRXBufferedPipe : GRXWriter<GRXWriteable>
+@interface GRXBufferedPipe : NSObject<GRXWriteable, GRXWriter>
 
 // Convenience constructor.
 + (instancetype)pipe;

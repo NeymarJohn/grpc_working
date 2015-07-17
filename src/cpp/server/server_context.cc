@@ -144,20 +144,13 @@ void ServerContext::AddTrailingMetadata(const grpc::string& key,
   trailing_metadata_.insert(std::make_pair(key, value));
 }
 
-bool ServerContext::IsCancelled() const {
+bool ServerContext::IsCancelled() {
   return completion_op_ && completion_op_->CheckCancelled(cq_);
 }
 
 void ServerContext::set_call(grpc_call* call) {
   call_ = call;
   auth_context_ = CreateAuthContext(call);
-}
-
-std::shared_ptr<const AuthContext> ServerContext::auth_context() const {
-  if (auth_context_.get() == nullptr) {
-    auth_context_ = CreateAuthContext(call_);
-  }
-  return auth_context_;
 }
 
 }  // namespace grpc

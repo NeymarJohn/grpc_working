@@ -47,8 +47,6 @@ class ThreadPoolInterface {
   virtual void ScheduleCallback(const std::function<void()>& callback) = 0;
 };
 
-ThreadPoolInterface* CreateDefaultThreadPool();
-
 }  // namespace grpc
 
 #endif  // GRPCXX_THREAD_POOL_INTERFACE_H
