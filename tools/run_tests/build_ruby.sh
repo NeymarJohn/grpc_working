@@ -31,7 +31,7 @@
 
 set -ex
 
-export GRPC_CONFIG=${CONFIG:-opt}
+export CONFIG=${CONFIG:-opt}
 
 # change to grpc's ruby directory
 cd $(dirname $0)/../../src/ruby

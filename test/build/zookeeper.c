@@ -31,32 +31,13 @@
  *
  */
 
-#ifndef GRPCXX_AUTH_CONTEXT_H
-#define GRPCXX_AUTH_CONTEXT_H
+/* This is just a compilation test, to see if we have Zookeeper C client 
+   library installed. */
 
-#include <vector>
+#include <stdlib.h>
+#include <zookeeper/zookeeper.h>
 
-#include <grpc++/config.h>
-
-namespace grpc {
-
-class AuthContext {
- public:
-  typedef std::pair<grpc::string, grpc::string> Property;
-
-  virtual ~AuthContext() {}
-
-  // A peer identity, in general is one or more properties (in which case they
-  // have the same name).
-  virtual std::vector<grpc::string> GetPeerIdentity() const = 0;
-  virtual grpc::string GetPeerIdentityPropertyName() const = 0;
-
-  // Returns all the property values with the given name.
-  virtual std::vector<grpc::string> FindPropertyValues(
-      const grpc::string& name) const = 0;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_AUTH_CONTEXT_H
-
+int main() {
+  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
+  return 0;
+}
