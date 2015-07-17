@@ -95,8 +95,7 @@ int main(int argc, char **argv) {
                                         on_metadata_response, &sync);
 
   gpr_mu_lock(GRPC_POLLSET_MU(&sync.pollset));
-  while (!sync.is_done)
-    grpc_pollset_work(&sync.pollset, gpr_inf_future(GPR_CLOCK_REALTIME));
+  while (!sync.is_done) grpc_pollset_work(&sync.pollset, gpr_inf_future);
   gpr_mu_unlock(GRPC_POLLSET_MU(&sync.pollset));
 
   grpc_credentials_release(creds);
