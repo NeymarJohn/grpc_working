@@ -79,11 +79,7 @@ class WriterInterface {
 
   // Blocking write msg to the stream. Returns true on success.
   // Returns false when the stream has been closed.
-  virtual bool Write(const W& msg, const WriteOptions& options) = 0;
-
-  inline bool Write(const W& msg) {
-    return Write(msg, WriteOptions());
-  }
+  virtual bool Write(const W& msg) = 0;
 };
 
 template <class R>
@@ -172,10 +168,9 @@ class ClientWriter : public ClientWriterInterface<W> {
     cq_.Pluck(&ops);
   }
 
-  using WriterInterface<W>::Write;
-  bool Write(const W& msg, const WriteOptions& options) GRPC_OVERRIDE {
+  bool Write(const W& msg) GRPC_OVERRIDE {
     CallOpSet<CallOpSendMessage> ops;
-    if (!ops.SendMessage(msg, options).ok()) {
+    if (!ops.SendMessage(msg).ok()) {
       return false;
     }
     call_.PerformOps(&ops);
@@ -251,10 +246,9 @@ class ClientReaderWriter GRPC_FINAL : public ClientReaderWriterInterface<W, R> {
     return cq_.Pluck(&ops) && ops.got_message;
   }
 
-  using WriterInterface<W>::Write;
-  bool Write(const W& msg, const WriteOptions& options) GRPC_OVERRIDE {
+  bool Write(const W& msg) GRPC_OVERRIDE {
     CallOpSet<CallOpSendMessage> ops;
-    if (!ops.SendMessage(msg, options).ok()) return false;
+    if (!ops.SendMessage(msg).ok()) return false;
     call_.PerformOps(&ops);
     return cq_.Pluck(&ops);
   }
@@ -323,10 +317,9 @@ class ServerWriter GRPC_FINAL : public WriterInterface<W> {
     call_->cq()->Pluck(&ops);
   }
 
-  using WriterInterface<W>::Write;
-  bool Write(const W& msg, const WriteOptions& options) GRPC_OVERRIDE {
+  bool Write(const W& msg) GRPC_OVERRIDE {
     CallOpSet<CallOpSendInitialMetadata, CallOpSendMessage> ops;
-    if (!ops.SendMessage(msg, options).ok()) {
+    if (!ops.SendMessage(msg).ok()) {
       return false;
     }
     if (!ctx_->sent_initial_metadata_) {
@@ -366,10 +359,9 @@ class ServerReaderWriter GRPC_FINAL : public WriterInterface<W>,
     return call_->cq()->Pluck(&ops) && ops.got_message;
   }
 
-  using WriterInterface<W>::Write;
-  bool Write(const W& msg, const WriteOptions& options) GRPC_OVERRIDE {
+  bool Write(const W& msg) GRPC_OVERRIDE {
     CallOpSet<CallOpSendInitialMetadata, CallOpSendMessage> ops;
-    if (!ops.SendMessage(msg, options).ok()) {
+    if (!ops.SendMessage(msg).ok()) {
       return false;
     }
     if (!ctx_->sent_initial_metadata_) {
