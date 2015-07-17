@@ -138,7 +138,6 @@ cc_library(
     "src/core/security/base64.h",
     "src/core/security/credentials.h",
     "src/core/security/json_token.h",
-    "src/core/security/jwt_verifier.h",
     "src/core/security/secure_endpoint.h",
     "src/core/security/secure_transport_setup.h",
     "src/core/security/security_connector.h",
@@ -243,7 +242,6 @@ cc_library(
     "src/core/transport/transport.h",
     "src/core/transport/transport_impl.h",
     "src/core/census/context.h",
-    "src/core/census/resource_id.h",
     "src/core/httpcli/format_request.c",
     "src/core/httpcli/httpcli.c",
     "src/core/httpcli/httpcli_security_connector.c",
@@ -256,7 +254,6 @@ cc_library(
     "src/core/security/credentials_win32.c",
     "src/core/security/google_default_credentials.c",
     "src/core/security/json_token.c",
-    "src/core/security/jwt_verifier.c",
     "src/core/security/secure_endpoint.c",
     "src/core/security/secure_transport_setup.c",
     "src/core/security/security_connector.c",
@@ -349,7 +346,6 @@ cc_library(
     "src/core/surface/server_chttp2.c",
     "src/core/surface/server_create.c",
     "src/core/surface/surface_trace.c",
-    "src/core/surface/version.c",
     "src/core/transport/chttp2/alpn.c",
     "src/core/transport/chttp2/bin_encoder.c",
     "src/core/transport/chttp2/frame_data.c",
@@ -378,7 +374,6 @@ cc_library(
     "src/core/transport/transport_op_string.c",
     "src/core/census/context.c",
     "src/core/census/initialize.c",
-    "src/core/census/record_stat.c",
   ],
   hdrs = [
     "include/grpc/grpc_security.h",
@@ -499,7 +494,6 @@ cc_library(
     "src/core/transport/transport.h",
     "src/core/transport/transport_impl.h",
     "src/core/census/context.h",
-    "src/core/census/resource_id.h",
     "src/core/surface/init_unsecure.c",
     "src/core/census/grpc_context.c",
     "src/core/channel/channel_args.c",
@@ -582,7 +576,6 @@ cc_library(
     "src/core/surface/server_chttp2.c",
     "src/core/surface/server_create.c",
     "src/core/surface/surface_trace.c",
-    "src/core/surface/version.c",
     "src/core/transport/chttp2/alpn.c",
     "src/core/transport/chttp2/bin_encoder.c",
     "src/core/transport/chttp2/frame_data.c",
@@ -611,7 +604,6 @@ cc_library(
     "src/core/transport/transport_op_string.c",
     "src/core/census/context.c",
     "src/core/census/initialize.c",
-    "src/core/census/record_stat.c",
   ],
   hdrs = [
     "include/grpc/byte_buffer.h",
@@ -632,18 +624,34 @@ cc_library(
 
 
 cc_library(
+  name = "grpc_zookeeper",
+  srcs = [
+    "src/core/client_config/resolvers/zookeeper_resolver.h",
+    "src/core/client_config/resolvers/zookeeper_resolver.c",
+  ],
+  hdrs = [
+    "include/grpc/grpc_zookeeper.h",
+  ],
+  includes = [
+    "include",
+    ".",
+  ],
+  deps = [
+    ":gpr",
+    ":grpc",
+  ],
+)
+
+
+cc_library(
   name = "grpc++",
   srcs = [
     "src/cpp/client/secure_credentials.h",
-    "src/cpp/common/secure_auth_context.h",
     "src/cpp/server/secure_server_credentials.h",
     "src/cpp/client/channel.h",
-    "src/cpp/common/create_auth_context.h",
     "src/cpp/server/thread_pool.h",
     "src/cpp/client/secure_channel_arguments.cc",
     "src/cpp/client/secure_credentials.cc",
-    "src/cpp/common/secure_auth_context.cc",
-    "src/cpp/common/secure_create_auth_context.cc",
     "src/cpp/server/secure_server_credentials.cc",
     "src/cpp/client/channel.cc",
     "src/cpp/client/channel_arguments.cc",
@@ -673,7 +681,6 @@ cc_library(
   hdrs = [
     "include/grpc++/async_generic_service.h",
     "include/grpc++/async_unary_call.h",
-    "include/grpc++/auth_context.h",
     "include/grpc++/byte_buffer.h",
     "include/grpc++/channel_arguments.h",
     "include/grpc++/channel_interface.h",
@@ -726,9 +733,7 @@ cc_library(
   name = "grpc++_unsecure",
   srcs = [
     "src/cpp/client/channel.h",
-    "src/cpp/common/create_auth_context.h",
     "src/cpp/server/thread_pool.h",
-    "src/cpp/common/insecure_create_auth_context.cc",
     "src/cpp/client/channel.cc",
     "src/cpp/client/channel_arguments.cc",
     "src/cpp/client/client_context.cc",
@@ -757,7 +762,6 @@ cc_library(
   hdrs = [
     "include/grpc++/async_generic_service.h",
     "include/grpc++/async_unary_call.h",
-    "include/grpc++/auth_context.h",
     "include/grpc++/byte_buffer.h",
     "include/grpc++/channel_arguments.h",
     "include/grpc++/channel_interface.h",
@@ -962,7 +966,6 @@ objc_library(
     "src/core/security/credentials_win32.c",
     "src/core/security/google_default_credentials.c",
     "src/core/security/json_token.c",
-    "src/core/security/jwt_verifier.c",
     "src/core/security/secure_endpoint.c",
     "src/core/security/secure_transport_setup.c",
     "src/core/security/security_connector.c",
@@ -1055,7 +1058,6 @@ objc_library(
     "src/core/surface/server_chttp2.c",
     "src/core/surface/server_create.c",
     "src/core/surface/surface_trace.c",
-    "src/core/surface/version.c",
     "src/core/transport/chttp2/alpn.c",
     "src/core/transport/chttp2/bin_encoder.c",
     "src/core/transport/chttp2/frame_data.c",
@@ -1084,7 +1086,6 @@ objc_library(
     "src/core/transport/transport_op_string.c",
     "src/core/census/context.c",
     "src/core/census/initialize.c",
-    "src/core/census/record_stat.c",
   ],
   hdrs = [
     "include/grpc/grpc_security.h",
@@ -1102,7 +1103,6 @@ objc_library(
     "src/core/security/base64.h",
     "src/core/security/credentials.h",
     "src/core/security/json_token.h",
-    "src/core/security/jwt_verifier.h",
     "src/core/security/secure_endpoint.h",
     "src/core/security/secure_transport_setup.h",
     "src/core/security/security_connector.h",
@@ -1207,7 +1207,6 @@ objc_library(
     "src/core/transport/transport.h",
     "src/core/transport/transport_impl.h",
     "src/core/census/context.h",
-    "src/core/census/resource_id.h",
   ],
   includes = [
     "include",

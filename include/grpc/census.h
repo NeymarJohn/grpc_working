@@ -61,10 +61,6 @@ enum census_functions {
 int census_initialize(int functions);
 void census_shutdown();
 
-/* If any census feature has been initialized, this funtion will return a
- * non-zero value. */
-int census_available();
-
 /* Internally, Census relies on a context, which should be propagated across
  * RPC's. From the RPC subsystems viewpoint, this is an opaque data structure.
  * A context must be used as the first argument to all other census
@@ -99,9 +95,6 @@ int census_context_deserialize(const char *buffer, census_context **context);
 /* The given context is destroyed. Once destroyed, using the context in
  * future census calls will result in undefined behavior. */
 void census_context_destroy(census_context *context);
-
-/* Record a new value against the given stats ID and context. */
-void census_record_stat(census_context *context, int resource_id, double value);
 
 #ifdef __cplusplus
 }

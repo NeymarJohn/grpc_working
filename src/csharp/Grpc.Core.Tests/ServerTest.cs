@@ -44,10 +44,13 @@ namespace Grpc.Core.Tests
         [Test]
         public void StartAndShutdownServer()
         {
+            GrpcEnvironment.Initialize();
+
             Server server = new Server();
             server.AddListeningPort("localhost", Server.PickUnusedPort);
             server.Start();
             server.ShutdownAsync().Wait();
+
             GrpcEnvironment.Shutdown();
         }
     }

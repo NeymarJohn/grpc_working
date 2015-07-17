@@ -140,7 +140,6 @@ Pod::Spec.new do |s|
                       'src/core/security/base64.h',
                       'src/core/security/credentials.h',
                       'src/core/security/json_token.h',
-                      'src/core/security/jwt_verifier.h',
                       'src/core/security/secure_endpoint.h',
                       'src/core/security/secure_transport_setup.h',
                       'src/core/security/security_connector.h',
@@ -245,7 +244,6 @@ Pod::Spec.new do |s|
                       'src/core/transport/transport.h',
                       'src/core/transport/transport_impl.h',
                       'src/core/census/context.h',
-                      'src/core/census/resource_id.h',
                       'grpc/grpc_security.h',
                       'grpc/byte_buffer.h',
                       'grpc/byte_buffer_reader.h',
@@ -265,7 +263,6 @@ Pod::Spec.new do |s|
                       'src/core/security/credentials_win32.c',
                       'src/core/security/google_default_credentials.c',
                       'src/core/security/json_token.c',
-                      'src/core/security/jwt_verifier.c',
                       'src/core/security/secure_endpoint.c',
                       'src/core/security/secure_transport_setup.c',
                       'src/core/security/security_connector.c',
@@ -358,7 +355,6 @@ Pod::Spec.new do |s|
                       'src/core/surface/server_chttp2.c',
                       'src/core/surface/server_create.c',
                       'src/core/surface/surface_trace.c',
-                      'src/core/surface/version.c',
                       'src/core/transport/chttp2/alpn.c',
                       'src/core/transport/chttp2/bin_encoder.c',
                       'src/core/transport/chttp2/frame_data.c',
@@ -386,8 +382,7 @@ Pod::Spec.new do |s|
                       'src/core/transport/transport.c',
                       'src/core/transport/transport_op_string.c',
                       'src/core/census/context.c',
-                      'src/core/census/initialize.c',
-                      'src/core/census/record_stat.c'
+                      'src/core/census/initialize.c'
 
     ss.private_header_files = 'src/core/support/env.h',
                               'src/core/support/file.h',
@@ -403,7 +398,6 @@ Pod::Spec.new do |s|
                               'src/core/security/base64.h',
                               'src/core/security/credentials.h',
                               'src/core/security/json_token.h',
-                              'src/core/security/jwt_verifier.h',
                               'src/core/security/secure_endpoint.h',
                               'src/core/security/secure_transport_setup.h',
                               'src/core/security/security_connector.h',
@@ -507,8 +501,7 @@ Pod::Spec.new do |s|
                               'src/core/transport/stream_op.h',
                               'src/core/transport/transport.h',
                               'src/core/transport/transport_impl.h',
-                              'src/core/census/context.h',
-                              'src/core/census/resource_id.h'
+                              'src/core/census/context.h'
 
     ss.header_mappings_dir = '.'
 

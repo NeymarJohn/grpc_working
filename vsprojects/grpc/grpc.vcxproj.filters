@@ -37,9 +37,6 @@
     <ClCompile Include="..\..\src\core\security\json_token.c">
       <Filter>src\core\security</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\security\jwt_verifier.c">
-      <Filter>src\core\security</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\core\security\secure_endpoint.c">
       <Filter>src\core\security</Filter>
     </ClCompile>
@@ -316,9 +313,6 @@
     <ClCompile Include="..\..\src\core\surface\surface_trace.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\surface\version.c">
-      <Filter>src\core\surface</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\alpn.c">
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
@@ -403,9 +397,6 @@
     <ClCompile Include="..\..\src\core\census\initialize.c">
       <Filter>src\core\census</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\census\record_stat.c">
-      <Filter>src\core\census</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\grpc\grpc_security.h">
@@ -453,9 +444,6 @@
       <Filter>src\core\security</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\security\json_token.h">
-      <Filter>src\core\security</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\security\jwt_verifier.h">
       <Filter>src\core\security</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\security\secure_endpoint.h">
@@ -768,9 +756,6 @@
       <Filter>src\core\transport</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\census\context.h">
-      <Filter>src\core\census</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\census\resource_id.h">
       <Filter>src\core\census</Filter>
     </ClInclude>
   </ItemGroup>

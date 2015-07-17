@@ -89,9 +89,12 @@ grpc_chttp2_parse_error grpc_chttp2_data_parser_parse(
   fh_0:
     case GRPC_CHTTP2_DATA_FH_0:
       p->frame_type = *cur;
+      if (++cur == end) {
+        p->state = GRPC_CHTTP2_DATA_FH_1;
+        return GRPC_CHTTP2_PARSE_OK;
+      }
       switch (p->frame_type) {
         case 0:
-          /* noop */
           break;
         case 1:
           gpr_log(GPR_ERROR, "Compressed GRPC frames not yet supported");
@@ -99,10 +102,6 @@ grpc_chttp2_parse_error grpc_chttp2_data_parser_parse(
         default:
           gpr_log(GPR_ERROR, "Bad GRPC frame type 0x%02x", p->frame_type);
           return GRPC_CHTTP2_STREAM_ERROR;
-      }
-      if (++cur == end) {
-        p->state = GRPC_CHTTP2_DATA_FH_1;
-        return GRPC_CHTTP2_PARSE_OK;
       }
     /* fallthrough */
     case GRPC_CHTTP2_DATA_FH_1:

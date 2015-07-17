@@ -30,16 +30,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include <memory>
 
-#include <grpc/grpc.h>
-#include <grpc++/auth_context.h>
+#ifndef GRPC_GRPC_ZOOKEEPER_H
+#define GRPC_GRPC_ZOOKEEPER_H
 
-namespace grpc {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-std::shared_ptr<const AuthContext> CreateAuthContext(grpc_call* call) {
-  (void)call;
-  return std::shared_ptr<const AuthContext>();
+/* Register zookeeper name resolver in grpc */
+void grpc_zookeeper_register();
+
+#ifdef __cplusplus
 }
+#endif
 
-}  // namespace grpc
+#endif /* GRPC_GRPC_ZOOKEEPER_H */
