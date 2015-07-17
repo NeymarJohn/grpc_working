@@ -81,7 +81,6 @@ _CLEAR_LINE = '\x1b[2K'
 
 _TAG_COLOR = {
     'FAILED': 'red',
-    'WARNING': 'yellow',
     'TIMEOUT': 'red',
     'PASSED': 'green',
     'START': 'gray',
@@ -96,7 +95,7 @@ def message(tag, msg, explanatory_text=None, do_newline=False):
     return
   message.old_tag = tag
   message.old_msg = msg
-  if platform.system() == 'Windows' or not sys.stdout.isatty():
+  if platform.system() == 'Windows':
     if explanatory_text:
       print explanatory_text
     print '%s: %s' % (tag, msg)
@@ -206,7 +205,7 @@ class Job(object):
                 do_newline=self._newline_on_success or self._travis)
         if self._bin_hash:
           update_cache.finished(self._spec.identity(), self._bin_hash)
-    elif self._state == _RUNNING and time.time() - self._start > 600:
+    elif self._state == _RUNNING and time.time() - self._start > 300:
       self._tempfile.seek(0)
       stdout = self._tempfile.read()
       message('TIMEOUT', self._spec.shortname, stdout, do_newline=True)

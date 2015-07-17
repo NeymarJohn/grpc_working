@@ -31,50 +31,13 @@
  *
  */
 
-#include "src/cpp/common/secure_auth_context.h"
+/* This is just a compilation test, to see if we have Zookeeper C client 
+   library installed. */
 
-#include <grpc/grpc_security.h>
+#include <stdlib.h>
+#include <zookeeper/zookeeper.h>
 
-namespace grpc {
-
-SecureAuthContext::SecureAuthContext(grpc_auth_context* ctx) : ctx_(ctx) {}
-
-SecureAuthContext::~SecureAuthContext() { grpc_auth_context_release(ctx_); }
-
-std::vector<grpc::string> SecureAuthContext::GetPeerIdentity() const {
-  if (!ctx_) {
-    return std::vector<grpc::string>();
-  }
-  grpc_auth_property_iterator iter = grpc_auth_context_peer_identity(ctx_);
-  std::vector<grpc::string> identity;
-  const grpc_auth_property* property = nullptr;
-  while ((property = grpc_auth_property_iterator_next(&iter))) {
-    identity.push_back(grpc::string(property->value, property->value_length));
-  }
-  return identity;
+int main() {
+  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
+  return 0;
 }
-
-grpc::string SecureAuthContext::GetPeerIdentityPropertyName() const {
-  if (!ctx_) {
-    return "";
-  }
-  const char* name = grpc_auth_context_peer_identity_property_name(ctx_);
-  return name == nullptr ? "" : name;
-}
-
-std::vector<grpc::string> SecureAuthContext::FindPropertyValues(
-    const grpc::string& name) const {
-  if (!ctx_) {
-    return std::vector<grpc::string>();
-  }
-  grpc_auth_property_iterator iter =
-      grpc_auth_context_find_properties_by_name(ctx_, name.c_str());
-  const grpc_auth_property* property = nullptr;
-  std::vector<grpc::string> values;
-  while ((property = grpc_auth_property_iterator_next(&iter))) {
-    values.push_back(grpc::string(property->value, property->value_length));
-  }
-  return values;
-}
-
-}  // namespace grpc

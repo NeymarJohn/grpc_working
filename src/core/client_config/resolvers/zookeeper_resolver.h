@@ -31,32 +31,12 @@
  *
  */
 
-#ifndef GRPCXX_AUTH_CONTEXT_H
-#define GRPCXX_AUTH_CONTEXT_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-#include <vector>
+#include "src/core/client_config/resolver_factory.h"
 
-#include <grpc++/config.h>
+/** Create a zookeeper resolver for \a name */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
 
-namespace grpc {
-
-class AuthContext {
- public:
-  typedef std::pair<grpc::string, grpc::string> Property;
-
-  virtual ~AuthContext() {}
-
-  // A peer identity, in general is one or more properties (in which case they
-  // have the same name).
-  virtual std::vector<grpc::string> GetPeerIdentity() const = 0;
-  virtual grpc::string GetPeerIdentityPropertyName() const = 0;
-
-  // Returns all the property values with the given name.
-  virtual std::vector<grpc::string> FindPropertyValues(
-      const grpc::string& name) const = 0;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_AUTH_CONTEXT_H
-
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */

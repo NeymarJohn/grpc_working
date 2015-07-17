@@ -538,20 +538,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "grpc_jwt_verifier_test", 
-    "src": [
-      "test/core/security/jwt_verifier_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "grpc_print_google_default_creds_token", 
     "src": [
       "test/core/security/print_google_default_creds_token.c"
@@ -583,20 +569,6 @@
     "name": "grpc_stream_op_test", 
     "src": [
       "test/core/transport/stream_op_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "grpc_verify_jwt", 
-    "src": [
-      "test/core/security/verify_jwt.c"
     ]
   }, 
   {
@@ -1481,19 +1453,6 @@
       "test/cpp/qps/client.h", 
       "test/cpp/qps/server.h", 
       "test/cpp/qps/worker.cc"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "grpc", 
-      "grpc++"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "secure_auth_context_test", 
-    "src": [
-      "test/cpp/common/secure_auth_context_test.cc"
     ]
   }, 
   {
@@ -8784,7 +8743,6 @@
       "src/core/security/base64.h", 
       "src/core/security/credentials.h", 
       "src/core/security/json_token.h", 
-      "src/core/security/jwt_verifier.h", 
       "src/core/security/secure_endpoint.h", 
       "src/core/security/secure_transport_setup.h", 
       "src/core/security/security_connector.h", 
@@ -8986,8 +8944,6 @@
       "src/core/security/google_default_credentials.c", 
       "src/core/security/json_token.c", 
       "src/core/security/json_token.h", 
-      "src/core/security/jwt_verifier.c", 
-      "src/core/security/jwt_verifier.h", 
       "src/core/security/secure_endpoint.c", 
       "src/core/security/secure_endpoint.h", 
       "src/core/security/secure_transport_setup.c", 
@@ -9096,7 +9052,6 @@
       "test/core/end2end/cq_verifier.h", 
       "test/core/end2end/data/ssl_test_data.h", 
       "test/core/iomgr/endpoint_tests.h", 
-      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.h", 
       "test/core/util/port.h", 
@@ -9113,8 +9068,6 @@
       "test/core/end2end/data/test_root_cert.c", 
       "test/core/iomgr/endpoint_tests.c", 
       "test/core/iomgr/endpoint_tests.h", 
-      "test/core/security/oauth2_utils.c", 
-      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.c", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.c", 
@@ -9135,7 +9088,6 @@
     "headers": [
       "test/core/end2end/cq_verifier.h", 
       "test/core/iomgr/endpoint_tests.h", 
-      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.h", 
       "test/core/util/port.h", 
@@ -9148,8 +9100,6 @@
       "test/core/end2end/cq_verifier.h", 
       "test/core/iomgr/endpoint_tests.c", 
       "test/core/iomgr/endpoint_tests.h", 
-      "test/core/security/oauth2_utils.c", 
-      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.c", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.c", 
@@ -9492,9 +9442,25 @@
       "grpc"
     ], 
     "headers": [
+      "include/grpc/grpc_zookeeper.h", 
+      "src/core/client_config/resolvers/zookeeper_resolver.h"
+    ], 
+    "language": "c", 
+    "name": "grpc_zookeeper", 
+    "src": [
+      "include/grpc/grpc_zookeeper.h", 
+      "src/core/client_config/resolvers/zookeeper_resolver.c", 
+      "src/core/client_config/resolvers/zookeeper_resolver.h"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "grpc"
+    ], 
+    "headers": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
-      "include/grpc++/auth_context.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -9532,8 +9498,6 @@
       "include/grpc++/time.h", 
       "src/cpp/client/channel.h", 
       "src/cpp/client/secure_credentials.h", 
-      "src/cpp/common/create_auth_context.h", 
-      "src/cpp/common/secure_auth_context.h", 
       "src/cpp/server/secure_server_credentials.h", 
       "src/cpp/server/thread_pool.h"
     ], 
@@ -9542,7 +9506,6 @@
     "src": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
-      "include/grpc++/auth_context.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -9592,11 +9555,7 @@
       "src/cpp/client/secure_credentials.h", 
       "src/cpp/common/call.cc", 
       "src/cpp/common/completion_queue.cc", 
-      "src/cpp/common/create_auth_context.h", 
       "src/cpp/common/rpc_method.cc", 
-      "src/cpp/common/secure_auth_context.cc", 
-      "src/cpp/common/secure_auth_context.h", 
-      "src/cpp/common/secure_create_auth_context.cc", 
       "src/cpp/proto/proto_utils.cc", 
       "src/cpp/server/async_generic_service.cc", 
       "src/cpp/server/create_default_thread_pool.cc", 
@@ -9665,7 +9624,6 @@
     "headers": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
-      "include/grpc++/auth_context.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -9702,7 +9660,6 @@
       "include/grpc++/thread_pool_interface.h", 
       "include/grpc++/time.h", 
       "src/cpp/client/channel.h", 
-      "src/cpp/common/create_auth_context.h", 
       "src/cpp/server/thread_pool.h"
     ], 
     "language": "c++", 
@@ -9710,7 +9667,6 @@
     "src": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
-      "include/grpc++/auth_context.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -9757,8 +9713,6 @@
       "src/cpp/client/internal_stub.cc", 
       "src/cpp/common/call.cc", 
       "src/cpp/common/completion_queue.cc", 
-      "src/cpp/common/create_auth_context.h", 
-      "src/cpp/common/insecure_create_auth_context.cc", 
       "src/cpp/common/rpc_method.cc", 
       "src/cpp/proto/proto_utils.cc", 
       "src/cpp/server/async_generic_service.cc", 

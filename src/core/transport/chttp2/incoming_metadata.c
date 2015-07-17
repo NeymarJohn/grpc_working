@@ -49,7 +49,7 @@ void grpc_chttp2_incoming_metadata_buffer_destroy(
     grpc_chttp2_incoming_metadata_buffer *buffer) {
   size_t i;
   for (i = 0; i < buffer->count; i++) {
-    GRPC_MDELEM_UNREF(buffer->elems[i].md);
+    grpc_mdelem_unref(buffer->elems[i].md);
   }
   gpr_free(buffer->elems);
 }
