@@ -35,17 +35,17 @@
 #include <functional>
 #include <mutex>
 
-#include <grpc++/fixed_size_thread_pool.h>
+#include "src/cpp/server/thread_pool.h"
 #include <gtest/gtest.h>
 
 namespace grpc {
 
-class FixedSizeThreadPoolTest : public ::testing::Test {
+class ThreadPoolTest : public ::testing::Test {
  public:
-  FixedSizeThreadPoolTest() : thread_pool_(4) {}
+  ThreadPoolTest() : thread_pool_(4) {}
 
  protected:
-  FixedSizeThreadPool thread_pool_;
+  ThreadPool thread_pool_;
 };
 
 void Callback(std::mutex* mu, std::condition_variable* cv, bool* done) {
@@ -54,7 +54,7 @@ void Callback(std::mutex* mu, std::condition_variable* cv, bool* done) {
   cv->notify_all();
 }
 
-TEST_F(FixedSizeThreadPoolTest, ScheduleCallback) {
+TEST_F(ThreadPoolTest, ScheduleCallback) {
   std::mutex mu;
   std::condition_variable cv;
   bool done = false;

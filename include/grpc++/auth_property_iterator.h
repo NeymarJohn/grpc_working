@@ -31,56 +31,47 @@
  *
  */
 
-#include <grpc++/impl/sync.h>
-#include <grpc++/impl/thd.h>
-#include <grpc++/fixed_size_thread_pool.h>
+#ifndef GRPCXX_AUTH_PROPERTY_ITERATOR_H
+#define GRPCXX_AUTH_PROPERTY_ITERATOR_H
+
+#include <iterator>
+#include <vector>
+
+#include <grpc++/config.h>
+
+struct grpc_auth_context;
+struct grpc_auth_property;
+struct grpc_auth_property_iterator;
 
 namespace grpc {
+class SecureAuthContext;
 
-void FixedSizeThreadPool::ThreadFunc() {
-  for (;;) {
-    // Wait until work is available or we are shutting down.
-    grpc::unique_lock<grpc::mutex> lock(mu_);
-    if (!shutdown_ && callbacks_.empty()) {
-      cv_.wait(lock);
-    }
-    // Drain callbacks before considering shutdown to ensure all work
-    // gets completed.
-    if (!callbacks_.empty()) {
-      auto cb = callbacks_.front();
-      callbacks_.pop();
-      lock.unlock();
-      cb();
-    } else if (shutdown_) {
-      return;
-    }
-  }
-}
+typedef std::pair<grpc::string, grpc::string> AuthProperty;
 
-FixedSizeThreadPool::FixedSizeThreadPool(int num_threads) : shutdown_(false) {
-  for (int i = 0; i < num_threads; i++) {
-    threads_.push_back(
-        new grpc::thread(&FixedSizeThreadPool::ThreadFunc, this));
-  }
-}
+class AuthPropertyIterator
+    : public std::iterator<std::input_iterator_tag, const AuthProperty> {
+ public:
+  ~AuthPropertyIterator();
+  AuthPropertyIterator& operator++();
+  AuthPropertyIterator operator++(int);
+  bool operator==(const AuthPropertyIterator& rhs) const;
+  bool operator!=(const AuthPropertyIterator& rhs) const;
+  const AuthProperty operator*();
 
-FixedSizeThreadPool::~FixedSizeThreadPool() {
-  {
-    grpc::lock_guard<grpc::mutex> lock(mu_);
-    shutdown_ = true;
-    cv_.notify_all();
-  }
-  for (auto t = threads_.begin(); t != threads_.end(); t++) {
-    (*t)->join();
-    delete *t;
-  }
-}
-
-void FixedSizeThreadPool::ScheduleCallback(
-    const std::function<void()>& callback) {
-  grpc::lock_guard<grpc::mutex> lock(mu_);
-  callbacks_.push(callback);
-  cv_.notify_one();
-}
+ protected:
+  AuthPropertyIterator();
+  AuthPropertyIterator(const grpc_auth_property* property,
+                       const grpc_auth_property_iterator* iter);
+ private:
+  friend SecureAuthContext;
+  const grpc_auth_property* property_;
+  // The following items form a grpc_auth_property_iterator.
+  const grpc_auth_context* ctx_;
+  size_t index_;
+  const char* name_;
+};
 
 }  // namespace grpc
+
+ #endif  // GRPCXX_AUTH_PROPERTY_ITERATOR_H
+

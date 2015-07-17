@@ -44,17 +44,17 @@ namespace Grpc.Core.Internal.Tests
         [Test]
         public void CreateEmptyAndDestroy()
         {
-            var nativeMetadata = MetadataArraySafeHandle.Create(new Metadata());
+            var metadata = Metadata.CreateBuilder().Build();
+            var nativeMetadata = MetadataArraySafeHandle.Create(metadata);
             nativeMetadata.Dispose();
         }
 
         [Test]
         public void CreateAndDestroy()
         {
-            var metadata = new Metadata {
-                new Metadata.Entry("host", "somehost"),
-                new Metadata.Entry("header2", "header value"),
-            };
+            var metadata = Metadata.CreateBuilder()
+                .Add(new Metadata.MetadataEntry("host", "somehost"))
+                .Add(new Metadata.MetadataEntry("header2", "header value")).Build();
             var nativeMetadata = MetadataArraySafeHandle.Create(metadata);
             nativeMetadata.Dispose();
         }
