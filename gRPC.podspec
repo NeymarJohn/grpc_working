@@ -64,7 +64,6 @@ Pod::Spec.new do |s|
     ss.source_files = 'src/core/support/env.h',
                       'src/core/support/file.h',
                       'src/core/support/murmur_hash.h',
-                      'src/core/support/stack_lockfree.h',
                       'src/core/support/grpc_string.h',
                       'src/core/support/string_win32.h',
                       'src/core/support/thd_internal.h',
@@ -119,7 +118,6 @@ Pod::Spec.new do |s|
                       'src/core/support/murmur_hash.c',
                       'src/core/support/slice.c',
                       'src/core/support/slice_buffer.c',
-                      'src/core/support/stack_lockfree.c',
                       'src/core/support/string.c',
                       'src/core/support/string_posix.c',
                       'src/core/support/string_win32.c',
@@ -247,6 +245,7 @@ Pod::Spec.new do |s|
                       'src/core/transport/transport.h',
                       'src/core/transport/transport_impl.h',
                       'src/core/census/context.h',
+                      'src/core/census/resource_id.h',
                       'grpc/grpc_security.h',
                       'grpc/byte_buffer.h',
                       'grpc/byte_buffer_reader.h',
@@ -387,12 +386,12 @@ Pod::Spec.new do |s|
                       'src/core/transport/transport.c',
                       'src/core/transport/transport_op_string.c',
                       'src/core/census/context.c',
-                      'src/core/census/initialize.c'
+                      'src/core/census/initialize.c',
+                      'src/core/census/record_stat.c'
 
     ss.private_header_files = 'src/core/support/env.h',
                               'src/core/support/file.h',
                               'src/core/support/murmur_hash.h',
-                              'src/core/support/stack_lockfree.h',
                               'src/core/support/string.h',
                               'src/core/support/string_win32.h',
                               'src/core/support/thd_internal.h',
@@ -508,7 +507,8 @@ Pod::Spec.new do |s|
                               'src/core/transport/stream_op.h',
                               'src/core/transport/transport.h',
                               'src/core/transport/transport_impl.h',
-                              'src/core/census/context.h'
+                              'src/core/census/context.h',
+                              'src/core/census/resource_id.h'
 
     ss.header_mappings_dir = '.'
 

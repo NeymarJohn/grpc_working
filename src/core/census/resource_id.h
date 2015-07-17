@@ -31,47 +31,18 @@
  *
  */
 
-#include <condition_variable>
-#include <functional>
-#include <mutex>
+#ifndef CENSUS_RESOURCE_ID_H
+#define CENSUS_RESOURCE_ID_H
 
-#include <grpc++/fixed_size_thread_pool.h>
-#include <gtest/gtest.h>
+/* Resource ID's used for census measurements. */
+#define RESOURCE_INVALID 0             /* Make default be invalid. */
+#define RESOURCE_RPC_CLIENT_REQUESTS 1 /* Count of client requests sent. */
+#define RESOURCE_RPC_SERVER_REQUESTS 2 /* Count of server requests sent. */
+#define RESOURCE_RPC_CLIENT_ERRORS 3   /* Client error counts. */
+#define RESOURCE_RPC_SERVER_ERRORS 4   /* Server error counts. */
+#define RESOURCE_RPC_CLIENT_LATENCY 5  /* Client side request latency. */
+#define RESOURCE_RPC_SERVER_LATENCY 6  /* Server side request latency. */
+#define RESOURCE_RPC_CLIENT_CPU 7      /* Client CPU processing time. */
+#define RESOURCE_RPC_SERVER_CPU 8      /* Server CPU processing time. */
 
-namespace grpc {
-
-class FixedSizeThreadPoolTest : public ::testing::Test {
- public:
-  FixedSizeThreadPoolTest() : thread_pool_(4) {}
-
- protected:
-  FixedSizeThreadPool thread_pool_;
-};
-
-void Callback(std::mutex* mu, std::condition_variable* cv, bool* done) {
-  std::unique_lock<std::mutex> lock(*mu);
-  *done = true;
-  cv->notify_all();
-}
-
-TEST_F(FixedSizeThreadPoolTest, ScheduleCallback) {
-  std::mutex mu;
-  std::condition_variable cv;
-  bool done = false;
-  std::function<void()> callback = std::bind(Callback, &mu, &cv, &done);
-  thread_pool_.ScheduleCallback(callback);
-
-  // Wait for the callback to finish.
-  std::unique_lock<std::mutex> lock(mu);
-  while (!done) {
-    cv.wait(lock);
-  }
-}
-
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  int result = RUN_ALL_TESTS();
-  return result;
-}
+#endif /* CENSUS_RESOURCE_ID_H */

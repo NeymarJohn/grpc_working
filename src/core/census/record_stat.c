@@ -31,37 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
-#define GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
+#include <grpc/census.h>
+#include "src/core/census/resource_id.h"
 
-#include <grpc++/config.h>
-
-#include <grpc++/impl/sync.h>
-#include <grpc++/impl/thd.h>
-#include <grpc++/thread_pool_interface.h>
-
-#include <queue>
-#include <vector>
-
-namespace grpc {
-
-class FixedSizeThreadPool GRPC_FINAL : public ThreadPoolInterface {
- public:
-  explicit FixedSizeThreadPool(int num_threads);
-  ~FixedSizeThreadPool();
-
-  void ScheduleCallback(const std::function<void()>& callback) GRPC_OVERRIDE;
-
- private:
-  grpc::mutex mu_;
-  grpc::condition_variable cv_;
-  bool shutdown_;
-  std::queue<std::function<void()>> callbacks_;
-  std::vector<grpc::thread*> threads_;
-
-  void ThreadFunc();
-};
-
-}  // namespace grpc
-
-#endif  // GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
+void census_record_stat(census_context *context, int resource_id,
+                        double value) {}
