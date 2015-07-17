@@ -31,47 +31,13 @@
  *
  */
 
-#include <condition_variable>
-#include <functional>
-#include <mutex>
+#import "GRXWriter.h"
 
-#include "src/cpp/server/thread_pool.h"
-#include <gtest/gtest.h>
-
-namespace grpc {
-
-class ThreadPoolTest : public ::testing::Test {
- public:
-  ThreadPoolTest() : thread_pool_(4) {}
-
- protected:
-  ThreadPool thread_pool_;
-};
-
-void Callback(std::mutex* mu, std::condition_variable* cv, bool* done) {
-  std::unique_lock<std::mutex> lock(*mu);
-  *done = true;
-  cv->notify_all();
-}
-
-TEST_F(ThreadPoolTest, ScheduleCallback) {
-  std::mutex mu;
-  std::condition_variable cv;
-  bool done = false;
-  std::function<void()> callback = std::bind(Callback, &mu, &cv, &done);
-  thread_pool_.ScheduleCallback(callback);
-
-  // Wait for the callback to finish.
-  std::unique_lock<std::mutex> lock(mu);
-  while (!done) {
-    cv.wait(lock);
-  }
-}
-
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  int result = RUN_ALL_TESTS();
-  return result;
-}
+// A "proxy" class that simply forwards values, completion, and errors from its
+// input writer to its writeable.
+// It is useful as a superclass for pipes that act as a transformation of their
+// input writer, and for classes that represent objects with input and
+// output sequences of values, like an RPC.
+@interface GRXForwardingWriter : GRXWriter
+- (instancetype)initWithWriter:(GRXWriter *)writer NS_DESIGNATED_INITIALIZER;
+@end

@@ -31,8 +31,37 @@
  *
  */
 
-#import "GRXWriter.h"
+#ifndef GRPCXX_FIXED_SIZE_THREAD_POOL_H
+#define GRPCXX_FIXED_SIZE_THREAD_POOL_H
 
-@implementation GRXWriter
+#include <grpc++/config.h>
 
-@end
+#include <grpc++/impl/sync.h>
+#include <grpc++/impl/thd.h>
+#include <grpc++/thread_pool_interface.h>
+
+#include <queue>
+#include <vector>
+
+namespace grpc {
+
+class FixedSizeThreadPool GRPC_FINAL : public ThreadPoolInterface {
+ public:
+  explicit FixedSizeThreadPool(int num_threads);
+  ~FixedSizeThreadPool();
+
+  void ScheduleCallback(const std::function<void()>& callback) GRPC_OVERRIDE;
+
+ private:
+  grpc::mutex mu_;
+  grpc::condition_variable cv_;
+  bool shutdown_;
+  std::queue<std::function<void()>> callbacks_;
+  std::vector<grpc::thread*> threads_;
+
+  void ThreadFunc();
+};
+
+}  // namespace grpc
+
+#endif  // GRPCXX_FIXED_SIZE_THREAD_POOL_H
