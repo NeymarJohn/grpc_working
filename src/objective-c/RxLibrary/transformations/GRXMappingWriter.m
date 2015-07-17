@@ -37,7 +37,7 @@ static id (^kIdentity)(id value) = ^id(id value) {
   return value;
 };
 
-@interface GRXForwardingWriter () <GRXWriteable>
+@interface GRXWriter () <GRXWriteable>
 @end
 
 @implementation GRXMappingWriter {
