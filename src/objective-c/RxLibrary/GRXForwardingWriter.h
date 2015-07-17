@@ -31,47 +31,13 @@
  *
  */
 
-#ifndef GRPCXX_AUTH_PROPERTY_ITERATOR_H
-#define GRPCXX_AUTH_PROPERTY_ITERATOR_H
+#import "GRXWriter.h"
 
-#include <iterator>
-#include <vector>
-
-#include <grpc++/config.h>
-
-struct grpc_auth_context;
-struct grpc_auth_property;
-struct grpc_auth_property_iterator;
-
-namespace grpc {
-class SecureAuthContext;
-
-typedef std::pair<grpc::string, grpc::string> AuthProperty;
-
-class AuthPropertyIterator
-    : public std::iterator<std::input_iterator_tag, const AuthProperty> {
- public:
-  ~AuthPropertyIterator();
-  AuthPropertyIterator& operator++();
-  AuthPropertyIterator operator++(int);
-  bool operator==(const AuthPropertyIterator& rhs) const;
-  bool operator!=(const AuthPropertyIterator& rhs) const;
-  const AuthProperty operator*();
-
- protected:
-  AuthPropertyIterator();
-  AuthPropertyIterator(const grpc_auth_property* property,
-                       const grpc_auth_property_iterator* iter);
- private:
-  friend class SecureAuthContext;
-  const grpc_auth_property* property_;
-  // The following items form a grpc_auth_property_iterator.
-  const grpc_auth_context* ctx_;
-  size_t index_;
-  const char* name_;
-};
-
-}  // namespace grpc
-
- #endif  // GRPCXX_AUTH_PROPERTY_ITERATOR_H
-
+// A "proxy" class that simply forwards values, completion, and errors from its
+// input writer to its writeable.
+// It is useful as a superclass for pipes that act as a transformation of their
+// input writer, and for classes that represent objects with input and
+// output sequences of values, like an RPC.
+@interface GRXForwardingWriter : GRXWriter
+- (instancetype)initWithWriter:(id<GRXWriter>)writer NS_DESIGNATED_INITIALIZER;
+@end
