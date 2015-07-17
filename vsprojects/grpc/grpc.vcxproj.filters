@@ -37,6 +37,9 @@
     <ClCompile Include="..\..\src\core\security\json_token.c">
       <Filter>src\core\security</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\core\security\jwt_verifier.c">
+      <Filter>src\core\security</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\core\security\secure_endpoint.c">
       <Filter>src\core\security</Filter>
     </ClCompile>
@@ -80,6 +83,9 @@
       <Filter>src\core\channel</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\channel\client_channel.c">
+      <Filter>src\core\channel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\channel\compress_filter.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\core\channel\connected_channel.c">
@@ -313,6 +319,9 @@
     <ClCompile Include="..\..\src\core\surface\surface_trace.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\core\surface\version.c">
+      <Filter>src\core\surface</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\core\transport\chttp2\alpn.c">
       <Filter>src\core\transport\chttp2</Filter>
     </ClCompile>
@@ -446,6 +455,9 @@
     <ClInclude Include="..\..\src\core\security\json_token.h">
       <Filter>src\core\security</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\core\security\jwt_verifier.h">
+      <Filter>src\core\security</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\core\security\secure_endpoint.h">
       <Filter>src\core\security</Filter>
     </ClInclude>
@@ -483,6 +495,9 @@
       <Filter>src\core\channel</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\channel\client_channel.h">
+      <Filter>src\core\channel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\core\channel\compress_filter.h">
       <Filter>src\core\channel</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\channel\connected_channel.h">

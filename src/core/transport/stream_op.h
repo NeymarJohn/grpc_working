@@ -41,7 +41,7 @@
 #include "src/core/transport/metadata.h"
 
 /* this many stream ops are inlined into a sopb before allocating */
-#define GRPC_SOPB_INLINE_ELEMENTS 16
+#define GRPC_SOPB_INLINE_ELEMENTS 4
 
 /* Operations that can be performed on a stream.
    Used by grpc_stream_op. */
@@ -101,6 +101,11 @@ void grpc_metadata_batch_init(grpc_metadata_batch *batch);
 void grpc_metadata_batch_destroy(grpc_metadata_batch *batch);
 void grpc_metadata_batch_merge(grpc_metadata_batch *target,
                                grpc_metadata_batch *add);
+
+/** Moves the metadata information from \a src to \a dst. Upon return, \a src is
+ * zeroed. */
+void grpc_metadata_batch_move(grpc_metadata_batch *dst,
+                              grpc_metadata_batch *src);
 
 /** Add \a storage to the beginning of \a batch. storage->md is
     assumed to be valid. 

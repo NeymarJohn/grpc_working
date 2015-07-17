@@ -335,12 +335,6 @@ typedef struct grpc_op {
   } data;
 } grpc_op;
 
-/** Registers a plugin to be initialized and deinitialized with the library.
-
-    It is safe to pass NULL to either argument. The initialization and
-    deinitialization order isn't guaranteed. */
-void grpc_register_plugin(void (*init)(void), void (*deinit)(void));
-
 /** Initialize the grpc library.
 
     It is not safe to call any other grpc functions before calling this.
@@ -356,6 +350,9 @@ void grpc_init(void);
     Prior to calling, all application owned grpc objects must have been
     destroyed. */
 void grpc_shutdown(void);
+
+/** Return a string representing the current version of grpc */
+const char *grpc_version_string(void);
 
 /** Create a completion queue */
 grpc_completion_queue *grpc_completion_queue_create(void);
