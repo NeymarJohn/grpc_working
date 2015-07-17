@@ -31,25 +31,39 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
-#define GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
+#ifndef GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
+#define GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
 
-#include "src/core/channel/channel_stack.h"
+#include <grpc++/config.h>
 
-#define GRPC_COMPRESS_REQUEST_ALGORITHM_KEY "internal:grpc-encoding-request"
+#include <grpc++/impl/sync.h>
+#include <grpc++/impl/thd.h>
+#include <grpc++/thread_pool_interface.h>
 
-/** Message-level compression filter.
- *
- * See <grpc/compression.h> for the available compression levels.
- *
- * Use grpc_channel_args_set_compression_level and
- * grpc_channel_args_get_compression_level to interact with the compression
- * settings for a channel.
- *
- * grpc_op instances of type GRPC_OP_SEND_MESSAGE can have the bit specified by
- * the GRPC_WRITE_NO_COMPRESS mask in order to disable compression in an
- * otherwise compressed channel.
- * */
-extern const grpc_channel_filter grpc_compress_filter;
+#include <queue>
+#include <vector>
 
-#endif  /* GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H */
+namespace grpc {
+
+class ThreadPool GRPC_FINAL : public ThreadPoolInterface {
+ public:
+  explicit ThreadPool(int num_threads);
+  ~ThreadPool();
+
+  void ScheduleCallback(const std::function<void()>& callback) GRPC_OVERRIDE;
+
+ private:
+  grpc::mutex mu_;
+  grpc::condition_variable cv_;
+  bool shutdown_;
+  std::queue<std::function<void()>> callbacks_;
+  std::vector<grpc::thread*> threads_;
+
+  void ThreadFunc();
+};
+
+ThreadPoolInterface* CreateDefaultThreadPool();
+
+}  // namespace grpc
+
+#endif  // GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H

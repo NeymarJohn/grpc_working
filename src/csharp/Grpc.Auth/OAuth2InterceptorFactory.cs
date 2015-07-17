@@ -52,10 +52,10 @@ namespace Grpc.Auth
         /// <summary>
         /// Creates OAuth2 interceptor.
         /// </summary>
-        public static MetadataInterceptorDelegate Create(GoogleCredential googleCredential)
+        public static HeaderInterceptorDelegate Create(GoogleCredential googleCredential)
         {
             var interceptor = new OAuth2Interceptor(googleCredential.InternalCredential, SystemClock.Default);
-            return new MetadataInterceptorDelegate(interceptor.InterceptHeaders);
+            return new HeaderInterceptorDelegate(interceptor.InterceptHeaders);
         }
 
         /// <summary>
@@ -94,10 +94,10 @@ namespace Grpc.Auth
                 return credential.Token.AccessToken;
             }
 
-            public void InterceptHeaders(Metadata metadata)
+            public void InterceptHeaders(Metadata.Builder headerBuilder)
             {
                 var accessToken = GetAccessToken(CancellationToken.None);
-                metadata.Add(new Metadata.Entry(AuthorizationHeader, Schema + " " + accessToken));
+                headerBuilder.Add(new Metadata.MetadataEntry(AuthorizationHeader, Schema + " " + accessToken));
             }
         }
     }
