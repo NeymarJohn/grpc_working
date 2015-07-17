@@ -31,47 +31,25 @@
  *
  */
 
-#ifndef GRPCXX_AUTH_PROPERTY_ITERATOR_H
-#define GRPCXX_AUTH_PROPERTY_ITERATOR_H
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
+#define GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H
 
-#include <iterator>
-#include <vector>
+#include "src/core/channel/channel_stack.h"
 
-#include <grpc++/config.h>
+#define GRPC_COMPRESS_REQUEST_ALGORITHM_KEY "internal:grpc-encoding-request"
 
-struct grpc_auth_context;
-struct grpc_auth_property;
-struct grpc_auth_property_iterator;
+/** Message-level compression filter.
+ *
+ * See <grpc/compression.h> for the available compression levels.
+ *
+ * Use grpc_channel_args_set_compression_level and
+ * grpc_channel_args_get_compression_level to interact with the compression
+ * settings for a channel.
+ *
+ * grpc_op instances of type GRPC_OP_SEND_MESSAGE can have the bit specified by
+ * the GRPC_WRITE_NO_COMPRESS mask in order to disable compression in an
+ * otherwise compressed channel.
+ * */
+extern const grpc_channel_filter grpc_compress_filter;
 
-namespace grpc {
-class SecureAuthContext;
-
-typedef std::pair<grpc::string, grpc::string> AuthProperty;
-
-class AuthPropertyIterator
-    : public std::iterator<std::input_iterator_tag, const AuthProperty> {
- public:
-  ~AuthPropertyIterator();
-  AuthPropertyIterator& operator++();
-  AuthPropertyIterator operator++(int);
-  bool operator==(const AuthPropertyIterator& rhs) const;
-  bool operator!=(const AuthPropertyIterator& rhs) const;
-  const AuthProperty operator*();
-
- protected:
-  AuthPropertyIterator();
-  AuthPropertyIterator(const grpc_auth_property* property,
-                       const grpc_auth_property_iterator* iter);
- private:
-  friend class SecureAuthContext;
-  const grpc_auth_property* property_;
-  // The following items form a grpc_auth_property_iterator.
-  const grpc_auth_context* ctx_;
-  size_t index_;
-  const char* name_;
-};
-
-}  // namespace grpc
-
- #endif  // GRPCXX_AUTH_PROPERTY_ITERATOR_H
-
+#endif  /* GRPC_INTERNAL_CORE_CHANNEL_COMPRESS_FILTER_H */
