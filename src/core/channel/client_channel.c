@@ -132,7 +132,7 @@ static void handle_op_after_cancellation(grpc_call_element *elem,
     mdb.list.head = &calld->status;
     mdb.list.tail = &calld->details;
     mdb.garbage.head = mdb.garbage.tail = NULL;
-    mdb.deadline = gpr_inf_future;
+    mdb.deadline = gpr_inf_future(GPR_CLOCK_REALTIME);
     grpc_sopb_add_metadata(op->recv_ops, mdb);
     *op->recv_state = GRPC_STREAM_CLOSED;
     op->on_done_recv->cb(op->on_done_recv->cb_arg, 1);
@@ -427,7 +427,7 @@ static void cc_on_config_changed(void *arg, int iomgr_success) {
     GRPC_RESOLVER_REF(resolver, "channel-next");
     gpr_mu_unlock(&chand->mu_config);
     GRPC_CHANNEL_INTERNAL_REF(chand->master, "resolver");
-    grpc_resolver_next(chand->resolver, &chand->incoming_configuration,
+    grpc_resolver_next(resolver, &chand->incoming_configuration,
                        &chand->on_config_changed);
     GRPC_RESOLVER_UNREF(resolver, "channel-next");
   } else {
@@ -518,7 +518,7 @@ static void init_call_elem(grpc_call_element *elem,
   gpr_mu_init(&calld->mu_state);
   calld->elem = elem;
   calld->state = CALL_CREATED;
-  calld->deadline = gpr_inf_future;
+  calld->deadline = gpr_inf_future(GPR_CLOCK_REALTIME);
 }
 
 /* Destructor for call_data */

@@ -35,7 +35,6 @@
 #include <thread>
 
 #include "src/core/security/credentials.h"
-#include "src/cpp/server/thread_pool.h"
 #include "test/core/util/port.h"
 #include "test/core/util/test_config.h"
 #include "test/cpp/util/echo_duplicate.grpc.pb.h"
@@ -46,6 +45,7 @@
 #include <grpc++/client_context.h>
 #include <grpc++/create_channel.h>
 #include <grpc++/credentials.h>
+#include <grpc++/fixed_size_thread_pool.h>
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
@@ -75,7 +75,7 @@ const char* kServerCancelAfterReads = "cancel_after_reads";
 void MaybeEchoDeadline(ServerContext* context, const EchoRequest* request,
                        EchoResponse* response) {
   if (request->has_param() && request->param().echo_deadline()) {
-    gpr_timespec deadline = gpr_inf_future;
+    gpr_timespec deadline = gpr_inf_future(GPR_CLOCK_REALTIME);
     if (context->deadline() != system_clock::time_point::max()) {
       Timepoint2Timespec(context->deadline(), &deadline);
     }
@@ -83,16 +83,32 @@ void MaybeEchoDeadline(ServerContext* context, const EchoRequest* request,
   }
 }
 
+template <typename T>
+void CheckAuthContext(T* context) {
+  std::shared_ptr<const AuthContext> auth_ctx = context->auth_context();
+  std::vector<grpc::string> fake =
+      auth_ctx->FindPropertyValues("transport_security_type");
+  EXPECT_EQ(1u, fake.size());
+  EXPECT_EQ("fake", fake[0]);
+  EXPECT_TRUE(auth_ctx->GetPeerIdentityPropertyName().empty());
+  EXPECT_TRUE(auth_ctx->GetPeerIdentity().empty());
+}
+
 }  // namespace
 
 class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
  public:
-  TestServiceImpl() : signal_client_(false) {}
+  TestServiceImpl() : signal_client_(false), host_() {}
+  explicit TestServiceImpl(const grpc::string& host)
+      : signal_client_(false), host_(new grpc::string(host)) {}
 
   Status Echo(ServerContext* context, const EchoRequest* request,
               EchoResponse* response) GRPC_OVERRIDE {
     response->set_message(request->message());
     MaybeEchoDeadline(context, request, response);
+    if (host_) {
+      response->mutable_param()->set_host(*host_);
+    }
     if (request->has_param() && request->param().client_cancel_after_us()) {
       {
         std::unique_lock<std::mutex> lock(mu_);
@@ -100,15 +116,17 @@ class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
       }
       while (!context->IsCancelled()) {
         gpr_sleep_until(gpr_time_add(
-            gpr_now(),
-            gpr_time_from_micros(request->param().client_cancel_after_us())));
+            gpr_now(GPR_CLOCK_REALTIME),
+            gpr_time_from_micros(request->param().client_cancel_after_us(),
+                                 GPR_TIMESPAN)));
       }
       return Status::CANCELLED;
     } else if (request->has_param() &&
                request->param().server_cancel_after_us()) {
       gpr_sleep_until(gpr_time_add(
-            gpr_now(),
-            gpr_time_from_micros(request->param().server_cancel_after_us())));
+          gpr_now(GPR_CLOCK_REALTIME),
+          gpr_time_from_micros(request->param().server_cancel_after_us(),
+                               GPR_TIMESPAN)));
       return Status::CANCELLED;
     } else {
       EXPECT_FALSE(context->IsCancelled());
@@ -122,6 +140,9 @@ class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
            iter != client_metadata.end(); ++iter) {
         context->AddTrailingMetadata((*iter).first, (*iter).second);
       }
+    }
+    if (request->has_param() && request->param().check_auth_context()) {
+      CheckAuthContext(context);
     }
     return Status::OK;
   }
@@ -191,6 +212,7 @@ class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
  private:
   bool signal_client_;
   std::mutex mu_;
+  std::unique_ptr<grpc::string> host_;
 };
 
 class TestServiceImplDupPkg
@@ -205,7 +227,8 @@ class TestServiceImplDupPkg
 
 class End2endTest : public ::testing::Test {
  protected:
-  End2endTest() : kMaxMessageSize_(8192), thread_pool_(2) {}
+  End2endTest()
+      : kMaxMessageSize_(8192), special_service_("special"), thread_pool_(2) {}
 
   void SetUp() GRPC_OVERRIDE {
     int port = grpc_pick_unused_port_or_die();
@@ -215,6 +238,7 @@ class End2endTest : public ::testing::Test {
     builder.AddListeningPort(server_address_.str(),
                              FakeTransportSecurityServerCredentials());
     builder.RegisterService(&service_);
+    builder.RegisterService("special", &special_service_);
     builder.SetMaxMessageSize(
         kMaxMessageSize_);  // For testing max message size.
     builder.RegisterService(&dup_pkg_service_);
@@ -236,8 +260,9 @@ class End2endTest : public ::testing::Test {
   std::ostringstream server_address_;
   const int kMaxMessageSize_;
   TestServiceImpl service_;
+  TestServiceImpl special_service_;
   TestServiceImplDupPkg dup_pkg_service_;
-  ThreadPool thread_pool_;
+  FixedSizeThreadPool thread_pool_;
 };
 
 static void SendRpc(grpc::cpp::test::util::TestService::Stub* stub,
@@ -252,6 +277,22 @@ static void SendRpc(grpc::cpp::test::util::TestService::Stub* stub,
     EXPECT_EQ(response.message(), request.message());
     EXPECT_TRUE(s.ok());
   }
+}
+
+TEST_F(End2endTest, SimpleRpcWithHost) {
+  ResetStub();
+
+  EchoRequest request;
+  EchoResponse response;
+  request.set_message("Hello");
+
+  ClientContext context;
+  context.set_authority("special");
+  Status s = stub_->Echo(&context, request, &response);
+  EXPECT_EQ(response.message(), request.message());
+  EXPECT_TRUE(response.has_param());
+  EXPECT_EQ(response.param().host(), "special");
+  EXPECT_TRUE(s.ok());
 }
 
 TEST_F(End2endTest, SimpleRpc) {
@@ -336,7 +377,8 @@ TEST_F(End2endTest, EchoDeadlineForNoDeadlineRpc) {
   Status s = stub_->Echo(&context, request, &response);
   EXPECT_EQ(response.message(), request.message());
   EXPECT_TRUE(s.ok());
-  EXPECT_EQ(response.param().request_deadline(), gpr_inf_future.tv_sec);
+  EXPECT_EQ(response.param().request_deadline(),
+            gpr_inf_future(GPR_CLOCK_REALTIME).tv_sec);
 }
 
 TEST_F(End2endTest, UnimplementedRpc) {
@@ -490,7 +532,8 @@ TEST_F(End2endTest, BadCredentials) {
 }
 
 void CancelRpc(ClientContext* context, int delay_us, TestServiceImpl* service) {
-  gpr_sleep_until(gpr_time_add(gpr_now(), gpr_time_from_micros(delay_us)));
+  gpr_sleep_until(gpr_time_add(gpr_now(GPR_CLOCK_REALTIME),
+                               gpr_time_from_micros(delay_us, GPR_TIMESPAN)));
   while (!service->signal_client()) {
   }
   context->TryCancel();
@@ -724,6 +767,21 @@ TEST_F(End2endTest, RequestStreamServerEarlyCancelTest) {
   stream->WritesDone();
   Status s = stream->Finish();
   EXPECT_EQ(s.error_code(), StatusCode::CANCELLED);
+}
+
+TEST_F(End2endTest, ClientAuthContext) {
+  ResetStub();
+  EchoRequest request;
+  EchoResponse response;
+  request.set_message("Hello");
+  request.mutable_param()->set_check_auth_context(true);
+
+  ClientContext context;
+  Status s = stub_->Echo(&context, request, &response);
+  EXPECT_EQ(response.message(), request.message());
+  EXPECT_TRUE(s.ok());
+
+  CheckAuthContext(&context);
 }
 
 }  // namespace testing
