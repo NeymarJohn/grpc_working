@@ -36,14 +36,14 @@
 
 Pod::Spec.new do |s|
   s.name     = 'gRPC'
-  s.version  = '0.7.0'
+  s.version  = '0.6.0'
   s.summary  = 'gRPC client library for iOS/OSX'
   s.homepage = 'http://www.grpc.io'
   s.license  = 'New BSD'
   s.authors  = { 'The gRPC contributors' => 'grpc-packages@google.com' }
 
   # s.source = { :git => 'https://github.com/grpc/grpc.git',
-  #              :tag => 'release-0_10_0-objectivec-0.6.0' }
+  #              :tag => 'release-0_9_1-objectivec-0.5.1' }
 
   s.ios.deployment_target = '6.0'
   s.osx.deployment_target = '10.8'
@@ -349,6 +349,7 @@ Pod::Spec.new do |s|
                       'src/core/surface/call_details.c',
                       'src/core/surface/call_log_batch.c',
                       'src/core/surface/channel.c',
+                      'src/core/surface/channel_connectivity.c',
                       'src/core/surface/channel_create.c',
                       'src/core/surface/completion_queue.c',
                       'src/core/surface/event_string.c',
@@ -515,8 +516,6 @@ Pod::Spec.new do |s|
     ss.requires_arc = false
     ss.libraries = 'z'
     ss.dependency 'OpenSSL', '~> 1.0.200'
-
-    # ss.compiler_flags = '-GCC_WARN_INHIBIT_ALL_WARNINGS', '-w'
   end
 
   # This is a workaround for Cocoapods Issue #1437.
