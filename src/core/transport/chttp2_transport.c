@@ -110,6 +110,8 @@ static void cancel_from_api(grpc_chttp2_transport_global *transport_global,
 /** Add endpoint from this transport to pollset */
 static void add_to_pollset_locked(grpc_chttp2_transport *t,
                                   grpc_pollset *pollset);
+static void add_to_pollset_set_locked(grpc_chttp2_transport *t,
+                                  grpc_pollset_set *pollset_set);
 
 /** Start new streams that have been created if we can */
 static void maybe_start_some_streams(
@@ -233,7 +235,7 @@ static void init_transport(grpc_chttp2_transport *t,
       is_client ? GRPC_DTS_FH_0 : GRPC_DTS_CLIENT_PREFIX_0;
   t->writing.is_client = is_client;
   grpc_connectivity_state_init(&t->channel_callback.state_tracker,
-                               GRPC_CHANNEL_READY);
+                               GRPC_CHANNEL_READY, "transport");
 
   gpr_slice_buffer_init(&t->global.qbuf);
 
@@ -358,9 +360,7 @@ static int init_stream(grpc_transport *gt, grpc_stream *gs,
     s->global.outgoing_window =
         t->global.settings[GRPC_PEER_SETTINGS]
                           [GRPC_CHTTP2_SETTINGS_INITIAL_WINDOW_SIZE];
-    s->global.max_recv_bytes = 
-        s->parsing.incoming_window = 
-        s->global.incoming_window =
+    s->parsing.incoming_window = s->global.incoming_window =
         t->global.settings[GRPC_SENT_SETTINGS]
                           [GRPC_CHTTP2_SETTINGS_INITIAL_WINDOW_SIZE];
     *t->accepting_stream = s;
@@ -564,8 +564,6 @@ static void maybe_start_some_streams(
     stream_global->incoming_window =
         transport_global->settings[GRPC_SENT_SETTINGS]
                                   [GRPC_CHTTP2_SETTINGS_INITIAL_WINDOW_SIZE];
-    stream_global->max_recv_bytes = 
-        GPR_MAX(stream_global->incoming_window, stream_global->max_recv_bytes);
     grpc_chttp2_stream_map_add(
         &TRANSPORT_FROM_GLOBAL(transport_global)->new_stream_map,
         stream_global->id, STREAM_FROM_GLOBAL(stream_global));
@@ -574,9 +572,6 @@ static void maybe_start_some_streams(
     grpc_chttp2_list_add_incoming_window_updated(transport_global,
                                                  stream_global);
     grpc_chttp2_list_add_writable_stream(transport_global, stream_global);
-    grpc_chttp2_list_add_writable_window_update_stream(transport_global,
-                                                       stream_global);
-
   }
   /* cancel out streams that will never be started */
   while (transport_global->next_stream_id >= MAX_CLIENT_STREAM_ID &&
@@ -627,23 +622,12 @@ static void perform_stream_op_locked(
     stream_global->publish_sopb = op->recv_ops;
     stream_global->publish_sopb->nops = 0;
     stream_global->publish_state = op->recv_state;
-    if (stream_global->max_recv_bytes < op->max_recv_bytes) {
-      GRPC_CHTTP2_FLOWCTL_TRACE_STREAM("op", transport_global, stream_global,
-          max_recv_bytes, op->max_recv_bytes - stream_global->max_recv_bytes);
-      GRPC_CHTTP2_FLOWCTL_TRACE_STREAM(
-          "op", transport_global, stream_global, unannounced_incoming_window,
-          op->max_recv_bytes - stream_global->max_recv_bytes);
-      stream_global->unannounced_incoming_window += op->max_recv_bytes - stream_global->max_recv_bytes;
-      stream_global->max_recv_bytes = op->max_recv_bytes;
-    }
     grpc_chttp2_incoming_metadata_live_op_buffer_end(
         &stream_global->outstanding_metadata);
-    if (stream_global->id != 0) {
-      grpc_chttp2_list_add_read_write_state_changed(transport_global,
-                                                    stream_global);
-      grpc_chttp2_list_add_writable_window_update_stream(transport_global,
-                                                         stream_global);
-    }
+    grpc_chttp2_list_add_read_write_state_changed(transport_global,
+                                                  stream_global);
+    grpc_chttp2_list_add_writable_window_update_stream(transport_global,
+                                                       stream_global);
   }
 
   if (op->bind_pollset) {
@@ -686,6 +670,7 @@ static void send_ping_locked(grpc_chttp2_transport *t,
 
 static void perform_transport_op(grpc_transport *gt, grpc_transport_op *op) {
   grpc_chttp2_transport *t = (grpc_chttp2_transport *)gt;
+  int close_transport = 0;
 
   lock(t);
 
@@ -705,9 +690,7 @@ static void perform_transport_op(grpc_transport *gt, grpc_transport_op *op) {
         t->global.last_incoming_stream_id,
         grpc_chttp2_grpc_status_to_http2_error(op->goaway_status),
         gpr_slice_ref(*op->goaway_message), &t->global.qbuf);
-    if (!grpc_chttp2_has_streams(t)) {
-      close_transport_locked(t);
-    }
+    close_transport = !grpc_chttp2_has_streams(t);
   }
 
   if (op->set_accept_stream != NULL) {
@@ -720,6 +703,10 @@ static void perform_transport_op(grpc_transport *gt, grpc_transport_op *op) {
     add_to_pollset_locked(t, op->bind_pollset);
   }
 
+  if (op->bind_pollset_set) {
+    add_to_pollset_set_locked(t, op->bind_pollset_set);
+  }
+
   if (op->send_ping) {
     send_ping_locked(t, op->send_ping);
   }
@@ -729,6 +716,12 @@ static void perform_transport_op(grpc_transport *gt, grpc_transport_op *op) {
   }
 
   unlock(t);
+
+  if (close_transport) {
+    lock(t);
+    close_transport_locked(t);
+    unlock(t);
+  }
 }
 
 /*
@@ -1034,6 +1027,13 @@ static void add_to_pollset_locked(grpc_chttp2_transport *t,
   }
 }
 
+static void add_to_pollset_set_locked(grpc_chttp2_transport *t,
+                                  grpc_pollset_set *pollset_set) {
+  if (t->ep) {
+    grpc_endpoint_add_to_pollset_set(t->ep, pollset_set);
+  }
+}
+
 /*
  * TRACING
  */
@@ -1056,7 +1056,7 @@ void grpc_chttp2_flowctl_trace(const char *file, int line, const char *reason,
     identifier = gpr_strdup(context_scope);
   }
   gpr_log(GPR_INFO,
-          "FLOWCTL: %s %-10s %8s %-27s %8lld %c %8lld = %8lld %-10s [%s:%d]",
+          "FLOWCTL: %s %-10s %8s %-23s %8lld %c %8lld = %8lld %-10s [%s:%d]",
           is_client ? "client" : "server", identifier, context_thread, var,
           current_value, delta < 0 ? '-' : '+', delta < 0 ? -delta : delta,
           current_value + delta, reason, file, line);

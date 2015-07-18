@@ -37,19 +37,19 @@ static id (^kIdentity)(id value) = ^id(id value) {
   return value;
 };
 
-@interface GRXForwardingWriter () <GRXWriteable>
+@interface GRXWriter () <GRXWriteable>
 @end
 
 @implementation GRXMappingWriter {
   id (^_map)(id value);
 }
 
-- (instancetype)initWithWriter:(GRXWriter *)writer {
+- (instancetype)initWithWriter:(id<GRXWriter>)writer {
   return [self initWithWriter:writer map:nil];
 }
 
 // Designated initializer
-- (instancetype)initWithWriter:(GRXWriter *)writer map:(id (^)(id value))map {
+- (instancetype)initWithWriter:(id<GRXWriter>)writer map:(id (^)(id value))map {
   if ((self = [super initWithWriter:writer])) {
     _map = map ?: kIdentity;
   }

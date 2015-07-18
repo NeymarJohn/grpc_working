@@ -98,7 +98,7 @@ PHP_METHOD(Timeval, __construct) {
                          "Timeval expects a long", 1 TSRMLS_CC);
     return;
   }
-  gpr_timespec time = gpr_time_from_micros(microseconds, GPR_TIMESPAN);
+  gpr_timespec time = gpr_time_from_micros(microseconds);
   memcpy(&timeval->wrapped, &time, sizeof(gpr_timespec));
 }
 
@@ -217,8 +217,7 @@ PHP_METHOD(Timeval, now) {
  * @return Timeval Zero length time interval
  */
 PHP_METHOD(Timeval, zero) {
-  zval *grpc_php_timeval_zero =
-      grpc_php_wrap_timeval(gpr_time_0(GPR_CLOCK_REALTIME));
+  zval *grpc_php_timeval_zero = grpc_php_wrap_timeval(gpr_time_0);
   RETURN_ZVAL(grpc_php_timeval_zero,
               false, /* Copy original before returning? */
               true /* Destroy original before returning */);
@@ -229,8 +228,7 @@ PHP_METHOD(Timeval, zero) {
  * @return Timeval Infinite future time value
  */
 PHP_METHOD(Timeval, infFuture) {
-  zval *grpc_php_timeval_inf_future =
-      grpc_php_wrap_timeval(gpr_inf_future(GPR_CLOCK_REALTIME));
+  zval *grpc_php_timeval_inf_future = grpc_php_wrap_timeval(gpr_inf_future);
   RETURN_DESTROY_ZVAL(grpc_php_timeval_inf_future);
 }
 
@@ -239,8 +237,7 @@ PHP_METHOD(Timeval, infFuture) {
  * @return Timeval Infinite past time value
  */
 PHP_METHOD(Timeval, infPast) {
-  zval *grpc_php_timeval_inf_past =
-      grpc_php_wrap_timeval(gpr_inf_past(GPR_CLOCK_REALTIME));
+  zval *grpc_php_timeval_inf_past = grpc_php_wrap_timeval(gpr_inf_past);
   RETURN_DESTROY_ZVAL(grpc_php_timeval_inf_past);
 }
 
