@@ -31,10 +31,8 @@
  *
  */
 
-#import <UIKit/UIKit.h>
-
-@interface ViewController : UIViewController
-@end
+#import "ViewController.h"
 
 @implementation ViewController
+
 @end
