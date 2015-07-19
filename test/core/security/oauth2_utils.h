@@ -31,25 +31,21 @@
  *
  */
 
-#include "src/core/iomgr/endpoint.h"
+#ifndef GRPC_TEST_CORE_SECURITY_OAUTH2_UTILS_H
+#define GRPC_TEST_CORE_SECURITY_OAUTH2_UTILS_H
 
-void grpc_endpoint_notify_on_read(grpc_endpoint *ep, grpc_endpoint_read_cb cb,
-                                  void *user_data) {
-  ep->vtable->notify_on_read(ep, cb, user_data);
+#include "src/core/security/credentials.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Fetch oauth2 access token with a credentials object. Does not take ownership.
+   Returns NULL on a failure. The caller should call gpr_free on the token. */
+char *grpc_test_fetch_oauth2_token_with_credentials(grpc_credentials *creds);
+
+#ifdef __cplusplus
 }
+#endif
 
-grpc_endpoint_write_status grpc_endpoint_write(grpc_endpoint *ep,
-                                               gpr_slice *slices,
-                                               size_t nslices,
-                                               grpc_endpoint_write_cb cb,
-                                               void *user_data) {
-  return ep->vtable->write(ep, slices, nslices, cb, user_data);
-}
-
-void grpc_endpoint_add_to_pollset(grpc_endpoint *ep, grpc_pollset *pollset) {
-  ep->vtable->add_to_pollset(ep, pollset);
-}
-
-void grpc_endpoint_shutdown(grpc_endpoint *ep) { ep->vtable->shutdown(ep); }
-
-void grpc_endpoint_destroy(grpc_endpoint *ep) { ep->vtable->destroy(ep); }
+#endif /* GRPC_TEST_CORE_SECURITY_OAUTH2_UTILS_H */
