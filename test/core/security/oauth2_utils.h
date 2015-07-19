@@ -31,54 +31,21 @@
  *
  */
 
-#include <set>
+#ifndef GRPC_TEST_CORE_SECURITY_OAUTH2_UTILS_H
+#define GRPC_TEST_CORE_SECURITY_OAUTH2_UTILS_H
 
-#include <grpc/support/log.h>
+#include "src/core/security/credentials.h"
 
-#include <signal.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "test/cpp/qps/driver.h"
-#include "test/cpp/qps/report.h"
-#include "test/cpp/util/benchmark_config.h"
+/* Fetch oauth2 access token with a credentials object. Does not take ownership.
+   Returns NULL on a failure. The caller should call gpr_free on the token. */
+char *grpc_test_fetch_oauth2_token_with_credentials(grpc_credentials *creds);
 
-namespace grpc {
-namespace testing {
-
-static const int WARMUP = 5;
-static const int BENCHMARK = 10;
-
-static void RunQPS() {
-  gpr_log(GPR_INFO, "Running QPS test");
-
-  ClientConfig client_config;
-  client_config.set_client_type(ASYNC_CLIENT);
-  client_config.set_enable_ssl(false);
-  client_config.set_outstanding_rpcs_per_channel(1000);
-  client_config.set_client_channels(8);
-  client_config.set_payload_size(1);
-  client_config.set_async_client_threads(8);
-  client_config.set_rpc_type(UNARY);
-
-  ServerConfig server_config;
-  server_config.set_server_type(ASYNC_SERVER);
-  server_config.set_enable_ssl(false);
-  server_config.set_threads(4);
-
-  const auto result =
-      RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
-
-  GetReporter()->ReportQPSPerCore(*result);
-  GetReporter()->ReportLatency(*result);
+#ifdef __cplusplus
 }
+#endif
 
-}  // namespace testing
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  grpc::testing::InitBenchmark(&argc, &argv, true);
-
-  signal(SIGPIPE, SIG_IGN);
-  grpc::testing::RunQPS();
-
-  return 0;
-}
+#endif /* GRPC_TEST_CORE_SECURITY_OAUTH2_UTILS_H */
