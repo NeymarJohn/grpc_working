@@ -355,9 +355,7 @@ static int run_some_expired_alarms(gpr_mu *drop_mu, gpr_timespec now,
 }
 
 int grpc_alarm_check(gpr_mu *drop_mu, gpr_timespec now, gpr_timespec *next) {
-  return run_some_expired_alarms(
-      drop_mu, now, next,
-      gpr_time_cmp(now, gpr_inf_future(GPR_CLOCK_REALTIME)) != 0);
+  return run_some_expired_alarms(drop_mu, now, next, 1);
 }
 
 gpr_timespec grpc_alarm_list_next_timeout(void) {

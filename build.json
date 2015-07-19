@@ -278,7 +278,6 @@
         "src/core/surface/call_details.c",
         "src/core/surface/call_log_batch.c",
         "src/core/surface/channel.c",
-        "src/core/surface/channel_connectivity.c",
         "src/core/surface/channel_create.c",
         "src/core/surface/completion_queue.c",
         "src/core/surface/event_string.c",
@@ -323,6 +322,7 @@
       "headers": [
         "test/core/end2end/cq_verifier.h",
         "test/core/iomgr/endpoint_tests.h",
+        "test/core/security/oauth2_utils.h",
         "test/core/util/grpc_profiler.h",
         "test/core/util/parse_hexstring.h",
         "test/core/util/port.h",
@@ -331,6 +331,7 @@
       "src": [
         "test/core/end2end/cq_verifier.c",
         "test/core/iomgr/endpoint_tests.c",
+        "test/core/security/oauth2_utils.c",
         "test/core/util/grpc_profiler.c",
         "test/core/util/parse_hexstring.c",
         "test/core/util/port_posix.c",
