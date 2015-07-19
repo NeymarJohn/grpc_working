@@ -51,8 +51,7 @@ static VALUE grpc_rb_cTimeVal = Qnil;
 
 static rb_data_type_t grpc_rb_timespec_data_type = {
     "gpr_timespec",
-    {GRPC_RB_GC_NOT_MARKED, GRPC_RB_GC_DONT_FREE, GRPC_RB_MEMSIZE_UNAVAILABLE,
-     {NULL, NULL}},
+    {GRPC_RB_GC_NOT_MARKED, GRPC_RB_GC_DONT_FREE, GRPC_RB_MEMSIZE_UNAVAILABLE},
     NULL,
     NULL,
     RUBY_TYPED_FREE_IMMEDIATELY};
@@ -76,7 +75,6 @@ VALUE grpc_rb_cannot_init(VALUE self) {
 
 /* Init/Clone func that fails by raising an exception. */
 VALUE grpc_rb_cannot_init_copy(VALUE copy, VALUE self) {
-  (void)self;
   rb_raise(rb_eTypeError,
            "initialization of %s only allowed from the gRPC native layer",
            rb_obj_classname(copy));
@@ -260,10 +258,7 @@ static void Init_grpc_time_consts() {
   id_tv_nsec = rb_intern("tv_nsec");
 }
 
-static void grpc_rb_shutdown(ruby_vm_t *vm) {
-  (void)vm;
-  grpc_shutdown();
-}
+static void grpc_rb_shutdown(ruby_vm_t *vm) { grpc_shutdown(); }
 
 /* Initialize the GRPC module structs */
 
