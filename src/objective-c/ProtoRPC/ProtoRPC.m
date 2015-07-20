@@ -35,6 +35,7 @@
 
 #import <GPBProtocolBuffers.h>
 #import <RxLibrary/GRXWriteable.h>
+#import <RxLibrary/GRXWriter.h>
 #import <RxLibrary/GRXWriter+Transformations.h>
 
 @implementation ProtoRPC {
@@ -45,7 +46,7 @@
 #pragma clang diagnostic ignored "-Wobjc-designated-initializers"
 - (instancetype)initWithHost:(NSString *)host
                         path:(NSString *)path
-              requestsWriter:(GRXWriter *)requestsWriter {
+              requestsWriter:(id<GRXWriter>)requestsWriter {
   [NSException raise:NSInvalidArgumentException
               format:@"Please use ProtoRPC's designated initializer instead."];
   return nil;
@@ -55,7 +56,7 @@
 // Designated initializer
 - (instancetype)initWithHost:(NSString *)host
                       method:(ProtoMethod *)method
-              requestsWriter:(GRXWriter *)requestsWriter
+              requestsWriter:(id<GRXWriter>)requestsWriter
                responseClass:(Class)responseClass
           responsesWriteable:(id<GRXWriteable>)responsesWriteable {
   // Because we can't tell the type system to constrain the class, we need to check at runtime:
@@ -64,11 +65,12 @@
                 format:@"A protobuf class to parse the responses must be provided."];
   }
   // A writer that serializes the proto messages to send.
-  GRXWriter *bytesWriter = [requestsWriter map:^id(GPBMessage *proto) {
-    // TODO(jcanizales): Fail with an understandable error message if the requestsWriter isn't
-    // sending GPBMessages.
-    return [proto data];
-  }];
+  id<GRXWriter> bytesWriter =
+      [[[GRXWriter alloc] initWithWriter:requestsWriter] map:^id(GPBMessage *proto) {
+        // TODO(jcanizales): Fail with an understandable error message if the requestsWriter isn't
+        // sending GPBMessages.
+        return [proto data];
+      }];
   if ((self = [super initWithHost:host path:method.HTTPPath requestsWriter:bytesWriter])) {
     // A writeable that parses the proto messages received.
     _responseWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {

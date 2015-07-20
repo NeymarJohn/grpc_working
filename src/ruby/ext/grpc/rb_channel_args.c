@@ -41,8 +41,7 @@
 
 static rb_data_type_t grpc_rb_channel_args_data_type = {
     "grpc_channel_args",
-    {GRPC_RB_GC_NOT_MARKED, GRPC_RB_GC_DONT_FREE, GRPC_RB_MEMSIZE_UNAVAILABLE,
-     {NULL, NULL}},
+    {GRPC_RB_GC_NOT_MARKED, GRPC_RB_GC_DONT_FREE, GRPC_RB_MEMSIZE_UNAVAILABLE},
     NULL, NULL,
     RUBY_TYPED_FREE_IMMEDIATELY
 };

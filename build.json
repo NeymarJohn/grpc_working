@@ -322,7 +322,6 @@
       "headers": [
         "test/core/end2end/cq_verifier.h",
         "test/core/iomgr/endpoint_tests.h",
-        "test/core/security/oauth2_utils.h",
         "test/core/util/grpc_profiler.h",
         "test/core/util/parse_hexstring.h",
         "test/core/util/port.h",
@@ -331,7 +330,6 @@
       "src": [
         "test/core/end2end/cq_verifier.c",
         "test/core/iomgr/endpoint_tests.c",
-        "test/core/security/oauth2_utils.c",
         "test/core/util/grpc_profiler.c",
         "test/core/util/parse_hexstring.c",
         "test/core/util/port_posix.c",
@@ -1781,6 +1779,20 @@
       "language": "c",
       "src": [
         "test/core/iomgr/time_averaged_stats_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "time_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/support/time_test.c"
       ],
       "deps": [
         "grpc_test_util",
