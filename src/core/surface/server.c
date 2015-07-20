@@ -722,7 +722,6 @@ static const grpc_channel_filter server_surface_filter = {
     sizeof(channel_data),
     init_channel_elem,
     destroy_channel_elem,
-    grpc_call_next_get_peer,
     "server",
 };
 
@@ -740,9 +739,9 @@ void grpc_server_register_completion_queue(grpc_server *server,
   server->cqs[n] = cq;
 }
 
-grpc_server *grpc_server_create_from_filters(
-    const grpc_channel_filter **filters, size_t filter_count,
-    const grpc_channel_args *args) {
+grpc_server *grpc_server_create_from_filters(grpc_channel_filter **filters,
+                                             size_t filter_count,
+                                             const grpc_channel_args *args) {
   size_t i;
   /* TODO(census): restore this once we finalize census filter etc.
      int census_enabled = grpc_channel_args_is_census_enabled(args); */
@@ -879,8 +878,8 @@ void grpc_server_setup_transport(grpc_server *s, grpc_transport *transport,
     grpc_transport_perform_op(transport, &op);
   }
 
-  channel = grpc_channel_create_from_filters(NULL, filters, num_filters, args,
-                                             mdctx, 0);
+  channel =
+      grpc_channel_create_from_filters(filters, num_filters, args, mdctx, 0);
   chand = (channel_data *)grpc_channel_stack_element(
               grpc_channel_get_channel_stack(channel), 0)
               ->channel_data;

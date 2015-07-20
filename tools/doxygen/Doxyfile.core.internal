@@ -789,7 +789,6 @@ src/core/channel/census_filter.h \
 src/core/channel/channel_args.h \
 src/core/channel/channel_stack.h \
 src/core/channel/client_channel.h \
-src/core/channel/compress_filter.h \
 src/core/channel/connected_channel.h \
 src/core/channel/context.h \
 src/core/channel/http_client_filter.h \
@@ -803,7 +802,7 @@ src/core/client_config/resolver.h \
 src/core/client_config/resolver_factory.h \
 src/core/client_config/resolver_registry.h \
 src/core/client_config/resolvers/dns_resolver.h \
-src/core/client_config/resolvers/sockaddr_resolver.h \
+src/core/client_config/resolvers/unix_resolver_posix.h \
 src/core/client_config/subchannel.h \
 src/core/client_config/subchannel_factory.h \
 src/core/client_config/uri_parser.h \
@@ -909,7 +908,6 @@ src/core/census/grpc_context.c \
 src/core/channel/channel_args.c \
 src/core/channel/channel_stack.c \
 src/core/channel/client_channel.c \
-src/core/channel/compress_filter.c \
 src/core/channel/connected_channel.c \
 src/core/channel/http_client_filter.c \
 src/core/channel/http_server_filter.c \
@@ -922,7 +920,7 @@ src/core/client_config/resolver.c \
 src/core/client_config/resolver_factory.c \
 src/core/client_config/resolver_registry.c \
 src/core/client_config/resolvers/dns_resolver.c \
-src/core/client_config/resolvers/sockaddr_resolver.c \
+src/core/client_config/resolvers/unix_resolver_posix.c \
 src/core/client_config/subchannel.c \
 src/core/client_config/subchannel_factory.c \
 src/core/client_config/uri_parser.c \

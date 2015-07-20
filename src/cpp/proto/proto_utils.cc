@@ -103,9 +103,7 @@ class GrpcBufferReader GRPC_FINAL
       : byte_count_(0), backup_count_(0) {
     grpc_byte_buffer_reader_init(&reader_, buffer);
   }
-  ~GrpcBufferReader() GRPC_OVERRIDE {
-    grpc_byte_buffer_reader_destroy(&reader_);
-  }
+  ~GrpcBufferReader() GRPC_OVERRIDE {}
 
   bool Next(const void** data, int* size) GRPC_OVERRIDE {
     if (backup_count_ > 0) {
