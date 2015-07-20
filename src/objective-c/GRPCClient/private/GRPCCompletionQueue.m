@@ -65,8 +65,7 @@
     dispatch_async(gDefaultConcurrentQueue, ^{
       while (YES) {
         // The following call blocks until an event is available.
-        grpc_event event = grpc_completion_queue_next(unmanagedQueue,
-                                                      gpr_inf_future(GPR_CLOCK_REALTIME));
+        grpc_event event = grpc_completion_queue_next(unmanagedQueue, gpr_inf_future);
         GRPCQueueCompletionHandler handler;
         switch (event.type) {
           case GRPC_OP_COMPLETE:

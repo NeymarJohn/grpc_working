@@ -16,9 +16,6 @@
     <ClCompile Include="..\..\src\core\channel\client_channel.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\channel\compress_filter.c">
-      <Filter>src\core\channel</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\core\channel\connected_channel.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
@@ -337,6 +334,9 @@
     <ClCompile Include="..\..\src\core\census\initialize.c">
       <Filter>src\core\census</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\core\census\record_stat.c">
+      <Filter>src\core\census</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\grpc\byte_buffer.h">
@@ -372,9 +372,6 @@
       <Filter>src\core\channel</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\channel\client_channel.h">
-      <Filter>src\core\channel</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\channel\compress_filter.h">
       <Filter>src\core\channel</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\channel\connected_channel.h">
@@ -648,6 +645,9 @@
       <Filter>src\core\transport</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\census\context.h">
+      <Filter>src\core\census</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\core\census\resource_id.h">
       <Filter>src\core\census</Filter>
     </ClInclude>
   </ItemGroup>
