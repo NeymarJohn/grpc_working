@@ -40,6 +40,7 @@
 
 #include "src/core/channel/channel_args.h"
 #include "src/core/channel/client_channel.h"
+#include "src/core/channel/compress_filter.h"
 #include "src/core/channel/http_client_filter.h"
 #include "src/core/client_config/resolver_registry.h"
 #include "src/core/iomgr/tcp_client.h"
@@ -75,6 +76,7 @@ static void connector_unref(grpc_connector *con) {
 
 static void on_secure_transport_setup_done(void *arg,
                                            grpc_security_status status,
+                                           grpc_endpoint *wrapped_endpoint,
                                            grpc_endpoint *secure_endpoint) {
   connector *c = arg;
   grpc_iomgr_closure *notify;
@@ -194,13 +196,13 @@ grpc_channel *grpc_secure_channel_create(grpc_credentials *creds,
 
   if (grpc_find_security_connector_in_args(args) != NULL) {
     gpr_log(GPR_ERROR, "Cannot set security context in channel args.");
-    return grpc_lame_client_channel_create();
+    return grpc_lame_client_channel_create(target);
   }
 
   if (grpc_credentials_create_security_connector(
           creds, target, args, NULL, &connector, &new_args_from_connector) !=
       GRPC_SECURITY_OK) {
-    return grpc_lame_client_channel_create();
+    return grpc_lame_client_channel_create(target);
   }
   mdctx = grpc_mdctx_create();
 
@@ -212,6 +214,7 @@ grpc_channel *grpc_secure_channel_create(grpc_credentials *creds,
   if (grpc_channel_args_is_census_enabled(args)) {
     filters[n++] = &grpc_client_census_filter;
     } */
+  filters[n++] = &grpc_compress_filter;
   filters[n++] = &grpc_client_channel_filter;
   GPR_ASSERT(n <= MAX_FILTERS);
 
@@ -228,7 +231,8 @@ grpc_channel *grpc_secure_channel_create(grpc_credentials *creds,
     return NULL;
   }
 
-  channel = grpc_channel_create_from_filters(filters, n, args_copy, mdctx, 1);
+  channel =
+      grpc_channel_create_from_filters(target, filters, n, args_copy, mdctx, 1);
   grpc_client_channel_set_resolver(grpc_channel_get_channel_stack(channel),
                                    resolver);
   GRPC_RESOLVER_UNREF(resolver, "create");

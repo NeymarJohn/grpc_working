@@ -168,6 +168,7 @@ static void destruct_transport(grpc_chttp2_transport *t) {
 
   grpc_mdctx_unref(t->metadata_context);
 
+  gpr_free(t->peer_string);
   gpr_free(t);
 }
 
@@ -217,6 +218,7 @@ static void init_transport(grpc_chttp2_transport *t,
   gpr_ref_init(&t->refs, 2);
   gpr_mu_init(&t->mu);
   grpc_mdctx_ref(mdctx);
+  t->peer_string = grpc_endpoint_get_peer(ep);
   t->metadata_context = mdctx;
   t->endpoint_reading = 1;
   t->global.next_stream_id = is_client ? 1 : 2;
@@ -358,7 +360,9 @@ static int init_stream(grpc_transport *gt, grpc_stream *gs,
     s->global.outgoing_window =
         t->global.settings[GRPC_PEER_SETTINGS]
                           [GRPC_CHTTP2_SETTINGS_INITIAL_WINDOW_SIZE];
-    s->parsing.incoming_window = s->global.incoming_window =
+    s->global.max_recv_bytes = 
+        s->parsing.incoming_window = 
+        s->global.incoming_window =
         t->global.settings[GRPC_SENT_SETTINGS]
                           [GRPC_CHTTP2_SETTINGS_INITIAL_WINDOW_SIZE];
     *t->accepting_stream = s;
@@ -562,6 +566,8 @@ static void maybe_start_some_streams(
     stream_global->incoming_window =
         transport_global->settings[GRPC_SENT_SETTINGS]
                                   [GRPC_CHTTP2_SETTINGS_INITIAL_WINDOW_SIZE];
+    stream_global->max_recv_bytes = 
+        GPR_MAX(stream_global->incoming_window, stream_global->max_recv_bytes);
     grpc_chttp2_stream_map_add(
         &TRANSPORT_FROM_GLOBAL(transport_global)->new_stream_map,
         stream_global->id, STREAM_FROM_GLOBAL(stream_global));
@@ -570,6 +576,9 @@ static void maybe_start_some_streams(
     grpc_chttp2_list_add_incoming_window_updated(transport_global,
                                                  stream_global);
     grpc_chttp2_list_add_writable_stream(transport_global, stream_global);
+    grpc_chttp2_list_add_writable_window_update_stream(transport_global,
+                                                       stream_global);
+
   }
   /* cancel out streams that will never be started */
   while (transport_global->next_stream_id >= MAX_CLIENT_STREAM_ID &&
@@ -620,12 +629,23 @@ static void perform_stream_op_locked(
     stream_global->publish_sopb = op->recv_ops;
     stream_global->publish_sopb->nops = 0;
     stream_global->publish_state = op->recv_state;
+    if (stream_global->max_recv_bytes < op->max_recv_bytes) {
+      GRPC_CHTTP2_FLOWCTL_TRACE_STREAM("op", transport_global, stream_global,
+          max_recv_bytes, op->max_recv_bytes - stream_global->max_recv_bytes);
+      GRPC_CHTTP2_FLOWCTL_TRACE_STREAM(
+          "op", transport_global, stream_global, unannounced_incoming_window,
+          op->max_recv_bytes - stream_global->max_recv_bytes);
+      stream_global->unannounced_incoming_window += op->max_recv_bytes - stream_global->max_recv_bytes;
+      stream_global->max_recv_bytes = op->max_recv_bytes;
+    }
     grpc_chttp2_incoming_metadata_live_op_buffer_end(
         &stream_global->outstanding_metadata);
-    grpc_chttp2_list_add_read_write_state_changed(transport_global,
-                                                  stream_global);
-    grpc_chttp2_list_add_writable_window_update_stream(transport_global,
-                                                       stream_global);
+    if (stream_global->id != 0) {
+      grpc_chttp2_list_add_read_write_state_changed(transport_global,
+                                                    stream_global);
+      grpc_chttp2_list_add_writable_window_update_stream(transport_global,
+                                                         stream_global);
+    }
   }
 
   if (op->bind_pollset) {
@@ -1038,7 +1058,7 @@ void grpc_chttp2_flowctl_trace(const char *file, int line, const char *reason,
     identifier = gpr_strdup(context_scope);
   }
   gpr_log(GPR_INFO,
-          "FLOWCTL: %s %-10s %8s %-23s %8lld %c %8lld = %8lld %-10s [%s:%d]",
+          "FLOWCTL: %s %-10s %8s %-27s %8lld %c %8lld = %8lld %-10s [%s:%d]",
           is_client ? "client" : "server", identifier, context_thread, var,
           current_value, delta < 0 ? '-' : '+', delta < 0 ? -delta : delta,
           current_value + delta, reason, file, line);
@@ -1051,9 +1071,17 @@ void grpc_chttp2_flowctl_trace(const char *file, int line, const char *reason,
  * INTEGRATION GLUE
  */
 
-static const grpc_transport_vtable vtable = {
-    sizeof(grpc_chttp2_stream), init_stream,    perform_stream_op,
-    perform_transport_op,       destroy_stream, destroy_transport};
+static char *chttp2_get_peer(grpc_transport *t) {
+  return gpr_strdup(((grpc_chttp2_transport *)t)->peer_string);
+}
+
+static const grpc_transport_vtable vtable = {sizeof(grpc_chttp2_stream),
+                                             init_stream,
+                                             perform_stream_op,
+                                             perform_transport_op,
+                                             destroy_stream,
+                                             destroy_transport,
+                                             chttp2_get_peer};
 
 grpc_transport *grpc_create_chttp2_transport(
     const grpc_channel_args *channel_args, grpc_endpoint *ep, grpc_mdctx *mdctx,

@@ -31,39 +31,20 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
-#define GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
 
-#include <grpc++/config.h>
+#include <grpc/support/port_platform.h>
 
-#include <grpc++/impl/sync.h>
-#include <grpc++/impl/thd.h>
-#include <grpc++/thread_pool_interface.h>
+#include "src/core/client_config/resolver_factory.h"
 
-#include <queue>
-#include <vector>
+grpc_resolver_factory *grpc_ipv4_resolver_factory_create(void);
 
-namespace grpc {
+grpc_resolver_factory *grpc_ipv6_resolver_factory_create(void);
 
-class ThreadPool GRPC_FINAL : public ThreadPoolInterface {
- public:
-  explicit ThreadPool(int num_threads);
-  ~ThreadPool();
+#ifdef GPR_POSIX_SOCKET
+/** Create a unix resolver factory */
+grpc_resolver_factory *grpc_unix_resolver_factory_create(void);
+#endif
 
-  void ScheduleCallback(const std::function<void()>& callback) GRPC_OVERRIDE;
-
- private:
-  grpc::mutex mu_;
-  grpc::condition_variable cv_;
-  bool shutdown_;
-  std::queue<std::function<void()>> callbacks_;
-  std::vector<grpc::thread*> threads_;
-
-  void ThreadFunc();
-};
-
-ThreadPoolInterface* CreateDefaultThreadPool();
-
-}  // namespace grpc
-
-#endif  // GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H */
