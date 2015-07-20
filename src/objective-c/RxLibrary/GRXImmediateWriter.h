@@ -40,15 +40,15 @@
 //
 // Unless the writeable callback pauses them or stops them early, these writers will do all their
 // interactions with the writeable before the start method returns.
-@interface GRXImmediateWriter : GRXWriter
+@interface GRXImmediateWriter : NSObject<GRXWriter>
 
 // Returns a writer that pulls values from the passed NSEnumerator instance and pushes them to
 // its writeable. The NSEnumerator is released when it finishes.
-+ (GRXWriter *)writerWithEnumerator:(NSEnumerator *)enumerator;
++ (id<GRXWriter>)writerWithEnumerator:(NSEnumerator *)enumerator;
 
 // Returns a writer that pushes to its writeable the successive values returned by the passed
 // block. When the block first returns nil, it is released.
-+ (GRXWriter *)writerWithValueSupplier:(id (^)())block;
++ (id<GRXWriter>)writerWithValueSupplier:(id (^)())block;
 
 // Returns a writer that iterates over the values of the passed container and pushes them to
 // its writeable. The container is released when the iteration is over.
@@ -56,18 +56,18 @@
 // Note that the usual speed gain of NSFastEnumeration over NSEnumerator results from not having to
 // call one method per element. Because GRXWriteable instances accept values one by one, that speed
 // gain doesn't happen here.
-+ (GRXWriter *)writerWithContainer:(id<NSFastEnumeration>)container;
++ (id<GRXWriter>)writerWithContainer:(id<NSFastEnumeration>)container;
 
 // Returns a writer that sends the passed value to its writeable and then finishes (releasing the
 // value).
-+ (GRXWriter *)writerWithValue:(id)value;
++ (id<GRXWriter>)writerWithValue:(id)value;
 
 // Returns a writer that, as part of its start method, sends the passed error to the writeable
 // (then releasing the error).
-+ (GRXWriter *)writerWithError:(NSError *)error;
++ (id<GRXWriter>)writerWithError:(NSError *)error;
 
 // Returns a writer that, as part of its start method, finishes immediately without sending any
 // values to its writeable.
-+ (GRXWriter *)emptyWriter;
++ (id<GRXWriter>)emptyWriter;
 
 @end

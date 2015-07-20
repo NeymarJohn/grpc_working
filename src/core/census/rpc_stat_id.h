@@ -31,37 +31,16 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
-#define GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
+#ifndef CENSUS_RPC_STAT_ID_H
+#define CENSUS_RPC_STAT_ID_H
 
-#include <grpc++/config.h>
+/* Stats ID's used for RPC measurements. */
+#define CENSUS_INVALID_STAT_ID 0     /* ID 0 is always invalid */
+#define CENSUS_RPC_CLIENT_REQUESTS 1 /* Count of client requests sent. */
+#define CENSUS_RPC_SERVER_REQUESTS 2 /* Count of server requests sent. */
+#define CENSUS_RPC_CLIENT_ERRORS 3   /* Client error counts. */
+#define CENSUS_RPC_SERVER_ERRORS 4   /* Server error counts. */
+#define CENSUS_RPC_CLIENT_LATENCY 5  /* Client side request latency. */
+#define CENSUS_RPC_SERVER_LATENCY 6  /* Server side request latency. */
 
-#include <grpc++/impl/sync.h>
-#include <grpc++/impl/thd.h>
-#include <grpc++/thread_pool_interface.h>
-
-#include <queue>
-#include <vector>
-
-namespace grpc {
-
-class FixedSizeThreadPool GRPC_FINAL : public ThreadPoolInterface {
- public:
-  explicit FixedSizeThreadPool(int num_threads);
-  ~FixedSizeThreadPool();
-
-  void ScheduleCallback(const std::function<void()>& callback) GRPC_OVERRIDE;
-
- private:
-  grpc::mutex mu_;
-  grpc::condition_variable cv_;
-  bool shutdown_;
-  std::queue<std::function<void()>> callbacks_;
-  std::vector<grpc::thread*> threads_;
-
-  void ThreadFunc();
-};
-
-}  // namespace grpc
-
-#endif  // GRPC_INTERNAL_CPP_SERVER_THREAD_POOL_H
+#endif /* CENSUS_RPC_STAT_ID_H */

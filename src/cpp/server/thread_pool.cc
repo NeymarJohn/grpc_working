@@ -31,18 +31,55 @@
  *
  */
 
-#ifndef GRPC_GRPC_ZOOKEEPER_H
-#define GRPC_GRPC_ZOOKEEPER_H
+#include <grpc++/impl/sync.h>
+#include <grpc++/impl/thd.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "src/cpp/server/thread_pool.h"
 
-/* Register zookeeper name resolver in grpc */
-void grpc_zookeeper_register();
+namespace grpc {
 
-#ifdef __cplusplus
+void ThreadPool::ThreadFunc() {
+  for (;;) {
+    // Wait until work is available or we are shutting down.
+    grpc::unique_lock<grpc::mutex> lock(mu_);
+    if (!shutdown_ && callbacks_.empty()) {
+      cv_.wait(lock);
+    }
+    // Drain callbacks before considering shutdown to ensure all work
+    // gets completed.
+    if (!callbacks_.empty()) {
+      auto cb = callbacks_.front();
+      callbacks_.pop();
+      lock.unlock();
+      cb();
+    } else if (shutdown_) {
+      return;
+    }
+  }
 }
-#endif
 
-#endif /* GRPC_GRPC_ZOOKEEPER_H */
+ThreadPool::ThreadPool(int num_threads) : shutdown_(false) {
+  for (int i = 0; i < num_threads; i++) {
+    threads_.push_back(new grpc::thread(&ThreadPool::ThreadFunc, this));
+  }
+}
+
+ThreadPool::~ThreadPool() {
+  {
+    grpc::lock_guard<grpc::mutex> lock(mu_);
+    shutdown_ = true;
+    cv_.notify_all();
+  }
+  for (auto t = threads_.begin(); t != threads_.end(); t++) {
+    (*t)->join();
+    delete *t;
+  }
+}
+
+void ThreadPool::ScheduleCallback(const std::function<void()>& callback) {
+  grpc::lock_guard<grpc::mutex> lock(mu_);
+  callbacks_.push(callback);
+  cv_.notify_one();
+}
+
+}  // namespace grpc
