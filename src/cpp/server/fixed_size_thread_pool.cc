@@ -31,16 +31,55 @@
  *
  */
 
-#ifndef CENSUS_RPC_STAT_ID_H
-#define CENSUS_RPC_STAT_ID_H
+#include <grpc++/impl/sync.h>
+#include <grpc++/impl/thd.h>
+#include <grpc++/fixed_size_thread_pool.h>
 
-/* Stats ID's used for RPC measurements. */
-#define CENSUS_INVALID_STAT_ID 0     /* ID 0 is always invalid */
-#define CENSUS_RPC_CLIENT_REQUESTS 1 /* Count of client requests sent. */
-#define CENSUS_RPC_SERVER_REQUESTS 2 /* Count of server requests sent. */
-#define CENSUS_RPC_CLIENT_ERRORS 3   /* Client error counts. */
-#define CENSUS_RPC_SERVER_ERRORS 4   /* Server error counts. */
-#define CENSUS_RPC_CLIENT_LATENCY 5  /* Client side request latency. */
-#define CENSUS_RPC_SERVER_LATENCY 6  /* Server side request latency. */
+namespace grpc {
 
-#endif /* CENSUS_RPC_STAT_ID_H */
+void FixedSizeThreadPool::ThreadFunc() {
+  for (;;) {
+    // Wait until work is available or we are shutting down.
+    grpc::unique_lock<grpc::mutex> lock(mu_);
+    if (!shutdown_ && callbacks_.empty()) {
+      cv_.wait(lock);
+    }
+    // Drain callbacks before considering shutdown to ensure all work
+    // gets completed.
+    if (!callbacks_.empty()) {
+      auto cb = callbacks_.front();
+      callbacks_.pop();
+      lock.unlock();
+      cb();
+    } else if (shutdown_) {
+      return;
+    }
+  }
+}
+
+FixedSizeThreadPool::FixedSizeThreadPool(int num_threads) : shutdown_(false) {
+  for (int i = 0; i < num_threads; i++) {
+    threads_.push_back(
+        new grpc::thread(&FixedSizeThreadPool::ThreadFunc, this));
+  }
+}
+
+FixedSizeThreadPool::~FixedSizeThreadPool() {
+  {
+    grpc::lock_guard<grpc::mutex> lock(mu_);
+    shutdown_ = true;
+    cv_.notify_all();
+  }
+  for (auto t = threads_.begin(); t != threads_.end(); t++) {
+    (*t)->join();
+    delete *t;
+  }
+}
+
+void FixedSizeThreadPool::Add(const std::function<void()>& callback) {
+  grpc::lock_guard<grpc::mutex> lock(mu_);
+  callbacks_.push(callback);
+  cv_.notify_one();
+}
+
+}  // namespace grpc
