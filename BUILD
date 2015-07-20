@@ -154,6 +154,7 @@ cc_library(
     "src/core/channel/channel_args.h",
     "src/core/channel/channel_stack.h",
     "src/core/channel/client_channel.h",
+    "src/core/channel/compress_filter.h",
     "src/core/channel/connected_channel.h",
     "src/core/channel/context.h",
     "src/core/channel/http_client_filter.h",
@@ -273,6 +274,7 @@ cc_library(
     "src/core/channel/channel_args.c",
     "src/core/channel/channel_stack.c",
     "src/core/channel/client_channel.c",
+    "src/core/channel/compress_filter.c",
     "src/core/channel/connected_channel.c",
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_server_filter.c",
@@ -408,6 +410,7 @@ cc_library(
     "src/core/channel/channel_args.h",
     "src/core/channel/channel_stack.h",
     "src/core/channel/client_channel.h",
+    "src/core/channel/compress_filter.h",
     "src/core/channel/connected_channel.h",
     "src/core/channel/context.h",
     "src/core/channel/http_client_filter.h",
@@ -504,6 +507,7 @@ cc_library(
     "src/core/channel/channel_args.c",
     "src/core/channel/channel_stack.c",
     "src/core/channel/client_channel.c",
+    "src/core/channel/compress_filter.c",
     "src/core/channel/connected_channel.c",
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_server_filter.c",
@@ -625,26 +629,6 @@ cc_library(
   ],
   deps = [
     ":gpr",
-  ],
-)
-
-
-cc_library(
-  name = "grpc_zookeeper",
-  srcs = [
-    "src/core/client_config/resolvers/zookeeper_resolver.h",
-    "src/core/client_config/resolvers/zookeeper_resolver.c",
-  ],
-  hdrs = [
-    "include/grpc/grpc_zookeeper.h",
-  ],
-  includes = [
-    "include",
-    ".",
-  ],
-  deps = [
-    ":gpr",
-    ":grpc",
   ],
 )
 
@@ -1001,6 +985,7 @@ objc_library(
     "src/core/channel/channel_args.c",
     "src/core/channel/channel_stack.c",
     "src/core/channel/client_channel.c",
+    "src/core/channel/compress_filter.c",
     "src/core/channel/connected_channel.c",
     "src/core/channel/http_client_filter.c",
     "src/core/channel/http_server_filter.c",
@@ -1138,6 +1123,7 @@ objc_library(
     "src/core/channel/channel_args.h",
     "src/core/channel/channel_stack.h",
     "src/core/channel/client_channel.h",
+    "src/core/channel/compress_filter.h",
     "src/core/channel/connected_channel.h",
     "src/core/channel/context.h",
     "src/core/channel/http_client_filter.h",
