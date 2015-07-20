@@ -31,20 +31,12 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
-#define GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-typedef struct gpr_stack_lockfree gpr_stack_lockfree;
+#include "src/core/client_config/resolver_factory.h"
 
-/* This stack must specify the maximum number of entries to track.
-   The current implementation only allows up to 65534 entries */
-gpr_stack_lockfree* gpr_stack_lockfree_create(int entries);
-void gpr_stack_lockfree_destroy(gpr_stack_lockfree* stack);
+/** Create a zookeeper resolver for \a name */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
 
-/* Pass in a valid entry number for the next stack entry */
-void gpr_stack_lockfree_push(gpr_stack_lockfree* stack, int entry);
-
-/* Returns -1 on empty or the actual entry number */
-int gpr_stack_lockfree_pop(gpr_stack_lockfree* stack);
-
-#endif /* GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H */
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */

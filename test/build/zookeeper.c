@@ -31,20 +31,13 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
-#define GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H
+/* This is just a compilation test, to see if we have Zookeeper C client 
+   library installed. */
 
-typedef struct gpr_stack_lockfree gpr_stack_lockfree;
+#include <stdlib.h>
+#include <zookeeper/zookeeper.h>
 
-/* This stack must specify the maximum number of entries to track.
-   The current implementation only allows up to 65534 entries */
-gpr_stack_lockfree* gpr_stack_lockfree_create(int entries);
-void gpr_stack_lockfree_destroy(gpr_stack_lockfree* stack);
-
-/* Pass in a valid entry number for the next stack entry */
-void gpr_stack_lockfree_push(gpr_stack_lockfree* stack, int entry);
-
-/* Returns -1 on empty or the actual entry number */
-int gpr_stack_lockfree_pop(gpr_stack_lockfree* stack);
-
-#endif /* GRPC_INTERNAL_CORE_SUPPORT_STACK_LOCKFREE_H */
+int main() {
+  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
+  return 0;
+}
