@@ -115,7 +115,6 @@
         "src/core/channel/channel_args.h",
         "src/core/channel/channel_stack.h",
         "src/core/channel/client_channel.h",
-        "src/core/channel/compress_filter.h",
         "src/core/channel/connected_channel.h",
         "src/core/channel/context.h",
         "src/core/channel/http_client_filter.h",
@@ -129,7 +128,7 @@
         "src/core/client_config/resolver_factory.h",
         "src/core/client_config/resolver_registry.h",
         "src/core/client_config/resolvers/dns_resolver.h",
-        "src/core/client_config/resolvers/sockaddr_resolver.h",
+        "src/core/client_config/resolvers/unix_resolver_posix.h",
         "src/core/client_config/subchannel.h",
         "src/core/client_config/subchannel_factory.h",
         "src/core/client_config/uri_parser.h",
@@ -212,7 +211,6 @@
         "src/core/channel/channel_args.c",
         "src/core/channel/channel_stack.c",
         "src/core/channel/client_channel.c",
-        "src/core/channel/compress_filter.c",
         "src/core/channel/connected_channel.c",
         "src/core/channel/http_client_filter.c",
         "src/core/channel/http_server_filter.c",
@@ -225,7 +223,7 @@
         "src/core/client_config/resolver_factory.c",
         "src/core/client_config/resolver_registry.c",
         "src/core/client_config/resolvers/dns_resolver.c",
-        "src/core/client_config/resolvers/sockaddr_resolver.c",
+        "src/core/client_config/resolvers/unix_resolver_posix.c",
         "src/core/client_config/subchannel.c",
         "src/core/client_config/subchannel_factory.c",
         "src/core/client_config/uri_parser.c",
@@ -324,7 +322,6 @@
       "headers": [
         "test/core/end2end/cq_verifier.h",
         "test/core/iomgr/endpoint_tests.h",
-        "test/core/security/oauth2_utils.h",
         "test/core/util/grpc_profiler.h",
         "test/core/util/parse_hexstring.h",
         "test/core/util/port.h",
@@ -333,7 +330,6 @@
       "src": [
         "test/core/end2end/cq_verifier.c",
         "test/core/iomgr/endpoint_tests.c",
-        "test/core/security/oauth2_utils.c",
         "test/core/util/grpc_profiler.c",
         "test/core/util/parse_hexstring.c",
         "test/core/util/port_posix.c",
@@ -562,6 +558,29 @@
       ],
       "secure": "no",
       "vs_project_guid": "{46CEDFFF-9692-456A-AA24-38B5D6BCF4C5}"
+    },
+    {
+      "name": "grpc_zookeeper",
+      "build": "all",
+      "language": "c",
+      "public_headers": [
+        "include/grpc/grpc_zookeeper.h"
+      ],
+      "headers": [
+        "src/core/client_config/resolvers/zookeeper_resolver.h"
+      ],
+      "src": [
+        "src/core/client_config/resolvers/zookeeper_resolver.c"
+      ],
+      "deps": [
+        "gpr",
+        "grpc"
+      ],
+      "external_deps": [
+        "zookeeper"
+      ],
+      "secure": "no",
+      "vs_project_guid": "{F14EBEC1-DC43-45D3-8A7D-1A47072EFE50}"
     },
     {
       "name": "grpc++",
@@ -1783,6 +1802,20 @@
       "language": "c",
       "src": [
         "test/core/iomgr/time_averaged_stats_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "time_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/support/time_test.c"
       ],
       "deps": [
         "grpc_test_util",

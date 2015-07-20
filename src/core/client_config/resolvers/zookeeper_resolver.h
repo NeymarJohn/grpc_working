@@ -31,21 +31,12 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_SECURITY_OAUTH2_UTILS_H
-#define GRPC_TEST_CORE_SECURITY_OAUTH2_UTILS_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-#include "src/core/security/credentials.h"
+#include "src/core/client_config/resolver_factory.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/** Create a zookeeper resolver for \a name */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
 
-/* Fetch oauth2 access token with a credentials object. Does not take ownership.
-   Returns NULL on a failure. The caller should call gpr_free on the token. */
-char *grpc_test_fetch_oauth2_token_with_credentials(grpc_credentials *creds);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* GRPC_TEST_CORE_SECURITY_OAUTH2_UTILS_H */
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */
