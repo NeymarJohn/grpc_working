@@ -78,7 +78,7 @@ class CompletionQueue;
 class Server;
 
 namespace testing {
-class InteropServerContextInspector;
+class InteropContextInspector;
 }  // namespace testing
 
 // Interface of server side rpc context.
@@ -117,7 +117,7 @@ class ServerContext {
   std::shared_ptr<const AuthContext> auth_context() const;
 
  private:
-  friend class ::grpc::testing::InteropServerContextInspector;
+  friend class ::grpc::testing::InteropContextInspector;
   friend class ::grpc::Server;
   template <class W, class R>
   friend class ::grpc::ServerAsyncReader;

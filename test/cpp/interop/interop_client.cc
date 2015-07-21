@@ -43,8 +43,6 @@
 #include <grpc++/client_context.h>
 #include <grpc++/status.h>
 #include <grpc++/stream.h>
-
-#include "test/cpp/interop/client_helper.h"
 #include "test/proto/test.grpc.pb.h"
 #include "test/proto/empty.grpc.pb.h"
 #include "test/proto/messages.grpc.pb.h"
@@ -95,18 +93,15 @@ void InteropClient::PerformLargeUnary(SimpleRequest* request,
   std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
-  InteropClientContextInspector inspector(context);
+  request->set_response_type(PayloadType::COMPRESSABLE);
   request->set_response_size(kLargeResponseSize);
   grpc::string payload(kLargeRequestSize, '\0');
   request->mutable_payload()->set_body(payload.c_str(), kLargeRequestSize);
 
   Status s = stub->UnaryCall(&context, *request, response);
 
-  GPR_ASSERT(request->response_compression() ==
-             GetInteropCompressionTypeFromCompressionAlgorithm(
-                 inspector.GetCallCompressionAlgorithm()));
   AssertOkOrPrintErrorStatus(s);
-  GPR_ASSERT(response->payload().type() == request->response_type());
+  GPR_ASSERT(response->payload().type() == PayloadType::COMPRESSABLE);
   GPR_ASSERT(response->payload().body() ==
              grpc::string(kLargeResponseSize, '\0'));
 }
@@ -120,7 +115,6 @@ void InteropClient::DoComputeEngineCreds(
   SimpleResponse response;
   request.set_fill_username(true);
   request.set_fill_oauth_scope(true);
-  request.set_response_type(PayloadType::COMPRESSABLE);
   PerformLargeUnary(&request, &response);
   gpr_log(GPR_INFO, "Got username %s", response.username().c_str());
   gpr_log(GPR_INFO, "Got oauth_scope %s", response.oauth_scope().c_str());
@@ -140,7 +134,6 @@ void InteropClient::DoServiceAccountCreds(const grpc::string& username,
   SimpleResponse response;
   request.set_fill_username(true);
   request.set_fill_oauth_scope(true);
-  request.set_response_type(PayloadType::COMPRESSABLE);
   PerformLargeUnary(&request, &response);
   GPR_ASSERT(!response.username().empty());
   GPR_ASSERT(!response.oauth_scope().empty());
@@ -178,7 +171,6 @@ void InteropClient::DoJwtTokenCreds(const grpc::string& username) {
   SimpleRequest request;
   SimpleResponse response;
   request.set_fill_username(true);
-  request.set_response_type(PayloadType::COMPRESSABLE);
   PerformLargeUnary(&request, &response);
   GPR_ASSERT(!response.username().empty());
   GPR_ASSERT(username.find(response.username()) != grpc::string::npos);
@@ -186,19 +178,11 @@ void InteropClient::DoJwtTokenCreds(const grpc::string& username) {
 }
 
 void InteropClient::DoLargeUnary() {
-  const CompressionType compression_types[] = {NONE, GZIP, DEFLATE};
-  const PayloadType payload_types[] = {COMPRESSABLE, UNCOMPRESSABLE, RANDOM};
-  for (const auto payload_type : payload_types) {
-    for (const auto compression_type : compression_types) {
-      gpr_log(GPR_INFO, "Sending a large unary rpc...");
-      SimpleRequest request;
-      SimpleResponse response;
-      request.set_response_type(payload_type);
-      request.set_response_compression(compression_type);
-      PerformLargeUnary(&request, &response);
-      gpr_log(GPR_INFO, "Large unary done.");
-    }
-  }
+  gpr_log(GPR_INFO, "Sending a large unary rpc...");
+  SimpleRequest request;
+  SimpleResponse response;
+  PerformLargeUnary(&request, &response);
+  gpr_log(GPR_INFO, "Large unary done.");
 }
 
 void InteropClient::DoRequestStreaming() {
@@ -233,15 +217,11 @@ void InteropClient::DoResponseStreaming() {
 
   ClientContext context;
   StreamingOutputCallRequest request;
-  request.set_response_type(PayloadType::COMPRESSABLE);
-  request.set_response_compression(CompressionType::GZIP);
-
   for (unsigned int i = 0; i < response_stream_sizes.size(); ++i) {
     ResponseParameters* response_parameter = request.add_response_parameters();
     response_parameter->set_size(response_stream_sizes[i]);
   }
   StreamingOutputCallResponse response;
-
   std::unique_ptr<ClientReader<StreamingOutputCallResponse>> stream(
       stub->StreamingOutputCall(&context, request));
 
