@@ -80,30 +80,14 @@ static bool got_sigint = false;
 
 bool SetPayload(PayloadType type, int size, Payload* payload) {
   PayloadType response_type = type;
+  // TODO(yangg): Support UNCOMPRESSABLE payload.
+  if (type != PayloadType::COMPRESSABLE) {
+    return false;
+  }
   payload->set_type(response_type);
   std::unique_ptr<char[]> body(new char[size]());
   payload->set_body(body.get(), size);
   return true;
-}
-
-template <typename RequestType>
-void SetResponseCompression(ServerContext* context,
-                            const RequestType& request) {
-  if (request.has_response_compression()) {
-    switch (request.response_compression()) {
-      case grpc::testing::NONE:
-        context->set_compression_algorithm(GRPC_COMPRESS_NONE);
-        break;
-      case grpc::testing::GZIP:
-        context->set_compression_algorithm(GRPC_COMPRESS_GZIP);
-        break;
-      case grpc::testing::DEFLATE:
-        context->set_compression_algorithm(GRPC_COMPRESS_DEFLATE);
-        break;
-    }
-  } else {
-    context->set_compression_algorithm(GRPC_COMPRESS_NONE);
-  }
 }
 
 class TestServiceImpl : public TestService::Service {
@@ -115,7 +99,6 @@ class TestServiceImpl : public TestService::Service {
 
   Status UnaryCall(ServerContext* context, const SimpleRequest* request,
                    SimpleResponse* response) {
-    SetResponseCompression(context, *request);
     if (request->has_response_size() && request->response_size() > 0) {
       if (!SetPayload(request->response_type(), request->response_size(),
                       response->mutable_payload())) {
@@ -128,7 +111,6 @@ class TestServiceImpl : public TestService::Service {
   Status StreamingOutputCall(
       ServerContext* context, const StreamingOutputCallRequest* request,
       ServerWriter<StreamingOutputCallResponse>* writer) {
-    SetResponseCompression(context, *request);
     StreamingOutputCallResponse response;
     bool write_success = true;
     response.mutable_payload()->set_type(request->response_type());
@@ -167,15 +149,12 @@ class TestServiceImpl : public TestService::Service {
     StreamingOutputCallResponse response;
     bool write_success = true;
     while (write_success && stream->Read(&request)) {
-      SetResponseCompression(context, request);
-      response.mutable_payload()->set_type(request.payload().type());
-      if (request.response_parameters_size() == 0) {
-        return Status(grpc::StatusCode::INTERNAL,
-                      "Request does not have response parameters.");
+      if (request.response_parameters_size() != 0) {
+        response.mutable_payload()->set_type(request.payload().type());
+        response.mutable_payload()->set_body(
+            grpc::string(request.response_parameters(0).size(), '\0'));
+        write_success = stream->Write(response);
       }
-      response.mutable_payload()->set_body(
-          grpc::string(request.response_parameters(0).size(), '\0'));
-      write_success = stream->Write(response);
     }
     if (write_success) {
       return Status::OK;
