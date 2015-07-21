@@ -119,10 +119,40 @@ namespace Grpc.Core.Tests
         }
 
         [Test]
+        public void UnaryCall_ServerHandlerThrowsRpcException()
+        {
+            var call = new Call<string, string>(ServiceName, EchoMethod, channel, Metadata.Empty);
+            try
+            {
+                Calls.BlockingUnaryCall(call, "THROW_UNAUTHENTICATED", CancellationToken.None);
+                Assert.Fail();
+            }
+            catch (RpcException e)
+            {
+                Assert.AreEqual(StatusCode.Unauthenticated, e.Status.StatusCode);
+            }
+        }
+
+        [Test]
+        public void UnaryCall_ServerHandlerSetsStatus()
+        {
+            var call = new Call<string, string>(ServiceName, EchoMethod, channel, Metadata.Empty);
+            try
+            {
+                Calls.BlockingUnaryCall(call, "SET_UNAUTHENTICATED", CancellationToken.None);
+                Assert.Fail();
+            }
+            catch (RpcException e)
+            {
+                Assert.AreEqual(StatusCode.Unauthenticated, e.Status.StatusCode); 
+            }
+        }
+
+        [Test]
         public void AsyncUnaryCall()
         {
             var call = new Call<string, string>(ServiceName, EchoMethod, channel, Metadata.Empty);
-            var result = Calls.AsyncUnaryCall(call, "ABC", CancellationToken.None).Result;
+            var result = Calls.AsyncUnaryCall(call, "ABC", CancellationToken.None).ResponseAsync.Result;
             Assert.AreEqual("ABC", result);
         }
 
@@ -153,7 +183,7 @@ namespace Grpc.Core.Tests
                 var callResult = Calls.AsyncClientStreamingCall(call, CancellationToken.None);
 
                 await callResult.RequestStream.WriteAll(new string[] { "A", "B", "C" });
-                Assert.AreEqual("ABC", await callResult.Result);
+                Assert.AreEqual("ABC", await callResult.ResponseAsync);
             }).Wait();
         }
 
@@ -173,13 +203,37 @@ namespace Grpc.Core.Tests
 
                 try
                 {
-                    await callResult.Result;
+                    await callResult.ResponseAsync;
                 }
                 catch (RpcException e)
                 {
                     Assert.AreEqual(StatusCode.Cancelled, e.Status.StatusCode); 
                 }
             }).Wait();
+        }
+
+        [Test]
+        public void AsyncUnaryCall_EchoMetadata()
+        {
+            var headers = new Metadata
+            {
+                new Metadata.Entry("asciiHeader", "abcdefg"),
+                new Metadata.Entry("binaryHeader-bin", new byte[] { 1, 2, 3, 0, 0xff } ),
+            };
+            var call = new Call<string, string>(ServiceName, EchoMethod, channel, headers);
+            var callResult = Calls.AsyncUnaryCall(call, "ABC", CancellationToken.None);
+
+            Assert.AreEqual("ABC", callResult.ResponseAsync.Result);
+
+            Assert.AreEqual(StatusCode.OK, callResult.GetStatus().StatusCode);
+
+            var trailers = callResult.GetTrailers();
+            Assert.AreEqual(2, trailers.Count);
+            Assert.AreEqual(headers[0].Key, trailers[0].Key);
+            Assert.AreEqual(headers[0].Value, trailers[0].Value);
+
+            Assert.AreEqual(headers[1].Key, trailers[1].Key);
+            CollectionAssert.AreEqual(headers[1].ValueBytes, trailers[1].ValueBytes);
         }
 
         [Test]
@@ -214,16 +268,33 @@ namespace Grpc.Core.Tests
             }
         }
 
-        private static async Task<string> EchoHandler(ServerCallContext context, string request)
+        private static async Task<string> EchoHandler(string request, ServerCallContext context)
         {
+            foreach (Metadata.Entry metadataEntry in context.RequestHeaders)
+            {
+                Console.WriteLine("Echoing header " + metadataEntry.Key + " as trailer");
+                context.ResponseTrailers.Add(metadataEntry);
+            }
+
             if (request == "THROW")
             {
                 throw new Exception("This was thrown on purpose by a test");
             }
+
+            if (request == "THROW_UNAUTHENTICATED")
+            {
+                throw new RpcException(new Status(StatusCode.Unauthenticated, ""));
+            }
+
+            if (request == "SET_UNAUTHENTICATED")
+            {
+                context.Status = new Status(StatusCode.Unauthenticated, "");
+            }
+
             return request;
         }
 
-        private static async Task<string> ConcatAndEchoHandler(ServerCallContext context, IAsyncStreamReader<string> requestStream)
+        private static async Task<string> ConcatAndEchoHandler(IAsyncStreamReader<string> requestStream, ServerCallContext context)
         {
             string result = "";
             await requestStream.ForEach(async (request) =>
