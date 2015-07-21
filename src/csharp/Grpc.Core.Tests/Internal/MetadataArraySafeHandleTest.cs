@@ -51,8 +51,7 @@ namespace Grpc.Core.Internal.Tests
         [Test]
         public void CreateAndDestroy()
         {
-            var metadata = new Metadata
-            {
+            var metadata = new Metadata {
                 new Metadata.Entry("host", "somehost"),
                 new Metadata.Entry("header2", "header value"),
             };
