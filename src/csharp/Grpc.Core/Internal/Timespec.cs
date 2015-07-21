@@ -43,6 +43,8 @@ namespace Grpc.Core.Internal
         const int NanosPerSecond = 1000 * 1000 * 1000;
         const int NanosPerTick = 100;
 
+        static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+
         [DllImport("grpc_csharp_ext.dll")]
         static extern Timespec gprsharp_now();
 
@@ -52,10 +54,18 @@ namespace Grpc.Core.Internal
         [DllImport("grpc_csharp_ext.dll")]
         static extern int gprsharp_sizeof_timespec();
 
+        public Timespec(IntPtr tv_sec, int tv_nsec)
+        {
+            this.tv_sec = tv_sec;
+            this.tv_nsec = tv_nsec;
+            this.clock_type = GPRClockType.Realtime;
+        }
+
         // NOTE: on linux 64bit  sizeof(gpr_timespec) = 16, on windows 32bit sizeof(gpr_timespec) = 8
         // so IntPtr seems to have the right size to work on both.
         public System.IntPtr tv_sec;
-        public System.IntPtr tv_nsec;
+        public int tv_nsec;
+        public GPRClockType clock_type;
 
         /// <summary>
         /// Timespec a long time in the future.
@@ -74,6 +84,11 @@ namespace Grpc.Core.Internal
             {
                 return gprsharp_now();
             }
+        }
+            
+        public DateTime ToDateTime()
+        {
+            return UnixEpoch.AddTicks(tv_sec.ToInt64() * (NanosPerSecond / NanosPerTick) + tv_nsec / NanosPerTick);
         }
 
         internal static int NativeSize
@@ -99,12 +114,13 @@ namespace Grpc.Core.Internal
 
         public Timespec Add(TimeSpan timeSpan)
         {
-            long nanos = tv_nsec.ToInt64() + (timeSpan.Ticks % TimeSpan.TicksPerSecond) * NanosPerTick;
+            long nanos = (long)tv_nsec + (timeSpan.Ticks % TimeSpan.TicksPerSecond) * NanosPerTick;
             long overflow_sec = (nanos > NanosPerSecond) ? 1 : 0;
 
             Timespec result;
-            result.tv_nsec = new IntPtr(nanos % NanosPerSecond);
+            result.tv_nsec = (int)(nanos % NanosPerSecond);
             result.tv_sec = new IntPtr(tv_sec.ToInt64() + (timeSpan.Ticks / TimeSpan.TicksPerSecond) + overflow_sec);
+            result.clock_type = GPRClockType.Realtime;
             return result;
         }
     }

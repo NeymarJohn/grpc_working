@@ -167,6 +167,17 @@ grpcsharp_metadata_array_add(grpc_metadata_array *array, const char *key,
   array->count++;
 }
 
+GPR_EXPORT gpr_intptr GPR_CALLTYPE
+grpcsharp_metadata_array_count(grpc_metadata_array *array) {
+  return (gpr_intptr) array->count;
+}
+
+GPR_EXPORT grpc_metadata GPR_CALLTYPE
+grpcsharp_metadata_array_get(grpc_metadata_array *array, size_t index) {
+  GPR_ASSERT(index < array->count);
+  return array->metadata[index];
+}
+
 /* Move contents of metadata array */
 void grpcsharp_metadata_array_move(grpc_metadata_array *dest,
                                    grpc_metadata_array *src) {
@@ -218,6 +229,12 @@ GPR_EXPORT void GPR_CALLTYPE grpcsharp_batch_context_destroy(grpcsharp_batch_con
   gpr_free(ctx);
 }
 
+GPR_EXPORT const grpc_metadata_array *GPR_CALLTYPE
+grpcsharp_batch_context_recv_initial_metadata(
+    const grpcsharp_batch_context *ctx) {
+  return &(ctx->recv_initial_metadata);
+}
+
 GPR_EXPORT gpr_intptr GPR_CALLTYPE grpcsharp_batch_context_recv_message_length(
     const grpcsharp_batch_context *ctx) {
   if (!ctx->recv_message) {
@@ -260,6 +277,12 @@ grpcsharp_batch_context_recv_status_on_client_details(
   return ctx->recv_status_on_client.status_details;
 }
 
+GPR_EXPORT const grpc_metadata_array *GPR_CALLTYPE
+grpcsharp_batch_context_recv_status_on_client_trailing_metadata(
+    const grpcsharp_batch_context *ctx) {
+  return &(ctx->recv_status_on_client.trailing_metadata);
+}
+
 GPR_EXPORT grpc_call *GPR_CALLTYPE grpcsharp_batch_context_server_rpc_new_call(
     const grpcsharp_batch_context *ctx) {
   return ctx->server_rpc_new.call;
@@ -269,6 +292,24 @@ GPR_EXPORT const char *GPR_CALLTYPE
 grpcsharp_batch_context_server_rpc_new_method(
     const grpcsharp_batch_context *ctx) {
   return ctx->server_rpc_new.call_details.method;
+}
+
+GPR_EXPORT const char *GPR_CALLTYPE
+grpcsharp_batch_context_server_rpc_new_host(
+    const grpcsharp_batch_context *ctx) {
+  return ctx->server_rpc_new.call_details.host;
+}
+
+GPR_EXPORT gpr_timespec GPR_CALLTYPE
+grpcsharp_batch_context_server_rpc_new_deadline(
+    const grpcsharp_batch_context *ctx) {
+  return ctx->server_rpc_new.call_details.deadline;
+}
+
+GPR_EXPORT const grpc_metadata_array *GPR_CALLTYPE
+grpcsharp_batch_context_server_rpc_new_request_metadata(
+    const grpcsharp_batch_context *ctx) {
+  return &(ctx->server_rpc_new.request_metadata);
 }
 
 GPR_EXPORT gpr_int32 GPR_CALLTYPE
@@ -302,12 +343,13 @@ grpcsharp_completion_queue_destroy(grpc_completion_queue *cq) {
 
 GPR_EXPORT grpc_event GPR_CALLTYPE
 grpcsharp_completion_queue_next(grpc_completion_queue *cq) {
-  return grpc_completion_queue_next(cq, gpr_inf_future);
+  return grpc_completion_queue_next(cq, gpr_inf_future(GPR_CLOCK_REALTIME));
 }
 
 GPR_EXPORT grpc_event GPR_CALLTYPE
 grpcsharp_completion_queue_pluck(grpc_completion_queue *cq, void *tag) {
-  return grpc_completion_queue_pluck(cq, tag, gpr_inf_future);
+  return grpc_completion_queue_pluck(cq, tag,
+                                     gpr_inf_future(GPR_CLOCK_REALTIME));
 }
 
 /* Channel */
@@ -382,7 +424,7 @@ grpcsharp_channel_args_destroy(grpc_channel_args *args) {
 GPR_EXPORT gpr_timespec GPR_CALLTYPE gprsharp_now(void) { return gpr_now(GPR_CLOCK_REALTIME); }
 
 GPR_EXPORT gpr_timespec GPR_CALLTYPE gprsharp_inf_future(void) {
-  return gpr_inf_future;
+  return gpr_inf_future(GPR_CLOCK_REALTIME);
 }
 
 GPR_EXPORT gpr_int32 GPR_CALLTYPE gprsharp_sizeof_timespec(void) {
@@ -588,15 +630,20 @@ GPR_EXPORT grpc_call_error GPR_CALLTYPE
 grpcsharp_call_send_status_from_server(grpc_call *call,
                                        grpcsharp_batch_context *ctx,
                                        grpc_status_code status_code,
-                                       const char *status_details) {
+                                       const char *status_details,
+                                       grpc_metadata_array *trailing_metadata) {
   /* TODO: don't use magic number */
   grpc_op ops[1];
   ops[0].op = GRPC_OP_SEND_STATUS_FROM_SERVER;
   ops[0].data.send_status_from_server.status = status_code;
   ops[0].data.send_status_from_server.status_details =
       gpr_strdup(status_details);
-  ops[0].data.send_status_from_server.trailing_metadata = NULL;
-  ops[0].data.send_status_from_server.trailing_metadata_count = 0;
+  grpcsharp_metadata_array_move(&(ctx->send_status_from_server.trailing_metadata),
+                                  trailing_metadata);
+  ops[0].data.send_status_from_server.trailing_metadata_count =
+      ctx->send_status_from_server.trailing_metadata.count;
+  ops[0].data.send_status_from_server.trailing_metadata =
+      ctx->send_status_from_server.trailing_metadata.metadata;
   ops[0].flags = 0;
 
   return grpc_call_start_batch(call, ops, sizeof(ops) / sizeof(ops[0]), ctx);
