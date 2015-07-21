@@ -37,6 +37,8 @@ var _ = require('lodash');
 var grpc = require('..');
 var examples = grpc.load(__dirname + '/stock.proto').examples;
 
+var StockServer = grpc.buildServer([examples.Stock.service]);
+
 function getLastTradePrice(call, callback) {
   callback(null, {symbol: call.request.symbol, price: 88});
 }
@@ -71,12 +73,13 @@ function getLastTradePriceMultiple(call) {
   });
 }
 
-var stockServer = new grpc.Server();
-stockServer.addProtoService(examples.Stock.service, {
-  getLastTradePrice: getLastTradePrice,
-  getLastTradePriceMultiple: getLastTradePriceMultiple,
-  watchFutureTrades: watchFutureTrades,
-  getHighestTradePrice: getHighestTradePrice
+var stockServer = new StockServer({
+  'examples.Stock' : {
+    getLastTradePrice: getLastTradePrice,
+    getLastTradePriceMultiple: getLastTradePriceMultiple,
+    watchFutureTrades: watchFutureTrades,
+    getHighestTradePrice: getHighestTradePrice
+  }
 });
 
 if (require.main === module) {

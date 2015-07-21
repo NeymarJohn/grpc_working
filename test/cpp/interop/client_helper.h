@@ -44,8 +44,6 @@ namespace testing {
 
 grpc::string GetServiceAccountJsonKey();
 
-grpc::string GetOauth2AccessToken();
-
 std::shared_ptr<ChannelInterface> CreateChannelForTestCase(
     const grpc::string& test_case);
 

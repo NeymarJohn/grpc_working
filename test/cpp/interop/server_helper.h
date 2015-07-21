@@ -36,6 +36,7 @@
 
 #include <memory>
 
+#include <grpc/compression.h>
 #include <grpc++/server_context.h>
 #include <grpc++/server_credentials.h>
 
@@ -48,9 +49,8 @@ class InteropContextInspector {
  public:
   InteropContextInspector(const ::grpc::ServerContext& context);
 
-  // Inspector methods, able to peek inside ServerContext, follow.
-  std::shared_ptr<const AuthContext> GetAuthContext() const;
-  bool IsCancelled() const;
+  // Inspector methods, able to peek inside ServerContext go here.
+  grpc_compression_algorithm GetCallCompressionAlgorithm() const;
 
  private:
   const ::grpc::ServerContext& context_;
