@@ -31,44 +31,13 @@
  *
  */
 
-#include <grpc++/channel_arguments.h>
+/* This is just a compilation test, to see if we have Zookeeper C client 
+   library installed. */
 
-#include "src/core/channel/channel_args.h"
+#include <stdlib.h>
+#include <zookeeper/zookeeper.h>
 
-namespace grpc {
-
-void ChannelArguments::SetCompressionAlgorithm(
-    grpc_compression_algorithm algorithm) {
-  SetInt(GRPC_COMPRESSION_ALGORITHM_ARG, algorithm);
+int main() {
+  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
+  return 0;
 }
-
-void ChannelArguments::SetInt(const grpc::string& key, int value) {
-  grpc_arg arg;
-  arg.type = GRPC_ARG_INTEGER;
-  strings_.push_back(key);
-  arg.key = const_cast<char*>(strings_.back().c_str());
-  arg.value.integer = value;
-
-  args_.push_back(arg);
-}
-
-void ChannelArguments::SetString(const grpc::string& key,
-                                 const grpc::string& value) {
-  grpc_arg arg;
-  arg.type = GRPC_ARG_STRING;
-  strings_.push_back(key);
-  arg.key = const_cast<char*>(strings_.back().c_str());
-  strings_.push_back(value);
-  arg.value.string = const_cast<char*>(strings_.back().c_str());
-
-  args_.push_back(arg);
-}
-
-void ChannelArguments::SetChannelArgs(grpc_channel_args* channel_args) const {
-  channel_args->num_args = args_.size();
-  if (channel_args->num_args > 0) {
-    channel_args->args = const_cast<grpc_arg*>(&args_[0]);
-  }
-}
-
-}  // namespace grpc

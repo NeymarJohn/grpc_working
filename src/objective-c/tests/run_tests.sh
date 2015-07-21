@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -27,36 +28,22 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# A work-in-progress Dockerfile that allows running gRPC homebrew
-# installations inside docker containers
-FROM debian:jessie
+set -e
 
-# Core dependencies
-RUN apt-get update && apt-get install -y \
-  bzip2 curl git ruby wget
+cd $(dirname $0)
 
-# Install linuxbrew
-ENV PATH /home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH
-RUN git clone https://github.com/Homebrew/linuxbrew.git /home/linuxbrew/.linuxbrew
-RUN brew doctor || true
+# TODO(jcanizales): Remove when Cocoapods issue #3823 is resolved.
+export COCOAPODS_DISABLE_DETERMINISTIC_UUIDS=YES
+pod install
 
-# Python dependency
-RUN apt-get update && apt-get install -y python-dev
-RUN curl https://bootstrap.pypa.io/get-pip.py | python
-
-# NodeJS dependency
-RUN touch .profile
-RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.25.4/install.sh | bash
-RUN /bin/bash -l -c "nvm install 0.12"
-
-# Ruby dependency
-RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
-RUN /bin/bash -l -c "\curl -sSL https://get.rvm.io | bash -s stable"
-RUN /bin/bash -l -c "rvm install ruby-2.1"
-
-# PHP dependency
-RUN apt-get update && apt-get install -y php5 php5-dev php-pear phpunit unzip
-
-RUN /bin/bash -l -c "echo 'export PATH=/home/linuxbrew/.linuxbrew/bin:\$PATH' >> ~/.bashrc"
-
-CMD ["bash"]
+# xcodebuild is very verbose. We filter its output and tell Bash to fail if any
+# element of the pipe fails.
+# TODO(jcanizales): Use xctool instead? Issue #2540.
+set -o pipefail
+XCODEBUILD_FILTER='(^===|^\*\*|\bfatal\b|\berror\b|\bwarning\b|\bfail)'
+xcodebuild \
+    -workspace Tests.xcworkspace \
+    -scheme AllTests \
+    -destination name="iPhone 6" \
+    test \
+    | egrep "$XCODEBUILD_FILTER" -
