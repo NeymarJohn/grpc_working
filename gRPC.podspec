@@ -351,7 +351,6 @@ Pod::Spec.new do |s|
                       'src/core/surface/call_details.c',
                       'src/core/surface/call_log_batch.c',
                       'src/core/surface/channel.c',
-                      'src/core/surface/channel_connectivity.c',
                       'src/core/surface/channel_create.c',
                       'src/core/surface/completion_queue.c',
                       'src/core/surface/event_string.c',
