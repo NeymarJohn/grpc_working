@@ -42,7 +42,7 @@ namespace Grpc.Core.Internal
 {
     internal interface IServerCallHandler
     {
-        Task HandleCall(ServerRpcNew newRpc, GrpcEnvironment environment);
+        Task HandleCall(string methodName, CallSafeHandle call, GrpcEnvironment environment);
     }
 
     internal class UnaryServerCallHandler<TRequest, TResponse> : IServerCallHandler
@@ -58,14 +58,14 @@ namespace Grpc.Core.Internal
             this.handler = handler;
         }
 
-        public async Task HandleCall(ServerRpcNew newRpc, GrpcEnvironment environment)
+        public async Task HandleCall(string methodName, CallSafeHandle call, GrpcEnvironment environment)
         {
             var asyncCall = new AsyncCallServer<TRequest, TResponse>(
                 method.ResponseMarshaller.Serializer,
                 method.RequestMarshaller.Deserializer,
                 environment);
 
-            asyncCall.Initialize(newRpc.Call);
+            asyncCall.Initialize(call);
             var finishedTask = asyncCall.ServerSideCallAsync();
             var requestStream = new ServerRequestStream<TRequest, TResponse>(asyncCall);
             var responseStream = new ServerResponseStream<TRequest, TResponse>(asyncCall);
@@ -111,14 +111,14 @@ namespace Grpc.Core.Internal
             this.handler = handler;
         }
 
-        public async Task HandleCall(ServerRpcNew newRpc, GrpcEnvironment environment)
+        public async Task HandleCall(string methodName, CallSafeHandle call, GrpcEnvironment environment)
         {
             var asyncCall = new AsyncCallServer<TRequest, TResponse>(
                 method.ResponseMarshaller.Serializer,
                 method.RequestMarshaller.Deserializer,
                 environment);
 
-            asyncCall.Initialize(newRpc.Call);
+            asyncCall.Initialize(call);
             var finishedTask = asyncCall.ServerSideCallAsync();
             var requestStream = new ServerRequestStream<TRequest, TResponse>(asyncCall);
             var responseStream = new ServerResponseStream<TRequest, TResponse>(asyncCall);
@@ -165,14 +165,14 @@ namespace Grpc.Core.Internal
             this.handler = handler;
         }
 
-        public async Task HandleCall(ServerRpcNew newRpc, GrpcEnvironment environment)
+        public async Task HandleCall(string methodName, CallSafeHandle call, GrpcEnvironment environment)
         {
             var asyncCall = new AsyncCallServer<TRequest, TResponse>(
                 method.ResponseMarshaller.Serializer,
                 method.RequestMarshaller.Deserializer,
                 environment);
 
-            asyncCall.Initialize(newRpc.Call);
+            asyncCall.Initialize(call);
             var finishedTask = asyncCall.ServerSideCallAsync();
             var requestStream = new ServerRequestStream<TRequest, TResponse>(asyncCall);
             var responseStream = new ServerResponseStream<TRequest, TResponse>(asyncCall);
@@ -222,14 +222,14 @@ namespace Grpc.Core.Internal
             this.handler = handler;
         }
 
-        public async Task HandleCall(ServerRpcNew newRpc, GrpcEnvironment environment)
+        public async Task HandleCall(string methodName, CallSafeHandle call, GrpcEnvironment environment)
         {
             var asyncCall = new AsyncCallServer<TRequest, TResponse>(
                 method.ResponseMarshaller.Serializer,
                 method.RequestMarshaller.Deserializer,
                 environment);
 
-            asyncCall.Initialize(newRpc.Call);
+            asyncCall.Initialize(call);
             var finishedTask = asyncCall.ServerSideCallAsync();
             var requestStream = new ServerRequestStream<TRequest, TResponse>(asyncCall);
             var responseStream = new ServerResponseStream<TRequest, TResponse>(asyncCall);
@@ -259,15 +259,13 @@ namespace Grpc.Core.Internal
 
     internal class NoSuchMethodCallHandler : IServerCallHandler
     {
-        public static readonly NoSuchMethodCallHandler Instance = new NoSuchMethodCallHandler();
-
-        public async Task HandleCall(ServerRpcNew newRpc, GrpcEnvironment environment)
+        public async Task HandleCall(string methodName, CallSafeHandle call, GrpcEnvironment environment)
         {
             // We don't care about the payload type here.
             var asyncCall = new AsyncCallServer<byte[], byte[]>(
                 (payload) => payload, (payload) => payload, environment);
             
-            asyncCall.Initialize(newRpc.Call);
+            asyncCall.Initialize(call);
             var finishedTask = asyncCall.ServerSideCallAsync();
             var requestStream = new ServerRequestStream<byte[], byte[]>(asyncCall);
             var responseStream = new ServerResponseStream<byte[], byte[]>(asyncCall);

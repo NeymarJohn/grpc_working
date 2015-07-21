@@ -302,9 +302,7 @@ namespace Grpc.Core.Internal
                 return;
             }
 
-            var fullStatus = ctx.GetReceivedStatusOnClient();
-            var status = fullStatus.Status;
-
+            var status = ctx.GetReceivedStatus();
             if (status.StatusCode != StatusCode.OK)
             {
                 unaryResponseTcs.SetException(new RpcException(status));
@@ -323,8 +321,7 @@ namespace Grpc.Core.Internal
         /// </summary>
         private void HandleFinished(bool success, BatchContextSafeHandle ctx)
         {
-            var fullStatus = ctx.GetReceivedStatusOnClient();
-            var status = fullStatus.Status;
+            var status = ctx.GetReceivedStatus();
 
             AsyncCompletionDelegate<TResponse> origReadCompletionDelegate = null;
             lock (myLock)
