@@ -25,13 +25,13 @@ namespace Grpc.Health.V1Alpha {
     public interface IHealthClient
     {
       global::Grpc.Health.V1Alpha.HealthCheckResponse Check(global::Grpc.Health.V1Alpha.HealthCheckRequest request, Metadata headers = null, CancellationToken cancellationToken = default(CancellationToken));
-      AsyncUnaryCall<global::Grpc.Health.V1Alpha.HealthCheckResponse> CheckAsync(global::Grpc.Health.V1Alpha.HealthCheckRequest request, Metadata headers = null, CancellationToken cancellationToken = default(CancellationToken));
+      Task<global::Grpc.Health.V1Alpha.HealthCheckResponse> CheckAsync(global::Grpc.Health.V1Alpha.HealthCheckRequest request, Metadata headers = null, CancellationToken cancellationToken = default(CancellationToken));
     }
 
     // server-side interface
     public interface IHealth
     {
-      Task<global::Grpc.Health.V1Alpha.HealthCheckResponse> Check(global::Grpc.Health.V1Alpha.HealthCheckRequest request, ServerCallContext context);
+      Task<global::Grpc.Health.V1Alpha.HealthCheckResponse> Check(ServerCallContext context, global::Grpc.Health.V1Alpha.HealthCheckRequest request);
     }
 
     // client stub
@@ -45,7 +45,7 @@ namespace Grpc.Health.V1Alpha {
         var call = CreateCall(__ServiceName, __Method_Check, headers);
         return Calls.BlockingUnaryCall(call, request, cancellationToken);
       }
-      public AsyncUnaryCall<global::Grpc.Health.V1Alpha.HealthCheckResponse> CheckAsync(global::Grpc.Health.V1Alpha.HealthCheckRequest request, Metadata headers = null, CancellationToken cancellationToken = default(CancellationToken))
+      public Task<global::Grpc.Health.V1Alpha.HealthCheckResponse> CheckAsync(global::Grpc.Health.V1Alpha.HealthCheckRequest request, Metadata headers = null, CancellationToken cancellationToken = default(CancellationToken))
       {
         var call = CreateCall(__ServiceName, __Method_Check, headers);
         return Calls.AsyncUnaryCall(call, request, cancellationToken);
