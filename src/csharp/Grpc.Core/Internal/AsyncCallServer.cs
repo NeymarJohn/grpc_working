@@ -48,17 +48,14 @@ namespace Grpc.Core.Internal
     internal class AsyncCallServer<TRequest, TResponse> : AsyncCallBase<TResponse, TRequest>
     {
         readonly TaskCompletionSource<object> finishedServersideTcs = new TaskCompletionSource<object>();
-        readonly GrpcEnvironment environment;
 
-        public AsyncCallServer(Func<TResponse, byte[]> serializer, Func<byte[], TRequest> deserializer, GrpcEnvironment environment) : base(serializer, deserializer)
+        public AsyncCallServer(Func<TResponse, byte[]> serializer, Func<byte[], TRequest> deserializer) : base(serializer, deserializer)
         {
-            this.environment = Preconditions.CheckNotNull(environment);
         }
 
         public void Initialize(CallSafeHandle call)
         {
-            call.SetCompletionRegistry(environment.CompletionRegistry);
-            environment.DebugStats.ActiveServerCalls.Increment();
+            DebugStats.ActiveServerCalls.Increment();
             InitializeInternal(call);
         }
 
@@ -101,26 +98,22 @@ namespace Grpc.Core.Internal
         /// Only one pending send action is allowed at any given time.
         /// completionDelegate is called when the operation finishes.
         /// </summary>
-        public void StartSendStatusFromServer(Status status, Metadata trailers, AsyncCompletionDelegate<object> completionDelegate)
+        public void StartSendStatusFromServer(Status status, AsyncCompletionDelegate<object> completionDelegate)
         {
             lock (myLock)
             {
                 Preconditions.CheckNotNull(completionDelegate, "Completion delegate cannot be null");
                 CheckSendingAllowed();
 
-                using (var metadataArray = MetadataArraySafeHandle.Create(trailers))
-                {
-                    call.StartSendStatusFromServer(status, HandleHalfclosed, metadataArray);
-                }
+                call.StartSendStatusFromServer(status, HandleHalfclosed);
                 halfcloseRequested = true;
-                readingDone = true;
                 sendCompletionDelegate = completionDelegate;
             }
         }
 
         protected override void OnReleaseResources()
         {
-            environment.DebugStats.ActiveServerCalls.Decrement();
+            DebugStats.ActiveServerCalls.Decrement();
         }
 
         /// <summary>

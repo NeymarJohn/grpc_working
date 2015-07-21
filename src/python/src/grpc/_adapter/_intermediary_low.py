@@ -144,11 +144,10 @@ class Call(object):
     self._metadata.append((key, value))
 
   def premetadata(self):
-    result = self._internal.start_batch([
+    return self._internal.start_batch([
           _types.OpArgs.send_initial_metadata(self._metadata)
       ], _IGNORE_ME_TAG)
     self._metadata = []
-    return result
 
   def read(self, tag):
     return self._internal.start_batch([

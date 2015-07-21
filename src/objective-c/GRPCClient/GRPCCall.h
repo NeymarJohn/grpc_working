@@ -46,13 +46,15 @@
 // transparently on the same TCP connection.
 
 #import <Foundation/Foundation.h>
-#import <RxLibrary/GRXWriter.h>
+#import <gRPC/GRXWriter.h>
+
+@class GRPCMethodName;
 
 // Key used in |NSError|'s |userInfo| dictionary to store the response metadata sent by the server.
 extern id const kGRPCStatusMetadataKey;
 
 // Represents a single gRPC remote call.
-@interface GRPCCall : GRXWriter
+@interface GRPCCall : NSObject<GRXWriter>
 
 // These HTTP headers will be passed to the server as part of this call. Each HTTP header is a
 // name-value pair with string names and either string or binary values.
@@ -88,8 +90,8 @@ extern id const kGRPCStatusMetadataKey;
 // the specific remote method called).
 // To finish a call right away, invoke cancel.
 - (instancetype)initWithHost:(NSString *)host
-                        path:(NSString *)path
-              requestsWriter:(GRXWriter *)requestsWriter NS_DESIGNATED_INITIALIZER;
+                      method:(GRPCMethodName *)method
+              requestsWriter:(id<GRXWriter>)requestsWriter NS_DESIGNATED_INITIALIZER;
 
 // Finishes the request side of this call, notifies the server that the RPC
 // should be cancelled, and finishes the response side of the call with an error

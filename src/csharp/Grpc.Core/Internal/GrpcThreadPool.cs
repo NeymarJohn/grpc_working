@@ -45,16 +45,14 @@ namespace Grpc.Core.Internal
     /// </summary>
     internal class GrpcThreadPool
     {
-        readonly GrpcEnvironment environment;
         readonly object myLock = new object();
         readonly List<Thread> threads = new List<Thread>();
         readonly int poolSize;
 
         CompletionQueueSafeHandle cq;
 
-        public GrpcThreadPool(GrpcEnvironment environment, int poolSize)
+        public GrpcThreadPool(int poolSize)
         {
-            this.environment = environment;
             this.poolSize = poolSize;
         }
 
@@ -82,7 +80,7 @@ namespace Grpc.Core.Internal
             {
                 cq.Shutdown();
 
-                Console.WriteLine("Waiting for GRPC threads to finish.");
+                Console.WriteLine("Waiting for GPRC threads to finish.");
                 foreach (var thread in threads)
                 {
                     thread.Join();
@@ -124,7 +122,7 @@ namespace Grpc.Core.Internal
                     IntPtr tag = ev.tag;
                     try
                     {
-                        var callback = environment.CompletionRegistry.Extract(tag);
+                        var callback = GrpcEnvironment.CompletionRegistry.Extract(tag);
                         callback(success);
                     }
                     catch (Exception e)

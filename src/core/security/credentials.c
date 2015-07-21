@@ -41,6 +41,7 @@
 #include "src/core/json/json.h"
 #include "src/core/httpcli/httpcli.h"
 #include "src/core/iomgr/iomgr.h"
+#include "src/core/security/json_token.h"
 #include "src/core/support/string.h"
 
 #include <grpc/support/alloc.h>
@@ -51,12 +52,12 @@
 
 /* -- Common. -- */
 
-struct grpc_credentials_metadata_request {
+typedef struct {
   grpc_credentials *creds;
   grpc_credentials_metadata_cb cb;
   grpc_iomgr_closure *on_simulated_token_fetch_done_closure;
   void *user_data;
-};
+} grpc_credentials_metadata_request;
 
 static grpc_credentials_metadata_request *
 grpc_credentials_metadata_request_create(grpc_credentials *creds,
@@ -105,7 +106,6 @@ int grpc_credentials_has_request_metadata_only(grpc_credentials *creds) {
 }
 
 void grpc_credentials_get_request_metadata(grpc_credentials *creds,
-                                           grpc_pollset *pollset,
                                            const char *service_url,
                                            grpc_credentials_metadata_cb cb,
                                            void *user_data) {
@@ -116,8 +116,7 @@ void grpc_credentials_get_request_metadata(grpc_credentials *creds,
     }
     return;
   }
-  creds->vtable->get_request_metadata(creds, pollset, service_url, cb,
-                                      user_data);
+  creds->vtable->get_request_metadata(creds, service_url, cb, user_data);
 }
 
 grpc_security_status grpc_credentials_create_security_connector(
@@ -151,6 +150,16 @@ grpc_security_status grpc_server_credentials_create_security_connector(
 
 /* -- Ssl credentials. -- */
 
+typedef struct {
+  grpc_credentials base;
+  grpc_ssl_config config;
+} grpc_ssl_credentials;
+
+typedef struct {
+  grpc_server_credentials base;
+  grpc_ssl_server_config config;
+} grpc_ssl_server_credentials;
+
 static void ssl_destroy(grpc_credentials *creds) {
   grpc_ssl_credentials *c = (grpc_ssl_credentials *)creds;
   if (c->config.pem_root_certs != NULL) gpr_free(c->config.pem_root_certs);
@@ -182,7 +191,9 @@ static void ssl_server_destroy(grpc_server_credentials *creds) {
   gpr_free(creds);
 }
 
-static int ssl_has_request_metadata(const grpc_credentials *creds) { return 0; }
+static int ssl_has_request_metadata(const grpc_credentials *creds) {
+  return 0;
+}
 
 static int ssl_has_request_metadata_only(const grpc_credentials *creds) {
   return 0;
@@ -214,7 +225,7 @@ static grpc_security_status ssl_create_security_connector(
   arg.type = GRPC_ARG_STRING;
   arg.key = GRPC_ARG_HTTP2_SCHEME;
   arg.value.string = "https";
-  *new_args = grpc_channel_args_copy_and_add(args, &arg, 1);
+  *new_args = grpc_channel_args_copy_and_add(args, &arg);
   return status;
 }
 
@@ -315,6 +326,22 @@ grpc_server_credentials *grpc_ssl_server_credentials_create(
 
 /* -- Jwt credentials -- */
 
+typedef struct {
+  grpc_credentials base;
+
+  /* Have a simple cache for now with just 1 entry. We could have a map based on
+     the service_url for a more sophisticated one. */
+  gpr_mu cache_mu;
+  struct {
+    grpc_credentials_md_store *jwt_md;
+    char *service_url;
+    gpr_timespec jwt_expiration;
+  } cached;
+
+  grpc_auth_json_key key;
+  gpr_timespec jwt_lifetime;
+} grpc_jwt_credentials;
+
 static void jwt_reset_cache(grpc_jwt_credentials *c) {
   if (c->cached.jwt_md != NULL) {
     grpc_credentials_md_store_unref(c->cached.jwt_md);
@@ -324,7 +351,7 @@ static void jwt_reset_cache(grpc_jwt_credentials *c) {
     gpr_free(c->cached.service_url);
     c->cached.service_url = NULL;
   }
-  c->cached.jwt_expiration = gpr_inf_past(GPR_CLOCK_REALTIME);
+  c->cached.jwt_expiration = gpr_inf_past;
 }
 
 static void jwt_destroy(grpc_credentials *creds) {
@@ -341,14 +368,14 @@ static int jwt_has_request_metadata_only(const grpc_credentials *creds) {
   return 1;
 }
 
+
 static void jwt_get_request_metadata(grpc_credentials *creds,
-                                     grpc_pollset *pollset,
                                      const char *service_url,
                                      grpc_credentials_metadata_cb cb,
                                      void *user_data) {
   grpc_jwt_credentials *c = (grpc_jwt_credentials *)creds;
-  gpr_timespec refresh_threshold = gpr_time_from_seconds(
-      GRPC_SECURE_TOKEN_REFRESH_THRESHOLD_SECS, GPR_TIMESPAN);
+  gpr_timespec refresh_threshold = {GRPC_SECURE_TOKEN_REFRESH_THRESHOLD_SECS,
+                                    0};
 
   /* See if we can return a cached jwt. */
   grpc_credentials_md_store *jwt_md = NULL;
@@ -357,8 +384,7 @@ static void jwt_get_request_metadata(grpc_credentials *creds,
     if (c->cached.service_url != NULL &&
         strcmp(c->cached.service_url, service_url) == 0 &&
         c->cached.jwt_md != NULL &&
-        (gpr_time_cmp(gpr_time_sub(c->cached.jwt_expiration,
-                                   gpr_now(GPR_CLOCK_REALTIME)),
+        (gpr_time_cmp(gpr_time_sub(c->cached.jwt_expiration, gpr_now()),
                       refresh_threshold) > 0)) {
       jwt_md = grpc_credentials_md_store_ref(c->cached.jwt_md);
     }
@@ -375,8 +401,7 @@ static void jwt_get_request_metadata(grpc_credentials *creds,
       char *md_value;
       gpr_asprintf(&md_value, "Bearer %s", jwt);
       gpr_free(jwt);
-      c->cached.jwt_expiration =
-          gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), c->jwt_lifetime);
+      c->cached.jwt_expiration = gpr_time_add(gpr_now(), c->jwt_lifetime);
       c->cached.service_url = gpr_strdup(service_url);
       c->cached.jwt_md = grpc_credentials_md_store_create(1);
       grpc_credentials_md_store_add_cstrings(
@@ -399,9 +424,10 @@ static grpc_credentials_vtable jwt_vtable = {
     jwt_destroy, jwt_has_request_metadata, jwt_has_request_metadata_only,
     jwt_get_request_metadata, NULL};
 
-grpc_credentials *grpc_jwt_credentials_create_from_auth_json_key(
-    grpc_auth_json_key key, gpr_timespec token_lifetime) {
+grpc_credentials *grpc_jwt_credentials_create(const char *json_key,
+                                              gpr_timespec token_lifetime) {
   grpc_jwt_credentials *c;
+  grpc_auth_json_key key = grpc_auth_json_key_create_from_string(json_key);
   if (!grpc_auth_json_key_is_valid(&key)) {
     gpr_log(GPR_ERROR, "Invalid input for jwt credentials creation");
     return NULL;
@@ -418,20 +444,28 @@ grpc_credentials *grpc_jwt_credentials_create_from_auth_json_key(
   return &c->base;
 }
 
-grpc_credentials *grpc_jwt_credentials_create(const char *json_key,
-                                              gpr_timespec token_lifetime) {
-  return grpc_jwt_credentials_create_from_auth_json_key(
-      grpc_auth_json_key_create_from_string(json_key), token_lifetime);
-}
-
 /* -- Oauth2TokenFetcher credentials -- */
+
+/* This object is a base for credentials that need to acquire an oauth2 token
+   from an http service. */
+
+typedef void (*grpc_fetch_oauth2_func)(grpc_credentials_metadata_request *req,
+                                       grpc_httpcli_response_cb response_cb,
+                                       gpr_timespec deadline);
+
+typedef struct {
+  grpc_credentials base;
+  gpr_mu mu;
+  grpc_credentials_md_store *access_token_md;
+  gpr_timespec token_expiration;
+  grpc_fetch_oauth2_func fetch_func;
+} grpc_oauth2_token_fetcher_credentials;
 
 static void oauth2_token_fetcher_destroy(grpc_credentials *creds) {
   grpc_oauth2_token_fetcher_credentials *c =
       (grpc_oauth2_token_fetcher_credentials *)creds;
   grpc_credentials_md_store_unref(c->access_token_md);
   gpr_mu_destroy(&c->mu);
-  grpc_httpcli_context_destroy(&c->httpcli_context);
   gpr_free(c);
 }
 
@@ -447,8 +481,8 @@ static int oauth2_token_fetcher_has_request_metadata_only(
 
 grpc_credentials_status
 grpc_oauth2_token_fetcher_credentials_parse_server_response(
-    const grpc_httpcli_response *response, grpc_credentials_md_store **token_md,
-    gpr_timespec *token_lifetime) {
+    const grpc_httpcli_response *response,
+    grpc_credentials_md_store **token_md, gpr_timespec *token_lifetime) {
   char *null_terminated_body = NULL;
   char *new_access_token = NULL;
   grpc_credentials_status status = GRPC_CREDENTIALS_OK;
@@ -516,7 +550,6 @@ grpc_oauth2_token_fetcher_credentials_parse_server_response(
                  access_token->value);
     token_lifetime->tv_sec = strtol(expires_in->value, NULL, 10);
     token_lifetime->tv_nsec = 0;
-    token_lifetime->clock_type = GPR_TIMESPAN;
     if (*token_md != NULL) grpc_credentials_md_store_unref(*token_md);
     *token_md = grpc_credentials_md_store_create(1);
     grpc_credentials_md_store_add_cstrings(
@@ -548,12 +581,11 @@ static void on_oauth2_token_fetcher_http_response(
   status = grpc_oauth2_token_fetcher_credentials_parse_server_response(
       response, &c->access_token_md, &token_lifetime);
   if (status == GRPC_CREDENTIALS_OK) {
-    c->token_expiration =
-        gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), token_lifetime);
+    c->token_expiration = gpr_time_add(gpr_now(), token_lifetime);
     r->cb(r->user_data, c->access_token_md->entries,
           c->access_token_md->num_entries, status);
   } else {
-    c->token_expiration = gpr_inf_past(GPR_CLOCK_REALTIME);
+    c->token_expiration = gpr_inf_past;
     r->cb(r->user_data, NULL, 0, status);
   }
   gpr_mu_unlock(&c->mu);
@@ -561,21 +593,19 @@ static void on_oauth2_token_fetcher_http_response(
 }
 
 static void oauth2_token_fetcher_get_request_metadata(
-    grpc_credentials *creds, grpc_pollset *pollset, const char *service_url,
+    grpc_credentials *creds, const char *service_url,
     grpc_credentials_metadata_cb cb, void *user_data) {
   grpc_oauth2_token_fetcher_credentials *c =
       (grpc_oauth2_token_fetcher_credentials *)creds;
-  gpr_timespec refresh_threshold = gpr_time_from_seconds(
-      GRPC_SECURE_TOKEN_REFRESH_THRESHOLD_SECS, GPR_TIMESPAN);
+  gpr_timespec refresh_threshold = {GRPC_SECURE_TOKEN_REFRESH_THRESHOLD_SECS,
+                                    0};
   grpc_credentials_md_store *cached_access_token_md = NULL;
   {
     gpr_mu_lock(&c->mu);
     if (c->access_token_md != NULL &&
-        (gpr_time_cmp(
-             gpr_time_sub(c->token_expiration, gpr_now(GPR_CLOCK_REALTIME)),
-             refresh_threshold) > 0)) {
-      cached_access_token_md =
-          grpc_credentials_md_store_ref(c->access_token_md);
+        (gpr_time_cmp(gpr_time_sub(c->token_expiration, gpr_now()),
+                      refresh_threshold) > 0)) {
+      cached_access_token_md = grpc_credentials_md_store_ref(c->access_token_md);
     }
     gpr_mu_unlock(&c->mu);
   }
@@ -586,8 +616,8 @@ static void oauth2_token_fetcher_get_request_metadata(
   } else {
     c->fetch_func(
         grpc_credentials_metadata_request_create(creds, cb, user_data),
-        &c->httpcli_context, pollset, on_oauth2_token_fetcher_http_response,
-        gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), refresh_threshold));
+        on_oauth2_token_fetcher_http_response,
+        gpr_time_add(gpr_now(), refresh_threshold));
   }
 }
 
@@ -597,9 +627,8 @@ static void init_oauth2_token_fetcher(grpc_oauth2_token_fetcher_credentials *c,
   c->base.type = GRPC_CREDENTIALS_TYPE_OAUTH2;
   gpr_ref_init(&c->base.refcount, 1);
   gpr_mu_init(&c->mu);
-  c->token_expiration = gpr_inf_past(GPR_CLOCK_REALTIME);
+  c->token_expiration = gpr_inf_past;
   c->fetch_func = fetch_func;
-  grpc_httpcli_context_init(&c->httpcli_context);
 }
 
 /* -- ComputeEngine credentials. -- */
@@ -611,7 +640,6 @@ static grpc_credentials_vtable compute_engine_vtable = {
 
 static void compute_engine_fetch_oauth2(
     grpc_credentials_metadata_request *metadata_req,
-    grpc_httpcli_context *httpcli_context, grpc_pollset *pollset,
     grpc_httpcli_response_cb response_cb, gpr_timespec deadline) {
   grpc_httpcli_header header = {"Metadata-Flavor", "Google"};
   grpc_httpcli_request request;
@@ -620,8 +648,7 @@ static void compute_engine_fetch_oauth2(
   request.path = GRPC_COMPUTE_ENGINE_METADATA_TOKEN_PATH;
   request.hdr_count = 1;
   request.hdrs = &header;
-  grpc_httpcli_get(httpcli_context, pollset, &request, deadline, response_cb,
-                   metadata_req);
+  grpc_httpcli_get(&request, deadline, response_cb, metadata_req);
 }
 
 grpc_credentials *grpc_compute_engine_credentials_create(void) {
@@ -633,6 +660,13 @@ grpc_credentials *grpc_compute_engine_credentials_create(void) {
 }
 
 /* -- ServiceAccount credentials. -- */
+
+typedef struct {
+  grpc_oauth2_token_fetcher_credentials base;
+  grpc_auth_json_key key;
+  char *scope;
+  gpr_timespec token_lifetime;
+} grpc_service_account_credentials;
 
 static void service_account_destroy(grpc_credentials *creds) {
   grpc_service_account_credentials *c =
@@ -649,7 +683,6 @@ static grpc_credentials_vtable service_account_vtable = {
 
 static void service_account_fetch_oauth2(
     grpc_credentials_metadata_request *metadata_req,
-    grpc_httpcli_context *httpcli_context, grpc_pollset *pollset,
     grpc_httpcli_response_cb response_cb, gpr_timespec deadline) {
   grpc_service_account_credentials *c =
       (grpc_service_account_credentials *)metadata_req->creds;
@@ -675,8 +708,8 @@ static void service_account_fetch_oauth2(
   request.hdr_count = 1;
   request.hdrs = &header;
   request.use_ssl = 1;
-  grpc_httpcli_post(httpcli_context, pollset, &request, body, strlen(body),
-                    deadline, response_cb, metadata_req);
+  grpc_httpcli_post(&request, body, strlen(body), deadline, response_cb,
+                    metadata_req);
   gpr_free(body);
   gpr_free(jwt);
 }
@@ -704,8 +737,14 @@ grpc_credentials *grpc_service_account_credentials_create(
 
 /* -- RefreshToken credentials. -- */
 
+typedef struct {
+  grpc_oauth2_token_fetcher_credentials base;
+  grpc_auth_refresh_token refresh_token;
+} grpc_refresh_token_credentials;
+
 static void refresh_token_destroy(grpc_credentials *creds) {
-  grpc_refresh_token_credentials *c = (grpc_refresh_token_credentials *)creds;
+  grpc_refresh_token_credentials *c =
+      (grpc_refresh_token_credentials *)creds;
   grpc_auth_refresh_token_destruct(&c->refresh_token);
   oauth2_token_fetcher_destroy(&c->base.base);
 }
@@ -717,7 +756,6 @@ static grpc_credentials_vtable refresh_token_vtable = {
 
 static void refresh_token_fetch_oauth2(
     grpc_credentials_metadata_request *metadata_req,
-    grpc_httpcli_context *httpcli_context, grpc_pollset *pollset,
     grpc_httpcli_response_cb response_cb, gpr_timespec deadline) {
   grpc_refresh_token_credentials *c =
       (grpc_refresh_token_credentials *)metadata_req->creds;
@@ -734,16 +772,20 @@ static void refresh_token_fetch_oauth2(
   request.hdr_count = 1;
   request.hdrs = &header;
   request.use_ssl = 1;
-  grpc_httpcli_post(httpcli_context, pollset, &request, body, strlen(body),
-                    deadline, response_cb, metadata_req);
+  grpc_httpcli_post(&request, body, strlen(body), deadline, response_cb,
+                    metadata_req);
   gpr_free(body);
 }
 
-grpc_credentials *grpc_refresh_token_credentials_create_from_auth_refresh_token(
-    grpc_auth_refresh_token refresh_token) {
+grpc_credentials *grpc_refresh_token_credentials_create(
+    const char *json_refresh_token) {
   grpc_refresh_token_credentials *c;
+  grpc_auth_refresh_token refresh_token =
+      grpc_auth_refresh_token_create_from_string(json_refresh_token);
+
   if (!grpc_auth_refresh_token_is_valid(&refresh_token)) {
-    gpr_log(GPR_ERROR, "Invalid input for refresh token credentials creation");
+    gpr_log(GPR_ERROR,
+            "Invalid input for refresh token credentials creation");
     return NULL;
   }
   c = gpr_malloc(sizeof(grpc_refresh_token_credentials));
@@ -754,13 +796,13 @@ grpc_credentials *grpc_refresh_token_credentials_create_from_auth_refresh_token(
   return &c->base.base;
 }
 
-grpc_credentials *grpc_refresh_token_credentials_create(
-    const char *json_refresh_token) {
-  return grpc_refresh_token_credentials_create_from_auth_refresh_token(
-      grpc_auth_refresh_token_create_from_string(json_refresh_token));
-}
-
 /* -- Fake Oauth2 credentials. -- */
+
+typedef struct {
+  grpc_credentials base;
+  grpc_credentials_md_store *access_token_md;
+  int is_async;
+} grpc_fake_oauth2_credentials;
 
 static void fake_oauth2_destroy(grpc_credentials *creds) {
   grpc_fake_oauth2_credentials *c = (grpc_fake_oauth2_credentials *)creds;
@@ -788,7 +830,6 @@ void on_simulated_token_fetch_done(void *user_data, int success) {
 }
 
 static void fake_oauth2_get_request_metadata(grpc_credentials *creds,
-                                             grpc_pollset *pollset,
                                              const char *service_url,
                                              grpc_credentials_metadata_cb cb,
                                              void *user_data) {
@@ -825,54 +866,6 @@ grpc_credentials *grpc_fake_oauth2_credentials_create(
   return &c->base;
 }
 
-/* -- Oauth2 Access Token credentials. -- */
-
-static void access_token_destroy(grpc_credentials *creds) {
-  grpc_access_token_credentials *c = (grpc_access_token_credentials *)creds;
-  grpc_credentials_md_store_unref(c->access_token_md);
-  gpr_free(c);
-}
-
-static int access_token_has_request_metadata(const grpc_credentials *creds) {
-  return 1;
-}
-
-static int access_token_has_request_metadata_only(
-    const grpc_credentials *creds) {
-  return 1;
-}
-
-static void access_token_get_request_metadata(grpc_credentials *creds,
-                                             grpc_pollset *pollset,
-                                             const char *service_url,
-                                             grpc_credentials_metadata_cb cb,
-                                             void *user_data) {
-  grpc_access_token_credentials *c = (grpc_access_token_credentials *)creds;
-  cb(user_data, c->access_token_md->entries, 1, GRPC_CREDENTIALS_OK);
-}
-
-static grpc_credentials_vtable access_token_vtable = {
-    access_token_destroy, access_token_has_request_metadata,
-    access_token_has_request_metadata_only, access_token_get_request_metadata,
-    NULL};
-
-grpc_credentials *grpc_access_token_credentials_create(
-    const char *access_token) {
-  grpc_access_token_credentials *c =
-      gpr_malloc(sizeof(grpc_access_token_credentials));
-  char *token_md_value;
-  memset(c, 0, sizeof(grpc_access_token_credentials));
-  c->base.type = GRPC_CREDENTIALS_TYPE_OAUTH2;
-  c->base.vtable = &access_token_vtable;
-  gpr_ref_init(&c->base.refcount, 1);
-  c->access_token_md = grpc_credentials_md_store_create(1);
-  gpr_asprintf(&token_md_value, "Bearer %s", access_token);
-  grpc_credentials_md_store_add_cstrings(
-      c->access_token_md, GRPC_AUTHORIZATION_METADATA_KEY, token_md_value);
-  gpr_free(token_md_value);
-  return &c->base;
-}
-
 /* -- Fake transport security credentials. -- */
 
 static void fake_transport_security_credentials_destroy(
@@ -895,7 +888,8 @@ static int fake_transport_security_has_request_metadata_only(
   return 0;
 }
 
-static grpc_security_status fake_transport_security_create_security_connector(
+static grpc_security_status
+fake_transport_security_create_security_connector(
     grpc_credentials *c, const char *target, const grpc_channel_args *args,
     grpc_credentials *request_metadata_creds,
     grpc_channel_security_connector **sc, grpc_channel_args **new_args) {
@@ -942,12 +936,17 @@ grpc_server_credentials *grpc_fake_transport_security_server_credentials_create(
 /* -- Composite credentials. -- */
 
 typedef struct {
+  grpc_credentials base;
+  grpc_credentials_array inner;
+  grpc_credentials *connector_creds;
+} grpc_composite_credentials;
+
+typedef struct {
   grpc_composite_credentials *composite_creds;
   size_t creds_index;
   grpc_credentials_md_store *md_elems;
   char *service_url;
   void *user_data;
-  grpc_pollset *pollset;
   grpc_credentials_metadata_cb cb;
 } grpc_composite_credentials_metadata_context;
 
@@ -1016,8 +1015,7 @@ static void composite_metadata_cb(void *user_data,
     grpc_credentials *inner_creds =
         ctx->composite_creds->inner.creds_array[ctx->creds_index++];
     if (grpc_credentials_has_request_metadata(inner_creds)) {
-      grpc_credentials_get_request_metadata(inner_creds, ctx->pollset,
-                                            ctx->service_url,
+      grpc_credentials_get_request_metadata(inner_creds, ctx->service_url,
                                             composite_metadata_cb, ctx);
       return;
     }
@@ -1030,7 +1028,6 @@ static void composite_metadata_cb(void *user_data,
 }
 
 static void composite_get_request_metadata(grpc_credentials *creds,
-                                           grpc_pollset *pollset,
                                            const char *service_url,
                                            grpc_credentials_metadata_cb cb,
                                            void *user_data) {
@@ -1046,12 +1043,11 @@ static void composite_get_request_metadata(grpc_credentials *creds,
   ctx->user_data = user_data;
   ctx->cb = cb;
   ctx->composite_creds = c;
-  ctx->pollset = pollset;
   ctx->md_elems = grpc_credentials_md_store_create(c->inner.num_creds);
   while (ctx->creds_index < c->inner.num_creds) {
     grpc_credentials *inner_creds = c->inner.creds_array[ctx->creds_index++];
     if (grpc_credentials_has_request_metadata(inner_creds)) {
-      grpc_credentials_get_request_metadata(inner_creds, pollset, service_url,
+      grpc_credentials_get_request_metadata(inner_creds, service_url,
                                             composite_metadata_cb, ctx);
       return;
     }
@@ -1171,20 +1167,26 @@ grpc_credentials *grpc_credentials_contains_type(
 
 /* -- IAM credentials. -- */
 
+typedef struct {
+  grpc_credentials base;
+  grpc_credentials_md_store *iam_md;
+} grpc_iam_credentials;
+
 static void iam_destroy(grpc_credentials *creds) {
   grpc_iam_credentials *c = (grpc_iam_credentials *)creds;
   grpc_credentials_md_store_unref(c->iam_md);
   gpr_free(c);
 }
 
-static int iam_has_request_metadata(const grpc_credentials *creds) { return 1; }
+static int iam_has_request_metadata(const grpc_credentials *creds) {
+  return 1;
+}
 
 static int iam_has_request_metadata_only(const grpc_credentials *creds) {
   return 1;
 }
 
 static void iam_get_request_metadata(grpc_credentials *creds,
-                                     grpc_pollset *pollset,
                                      const char *service_url,
                                      grpc_credentials_metadata_cb cb,
                                      void *user_data) {

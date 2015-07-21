@@ -52,7 +52,6 @@ namespace Grpc.Core
         /// </summary>
         public const int PickUnusedPort = 0;
 
-        readonly GrpcEnvironment environment;
         readonly ServerSafeHandle handle;
         readonly object myLock = new object();
 
@@ -68,10 +67,9 @@ namespace Grpc.Core
         /// <param name="options">Channel options.</param>
         public Server(IEnumerable<ChannelOption> options = null)
         {
-            this.environment = GrpcEnvironment.GetInstance();
             using (var channelArgs = ChannelOptions.CreateChannelArgs(options))
             {
-                this.handle = ServerSafeHandle.NewServer(environment.CompletionQueue, channelArgs);
+                this.handle = ServerSafeHandle.NewServer(GetCompletionQueue(), channelArgs);
             }
         }
 
@@ -146,7 +144,7 @@ namespace Grpc.Core
                 shutdownRequested = true;
             }
 
-            handle.ShutdownAndNotify(HandleServerShutdown, environment);
+            handle.ShutdownAndNotify(GetCompletionQueue(), HandleServerShutdown);
             await shutdownTcs.Task;
             handle.Dispose();
         }
@@ -175,7 +173,7 @@ namespace Grpc.Core
                 shutdownRequested = true;
             }
 
-            handle.ShutdownAndNotify(HandleServerShutdown, environment);
+            handle.ShutdownAndNotify(GetCompletionQueue(), HandleServerShutdown);
             handle.CancelAllCalls();
             await shutdownTcs.Task;
             handle.Dispose();
@@ -210,7 +208,7 @@ namespace Grpc.Core
             {
                 if (!shutdownRequested)
                 {
-                    handle.RequestCall(HandleNewServerRpc, environment);
+                    handle.RequestCall(GetCompletionQueue(), HandleNewServerRpc);
                 }
             }
         }
@@ -218,16 +216,16 @@ namespace Grpc.Core
         /// <summary>
         /// Selects corresponding handler for given call and handles the call.
         /// </summary>
-        private async Task HandleCallAsync(ServerRpcNew newRpc)
+        private async Task InvokeCallHandler(CallSafeHandle call, string method)
         {
             try
             {
                 IServerCallHandler callHandler;
-                if (!callHandlers.TryGetValue(newRpc.Method, out callHandler))
+                if (!callHandlers.TryGetValue(method, out callHandler))
                 {
-                    callHandler = NoSuchMethodCallHandler.Instance;
+                    callHandler = new NoSuchMethodCallHandler();
                 }
-                await callHandler.HandleCall(newRpc, environment);
+                await callHandler.HandleCall(method, call, GetCompletionQueue());
             }
             catch (Exception e)
             {
@@ -240,15 +238,15 @@ namespace Grpc.Core
         /// </summary>
         private void HandleNewServerRpc(bool success, BatchContextSafeHandle ctx)
         {
-            if (success)
-            {
-                ServerRpcNew newRpc = ctx.GetServerRpcNew();
+            // TODO: handle error
 
-                // after server shutdown, the callback returns with null call
-                if (!newRpc.Call.IsInvalid)
-                {
-                    Task.Run(async () => await HandleCallAsync(newRpc));
-                }
+            CallSafeHandle call = ctx.GetServerRpcNewCall();
+            string method = ctx.GetServerRpcNewMethod();
+
+            // after server shutdown, the callback returns with null call
+            if (!call.IsInvalid)
+            {
+                Task.Run(async () => await InvokeCallHandler(call, method));
             }
 
             AllowOneRpc();
@@ -260,6 +258,11 @@ namespace Grpc.Core
         private void HandleServerShutdown(bool success, BatchContextSafeHandle ctx)
         {
             shutdownTcs.SetResult(null);
+        }
+
+        private static CompletionQueueSafeHandle GetCompletionQueue()
+        {
+            return GrpcEnvironment.ThreadPool.CompletionQueue;
         }
     }
 }

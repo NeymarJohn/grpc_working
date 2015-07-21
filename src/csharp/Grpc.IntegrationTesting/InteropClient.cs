@@ -102,6 +102,8 @@ namespace Grpc.IntegrationTesting
 
         private void Run()
         {
+            GrpcEnvironment.Initialize();
+
             Credentials credentials = null;
             if (options.useTls)
             {
@@ -119,7 +121,7 @@ namespace Grpc.IntegrationTesting
 
             using (Channel channel = new Channel(options.serverHost, options.serverPort.Value, credentials, channelOptions))
             {
-                TestService.TestServiceClient client = new TestService.TestServiceClient(channel);
+                var stubConfig = StubConfiguration.Default;
                 if (options.testCase == "service_account_creds" || options.testCase == "compute_engine_creds")
                 {
                     var credential = GoogleCredential.GetApplicationDefault();
@@ -127,15 +129,17 @@ namespace Grpc.IntegrationTesting
                     {
                         credential = credential.CreateScoped(new[] { AuthScope });
                     }
-                    client.HeaderInterceptor = OAuth2InterceptorFactory.Create(credential);
+                    stubConfig = new StubConfiguration(OAuth2InterceptorFactory.Create(credential));
                 }
 
+                TestService.ITestServiceClient client = new TestService.TestServiceClient(channel, stubConfig);
                 RunTestCase(options.testCase, client);
             }
+
             GrpcEnvironment.Shutdown();
         }
 
-        private void RunTestCase(string testCase, TestService.TestServiceClient client)
+        private void RunTestCase(string testCase, TestService.ITestServiceClient client)
         {
             switch (testCase)
             {
@@ -162,12 +166,6 @@ namespace Grpc.IntegrationTesting
                     break;
                 case "compute_engine_creds":
                     RunComputeEngineCreds(client);
-                    break;
-                case "oauth2_auth_token":
-                    RunOAuth2AuthToken(client);
-                    break;
-                case "per_rpc_creds":
-                    RunPerRpcCreds(client);
                     break;
                 case "cancel_after_begin":
                     RunCancelAfterBegin(client);
@@ -361,51 +359,6 @@ namespace Grpc.IntegrationTesting
             Console.WriteLine("Passed!");
         }
 
-        public static void RunOAuth2AuthToken(TestService.TestServiceClient client)
-        {
-            Console.WriteLine("running oauth2_auth_token");
-            var credential = GoogleCredential.GetApplicationDefault().CreateScoped(new[] { AuthScope });
-            Assert.IsTrue(credential.RequestAccessTokenAsync(CancellationToken.None).Result);
-            string oauth2Token = credential.Token.AccessToken;
-
-            // Intercept calls with an OAuth2 token obtained out-of-band.
-            client.HeaderInterceptor = new MetadataInterceptorDelegate((metadata) =>
-            {
-                metadata.Add(new Metadata.Entry("Authorization", "Bearer " + oauth2Token));
-            });
-
-            var request = SimpleRequest.CreateBuilder()
-                .SetFillUsername(true)
-                .SetFillOauthScope(true)
-                .Build();
-
-            var response = client.UnaryCall(request);
-
-            Assert.AreEqual(AuthScopeResponse, response.OauthScope);
-            Assert.AreEqual(ServiceAccountUser, response.Username);
-            Console.WriteLine("Passed!");
-        }
-
-        public static void RunPerRpcCreds(TestService.TestServiceClient client)
-        {
-            Console.WriteLine("running per_rpc_creds");
-
-            var credential = GoogleCredential.GetApplicationDefault().CreateScoped(new[] { AuthScope });
-            Assert.IsTrue(credential.RequestAccessTokenAsync(CancellationToken.None).Result);
-            string oauth2Token = credential.Token.AccessToken;
-
-            var request = SimpleRequest.CreateBuilder()
-                .SetFillUsername(true)
-                .SetFillOauthScope(true)
-                .Build();
-
-            var response = client.UnaryCall(request, headers: new Metadata { new Metadata.Entry("Authorization", "Bearer " + oauth2Token) } );
-
-            Assert.AreEqual(AuthScopeResponse, response.OauthScope);
-            Assert.AreEqual(ServiceAccountUser, response.Username);
-            Console.WriteLine("Passed!");
-        }
-
         public static void RunCancelAfterBegin(TestService.ITestServiceClient client)
         {
             Task.Run(async () =>
@@ -413,7 +366,7 @@ namespace Grpc.IntegrationTesting
                 Console.WriteLine("running cancel_after_begin");
 
                 var cts = new CancellationTokenSource();
-                using (var call = client.StreamingInputCall(cancellationToken: cts.Token))
+                using (var call = client.StreamingInputCall(cts.Token))
                 {
                     // TODO(jtattermusch): we need this to ensure call has been initiated once we cancel it.
                     await Task.Delay(1000);
@@ -440,7 +393,7 @@ namespace Grpc.IntegrationTesting
                 Console.WriteLine("running cancel_after_first_response");
 
                 var cts = new CancellationTokenSource();
-                using (var call = client.FullDuplexCall(cancellationToken: cts.Token))
+                using (var call = client.FullDuplexCall(cts.Token))
                 {
                     await call.RequestStream.WriteAsync(StreamingOutputCallRequest.CreateBuilder()
                         .SetResponseType(PayloadType.COMPRESSABLE)

@@ -33,9 +33,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Grpc.Core.Internal;
-using Grpc.Core.Utils;
 
 namespace Grpc.Core
 {
@@ -53,18 +51,20 @@ namespace Grpc.Core
         static extern void grpcsharp_shutdown();
 
         static object staticLock = new object();
-        static GrpcEnvironment instance;
+        static volatile GrpcEnvironment instance;
 
         readonly GrpcThreadPool threadPool;
         readonly CompletionRegistry completionRegistry;
-        readonly DebugStats debugStats = new DebugStats();
         bool isClosed;
 
         /// <summary>
-        /// Returns an instance of initialized gRPC environment.
-        /// Subsequent invocations return the same instance unless Shutdown has been called first.
+        /// Makes sure GRPC environment is initialized. Subsequent invocations don't have any
+        /// effect unless you call Shutdown first.
+        /// Although normal use cases assume you will call this just once in your application's
+        /// lifetime (and call Shutdown once you're done), for the sake of easier testing it's
+        /// allowed to initialize the environment again after it has been successfully shutdown.
         /// </summary>
-        internal static GrpcEnvironment GetInstance()
+        public static void Initialize()
         {
             lock (staticLock)
             {
@@ -72,13 +72,12 @@ namespace Grpc.Core
                 {
                     instance = new GrpcEnvironment();
                 }
-                return instance;
             }
         }
 
         /// <summary>
-        /// Shuts down the gRPC environment if it was initialized before.
-        /// Blocks until the environment has been fully shutdown.
+        /// Shuts down the GRPC environment if it was initialized before.
+        /// Repeated invocations have no effect.
         /// </summary>
         public static void Shutdown()
         {
@@ -88,7 +87,35 @@ namespace Grpc.Core
                 {
                     instance.Close();
                     instance = null;
+
+                    CheckDebugStats();
                 }
+            }
+        }
+
+        internal static GrpcThreadPool ThreadPool
+        {
+            get
+            {
+                var inst = instance;
+                if (inst == null)
+                {
+                    throw new InvalidOperationException("GRPC environment not initialized");
+                }
+                return inst.threadPool;
+            }
+        }
+
+        internal static CompletionRegistry CompletionRegistry
+        {
+            get
+            {
+                var inst = instance;
+                if (inst == null)
+                {
+                    throw new InvalidOperationException("GRPC environment not initialized");
+                }
+                return inst.completionRegistry;
             }
         }
 
@@ -99,44 +126,11 @@ namespace Grpc.Core
         {
             GrpcLog.RedirectNativeLogs(Console.Error);
             grpcsharp_init();
-            completionRegistry = new CompletionRegistry(this);
-            threadPool = new GrpcThreadPool(this, THREAD_POOL_SIZE);
+            completionRegistry = new CompletionRegistry();
+            threadPool = new GrpcThreadPool(THREAD_POOL_SIZE);
             threadPool.Start();
             // TODO: use proper logging here
             Console.WriteLine("GRPC initialized.");
-        }
-
-        /// <summary>
-        /// Gets the completion registry used by this gRPC environment.
-        /// </summary>
-        internal CompletionRegistry CompletionRegistry
-        {
-            get
-            {
-                return this.completionRegistry;
-            }
-        }
-
-        /// <summary>
-        /// Gets the completion queue used by this gRPC environment.
-        /// </summary>
-        internal CompletionQueueSafeHandle CompletionQueue
-        {
-            get
-            {
-                return this.threadPool.CompletionQueue;
-            }
-        }
-
-        /// <summary>
-        /// Gets the completion queue used by this gRPC environment.
-        /// </summary>
-        internal DebugStats DebugStats
-        {
-            get
-            {
-                return this.debugStats;
-            }
         }
 
         /// <summary>
@@ -152,28 +146,32 @@ namespace Grpc.Core
             grpcsharp_shutdown();
             isClosed = true;
 
-            debugStats.CheckOK();
-
             // TODO: use proper logging here
             Console.WriteLine("GRPC shutdown.");
         }
 
-        /// <summary>
-        /// Shuts down this environment asynchronously.
-        /// </summary>
-        private Task CloseAsync()
+        private static void CheckDebugStats()
         {
-            return Task.Run(() =>
+            var remainingClientCalls = DebugStats.ActiveClientCalls.Count;
+            if (remainingClientCalls != 0)
+            {                
+                DebugWarning(string.Format("Detected {0} client calls that weren't disposed properly.", remainingClientCalls));
+            }
+            var remainingServerCalls = DebugStats.ActiveServerCalls.Count;
+            if (remainingServerCalls != 0)
             {
-                try
-                {
-                    Close();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Error occured while shutting down GrpcEnvironment: " + e);
-                }
-            });
+                DebugWarning(string.Format("Detected {0} server calls that weren't disposed properly.", remainingServerCalls));
+            }
+            var pendingBatchCompletions = DebugStats.PendingBatchCompletions.Count;
+            if (pendingBatchCompletions != 0)
+            {
+                DebugWarning(string.Format("Detected {0} pending batch completions.", pendingBatchCompletions));
+            }
+        }
+
+        private static void DebugWarning(string message)
+        {
+            throw new Exception("Shutdown check: " + message);
         }
     }
 }

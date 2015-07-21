@@ -55,7 +55,7 @@ var EventEmitter = require('events').EventEmitter;
  */
 function handleError(call, error) {
   var status = {
-    code: grpc.status.UNKNOWN,
+    code: grpc.status.INTERNAL,
     details: 'Unknown Error',
     metadata: {}
   };
@@ -72,9 +72,6 @@ function handleError(call, error) {
     status.metadata = error.metadata;
   }
   var error_batch = {};
-  if (!call.metadataSent) {
-    error_batch[grpc.opType.SEND_INITIAL_METADATA] = {};
-  }
   error_batch[grpc.opType.SEND_STATUS_FROM_SERVER] = status;
   call.startBatch(error_batch, function(){});
 }
@@ -118,10 +115,6 @@ function sendUnaryResponse(call, value, serialize, metadata) {
   if (metadata) {
     status.metadata = metadata;
   }
-  if (!call.metadataSent) {
-    end_batch[grpc.opType.SEND_INITIAL_METADATA] = {};
-    call.metadataSent = true;
-  }
   end_batch[grpc.opType.SEND_MESSAGE] = serialize(value);
   end_batch[grpc.opType.SEND_STATUS_FROM_SERVER] = status;
   call.startBatch(end_batch, function (){});
@@ -143,22 +136,18 @@ function setUpWritable(stream, serialize) {
   stream.serialize = common.wrapIgnoreNull(serialize);
   function sendStatus() {
     var batch = {};
-    if (!stream.call.metadataSent) {
-      stream.call.metadataSent = true;
-      batch[grpc.opType.SEND_INITIAL_METADATA] = {};
-    }
     batch[grpc.opType.SEND_STATUS_FROM_SERVER] = stream.status;
     stream.call.startBatch(batch, function(){});
   }
   stream.on('finish', sendStatus);
   /**
    * Set the pending status to a given error status. If the error does not have
-   * code or details properties, the code will be set to grpc.status.UNKNOWN
+   * code or details properties, the code will be set to grpc.status.INTERNAL
    * and the details will be set to 'Unknown Error'.
    * @param {Error} err The error object
    */
   function setStatus(err) {
-    var code = grpc.status.UNKNOWN;
+    var code = grpc.status.INTERNAL;
     var details = 'Unknown Error';
     var metadata = {};
     if (err.hasOwnProperty('message')) {
@@ -250,10 +239,6 @@ function ServerWritableStream(call, serialize) {
 function _write(chunk, encoding, callback) {
   /* jshint validthis: true */
   var batch = {};
-  if (!this.call.metadataSent) {
-    batch[grpc.opType.SEND_INITIAL_METADATA] = {};
-    this.call.metadataSent = true;
-  }
   batch[grpc.opType.SEND_MESSAGE] = this.serialize(chunk);
   this.call.startBatch(batch, function(err, value) {
     if (err) {
@@ -265,23 +250,6 @@ function _write(chunk, encoding, callback) {
 }
 
 ServerWritableStream.prototype._write = _write;
-
-function sendMetadata(responseMetadata) {
-  /* jshint validthis: true */
-  if (!this.call.metadataSent) {
-    this.call.metadataSent = true;
-    var batch = [];
-    batch[grpc.opType.SEND_INITIAL_METADATA] = responseMetadata;
-    this.call.startBatch(batch, function(err) {
-      if (err) {
-        this.emit('error', err);
-        return;
-      }
-    });
-  }
-}
-
-ServerWritableStream.prototype.sendMetadata = sendMetadata;
 
 util.inherits(ServerReadableStream, Readable);
 
@@ -371,7 +339,6 @@ function ServerDuplexStream(call, serialize, deserialize) {
 
 ServerDuplexStream.prototype._read = _read;
 ServerDuplexStream.prototype._write = _write;
-ServerDuplexStream.prototype.sendMetadata = sendMetadata;
 
 /**
  * Fully handle a unary call
@@ -381,20 +348,12 @@ ServerDuplexStream.prototype.sendMetadata = sendMetadata;
  */
 function handleUnary(call, handler, metadata) {
   var emitter = new EventEmitter();
-  emitter.sendMetadata = function(responseMetadata) {
-    if (!call.metadataSent) {
-      call.metadataSent = true;
-      var batch = {};
-      batch[grpc.opType.SEND_INITIAL_METADATA] = responseMetadata;
-      call.startBatch(batch, function() {});
-    }
-  };
   emitter.on('error', function(error) {
     handleError(call, error);
   });
-  emitter.metadata = metadata;
   waitForCancel(call, emitter);
   var batch = {};
+  batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
   batch[grpc.opType.RECV_MESSAGE] = true;
   call.startBatch(batch, function(err, result) {
     if (err) {
@@ -433,8 +392,8 @@ function handleUnary(call, handler, metadata) {
 function handleServerStreaming(call, handler, metadata) {
   var stream = new ServerWritableStream(call, handler.serialize);
   waitForCancel(call, stream);
-  stream.metadata = metadata;
   var batch = {};
+  batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
   batch[grpc.opType.RECV_MESSAGE] = true;
   call.startBatch(batch, function(err, result) {
     if (err) {
@@ -460,19 +419,13 @@ function handleServerStreaming(call, handler, metadata) {
  */
 function handleClientStreaming(call, handler, metadata) {
   var stream = new ServerReadableStream(call, handler.deserialize);
-  stream.sendMetadata = function(responseMetadata) {
-    if (!call.metadataSent) {
-      call.metadataSent = true;
-      var batch = {};
-      batch[grpc.opType.SEND_INITIAL_METADATA] = responseMetadata;
-      call.startBatch(batch, function() {});
-    }
-  };
   stream.on('error', function(error) {
     handleError(call, error);
   });
   waitForCancel(call, stream);
-  stream.metadata = metadata;
+  var metadata_batch = {};
+  metadata_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
+  call.startBatch(metadata_batch, function() {});
   handler.func(stream, function(err, value, trailer) {
     stream.terminate();
     if (err) {
@@ -496,7 +449,9 @@ function handleBidiStreaming(call, handler, metadata) {
   var stream = new ServerDuplexStream(call, handler.serialize,
                                       handler.deserialize);
   waitForCancel(call, stream);
-  stream.metadata = metadata;
+  var metadata_batch = {};
+  metadata_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
+  call.startBatch(metadata_batch, function() {});
   handler.func(stream);
 }
 
@@ -511,28 +466,29 @@ var streamHandlers = {
  * Constructs a server object that stores request handlers and delegates
  * incoming requests to those handlers
  * @constructor
+ * @param {function(string, Object<string, Array<Buffer>>):
+           Object<string, Array<Buffer|string>>=} getMetadata Callback that gets
+ *     metatada for a given method
  * @param {Object=} options Options that should be passed to the internal server
  *     implementation
  */
-function Server(options) {
+function Server(getMetadata, options) {
   this.handlers = {};
   var handlers = this.handlers;
   var server = new grpc.Server(options);
   this._server = server;
-  this.started = false;
   /**
    * Start the server and begin handling requests
    * @this Server
    */
-  this.start = function() {
-    if (this.started) {
-      throw new Error('Server is already running');
-    }
-    this.started = true;
+  this.listen = function() {
     console.log('Server starting');
     _.each(handlers, function(handler, handler_name) {
       console.log('Serving', handler_name);
     });
+    if (this.started) {
+      throw 'Server is already running';
+    }
     server.start();
     /**
      * Handles the SERVER_RPC_NEW event. If there is a handler associated with
@@ -567,7 +523,11 @@ function Server(options) {
         call.startBatch(batch, function() {});
         return;
       }
-      streamHandlers[handler.type](call, handler, metadata);
+      var response_metadata = {};
+      if (getMetadata) {
+        response_metadata = getMetadata(method, metadata);
+      }
+      streamHandlers[handler.type](call, handler, response_metadata);
     }
     server.requestCall(handleNewCall);
   };
@@ -605,47 +565,6 @@ Server.prototype.register = function(name, handler, serialize, deserialize,
   return true;
 };
 
-Server.prototype.addService = function(service, implementation) {
-  if (this.started) {
-    throw new Error('Can\'t add a service to a started server.');
-  }
-  var self = this;
-  _.each(service, function(attrs, name) {
-    var method_type;
-    if (attrs.requestStream) {
-      if (attrs.responseStream) {
-        method_type = 'bidi';
-      } else {
-        method_type = 'client_stream';
-      }
-    } else {
-      if (attrs.responseStream) {
-        method_type = 'server_stream';
-      } else {
-        method_type = 'unary';
-      }
-    }
-    if (implementation[name] === undefined) {
-      throw new Error('Method handler for ' + attrs.path +
-          ' not provided.');
-    }
-    var serialize = attrs.responseSerialize;
-    var deserialize = attrs.requestDeserialize;
-    var register_success = self.register(attrs.path,
-                                         _.bind(implementation[name],
-                                                implementation),
-                                         serialize, deserialize, method_type);
-    if (!register_success) {
-      throw new Error('Method handler for ' + attrs.path +
-          ' already provided.');
-    }
-  });
-};
-
-Server.prototype.addProtoService = function(service, implementation) {
-  this.addService(common.getProtobufServiceAttrs(service), implementation);
-};
-
 /**
  * Binds the server to the given port, with SSL enabled if creds is given
  * @param {string} port The port that the server should bind on, in the format
@@ -654,9 +573,6 @@ Server.prototype.addProtoService = function(service, implementation) {
  *     nothing for an insecure port
  */
 Server.prototype.bind = function(port, creds) {
-  if (this.started) {
-    throw new Error('Can\'t bind an already running server to an address');
-  }
   if (creds) {
     return this._server.addSecureHttp2Port(port, creds);
   } else {
@@ -665,6 +581,130 @@ Server.prototype.bind = function(port, creds) {
 };
 
 /**
- * See documentation for Server
+ * Create a constructor for servers with services defined by service_attr_map.
+ * That is an object that maps (namespaced) service names to objects that in
+ * turn map method names to objects with the following keys:
+ * path: The path on the server for accessing the method. For example, for
+ *     protocol buffers, we use "/service_name/method_name"
+ * requestStream: bool indicating whether the client sends a stream
+ * resonseStream: bool indicating whether the server sends a stream
+ * requestDeserialize: function to deserialize request objects
+ * responseSerialize: function to serialize response objects
+ * @param {Object} service_attr_map An object mapping service names to method
+ *     attribute map objects
+ * @return {function(Object, function, Object=)} New server constructor
  */
-exports.Server = Server;
+function makeServerConstructor(service_attr_map) {
+  /**
+   * Create a server with the given handlers for all of the methods.
+   * @constructor
+   * @param {Object} service_handlers Map from service names to map from method
+   *     names to handlers
+   * @param {function(string, Object<string, Array<Buffer>>):
+             Object<string, Array<Buffer|string>>=} getMetadata Callback that
+   *     gets metatada for a given method
+   * @param {Object=} options Options to pass to the underlying server
+   */
+  function SurfaceServer(service_handlers, getMetadata, options) {
+    var server = new Server(getMetadata, options);
+    this.inner_server = server;
+    _.each(service_attr_map, function(service_attrs, service_name) {
+      if (service_handlers[service_name] === undefined) {
+        throw new Error('Handlers for service ' +
+            service_name + ' not provided.');
+      }
+      _.each(service_attrs, function(attrs, name) {
+        var method_type;
+        if (attrs.requestStream) {
+          if (attrs.responseStream) {
+            method_type = 'bidi';
+          } else {
+            method_type = 'client_stream';
+          }
+        } else {
+          if (attrs.responseStream) {
+            method_type = 'server_stream';
+          } else {
+            method_type = 'unary';
+          }
+        }
+        if (service_handlers[service_name][name] === undefined) {
+          throw new Error('Method handler for ' + attrs.path +
+              ' not provided.');
+        }
+        var serialize = attrs.responseSerialize;
+        var deserialize = attrs.requestDeserialize;
+        server.register(attrs.path, service_handlers[service_name][name],
+                        serialize, deserialize, method_type);
+      });
+    }, this);
+  }
+
+  /**
+   * Binds the server to the given port, with SSL enabled if creds is supplied
+   * @param {string} port The port that the server should bind on, in the format
+   *     "address:port"
+   * @param {boolean=} creds Credentials to use for SSL
+   * @return {SurfaceServer} this
+   */
+  SurfaceServer.prototype.bind = function(port, creds) {
+    return this.inner_server.bind(port, creds);
+  };
+
+  /**
+   * Starts the server listening on any bound ports
+   * @return {SurfaceServer} this
+   */
+  SurfaceServer.prototype.listen = function() {
+    this.inner_server.listen();
+    return this;
+  };
+
+  /**
+   * Shuts the server down; tells it to stop listening for new requests and to
+   * kill old requests.
+   */
+  SurfaceServer.prototype.shutdown = function() {
+    this.inner_server.shutdown();
+  };
+
+  return SurfaceServer;
+}
+
+/**
+ * Create a constructor for servers that serve the given services.
+ * @param {Array<ProtoBuf.Reflect.Service>} services The services that the
+ *     servers will serve
+ * @return {function(Object, function, Object=)} New server constructor
+ */
+function makeProtobufServerConstructor(services) {
+  var qual_names = [];
+  var service_attr_map = {};
+  _.each(services, function(service) {
+    var service_name = common.fullyQualifiedName(service);
+    _.each(service.children, function(method) {
+      var name = common.fullyQualifiedName(method);
+      if (_.indexOf(qual_names, name) !== -1) {
+        throw new Error('Method ' + name + ' exposed by more than one service');
+      }
+      qual_names.push(name);
+    });
+    var method_attrs = common.getProtobufServiceAttrs(service);
+    if (!service_attr_map.hasOwnProperty(service_name)) {
+      service_attr_map[service_name] = {};
+    }
+    service_attr_map[service_name] = _.extend(service_attr_map[service_name],
+                                              method_attrs);
+  });
+  return makeServerConstructor(service_attr_map);
+}
+
+/**
+ * See documentation for makeServerConstructor
+ */
+exports.makeServerConstructor = makeServerConstructor;
+
+/**
+ * See documentation for makeProtobufServerConstructor
+ */
+exports.makeProtobufServerConstructor = makeProtobufServerConstructor;

@@ -47,8 +47,6 @@ namespace Grpc.Core.Internal
     /// </summary>
     internal class AsyncCall<TRequest, TResponse> : AsyncCallBase<TRequest, TResponse>
     {
-        Channel channel;
-
         // Completion of a pending unary response if not null.
         TaskCompletionSource<TResponse> unaryResponseTcs;
 
@@ -63,9 +61,8 @@ namespace Grpc.Core.Internal
 
         public void Initialize(Channel channel, CompletionQueueSafeHandle cq, string methodName)
         {
-            this.channel = channel;
-            var call = CallSafeHandle.Create(channel.Handle, channel.CompletionRegistry, cq, methodName, channel.Target, Timespec.InfFuture);
-            channel.Environment.DebugStats.ActiveClientCalls.Increment();
+            var call = CallSafeHandle.Create(channel.Handle, cq, methodName, channel.Target, Timespec.InfFuture);
+            DebugStats.ActiveClientCalls.Increment();
             InitializeInternal(call);
         }
 
@@ -280,7 +277,7 @@ namespace Grpc.Core.Internal
 
         protected override void OnReleaseResources()
         {
-            channel.Environment.DebugStats.ActiveClientCalls.Decrement();
+            DebugStats.ActiveClientCalls.Decrement();
         }
 
         /// <summary>
@@ -302,9 +299,7 @@ namespace Grpc.Core.Internal
                 return;
             }
 
-            var fullStatus = ctx.GetReceivedStatusOnClient();
-            var status = fullStatus.Status;
-
+            var status = ctx.GetReceivedStatus();
             if (status.StatusCode != StatusCode.OK)
             {
                 unaryResponseTcs.SetException(new RpcException(status));
@@ -323,8 +318,7 @@ namespace Grpc.Core.Internal
         /// </summary>
         private void HandleFinished(bool success, BatchContextSafeHandle ctx)
         {
-            var fullStatus = ctx.GetReceivedStatusOnClient();
-            var status = fullStatus.Status;
+            var status = ctx.GetReceivedStatus();
 
             AsyncCompletionDelegate<TResponse> origReadCompletionDelegate = null;
             lock (myLock)

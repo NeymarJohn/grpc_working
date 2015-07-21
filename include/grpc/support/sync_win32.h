@@ -36,6 +36,8 @@
 
 #include <grpc/support/sync_generic.h>
 
+#include <windows.h>
+
 typedef struct {
   CRITICAL_SECTION cs; /* Not an SRWLock until Vista is unsupported */
   int locked;

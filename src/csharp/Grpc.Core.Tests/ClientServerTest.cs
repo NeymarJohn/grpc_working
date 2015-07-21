@@ -73,6 +73,12 @@ namespace Grpc.Core.Tests
         Server server;
         Channel channel;
 
+        [TestFixtureSetUp]
+        public void InitClass()
+        {
+            GrpcEnvironment.Initialize();
+        }
+
         [SetUp]
         public void Init()
         {
@@ -115,36 +121,6 @@ namespace Grpc.Core.Tests
             catch (RpcException e)
             {
                 Assert.AreEqual(StatusCode.Unknown, e.Status.StatusCode); 
-            }
-        }
-
-        [Test]
-        public void UnaryCall_ServerHandlerThrowsRpcException()
-        {
-            var call = new Call<string, string>(ServiceName, EchoMethod, channel, Metadata.Empty);
-            try
-            {
-                Calls.BlockingUnaryCall(call, "THROW_UNAUTHENTICATED", CancellationToken.None);
-                Assert.Fail();
-            }
-            catch (RpcException e)
-            {
-                Assert.AreEqual(StatusCode.Unauthenticated, e.Status.StatusCode); 
-            }
-        }
-
-        [Test]
-        public void UnaryCall_ServerHandlerSetsStatus()
-        {
-            var call = new Call<string, string>(ServiceName, EchoMethod, channel, Metadata.Empty);
-            try
-            {
-                Calls.BlockingUnaryCall(call, "SET_UNAUTHENTICATED", CancellationToken.None);
-                Assert.Fail();
-            }
-            catch (RpcException e)
-            {
-                Assert.AreEqual(StatusCode.Unauthenticated, e.Status.StatusCode); 
             }
         }
 
@@ -213,22 +189,6 @@ namespace Grpc.Core.Tests
         }
 
         [Test]
-        public void AsyncUnaryCall_EchoMetadata()
-        {
-            var metadata = new Metadata
-            {
-                new Metadata.Entry("asciiHeader", "abcdefg"),
-                new Metadata.Entry("binaryHeader-bin", new byte[] { 1, 2, 3, 0, 0xff } ),
-            };
-            var call = new Call<string, string>(ServiceName, EchoMethod, channel, metadata);
-            var result = Calls.AsyncUnaryCall(call, "ABC", CancellationToken.None).Result;
-            Assert.AreEqual("ABC", result);
-
-            // TODO: implement assertion...
-            Assert.Fail();
-        }
-
-        [Test]
         public void UnaryCall_DisposedChannel()
         {
             channel.Dispose();
@@ -244,45 +204,30 @@ namespace Grpc.Core.Tests
             BenchmarkUtil.RunBenchmark(100, 100,
                                        () => { Calls.BlockingUnaryCall(call, "ABC", default(CancellationToken)); });
         }
-            
-        [Test]
-        public void UnknownMethodHandler()
-        {
-            var call = new Call<string, string>(ServiceName, NonexistentMethod, channel, Metadata.Empty);
-            try
-            {
-                Calls.BlockingUnaryCall(call, "ABC", default(CancellationToken));
-                Assert.Fail();
-            }
-            catch (RpcException e)
-            {
-                Assert.AreEqual(StatusCode.Unimplemented, e.Status.StatusCode);
-            }
-        }
+
+//        TODO(jtattermusch): temporarily commented out for #1731
+//                            to be uncommented along with PR #1577
+//        [Test]
+//        public void UnknownMethodHandler()
+//        {
+//            var call = new Call<string, string>(ServiceName, NonexistentMethod, channel, Metadata.Empty);
+//            try
+//            {
+//                Calls.BlockingUnaryCall(call, "ABC", default(CancellationToken));
+//                Assert.Fail();
+//            }
+//            catch (RpcException e)
+//            {
+//                Assert.AreEqual(StatusCode.Unimplemented, e.Status.StatusCode);
+//            }
+//        }
 
         private static async Task<string> EchoHandler(ServerCallContext context, string request)
         {
-            foreach (Metadata.Entry metadataEntry in context.RequestHeaders)
-            {
-                Console.WriteLine("Echoing header " + metadataEntry.Key + " as trailer");
-                context.ResponseTrailers.Add(metadataEntry);
-            }
-
             if (request == "THROW")
             {
                 throw new Exception("This was thrown on purpose by a test");
             }
-
-            if (request == "THROW_UNAUTHENTICATED")
-            {
-                throw new RpcException(new Status(StatusCode.Unauthenticated, ""));
-            }
-
-            if (request == "SET_UNAUTHENTICATED")
-            {
-                context.Status = new Status(StatusCode.Unauthenticated, "");
-            }
-
             return request;
         }
 

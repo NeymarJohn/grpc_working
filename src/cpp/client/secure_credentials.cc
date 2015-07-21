@@ -92,8 +92,7 @@ std::shared_ptr<Credentials> ServiceAccountCredentials(
             "with non-positive lifetime");
     return WrapCredentials(nullptr);
   }
-  gpr_timespec lifetime =
-      gpr_time_from_seconds(token_lifetime_seconds, GPR_TIMESPAN);
+  gpr_timespec lifetime = gpr_time_from_seconds(token_lifetime_seconds);
   return WrapCredentials(grpc_service_account_credentials_create(
       json_key.c_str(), scope.c_str(), lifetime));
 }
@@ -106,8 +105,7 @@ std::shared_ptr<Credentials> JWTCredentials(const grpc::string& json_key,
             "Trying to create JWTCredentials with non-positive lifetime");
     return WrapCredentials(nullptr);
   }
-  gpr_timespec lifetime =
-      gpr_time_from_seconds(token_lifetime_seconds, GPR_TIMESPAN);
+  gpr_timespec lifetime = gpr_time_from_seconds(token_lifetime_seconds);
   return WrapCredentials(
       grpc_jwt_credentials_create(json_key.c_str(), lifetime));
 }
@@ -117,13 +115,6 @@ std::shared_ptr<Credentials> RefreshTokenCredentials(
     const grpc::string& json_refresh_token) {
   return WrapCredentials(
       grpc_refresh_token_credentials_create(json_refresh_token.c_str()));
-}
-
-// Builds access token credentials.
-std::shared_ptr<Credentials> AccessTokenCredentials(
-    const grpc::string& access_token) {
-  return WrapCredentials(
-      grpc_access_token_credentials_create(access_token.c_str()));
 }
 
 // Builds IAM credentials.

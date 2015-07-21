@@ -34,12 +34,12 @@
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 
-#import <GRPCClient/GRPCCall.h>
-#import <ProtoRPC/ProtoMethod.h>
+#import <gRPC/GRPCCall.h>
+#import <gRPC/GRPCMethodName.h>
+#import <gRPC/GRXWriter+Immediate.h>
+#import <gRPC/GRXWriteable.h>
 #import <RouteGuide/RouteGuide.pbobjc.h>
 #import <RouteGuide/RouteGuide.pbrpc.h>
-#import <RxLibrary/GRXWriteable.h>
-#import <RxLibrary/GRXWriter+Immediate.h>
 
 // These tests require a gRPC "RouteGuide" sample server to be running locally. You can compile and
 // run one by following the instructions here: https://github.com/grpc/grpc-common/blob/master/cpp/cpptutorial.md#try-it-out
@@ -64,7 +64,7 @@ static NSString * const kService = @"RouteGuide";
 //                                                         interface:kService
 //                                                            method:@"EmptyCall"];
 //
-//  GRXWriter *requestsWriter = [GRXWriter writerWithValue:[NSData data]];
+//  id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[NSData data]];
 //
 //  GRPCCall *call = [[GRPCCall alloc] initWithHost:kRouteGuideHost
 //                                           method:method
@@ -87,14 +87,14 @@ static NSString * const kService = @"RouteGuide";
   __weak XCTestExpectation *response = [self expectationWithDescription:@"Empty response received."];
   __weak XCTestExpectation *completion = [self expectationWithDescription:@"Empty RPC completed."];
 
-  ProtoMethod *method = [[ProtoMethod alloc] initWithPackage:kPackage
-                                                     service:kService
-                                                      method:@"RecordRoute"];
+  GRPCMethodName *method = [[GRPCMethodName alloc] initWithPackage:kPackage
+                                                         interface:kService
+                                                            method:@"RecordRoute"];
 
-  GRXWriter *requestsWriter = [GRXWriter emptyWriter];
+  id<GRXWriter> requestsWriter = [GRXWriter emptyWriter];
 
   GRPCCall *call = [[GRPCCall alloc] initWithHost:kRouteGuideHost
-                                             path:method.HTTPPath
+                                           method:method
                                    requestsWriter:requestsWriter];
 
   id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
@@ -115,17 +115,17 @@ static NSString * const kService = @"RouteGuide";
   __weak XCTestExpectation *response = [self expectationWithDescription:@"Response received."];
   __weak XCTestExpectation *completion = [self expectationWithDescription:@"RPC completed."];
 
-  ProtoMethod *method = [[ProtoMethod alloc] initWithPackage:kPackage
-                                                     service:kService
-                                                      method:@"GetFeature"];
+  GRPCMethodName *method = [[GRPCMethodName alloc] initWithPackage:kPackage
+                                                         interface:kService
+                                                            method:@"GetFeature"];
 
   RGDPoint *point = [RGDPoint message];
   point.latitude = 28E7;
   point.longitude = -15E7;
-  GRXWriter *requestsWriter = [GRXWriter writerWithValue:[point data]];
+  id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[point data]];
 
   GRPCCall *call = [[GRPCCall alloc] initWithHost:kRouteGuideHost
-                                             path:method.HTTPPath
+                                           method:method
                                    requestsWriter:requestsWriter];
 
   id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
