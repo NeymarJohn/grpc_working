@@ -31,44 +31,12 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_UTIL_TEST_CONFIG_H
-#define GRPC_TEST_CORE_UTIL_TEST_CONFIG_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-#include <grpc/support/time.h>
+#include "src/core/client_config/resolver_factory.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif /*  __cplusplus */
+/** Create a zookeeper resolver for \a name */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
 
-#ifndef GRPC_TEST_SLOWDOWN_BUILD_FACTOR
-#define GRPC_TEST_SLOWDOWN_BUILD_FACTOR 1.0
-#endif
-
-#ifndef GRPC_TEST_SLOWDOWN_MACHINE_FACTOR
-#define GRPC_TEST_SLOWDOWN_MACHINE_FACTOR 1.0
-#endif
-
-#define GRPC_TEST_SLOWDOWN_FACTOR \
-  (GRPC_TEST_SLOWDOWN_BUILD_FACTOR * GRPC_TEST_SLOWDOWN_MACHINE_FACTOR)
-
-#define GRPC_TIMEOUT_SECONDS_TO_DEADLINE(x)                                \
-  gpr_time_add(gpr_now(GPR_CLOCK_REALTIME),                                \
-               gpr_time_from_micros(GRPC_TEST_SLOWDOWN_FACTOR * 1e6 * (x), \
-                                    GPR_TIMESPAN))
-
-#define GRPC_TIMEOUT_MILLIS_TO_DEADLINE(x)                                 \
-  gpr_time_add(gpr_now(GPR_CLOCK_REALTIME),                                \
-               gpr_time_from_micros(GRPC_TEST_SLOWDOWN_FACTOR * 1e3 * (x), \
-                                    GPR_TIMESPAN))
-
-#ifndef GRPC_TEST_CUSTOM_PICK_PORT
-#define GRPC_TEST_PICK_PORT
-#endif
-
-void grpc_test_init(int argc, char **argv);
-
-#ifdef __cplusplus
-}
-#endif /*  __cplusplus */
-
-#endif /* GRPC_TEST_CORE_UTIL_TEST_CONFIG_H */
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */
