@@ -41,5 +41,5 @@ git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
 cd /var/local/git/grpc
 nvm use 0.12
 rvm use ruby-2.1
-
-setarch $arch tools/run_tests/run_tests.py -t -c $config -l $language -x report.xml
+tools/run_tests/prepare_travis.sh
+$arch tools/run_tests/run_tests.py -t -c $config -l $language -x report.xml

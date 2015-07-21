@@ -10633,6 +10633,23 @@
       "grpc"
     ], 
     "headers": [
+      "include/grpc/grpc_zookeeper.h", 
+      "src/core/client_config/resolvers/zookeeper_resolver.h"
+    ], 
+    "language": "c", 
+    "name": "grpc_zookeeper", 
+    "src": [
+      "include/grpc/grpc_zookeeper.h", 
+      "src/core/client_config/resolvers/zookeeper_resolver.c", 
+      "src/core/client_config/resolvers/zookeeper_resolver.h"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "grpc"
+    ], 
+    "headers": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
       "include/grpc++/auth_context.h", 
