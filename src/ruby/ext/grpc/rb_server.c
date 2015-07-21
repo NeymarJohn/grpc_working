@@ -68,8 +68,12 @@ static void grpc_rb_server_free(void *p) {
 
   /* Deletes the wrapped object if the mark object is Qnil, which indicates
      that no other object is the actual owner. */
+  /* grpc_server_shutdown does not exist. Change this to something that does
+     or delete it */
   if (svr->wrapped != NULL && svr->mark == Qnil) {
-    grpc_server_shutdown(svr->wrapped);
+    // grpc_server_shutdown(svr->wrapped);
+    // Aborting to indicate a bug
+    abort();
     grpc_server_destroy(svr->wrapped);
   }
 
@@ -90,7 +94,8 @@ static void grpc_rb_server_mark(void *p) {
 
 static const rb_data_type_t grpc_rb_server_data_type = {
     "grpc_server",
-    {grpc_rb_server_mark, grpc_rb_server_free, GRPC_RB_MEMSIZE_UNAVAILABLE},
+    {grpc_rb_server_mark, grpc_rb_server_free, GRPC_RB_MEMSIZE_UNAVAILABLE,
+     {NULL, NULL}},
     NULL,
     NULL,
     /* It is unsafe to specify RUBY_TYPED_FREE_IMMEDIATELY because the free function would block

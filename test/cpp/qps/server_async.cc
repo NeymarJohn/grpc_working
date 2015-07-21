@@ -45,6 +45,7 @@
 #include <grpc/support/host_port.h>
 #include <grpc++/async_unary_call.h>
 #include <grpc++/config.h>
+#include <grpc++/fixed_size_thread_pool.h>
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
@@ -52,7 +53,6 @@
 #include <grpc++/status.h>
 #include <grpc++/stream.h>
 #include <gtest/gtest.h>
-#include "src/cpp/server/thread_pool.h"
 #include "test/cpp/qps/qpstest.grpc.pb.h"
 #include "test/cpp/qps/server.h"
 
@@ -64,7 +64,7 @@ namespace testing {
 
 class AsyncQpsServerTest : public Server {
  public:
-  AsyncQpsServerTest(const ServerConfig &config, int port) : shutdown_(false) {
+  AsyncQpsServerTest(const ServerConfig &config, int port) {
     char *server_address = NULL;
     gpr_join_host_port(&server_address, "::", port);
 
@@ -80,7 +80,7 @@ class AsyncQpsServerTest : public Server {
     server_ = builder.BuildAndStart();
 
     using namespace std::placeholders;
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10000 / config.threads(); i++) {
       for (int j = 0; j < config.threads(); j++) {
         auto request_unary = std::bind(
             &TestService::AsyncService::RequestUnaryCall, &async_service_, _1,
@@ -97,6 +97,9 @@ class AsyncQpsServerTest : public Server {
       }
     }
     for (int i = 0; i < config.threads(); i++) {
+      shutdown_state_.emplace_back(new PerThreadShutdownState());
+    }
+    for (int i = 0; i < config.threads(); i++) {
       threads_.push_back(std::thread([=]() {
         // Wait until work is available or we are shutting down
         bool ok;
@@ -105,11 +108,9 @@ class AsyncQpsServerTest : public Server {
           ServerRpcContext *ctx = detag(got_tag);
           // The tag is a pointer to an RPC context to invoke
           bool still_going = ctx->RunNextState(ok);
-          std::unique_lock<std::mutex> g(shutdown_mutex_);
-          if (!shutdown_) {
+          if (!shutdown_state_[i]->shutdown()) {
             // this RPC context is done, so refresh it
             if (!still_going) {
-              g.unlock();
               ctx->Reset();
             }
           } else {
@@ -122,9 +123,8 @@ class AsyncQpsServerTest : public Server {
   }
   ~AsyncQpsServerTest() {
     server_->Shutdown();
-    {
-      std::lock_guard<std::mutex> g(shutdown_mutex_);
-      shutdown_ = true;
+    for (auto ss = shutdown_state_.begin(); ss != shutdown_state_.end(); ++ss) {
+      (*ss)->set_shutdown();
     }
     for (auto thr = threads_.begin(); thr != threads_.end(); thr++) {
       thr->join();
@@ -316,8 +316,25 @@ class AsyncQpsServerTest : public Server {
   TestService::AsyncService async_service_;
   std::forward_list<ServerRpcContext *> contexts_;
 
-  std::mutex shutdown_mutex_;
-  bool shutdown_;
+  class PerThreadShutdownState {
+   public:
+    PerThreadShutdownState() : shutdown_(false) {}
+
+    bool shutdown() const {
+      std::lock_guard<std::mutex> lock(mutex_);
+      return shutdown_;
+    }
+
+    void set_shutdown() {
+      std::lock_guard<std::mutex> lock(mutex_);
+      shutdown_ = true;
+    }
+
+   private:
+    mutable std::mutex mutex_;
+    bool shutdown_;
+  };
+  std::vector<std::unique_ptr<PerThreadShutdownState>> shutdown_state_;
 };
 
 std::unique_ptr<Server> CreateAsyncServer(const ServerConfig &config,

@@ -392,17 +392,109 @@ Asserts:
 * clients are free to assert that the response payload body contents are zero
   and comparing the entire response message against a golden response
 
-### custom_metadata
+### oauth2_auth_token
 
-This test verifies that custom metadata in either binary or ascii format can be
-sent as initial-metadata by the client and as both initial- and trailing-metadata
-by the server.
+Similar to the other auth tests, this test is only for cloud-to-prod path.
+
+This test verifies unary calls succeed in sending messages using an OAuth2 token
+that is obtained out of band. For the purpose of the test, the OAuth2 token is
+actually obtained from the service account credentials via the
+language-specific authorization library.
+
+The difference between this test and the other auth tests is that rather than
+configuring the test client with ServiceAccountCredentials directly, the test
+first uses the authorization library to obtain an authorization token.
+
+The test
+- uses the flag `--service_account_key_file` with the path to a json key file
+downloaded from https://console.developers.google.com. Alternately, if using a
+usable auth implementation, it may specify the file location in the environment
+variable GOOGLE_APPLICATION_CREDENTIALS
+- uses the flag `--oauth_scope` for the oauth scope.  For testing against
+grpc-test.sandbox.google.com, "https://www.googleapis.com/auth/xapi.zoo" should
+be passed as the `--oauth_scope`.
 
 Server features:
 * [UnaryCall][]
-* [FullDuplexCall][]
 * [Compressable Payload][]
-* [Echo Metadata][]
+* [Echo Authenticated Username][]
+* [Echo OAuth Scope][]
+
+Procedure:
+ 1. Client uses the auth library to obtain an authorization token
+ 2. Client configures the channel to use AccessTokenCredentials with the access token obtained in step 1.
+ 3. Client calls UnaryCall with the following message
+
+    ```
+    {
+      fill_username: true
+      fill_oauth_scope: true
+    }
+    ```
+    
+Asserts:
+* call was successful
+* received SimpleResponse.username is in the json key file used by the auth
+library to obtain the authorization token
+* received SimpleResponse.oauth_scope is in `--oauth_scope`
+
+### per_rpc_creds
+
+Similar to the other auth tests, this test is only for cloud-to-prod path.
+
+This test verifies unary calls succeed in sending messages using an OAuth2 token
+that is obtained out of band. For the purpose of the test, the OAuth2 token is
+actually obtained from the service account credentials via the
+language-specific authorization library.
+
+The test
+- uses the flag `--service_account_key_file` with the path to a json key file
+downloaded from https://console.developers.google.com. Alternately, if using a
+usable auth implementation, it may specify the file location in the environment
+variable GOOGLE_APPLICATION_CREDENTIALS
+- uses the flag `--oauth_scope` for the oauth scope.  For testing against
+grpc-test.sandbox.google.com, "https://www.googleapis.com/auth/xapi.zoo" should
+be passed as the `--oauth_scope`.
+
+Server features:
+* [UnaryCall][]
+* [Compressable Payload][]
+* [Echo Authenticated Username][]
+* [Echo OAuth Scope][]
+
+Procedure:
+ 1. Client uses the auth library to obtain an authorization token
+ 2. Client configures the channel with just SSL credentials.
+ 3. Client calls UnaryCall, setting per-call credentials to
+ AccessTokenCredentials with the access token obtained in step 1. The request is
+ the following message
+
+    ```
+    {
+      fill_username: true
+      fill_oauth_scope: true
+    }
+    ```
+    
+Asserts:
+* call was successful
+* received SimpleResponse.username is in the json key file used by the auth
+library to obtain the authorization token
+* received SimpleResponse.oauth_scope is in `--oauth_scope`
+
+
+### Metadata (TODO: fix name)
+
+Status: Not yet implementable
+
+This test verifies that custom metadata in either binary or ascii format can be
+sent in header and trailer.
+
+Server features:
+* [UnaryCall][]
+* [Compressable Payload][]
+* Ability to receive custom metadata from client in header and send custom data
+  back to client in both header and trailer. (TODO: this is not defined)
 
 Procedure:
  1. While sending custom metadata (ascii + binary) in the header, client calls
@@ -417,29 +509,21 @@ Procedure:
       }
     }
     ```
-The client attaches custom metadata with the following keys and values:
-    ```
-    key: "x-grpc-test-echo-initial", value: "test_initial_metadata_value"
-    key: "x-grpc-test-echo-trailing", value: 0xababab
-    ```
- 2. Client repeats step 1. with FullDuplexCall instead of UnaryCall.
 
 Asserts:
 * call was successful
-* metadata with key `"x-grpc-test-echo-initial"` and value `"test_initial_metadata_value"`is received in the initial metadata.
-* metadata with key `"x-grpc-test-echo-trailing"` and value `0xababab` is received in the trailing metadata.
-
-
+* custom metadata is echoed back in the response header.
+* custom metadata is echoed back in the response trailer.
 
 ### status_code_and_message
+
+Status: Not yet implementable
 
 This test verifies unary calls succeed in sending messages, and propagates back
 status code and message sent along with the messages.
 
 Server features:
 * [UnaryCall][]
-* [FullDuplexCall][]
-* [Echo Status][]
 
 Procedure:
  1. Client calls UnaryCall with:
@@ -452,8 +536,6 @@ Procedure:
       }
     }
     ```
-2. Client repeats step 1. with FullDuplexCall instead of UnaryCall.
-
 
 Asserts:
 * received status code is the same with sent code
@@ -461,15 +543,21 @@ Asserts:
 
 ### unimplemented_method
 
-Status: Ready for implementation. Blocking beta.
+Status: Not yet implementable
 
-This test verifies calling unimplemented RPC method returns the UNIMPLEMENTED status code.
+This test verifies calling unimplemented RPC method returns unimplemented
+status.
 
 Procedure:
-* Client calls UnimplementedCall with an empty request (defined as `grpc.testing.Empty`):
+* Client calls UnimplementedCall with:
 
     ```
     {
+      response_type: COMPRESSABLE
+      response_size: 314159
+      payload:{
+        body: 271828 bytes of zeros
+      }
     }
     ```
 
@@ -562,11 +650,6 @@ pushback (i.e., attempts to send succeed only after appropriate delays).
 Propagation of status code and message (yangg)
 
 Multiple thousand simultaneous calls on same Channel (ctiller)
-
-OAuth2 tokens + Service Credentials from GCE metadata server (GCE->prod only)
-(abhishek)
-
-OAuth2 tokens + JWT signing key (GCE->prod only) (abhishek)
 
 Metadata: client headers, server headers + trailers, binary+ascii
 
@@ -683,22 +766,6 @@ responses, it closes with OK.
 When the client requests COMPRESSABLE payload, the response includes a payload
 of the size requested containing all zeros and the payload type is
 COMPRESSABLE.
-
-### Echo Status
-[Echo Status]: #echo-status
-When the client sends a response_status in the request payload, the server closes
-the stream with the status code and messsage contained within said response_status.
-The server will not process any further messages on the stream sent by the client.
-This can be used by clients to verify correct handling of different status codes and
-associated status messages end-to-end.
-
-### Echo Metadata
-[Echo Metadata]: #echo-metadata
-When the client sends metadata with the key `"x-grpc-test-echo-initial"` with its
-request, the server sends back exactly this key and the corresponding value back to
-the client as part of initial metadata. When the client sends metadata with the key
-`"x-grpc-test-echo-trailing"` with its request, the server sends back exactly this
-key and the corresponding value back to the client as trailing metadata.
 
 ### Observe ResponseParameters.interval_us
 [Observe ResponseParameters.interval_us]: #observe-responseparametersinterval_us

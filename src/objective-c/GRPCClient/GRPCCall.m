@@ -34,13 +34,11 @@
 #import "GRPCCall.h"
 
 #include <grpc/grpc.h>
-#include <grpc/support/grpc_time.h>
+#include <grpc/support/time.h>
+#import <RxLibrary/GRXConcurrentWriteable.h>
 
-#import "GRPCMethodName.h"
 #import "private/GRPCChannel.h"
 #import "private/GRPCCompletionQueue.h"
-#import "private/GRPCDelegateWrapper.h"
-#import "private/GRPCMethodName+HTTP2Encoding.h"
 #import "private/GRPCWrappedCall.h"
 #import "private/NSData+GRPC.h"
 #import "private/NSDictionary+GRPC.h"
@@ -80,8 +78,12 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
   // do. Particularly, in the face of errors, there's no ordering guarantee at
   // all. This wrapper over our actual writeable ensures thread-safety and
   // correct ordering.
-  GRPCDelegateWrapper *_responseWriteable;
-  id<GRXWriter> _requestWriter;
+  GRXConcurrentWriteable *_responseWriteable;
+  GRXWriter *_requestWriter;
+
+  // To create a retain cycle when a call is started, up until it finishes. See
+  // |startWithWriteable:| and |finishWithError:|.
+  GRPCCall *_self;
 
   NSMutableDictionary *_requestMetadata;
   NSMutableDictionary *_responseMetadata;
@@ -90,14 +92,14 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
 @synthesize state = _state;
 
 - (instancetype)init {
-  return [self initWithHost:nil method:nil requestsWriter:nil];
+  return [self initWithHost:nil path:nil requestsWriter:nil];
 }
 
 // Designated initializer
 - (instancetype)initWithHost:(NSString *)host
-                      method:(GRPCMethodName *)method
-              requestsWriter:(id<GRXWriter>)requestWriter {
-  if (!host || !method) {
+                        path:(NSString *)path
+              requestsWriter:(GRXWriter *)requestWriter {
+  if (!host || !path) {
     [NSException raise:NSInvalidArgumentException format:@"Neither host nor method can be nil."];
   }
   if (requestWriter.state != GRXWriterStateNotStarted) {
@@ -114,7 +116,7 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
     _channel = [GRPCChannel channelToHost:host];
 
     _wrappedCall = [[GRPCWrappedCall alloc] initWithChannel:_channel
-                                                     method:method.HTTP2Path
+                                                       path:path
                                                        host:host];
 
     // Serial queue to invoke the non-reentrant methods of the grpc_call object.
@@ -145,8 +147,13 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
 #pragma mark Finish
 
 - (void)finishWithError:(NSError *)errorOrNil {
+  // If the call isn't retained anywhere else, it can be deallocated now.
+  _self = nil;
+
+  // If there were still request messages coming, stop them.
   _requestWriter.state = GRXWriterStateFinished;
   _requestWriter = nil;
+
   if (errorOrNil) {
     [_responseWriteable cancelWithError:errorOrNil];
   } else {
@@ -193,7 +200,7 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
     return;
   }
   __weak GRPCCall *weakSelf = self;
-  __weak GRPCDelegateWrapper *weakWriteable = _responseWriteable;
+  __weak GRXConcurrentWriteable *weakWriteable = _responseWriteable;
 
   dispatch_async(_callQueue, ^{
     [weakSelf startReadWithHandler:^(grpc_byte_buffer *message) {
@@ -218,7 +225,7 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
         [weakSelf cancelCall];
         return;
       }
-      [weakWriteable enqueueMessage:data completionHandler:^{
+      [weakWriteable enqueueValue:data completionHandler:^{
         [weakSelf startNextRead];
       }];
     }];
@@ -278,6 +285,7 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
 }
 
 - (void)writesFinishedWithError:(NSError *)errorOrNil {
+  _requestWriter = nil;
   if (errorOrNil) {
     [self cancel];
   } else {
@@ -337,12 +345,14 @@ NSString * const kGRPCStatusMetadataKey = @"io.grpc.StatusMetadataKey";
 #pragma mark GRXWriter implementation
 
 - (void)startWithWriteable:(id<GRXWriteable>)writeable {
-  // The following produces a retain cycle self:_responseWriteable:self, which is only
-  // broken when writesFinishedWithError: is sent to the wrapped writeable.
-  // Care is taken not to retain self strongly in any of the blocks used in
-  // the implementation of GRPCCall, so that the life of the instance is
-  // determined by this retain cycle.
-  _responseWriteable = [[GRPCDelegateWrapper alloc] initWithWriteable:writeable writer:self];
+  // Create a retain cycle so that this instance lives until the RPC finishes (or is cancelled).
+  // This makes RPCs in which the call isn't externally retained possible (as long as it is started
+  // before being autoreleased).
+  // Care is taken not to retain self strongly in any of the blocks used in this implementation, so
+  // that the life of the instance is determined by this retain cycle.
+  _self = self;
+
+  _responseWriteable = [[GRXConcurrentWriteable alloc] initWithWriteable:writeable];
   [self sendHeaders:_requestMetadata];
   [self invokeCall];
 }
