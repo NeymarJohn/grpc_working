@@ -36,9 +36,11 @@
 #include <memory>
 
 #include <gflags/gflags.h>
-#include "test/core/end2end/data/ssl_test_data.h"
 #include <grpc++/config.h>
 #include <grpc++/server_credentials.h>
+
+#include "src/core/surface/call.h"
+#include "test/core/end2end/data/ssl_test_data.h"
 
 DECLARE_bool(enable_ssl);
 
@@ -58,16 +60,21 @@ std::shared_ptr<ServerCredentials> CreateInteropServerCredentials() {
   }
 }
 
-InteropContextInspector::InteropContextInspector(
+InteropServerContextInspector::InteropServerContextInspector(
     const ::grpc::ServerContext& context)
     : context_(context) {}
 
-std::shared_ptr<const AuthContext> InteropContextInspector::GetAuthContext()
+grpc_compression_algorithm
+InteropServerContextInspector::GetCallCompressionAlgorithm() const {
+  return grpc_call_get_compression_algorithm(context_.call_);
+}
+
+std::shared_ptr<const AuthContext> InteropServerContextInspector::GetAuthContext()
     const {
   return context_.auth_context();
 }
 
-bool InteropContextInspector::IsCancelled() const {
+bool InteropServerContextInspector::IsCancelled() const {
   return context_.IsCancelled();
 }
 
