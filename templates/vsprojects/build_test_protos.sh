@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -27,29 +28,15 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# This script is invoked by Jenkins and triggers a test run of
-# linuxbrew installation of a selected language
-set -ex
 
-sha1=$(sha1sum tools/jenkins/grpc_linuxbrew/Dockerfile | cut -f1 -d\ )
-DOCKER_IMAGE_NAME=grpc_linuxbrew_$sha1
+GRPC_CPP_PLUGIN_PATH=`which grpc_cpp_plugin`
 
-docker build -t $DOCKER_IMAGE_NAME tools/jenkins/grpc_linuxbrew
+cd `dirname $0`/../..
 
-supported="python nodejs ruby php"
-
-if [ "$language" == "core" ]; then
-  command="curl -fsSL https://goo.gl/getgrpc | bash -"
-elif [[ "$supported" =~ "$language" ]]; then
-  command="curl -fsSL https://goo.gl/getgrpc | bash -s $language"
-else
-  echo "unsupported language $language"
-  exit 1
-fi
-
-docker run $DOCKER_IMAGE_NAME bash -l \
-  -c "nvm use 0.12; \
-      npm set unsafe-perm true; \
-      rvm use ruby-2.1; \
-      $command"
+find ./test -type f -name "*.proto" |
+while read p ; do
+  echo "processing $p"
+  DIR=$(dirname "$p")
+  protoc $p --grpc_out=./ --plugin=protoc-gen-grpc=$GRPC_CPP_PLUGIN_PATH
+  protoc $p --cpp_out=./
+done

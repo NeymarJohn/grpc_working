@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,22 +28,49 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 set -e
 
-cd $(dirname $0)
+if [ "x$TEST" = "x" ] ; then
+  TEST=false
+fi
 
-# TODO(jcanizales): Remove when Cocoapods issue #3823 is resolved.
-export COCOAPODS_DISABLE_DETERMINISTIC_UUIDS=YES
-pod install
 
-# xcodebuild is very verbose. We filter its output and tell Bash to fail if any
-# element of the pipe fails.
-# TODO(jcanizales): Use xctool instead? Issue #2540.
-set -o pipefail
-XCODEBUILD_FILTER='(^===|^\*\*|\bfatal\b|\berror\b|\bwarning\b|\bfail)'
-xcodebuild \
-    -workspace Tests.xcworkspace \
-    -scheme AllTests \
-    -destination name="iPhone 6" \
-    test \
-    | egrep "$XCODEBUILD_FILTER" -
+cd `dirname $0`/../..
+mako_renderer=tools/buildgen/mako_renderer.py
+
+if [ "x$TEST" != "x" ] ; then
+  tools/buildgen/build-cleaner.py build.json
+fi
+
+. tools/buildgen/generate_build_additions.sh
+
+global_plugins=`find ./tools/buildgen/plugins -name '*.py' |
+  sort | grep -v __init__ | awk ' { printf "-p %s ", $0 } '`
+
+for dir in . ; do
+  local_plugins=`find $dir/templates -name '*.py' |
+    sort | grep -v __init__ | awk ' { printf "-p %s ", $0 } '`
+
+  plugins="$global_plugins $local_plugins"
+
+  find -L $dir/templates -type f -and -name *.template | while read file ; do
+    out=${dir}/${file#$dir/templates/}  # strip templates dir prefix
+    out=${out%.*}  # strip template extension
+    echo "generating file: $out"
+    json_files="build.json $gen_build_files"
+    data=`for i in $json_files ; do echo $i ; done | awk ' { printf "-d %s ", $0 } '`
+    if [ "x$TEST" = "xtrue" ] ; then
+      actual_out=$out
+      out=`mktemp /tmp/gentXXXXXX`
+    fi
+    mkdir -p `dirname $out`  # make sure dest directory exist
+    $mako_renderer $plugins $data -o $out $file
+    if [ "x$TEST" = "xtrue" ] ; then
+      diff -q $out $actual_out
+      rm $out
+    fi
+  done
+done
+
+rm $gen_build_files
