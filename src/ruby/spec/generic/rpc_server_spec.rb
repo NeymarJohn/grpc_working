@@ -35,14 +35,6 @@ def load_test_certs
   files.map { |f| File.open(File.join(test_root, f)).read }
 end
 
-def check_md(wanted_md, received_md)
-  wanted_md.zip(received_md).each do |w, r|
-    w.each do |key, value|
-      expect(r[key]).to eq(value)
-    end
-  end
-end
-
 # A test message
 class EchoMsg
   def self.marshal(_o)
@@ -384,7 +376,7 @@ describe GRPC::RpcServer do
         stub = EchoStub.new(@host, **client_opts)
         expect(stub.an_rpc(req, k1: 'v1', k2: 'v2')).to be_a(EchoMsg)
         wanted_md = [{ 'k1' => 'v1', 'k2' => 'v2' }]
-        check_md(wanted_md, service.received_md)
+        expect(service.received_md).to eq(wanted_md)
         @srv.stop
         t.join
       end
@@ -399,7 +391,7 @@ describe GRPC::RpcServer do
         deadline = service.delay + 1.0 # wait for long enough
         expect(stub.an_rpc(req, deadline, k1: 'v1', k2: 'v2')).to be_a(EchoMsg)
         wanted_md = [{ 'k1' => 'v1', 'k2' => 'v2' }]
-        check_md(wanted_md, service.received_md)
+        expect(service.received_md).to eq(wanted_md)
         @srv.stop
         t.join
       end
@@ -451,7 +443,7 @@ describe GRPC::RpcServer do
         expect(stub.an_rpc(req, k1: 'v1', k2: 'v2')).to be_a(EchoMsg)
         wanted_md = [{ 'k1' => 'updated-v1', 'k2' => 'v2',
                        'jwt_aud_uri' => "https://#{@host}/EchoService" }]
-        check_md(wanted_md, service.received_md)
+        expect(service.received_md).to eq(wanted_md)
         @srv.stop
         t.join
       end
@@ -543,9 +535,7 @@ describe GRPC::RpcServer do
           'method' => '/EchoService/an_rpc',
           'connect_k1' => 'connect_v1'
         }
-        wanted_md.each do |key, value|
-          expect(op.metadata[key]).to eq(value)
-        end
+        expect(op.metadata).to eq(wanted_md)
         @srv.stop
         t.join
       end

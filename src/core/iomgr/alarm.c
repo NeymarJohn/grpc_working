@@ -36,7 +36,6 @@
 #include "src/core/iomgr/alarm_heap.h"
 #include "src/core/iomgr/alarm_internal.h"
 #include "src/core/iomgr/time_averaged_stats.h"
-#include <grpc/support/log.h>
 #include <grpc/support/sync.h>
 #include <grpc/support/useful.h>
 
@@ -68,7 +67,6 @@ typedef struct {
 static gpr_mu g_mu;
 /* Allow only one run_some_expired_alarms at once */
 static gpr_mu g_checker_mu;
-static gpr_clock_type g_clock_type;
 static shard_type g_shards[NUM_SHARDS];
 /* Protected by g_mu */
 static shard_type *g_shard_queue[NUM_SHARDS];
@@ -87,7 +85,6 @@ void grpc_alarm_list_init(gpr_timespec now) {
 
   gpr_mu_init(&g_mu);
   gpr_mu_init(&g_checker_mu);
-  g_clock_type = now.clock_type;
 
   for (i = 0; i < NUM_SHARDS; i++) {
     shard_type *shard = &g_shards[i];
@@ -105,7 +102,7 @@ void grpc_alarm_list_init(gpr_timespec now) {
 
 void grpc_alarm_list_shutdown(void) {
   int i;
-  while (run_some_expired_alarms(NULL, gpr_inf_future(g_clock_type), NULL,
+  while (run_some_expired_alarms(NULL, gpr_inf_future(GPR_CLOCK_REALTIME), NULL,
                                  0))
     ;
   for (i = 0; i < NUM_SHARDS; i++) {
@@ -178,8 +175,6 @@ void grpc_alarm_init(grpc_alarm *alarm, gpr_timespec deadline,
                      gpr_timespec now) {
   int is_first_alarm = 0;
   shard_type *shard = &g_shards[shard_idx(alarm)];
-  GPR_ASSERT(deadline.clock_type == g_clock_type);
-  GPR_ASSERT(now.clock_type == g_clock_type);
   alarm->cb = alarm_cb;
   alarm->cb_arg = alarm_cb_arg;
   alarm->deadline = deadline;
@@ -360,7 +355,6 @@ static int run_some_expired_alarms(gpr_mu *drop_mu, gpr_timespec now,
 }
 
 int grpc_alarm_check(gpr_mu *drop_mu, gpr_timespec now, gpr_timespec *next) {
-  GPR_ASSERT(now.clock_type == g_clock_type);
   return run_some_expired_alarms(drop_mu, now, next, 1);
 }
 
