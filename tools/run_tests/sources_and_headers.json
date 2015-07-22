@@ -10975,9 +10975,7 @@
       "grpc_test_util"
     ], 
     "headers": [
-      "test/cpp/interop/client_helper.h", 
-      "test/proto/messages.grpc.pb.h", 
-      "test/proto/messages.pb.h"
+      "test/cpp/interop/client_helper.h"
     ], 
     "language": "c++", 
     "name": "interop_client_helper", 

@@ -71,10 +71,6 @@ class ClientAsyncReaderWriter;
 template <class R>
 class ClientAsyncResponseReader;
 
-namespace testing {
-class InteropClientContextInspector;
-}  // namespace testing
-
 class ClientContext {
  public:
   ClientContext();
@@ -133,7 +129,6 @@ class ClientContext {
   ClientContext(const ClientContext&);
   ClientContext& operator=(const ClientContext&);
 
-  friend class ::grpc::testing::InteropClientContextInspector;
   friend class CallOpClientRecvStatus;
   friend class CallOpRecvInitialMetadata;
   friend class Channel;
