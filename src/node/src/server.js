@@ -107,10 +107,8 @@ function waitForCancel(call, emitter) {
  * @param {function(*):Buffer=} serialize Serialization function for the
  *     response
  * @param {Object=} metadata Optional trailing metadata to send with status
- * @param {number=} flags Flags for modifying how the message is sent.
- *     Defaults to 0.
  */
-function sendUnaryResponse(call, value, serialize, metadata, flags) {
+function sendUnaryResponse(call, value, serialize, metadata) {
   var end_batch = {};
   var status = {
     code: grpc.status.OK,
@@ -124,9 +122,7 @@ function sendUnaryResponse(call, value, serialize, metadata, flags) {
     end_batch[grpc.opType.SEND_INITIAL_METADATA] = {};
     call.metadataSent = true;
   }
-  var message = serialize(value);
-  message.grpcWriteFlags = flags;
-  end_batch[grpc.opType.SEND_MESSAGE] = message;
+  end_batch[grpc.opType.SEND_MESSAGE] = serialize(value);
   end_batch[grpc.opType.SEND_STATUS_FROM_SERVER] = status;
   call.startBatch(end_batch, function (){});
 }
@@ -247,7 +243,7 @@ function ServerWritableStream(call, serialize) {
  * Start writing a chunk of data. This is an implementation of a method required
  * for implementing stream.Writable.
  * @param {Buffer} chunk The chunk of data to write
- * @param {string} encoding Used to pass write flags
+ * @param {string} encoding Ignored
  * @param {function(Error=)} callback Callback to indicate that the write is
  *     complete
  */
@@ -258,9 +254,7 @@ function _write(chunk, encoding, callback) {
     batch[grpc.opType.SEND_INITIAL_METADATA] = {};
     this.call.metadataSent = true;
   }
-  var message = this.serialize(chunk);
-  message.grpcWriteFlags = encoding;
-  batch[grpc.opType.SEND_MESSAGE] = message;
+  batch[grpc.opType.SEND_MESSAGE] = this.serialize(chunk);
   this.call.startBatch(batch, function(err, value) {
     if (err) {
       this.emit('error', err);
@@ -417,14 +411,14 @@ function handleUnary(call, handler, metadata) {
     if (emitter.cancelled) {
       return;
     }
-    handler.func(emitter, function sendUnaryData(err, value, trailer, flags) {
+    handler.func(emitter, function sendUnaryData(err, value, trailer) {
       if (err) {
         if (trailer) {
           err.metadata = trailer;
         }
         handleError(call, err);
       } else {
-        sendUnaryResponse(call, value, handler.serialize, trailer, flags);
+        sendUnaryResponse(call, value, handler.serialize, trailer);
       }
     });
   });
@@ -479,7 +473,7 @@ function handleClientStreaming(call, handler, metadata) {
   });
   waitForCancel(call, stream);
   stream.metadata = metadata;
-  handler.func(stream, function(err, value, trailer, flags) {
+  handler.func(stream, function(err, value, trailer) {
     stream.terminate();
     if (err) {
       if (trailer) {
@@ -487,7 +481,7 @@ function handleClientStreaming(call, handler, metadata) {
       }
       handleError(call, err);
     } else {
-      sendUnaryResponse(call, value, handler.serialize, trailer, flags);
+      sendUnaryResponse(call, value, handler.serialize, trailer);
     }
   });
 }

@@ -31,44 +31,13 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_UTIL_TEST_CONFIG_H
-#define GRPC_TEST_CORE_UTIL_TEST_CONFIG_H
+/* This is just a compilation test, to see if we have Zookeeper C client
+   library installed. */
 
-#include <grpc/support/time.h>
+#include <stdlib.h>
+#include <zookeeper/zookeeper.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif /*  __cplusplus */
-
-#ifndef GRPC_TEST_SLOWDOWN_BUILD_FACTOR
-#define GRPC_TEST_SLOWDOWN_BUILD_FACTOR 1.0
-#endif
-
-#ifndef GRPC_TEST_SLOWDOWN_MACHINE_FACTOR
-#define GRPC_TEST_SLOWDOWN_MACHINE_FACTOR 1.0
-#endif
-
-#define GRPC_TEST_SLOWDOWN_FACTOR \
-  (GRPC_TEST_SLOWDOWN_BUILD_FACTOR * GRPC_TEST_SLOWDOWN_MACHINE_FACTOR)
-
-#define GRPC_TIMEOUT_SECONDS_TO_DEADLINE(x)                                \
-  gpr_time_add(gpr_now(GPR_CLOCK_REALTIME),                                \
-               gpr_time_from_micros(GRPC_TEST_SLOWDOWN_FACTOR * 1e6 * (x), \
-                                    GPR_TIMESPAN))
-
-#define GRPC_TIMEOUT_MILLIS_TO_DEADLINE(x)                                 \
-  gpr_time_add(gpr_now(GPR_CLOCK_REALTIME),                                \
-               gpr_time_from_micros(GRPC_TEST_SLOWDOWN_FACTOR * 1e3 * (x), \
-                                    GPR_TIMESPAN))
-
-#ifndef GRPC_TEST_CUSTOM_PICK_PORT
-#define GRPC_TEST_PICK_PORT
-#endif
-
-void grpc_test_init(int argc, char **argv);
-
-#ifdef __cplusplus
+int main() {
+  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
+  return 0;
 }
-#endif /*  __cplusplus */
-
-#endif /* GRPC_TEST_CORE_UTIL_TEST_CONFIG_H */
