@@ -76,15 +76,28 @@
 }
 
 + (GRXWriter *)writerWithValue:(id)value {
-  return [self writerWithEnumerator:[NSEnumerator grx_enumeratorWithSingleValue:value]];
+  if (value) {
+    return [self writerWithEnumerator:[NSEnumerator grx_enumeratorWithSingleValue:value]];
+  } else {
+    return [self emptyWriter];
+  }
 }
 
 + (GRXWriter *)writerWithError:(NSError *)error {
-  return [self writerWithEnumerator:nil error:error];
+  if (error) {
+    return [self writerWithEnumerator:nil error:error];
+  } else {
+    return [self emptyWriter];
+  }
 }
 
 + (GRXWriter *)emptyWriter {
-  return [self writerWithEnumerator:nil error:nil];
+  static GRXImmediateWriter *emptyWriter;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    emptyWriter = [self writerWithEnumerator:nil error:nil];
+  });
+  return emptyWriter;
 }
 
 #pragma mark Conformance with GRXWriter

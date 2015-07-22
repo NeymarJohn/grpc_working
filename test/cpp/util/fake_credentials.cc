@@ -31,60 +31,28 @@
  *
  */
 
-#ifndef GRPCXX_CHANNEL_ARGUMENTS_H
-#define GRPCXX_CHANNEL_ARGUMENTS_H
-
-#include <vector>
-#include <list>
-
-#include <grpc++/config.h>
-#include <grpc/compression.h>
-#include <grpc/grpc.h>
+#include <grpc/grpc_security.h>
+#include <grpc++/channel_arguments.h>
+#include <grpc++/credentials.h>
+#include <grpc++/server_credentials.h>
+#include "src/cpp/client/channel.h"
+#include "src/cpp/client/secure_credentials.h"
+#include "src/cpp/server/secure_server_credentials.h"
 
 namespace grpc {
 namespace testing {
-class ChannelArgumentsTest;
+
+std::shared_ptr<Credentials> FakeTransportSecurityCredentials() {
+  grpc_credentials* c_creds = grpc_fake_transport_security_credentials_create();
+  return std::shared_ptr<Credentials>(new SecureCredentials(c_creds));
+}
+
+std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials() {
+  grpc_server_credentials* c_creds =
+      grpc_fake_transport_security_server_credentials_create();
+  return std::shared_ptr<ServerCredentials>(
+      new SecureServerCredentials(c_creds));
+}
+
 }  // namespace testing
-
-// Options for channel creation. The user can use generic setters to pass
-// key value pairs down to c channel creation code. For grpc related options,
-// concrete setters are provided.
-class ChannelArguments {
- public:
-  ChannelArguments() {}
-  ~ChannelArguments() {}
-
-  // grpc specific channel argument setters
-  // Set target name override for SSL host name checking.
-  void SetSslTargetNameOverride(const grpc::string& name);
-  // TODO(yangg) add flow control options
-
-  // Set the compression algorithm for the channel.
-  void _Experimental_SetCompressionAlgorithm(
-      grpc_compression_algorithm algorithm);
-
-  // Generic channel argument setters. Only for advanced use cases.
-  void SetInt(const grpc::string& key, int value);
-  void SetString(const grpc::string& key, const grpc::string& value);
-
-  // Populates given channel_args with args_, does not take ownership.
-  void SetChannelArgs(grpc_channel_args* channel_args) const;
-
- private:
-  friend class SecureCredentials;
-  friend class testing::ChannelArgumentsTest;
-
-  // TODO(yangg) implement copy and assign
-  ChannelArguments(const ChannelArguments&);
-  ChannelArguments& operator=(const ChannelArguments&);
-
-  // Returns empty string when it is not set.
-  grpc::string GetSslTargetNameOverride() const;
-
-  std::vector<grpc_arg> args_;
-  std::list<grpc::string> strings_;
-};
-
 }  // namespace grpc
-
-#endif  // GRPCXX_CHANNEL_ARGUMENTS_H
