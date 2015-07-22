@@ -76,15 +76,6 @@
   {
     "flaky": false, 
     "language": "c", 
-    "name": "compression_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
     "name": "dualstack_socket_test", 
     "platforms": [
       "posix"

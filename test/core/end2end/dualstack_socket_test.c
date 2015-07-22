@@ -106,7 +106,7 @@ void test_connect(const char *server_host, const char *client_host, int port,
 
   /* Create client. */
   gpr_join_host_port(&client_hostport, client_host, port);
-  client = grpc_channel_create(client_hostport, NULL);
+  client = grpc_insecure_channel_create(client_hostport, NULL);
 
   gpr_log(GPR_INFO, "Testing with server=%s client=%s (expecting %s)",
           server_hostport, client_hostport, expect_ok ? "success" : "failure");
@@ -210,6 +210,10 @@ void test_connect(const char *server_host, const char *client_host, int port,
   grpc_completion_queue_shutdown(cq);
   drain_cq(cq);
   grpc_completion_queue_destroy(cq);
+
+  grpc_metadata_array_destroy(&initial_metadata_recv);
+  grpc_metadata_array_destroy(&trailing_metadata_recv);
+  grpc_metadata_array_destroy(&request_metadata_recv);
 
   grpc_call_details_destroy(&call_details);
   gpr_free(details);
