@@ -66,7 +66,7 @@
 }
 
 - (ProtoRPC *)RPCToMethod:(NSString *)method
-           requestsWriter:(GRXWriter *)requestsWriter
+           requestsWriter:(id<GRXWriter>)requestsWriter
             responseClass:(Class)responseClass
        responsesWriteable:(id<GRXWriteable>)responsesWriteable {
   ProtoMethod *methodName = [[ProtoMethod alloc] initWithPackage:_packageName

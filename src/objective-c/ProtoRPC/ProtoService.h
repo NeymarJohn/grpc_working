@@ -35,7 +35,7 @@
 
 @class ProtoRPC;
 @protocol GRXWriteable;
-@class GRXWriter;
+@protocol GRXWriter;
 
 @interface ProtoService : NSObject
 - (instancetype)initWithHost:(NSString *)host
@@ -43,7 +43,7 @@
                  serviceName:(NSString *)serviceName NS_DESIGNATED_INITIALIZER;
 
 - (ProtoRPC *)RPCToMethod:(NSString *)method
-           requestsWriter:(GRXWriter *)requestsWriter
+           requestsWriter:(id<GRXWriter>)requestsWriter
   	        responseClass:(Class)responseClass
   	   responsesWriteable:(id<GRXWriteable>)responsesWriteable;
 @end

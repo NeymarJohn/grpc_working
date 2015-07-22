@@ -35,11 +35,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
-using System.Threading;
-using System.Threading.Tasks;
 
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Responses;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
@@ -101,19 +98,6 @@ namespace Grpc.Auth
                     Key = privateKey
                 });
             return new GoogleCredential(serviceCredential);
-        }
-
-        public Task<bool> RequestAccessTokenAsync(CancellationToken taskCancellationToken)
-        {
-            return credential.RequestAccessTokenAsync(taskCancellationToken);
-        }
-
-        public TokenResponse Token
-        {
-            get
-            {
-                return credential.Token;
-            }
         }
 
         internal ServiceCredential InternalCredential
