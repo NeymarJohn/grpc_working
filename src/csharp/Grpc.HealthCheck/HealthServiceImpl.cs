@@ -95,7 +95,7 @@ namespace Grpc.HealthCheck
             }
         }
 
-        public Task<HealthCheckResponse> Check(HealthCheckRequest request, ServerCallContext context)
+        public Task<HealthCheckResponse> Check(ServerCallContext context, HealthCheckRequest request)
         {
             lock (myLock)
             {

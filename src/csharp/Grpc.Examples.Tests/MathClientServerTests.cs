@@ -144,7 +144,7 @@ namespace math.Tests
                              n => Num.CreateBuilder().SetNum_(n).Build());
 
                     await call.RequestStream.WriteAll(numbers);
-                    var result = await call.ResponseAsync;
+                    var result = await call.Result;
                     Assert.AreEqual(60, result.Num_);
                 }
             }).Wait();

@@ -219,7 +219,7 @@ namespace Grpc.IntegrationTesting
                 {
                     await call.RequestStream.WriteAll(bodySizes);
 
-                    var response = await call.ResponseAsync;
+                    var response = await call.Result;
                     Assert.AreEqual(74922, response.AggregatedPayloadSize);
                 }
                 Console.WriteLine("Passed!");
@@ -421,7 +421,7 @@ namespace Grpc.IntegrationTesting
 
                     try
                     {
-                        var response = await call.ResponseAsync;
+                        var response = await call.Result;
                         Assert.Fail();
                     }
                     catch (RpcException e)
