@@ -31,64 +31,21 @@
  *
  */
 
-'use strict';
+#ifndef GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
+#define GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
 
-var assert = require('assert');
-var grpc = require('bindings')('grpc.node');
+#include <memory>
 
-describe('server', function() {
-  describe('constructor', function() {
-    it('should work with no arguments', function() {
-      assert.doesNotThrow(function() {
-        new grpc.Server();
-      });
-    });
-    it('should work with an empty list argument', function() {
-      assert.doesNotThrow(function() {
-        new grpc.Server([]);
-      });
-    });
-  });
-  describe('addHttp2Port', function() {
-    var server;
-    before(function() {
-      server = new grpc.Server();
-    });
-    it('should bind to an unused port', function() {
-      var port;
-      assert.doesNotThrow(function() {
-        port = server.addHttp2Port('0.0.0.0:0');
-      });
-      assert(port > 0);
-    });
-  });
-  describe('addSecureHttp2Port', function() {
-    var server;
-    before(function() {
-      server = new grpc.Server();
-    });
-    it('should bind to an unused port with fake credentials', function() {
-      var port;
-      var creds = grpc.ServerCredentials.createFake();
-      assert.doesNotThrow(function() {
-        port = server.addSecureHttp2Port('0.0.0.0:0', creds);
-      });
-      assert(port > 0);
-    });
-  });
-  describe('listen', function() {
-    var server;
-    before(function() {
-      server = new grpc.Server();
-      server.addHttp2Port('0.0.0.0:0');
-    });
-    after(function() {
-      server.shutdown();
-    });
-    it('should listen without error', function() {
-      assert.doesNotThrow(function() {
-        server.start();
-      });
-    });
-  });
-});
+namespace grpc {
+class Credentials;
+class ServerCredentials;
+
+namespace testing {
+
+std::shared_ptr<Credentials> FakeTransportSecurityCredentials();
+std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials();
+
+}  // namespace testing
+}  // namespace grpc
+
+#endif  // GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
