@@ -57,13 +57,15 @@ enum { TIMEOUT = 200000 };
 
 static void *tag(gpr_intptr t) { return (void *)t; }
 
-static grpc_end2end_test_fixture begin_test(
-    grpc_end2end_test_config config, const char *test_name) {
+static grpc_end2end_test_fixture begin_test(grpc_end2end_test_config config,
+                                            const char *test_name,
+                                            grpc_channel_args *client_args,
+                                            grpc_channel_args *server_args) {
   grpc_end2end_test_fixture f;
   gpr_log(GPR_INFO, "%s/%s", test_name, config.name);
-  f = config.create_fixture(NULL, NULL);
-  config.init_client(&f, NULL);
-  config.init_server(&f, NULL);
+  f = config.create_fixture(client_args, server_args);
+  config.init_client(&f, client_args);
+  config.init_server(&f, server_args);
   return f;
 }
 
@@ -125,7 +127,8 @@ static void print_auth_context(int is_client, const grpc_auth_context *ctx) {
 static void test_call_creds_failure(grpc_end2end_test_config config) {
   grpc_call *c;
   grpc_credentials *creds = NULL;
-  grpc_end2end_test_fixture f = begin_test(config, "test_call_creds_failure");
+  grpc_end2end_test_fixture f =
+      begin_test(config, "test_call_creds_failure", NULL, NULL);
   gpr_timespec deadline = five_seconds_time();
   c = grpc_channel_create_call(f.client, f.cq, "/foo", "foo.test.google.fr",
                                deadline);
@@ -154,8 +157,9 @@ static void request_response_with_payload_and_call_creds(
   grpc_byte_buffer *response_payload =
       grpc_raw_byte_buffer_create(&response_payload_slice, 1);
   gpr_timespec deadline = five_seconds_time();
-  grpc_end2end_test_fixture f;
-  cq_verifier *cqv;
+
+  grpc_end2end_test_fixture f = begin_test(config, test_name, NULL, NULL);
+  cq_verifier *cqv = cq_verifier_create(f.cq);
   grpc_op ops[6];
   grpc_op *op;
   grpc_metadata_array initial_metadata_recv;
@@ -170,10 +174,6 @@ static void request_response_with_payload_and_call_creds(
   int was_cancelled = 2;
   grpc_credentials *creds = NULL;
   grpc_auth_context *s_auth_context = NULL;
-  grpc_auth_context *c_auth_context = NULL;
-
-  f = begin_test(config, test_name);
-  cqv = cq_verifier_create(f.cq);
 
   c = grpc_channel_create_call(f.client, f.cq, "/foo", "foo.test.google.fr",
                                deadline);
@@ -240,11 +240,6 @@ static void request_response_with_payload_and_call_creds(
   GPR_ASSERT(s_auth_context != NULL);
   print_auth_context(0, s_auth_context);
   grpc_auth_context_release(s_auth_context);
-
-  c_auth_context = grpc_call_auth_context(c);
-  GPR_ASSERT(c_auth_context != NULL);
-  print_auth_context(1, c_auth_context);
-  grpc_auth_context_release(c_auth_context);
 
   /* Cannot set creds on the server call object. */
   GPR_ASSERT(grpc_call_set_credentials(s, NULL) != GRPC_CALL_OK);
@@ -345,20 +340,20 @@ static void request_response_with_payload_and_call_creds(
   config.tear_down_data(&f);
 }
 
-static void test_request_response_with_payload_and_call_creds(
+void test_request_response_with_payload_and_call_creds(
     grpc_end2end_test_config config) {
   request_response_with_payload_and_call_creds(
       "test_request_response_with_payload_and_call_creds", config, NONE);
 }
 
-static void test_request_response_with_payload_and_overridden_call_creds(
+void test_request_response_with_payload_and_overridden_call_creds(
     grpc_end2end_test_config config) {
   request_response_with_payload_and_call_creds(
       "test_request_response_with_payload_and_overridden_call_creds", config,
       OVERRIDE);
 }
 
-static void test_request_response_with_payload_and_deleted_call_creds(
+void test_request_response_with_payload_and_deleted_call_creds(
     grpc_end2end_test_config config) {
   request_response_with_payload_and_call_creds(
       "test_request_response_with_payload_and_deleted_call_creds", config,
