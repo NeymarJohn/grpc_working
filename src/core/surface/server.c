@@ -530,6 +530,7 @@ static grpc_mdelem *server_filter(void *user_data, grpc_mdelem *md) {
 static void server_on_recv(void *ptr, int success) {
   grpc_call_element *elem = ptr;
   call_data *calld = elem->call_data;
+  gpr_timespec op_deadline;
 
   if (success && !calld->got_initial_metadata) {
     size_t i;
@@ -539,8 +540,9 @@ static void server_on_recv(void *ptr, int success) {
       grpc_stream_op *op = &ops[i];
       if (op->type != GRPC_OP_METADATA) continue;
       grpc_metadata_batch_filter(&op->data.metadata, server_filter, elem);
-      if (0 != gpr_time_cmp(op->data.metadata.deadline,
-                            gpr_inf_future(GPR_CLOCK_REALTIME))) {
+      op_deadline = op->data.metadata.deadline;
+      if (0 !=
+          gpr_time_cmp(op_deadline, gpr_inf_future(op_deadline.clock_type))) {
         calld->deadline = op->data.metadata.deadline;
       }
       calld->got_initial_metadata = 1;
@@ -722,6 +724,7 @@ static const grpc_channel_filter server_surface_filter = {
     sizeof(channel_data),
     init_channel_elem,
     destroy_channel_elem,
+    grpc_call_next_get_peer,
     "server",
 };
 
@@ -878,8 +881,8 @@ void grpc_server_setup_transport(grpc_server *s, grpc_transport *transport,
     grpc_transport_perform_op(transport, &op);
   }
 
-  channel =
-      grpc_channel_create_from_filters(filters, num_filters, args, mdctx, 0);
+  channel = grpc_channel_create_from_filters(NULL, filters, num_filters, args,
+                                             mdctx, 0);
   chand = (channel_data *)grpc_channel_stack_element(
               grpc_channel_get_channel_stack(channel), 0)
               ->channel_data;
