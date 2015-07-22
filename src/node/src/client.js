@@ -47,7 +47,6 @@ var Readable = stream.Readable;
 var Writable = stream.Writable;
 var Duplex = stream.Duplex;
 var util = require('util');
-var version = require('../package.json').version;
 
 util.inherits(ClientWritableStream, Writable);
 
@@ -518,12 +517,9 @@ function makeClientConstructor(methods, serviceName) {
         callback(null, metadata);
       };
     }
-    if (!options) {
-      options = {};
-    }
-    options['grpc.primary_user_agent'] = 'grpc-node/' + version;
-    this.channel = new grpc.Channel(address, options);
+
     this.server_address = address.replace(/\/$/, '');
+    this.channel = new grpc.Channel(address, options);
     this.auth_uri = this.server_address + '/' + serviceName;
     this.updateMetadata = updateMetadata;
   }
