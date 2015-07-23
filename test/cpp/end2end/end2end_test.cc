@@ -249,10 +249,9 @@ class End2endTest : public ::testing::Test {
   void TearDown() GRPC_OVERRIDE { server_->Shutdown(); }
 
   void ResetStub() {
-    ChannelArguments args;
-    args.SetString(GRPC_ARG_SECONDARY_USER_AGENT_STRING, "end2end_test");
-    std::shared_ptr<ChannelInterface> channel = CreateChannel(
-        server_address_.str(), FakeTransportSecurityCredentials(), args);
+    std::shared_ptr<ChannelInterface> channel =
+        CreateChannel(server_address_.str(), FakeTransportSecurityCredentials(),
+                      ChannelArguments());
     stub_ = std::move(grpc::cpp::test::util::TestService::NewStub(channel));
   }
 
@@ -274,7 +273,7 @@ static void SendRpc(grpc::cpp::test::util::TestService::Stub* stub,
 
   for (int i = 0; i < num_rpcs; ++i) {
     ClientContext context;
-    context.set_compression_algorithm(GRPC_COMPRESS_GZIP);
+    context._experimental_set_compression_algorithm(GRPC_COMPRESS_GZIP);
     Status s = stub->Echo(&context, request, &response);
     EXPECT_EQ(response.message(), request.message());
     EXPECT_TRUE(s.ok());

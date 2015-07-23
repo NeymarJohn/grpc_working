@@ -133,9 +133,9 @@ exports.loadObject = loadObject;
 exports.load = load;
 
 /**
- * See docs for Server
+ * See docs for server.makeServerConstructor
  */
-exports.Server = server.Server;
+exports.buildServer = server.makeProtobufServerConstructor;
 
 /**
  * Status name to code number mapping
@@ -159,3 +159,5 @@ exports.ServerCredentials = grpc.ServerCredentials;
 exports.getGoogleAuthDelegate = getGoogleAuthDelegate;
 
 exports.makeGenericClientConstructor = client.makeClientConstructor;
+
+exports.makeGenericServerConstructor = server.makeServerConstructor;

@@ -46,7 +46,7 @@ describe('Interop tests', function() {
   before(function(done) {
     var server_obj = interop_server.getServer(0, true);
     server = server_obj.server;
-    server.start();
+    server.listen();
     port = 'localhost:' + server_obj.port;
     done();
   });
