@@ -62,9 +62,8 @@ struct grpc_completion_queue {
   int is_server_cq;
 };
 
-grpc_completion_queue *grpc_completion_queue_create(void *reserved) {
+grpc_completion_queue *grpc_completion_queue_create(void) {
   grpc_completion_queue *cc = gpr_malloc(sizeof(grpc_completion_queue));
-  (void) reserved;
   memset(cc, 0, sizeof(*cc));
   /* Initial ref is dropped by grpc_completion_queue_shutdown */
   gpr_ref_init(&cc->pending_events, 1);
@@ -146,10 +145,8 @@ void grpc_cq_end_op(grpc_completion_queue *cc, void *tag, int success,
 }
 
 grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
-                                      gpr_timespec deadline,
-                                      void *reserved) {
+                                      gpr_timespec deadline) {
   grpc_event ret;
-  (void) reserved;
 
   deadline = gpr_convert_clock_type(deadline, GPR_CLOCK_MONOTONIC);
 
@@ -188,11 +185,10 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
 }
 
 grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
-                                       gpr_timespec deadline, void *reserved) {
+                                       gpr_timespec deadline) {
   grpc_event ret;
   grpc_cq_completion *c;
   grpc_cq_completion *prev;
-  (void) reserved;
 
   deadline = gpr_convert_clock_type(deadline, GPR_CLOCK_MONOTONIC);
 
