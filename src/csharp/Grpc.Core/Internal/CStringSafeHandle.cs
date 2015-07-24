@@ -1,4 +1,4 @@
-
+#region Copyright notice and license
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,31 +27,34 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#endregion
+using System;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
-syntax = "proto2";
+namespace Grpc.Core.Internal
+{
+    /// <summary>
+    /// Owned char* object.
+    /// </summary>
+    internal class CStringSafeHandle : SafeHandleZeroIsInvalid
+    {
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern void gprsharp_free(IntPtr ptr);
 
-package grpc.cpp.test.util;
+        private CStringSafeHandle()
+        {
+        }
 
-message RequestParams {
-  optional bool echo_deadline = 1;
-  optional int32 client_cancel_after_us = 2;
-  optional int32 server_cancel_after_us = 3;
-  optional bool echo_metadata = 4;
-  optional bool check_auth_context = 5;
-  optional int32 response_message_length = 6;
-}
+        public string GetValue()
+        {
+            return Marshal.PtrToStringAnsi(handle);
+        }
 
-message EchoRequest {
-  optional string message = 1;
-  optional RequestParams param = 2;
-}
-
-message ResponseParams {
-  optional int64 request_deadline = 1;
-  optional string host = 2;
-}
-
-message EchoResponse {
-  optional string message = 1;
-  optional ResponseParams param = 2;
+        protected override bool ReleaseHandle()
+        {
+            gprsharp_free(handle);
+            return true;
+        }
+    }
 }

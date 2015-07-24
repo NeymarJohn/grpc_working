@@ -169,7 +169,7 @@ grpcsharp_metadata_array_add(grpc_metadata_array *array, const char *key,
 
 GPR_EXPORT gpr_intptr GPR_CALLTYPE
 grpcsharp_metadata_array_count(grpc_metadata_array *array) {
-  return (gpr_intptr)array->count;
+  return (gpr_intptr) array->count;
 }
 
 GPR_EXPORT const char *GPR_CALLTYPE
@@ -184,10 +184,10 @@ grpcsharp_metadata_array_get_value(grpc_metadata_array *array, size_t index) {
   return array->metadata[index].value;
 }
 
-GPR_EXPORT gpr_intptr GPR_CALLTYPE grpcsharp_metadata_array_get_value_length(
-    grpc_metadata_array *array, size_t index) {
+GPR_EXPORT gpr_intptr GPR_CALLTYPE
+grpcsharp_metadata_array_get_value_length(grpc_metadata_array *array, size_t index) {
   GPR_ASSERT(index < array->count);
-  return (gpr_intptr)array->metadata[index].value_length;
+  return (gpr_intptr) array->metadata[index].value_length;
 }
 
 /* Move contents of metadata array */
@@ -306,7 +306,8 @@ grpcsharp_batch_context_server_rpc_new_method(
   return ctx->server_rpc_new.call_details.method;
 }
 
-GPR_EXPORT const char *GPR_CALLTYPE grpcsharp_batch_context_server_rpc_new_host(
+GPR_EXPORT const char *GPR_CALLTYPE
+grpcsharp_batch_context_server_rpc_new_host(
     const grpcsharp_batch_context *ctx) {
   return ctx->server_rpc_new.call_details.host;
 }
@@ -432,10 +433,20 @@ grpcsharp_channel_args_destroy(grpc_channel_args *args) {
 
 /* Timespec */
 
-GPR_EXPORT gpr_timespec GPR_CALLTYPE gprsharp_now(void) { return gpr_now(GPR_CLOCK_REALTIME); }
+GPR_EXPORT gpr_timespec GPR_CALLTYPE gprsharp_now(gpr_clock_type clock_type) {
+  return gpr_now(clock_type);
+}
 
-GPR_EXPORT gpr_timespec GPR_CALLTYPE gprsharp_inf_future(void) {
-  return gpr_inf_future(GPR_CLOCK_REALTIME);
+GPR_EXPORT gpr_timespec GPR_CALLTYPE gprsharp_inf_future(gpr_clock_type clock_type) {
+  return gpr_inf_future(clock_type);
+}
+
+GPR_EXPORT gpr_timespec GPR_CALLTYPE gprsharp_inf_past(gpr_clock_type clock_type) {
+  return gpr_inf_past(clock_type);
+}
+
+GPR_EXPORT gpr_timespec GPR_CALLTYPE gprsharp_convert_clock_type(gpr_timespec t, gpr_clock_type target_clock) {
+  return gpr_convert_clock_type(t, target_clock);
 }
 
 GPR_EXPORT gpr_int32 GPR_CALLTYPE gprsharp_sizeof_timespec(void) {
@@ -452,6 +463,14 @@ GPR_EXPORT grpc_call_error GPR_CALLTYPE
 grpcsharp_call_cancel_with_status(grpc_call *call, grpc_status_code status,
                                   const char *description) {
   return grpc_call_cancel_with_status(call, status, description);
+}
+
+GPR_EXPORT char *GPR_CALLTYPE grpcsharp_call_get_peer(grpc_call *call) {
+  return grpc_call_get_peer(call);
+}
+
+GPR_EXPORT void GPR_CALLTYPE gprsharp_free(void *p) {
+  gpr_free(p);
 }
 
 GPR_EXPORT void GPR_CALLTYPE grpcsharp_call_destroy(grpc_call *call) {
@@ -637,17 +656,20 @@ grpcsharp_call_send_close_from_client(grpc_call *call,
   return grpc_call_start_batch(call, ops, sizeof(ops) / sizeof(ops[0]), ctx);
 }
 
-GPR_EXPORT grpc_call_error GPR_CALLTYPE grpcsharp_call_send_status_from_server(
-    grpc_call *call, grpcsharp_batch_context *ctx, grpc_status_code status_code,
-    const char *status_details, grpc_metadata_array *trailing_metadata) {
+GPR_EXPORT grpc_call_error GPR_CALLTYPE
+grpcsharp_call_send_status_from_server(grpc_call *call,
+                                       grpcsharp_batch_context *ctx,
+                                       grpc_status_code status_code,
+                                       const char *status_details,
+                                       grpc_metadata_array *trailing_metadata) {
   /* TODO: don't use magic number */
   grpc_op ops[1];
   ops[0].op = GRPC_OP_SEND_STATUS_FROM_SERVER;
   ops[0].data.send_status_from_server.status = status_code;
   ops[0].data.send_status_from_server.status_details =
       gpr_strdup(status_details);
-  grpcsharp_metadata_array_move(
-      &(ctx->send_status_from_server.trailing_metadata), trailing_metadata);
+  grpcsharp_metadata_array_move(&(ctx->send_status_from_server.trailing_metadata),
+                                  trailing_metadata);
   ops[0].data.send_status_from_server.trailing_metadata_count =
       ctx->send_status_from_server.trailing_metadata.count;
   ops[0].data.send_status_from_server.trailing_metadata =
