@@ -45,7 +45,7 @@ namespace Grpc.Core.Tests
 {
     public class ClientServerTest
     {
-        const string Host = "127.0.0.1";
+        const string Host = "localhost";
         const string ServiceName = "/tests.Test";
 
         static readonly Method<string, string> EchoMethod = new Method<string, string>(
@@ -79,9 +79,9 @@ namespace Grpc.Core.Tests
         {
             server = new Server();
             server.AddServiceDefinition(ServiceDefinition);
-            int port = server.AddPort(Host, Server.PickUnusedPort, ServerCredentials.Insecure);
+            int port = server.AddListeningPort(Host, Server.PickUnusedPort);
             server.Start();
-            channel = new Channel(Host, port, Credentials.Insecure);
+            channel = new Channel(Host, port);
         }
 
         [TearDown]
@@ -277,14 +277,6 @@ namespace Grpc.Core.Tests
             Assert.IsTrue(userAgent.StartsWith("grpc-csharp/"));
         }
 
-        [Test]
-        public void PeerInfoPresent()
-        {
-            var internalCall = new Call<string, string>(ServiceName, EchoMethod, channel, Metadata.Empty);
-            string peer = Calls.BlockingUnaryCall(internalCall, "RETURN-PEER", CancellationToken.None);
-            Assert.IsTrue(peer.Contains(Host));
-        }
-
         private static async Task<string> EchoHandler(string request, ServerCallContext context)
         {
             foreach (Metadata.Entry metadataEntry in context.RequestHeaders)
@@ -298,11 +290,6 @@ namespace Grpc.Core.Tests
             if (request == "RETURN-USER-AGENT")
             {
                 return context.RequestHeaders.Where(entry => entry.Key == "user-agent").Single().Value;
-            }
-
-            if (request == "RETURN-PEER")
-            {
-                return context.Peer;
             }
 
             if (request == "THROW")

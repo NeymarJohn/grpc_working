@@ -38,7 +38,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Grpc.Core.Internal;
-using Grpc.Core.Logging;
 using Grpc.Core.Utils;
 
 namespace Grpc.Core
@@ -52,8 +51,6 @@ namespace Grpc.Core
         /// Pass this value as port to have the server choose an unused listening port for you.
         /// </summary>
         public const int PickUnusedPort = 0;
-
-        static readonly ILogger Logger = GrpcEnvironment.Logger.ForType<Server>();
 
         readonly GrpcEnvironment environment;
         readonly List<ChannelOption> options;
@@ -98,31 +95,28 @@ namespace Grpc.Core
         }
 
         /// <summary>
-        /// Add a port on which server should listen.
+        /// Add a non-secure port on which server should listen.
         /// Only call this before Start().
         /// </summary>
         /// <returns>The port on which server will be listening.</returns>
         /// <param name="host">the host</param>
         /// <param name="port">the port. If zero, an unused port is chosen automatically.</param>
-        public int AddPort(string host, int port, ServerCredentials credentials)
+        public int AddListeningPort(string host, int port)
         {
-            lock (myLock)
-            {
-                Preconditions.CheckNotNull(credentials);
-                Preconditions.CheckState(!startRequested);
-                var address = string.Format("{0}:{1}", host, port);
-                using (var nativeCredentials = credentials.ToNativeCredentials())
-                {
-                    if (nativeCredentials != null)
-                    {
-                        return handle.AddSecurePort(address, nativeCredentials);
-                    }
-                    else
-                    {
-                        return handle.AddInsecurePort(address);
-                    }
-                }
-            }
+            return AddListeningPortInternal(host, port, null);
+        }
+
+        /// <summary>
+        /// Add a non-secure port on which server should listen.
+        /// Only call this before Start().
+        /// </summary>
+        /// <returns>The port on which server will be listening.</returns>
+        /// <param name="host">the host</param>
+        /// <param name="port">the port. If zero, an unused port is chosen automatically.</param>
+        public int AddListeningPort(string host, int port, ServerCredentials credentials)
+        {
+            Preconditions.CheckNotNull(credentials);
+            return AddListeningPortInternal(host, port, credentials);
         }
 
         /// <summary>
@@ -189,6 +183,26 @@ namespace Grpc.Core
             handle.Dispose();
         }
 
+        private int AddListeningPortInternal(string host, int port, ServerCredentials credentials)
+        {
+            lock (myLock)
+            {
+                Preconditions.CheckState(!startRequested);    
+                var address = string.Format("{0}:{1}", host, port);
+                if (credentials != null)
+                {
+                    using (var nativeCredentials = credentials.ToNativeCredentials())
+                    {
+                        return handle.AddListeningPort(address, nativeCredentials);
+                    }
+                }
+                else
+                {
+                    return handle.AddListeningPort(address);    
+                }
+            }
+        }
+
         /// <summary>
         /// Allows one new RPC call to be received by server.
         /// </summary>
@@ -219,7 +233,7 @@ namespace Grpc.Core
             }
             catch (Exception e)
             {
-                Logger.Warning(e, "Exception while handling RPC.");
+                Console.WriteLine("Exception while handling RPC: " + e);
             }
         }
 
