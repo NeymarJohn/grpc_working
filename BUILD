@@ -168,7 +168,7 @@ cc_library(
     "src/core/client_config/resolver_factory.h",
     "src/core/client_config/resolver_registry.h",
     "src/core/client_config/resolvers/dns_resolver.h",
-    "src/core/client_config/resolvers/sockaddr_resolver.h",
+    "src/core/client_config/resolvers/unix_resolver_posix.h",
     "src/core/client_config/subchannel.h",
     "src/core/client_config/subchannel_factory.h",
     "src/core/client_config/uri_parser.h",
@@ -246,7 +246,6 @@ cc_library(
     "src/core/transport/transport.h",
     "src/core/transport/transport_impl.h",
     "src/core/census/context.h",
-    "src/core/census/rpc_stat_id.h",
     "src/core/httpcli/format_request.c",
     "src/core/httpcli/httpcli.c",
     "src/core/httpcli/httpcli_security_connector.c",
@@ -288,7 +287,7 @@ cc_library(
     "src/core/client_config/resolver_factory.c",
     "src/core/client_config/resolver_registry.c",
     "src/core/client_config/resolvers/dns_resolver.c",
-    "src/core/client_config/resolvers/sockaddr_resolver.c",
+    "src/core/client_config/resolvers/unix_resolver_posix.c",
     "src/core/client_config/subchannel.c",
     "src/core/client_config/subchannel_factory.c",
     "src/core/client_config/uri_parser.c",
@@ -382,7 +381,6 @@ cc_library(
     "src/core/transport/transport_op_string.c",
     "src/core/census/context.c",
     "src/core/census/initialize.c",
-    "src/core/census/record_stat.c",
   ],
   hdrs = [
     "include/grpc/grpc_security.h",
@@ -426,7 +424,7 @@ cc_library(
     "src/core/client_config/resolver_factory.h",
     "src/core/client_config/resolver_registry.h",
     "src/core/client_config/resolvers/dns_resolver.h",
-    "src/core/client_config/resolvers/sockaddr_resolver.h",
+    "src/core/client_config/resolvers/unix_resolver_posix.h",
     "src/core/client_config/subchannel.h",
     "src/core/client_config/subchannel_factory.h",
     "src/core/client_config/uri_parser.h",
@@ -504,7 +502,6 @@ cc_library(
     "src/core/transport/transport.h",
     "src/core/transport/transport_impl.h",
     "src/core/census/context.h",
-    "src/core/census/rpc_stat_id.h",
     "src/core/surface/init_unsecure.c",
     "src/core/census/grpc_context.c",
     "src/core/channel/channel_args.c",
@@ -523,7 +520,7 @@ cc_library(
     "src/core/client_config/resolver_factory.c",
     "src/core/client_config/resolver_registry.c",
     "src/core/client_config/resolvers/dns_resolver.c",
-    "src/core/client_config/resolvers/sockaddr_resolver.c",
+    "src/core/client_config/resolvers/unix_resolver_posix.c",
     "src/core/client_config/subchannel.c",
     "src/core/client_config/subchannel_factory.c",
     "src/core/client_config/uri_parser.c",
@@ -617,7 +614,6 @@ cc_library(
     "src/core/transport/transport_op_string.c",
     "src/core/census/context.c",
     "src/core/census/initialize.c",
-    "src/core/census/record_stat.c",
   ],
   hdrs = [
     "include/grpc/byte_buffer.h",
@@ -633,6 +629,26 @@ cc_library(
   ],
   deps = [
     ":gpr",
+  ],
+)
+
+
+cc_library(
+  name = "grpc_zookeeper",
+  srcs = [
+    "src/core/client_config/resolvers/zookeeper_resolver.h",
+    "src/core/client_config/resolvers/zookeeper_resolver.c",
+  ],
+  hdrs = [
+    "include/grpc/grpc_zookeeper.h",
+  ],
+  includes = [
+    "include",
+    ".",
+  ],
+  deps = [
+    ":gpr",
+    ":grpc",
   ],
 )
 
@@ -1002,7 +1018,7 @@ objc_library(
     "src/core/client_config/resolver_factory.c",
     "src/core/client_config/resolver_registry.c",
     "src/core/client_config/resolvers/dns_resolver.c",
-    "src/core/client_config/resolvers/sockaddr_resolver.c",
+    "src/core/client_config/resolvers/unix_resolver_posix.c",
     "src/core/client_config/subchannel.c",
     "src/core/client_config/subchannel_factory.c",
     "src/core/client_config/uri_parser.c",
@@ -1096,7 +1112,6 @@ objc_library(
     "src/core/transport/transport_op_string.c",
     "src/core/census/context.c",
     "src/core/census/initialize.c",
-    "src/core/census/record_stat.c",
   ],
   hdrs = [
     "include/grpc/grpc_security.h",
@@ -1142,7 +1157,7 @@ objc_library(
     "src/core/client_config/resolver_factory.h",
     "src/core/client_config/resolver_registry.h",
     "src/core/client_config/resolvers/dns_resolver.h",
-    "src/core/client_config/resolvers/sockaddr_resolver.h",
+    "src/core/client_config/resolvers/unix_resolver_posix.h",
     "src/core/client_config/subchannel.h",
     "src/core/client_config/subchannel_factory.h",
     "src/core/client_config/uri_parser.h",
@@ -1220,7 +1235,6 @@ objc_library(
     "src/core/transport/transport.h",
     "src/core/transport/transport_impl.h",
     "src/core/census/context.h",
-    "src/core/census/rpc_stat_id.h",
   ],
   includes = [
     "include",

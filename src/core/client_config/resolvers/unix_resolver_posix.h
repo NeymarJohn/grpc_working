@@ -31,8 +31,14 @@
  *
  */
 
-#include <grpc/census.h>
-#include "src/core/census/rpc_stat_id.h"
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
 
-void census_record_stat(census_context *context, census_stat *stats,
-                        size_t nstats) {}
+#include <grpc/support/port_platform.h>
+
+#include "src/core/client_config/resolver_factory.h"
+
+/** Create a unix resolver factory */
+grpc_resolver_factory *grpc_unix_resolver_factory_create(void);
+
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H */

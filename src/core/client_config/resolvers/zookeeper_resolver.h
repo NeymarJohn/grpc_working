@@ -31,16 +31,12 @@
  *
  */
 
-#ifndef CENSUS_RPC_STAT_ID_H
-#define CENSUS_RPC_STAT_ID_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-/* Stats ID's used for RPC measurements. */
-#define CENSUS_INVALID_STAT_ID 0     /* ID 0 is always invalid */
-#define CENSUS_RPC_CLIENT_REQUESTS 1 /* Count of client requests sent. */
-#define CENSUS_RPC_SERVER_REQUESTS 2 /* Count of server requests sent. */
-#define CENSUS_RPC_CLIENT_ERRORS 3   /* Client error counts. */
-#define CENSUS_RPC_SERVER_ERRORS 4   /* Server error counts. */
-#define CENSUS_RPC_CLIENT_LATENCY 5  /* Client side request latency. */
-#define CENSUS_RPC_SERVER_LATENCY 6  /* Server side request latency. */
+#include "src/core/client_config/resolver_factory.h"
 
-#endif /* CENSUS_RPC_STAT_ID_H */
+/** Create a zookeeper resolver factory */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
+
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */
