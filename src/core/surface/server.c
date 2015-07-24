@@ -543,8 +543,10 @@ static void server_on_recv(void *ptr, int success) {
                             gpr_inf_future(GPR_CLOCK_REALTIME))) {
         calld->deadline = op->data.metadata.deadline;
       }
-      calld->got_initial_metadata = 1;
-      start_new_rpc(elem);
+      if (calld->host && calld->path) {
+        calld->got_initial_metadata = 1;
+        start_new_rpc(elem);
+      }
       break;
     }
   }
@@ -722,6 +724,7 @@ static const grpc_channel_filter server_surface_filter = {
     sizeof(channel_data),
     init_channel_elem,
     destroy_channel_elem,
+    grpc_call_next_get_peer,
     "server",
 };
 
@@ -878,8 +881,8 @@ void grpc_server_setup_transport(grpc_server *s, grpc_transport *transport,
     grpc_transport_perform_op(transport, &op);
   }
 
-  channel =
-      grpc_channel_create_from_filters(filters, num_filters, args, mdctx, 0);
+  channel = grpc_channel_create_from_filters(NULL, filters, num_filters, args,
+                                             mdctx, 0);
   chand = (channel_data *)grpc_channel_stack_element(
               grpc_channel_get_channel_stack(channel), 0)
               ->channel_data;

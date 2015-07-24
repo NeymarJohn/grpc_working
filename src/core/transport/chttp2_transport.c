@@ -110,6 +110,8 @@ static void cancel_from_api(grpc_chttp2_transport_global *transport_global,
 /** Add endpoint from this transport to pollset */
 static void add_to_pollset_locked(grpc_chttp2_transport *t,
                                   grpc_pollset *pollset);
+static void add_to_pollset_set_locked(grpc_chttp2_transport *t,
+                                  grpc_pollset_set *pollset_set);
 
 /** Start new streams that have been created if we can */
 static void maybe_start_some_streams(
@@ -117,7 +119,7 @@ static void maybe_start_some_streams(
 
 static void connectivity_state_set(
     grpc_chttp2_transport_global *transport_global,
-    grpc_connectivity_state state);
+    grpc_connectivity_state state, const char *reason);
 
 /*
  * CONSTRUCTION/DESTRUCTION/REFCOUNTING
@@ -168,6 +170,7 @@ static void destruct_transport(grpc_chttp2_transport *t) {
 
   grpc_mdctx_unref(t->metadata_context);
 
+  gpr_free(t->peer_string);
   gpr_free(t);
 }
 
@@ -217,6 +220,7 @@ static void init_transport(grpc_chttp2_transport *t,
   gpr_ref_init(&t->refs, 2);
   gpr_mu_init(&t->mu);
   grpc_mdctx_ref(mdctx);
+  t->peer_string = grpc_endpoint_get_peer(ep);
   t->metadata_context = mdctx;
   t->endpoint_reading = 1;
   t->global.next_stream_id = is_client ? 1 : 2;
@@ -233,7 +237,7 @@ static void init_transport(grpc_chttp2_transport *t,
       is_client ? GRPC_DTS_FH_0 : GRPC_DTS_CLIENT_PREFIX_0;
   t->writing.is_client = is_client;
   grpc_connectivity_state_init(&t->channel_callback.state_tracker,
-                               GRPC_CHANNEL_READY);
+                               GRPC_CHANNEL_READY, "transport");
 
   gpr_slice_buffer_init(&t->global.qbuf);
 
@@ -327,7 +331,8 @@ static void destroy_transport(grpc_transport *gt) {
 static void close_transport_locked(grpc_chttp2_transport *t) {
   if (!t->closed) {
     t->closed = 1;
-    connectivity_state_set(&t->global, GRPC_CHANNEL_FATAL_FAILURE);
+    connectivity_state_set(&t->global, GRPC_CHANNEL_FATAL_FAILURE,
+                           "close_transport");
     if (t->ep) {
       grpc_endpoint_shutdown(t->ep);
     }
@@ -530,7 +535,8 @@ void grpc_chttp2_add_incoming_goaway(
   gpr_free(msg);
   gpr_slice_unref(goaway_text);
   transport_global->seen_goaway = 1;
-  connectivity_state_set(transport_global, GRPC_CHANNEL_FATAL_FAILURE);
+  connectivity_state_set(transport_global, GRPC_CHANNEL_FATAL_FAILURE,
+                         "got_goaway");
 }
 
 static void maybe_start_some_streams(
@@ -555,7 +561,8 @@ static void maybe_start_some_streams(
     transport_global->next_stream_id += 2;
 
     if (transport_global->next_stream_id >= MAX_CLIENT_STREAM_ID) {
-      connectivity_state_set(transport_global, GRPC_CHANNEL_TRANSIENT_FAILURE);
+      connectivity_state_set(transport_global, GRPC_CHANNEL_TRANSIENT_FAILURE,
+                             "no_more_stream_ids");
     }
 
     stream_global->outgoing_window =
@@ -686,6 +693,7 @@ static void send_ping_locked(grpc_chttp2_transport *t,
 
 static void perform_transport_op(grpc_transport *gt, grpc_transport_op *op) {
   grpc_chttp2_transport *t = (grpc_chttp2_transport *)gt;
+  int close_transport = 0;
 
   lock(t);
 
@@ -705,9 +713,7 @@ static void perform_transport_op(grpc_transport *gt, grpc_transport_op *op) {
         t->global.last_incoming_stream_id,
         grpc_chttp2_grpc_status_to_http2_error(op->goaway_status),
         gpr_slice_ref(*op->goaway_message), &t->global.qbuf);
-    if (!grpc_chttp2_has_streams(t)) {
-      close_transport_locked(t);
-    }
+    close_transport = !grpc_chttp2_has_streams(t);
   }
 
   if (op->set_accept_stream != NULL) {
@@ -720,6 +726,10 @@ static void perform_transport_op(grpc_transport *gt, grpc_transport_op *op) {
     add_to_pollset_locked(t, op->bind_pollset);
   }
 
+  if (op->bind_pollset_set) {
+    add_to_pollset_set_locked(t, op->bind_pollset_set);
+  }
+
   if (op->send_ping) {
     send_ping_locked(t, op->send_ping);
   }
@@ -729,6 +739,12 @@ static void perform_transport_op(grpc_transport *gt, grpc_transport_op *op) {
   }
 
   unlock(t);
+
+  if (close_transport) {
+    lock(t);
+    close_transport_locked(t);
+    unlock(t);
+  }
 }
 
 /*
@@ -1001,12 +1017,12 @@ static void schedule_closure_for_connectivity(void *a,
 
 static void connectivity_state_set(
     grpc_chttp2_transport_global *transport_global,
-    grpc_connectivity_state state) {
+    grpc_connectivity_state state, const char *reason) {
   GRPC_CHTTP2_IF_TRACING(
       gpr_log(GPR_DEBUG, "set connectivity_state=%d", state));
   grpc_connectivity_state_set_with_scheduler(
       &TRANSPORT_FROM_GLOBAL(transport_global)->channel_callback.state_tracker,
-      state, schedule_closure_for_connectivity, transport_global);
+      state, schedule_closure_for_connectivity, transport_global, reason);
 }
 
 void grpc_chttp2_schedule_closure(
@@ -1031,6 +1047,13 @@ static void add_to_pollset_locked(grpc_chttp2_transport *t,
                                   grpc_pollset *pollset) {
   if (t->ep) {
     grpc_endpoint_add_to_pollset(t->ep, pollset);
+  }
+}
+
+static void add_to_pollset_set_locked(grpc_chttp2_transport *t,
+                                  grpc_pollset_set *pollset_set) {
+  if (t->ep) {
+    grpc_endpoint_add_to_pollset_set(t->ep, pollset_set);
   }
 }
 
@@ -1069,9 +1092,17 @@ void grpc_chttp2_flowctl_trace(const char *file, int line, const char *reason,
  * INTEGRATION GLUE
  */
 
-static const grpc_transport_vtable vtable = {
-    sizeof(grpc_chttp2_stream), init_stream,    perform_stream_op,
-    perform_transport_op,       destroy_stream, destroy_transport};
+static char *chttp2_get_peer(grpc_transport *t) {
+  return gpr_strdup(((grpc_chttp2_transport *)t)->peer_string);
+}
+
+static const grpc_transport_vtable vtable = {sizeof(grpc_chttp2_stream),
+                                             init_stream,
+                                             perform_stream_op,
+                                             perform_transport_op,
+                                             destroy_stream,
+                                             destroy_transport,
+                                             chttp2_get_peer};
 
 grpc_transport *grpc_create_chttp2_transport(
     const grpc_channel_args *channel_args, grpc_endpoint *ep, grpc_mdctx *mdctx,
