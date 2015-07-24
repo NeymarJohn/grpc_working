@@ -286,7 +286,6 @@ struct grpc_chttp2_transport {
   grpc_endpoint *ep;
   grpc_mdctx *metadata_context;
   gpr_refcount refs;
-  char *peer_string;
 
   gpr_mu mu;
 
