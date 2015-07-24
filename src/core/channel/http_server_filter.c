@@ -44,7 +44,6 @@ typedef struct call_data {
   gpr_uint8 sent_status;
   gpr_uint8 seen_scheme;
   gpr_uint8 seen_te_trailers;
-  gpr_uint8 seen_authority;
   grpc_linked_mdelem status;
 
   grpc_stream_op_buffer *recv_ops;
@@ -126,9 +125,6 @@ static grpc_mdelem *server_filter(void *user_data, grpc_mdelem *md) {
     }
     calld->seen_path = 1;
     return md;
-  } else if (md->key == channeld->authority_key) {
-    calld->seen_authority = 1;
-    return md;
   } else if (md->key == channeld->host_key) {
     /* translate host to :authority since :authority may be
        omitted */
@@ -136,7 +132,6 @@ static grpc_mdelem *server_filter(void *user_data, grpc_mdelem *md) {
         channeld->mdctx, GRPC_MDSTR_REF(channeld->authority_key),
         GRPC_MDSTR_REF(md->value));
     GRPC_MDELEM_UNREF(md);
-    calld->seen_authority = 1;
     return authority;
   } else {
     return md;
@@ -159,14 +154,11 @@ static void hs_on_recv(void *user_data, int success) {
          (:method, :scheme, content-type, with :path and :authority covered
          at the channel level right now) */
       if (calld->seen_post && calld->seen_scheme && calld->seen_te_trailers &&
-          calld->seen_path && calld->seen_authority) {
+          calld->seen_path) {
         /* do nothing */
       } else {
         if (!calld->seen_path) {
           gpr_log(GPR_ERROR, "Missing :path header");
-        }
-        if (!calld->seen_authority) {
-          gpr_log(GPR_ERROR, "Missing :authority header");
         }
         if (!calld->seen_post) {
           gpr_log(GPR_ERROR, "Missing :method header");
@@ -288,5 +280,4 @@ static void destroy_channel_elem(grpc_channel_element *elem) {
 const grpc_channel_filter grpc_http_server_filter = {
     hs_start_transport_op, grpc_channel_next_op, sizeof(call_data),
     init_call_elem,        destroy_call_elem,    sizeof(channel_data),
-    init_channel_elem,     destroy_channel_elem, grpc_call_next_get_peer,
-    "http-server"};
+    init_channel_elem,     destroy_channel_elem, "http-server"};

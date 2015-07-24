@@ -32,8 +32,6 @@
 # linuxbrew installation of a selected language
 set -ex
 
-# Our homebrew installation script command, per language
-# Can be used in both linux and macos
 if [ "$language" == "core" ]; then
   command="curl -fsSL https://goo.gl/getgrpc | bash -"
 elif [[ "python nodejs ruby php" =~ "$language" ]]; then
@@ -68,7 +66,6 @@ if [ "$platform" == "linux" ]; then
 elif [ "$platform" == "macos" ]; then
 
   if [ "$dist_channel" == "homebrew" ]; then
-
     echo "Formulas installed by system-wide homebrew (before)"
     brew list -l
 
@@ -102,6 +99,8 @@ elif [ "$platform" == "macos" ]; then
       *php*)
         export CFLAGS="-Wno-parentheses-equality"
         ;;
+      *)
+        ;;
     esac
 
     # Run our homebrew installation script
@@ -109,6 +108,7 @@ elif [ "$platform" == "macos" ]; then
 
     # Uninstall / clean up per-language modules/extensions after the test
     case $language in
+      *core*) ;;
       *python*)
         deactivate
         rm -rf jenkins_python_venv
@@ -123,6 +123,10 @@ elif [ "$platform" == "macos" ]; then
         ;;
       *php*)
         rm grpc.so
+        ;;
+      *)
+        echo "Unsupported language $language"
+        exit 1
         ;;
     esac
 

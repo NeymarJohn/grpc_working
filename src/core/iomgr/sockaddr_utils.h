@@ -84,6 +84,4 @@ int grpc_sockaddr_set_port(const struct sockaddr *addr, int port);
 int grpc_sockaddr_to_string(char **out, const struct sockaddr *addr,
                             int normalize);
 
-char *grpc_sockaddr_to_uri(const struct sockaddr *addr);
-
 #endif  /* GRPC_INTERNAL_CORE_IOMGR_SOCKADDR_UTILS_H */
