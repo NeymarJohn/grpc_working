@@ -18,11 +18,13 @@
         "include/grpc/census.h"
       ],
       "headers": [
-        "src/core/census/context.h"
+        "src/core/census/context.h",
+        "src/core/census/rpc_stat_id.h"
       ],
       "src": [
         "src/core/census/context.c",
-        "src/core/census/initialize.c"
+        "src/core/census/initialize.c",
+        "src/core/census/record_stat.c"
       ]
     },
     {
@@ -129,7 +131,7 @@
         "src/core/client_config/resolver_factory.h",
         "src/core/client_config/resolver_registry.h",
         "src/core/client_config/resolvers/dns_resolver.h",
-        "src/core/client_config/resolvers/unix_resolver_posix.h",
+        "src/core/client_config/resolvers/sockaddr_resolver.h",
         "src/core/client_config/subchannel.h",
         "src/core/client_config/subchannel_factory.h",
         "src/core/client_config/uri_parser.h",
@@ -225,7 +227,7 @@
         "src/core/client_config/resolver_factory.c",
         "src/core/client_config/resolver_registry.c",
         "src/core/client_config/resolvers/dns_resolver.c",
-        "src/core/client_config/resolvers/unix_resolver_posix.c",
+        "src/core/client_config/resolvers/sockaddr_resolver.c",
         "src/core/client_config/subchannel.c",
         "src/core/client_config/subchannel_factory.c",
         "src/core/client_config/uri_parser.c",
@@ -562,29 +564,6 @@
       ],
       "secure": "no",
       "vs_project_guid": "{46CEDFFF-9692-456A-AA24-38B5D6BCF4C5}"
-    },
-    {
-      "name": "grpc_zookeeper",
-      "build": "all",
-      "language": "c",
-      "public_headers": [
-        "include/grpc/grpc_zookeeper.h"
-      ],
-      "headers": [
-        "src/core/client_config/resolvers/zookeeper_resolver.h"
-      ],
-      "src": [
-        "src/core/client_config/resolvers/zookeeper_resolver.c"
-      ],
-      "deps": [
-        "gpr",
-        "grpc"
-      ],
-      "external_deps": [
-        "zookeeper"
-      ],
-      "secure": "no",
-      "vs_project_guid": "{F14EBEC1-DC43-45D3-8A7D-1A47072EFE50}"
     },
     {
       "name": "grpc++",

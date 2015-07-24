@@ -46,9 +46,6 @@ namespace Grpc.Core.Internal
         CompletionRegistry completionRegistry;
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern CallSafeHandle grpcsharp_channel_create_call(ChannelSafeHandle channel, CompletionQueueSafeHandle cq, string method, string host, Timespec deadline);
-
-        [DllImport("grpc_csharp_ext.dll")]
         static extern GRPCCallError grpcsharp_call_cancel(CallSafeHandle call);
 
         [DllImport("grpc_csharp_ext.dll")]
@@ -81,7 +78,7 @@ namespace Grpc.Core.Internal
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern GRPCCallError grpcsharp_call_send_status_from_server(CallSafeHandle call, 
-            BatchContextSafeHandle ctx, StatusCode statusCode, string statusMessage);
+            BatchContextSafeHandle ctx, StatusCode statusCode, string statusMessage, MetadataArraySafeHandle metadataArray);
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern GRPCCallError grpcsharp_call_recv_message(CallSafeHandle call,
@@ -96,13 +93,6 @@ namespace Grpc.Core.Internal
 
         private CallSafeHandle()
         {
-        }
-
-        public static CallSafeHandle Create(ChannelSafeHandle channel, CompletionRegistry registry, CompletionQueueSafeHandle cq, string method, string host, Timespec deadline)
-        {
-            var result = grpcsharp_channel_create_call(channel, cq, method, host, deadline);
-            result.SetCompletionRegistry(registry);
-            return result;
         }
 
         public void SetCompletionRegistry(CompletionRegistry completionRegistry)
@@ -159,11 +149,11 @@ namespace Grpc.Core.Internal
             grpcsharp_call_send_close_from_client(this, ctx).CheckOk();
         }
 
-        public void StartSendStatusFromServer(Status status, BatchCompletionDelegate callback)
+        public void StartSendStatusFromServer(Status status, BatchCompletionDelegate callback, MetadataArraySafeHandle metadataArray)
         {
             var ctx = BatchContextSafeHandle.Create();
             completionRegistry.RegisterBatchCompletion(ctx, callback);
-            grpcsharp_call_send_status_from_server(this, ctx, status.StatusCode, status.Detail).CheckOk();
+            grpcsharp_call_send_status_from_server(this, ctx, status.StatusCode, status.Detail, metadataArray).CheckOk();
         }
 
         public void StartReceiveMessage(BatchCompletionDelegate callback)

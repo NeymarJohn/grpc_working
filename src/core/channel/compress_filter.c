@@ -174,6 +174,8 @@ static void process_send_ops(grpc_call_element *elem,
   size_t i;
   int did_compress = 0;
 
+  /* In streaming calls, we need to reset the previously accumulated slices */
+  gpr_slice_buffer_reset_and_unref(&calld->slices);
   for (i = 0; i < send_ops->nops; ++i) {
     grpc_stream_op *sop = &send_ops->ops[i];
     switch (sop->type) {
@@ -200,7 +202,7 @@ static void process_send_ops(grpc_call_element *elem,
                 channeld->default_compression_algorithm;
             calld->has_compression_algorithm = 1; /* GPR_TRUE */
           }
-          grpc_metadata_batch_add_head(
+          grpc_metadata_batch_add_tail(
               &(sop->data.metadata), &calld->compression_algorithm_storage,
               grpc_mdelem_ref(channeld->mdelem_compression_algorithms
                                   [calld->compression_algorithm]));
@@ -322,4 +324,5 @@ const grpc_channel_filter grpc_compress_filter = {
     sizeof(channel_data),
     init_channel_elem,
     destroy_channel_elem,
+    grpc_call_next_get_peer,
     "compress"};

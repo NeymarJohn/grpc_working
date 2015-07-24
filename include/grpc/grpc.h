@@ -126,6 +126,12 @@ typedef struct {
 /** Initial sequence number for http2 transports */
 #define GRPC_ARG_HTTP2_INITIAL_SEQUENCE_NUMBER \
   "grpc.http2.initial_sequence_number"
+/** Primary user agent: goes at the start of the user-agent metadata
+    sent on each request */
+#define GRPC_ARG_PRIMARY_USER_AGENT_STRING "grpc.primary_user_agent"
+/** Secondary user agent: goes at the end of the user-agent metadata
+    sent on each request */
+#define GRPC_ARG_SECONDARY_USER_AGENT_STRING "grpc.secondary_user_agent"
 
 /** Connectivity state of a channel. */
 typedef enum {
@@ -339,12 +345,6 @@ typedef struct grpc_op {
   } data;
 } grpc_op;
 
-/** Registers a plugin to be initialized and deinitialized with the library.
-
-    It is safe to pass NULL to either argument. The initialization and
-    deinitialization order isn't guaranteed. */
-void grpc_register_plugin(void (*init)(void), void (*deinit)(void));
-
 /** Initialize the grpc library.
 
     It is not safe to call any other grpc functions before calling this.
@@ -433,6 +433,20 @@ grpc_call *grpc_channel_create_registered_call(
 grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
                                       size_t nops, void *tag);
 
+/** Returns a newly allocated string representing the endpoint to which this
+    call is communicating with. The string is in the uri format accepted by
+    grpc_channel_create.
+    The returned string should be disposed of with gpr_free(). 
+
+    WARNING: this value is never authenticated or subject to any security
+    related code. It must not be used for any authentication related
+    functionality. Instead, use grpc_auth_context. */
+char *grpc_call_get_peer(grpc_call *call);
+
+/** Return a newly allocated string representing the target a channel was
+    created for. */
+char *grpc_channel_get_target(grpc_channel *channel);
+
 /** Create a client channel to 'target'. Additional channel level configuration
     MAY be provided by grpc_channel_args, though the expectation is that most
     clients will want to simply pass NULL. See grpc_channel_args definition for
@@ -442,7 +456,7 @@ grpc_channel *grpc_channel_create(const char *target,
                                   const grpc_channel_args *args);
 
 /** Create a lame client: this client fails every operation attempted on it. */
-grpc_channel *grpc_lame_client_channel_create(void);
+grpc_channel *grpc_lame_client_channel_create(const char *target);
 
 /** Close and destroy a grpc channel */
 void grpc_channel_destroy(grpc_channel *channel);
