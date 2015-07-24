@@ -281,11 +281,10 @@ static void on_accept(void *arg, int from_iocp) {
     }
   } else {
     if (!sp->shutting_down) {
-      getpeername(sock, (struct sockaddr *)&peer_name, &peer_name_len);
-      peer_name_string = grpc_sockaddr_to_uri((struct sockaddr *)&peer_name);
+      getpeername(sock, (struct sockaddr*)&peer_name, &peer_name_len);
+      peer_name_string = grpc_sockaddr_to_uri((struct sockaddr*)&peer_name);
       gpr_asprintf(&fd_name, "tcp_server:%s", peer_name_string);
-      ep = grpc_tcp_create(grpc_winsocket_create(sock, fd_name),
-                           peer_name_string);
+      ep = grpc_tcp_create(grpc_winsocket_create(sock, fd_name), peer_name_string);
       gpr_free(fd_name);
       gpr_free(peer_name_string);
     }
