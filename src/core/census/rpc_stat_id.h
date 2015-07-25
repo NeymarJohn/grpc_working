@@ -31,21 +31,16 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
-#define GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
+#ifndef CENSUS_RPC_STAT_ID_H
+#define CENSUS_RPC_STAT_ID_H
 
-#include <memory>
+/* Stats ID's used for RPC measurements. */
+#define CENSUS_INVALID_STAT_ID 0     /* ID 0 is always invalid */
+#define CENSUS_RPC_CLIENT_REQUESTS 1 /* Count of client requests sent. */
+#define CENSUS_RPC_SERVER_REQUESTS 2 /* Count of server requests sent. */
+#define CENSUS_RPC_CLIENT_ERRORS 3   /* Client error counts. */
+#define CENSUS_RPC_SERVER_ERRORS 4   /* Server error counts. */
+#define CENSUS_RPC_CLIENT_LATENCY 5  /* Client side request latency. */
+#define CENSUS_RPC_SERVER_LATENCY 6  /* Server side request latency. */
 
-namespace grpc {
-class Credentials;
-class ServerCredentials;
-
-namespace testing {
-
-std::shared_ptr<Credentials> FakeTransportSecurityCredentials();
-std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials();
-
-}  // namespace testing
-}  // namespace grpc
-
-#endif  // GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
+#endif /* CENSUS_RPC_STAT_ID_H */

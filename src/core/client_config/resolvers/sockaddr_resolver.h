@@ -31,13 +31,20 @@
  *
  */
 
-/* This is just a compilation test, to see if we have Zookeeper C client
-   library installed. */
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
 
-#include <stdlib.h>
-#include <zookeeper/zookeeper.h>
+#include <grpc/support/port_platform.h>
 
-int main() {
-  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
-  return 0;
-}
+#include "src/core/client_config/resolver_factory.h"
+
+grpc_resolver_factory *grpc_ipv4_resolver_factory_create(void);
+
+grpc_resolver_factory *grpc_ipv6_resolver_factory_create(void);
+
+#ifdef GPR_POSIX_SOCKET
+/** Create a unix resolver factory */
+grpc_resolver_factory *grpc_unix_resolver_factory_create(void);
+#endif
+
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H */
