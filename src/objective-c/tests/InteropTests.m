@@ -83,10 +83,8 @@
   RMTTestService *_service;
 }
 
-// grpc-test.sandbox.google.com
-
 - (void)setUp {
-  _service = [[RMTTestService alloc] initWithHost:@"http://localhost:5050"];
+  _service = [[RMTTestService alloc] initWithHost:@"grpc-test.sandbox.google.com"];
 }
 
 // Tests as described here: https://github.com/grpc/grpc/blob/master/doc/interop-test-descriptions.md
