@@ -30,52 +30,30 @@
 #endregion
 using System;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Grpc.Core.Internal
 {
     /// <summary>
-    /// grpc_channel from <grpc/grpc.h>
+    /// Owned char* object.
     /// </summary>
-    internal class ChannelSafeHandle : SafeHandleZeroIsInvalid
+    internal class CStringSafeHandle : SafeHandleZeroIsInvalid
     {
         [DllImport("grpc_csharp_ext.dll")]
-        static extern ChannelSafeHandle grpcsharp_insecure_channel_create(string target, ChannelArgsSafeHandle channelArgs);
+        static extern void gprsharp_free(IntPtr ptr);
 
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern ChannelSafeHandle grpcsharp_secure_channel_create(CredentialsSafeHandle credentials, string target, ChannelArgsSafeHandle channelArgs);
-
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern CallSafeHandle grpcsharp_channel_create_call(ChannelSafeHandle channel, CompletionQueueSafeHandle cq, string method, string host, Timespec deadline);
-
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern void grpcsharp_channel_destroy(IntPtr channel);
-
-        private ChannelSafeHandle()
+        private CStringSafeHandle()
         {
         }
 
-        public static ChannelSafeHandle CreateInsecure(string target, ChannelArgsSafeHandle channelArgs)
+        public string GetValue()
         {
-            return grpcsharp_insecure_channel_create(target, channelArgs);
-        }
-
-        public static ChannelSafeHandle CreateSecure(CredentialsSafeHandle credentials, string target, ChannelArgsSafeHandle channelArgs)
-        {
-            return grpcsharp_secure_channel_create(credentials, target, channelArgs);
-        }
-
-        public CallSafeHandle CreateCall(CompletionRegistry registry, CompletionQueueSafeHandle cq, string method, string host, Timespec deadline)
-        {
-            var result = grpcsharp_channel_create_call(this, cq, method, host, deadline);
-            result.SetCompletionRegistry(registry);
-            return result;
+            return Marshal.PtrToStringAnsi(handle);
         }
 
         protected override bool ReleaseHandle()
         {
-            grpcsharp_channel_destroy(handle);
+            gprsharp_free(handle);
             return true;
         }
     }

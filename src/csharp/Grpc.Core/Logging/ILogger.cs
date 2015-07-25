@@ -1,4 +1,5 @@
 #region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,33 +28,30 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #endregion
 
 using System;
-using System.Runtime.InteropServices;
-using System.Threading;
-using Grpc.Core;
+using System.Collections.Generic;
 
-namespace math
+namespace Grpc.Core.Logging
 {
-    class MainClass
+    /// <summary>For logging messages.</summary>
+    public interface ILogger
     {
-        public static void Main(string[] args)
-        {
-            string host = "0.0.0.0";
+        /// <summary>Returns a logger associated with the specified type.</summary>
+        ILogger ForType<T>();
 
-            Server server = new Server();
-            server.AddServiceDefinition(Math.BindService(new MathServiceImpl()));
-            int port = server.AddPort(host, 23456, ServerCredentials.Insecure);
-            server.Start();
+        void Debug(string message, params object[] formatArgs);
 
-            Console.WriteLine("MathServer listening on port " + port);
+        void Info(string message, params object[] formatArgs);
 
-            Console.WriteLine("Press any key to stop the server...");
-            Console.ReadKey();
+        void Warning(string message, params object[] formatArgs);
 
-            server.ShutdownAsync().Wait();
-            GrpcEnvironment.Shutdown();
-        }
+        void Warning(Exception exception, string message, params object[] formatArgs);
+
+        void Error(string message, params object[] formatArgs);
+
+        void Error(Exception exception, string message, params object[] formatArgs);
     }
 }
