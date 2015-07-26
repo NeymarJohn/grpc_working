@@ -78,7 +78,7 @@ namespace Grpc.IntegrationTesting
             var keyCertPair = new KeyCertificatePair(
                 File.ReadAllText(ServerCertChainPath),
                 File.ReadAllText(ServerPrivateKeyPath));
-            return new SslServerCredentials(new[] { keyCertPair });
+            return new SslServerCredentials(ImmutableList.Create(keyCertPair));
         }
     }
 }

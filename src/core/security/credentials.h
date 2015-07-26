@@ -52,8 +52,6 @@ typedef enum {
   GRPC_CREDENTIALS_ERROR
 } grpc_credentials_status;
 
-#define GRPC_FAKE_TRANSPORT_SECURITY_TYPE "fake"
-
 #define GRPC_CREDENTIALS_TYPE_SSL "Ssl"
 #define GRPC_CREDENTIALS_TYPE_OAUTH2 "Oauth2"
 #define GRPC_CREDENTIALS_TYPE_JWT "Jwt"
@@ -113,12 +111,6 @@ grpc_credentials_md_store *grpc_credentials_md_store_ref(
 void grpc_credentials_md_store_unref(grpc_credentials_md_store *store);
 
 /* --- grpc_credentials. --- */
-
-/* Creates a fake transport security credentials object for testing. */
-grpc_credentials *grpc_fake_transport_security_credentials_create(void);
-/* Creates a fake server transport security credentials object for testing. */
-grpc_server_credentials *grpc_fake_transport_security_server_credentials_create(
-    void);
 
 /* It is the caller's responsibility to gpr_free the result if not NULL. */
 char *grpc_get_well_known_google_credentials_file_path(void);
@@ -196,8 +188,7 @@ grpc_credentials *grpc_fake_oauth2_credentials_create(
 
 /* Private constructor for jwt credentials from an already parsed json key.
    Takes ownership of the key. */
-grpc_credentials *
-grpc_service_account_jwt_access_credentials_create_from_auth_json_key(
+grpc_credentials *grpc_jwt_credentials_create_from_auth_json_key(
     grpc_auth_json_key key, gpr_timespec token_lifetime);
 
 /* Private constructor for refresh token credentials from an already parsed
@@ -249,7 +240,7 @@ typedef struct {
 
   grpc_auth_json_key key;
   gpr_timespec jwt_lifetime;
-} grpc_service_account_jwt_access_credentials;
+} grpc_jwt_credentials;
 
 /* -- Oauth2TokenFetcher credentials --
 
