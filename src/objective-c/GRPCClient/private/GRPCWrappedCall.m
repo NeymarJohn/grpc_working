@@ -246,11 +246,8 @@
     if (!_queue) {
       return nil;
     }
-    _call = grpc_channel_create_call(channel.unmanagedChannel,
-                                     _queue.unmanagedQueue,
-                                     path.UTF8String,
-                                     host.UTF8String,
-                                     gpr_inf_future(GPR_CLOCK_REALTIME));
+    _call = grpc_channel_create_call(channel.unmanagedChannel, _queue.unmanagedQueue,
+                                     path.UTF8String, host.UTF8String, gpr_inf_future);
     if (_call == NULL) {
       return nil;
     }

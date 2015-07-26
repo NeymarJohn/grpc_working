@@ -161,8 +161,7 @@ void Server::ShutdownServer() {
     grpc_server_shutdown_and_notify(this->wrapped_server,
                                     this->shutdown_queue,
                                     NULL);
-    grpc_completion_queue_pluck(this->shutdown_queue, NULL,
-                                gpr_inf_future(GPR_CLOCK_REALTIME));
+    grpc_completion_queue_pluck(this->shutdown_queue, NULL, gpr_inf_future);
     this->wrapped_server = NULL;
   }
 }

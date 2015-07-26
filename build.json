@@ -18,13 +18,11 @@
         "include/grpc/census.h"
       ],
       "headers": [
-        "src/core/census/context.h",
-        "src/core/census/rpc_stat_id.h"
+        "src/core/census/context.h"
       ],
       "src": [
         "src/core/census/context.c",
-        "src/core/census/initialize.c",
-        "src/core/census/record_stat.c"
+        "src/core/census/initialize.c"
       ]
     },
     {
@@ -117,7 +115,6 @@
         "src/core/channel/channel_args.h",
         "src/core/channel/channel_stack.h",
         "src/core/channel/client_channel.h",
-        "src/core/channel/compress_filter.h",
         "src/core/channel/connected_channel.h",
         "src/core/channel/context.h",
         "src/core/channel/http_client_filter.h",
@@ -131,7 +128,7 @@
         "src/core/client_config/resolver_factory.h",
         "src/core/client_config/resolver_registry.h",
         "src/core/client_config/resolvers/dns_resolver.h",
-        "src/core/client_config/resolvers/sockaddr_resolver.h",
+        "src/core/client_config/resolvers/unix_resolver_posix.h",
         "src/core/client_config/subchannel.h",
         "src/core/client_config/subchannel_factory.h",
         "src/core/client_config/uri_parser.h",
@@ -214,7 +211,6 @@
         "src/core/channel/channel_args.c",
         "src/core/channel/channel_stack.c",
         "src/core/channel/client_channel.c",
-        "src/core/channel/compress_filter.c",
         "src/core/channel/connected_channel.c",
         "src/core/channel/http_client_filter.c",
         "src/core/channel/http_server_filter.c",
@@ -227,7 +223,7 @@
         "src/core/client_config/resolver_factory.c",
         "src/core/client_config/resolver_registry.c",
         "src/core/client_config/resolvers/dns_resolver.c",
-        "src/core/client_config/resolvers/sockaddr_resolver.c",
+        "src/core/client_config/resolvers/unix_resolver_posix.c",
         "src/core/client_config/subchannel.c",
         "src/core/client_config/subchannel_factory.c",
         "src/core/client_config/uri_parser.c",
@@ -282,7 +278,6 @@
         "src/core/surface/call_details.c",
         "src/core/surface/call_log_batch.c",
         "src/core/surface/channel.c",
-        "src/core/surface/channel_connectivity.c",
         "src/core/surface/channel_create.c",
         "src/core/surface/completion_queue.c",
         "src/core/surface/event_string.c",
@@ -327,7 +322,6 @@
       "headers": [
         "test/core/end2end/cq_verifier.h",
         "test/core/iomgr/endpoint_tests.h",
-        "test/core/security/oauth2_utils.h",
         "test/core/util/grpc_profiler.h",
         "test/core/util/parse_hexstring.h",
         "test/core/util/port.h",
@@ -336,7 +330,6 @@
       "src": [
         "test/core/end2end/cq_verifier.c",
         "test/core/iomgr/endpoint_tests.c",
-        "test/core/security/oauth2_utils.c",
         "test/core/util/grpc_profiler.c",
         "test/core/util/parse_hexstring.c",
         "test/core/util/port_posix.c",
@@ -1786,6 +1779,20 @@
       "language": "c",
       "src": [
         "test/core/iomgr/time_averaged_stats_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "time_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/support/time_test.c"
       ],
       "deps": [
         "grpc_test_util",

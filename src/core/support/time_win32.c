@@ -55,7 +55,6 @@ gpr_timespec gpr_now(gpr_clock_type clock) {
   struct _timeb now_tb;
   LARGE_INTEGER timestamp;
   double now_dbl;
-  now_tv.clock_type = clock;
   switch (clock) {
     case GPR_CLOCK_REALTIME:
       _ftime_s(&now_tb);
@@ -80,7 +79,7 @@ void gpr_sleep_until(gpr_timespec until) {
   for (;;) {
     /* We could simplify by using clock_nanosleep instead, but it might be
      * slightly less portable. */
-    now = gpr_now(until.clock_type);
+    now = gpr_now(GPR_CLOCK_REALTIME);
     if (gpr_time_cmp(until, now) <= 0) {
       return;
     }
