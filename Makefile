@@ -3615,7 +3615,6 @@ LIBGRPC_SRC = \
     src/core/census/context.c \
     src/core/census/initialize.c \
     src/core/census/record_stat.c \
-    src/core/census/tracing.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/grpc_security.h \
@@ -3881,7 +3880,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/census/context.c \
     src/core/census/initialize.c \
     src/core/census/record_stat.c \
-    src/core/census/tracing.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer.h \

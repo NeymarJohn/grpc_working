@@ -545,8 +545,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\core\census\record_stat.c">
     </ClCompile>
-    <ClCompile Include="..\..\src\core\census\tracing.c">
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\gpr\gpr.vcxproj">
