@@ -103,8 +103,8 @@ void census_context_destroy(census_context *context);
 
 /* Distributed traces can have a number of options. */
 enum census_trace_mask_values {
-  CENSUS_TRACE_MASK_NONE = 0,       /* Default, empty flags */
-  CENSUS_TRACE_MASK_IS_SAMPLED = 1, /* RPC tracing enabled for this context. */
+  CENSUS_TRACE_MASK_NONE = 0,      /* Default, empty flags */
+  CENSUS_TRACE_MASK_IS_SAMPLED = 1 /* RPC tracing enabled for this context. */
 };
 
 /** Get the current trace mask associated with this context. The value returned
@@ -244,6 +244,17 @@ void census_get_active_ops_as_proto(/* pointer to proto */);
     left unspecified for now. This function will clear existing trace
     records. */
 void census_get_trace_as_proto(/* pointer to proto */);
+
+/* A census statistic to be recorded comprises two parts: an ID for the
+ * particular statistic and the value to be recorded against it. */
+typedef struct {
+  int id;
+  double value;
+} census_stat;
+
+/* Record new stats against the given context. */
+void census_record_stat(census_context *context, census_stat *stats,
+                        size_t nstats);
 
 #ifdef __cplusplus
 }
