@@ -115,49 +115,41 @@ namespace Grpc.Core
         }
     }
 
-    /// <summary>
-    /// Defines names of supported channel options.
-    /// </summary>
     public static class ChannelOptions
     {
-        /// <summary>Override SSL target check. Only to be used for testing.</summary>
+        // Override SSL target check. Only to be used for testing.
         public const string SslTargetNameOverride = "grpc.ssl_target_name_override";
 
-        /// <summary>Enable census for tracing and stats collection</summary>
+        // Enable census for tracing and stats collection
         public const string Census = "grpc.census";
 
-        /// <summary>Maximum number of concurrent incoming streams to allow on a http2 connection</summary>
+        // Maximum number of concurrent incoming streams to allow on a http2 connection
         public const string MaxConcurrentStreams = "grpc.max_concurrent_streams";
 
-        /// <summary>Maximum message length that the channel can receive</summary>
+        // Maximum message length that the channel can receive
         public const string MaxMessageLength = "grpc.max_message_length";
 
-        /// <summary>Initial sequence number for http2 transports</summary>
+        // Initial sequence number for http2 transports
         public const string Http2InitialSequenceNumber = "grpc.http2.initial_sequence_number";
-
-        /// <summary>Primary user agent: goes at the start of the user-agent metadata</summary>
-        public const string PrimaryUserAgentString = "grpc.primary_user_agent";
-
-        /// <summary> Secondary user agent: goes at the end of the user-agent metadata</summary>
-        public const string SecondaryUserAgentString = "grpc.secondary_user_agent";
 
         /// <summary>
         /// Creates native object for a collection of channel options.
         /// </summary>
         /// <returns>The native channel arguments.</returns>
-        internal static ChannelArgsSafeHandle CreateChannelArgs(List<ChannelOption> options)
+        internal static ChannelArgsSafeHandle CreateChannelArgs(IEnumerable<ChannelOption> options)
         {
-            if (options == null || options.Count == 0)
+            if (options == null)
             {
                 return ChannelArgsSafeHandle.CreateNull();
             }
+            var optionList = new List<ChannelOption>(options);  // It's better to do defensive copy
             ChannelArgsSafeHandle nativeArgs = null;
             try
             {
-                nativeArgs = ChannelArgsSafeHandle.Create(options.Count);
-                for (int i = 0; i < options.Count; i++)
+                nativeArgs = ChannelArgsSafeHandle.Create(optionList.Count);
+                for (int i = 0; i < optionList.Count; i++)
                 {
-                    var option = options[i];
+                    var option = optionList[i];
                     if (option.Type == ChannelOption.OptionType.Integer)
                     {
                         nativeArgs.SetInteger(i, option.Name, option.IntValue);

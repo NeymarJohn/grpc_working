@@ -31,51 +31,18 @@
  *
  */
 
-#ifndef GRPCXX_DYNAMIC_THREAD_POOL_H
-#define GRPCXX_DYNAMIC_THREAD_POOL_H
+#ifndef GRPC_GRPC_ZOOKEEPER_H
+#define GRPC_GRPC_ZOOKEEPER_H
 
-#include <grpc++/config.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include <grpc++/impl/sync.h>
-#include <grpc++/impl/thd.h>
-#include <grpc++/thread_pool_interface.h>
+/** Register zookeeper name resolver in grpc */
+void grpc_zookeeper_register();
 
-#include <list>
-#include <queue>
+#ifdef __cplusplus
+}
+#endif
 
-namespace grpc {
-
-class DynamicThreadPool GRPC_FINAL : public ThreadPoolInterface {
- public:
-  explicit DynamicThreadPool(int reserve_threads);
-  ~DynamicThreadPool();
-
-  void Add(const std::function<void()>& callback) GRPC_OVERRIDE;
-
- private:
-  class DynamicThread {
-  public:
-    DynamicThread(DynamicThreadPool *pool);
-    ~DynamicThread();
-  private:
-    DynamicThreadPool *pool_;
-    std::unique_ptr<grpc::thread> thd_;
-    void ThreadFunc();
-  };
-  grpc::mutex mu_;
-  grpc::condition_variable cv_;
-  grpc::condition_variable shutdown_cv_;
-  bool shutdown_;
-  std::queue<std::function<void()>> callbacks_;
-  int reserve_threads_;
-  int nthreads_;
-  int threads_waiting_;
-  std::list<DynamicThread*> dead_threads_;
-
-  void ThreadFunc();
-  static void ReapThreads(std::list<DynamicThread*>* tlist);
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_DYNAMIC_THREAD_POOL_H
+#endif /* GRPC_GRPC_ZOOKEEPER_H */

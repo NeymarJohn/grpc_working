@@ -31,44 +31,28 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_UTIL_TEST_CONFIG_H
-#define GRPC_TEST_CORE_UTIL_TEST_CONFIG_H
+#include <grpc/grpc_security.h>
+#include <grpc++/channel_arguments.h>
+#include <grpc++/credentials.h>
+#include <grpc++/server_credentials.h>
+#include "src/cpp/client/channel.h"
+#include "src/cpp/client/secure_credentials.h"
+#include "src/cpp/server/secure_server_credentials.h"
 
-#include <grpc/support/time.h>
+namespace grpc {
+namespace testing {
 
-#ifdef __cplusplus
-extern "C" {
-#endif /*  __cplusplus */
-
-#ifndef GRPC_TEST_SLOWDOWN_BUILD_FACTOR
-#define GRPC_TEST_SLOWDOWN_BUILD_FACTOR 1.0
-#endif
-
-#ifndef GRPC_TEST_SLOWDOWN_MACHINE_FACTOR
-#define GRPC_TEST_SLOWDOWN_MACHINE_FACTOR 1.0
-#endif
-
-#define GRPC_TEST_SLOWDOWN_FACTOR \
-  (GRPC_TEST_SLOWDOWN_BUILD_FACTOR * GRPC_TEST_SLOWDOWN_MACHINE_FACTOR)
-
-#define GRPC_TIMEOUT_SECONDS_TO_DEADLINE(x)                                \
-  gpr_time_add(gpr_now(GPR_CLOCK_REALTIME),                                \
-               gpr_time_from_micros(GRPC_TEST_SLOWDOWN_FACTOR * 1e6 * (x), \
-                                    GPR_TIMESPAN))
-
-#define GRPC_TIMEOUT_MILLIS_TO_DEADLINE(x)                                 \
-  gpr_time_add(gpr_now(GPR_CLOCK_REALTIME),                                \
-               gpr_time_from_micros(GRPC_TEST_SLOWDOWN_FACTOR * 1e3 * (x), \
-                                    GPR_TIMESPAN))
-
-#ifndef GRPC_TEST_CUSTOM_PICK_PORT
-#define GRPC_TEST_PICK_PORT
-#endif
-
-void grpc_test_init(int argc, char **argv);
-
-#ifdef __cplusplus
+std::shared_ptr<Credentials> FakeTransportSecurityCredentials() {
+  grpc_credentials* c_creds = grpc_fake_transport_security_credentials_create();
+  return std::shared_ptr<Credentials>(new SecureCredentials(c_creds));
 }
-#endif /*  __cplusplus */
 
-#endif /* GRPC_TEST_CORE_UTIL_TEST_CONFIG_H */
+std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials() {
+  grpc_server_credentials* c_creds =
+      grpc_fake_transport_security_server_credentials_create();
+  return std::shared_ptr<ServerCredentials>(
+      new SecureServerCredentials(c_creds));
+}
+
+}  // namespace testing
+}  // namespace grpc

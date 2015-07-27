@@ -28,14 +28,11 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
-
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Grpc.Core.Internal;
 
 namespace Grpc.Core
@@ -47,7 +44,6 @@ namespace Grpc.Core
     {
         readonly GrpcEnvironment environment;
         readonly ChannelSafeHandle handle;
-        readonly List<ChannelOption> options;
         readonly string target;
         bool disposed;
 
@@ -56,27 +52,26 @@ namespace Grpc.Core
         /// Port will default to 80 for an unsecure channel and to 443 a secure channel.
         /// </summary>
         /// <param name="host">The DNS name of IP address of the host.</param>
-        /// <param name="credentials">Credentials to secure the channel.</param>
+        /// <param name="credentials">Optional credentials to create a secure channel.</param>
         /// <param name="options">Channel options.</param>
-        public Channel(string host, Credentials credentials, IEnumerable<ChannelOption> options = null)
+        public Channel(string host, Credentials credentials = null, IEnumerable<ChannelOption> options = null)
         {
             this.environment = GrpcEnvironment.GetInstance();
-            this.options = options != null ? new List<ChannelOption>(options) : new List<ChannelOption>();
-
-            EnsureUserAgentChannelOption(this.options);
-            using (CredentialsSafeHandle nativeCredentials = credentials.ToNativeCredentials())
-            using (ChannelArgsSafeHandle nativeChannelArgs = ChannelOptions.CreateChannelArgs(this.options))
+            using (ChannelArgsSafeHandle nativeChannelArgs = ChannelOptions.CreateChannelArgs(options))
             {
-                if (nativeCredentials != null)
+                if (credentials != null)
                 {
-                    this.handle = ChannelSafeHandle.CreateSecure(nativeCredentials, host, nativeChannelArgs);
+                    using (CredentialsSafeHandle nativeCredentials = credentials.ToNativeCredentials())
+                    {
+                        this.handle = ChannelSafeHandle.CreateSecure(nativeCredentials, host, nativeChannelArgs);
+                    }
                 }
                 else
                 {
-                    this.handle = ChannelSafeHandle.CreateInsecure(host, nativeChannelArgs);
+                    this.handle = ChannelSafeHandle.Create(host, nativeChannelArgs);
                 }
             }
-            this.target = GetOverridenTarget(host, this.options);
+            this.target = GetOverridenTarget(host, options);
         }
 
         /// <summary>
@@ -84,9 +79,9 @@ namespace Grpc.Core
         /// </summary>
         /// <param name="host">DNS name or IP address</param>
         /// <param name="port">the port</param>
-        /// <param name="credentials">Credentials to secure the channel.</param>
+        /// <param name="credentials">Optional credentials to create a secure channel.</param>
         /// <param name="options">Channel options.</param>
-        public Channel(string host, int port, Credentials credentials, IEnumerable<ChannelOption> options = null) :
+        public Channel(string host, int port, Credentials credentials = null, IEnumerable<ChannelOption> options = null) :
             this(string.Format("{0}:{1}", host, port), credentials, options)
         {
         }
@@ -144,20 +139,6 @@ namespace Grpc.Core
                 disposed = true;
                 handle.Dispose();
             }
-        }
-
-        private static void EnsureUserAgentChannelOption(List<ChannelOption> options)
-        {
-            if (!options.Any((option) => option.Name == ChannelOptions.PrimaryUserAgentString))
-            {
-                options.Add(new ChannelOption(ChannelOptions.PrimaryUserAgentString, GetUserAgentString()));
-            }
-        }
-
-        private static string GetUserAgentString()
-        {
-            // TODO(jtattermusch): it would be useful to also provide .NET/mono version.
-            return string.Format("grpc-csharp/{0}", VersionInfo.CurrentVersion);
         }
 
         /// <summary>

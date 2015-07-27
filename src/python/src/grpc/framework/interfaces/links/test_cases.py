@@ -161,8 +161,8 @@ class TransmissionTest(object):
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def assertMetadataTransmitted(self, original_metadata, transmitted_metadata):
-    """Asserts that transmitted_metadata contains original_metadata.
+  def assertMetadataEqual(self, original_metadata, transmitted_metadata):
+    """Asserts that two metadata objects are equal.
 
     Args:
       original_metadata: A metadata object used in this test.
@@ -170,8 +170,7 @@ class TransmissionTest(object):
         through the system under test.
 
     Raises:
-      AssertionError: if the transmitted_metadata object does not contain
-        original_metadata.
+      AssertionError: if the two metadata objects are not equal.
     """
     raise NotImplementedError()
 
@@ -240,7 +239,7 @@ class TransmissionTest(object):
         self.assertFalse(initial_metadata_seen)
         self.assertFalse(seen_payloads)
         self.assertFalse(terminal_metadata_seen)
-        self.assertMetadataTransmitted(initial_metadata, ticket.initial_metadata)
+        self.assertMetadataEqual(initial_metadata, ticket.initial_metadata)
         initial_metadata_seen = True
 
       if ticket.payload is not None:
@@ -249,7 +248,7 @@ class TransmissionTest(object):
 
       if ticket.terminal_metadata is not None:
         self.assertFalse(terminal_metadata_seen)
-        self.assertMetadataTransmitted(terminal_metadata, ticket.terminal_metadata)
+        self.assertMetadataEqual(terminal_metadata, ticket.terminal_metadata)
         terminal_metadata_seen = True
     self.assertSequenceEqual(payloads, seen_payloads)
 

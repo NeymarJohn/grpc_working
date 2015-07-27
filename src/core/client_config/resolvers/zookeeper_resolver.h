@@ -31,47 +31,12 @@
  *
  */
 
-#include <condition_variable>
-#include <functional>
-#include <mutex>
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-#include <grpc++/dynamic_thread_pool.h>
-#include <gtest/gtest.h>
+#include "src/core/client_config/resolver_factory.h"
 
-namespace grpc {
+/** Create a zookeeper resolver factory */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
 
-class DynamicThreadPoolTest : public ::testing::Test {
- public:
-  DynamicThreadPoolTest() : thread_pool_(0) {}
-
- protected:
-  DynamicThreadPool thread_pool_;
-};
-
-void Callback(std::mutex* mu, std::condition_variable* cv, bool* done) {
-  std::unique_lock<std::mutex> lock(*mu);
-  *done = true;
-  cv->notify_all();
-}
-
-TEST_F(DynamicThreadPoolTest, Add) {
-  std::mutex mu;
-  std::condition_variable cv;
-  bool done = false;
-  std::function<void()> callback = std::bind(Callback, &mu, &cv, &done);
-  thread_pool_.Add(callback);
-
-  // Wait for the callback to finish.
-  std::unique_lock<std::mutex> lock(mu);
-  while (!done) {
-    cv.wait(lock);
-  }
-}
-
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  int result = RUN_ALL_TESTS();
-  return result;
-}
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */
