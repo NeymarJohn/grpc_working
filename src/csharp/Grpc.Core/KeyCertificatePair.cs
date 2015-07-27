@@ -1,4 +1,5 @@
 #region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,33 +28,57 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #endregion
 
 using System;
-using System.Runtime.InteropServices;
-using System.Threading;
-using Grpc.Core;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 
-namespace math
+using Grpc.Core.Internal;
+using Grpc.Core.Utils;
+
+namespace Grpc.Core
 {
-    class MainClass
+    /// <summary>
+    /// Key certificate pair (in PEM encoding).
+    /// </summary>
+    public sealed class KeyCertificatePair
     {
-        public static void Main(string[] args)
+        readonly string certificateChain;
+        readonly string privateKey;
+
+        /// <summary>
+        /// Creates a new certificate chain - private key pair.
+        /// </summary>
+        /// <param name="certificateChain">PEM encoded certificate chain.</param>
+        /// <param name="privateKey">PEM encoded private key.</param>
+        public KeyCertificatePair(string certificateChain, string privateKey)
         {
-            string host = "0.0.0.0";
+            this.certificateChain = Preconditions.CheckNotNull(certificateChain);
+            this.privateKey = Preconditions.CheckNotNull(privateKey);
+        }
 
-            Server server = new Server();
-            server.AddServiceDefinition(Math.BindService(new MathServiceImpl()));
-            int port = server.AddPort(host, 23456, ServerCredentials.Insecure);
-            server.Start();
+        /// <summary>
+        /// PEM encoded certificate chain.
+        /// </summary>
+        public string CertificateChain
+        {
+            get
+            {
+                return certificateChain;
+            }
+        }
 
-            Console.WriteLine("MathServer listening on port " + port);
-
-            Console.WriteLine("Press any key to stop the server...");
-            Console.ReadKey();
-
-            server.ShutdownAsync().Wait();
-            GrpcEnvironment.Shutdown();
+        /// <summary>
+        /// PEM encoded private key.
+        /// </summary>
+        public string PrivateKey
+        {
+            get
+            {
+                return privateKey;
+            }
         }
     }
 }

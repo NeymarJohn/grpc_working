@@ -33,6 +33,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using grpc.testing;
@@ -43,9 +44,10 @@ using NUnit.Framework;
 namespace Grpc.IntegrationTesting
 {
     /// <summary>
-    /// Runs interop tests in-process.
+    /// Test SSL credentials where server authenticates client 
+    /// and client authenticates the server.
     /// </summary>
-    public class InteropClientServerTest
+    public class SslCredentialsTest
     {
         string host = "localhost";
         Server server;
@@ -55,16 +57,25 @@ namespace Grpc.IntegrationTesting
         [TestFixtureSetUp]
         public void Init()
         {
+            var rootCert = File.ReadAllText(TestCredentials.ClientCertAuthorityPath);
+            var keyCertPair = new KeyCertificatePair(
+                File.ReadAllText(TestCredentials.ServerCertChainPath),
+                File.ReadAllText(TestCredentials.ServerPrivateKeyPath));
+
+            var serverCredentials = new SslServerCredentials(new[] { keyCertPair }, rootCert);
+            var clientCredentials = new SslCredentials(rootCert, keyCertPair);
+
             server = new Server();
             server.AddServiceDefinition(TestService.BindService(new TestServiceImpl()));
-            int port = server.AddPort(host, Server.PickUnusedPort, TestCredentials.CreateTestServerCredentials());
+            int port = server.AddPort(host, Server.PickUnusedPort, serverCredentials);
             server.Start();
 
             var options = new List<ChannelOption>
             {
                 new ChannelOption(ChannelOptions.SslTargetNameOverride, TestCredentials.DefaultHostOverride)
             };
-            channel = new Channel(host, port, TestCredentials.CreateTestClientCredentials(true), options);
+
+            channel = new Channel(host, port, clientCredentials, options);
             client = TestService.NewClient(channel);
         }
 
@@ -77,51 +88,10 @@ namespace Grpc.IntegrationTesting
         }
 
         [Test]
-        public void EmptyUnary()
+        public void AuthenticatedClientAndServer()
         {
-            InteropClient.RunEmptyUnary(client);
-        }
-
-        [Test]
-        public void LargeUnary()
-        {
-            InteropClient.RunLargeUnary(client);
-        }
-
-        [Test]
-        public async Task ClientStreaming()
-        {
-            await InteropClient.RunClientStreamingAsync(client);
-        }
-
-        [Test]
-        public async Task ServerStreaming()
-        {
-            await InteropClient.RunServerStreamingAsync(client);
-        }
-
-        [Test]
-        public async Task PingPong()
-        {
-            await InteropClient.RunPingPongAsync(client);
-        }
-
-        [Test]
-        public async Task EmptyStream()
-        {
-            await InteropClient.RunEmptyStreamAsync(client);
-        }
-
-        [Test]
-        public async Task CancelAfterBegin()
-        {
-            await InteropClient.RunCancelAfterBeginAsync(client);
-        }
-
-        [Test]
-        public async Task CancelAfterFirstResponse()
-        {
-            await InteropClient.RunCancelAfterFirstResponseAsync(client);
+            var response = client.UnaryCall(SimpleRequest.CreateBuilder().SetResponseSize(10).Build());
+            Assert.AreEqual(10, response.Payload.Body.Length);
         }
     }
 }

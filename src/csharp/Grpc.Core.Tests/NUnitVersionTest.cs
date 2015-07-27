@@ -1,4 +1,5 @@
 #region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,56 +28,52 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #endregion
+
 using System;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Grpc.Core;
+using Grpc.Core.Internal;
+using Grpc.Core.Utils;
+using NUnit.Framework;
 
-namespace Grpc.Core.Internal
+namespace Grpc.Core.Tests
 {
     /// <summary>
-    /// grpc_channel from <grpc/grpc.h>
+    /// Tests if the version of nunit-console used is sufficient to run async tests.
     /// </summary>
-    internal class ChannelSafeHandle : SafeHandleZeroIsInvalid
+    public class NUnitVersionTest
     {
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern ChannelSafeHandle grpcsharp_insecure_channel_create(string target, ChannelArgsSafeHandle channelArgs);
+        private int testRunCount = 0;
 
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern ChannelSafeHandle grpcsharp_secure_channel_create(CredentialsSafeHandle credentials, string target, ChannelArgsSafeHandle channelArgs);
-
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern CallSafeHandle grpcsharp_channel_create_call(ChannelSafeHandle channel, CompletionQueueSafeHandle cq, string method, string host, Timespec deadline);
-
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern void grpcsharp_channel_destroy(IntPtr channel);
-
-        private ChannelSafeHandle()
+        [TestFixtureTearDown]
+        public void Cleanup()
         {
+            if (testRunCount != 2)
+            {
+                Console.Error.WriteLine("You are using and old version of NUnit that doesn't support async tests and skips them instead. " +
+                "This test has failed to indicate that.");
+                Console.Error.Flush();
+                Environment.Exit(1);
+            }
         }
 
-        public static ChannelSafeHandle CreateInsecure(string target, ChannelArgsSafeHandle channelArgs)
+        [Test]
+        public void NUnitVersionTest1()
         {
-            return grpcsharp_insecure_channel_create(target, channelArgs);
+            testRunCount++;
         }
 
-        public static ChannelSafeHandle CreateSecure(CredentialsSafeHandle credentials, string target, ChannelArgsSafeHandle channelArgs)
+        // Old version of NUnit will skip this test
+        [Test]
+        public async Task NUnitVersionTest2()
         {
-            return grpcsharp_secure_channel_create(credentials, target, channelArgs);
+            testRunCount ++;
+            await Task.Delay(10);
         }
 
-        public CallSafeHandle CreateCall(CompletionRegistry registry, CompletionQueueSafeHandle cq, string method, string host, Timespec deadline)
-        {
-            var result = grpcsharp_channel_create_call(this, cq, method, host, deadline);
-            result.SetCompletionRegistry(registry);
-            return result;
-        }
 
-        protected override bool ReleaseHandle()
-        {
-            grpcsharp_channel_destroy(handle);
-            return true;
-        }
     }
 }
