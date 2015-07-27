@@ -31,51 +31,28 @@
  *
  */
 
-#ifndef GRPCXX_DYNAMIC_THREAD_POOL_H
-#define GRPCXX_DYNAMIC_THREAD_POOL_H
-
-#include <grpc++/config.h>
-
-#include <grpc++/impl/sync.h>
-#include <grpc++/impl/thd.h>
-#include <grpc++/thread_pool_interface.h>
-
-#include <list>
-#include <queue>
+#include <grpc/grpc_security.h>
+#include <grpc++/channel_arguments.h>
+#include <grpc++/credentials.h>
+#include <grpc++/server_credentials.h>
+#include "src/cpp/client/channel.h"
+#include "src/cpp/client/secure_credentials.h"
+#include "src/cpp/server/secure_server_credentials.h"
 
 namespace grpc {
+namespace testing {
 
-class DynamicThreadPool GRPC_FINAL : public ThreadPoolInterface {
- public:
-  explicit DynamicThreadPool(int reserve_threads);
-  ~DynamicThreadPool();
+std::shared_ptr<Credentials> FakeTransportSecurityCredentials() {
+  grpc_credentials* c_creds = grpc_fake_transport_security_credentials_create();
+  return std::shared_ptr<Credentials>(new SecureCredentials(c_creds));
+}
 
-  void Add(const std::function<void()>& callback) GRPC_OVERRIDE;
+std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials() {
+  grpc_server_credentials* c_creds =
+      grpc_fake_transport_security_server_credentials_create();
+  return std::shared_ptr<ServerCredentials>(
+      new SecureServerCredentials(c_creds));
+}
 
- private:
-  class DynamicThread {
-  public:
-    DynamicThread(DynamicThreadPool *pool);
-    ~DynamicThread();
-  private:
-    DynamicThreadPool *pool_;
-    std::unique_ptr<grpc::thread> thd_;
-    void ThreadFunc();
-  };
-  grpc::mutex mu_;
-  grpc::condition_variable cv_;
-  grpc::condition_variable shutdown_cv_;
-  bool shutdown_;
-  std::queue<std::function<void()>> callbacks_;
-  int reserve_threads_;
-  int nthreads_;
-  int threads_waiting_;
-  std::list<DynamicThread*> dead_threads_;
-
-  void ThreadFunc();
-  static void ReapThreads(std::list<DynamicThread*>* tlist);
-};
-
+}  // namespace testing
 }  // namespace grpc
-
-#endif  // GRPCXX_DYNAMIC_THREAD_POOL_H

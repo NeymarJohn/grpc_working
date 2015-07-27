@@ -34,8 +34,8 @@
 class EndToEndTest extends PHPUnit_Framework_TestCase{
   public function setUp() {
     $this->server = new Grpc\Server([]);
-    $this->port = $this->server->addHttp2Port('0.0.0.0:0');
-    $this->channel = new Grpc\Channel('localhost:' . $this->port, []);
+    $port = $this->server->addHttp2Port('0.0.0.0:0');
+    $this->channel = new Grpc\Channel('localhost:' . $port, []);
     $this->server->start();
   }
 
@@ -148,9 +148,5 @@ class EndToEndTest extends PHPUnit_Framework_TestCase{
 
     unset($call);
     unset($server_call);
-  }
-
-  public function testGetTarget() {
-    $this->assertTrue($this->channel->getTarget() == 'localhost:' . $this->port);
   }
 }

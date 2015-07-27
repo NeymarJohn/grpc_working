@@ -63,6 +63,8 @@ ClientCredentials *pygrpc_ClientCredentials_jwt(
     PyTypeObject *type, PyObject *args, PyObject *kwargs);
 ClientCredentials *pygrpc_ClientCredentials_refresh_token(
     PyTypeObject *type, PyObject *args, PyObject *kwargs);
+ClientCredentials *pygrpc_ClientCredentials_fake_transport_security(
+    PyTypeObject *type, PyObject *ignored);
 ClientCredentials *pygrpc_ClientCredentials_iam(
     PyTypeObject *type, PyObject *args, PyObject *kwargs);
 extern PyTypeObject pygrpc_ClientCredentials_type;
@@ -79,6 +81,8 @@ typedef struct ServerCredentials {
 void pygrpc_ServerCredentials_dealloc(ServerCredentials *self);
 ServerCredentials *pygrpc_ServerCredentials_ssl(
     PyTypeObject *type, PyObject *args, PyObject *kwargs);
+ServerCredentials *pygrpc_ServerCredentials_fake_transport_security(
+    PyTypeObject *type, PyObject *ignored);
 extern PyTypeObject pygrpc_ServerCredentials_type;
 
 
