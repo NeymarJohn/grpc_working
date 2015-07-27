@@ -27,31 +27,48 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Insecure client-server interoperability as a unit test."""
+"""The Python implementation of the GRPC interoperability test server."""
 
-import unittest
+import argparse
+import logging
+import time
 
 from grpc.early_adopter import implementations
 
-from interop import _interop_test_case
-from interop import methods
+from grpc_interop import methods
+from grpc_interop import resources
+
+_ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
-class InsecureInteropTest(
-    _interop_test_case.InteropTestCase,
-    unittest.TestCase):
+def serve():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+      '--port', help='the port on which to serve', type=int)
+  parser.add_argument(
+      '--use_tls', help='require a secure connection', dest='use_tls',
+      action='store_true')
+  args = parser.parse_args()
 
-  def setUp(self):
-    self.server = implementations.server(
-        methods.SERVICE_NAME, methods.SERVER_METHODS, 0)
-    self.server.start()
-    port = self.server.port()
-    self.stub = implementations.stub(
-        methods.SERVICE_NAME, methods.CLIENT_METHODS, 'localhost', port)
+  if args.use_tls:
+    private_key = resources.private_key()
+    certificate_chain = resources.certificate_chain()
+    server = implementations.server(
+        methods.SERVICE_NAME, methods.SERVER_METHODS, args.port,
+        private_key=private_key, certificate_chain=certificate_chain)
+  else:
+    server = implementations.server(
+        methods.SERVICE_NAME, methods.SERVER_METHODS, args.port)
 
-  def tearDown(self):
-    self.server.stop()
-
+  server.start()
+  logging.info('Server serving.')
+  try:
+    while True:
+      time.sleep(_ONE_DAY_IN_SECONDS)
+  except BaseException as e:
+    logging.info('Caught exception "%s"; stopping server...', e)
+    server.stop()
+    logging.info('Server stopped; exiting.')
 
 if __name__ == '__main__':
-  unittest.main(verbosity=2)
+  serve()

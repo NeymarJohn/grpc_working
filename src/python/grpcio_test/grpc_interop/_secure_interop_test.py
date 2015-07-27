@@ -33,9 +33,9 @@ import unittest
 
 from grpc.early_adopter import implementations
 
-from interop import _interop_test_case
-from interop import methods
-from interop import resources
+from grpc_interop import _interop_test_case
+from grpc_interop import methods
+from grpc_interop import resources
 
 _SERVER_HOST_OVERRIDE = 'foo.test.google.fr'
 

@@ -27,35 +27,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Common code for unit tests of the interoperability test code."""
+"""A setup module for the GRPC Python interop testing package."""
 
-from interop import methods
+import setuptools
 
+_PACKAGES = setuptools.find_packages('.')
 
-class InteropTestCase(object):
-  """Unit test methods.
+_PACKAGE_DIRECTORIES = {
+    '': '.',
+}
 
-  This class must be mixed in with unittest.TestCase and a class that defines
-  setUp and tearDown methods that manage a stub attribute.
-  """
+_PACKAGE_DATA = {
+    'grpc_interop': [
+        'credentials/ca.pem', 'credentials/server1.key',
+        'credentials/server1.pem',]
+}
 
-  def testEmptyUnary(self):
-    methods.TestCase.EMPTY_UNARY.test_interoperability(self.stub, None)
+_INSTALL_REQUIRES = ['oauth2client>=1.4.7', 'grpcio>=0.10.0a0']
 
-  def testLargeUnary(self):
-    methods.TestCase.LARGE_UNARY.test_interoperability(self.stub, None)
-
-  def testServerStreaming(self):
-    methods.TestCase.SERVER_STREAMING.test_interoperability(self.stub, None)
-
-  def testClientStreaming(self):
-    methods.TestCase.CLIENT_STREAMING.test_interoperability(self.stub, None)
-
-  def testPingPong(self):
-    methods.TestCase.PING_PONG.test_interoperability(self.stub, None)
-
-  def testCancelAfterBegin(self):
-    methods.TestCase.CANCEL_AFTER_BEGIN.test_interoperability(self.stub, None)
-
-  def testCancelAfterFirstResponse(self):
-    methods.TestCase.CANCEL_AFTER_FIRST_RESPONSE.test_interoperability(self.stub, None)
+setuptools.setup(
+    name='grpcio_test',
+    version='0.0.1',
+    packages=_PACKAGES,
+    package_dir=_PACKAGE_DIRECTORIES,
+    package_data=_PACKAGE_DATA,
+    install_requires=_INSTALL_REQUIRES
+)

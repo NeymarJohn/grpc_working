@@ -30,11 +30,17 @@
 """A setup module for the GRPC Python package."""
 
 import os
+import os.path
 import sys
 
 from distutils import core as _core
 import setuptools
 
+# Ensure we're in the proper directory whether or not we're being used by pip.
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+# Break import-style to ensure we can actually find our commands module.
+import commands
 
 # Use environment variables to determine whether or not the Cython extension
 # should *use* Cython or use the generated C files. Note that this requires the
@@ -73,29 +79,25 @@ _C_EXTENSION_MODULE = _core.Extension(
 _EXTENSION_MODULES = [_C_EXTENSION_MODULE]
 
 _PACKAGES = (
-    'grpc',
-    'grpc._adapter',
-    'grpc._junkdrawer',
-    'grpc._links',
-    'grpc.early_adopter',
-    'grpc.framework',
-    'grpc.framework.alpha',
-    'grpc.framework.base',
-    'grpc.framework.common',
-    'grpc.framework.face',
-    'grpc.framework.face.testing',
-    'grpc.framework.foundation',
-    'grpc.framework.interfaces',
-    'grpc.framework.interfaces.links',
+    setuptools.find_packages('.', exclude=['*._cython', '*._cython.*'])
 )
 
 _PACKAGE_DIRECTORIES = {
-    'grpc': 'grpc',
-    'grpc._adapter': 'grpc/_adapter',
-    'grpc._junkdrawer': 'grpc/_junkdrawer',
-    'grpc._links': 'grpc/_links',
-    'grpc.early_adopter': 'grpc/early_adopter',
-    'grpc.framework': 'grpc/framework',
+    '': '.',
+}
+
+_INSTALL_REQUIRES = (
+    'enum34==1.0.4',
+    'futures==2.2.0',
+    'protobuf==3.0.0a3'
+)
+
+_SETUP_REQUIRES = (
+    'sphinx>=1.3',
+) + _INSTALL_REQUIRES
+
+_COMMAND_CLASS = {
+    'doc': commands.SphinxDocumentation
 }
 
 setuptools.setup(
@@ -104,9 +106,7 @@ setuptools.setup(
     ext_modules=_EXTENSION_MODULES,
     packages=list(_PACKAGES),
     package_dir=_PACKAGE_DIRECTORIES,
-    install_requires=[
-        'enum34==1.0.4',
-        'futures==2.2.0',
-        'protobuf==3.0.0a3'
-    ]
+    install_requires=_INSTALL_REQUIRES,
+    setup_requires=_SETUP_REQUIRES,
+    cmdclass=_COMMAND_CLASS
 )

@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -29,14 +27,35 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -ex
+"""Common code for unit tests of the interoperability test code."""
 
-export GRPC_CONFIG=${CONFIG:-opt}
+from grpc_interop import methods
 
-# change to grpc's ruby directory
-cd $(dirname $0)/../../src/ruby
 
-rm -rf ./tmp
+class InteropTestCase(object):
+  """Unit test methods.
 
-bundle install
-rake compile:grpc
+  This class must be mixed in with unittest.TestCase and a class that defines
+  setUp and tearDown methods that manage a stub attribute.
+  """
+
+  def testEmptyUnary(self):
+    methods.TestCase.EMPTY_UNARY.test_interoperability(self.stub, None)
+
+  def testLargeUnary(self):
+    methods.TestCase.LARGE_UNARY.test_interoperability(self.stub, None)
+
+  def testServerStreaming(self):
+    methods.TestCase.SERVER_STREAMING.test_interoperability(self.stub, None)
+
+  def testClientStreaming(self):
+    methods.TestCase.CLIENT_STREAMING.test_interoperability(self.stub, None)
+
+  def testPingPong(self):
+    methods.TestCase.PING_PONG.test_interoperability(self.stub, None)
+
+  def testCancelAfterBegin(self):
+    methods.TestCase.CANCEL_AFTER_BEGIN.test_interoperability(self.stub, None)
+
+  def testCancelAfterFirstResponse(self):
+    methods.TestCase.CANCEL_AFTER_FIRST_RESPONSE.test_interoperability(self.stub, None)
