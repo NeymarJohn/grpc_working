@@ -72,6 +72,10 @@ class ClientCredentials(object):
     raise NotImplementedError()
 
   @staticmethod
+  def fake_transport_security():
+    raise NotImplementedError()
+
+  @staticmethod
   def iam():
     raise NotImplementedError()
 
@@ -82,6 +86,10 @@ class ServerCredentials(object):
 
   @staticmethod
   def ssl():
+    raise NotImplementedError()
+
+  @staticmethod
+  def fake_transport_security():
     raise NotImplementedError()
 
 

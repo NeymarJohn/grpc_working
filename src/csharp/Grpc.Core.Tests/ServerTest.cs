@@ -45,7 +45,7 @@ namespace Grpc.Core.Tests
         public void StartAndShutdownServer()
         {
             Server server = new Server();
-            server.AddPort("localhost", Server.PickUnusedPort, ServerCredentials.Insecure);
+            server.AddListeningPort("localhost", Server.PickUnusedPort);
             server.Start();
             server.ShutdownAsync().Wait();
             GrpcEnvironment.Shutdown();
