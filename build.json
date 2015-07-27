@@ -43,6 +43,7 @@
         "include/grpc++/config_protobuf.h",
         "include/grpc++/create_channel.h",
         "include/grpc++/credentials.h",
+        "include/grpc++/dynamic_thread_pool.h",
         "include/grpc++/fixed_size_thread_pool.h",
         "include/grpc++/generic_stub.h",
         "include/grpc++/impl/call.h",
@@ -90,6 +91,7 @@
         "src/cpp/proto/proto_utils.cc",
         "src/cpp/server/async_generic_service.cc",
         "src/cpp/server/create_default_thread_pool.cc",
+        "src/cpp/server/dynamic_thread_pool.cc",
         "src/cpp/server/fixed_size_thread_pool.cc",
         "src/cpp/server/insecure_server_credentials.cc",
         "src/cpp/server/server.cc",
@@ -282,7 +284,6 @@
         "src/core/surface/call_details.c",
         "src/core/surface/call_log_batch.c",
         "src/core/surface/channel.c",
-        "src/core/surface/channel_connectivity.c",
         "src/core/surface/channel_create.c",
         "src/core/surface/completion_queue.c",
         "src/core/surface/event_string.c",
@@ -567,23 +568,6 @@
       "vs_project_guid": "{46CEDFFF-9692-456A-AA24-38B5D6BCF4C5}"
     },
     {
-      "name": "reconnect_server",
-      "build": "private",
-      "language": "c",
-      "headers": [
-        "test/core/util/reconnect_server.h"
-      ],
-      "src": [
-        "test/core/util/reconnect_server.c"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
       "name": "grpc++",
       "build": "all",
       "language": "c++",
@@ -629,7 +613,6 @@
       "headers": [
         "test/cpp/util/cli_call.h",
         "test/cpp/util/create_test_channel.h",
-        "test/cpp/util/fake_credentials.h",
         "test/cpp/util/subprocess.h"
       ],
       "src": [
@@ -638,7 +621,6 @@
         "test/cpp/util/echo_duplicate.proto",
         "test/cpp/util/cli_call.cc",
         "test/cpp/util/create_test_channel.cc",
-        "test/cpp/util/fake_credentials.cc",
         "test/cpp/util/subprocess.cc"
       ],
       "deps": [
@@ -2065,6 +2047,21 @@
       ]
     },
     {
+      "name": "dynamic_thread_pool_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "test/cpp/server/dynamic_thread_pool_test.cc"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc++",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
       "name": "end2end_test",
       "build": "test",
       "language": "c++",
@@ -2397,49 +2394,6 @@
       ],
       "deps": [
         "qps",
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr",
-        "grpc++_test_config"
-      ]
-    },
-    {
-      "name": "reconnect_interop_client",
-      "build": "test",
-      "run": false,
-      "language": "c++",
-      "src": [
-        "test/proto/empty.proto",
-        "test/proto/messages.proto",
-        "test/proto/test.proto",
-        "test/cpp/interop/reconnect_interop_client.cc"
-      ],
-      "deps": [
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr",
-        "grpc++_test_config"
-      ]
-    },
-    {
-      "name": "reconnect_interop_server",
-      "build": "test",
-      "run": false,
-      "language": "c++",
-      "src": [
-        "test/proto/empty.proto",
-        "test/proto/messages.proto",
-        "test/proto/test.proto",
-        "test/cpp/interop/reconnect_interop_server.cc"
-      ],
-      "deps": [
-        "reconnect_server",
         "grpc++_test_util",
         "grpc_test_util",
         "grpc++",

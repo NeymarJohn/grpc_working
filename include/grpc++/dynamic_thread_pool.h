@@ -31,21 +31,51 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
-#define GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
+#ifndef GRPCXX_DYNAMIC_THREAD_POOL_H
+#define GRPCXX_DYNAMIC_THREAD_POOL_H
 
-#include <memory>
+#include <grpc++/config.h>
+
+#include <grpc++/impl/sync.h>
+#include <grpc++/impl/thd.h>
+#include <grpc++/thread_pool_interface.h>
+
+#include <list>
+#include <queue>
 
 namespace grpc {
-class Credentials;
-class ServerCredentials;
 
-namespace testing {
+class DynamicThreadPool GRPC_FINAL : public ThreadPoolInterface {
+ public:
+  explicit DynamicThreadPool(int reserve_threads);
+  ~DynamicThreadPool();
 
-std::shared_ptr<Credentials> FakeTransportSecurityCredentials();
-std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials();
+  void Add(const std::function<void()>& callback) GRPC_OVERRIDE;
 
-}  // namespace testing
+ private:
+  class DynamicThread {
+  public:
+    DynamicThread(DynamicThreadPool *pool);
+    ~DynamicThread();
+  private:
+    DynamicThreadPool *pool_;
+    std::unique_ptr<grpc::thread> thd_;
+    void ThreadFunc();
+  };
+  grpc::mutex mu_;
+  grpc::condition_variable cv_;
+  grpc::condition_variable shutdown_cv_;
+  bool shutdown_;
+  std::queue<std::function<void()>> callbacks_;
+  int reserve_threads_;
+  int nthreads_;
+  int threads_waiting_;
+  std::list<DynamicThread*> dead_threads_;
+
+  void ThreadFunc();
+  static void ReapThreads(std::list<DynamicThread*>* tlist);
+};
+
 }  // namespace grpc
 
-#endif  // GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
+#endif  // GRPCXX_DYNAMIC_THREAD_POOL_H

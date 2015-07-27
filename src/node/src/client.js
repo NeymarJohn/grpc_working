@@ -188,6 +188,19 @@ ClientWritableStream.prototype.cancel = cancel;
 ClientDuplexStream.prototype.cancel = cancel;
 
 /**
+ * Get the endpoint this call/stream is connected to.
+ * @return {string} The URI of the endpoint
+ */
+function getPeer() {
+  /* jshint validthis: true */
+  return this.call.getPeer();
+}
+
+ClientReadableStream.prototype.getPeer = getPeer;
+ClientWritableStream.prototype.getPeer = getPeer;
+ClientDuplexStream.prototype.getPeer = getPeer;
+
+/**
  * Get a function that can make unary requests to the specified method.
  * @param {string} method The name of the method to request
  * @param {function(*):Buffer} serialize The serialization function for inputs
@@ -222,6 +235,9 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
     }
     emitter.cancel = function cancel() {
       call.cancel();
+    };
+    emitter.getPeer = function getPeer() {
+      return call.getPeer();
     };
     this.updateMetadata(this.auth_uri, metadata, function(error, metadata) {
       if (error) {
@@ -508,11 +524,13 @@ function makeClientConstructor(methods, serviceName) {
    * Create a client with the given methods
    * @constructor
    * @param {string} address The address of the server to connect to
+   * @param {grpc.Credentials} credentials Credentials to use to connect
+   *     to the server
    * @param {Object} options Options to pass to the underlying channel
    * @param {function(string, Object, function)=} updateMetadata function to
    *     update the metadata for each request
    */
-  function Client(address, options, updateMetadata) {
+  function Client(address, credentials, options, updateMetadata) {
     if (!updateMetadata) {
       updateMetadata = function(uri, metadata, callback) {
         callback(null, metadata);
@@ -522,7 +540,7 @@ function makeClientConstructor(methods, serviceName) {
       options = {};
     }
     options['grpc.primary_user_agent'] = 'grpc-node/' + version;
-    this.channel = new grpc.Channel(address, options);
+    this.channel = new grpc.Channel(address, credentials, options);
     this.server_address = address.replace(/\/$/, '');
     this.auth_uri = this.server_address + '/' + serviceName;
     this.updateMetadata = updateMetadata;
