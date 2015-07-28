@@ -31,39 +31,47 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_UTIL_RECONNECT_SERVER_H
-#define GRPC_TEST_CORE_UTIL_RECONNECT_SERVER_H
+#include <condition_variable>
+#include <functional>
+#include <mutex>
 
-#include <grpc/support/sync.h>
-#include <grpc/support/time.h>
-#include "src/core/iomgr/tcp_server.h"
+#include <grpc++/dynamic_thread_pool.h>
+#include <gtest/gtest.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace grpc {
 
-typedef struct timestamp_list {
-  gpr_timespec timestamp;
-  struct timestamp_list *next;
-} timestamp_list;
+class DynamicThreadPoolTest : public ::testing::Test {
+ public:
+  DynamicThreadPoolTest() : thread_pool_(0) {}
 
-typedef struct reconnect_server {
-  grpc_tcp_server *tcp_server;
-  grpc_pollset pollset;
-  grpc_pollset *pollsets[1];
-  timestamp_list *head;
-  timestamp_list *tail;
-  char *peer;
-} reconnect_server;
+ protected:
+  DynamicThreadPool thread_pool_;
+};
 
-void reconnect_server_init(reconnect_server *server);
-void reconnect_server_start(reconnect_server *server, int port);
-void reconnect_server_poll(reconnect_server *server, int seconds);
-void reconnect_server_destroy(reconnect_server *server);
-void reconnect_server_clear_timestamps(reconnect_server *server);
-
-#ifdef __cplusplus
+void Callback(std::mutex* mu, std::condition_variable* cv, bool* done) {
+  std::unique_lock<std::mutex> lock(*mu);
+  *done = true;
+  cv->notify_all();
 }
-#endif
 
-#endif /* GRPC_TEST_CORE_UTIL_RECONNECT_SERVER_H */
+TEST_F(DynamicThreadPoolTest, Add) {
+  std::mutex mu;
+  std::condition_variable cv;
+  bool done = false;
+  std::function<void()> callback = std::bind(Callback, &mu, &cv, &done);
+  thread_pool_.Add(callback);
+
+  // Wait for the callback to finish.
+  std::unique_lock<std::mutex> lock(mu);
+  while (!done) {
+    cv.wait(lock);
+  }
+}
+
+}  // namespace grpc
+
+int main(int argc, char** argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  int result = RUN_ALL_TESTS();
+  return result;
+}
