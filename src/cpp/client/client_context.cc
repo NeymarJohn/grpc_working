@@ -34,7 +34,6 @@
 #include <grpc++/client_context.h>
 
 #include <grpc/grpc.h>
-#include <grpc/support/alloc.h>
 #include <grpc/support/string_util.h>
 #include <grpc++/credentials.h>
 #include <grpc++/time.h>
@@ -103,16 +102,6 @@ void ClientContext::TryCancel() {
   if (call_) {
     grpc_call_cancel(call_);
   }
-}
-
-grpc::string ClientContext::peer() const {
-  grpc::string peer;
-  if (call_) {
-    char* c_peer = grpc_call_get_peer(call_);
-    peer = c_peer;
-    gpr_free(c_peer);
-  }
-  return peer;
 }
 
 }  // namespace grpc
