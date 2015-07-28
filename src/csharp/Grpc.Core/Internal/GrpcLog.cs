@@ -44,26 +44,30 @@ namespace Grpc.Core.Internal
 
     /// <summary>
     /// Logs from gRPC C core library can get lost if your application is not a console app.
-    /// This class allows redirection of logs to gRPC logger.
+    /// This class allows redirection of logs to arbitrary destination.
     /// </summary>
-    internal static class NativeLogRedirector
+    internal static class GrpcLog
     {
         static object staticLock = new object();
         static GprLogDelegate writeCallback;
+        static TextWriter dest;
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern void grpcsharp_redirect_log(GprLogDelegate callback);
 
         /// <summary>
-        /// Redirects logs from native gRPC C core library to a general logger.
+        /// Sets text writer as destination for logs from native gRPC C core library.
+        /// Only first invocation has effect.
         /// </summary>
-        public static void Redirect()
+        /// <param name="textWriter"></param>
+        public static void RedirectNativeLogs(TextWriter textWriter)
         {
             lock (staticLock)
             {
                 if (writeCallback == null)
                 {
                     writeCallback = new GprLogDelegate(HandleWrite);
+                    dest = textWriter;
                     grpcsharp_redirect_log(writeCallback);    
                 }
             }
@@ -73,30 +77,13 @@ namespace Grpc.Core.Internal
         {
             try
             {
-                var logger = GrpcEnvironment.Logger;
-                string severityString = Marshal.PtrToStringAnsi(severityStringPtr);
-                string message = string.Format("{0} {1}:{2}: {3}",
+                // TODO: DateTime format used here is different than in C core.
+                dest.WriteLine(string.Format("{0}{1} {2} {3}:{4}: {5}", 
+                    Marshal.PtrToStringAnsi(severityStringPtr), DateTime.Now,  
                     threadId,
                     Marshal.PtrToStringAnsi(fileStringPtr), 
                     line, 
-                    Marshal.PtrToStringAnsi(msgPtr));
-                
-                switch (severityString)
-                {
-                    case "D":
-                        logger.Debug(message);
-                        break;
-                    case "I":
-                        logger.Info(message);
-                        break;
-                    case "E":
-                        logger.Error(message);
-                        break;
-                    default:
-                        // severity not recognized, default to error.
-                        logger.Error(message);
-                        break;
-                }
+                    Marshal.PtrToStringAnsi(msgPtr)));
             }
             catch (Exception e)
             {

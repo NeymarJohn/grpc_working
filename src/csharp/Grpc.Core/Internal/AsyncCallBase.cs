@@ -38,7 +38,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core.Internal;
-using Grpc.Core.Logging;
 using Grpc.Core.Utils;
 
 namespace Grpc.Core.Internal
@@ -49,8 +48,6 @@ namespace Grpc.Core.Internal
     /// </summary>
     internal abstract class AsyncCallBase<TWrite, TRead>
     {
-        static readonly ILogger Logger = GrpcEnvironment.Logger.ForType<AsyncCallBase<TWrite, TRead>>();
-
         readonly Func<TWrite, byte[]> serializer;
         readonly Func<byte[], TRead> deserializer;
 
@@ -236,9 +233,9 @@ namespace Grpc.Core.Internal
                 payload = serializer(msg);
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Logger.Error(e, "Exception occured while trying to serialize message");
+                Console.WriteLine("Exception occured while trying to serialize message");
                 payload = null;
                 return false;
             }
@@ -251,9 +248,9 @@ namespace Grpc.Core.Internal
                 msg = deserializer(payload);
                 return true;
             } 
-            catch (Exception e)
+            catch (Exception)
             {
-                Logger.Error(e, "Exception occured while trying to deserialize message.");
+                Console.WriteLine("Exception occured while trying to deserialize message");
                 msg = default(TRead);
                 return false;
             }
@@ -267,7 +264,7 @@ namespace Grpc.Core.Internal
             }
             catch (Exception e)
             {
-                Logger.Error(e, "Exception occured while invoking completion delegate.");
+                Console.WriteLine("Exception occured while invoking completion delegate: " + e);
             }
         }
 
