@@ -31,36 +31,39 @@
  *
  */
 
-#include <limits>
+#ifndef GRPC_TEST_CORE_UTIL_RECONNECT_SERVER_H
+#define GRPC_TEST_CORE_UTIL_RECONNECT_SERVER_H
 
-#include "grpc/grpc.h"
-#include "grpc/support/time.h"
-#include "timeval.h"
+#include <grpc/support/sync.h>
+#include <grpc/support/time.h>
+#include "src/core/iomgr/tcp_server.h"
 
-namespace grpc {
-namespace node {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-gpr_timespec MillisecondsToTimespec(double millis) {
-  if (millis == std::numeric_limits<double>::infinity()) {
-    return gpr_inf_future(GPR_CLOCK_REALTIME);
-  } else if (millis == -std::numeric_limits<double>::infinity()) {
-    return gpr_inf_past(GPR_CLOCK_REALTIME);
-  } else {
-    return gpr_time_from_micros(static_cast<int64_t>(millis * 1000),
-                                GPR_CLOCK_REALTIME);
-  }
+typedef struct timestamp_list {
+  gpr_timespec timestamp;
+  struct timestamp_list *next;
+} timestamp_list;
+
+typedef struct reconnect_server {
+  grpc_tcp_server *tcp_server;
+  grpc_pollset pollset;
+  grpc_pollset *pollsets[1];
+  timestamp_list *head;
+  timestamp_list *tail;
+  char *peer;
+} reconnect_server;
+
+void reconnect_server_init(reconnect_server *server);
+void reconnect_server_start(reconnect_server *server, int port);
+void reconnect_server_poll(reconnect_server *server, int seconds);
+void reconnect_server_destroy(reconnect_server *server);
+void reconnect_server_clear_timestamps(reconnect_server *server);
+
+#ifdef __cplusplus
 }
+#endif
 
-double TimespecToMilliseconds(gpr_timespec timespec) {
-  if (gpr_time_cmp(timespec, gpr_inf_future(GPR_CLOCK_REALTIME)) == 0) {
-    return std::numeric_limits<double>::infinity();
-  } else if (gpr_time_cmp(timespec, gpr_inf_past(GPR_CLOCK_REALTIME)) == 0) {
-    return -std::numeric_limits<double>::infinity();
-  } else {
-    return (static_cast<double>(timespec.tv_sec) * 1000 +
-            static_cast<double>(timespec.tv_nsec) / 1000000);
-  }
-}
-
-}  // namespace node
-}  // namespace grpc
+#endif /* GRPC_TEST_CORE_UTIL_RECONNECT_SERVER_H */

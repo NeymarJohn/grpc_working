@@ -48,7 +48,6 @@ namespace Grpc.Core.Internal
     internal class AsyncCallServer<TRequest, TResponse> : AsyncCallBase<TResponse, TRequest>
     {
         readonly TaskCompletionSource<object> finishedServersideTcs = new TaskCompletionSource<object>();
-        readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         readonly GrpcEnvironment environment;
 
         public AsyncCallServer(Func<TResponse, byte[]> serializer, Func<byte[], TRequest> deserializer, GrpcEnvironment environment) : base(serializer, deserializer)
@@ -119,18 +118,6 @@ namespace Grpc.Core.Internal
             }
         }
 
-        /// <summary>
-        /// Gets cancellation token that gets cancelled once close completion
-        /// is received and the cancelled flag is set.
-        /// </summary>
-        public CancellationToken CancellationToken
-        {
-            get
-            {
-                return cancellationTokenSource.Token;
-            }
-        }
-
         protected override void OnReleaseResources()
         {
             environment.DebugStats.ActiveServerCalls.Decrement();
@@ -151,19 +138,12 @@ namespace Grpc.Core.Internal
                 {
                     // Once we cancel, we don't have to care that much 
                     // about reads and writes.
-
-                    // TODO(jtattermusch): is this still necessary?
                     Cancel();
                 }
 
                 ReleaseResourcesIfPossible();
             }
             // TODO(jtattermusch): handle error
-
-            if (cancelled)
-            {
-                cancellationTokenSource.Cancel();
-            }
 
             finishedServersideTcs.SetResult(null);
         }
