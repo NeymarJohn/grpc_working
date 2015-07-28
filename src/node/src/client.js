@@ -31,6 +31,11 @@
  *
  */
 
+/**
+ * Server module
+ * @module
+ */
+
 'use strict';
 
 var _ = require('lodash');
@@ -72,6 +77,7 @@ function ClientWritableStream(call, serialize) {
 /**
  * Attempt to write the given chunk. Calls the callback when done. This is an
  * implementation of a method needed for implementing stream.Writable.
+ * @access private
  * @param {Buffer} chunk The chunk to write
  * @param {string} encoding Ignored
  * @param {function(Error=)} callback Called when the write is complete
@@ -110,6 +116,7 @@ function ClientReadableStream(call, deserialize) {
 
 /**
  * Read the next object from the stream.
+ * @access private
  * @param {*} size Ignored because we use objectMode=true
  */
 function _read(size) {
@@ -519,7 +526,7 @@ var requester_makers = {
  * @param {string} serviceName The name of the service
  * @return {function(string, Object)} New client constructor
  */
-function makeClientConstructor(methods, serviceName) {
+exports.makeClientConstructor = function(methods, serviceName) {
   /**
    * Create a client with the given methods
    * @constructor
@@ -543,6 +550,47 @@ function makeClientConstructor(methods, serviceName) {
     this.auth_uri = this.server_address + '/' + serviceName;
     this.updateMetadata = updateMetadata;
   }
+
+  /**
+   * Wait for the client to be ready. The callback will be called when the
+   * client has successfully connected to the server, and it will be called
+   * with an error if the attempt to connect to the server has unrecoverablly
+   * failed or if the deadline expires. This function does not automatically
+   * attempt to initiate the connection, so the callback will not be called
+   * unless you also start a method call or call $tryConnect.
+   * @param {(Date|Number)} deadline When to stop waiting for a connection. Pass
+   *     Infinity to wait forever.
+   * @param {function(Error)} callback The callback to call when done attempting
+   *     to connect.
+   */
+  Client.prototype.$waitForReady = function(deadline, callback) {
+    var self = this;
+    var checkState = function(err, result) {
+      if (err) {
+        callback(new Error('Failed to connect before the deadline'));
+      }
+      var new_state = result.new_state;
+      console.log(result);
+      if (new_state === grpc.connectivityState.READY) {
+        callback();
+      } else if (new_state === grpc.connectivityState.FATAL_FAILURE) {
+        callback(new Error('Failed to connect to server'));
+      } else {
+        self.channel.watchConnectivityState(new_state, deadline, checkState);
+      }
+    };
+    checkState(null, {new_state: this.channel.getConnectivityState()});
+  };
+
+  /**
+   * Attempt to connect to the server. That will happen automatically if
+   * you try to make a method call with this client, so this function should
+   * only be used if you want to know that you have a connection before making
+   * any calls.
+   */
+  Client.prototype.$tryConnect = function() {
+    this.channel.getConnectivityState(true);
+  };
 
   _.each(methods, function(attrs, name) {
     var method_type;
@@ -568,7 +616,7 @@ function makeClientConstructor(methods, serviceName) {
   });
 
   return Client;
-}
+};
 
 /**
  * Creates a constructor for clients for the given service
@@ -576,22 +624,18 @@ function makeClientConstructor(methods, serviceName) {
  *     for
  * @return {function(string, Object)} New client constructor
  */
-function makeProtobufClientConstructor(service) {
+exports.makeProtobufClientConstructor =  function(service) {
   var method_attrs = common.getProtobufServiceAttrs(service, service.name);
-  var Client = makeClientConstructor(method_attrs);
+  var Client = exports.makeClientConstructor(method_attrs);
   Client.service = service;
-
   return Client;
-}
-
-exports.makeClientConstructor = makeClientConstructor;
-
-exports.makeProtobufClientConstructor = makeProtobufClientConstructor;
+};
 
 /**
- * See docs for client.status
+ * Map of status code names to status codes
  */
 exports.status = grpc.status;
+
 /**
  * See docs for client.callError
  */
