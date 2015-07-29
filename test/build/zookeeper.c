@@ -31,29 +31,13 @@
  *
  */
 
-#include "src/cpp/server/secure_server_credentials.h"
+/* This is just a compilation test, to see if we have Zookeeper C client
+   library installed. */
 
-namespace grpc {
+#include <stdlib.h>
+#include <zookeeper/zookeeper.h>
 
-int SecureServerCredentials::AddPortToServer(
-    const grpc::string& addr, grpc_server* server) {
-  return grpc_server_add_secure_http2_port(server, addr.c_str(), creds_);
+int main() {
+  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
+  return 0;
 }
-
-std::shared_ptr<ServerCredentials> SslServerCredentials(
-    const SslServerCredentialsOptions& options) {
-  std::vector<grpc_ssl_pem_key_cert_pair> pem_key_cert_pairs;
-  for (auto key_cert_pair = options.pem_key_cert_pairs.begin();
-       key_cert_pair != options.pem_key_cert_pairs.end(); key_cert_pair++) {
-    grpc_ssl_pem_key_cert_pair p = {key_cert_pair->private_key.c_str(),
-                                    key_cert_pair->cert_chain.c_str()};
-    pem_key_cert_pairs.push_back(p);
-  }
-  grpc_server_credentials* c_creds = grpc_ssl_server_credentials_create(
-      options.pem_root_certs.empty() ? nullptr : options.pem_root_certs.c_str(),
-      &pem_key_cert_pairs[0], pem_key_cert_pairs.size());
-  return std::shared_ptr<ServerCredentials>(
-      new SecureServerCredentials(c_creds));
-}
-
-}  // namespace grpc
