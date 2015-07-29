@@ -2,7 +2,3 @@ MANIFEST
 grpcio.egg-info/
 build/
 dist/
-*.egg
-*.egg/
-*.eggs/
-doc/

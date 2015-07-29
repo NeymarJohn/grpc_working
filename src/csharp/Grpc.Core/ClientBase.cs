@@ -76,7 +76,7 @@ namespace Grpc.Core
         /// <summary>
         /// Creates a new call to given method.
         /// </summary>
-        protected Call<TRequest, TResponse> CreateCall<TRequest, TResponse>(string serviceName, Method<TRequest, TResponse> method, Metadata metadata, DateTime? deadline)
+        protected Call<TRequest, TResponse> CreateCall<TRequest, TResponse>(string serviceName, Method<TRequest, TResponse> method, Metadata metadata)
             where TRequest : class
             where TResponse : class
         {
@@ -87,8 +87,8 @@ namespace Grpc.Core
                 interceptor(metadata);
                 metadata.Freeze();
             }
-            return new Call<TRequest, TResponse>(serviceName, method, channel,
-                    metadata ?? Metadata.Empty, deadline ?? DateTime.MaxValue);
+            metadata = metadata ?? Metadata.Empty;
+            return new Call<TRequest, TResponse>(serviceName, method, channel, metadata);
         }
     }
 }

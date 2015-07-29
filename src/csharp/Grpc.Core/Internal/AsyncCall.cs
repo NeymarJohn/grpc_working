@@ -38,7 +38,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core.Internal;
-using Grpc.Core.Logging;
 using Grpc.Core.Utils;
 
 namespace Grpc.Core.Internal
@@ -48,8 +47,6 @@ namespace Grpc.Core.Internal
     /// </summary>
     internal class AsyncCall<TRequest, TResponse> : AsyncCallBase<TRequest, TResponse>
     {
-        static readonly ILogger Logger = GrpcEnvironment.Logger.ForType<AsyncCall<TRequest, TResponse>>();
-
         Channel channel;
 
         // Completion of a pending unary response if not null.
@@ -64,10 +61,10 @@ namespace Grpc.Core.Internal
         {
         }
 
-        public void Initialize(Channel channel, CompletionQueueSafeHandle cq, string methodName, Timespec deadline)
+        public void Initialize(Channel channel, CompletionQueueSafeHandle cq, string methodName)
         {
             this.channel = channel;
-            var call = channel.Handle.CreateCall(channel.CompletionRegistry, cq, methodName, channel.Target, deadline);
+            var call = CallSafeHandle.Create(channel.Handle, channel.CompletionRegistry, cq, methodName, channel.Target, Timespec.InfFuture);
             channel.Environment.DebugStats.ActiveClientCalls.Increment();
             InitializeInternal(call);
         }
@@ -79,7 +76,7 @@ namespace Grpc.Core.Internal
         /// <summary>
         /// Blocking unary request - unary response call.
         /// </summary>
-        public TResponse UnaryCall(Channel channel, string methodName, TRequest msg, Metadata headers, DateTime deadline)
+        public TResponse UnaryCall(Channel channel, string methodName, TRequest msg, Metadata headers)
         {
             using (CompletionQueueSafeHandle cq = CompletionQueueSafeHandle.Create())
             {
@@ -89,7 +86,7 @@ namespace Grpc.Core.Internal
 
                 lock (myLock)
                 {
-                    Initialize(channel, cq, methodName, Timespec.FromDateTime(deadline));
+                    Initialize(channel, cq, methodName);
                     started = true;
                     halfcloseRequested = true;
                     readingDone = true;
@@ -109,7 +106,7 @@ namespace Grpc.Core.Internal
                         }
                         catch (Exception e)
                         {
-                            Logger.Error(e, "Exception occured while invoking completion delegate.");
+                            Console.WriteLine("Exception occured while invoking completion delegate: " + e);
                         }
                     }
                 }
@@ -129,7 +126,7 @@ namespace Grpc.Core.Internal
         /// <summary>
         /// Starts a unary request - unary response call.
         /// </summary>
-        public Task<TResponse> UnaryCallAsync(TRequest msg, Metadata headers, DateTime deadline)
+        public Task<TResponse> UnaryCallAsync(TRequest msg, Metadata headers)
         {
             lock (myLock)
             {
@@ -154,7 +151,7 @@ namespace Grpc.Core.Internal
         /// Starts a streamed request - unary response call.
         /// Use StartSendMessage and StartSendCloseFromClient to stream requests.
         /// </summary>
-        public Task<TResponse> ClientStreamingCallAsync(Metadata headers, DateTime deadline)
+        public Task<TResponse> ClientStreamingCallAsync(Metadata headers)
         {
             lock (myLock)
             {
@@ -176,7 +173,7 @@ namespace Grpc.Core.Internal
         /// <summary>
         /// Starts a unary request - streamed response call.
         /// </summary>
-        public void StartServerStreamingCall(TRequest msg, Metadata headers, DateTime deadline)
+        public void StartServerStreamingCall(TRequest msg, Metadata headers)
         {
             lock (myLock)
             {
@@ -199,7 +196,7 @@ namespace Grpc.Core.Internal
         /// Starts a streaming request - streaming response call.
         /// Use StartSendMessage and StartSendCloseFromClient to stream requests.
         /// </summary>
-        public void StartDuplexStreamingCall(Metadata headers, DateTime deadline)
+        public void StartDuplexStreamingCall(Metadata headers)
         {
             lock (myLock)
             {

@@ -31,8 +31,21 @@
  *
  */
 
-#include <grpc/census.h>
-#include "src/core/census/rpc_stat_id.h"
+#ifndef GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
+#define GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
 
-void census_record_stat(census_context *context, census_stat *stats,
-                        size_t nstats) {}
+#include <memory>
+
+namespace grpc {
+class Credentials;
+class ServerCredentials;
+
+namespace testing {
+
+std::shared_ptr<Credentials> FakeTransportSecurityCredentials();
+std::shared_ptr<ServerCredentials> FakeTransportSecurityServerCredentials();
+
+}  // namespace testing
+}  // namespace grpc
+
+#endif  // GRPC_TEST_CPP_UTIL_FAKE_CREDENTIALS_H
