@@ -31,6 +31,11 @@
  *
  */
 
+/**
+ * Server module
+ * @module
+ */
+
 'use strict';
 
 var _ = require('lodash');
@@ -72,6 +77,7 @@ function ClientWritableStream(call, serialize) {
 /**
  * Attempt to write the given chunk. Calls the callback when done. This is an
  * implementation of a method needed for implementing stream.Writable.
+ * @access private
  * @param {Buffer} chunk The chunk to write
  * @param {string} encoding Ignored
  * @param {function(Error=)} callback Called when the write is complete
@@ -110,6 +116,7 @@ function ClientReadableStream(call, deserialize) {
 
 /**
  * Read the next object from the stream.
+ * @access private
  * @param {*} size Ignored because we use objectMode=true
  */
 function _read(size) {
@@ -229,7 +236,7 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
       deadline = Infinity;
     }
     var emitter = new EventEmitter();
-    var call = new grpc.Call(this.channel, method, deadline);
+    var call = new grpc.Call(this.$channel, method, deadline);
     if (metadata === null || metadata === undefined) {
       metadata = {};
     }
@@ -239,7 +246,7 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
     emitter.getPeer = function getPeer() {
       return call.getPeer();
     };
-    this.updateMetadata(this.auth_uri, metadata, function(error, metadata) {
+    this.$updateMetadata(this.$auth_uri, metadata, function(error, metadata) {
       if (error) {
         call.cancel();
         callback(error);
@@ -302,12 +309,12 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
     if (deadline === undefined) {
       deadline = Infinity;
     }
-    var call = new grpc.Call(this.channel, method, deadline);
+    var call = new grpc.Call(this.$channel, method, deadline);
     if (metadata === null || metadata === undefined) {
       metadata = {};
     }
     var stream = new ClientWritableStream(call, serialize);
-    this.updateMetadata(this.auth_uri, metadata, function(error, metadata) {
+    this.$updateMetadata(this.$auth_uri, metadata, function(error, metadata) {
       if (error) {
         call.cancel();
         callback(error);
@@ -376,12 +383,12 @@ function makeServerStreamRequestFunction(method, serialize, deserialize) {
     if (deadline === undefined) {
       deadline = Infinity;
     }
-    var call = new grpc.Call(this.channel, method, deadline);
+    var call = new grpc.Call(this.$channel, method, deadline);
     if (metadata === null || metadata === undefined) {
       metadata = {};
     }
     var stream = new ClientReadableStream(call, deserialize);
-    this.updateMetadata(this.auth_uri, metadata, function(error, metadata) {
+    this.$updateMetadata(this.$auth_uri, metadata, function(error, metadata) {
       if (error) {
         call.cancel();
         stream.emit('error', error);
@@ -448,12 +455,12 @@ function makeBidiStreamRequestFunction(method, serialize, deserialize) {
     if (deadline === undefined) {
       deadline = Infinity;
     }
-    var call = new grpc.Call(this.channel, method, deadline);
+    var call = new grpc.Call(this.$channel, method, deadline);
     if (metadata === null || metadata === undefined) {
       metadata = {};
     }
     var stream = new ClientDuplexStream(call, serialize, deserialize);
-    this.updateMetadata(this.auth_uri, metadata, function(error, metadata) {
+    this.$updateMetadata(this.$auth_uri, metadata, function(error, metadata) {
       if (error) {
         call.cancel();
         stream.emit('error', error);
@@ -519,7 +526,7 @@ var requester_makers = {
  * @param {string} serviceName The name of the service
  * @return {function(string, Object)} New client constructor
  */
-function makeClientConstructor(methods, serviceName) {
+exports.makeClientConstructor = function(methods, serviceName) {
   /**
    * Create a client with the given methods
    * @constructor
@@ -538,14 +545,17 @@ function makeClientConstructor(methods, serviceName) {
       options = {};
     }
     options['grpc.primary_user_agent'] = 'grpc-node/' + version;
-    this.channel = new grpc.Channel(address, options);
-    this.server_address = address.replace(/\/$/, '');
-    this.auth_uri = this.server_address + '/' + serviceName;
-    this.updateMetadata = updateMetadata;
+    this.$channel = new grpc.Channel(address, options);
+    this.$server_address = address.replace(/\/$/, '');
+    this.$auth_uri = this.$server_address + '/' + serviceName;
+    this.$updateMetadata = updateMetadata;
   }
 
   _.each(methods, function(attrs, name) {
     var method_type;
+    if (_.startsWith(name, '$')) {
+      throw new Error('Method names cannot start with $');
+    }
     if (attrs.requestStream) {
       if (attrs.responseStream) {
         method_type = 'bidi';
@@ -568,7 +578,7 @@ function makeClientConstructor(methods, serviceName) {
   });
 
   return Client;
-}
+};
 
 /**
  * Creates a constructor for clients for the given service
@@ -576,22 +586,18 @@ function makeClientConstructor(methods, serviceName) {
  *     for
  * @return {function(string, Object)} New client constructor
  */
-function makeProtobufClientConstructor(service) {
+exports.makeProtobufClientConstructor =  function(service) {
   var method_attrs = common.getProtobufServiceAttrs(service, service.name);
-  var Client = makeClientConstructor(method_attrs);
+  var Client = exports.makeClientConstructor(method_attrs);
   Client.service = service;
-
   return Client;
-}
-
-exports.makeClientConstructor = makeClientConstructor;
-
-exports.makeProtobufClientConstructor = makeProtobufClientConstructor;
+};
 
 /**
- * See docs for client.status
+ * Map of status code names to status codes
  */
 exports.status = grpc.status;
+
 /**
  * See docs for client.callError
  */
