@@ -31,10 +31,6 @@
  *
  */
 
-/**
- * @module
- */
-
 'use strict';
 
 var _ = require('lodash');
@@ -44,7 +40,7 @@ var _ = require('lodash');
  * @param {function()} cls The constructor of the message type to deserialize
  * @return {function(Buffer):cls} The deserialization function
  */
-exports.deserializeCls = function deserializeCls(cls) {
+function deserializeCls(cls) {
   /**
    * Deserialize a buffer to a message object
    * @param {Buffer} arg_buf The buffer to deserialize
@@ -55,16 +51,14 @@ exports.deserializeCls = function deserializeCls(cls) {
     // and longs as strings (second argument)
     return cls.decode(arg_buf).toRaw(false, true);
   };
-};
-
-var deserializeCls = exports.deserializeCls;
+}
 
 /**
  * Get a function that serializes objects to a buffer by protobuf class.
  * @param {function()} Cls The constructor of the message type to serialize
  * @return {function(Cls):Buffer} The serialization function
  */
-exports.serializeCls = function serializeCls(Cls) {
+function serializeCls(Cls) {
   /**
    * Serialize an object to a Buffer
    * @param {Object} arg The object to serialize
@@ -73,16 +67,14 @@ exports.serializeCls = function serializeCls(Cls) {
   return function serialize(arg) {
     return new Buffer(new Cls(arg).encode().toBuffer());
   };
-};
-
-var serializeCls = exports.serializeCls;
+}
 
 /**
  * Get the fully qualified (dotted) name of a ProtoBuf.Reflect value.
  * @param {ProtoBuf.Reflect.Namespace} value The value to get the name of
  * @return {string} The fully qualified name of the value
  */
-exports.fullyQualifiedName = function fullyQualifiedName(value) {
+function fullyQualifiedName(value) {
   if (value === null || value === undefined) {
     return '';
   }
@@ -97,9 +89,7 @@ exports.fullyQualifiedName = function fullyQualifiedName(value) {
     }
   }
   return name;
-};
-
-var fullyQualifiedName = exports.fullyQualifiedName;
+}
 
 /**
  * Wrap a function to pass null-like values through without calling it. If no
@@ -107,7 +97,7 @@ var fullyQualifiedName = exports.fullyQualifiedName;
  * @param {?function} func The function to wrap
  * @return {function} The wrapped function
  */
-exports.wrapIgnoreNull = function wrapIgnoreNull(func) {
+function wrapIgnoreNull(func) {
   if (!func) {
     return _.identity;
   }
@@ -117,14 +107,14 @@ exports.wrapIgnoreNull = function wrapIgnoreNull(func) {
     }
     return func(arg);
   };
-};
+}
 
 /**
  * Return a map from method names to method attributes for the service.
  * @param {ProtoBuf.Reflect.Service} service The service to get attributes for
  * @return {Object} The attributes map
  */
-exports.getProtobufServiceAttrs = function getProtobufServiceAttrs(service) {
+function getProtobufServiceAttrs(service) {
   var prefix = '/' + fullyQualifiedName(service) + '/';
   return _.object(_.map(service.children, function(method) {
     return [_.camelCase(method.name), {
@@ -137,4 +127,26 @@ exports.getProtobufServiceAttrs = function getProtobufServiceAttrs(service) {
       responseDeserialize: deserializeCls(method.resolvedResponseType.build())
     }];
   }));
-};
+}
+
+/**
+ * See docs for deserializeCls
+ */
+exports.deserializeCls = deserializeCls;
+
+/**
+ * See docs for serializeCls
+ */
+exports.serializeCls = serializeCls;
+
+/**
+ * See docs for fullyQualifiedName
+ */
+exports.fullyQualifiedName = fullyQualifiedName;
+
+/**
+ * See docs for wrapIgnoreNull
+ */
+exports.wrapIgnoreNull = wrapIgnoreNull;
+
+exports.getProtobufServiceAttrs = getProtobufServiceAttrs;

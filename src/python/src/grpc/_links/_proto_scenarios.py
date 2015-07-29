@@ -33,7 +33,6 @@ import abc
 import threading
 
 from grpc._junkdrawer import math_pb2
-from grpc.framework.common import test_constants
 
 
 class ProtoScenario(object):
@@ -220,9 +219,10 @@ class BidirectionallyUnaryScenario(ProtoScenario):
 class BidirectionallyStreamingScenario(ProtoScenario):
   """A scenario that transmits no protocol buffers in either direction."""
 
+  _STREAM_LENGTH = 200
   _REQUESTS = tuple(
       math_pb2.DivArgs(dividend=59 + index, divisor=7 + index)
-      for index in range(test_constants.STREAM_LENGTH))
+      for index in range(_STREAM_LENGTH))
 
   def __init__(self):
     self._lock = threading.Lock()
