@@ -343,6 +343,7 @@ cc_library(
     "src/core/surface/call_details.c",
     "src/core/surface/call_log_batch.c",
     "src/core/surface/channel.c",
+    "src/core/surface/channel_connectivity.c",
     "src/core/surface/channel_create.c",
     "src/core/surface/completion_queue.c",
     "src/core/surface/event_string.c",
@@ -578,6 +579,7 @@ cc_library(
     "src/core/surface/call_details.c",
     "src/core/surface/call_log_batch.c",
     "src/core/surface/channel.c",
+    "src/core/surface/channel_connectivity.c",
     "src/core/surface/channel_create.c",
     "src/core/surface/completion_queue.c",
     "src/core/surface/event_string.c",
@@ -633,26 +635,6 @@ cc_library(
   ],
   deps = [
     ":gpr",
-  ],
-)
-
-
-cc_library(
-  name = "grpc_zookeeper",
-  srcs = [
-    "src/core/client_config/resolvers/zookeeper_resolver.h",
-    "src/core/client_config/resolvers/zookeeper_resolver.c",
-  ],
-  hdrs = [
-    "include/grpc/grpc_zookeeper.h",
-  ],
-  includes = [
-    "include",
-    ".",
-  ],
-  deps = [
-    ":gpr",
-    ":grpc",
   ],
 )
 
@@ -1081,6 +1063,7 @@ objc_library(
     "src/core/surface/call_details.c",
     "src/core/surface/call_log_batch.c",
     "src/core/surface/channel.c",
+    "src/core/surface/channel_connectivity.c",
     "src/core/surface/channel_create.c",
     "src/core/surface/completion_queue.c",
     "src/core/surface/event_string.c",
