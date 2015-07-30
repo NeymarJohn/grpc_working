@@ -33,25 +33,20 @@
 
 #include <grpc/census.h>
 
-static int features_enabled = CENSUS_FEATURE_NONE;
+static int census_fns_enabled = CENSUS_NONE;
 
-int census_initialize(int features) {
-  if (features_enabled != CENSUS_FEATURE_NONE) {
+int census_initialize(int functions) {
+  if (census_fns_enabled != CENSUS_NONE) {
     return 1;
   }
-  if (features != CENSUS_FEATURE_NONE) {
+  if (functions != CENSUS_NONE) {
     return 1;
   } else {
-    features_enabled = features;
+    census_fns_enabled = functions;
     return 0;
   }
 }
 
-void census_shutdown(void) { features_enabled = CENSUS_FEATURE_NONE; }
+void census_shutdown() { census_fns_enabled = CENSUS_NONE; }
 
-int census_supported(void) {
-  /* TODO(aveitch): improve this as we implement features... */
-  return CENSUS_FEATURE_NONE;
-}
-
-int census_enabled(void) { return features_enabled; }
+int census_available() { return (census_fns_enabled != CENSUS_NONE); }

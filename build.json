@@ -114,7 +114,6 @@
         "include/grpc/status.h"
       ],
       "headers": [
-        "src/core/census/grpc_context.h",
         "src/core/channel/census_filter.h",
         "src/core/channel/channel_args.h",
         "src/core/channel/channel_stack.h",
@@ -284,7 +283,6 @@
         "src/core/surface/call_details.c",
         "src/core/surface/call_log_batch.c",
         "src/core/surface/channel.c",
-        "src/core/surface/channel_connectivity.c",
         "src/core/surface/channel_create.c",
         "src/core/surface/completion_queue.c",
         "src/core/surface/event_string.c",
@@ -1895,9 +1893,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1915,9 +1910,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1976,9 +1968,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2217,9 +2206,6 @@
         "gpr_test_util",
         "gpr",
         "grpc++_test_config"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2238,9 +2224,6 @@
         "gpr_test_util",
         "gpr",
         "grpc++_test_config"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2255,9 +2238,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2362,9 +2342,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2383,9 +2360,6 @@
         "gpr_test_util",
         "gpr",
         "grpc++_test_config"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2404,9 +2378,6 @@
         "gpr_test_util",
         "gpr",
         "grpc++_test_config"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2458,9 +2429,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2510,9 +2478,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2530,9 +2495,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {

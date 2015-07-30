@@ -68,13 +68,6 @@ abstract class AbstractCall {
   }
 
   /**
-   * @return string The URI of the endpoint.
-   */
-  public function getPeer() {
-    return $this->call->getPeer();
-  }
-
-  /**
    * Cancels the call
    */
   public function cancel() {

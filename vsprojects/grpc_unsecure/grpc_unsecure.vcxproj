@@ -154,7 +154,6 @@
     <ClInclude Include="..\..\include\grpc\census.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\core\census\grpc_context.h" />
     <ClInclude Include="..\..\src\core\channel\census_filter.h" />
     <ClInclude Include="..\..\src\core\channel\channel_args.h" />
     <ClInclude Include="..\..\src\core\channel\channel_stack.h" />
@@ -399,8 +398,6 @@
     <ClCompile Include="..\..\src\core\surface\call_log_batch.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\surface\channel.c">
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\surface\channel_connectivity.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\surface\channel_create.c">
     </ClCompile>
