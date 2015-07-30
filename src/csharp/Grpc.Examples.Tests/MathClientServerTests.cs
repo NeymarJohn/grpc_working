@@ -56,16 +56,16 @@ namespace math.Tests
         {
             server = new Server();
             server.AddServiceDefinition(Math.BindService(new MathServiceImpl()));
-            int port = server.AddPort(host, Server.PickUnusedPort, ServerCredentials.Insecure);
+            int port = server.AddListeningPort(host, Server.PickUnusedPort);
             server.Start();
-            channel = new Channel(host, port, Credentials.Insecure);
+            channel = new Channel(host, port);
             client = Math.NewClient(channel);
 
             // TODO(jtattermusch): get rid of the custom header here once we have dedicated tests
             // for header support.
             client.HeaderInterceptor = (metadata) =>
             {
-                metadata.Add(new Metadata.Entry("custom-header", "abcdef"));
+                metadata.Add(new Metadata.Entry("customHeader", "abcdef"));
             };
         }
 
@@ -108,105 +108,123 @@ namespace math.Tests
         }
 
         [Test]
-        public async Task DivAsync()
+        public void DivAsync()
         {
-            DivReply response = await client.DivAsync(new DivArgs.Builder { Dividend = 10, Divisor = 3 }.Build());
-            Assert.AreEqual(3, response.Quotient);
-            Assert.AreEqual(1, response.Remainder);
+            Task.Run(async () =>
+            {
+                DivReply response = await client.DivAsync(new DivArgs.Builder { Dividend = 10, Divisor = 3 }.Build());
+                Assert.AreEqual(3, response.Quotient);
+                Assert.AreEqual(1, response.Remainder);
+            }).Wait();
         }
 
         [Test]
-        public async Task Fib()
+        public void Fib()
         {
-            using (var call = client.Fib(new FibArgs.Builder { Limit = 6 }.Build()))
+            Task.Run(async () =>
             {
-                var responses = await call.ResponseStream.ToList();
-                CollectionAssert.AreEqual(new List<long> { 1, 1, 2, 3, 5, 8 },
-                    responses.ConvertAll((n) => n.Num_));
-            }
-        }
-
-        [Test]
-        public async Task FibWithCancel()
-        {
-            var cts = new CancellationTokenSource();
-
-            using (var call = client.Fib(new FibArgs.Builder { Limit = 0 }.Build(), 
-                cancellationToken: cts.Token))
-            {
-                List<long> responses = new List<long>();
-
-                try
+                using (var call = client.Fib(new FibArgs.Builder { Limit = 6 }.Build()))
                 {
-                    while (await call.ResponseStream.MoveNext())
+                    var responses = await call.ResponseStream.ToList();
+                    CollectionAssert.AreEqual(new List<long> { 1, 1, 2, 3, 5, 8 },
+                        responses.ConvertAll((n) => n.Num_));
+                }
+            }).Wait();
+        }
+
+        [Test]
+        public void FibWithCancel()
+        {
+            Task.Run(async () =>
+            {
+                var cts = new CancellationTokenSource();
+
+                using (var call = client.Fib(new FibArgs.Builder { Limit = 0 }.Build(), 
+                    cancellationToken: cts.Token))
+                {
+                    List<long> responses = new List<long>();
+
+                    try
                     {
-                        if (responses.Count == 0)
+                        while (await call.ResponseStream.MoveNext())
                         {
-                            cts.CancelAfter(500);  // make sure we cancel soon
+                            if (responses.Count == 0)
+                            {
+                                cts.CancelAfter(500);  // make sure we cancel soon
+                            }
+                            responses.Add(call.ResponseStream.Current.Num_);
                         }
-                        responses.Add(call.ResponseStream.Current.Num_);
+                        Assert.Fail();
                     }
-                    Assert.Fail();
+                    catch (RpcException e)
+                    {
+                        Assert.IsTrue(responses.Count > 0);
+                        Assert.AreEqual(StatusCode.Cancelled, e.Status.StatusCode);
+                    }
                 }
-                catch (RpcException e)
-                {
-                    Assert.IsTrue(responses.Count > 0);
-                    Assert.AreEqual(StatusCode.Cancelled, e.Status.StatusCode);
-                }
-            }
+            }).Wait();
         }
 
         [Test]
-        public async Task FibWithDeadline()
+        public void FibWithDeadline()
         {
-            using (var call = client.Fib(new FibArgs.Builder { Limit = 0 }.Build(), 
-                deadline: DateTime.UtcNow.AddMilliseconds(500)))
+            Task.Run(async () =>
             {
-                try
+                using (var call = client.Fib(new FibArgs.Builder { Limit = 0 }.Build(), 
+                    deadline: DateTime.UtcNow.AddMilliseconds(500)))
                 {
-                    await call.ResponseStream.ToList();
-                    Assert.Fail();
+                    try
+                    {
+                        await call.ResponseStream.ToList();
+                        Assert.Fail();
+                    }
+                    catch (RpcException e)
+                    {
+                        Assert.AreEqual(StatusCode.DeadlineExceeded, e.Status.StatusCode);
+                    }
                 }
-                catch (RpcException e)
-                {
-                    Assert.AreEqual(StatusCode.DeadlineExceeded, e.Status.StatusCode);
-                }
-            }
+            }).Wait();
         }
 
         // TODO: test Fib with limit=0 and cancellation
         [Test]
-        public async Task Sum()
+        public void Sum()
         {
-            using (var call = client.Sum())
+            Task.Run(async () =>
             {
-                var numbers = new List<long> { 10, 20, 30 }.ConvertAll(
-                            n => Num.CreateBuilder().SetNum_(n).Build());
+                using (var call = client.Sum())
+                {
+                    var numbers = new List<long> { 10, 20, 30 }.ConvertAll(
+                             n => Num.CreateBuilder().SetNum_(n).Build());
 
-                await call.RequestStream.WriteAll(numbers);
-                var result = await call.ResponseAsync;
-                Assert.AreEqual(60, result.Num_);
-            }
+                    await call.RequestStream.WriteAll(numbers);
+                    var result = await call.ResponseAsync;
+                    Assert.AreEqual(60, result.Num_);
+                }
+            }).Wait();
         }
 
         [Test]
-        public async Task DivMany()
+        public void DivMany()
         {
-            var divArgsList = new List<DivArgs>
+            Task.Run(async () =>
             {
-                new DivArgs.Builder { Dividend = 10, Divisor = 3 }.Build(),
-                new DivArgs.Builder { Dividend = 100, Divisor = 21 }.Build(),
-                new DivArgs.Builder { Dividend = 7, Divisor = 2 }.Build()
-            };
+                var divArgsList = new List<DivArgs>
+                {
+                    new DivArgs.Builder { Dividend = 10, Divisor = 3 }.Build(),
+                    new DivArgs.Builder { Dividend = 100, Divisor = 21 }.Build(),
+                    new DivArgs.Builder { Dividend = 7, Divisor = 2 }.Build()
+                };
 
-            using (var call = client.DivMany())
-            {
-                await call.RequestStream.WriteAll(divArgsList);
-                var result = await call.ResponseStream.ToList();
+                using (var call = client.DivMany())
+                {
+                    await call.RequestStream.WriteAll(divArgsList);
+                    var result = await call.ResponseStream.ToList();
 
-                CollectionAssert.AreEqual(new long[] { 3, 4, 3 }, result.ConvertAll((divReply) => divReply.Quotient));
-                CollectionAssert.AreEqual(new long[] { 1, 16, 1 }, result.ConvertAll((divReply) => divReply.Remainder));
-            }
+                    CollectionAssert.AreEqual(new long[] { 3, 4, 3 }, result.ConvertAll((divReply) => divReply.Quotient));
+                    CollectionAssert.AreEqual(new long[] { 1, 16, 1 }, result.ConvertAll((divReply) => divReply.Remainder));
+                }
+            }).Wait();
         }
     }
 }

@@ -50,23 +50,9 @@ namespace Grpc.Core.Internal
         {
         }
 
-        public static CredentialsSafeHandle CreateNullCredentials()
+        public static CredentialsSafeHandle CreateSslCredentials(string pemRootCerts)
         {
-            var creds = new CredentialsSafeHandle();
-            creds.SetHandle(IntPtr.Zero);
-            return creds;
-        }
-
-        public static CredentialsSafeHandle CreateSslCredentials(string pemRootCerts, KeyCertificatePair keyCertPair)
-        {
-            if (keyCertPair != null)
-            {
-                return grpcsharp_ssl_credentials_create(pemRootCerts, keyCertPair.CertificateChain, keyCertPair.PrivateKey);
-            }
-            else
-            {
-                return grpcsharp_ssl_credentials_create(pemRootCerts, null, null);
-            }
+            return grpcsharp_ssl_credentials_create(pemRootCerts, null, null);
         }
 
         protected override bool ReleaseHandle()
