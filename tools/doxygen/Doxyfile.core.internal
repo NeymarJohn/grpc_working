@@ -784,7 +784,6 @@ src/core/tsi/fake_transport_security.h \
 src/core/tsi/ssl_transport_security.h \
 src/core/tsi/transport_security.h \
 src/core/tsi/transport_security_interface.h \
-src/core/census/grpc_context.h \
 src/core/channel/census_filter.h \
 src/core/channel/channel_args.h \
 src/core/channel/channel_stack.h \
@@ -820,6 +819,7 @@ src/core/iomgr/iomgr.h \
 src/core/iomgr/iomgr_internal.h \
 src/core/iomgr/iomgr_posix.h \
 src/core/iomgr/pollset.h \
+src/core/iomgr/pollset_kick_posix.h \
 src/core/iomgr/pollset_posix.h \
 src/core/iomgr/pollset_set.h \
 src/core/iomgr/pollset_set_posix.h \
@@ -939,6 +939,7 @@ src/core/iomgr/iocp_windows.c \
 src/core/iomgr/iomgr.c \
 src/core/iomgr/iomgr_posix.c \
 src/core/iomgr/iomgr_windows.c \
+src/core/iomgr/pollset_kick_posix.c \
 src/core/iomgr/pollset_multipoller_with_epoll.c \
 src/core/iomgr/pollset_multipoller_with_poll_posix.c \
 src/core/iomgr/pollset_posix.c \
