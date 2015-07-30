@@ -75,8 +75,6 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>grpc_unsecure</TargetName>
-    <Linkage-grpc_dependencies_zlib>static</Linkage-grpc_dependencies_zlib>
-    <Configuration-grpc_dependencies_zlib>Debug</Configuration-grpc_dependencies_zlib>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>grpc_unsecure</TargetName>
@@ -178,8 +176,6 @@
     <ClInclude Include="..\..\src\core\client_config\resolvers\sockaddr_resolver.h" />
     <ClInclude Include="..\..\src\core\client_config\subchannel.h" />
     <ClInclude Include="..\..\src\core\client_config\subchannel_factory.h" />
-    <ClInclude Include="..\..\src\core\client_config\subchannel_factory_decorators\add_channel_arg.h" />
-    <ClInclude Include="..\..\src\core\client_config\subchannel_factory_decorators\merge_channel_args.h" />
     <ClInclude Include="..\..\src\core\client_config\uri_parser.h" />
     <ClInclude Include="..\..\src\core\compression\message_compress.h" />
     <ClInclude Include="..\..\src\core\debug\trace.h" />
@@ -299,10 +295,6 @@
     <ClCompile Include="..\..\src\core\client_config\subchannel.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\client_config\subchannel_factory.c">
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\client_config\subchannel_factory_decorators\add_channel_arg.c">
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\client_config\subchannel_factory_decorators\merge_channel_args.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\client_config\uri_parser.c">
     </ClCompile>
