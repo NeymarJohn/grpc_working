@@ -150,6 +150,7 @@
         "src/core/iomgr/iomgr_internal.h",
         "src/core/iomgr/iomgr_posix.h",
         "src/core/iomgr/pollset.h",
+        "src/core/iomgr/pollset_kick_posix.h",
         "src/core/iomgr/pollset_posix.h",
         "src/core/iomgr/pollset_set.h",
         "src/core/iomgr/pollset_set_posix.h",
@@ -245,6 +246,7 @@
         "src/core/iomgr/iomgr.c",
         "src/core/iomgr/iomgr_posix.c",
         "src/core/iomgr/iomgr_windows.c",
+        "src/core/iomgr/pollset_kick_posix.c",
         "src/core/iomgr/pollset_multipoller_with_epoll.c",
         "src/core/iomgr/pollset_multipoller_with_poll_posix.c",
         "src/core/iomgr/pollset_posix.c",
@@ -504,6 +506,7 @@
         "gpr"
       ],
       "baselib": true,
+      "dll": "yes",
       "filegroups": [
         "grpc_base",
         "census"
@@ -559,6 +562,7 @@
         "gpr"
       ],
       "baselib": true,
+      "dll": "yes",
       "filegroups": [
         "grpc_base",
         "census"
@@ -588,6 +592,7 @@
         "grpc"
       ],
       "baselib": true,
+      "dll": "yes",
       "filegroups": [
         "grpc++_base"
       ],
@@ -639,6 +644,7 @@
         "grpc_unsecure"
       ],
       "baselib": true,
+      "dll": "yes",
       "filegroups": [
         "grpc++_base"
       ],
@@ -827,6 +833,7 @@
         "gpr",
         "grpc"
       ],
+      "dll": "only",
       "vs_project_guid": "{D64C6D63-4458-4A88-AB38-35678384A7E4}"
     }
   ],
@@ -1666,6 +1673,23 @@
         "grpc",
         "gpr_test_util",
         "gpr"
+      ]
+    },
+    {
+      "name": "poll_kick_posix_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/iomgr/poll_kick_posix_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ],
+      "platforms": [
+        "posix"
       ]
     },
     {
