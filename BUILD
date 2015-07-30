@@ -149,6 +149,7 @@ cc_library(
     "src/core/tsi/ssl_transport_security.h",
     "src/core/tsi/transport_security.h",
     "src/core/tsi/transport_security_interface.h",
+    "src/core/census/grpc_context.h",
     "src/core/channel/census_filter.h",
     "src/core/channel/channel_args.h",
     "src/core/channel/channel_stack.h",
@@ -407,6 +408,7 @@ cc_library(
 cc_library(
   name = "grpc_unsecure",
   srcs = [
+    "src/core/census/grpc_context.h",
     "src/core/channel/census_filter.h",
     "src/core/channel/channel_args.h",
     "src/core/channel/channel_stack.h",
@@ -1128,6 +1130,7 @@ objc_library(
     "src/core/tsi/ssl_transport_security.h",
     "src/core/tsi/transport_security.h",
     "src/core/tsi/transport_security_interface.h",
+    "src/core/census/grpc_context.h",
     "src/core/channel/census_filter.h",
     "src/core/channel/channel_args.h",
     "src/core/channel/channel_stack.h",

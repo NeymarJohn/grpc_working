@@ -31,54 +31,27 @@
  *
  */
 
-#include <set>
+/* GRPC <--> CENSUS context interface */
 
-#include <grpc/support/log.h>
+#ifndef CENSUS_GRPC_CONTEXT_H
+#define CENSUS_GRPC_CONTEXT_H
 
-#include <signal.h>
+#include <grpc/census.h>
+#include "src/core/surface/call.h"
 
-#include "test/cpp/qps/driver.h"
-#include "test/cpp/qps/report.h"
-#include "test/cpp/util/benchmark_config.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-namespace grpc {
-namespace testing {
+/* Set census context for the call; Must be called before first call to
+   grpc_call_start_batch(). */
+void grpc_census_call_set_context(grpc_call *call, census_context *context);
 
-static const int WARMUP = 20;
-static const int BENCHMARK = 40;
+/* Retrieve the calls current census context. */
+census_context *grpc_census_call_get_context(grpc_call *call);
 
-static void RunQPS() {
-  gpr_log(GPR_INFO, "Running QPS test");
-
-  ClientConfig client_config;
-  client_config.set_client_type(ASYNC_CLIENT);
-  client_config.set_enable_ssl(false);
-  client_config.set_outstanding_rpcs_per_channel(10);
-  client_config.set_client_channels(800);
-  client_config.set_payload_size(1);
-  client_config.set_async_client_threads(8);
-  client_config.set_rpc_type(UNARY);
-
-  ServerConfig server_config;
-  server_config.set_server_type(ASYNC_SERVER);
-  server_config.set_enable_ssl(false);
-  server_config.set_threads(8);
-
-  const auto result =
-      RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
-
-  GetReporter()->ReportQPSPerCore(*result);
-  GetReporter()->ReportLatency(*result);
+#ifdef __cplusplus
 }
+#endif
 
-}  // namespace testing
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  grpc::testing::InitBenchmark(&argc, &argv, true);
-
-  signal(SIGPIPE, SIG_IGN);
-  grpc::testing::RunQPS();
-
-  return 0;
-}
+#endif /* CENSUS_GRPC_CONTEXT_H */
