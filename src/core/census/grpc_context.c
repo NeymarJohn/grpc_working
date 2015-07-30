@@ -39,7 +39,7 @@ static void grpc_census_context_destroy(void *context) {
 }
 
 void grpc_census_call_set_context(grpc_call *call, census_context *context) {
-  if (census_enabled() == CENSUS_FEATURE_NONE) {
+  if (!census_available()) {
     return;
   }
   if (context == NULL) {
