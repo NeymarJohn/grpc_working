@@ -31,11 +31,6 @@
  *
  */
 
-/**
- * Server module
- * @module
- */
-
 'use strict';
 
 var _ = require('lodash');
@@ -77,7 +72,6 @@ function ClientWritableStream(call, serialize) {
 /**
  * Attempt to write the given chunk. Calls the callback when done. This is an
  * implementation of a method needed for implementing stream.Writable.
- * @access private
  * @param {Buffer} chunk The chunk to write
  * @param {string} encoding Ignored
  * @param {function(Error=)} callback Called when the write is complete
@@ -116,7 +110,6 @@ function ClientReadableStream(call, deserialize) {
 
 /**
  * Read the next object from the stream.
- * @access private
  * @param {*} size Ignored because we use objectMode=true
  */
 function _read(size) {
@@ -526,18 +519,16 @@ var requester_makers = {
  * @param {string} serviceName The name of the service
  * @return {function(string, Object)} New client constructor
  */
-exports.makeClientConstructor = function(methods, serviceName) {
+function makeClientConstructor(methods, serviceName) {
   /**
    * Create a client with the given methods
    * @constructor
    * @param {string} address The address of the server to connect to
-   * @param {grpc.Credentials} credentials Credentials to use to connect
-   *     to the server
    * @param {Object} options Options to pass to the underlying channel
    * @param {function(string, Object, function)=} updateMetadata function to
    *     update the metadata for each request
    */
-  function Client(address, credentials, options, updateMetadata) {
+  function Client(address, options, updateMetadata) {
     if (!updateMetadata) {
       updateMetadata = function(uri, metadata, callback) {
         callback(null, metadata);
@@ -547,7 +538,7 @@ exports.makeClientConstructor = function(methods, serviceName) {
       options = {};
     }
     options['grpc.primary_user_agent'] = 'grpc-node/' + version;
-    this.channel = new grpc.Channel(address, credentials, options);
+    this.channel = new grpc.Channel(address, options);
     this.server_address = address.replace(/\/$/, '');
     this.auth_uri = this.server_address + '/' + serviceName;
     this.updateMetadata = updateMetadata;
@@ -577,7 +568,7 @@ exports.makeClientConstructor = function(methods, serviceName) {
   });
 
   return Client;
-};
+}
 
 /**
  * Creates a constructor for clients for the given service
@@ -585,18 +576,22 @@ exports.makeClientConstructor = function(methods, serviceName) {
  *     for
  * @return {function(string, Object)} New client constructor
  */
-exports.makeProtobufClientConstructor =  function(service) {
+function makeProtobufClientConstructor(service) {
   var method_attrs = common.getProtobufServiceAttrs(service, service.name);
-  var Client = exports.makeClientConstructor(method_attrs);
+  var Client = makeClientConstructor(method_attrs);
   Client.service = service;
+
   return Client;
-};
+}
+
+exports.makeClientConstructor = makeClientConstructor;
+
+exports.makeProtobufClientConstructor = makeProtobufClientConstructor;
 
 /**
- * Map of status code names to status codes
+ * See docs for client.status
  */
 exports.status = grpc.status;
-
 /**
  * See docs for client.callError
  */

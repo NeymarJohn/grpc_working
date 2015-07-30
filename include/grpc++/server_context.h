@@ -46,7 +46,6 @@
 struct gpr_timespec;
 struct grpc_metadata;
 struct grpc_call;
-struct census_context;
 
 namespace grpc {
 
@@ -117,7 +116,11 @@ class ServerContext {
 
   std::shared_ptr<const AuthContext> auth_context() const;
 
-  const struct census_context* census_context() const;
+  // Return the peer uri in a string.
+  // WARNING: this value is never authenticated or subject to any security
+  // related code. It must not be used for any authentication related
+  // functionality. Instead, use auth_context.
+  grpc::string peer() const;
 
  private:
   friend class ::grpc::testing::InteropContextInspector;

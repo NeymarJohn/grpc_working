@@ -34,12 +34,12 @@
 #include <grpc++/server_context.h>
 
 #include <grpc/grpc.h>
+#include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc++/impl/call.h>
 #include <grpc++/impl/sync.h>
 #include <grpc++/time.h>
 
-#include "src/core/census/grpc_context.h"
 #include "src/core/channel/compress_filter.h"
 #include "src/cpp/common/create_auth_context.h"
 
@@ -180,8 +180,14 @@ std::shared_ptr<const AuthContext> ServerContext::auth_context() const {
   return auth_context_;
 }
 
-const struct census_context* ServerContext::census_context() const {
-  return grpc_census_call_get_context(call_);
+grpc::string ServerContext::peer() const {
+  grpc::string peer;
+  if (call_) {
+    char* c_peer = grpc_call_get_peer(call_);
+    peer = c_peer;
+    gpr_free(c_peer);
+  }
+  return peer;
 }
 
 }  // namespace grpc

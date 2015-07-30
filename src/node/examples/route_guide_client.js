@@ -40,8 +40,7 @@ var path = require('path');
 var _ = require('lodash');
 var grpc = require('..');
 var examples = grpc.load(__dirname + '/route_guide.proto').examples;
-var client = new examples.RouteGuide('localhost:50051',
-                                     grpc.Credentials.createInsecure());
+var client = new examples.RouteGuide('localhost:50051');
 
 var COORD_FACTOR = 1e7;
 
