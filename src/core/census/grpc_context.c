@@ -32,15 +32,14 @@
  */
 
 #include <grpc/census.h>
-#include <grpc/grpc.h>
-#include "src/core/surface/call.h"
+#include "src/core/census/grpc_context.h"
 
 static void grpc_census_context_destroy(void *context) {
   census_context_destroy((census_context *)context);
 }
 
 void grpc_census_call_set_context(grpc_call *call, census_context *context) {
-  if (census_enabled() == CENSUS_FEATURE_NONE) {
+  if (!census_available()) {
     return;
   }
   if (context == NULL) {

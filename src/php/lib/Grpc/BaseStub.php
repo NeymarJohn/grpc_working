@@ -68,13 +68,6 @@ class BaseStub {
   }
 
   /**
-   * @return string The URI of the endpoint.
-   */
-  public function getTarget() {
-    return $this->channel->getTarget();
-  }
-
-  /**
    * Close the communication channel associated with this stub
    */
   public function close() {

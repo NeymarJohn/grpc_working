@@ -32,8 +32,6 @@ set -ex
 
 CONFIG=${CONFIG:-opt}
 
-NUNIT_CONSOLE="mono packages/NUnit.Runners.2.6.4/tools/nunit-console.exe"
-
 if [ "$CONFIG" = "dbg" ]
 then
   MSBUILD_CONFIG="Debug"
@@ -48,7 +46,6 @@ root=`pwd`
 cd src/csharp
 
 export LD_LIBRARY_PATH=$root/libs/$CONFIG
-
-$NUNIT_CONSOLE -labels "$1/bin/$MSBUILD_CONFIG/$1.dll"
+nunit-console -labels "$1/bin/$MSBUILD_CONFIG/$1.dll"
 
 

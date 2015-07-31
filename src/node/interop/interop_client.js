@@ -397,7 +397,6 @@ var test_cases = {
 function runTest(address, host_override, test_case, tls, test_ca, done) {
   // TODO(mlumish): enable TLS functionality
   var options = {};
-  var creds;
   if (tls) {
     var ca_path;
     if (test_ca) {
@@ -406,14 +405,13 @@ function runTest(address, host_override, test_case, tls, test_ca, done) {
       ca_path = process.env.SSL_CERT_FILE;
     }
     var ca_data = fs.readFileSync(ca_path);
-    creds = grpc.Credentials.createSsl(ca_data);
+    var creds = grpc.Credentials.createSsl(ca_data);
+    options.credentials = creds;
     if (host_override) {
       options['grpc.ssl_target_name_override'] = host_override;
     }
-  } else {
-    creds = grpc.Credentials.createInsecure();
   }
-  var client = new testProto.TestService(address, creds, options);
+  var client = new testProto.TestService(address, options);
 
   test_cases[test_case](client, done);
 }
