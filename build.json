@@ -151,6 +151,7 @@
         "src/core/iomgr/iomgr_internal.h",
         "src/core/iomgr/iomgr_posix.h",
         "src/core/iomgr/pollset.h",
+        "src/core/iomgr/pollset_kick_posix.h",
         "src/core/iomgr/pollset_posix.h",
         "src/core/iomgr/pollset_set.h",
         "src/core/iomgr/pollset_set_posix.h",
@@ -248,6 +249,7 @@
         "src/core/iomgr/iomgr.c",
         "src/core/iomgr/iomgr_posix.c",
         "src/core/iomgr/iomgr_windows.c",
+        "src/core/iomgr/pollset_kick_posix.c",
         "src/core/iomgr/pollset_multipoller_with_epoll.c",
         "src/core/iomgr/pollset_multipoller_with_poll_posix.c",
         "src/core/iomgr/pollset_posix.c",
@@ -329,7 +331,6 @@
       "name": "grpc_test_util_base",
       "headers": [
         "test/core/end2end/cq_verifier.h",
-        "test/core/end2end/fixtures/proxy.h",
         "test/core/iomgr/endpoint_tests.h",
         "test/core/security/oauth2_utils.h",
         "test/core/util/grpc_profiler.h",
@@ -339,7 +340,6 @@
       ],
       "src": [
         "test/core/end2end/cq_verifier.c",
-        "test/core/end2end/fixtures/proxy.c",
         "test/core/iomgr/endpoint_tests.c",
         "test/core/security/oauth2_utils.c",
         "test/core/util/grpc_profiler.c",
@@ -572,23 +572,6 @@
       ],
       "secure": "no",
       "vs_project_guid": "{46CEDFFF-9692-456A-AA24-38B5D6BCF4C5}"
-    },
-    {
-      "name": "reconnect_server",
-      "build": "private",
-      "language": "c",
-      "headers": [
-        "test/core/util/reconnect_server.h"
-      ],
-      "src": [
-        "test/core/util/reconnect_server.c"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
     },
     {
       "name": "grpc++",
@@ -1696,6 +1679,23 @@
       ]
     },
     {
+      "name": "poll_kick_posix_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/iomgr/poll_kick_posix_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ],
+      "platforms": [
+        "posix"
+      ]
+    },
+    {
       "name": "resolve_address_test",
       "build": "test",
       "language": "c",
@@ -2430,49 +2430,6 @@
       ],
       "deps": [
         "qps",
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr",
-        "grpc++_test_config"
-      ]
-    },
-    {
-      "name": "reconnect_interop_client",
-      "build": "test",
-      "run": false,
-      "language": "c++",
-      "src": [
-        "test/proto/empty.proto",
-        "test/proto/messages.proto",
-        "test/proto/test.proto",
-        "test/cpp/interop/reconnect_interop_client.cc"
-      ],
-      "deps": [
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr",
-        "grpc++_test_config"
-      ]
-    },
-    {
-      "name": "reconnect_interop_server",
-      "build": "test",
-      "run": false,
-      "language": "c++",
-      "src": [
-        "test/proto/empty.proto",
-        "test/proto/messages.proto",
-        "test/proto/test.proto",
-        "test/cpp/interop/reconnect_interop_server.cc"
-      ],
-      "deps": [
-        "reconnect_server",
         "grpc++_test_util",
         "grpc_test_util",
         "grpc++",
