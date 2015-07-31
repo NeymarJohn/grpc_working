@@ -39,7 +39,6 @@
 #include <grpc/support/log.h>
 #include <grpc/support/slice.h>
 
-#include "src/core/census/grpc_context.h"
 #include "src/core/profiling/timers.h"
 #include <grpc++/channel_arguments.h>
 #include <grpc++/client_context.h>
@@ -63,14 +62,13 @@ Call Channel::CreateCall(const RpcMethod& method, ClientContext* context,
       method.channel_tag() && context->authority().empty()
           ? grpc_channel_create_registered_call(c_channel_, cq->cq(),
                                                 method.channel_tag(),
-                                                context->raw_deadline(),
-                                                nullptr)
+                                                context->raw_deadline())
           : grpc_channel_create_call(c_channel_, cq->cq(), method.name(),
                                      context->authority().empty()
                                          ? target_.c_str()
                                          : context->authority().c_str(),
-                                     context->raw_deadline(), nullptr);
-  grpc_census_call_set_context(c_call, context->get_census_context());
+                                     context->raw_deadline());
+  grpc_census_call_set_context(c_call, context->census_context());
   GRPC_TIMER_MARK(GRPC_PTAG_CPP_CALL_CREATED, c_call);
   context->set_call(c_call, shared_from_this());
   return Call(c_call, this, cq);
@@ -83,13 +81,12 @@ void Channel::PerformOpsOnCall(CallOpSetInterface* ops, Call* call) {
   GRPC_TIMER_BEGIN(GRPC_PTAG_CPP_PERFORM_OPS, call->call());
   ops->FillOps(cops, &nops);
   GPR_ASSERT(GRPC_CALL_OK ==
-             grpc_call_start_batch(call->call(), cops, nops, ops, nullptr));
+             grpc_call_start_batch(call->call(), cops, nops, ops));
   GRPC_TIMER_END(GRPC_PTAG_CPP_PERFORM_OPS, call->call());
 }
 
 void* Channel::RegisterMethod(const char* method) {
-  return grpc_channel_register_call(c_channel_, method, target_.c_str(),
-                                    nullptr);
+  return grpc_channel_register_call(c_channel_, method, target_.c_str());
 }
 
 }  // namespace grpc

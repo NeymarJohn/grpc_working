@@ -61,7 +61,7 @@ static grpc_end2end_test_fixture chttp2_create_fixture_secure_fullstack(
   gpr_join_host_port(&ffd->localaddr, "localhost", port);
 
   f.fixture_data = ffd;
-  f.cq = grpc_completion_queue_create(NULL);
+  f.cq = grpc_completion_queue_create();
 
   return f;
 }
@@ -82,8 +82,8 @@ static void chttp2_init_server_secure_fullstack(
   if (f->server) {
     grpc_server_destroy(f->server);
   }
-  f->server = grpc_server_create(server_args, NULL);
-  grpc_server_register_completion_queue(f->server, f->cq, NULL);
+  f->server = grpc_server_create(server_args);
+  grpc_server_register_completion_queue(f->server, f->cq);
   GPR_ASSERT(grpc_server_add_secure_http2_port(f->server, ffd->localaddr,
                                                server_creds));
   grpc_server_credentials_release(server_creds);
@@ -120,7 +120,7 @@ static void chttp2_init_server_simple_ssl_secure_fullstack(
   grpc_ssl_pem_key_cert_pair pem_key_cert_pair = {test_server1_key,
                                                   test_server1_cert};
   grpc_server_credentials *ssl_creds =
-      grpc_ssl_server_credentials_create(NULL, &pem_key_cert_pair, 1);
+      grpc_ssl_server_credentials_create(NULL, &pem_key_cert_pair, 1, 0);
   chttp2_init_server_secure_fullstack(f, server_args, ssl_creds);
 }
 
