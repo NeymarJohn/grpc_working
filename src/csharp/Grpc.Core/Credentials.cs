@@ -41,98 +41,39 @@ namespace Grpc.Core
     /// </summary>
     public abstract class Credentials
     {
-        static readonly Credentials InsecureInstance = new InsecureCredentialsImpl();
-
         /// <summary>
-        /// Returns instance of credential that provides no security and 
-        /// will result in creating an unsecure channel with no encryption whatsoever.
-        /// </summary>
-        public static Credentials Insecure
-        {
-            get
-            {
-                return InsecureInstance;
-            }
-        }
-
-        /// <summary>
-        /// Creates native object for the credentials. May return null if insecure channel
-        /// should be created.
+        /// Creates native object for the credentials.
         /// </summary>
         /// <returns>The native credentials.</returns>
         internal abstract CredentialsSafeHandle ToNativeCredentials();
-
-        private sealed class InsecureCredentialsImpl : Credentials
-        {
-            internal override CredentialsSafeHandle ToNativeCredentials()
-            {
-                return null;
-            }
-        }
     }
 
     /// <summary>
     /// Client-side SSL credentials.
     /// </summary>
-    public sealed class SslCredentials : Credentials
+    public class SslCredentials : Credentials
     {
-        readonly string rootCertificates;
-        readonly KeyCertificatePair keyCertificatePair;
+        string pemRootCerts;
 
-        /// <summary>
-        /// Creates client-side SSL credentials loaded from
-        /// disk file pointed to by the GRPC_DEFAULT_SSL_ROOTS_FILE_PATH environment variable.
-        /// If that fails, gets the roots certificates from a well known place on disk.
-        /// </summary>
-        public SslCredentials() : this(null, null)
+        public SslCredentials(string pemRootCerts)
         {
-        }
-
-        /// <summary>
-        /// Creates client-side SSL credentials from
-        /// a string containing PEM encoded root certificates.
-        /// </summary>
-        public SslCredentials(string rootCertificates) : this(rootCertificates, null)
-        {
-        }
-            
-        /// <summary>
-        /// Creates client-side SSL credentials.
-        /// </summary>
-        /// <param name="rootCertificates">string containing PEM encoded server root certificates.</param>
-        /// <param name="keyCertificatePair">a key certificate pair.</param>
-        public SslCredentials(string rootCertificates, KeyCertificatePair keyCertificatePair)
-        {
-            this.rootCertificates = rootCertificates;
-            this.keyCertificatePair = keyCertificatePair;
+            this.pemRootCerts = pemRootCerts;
         }
 
         /// <summary>
         /// PEM encoding of the server root certificates.
         /// </summary>
-        public string RootCertificates
+        public string RootCerts
         {
             get
             {
-                return this.rootCertificates;
-            }
-        }
-
-        /// <summary>
-        /// Client side key and certificate pair.
-        /// If null, client will not use key and certificate pair.
-        /// </summary>
-        public KeyCertificatePair KeyCertificatePair
-        {
-            get
-            {
-                return this.keyCertificatePair;
+                return this.pemRootCerts;
             }
         }
 
         internal override CredentialsSafeHandle ToNativeCredentials()
         {
-            return CredentialsSafeHandle.CreateSslCredentials(rootCertificates, keyCertificatePair);
+            return CredentialsSafeHandle.CreateSslCredentials(pemRootCerts);
         }
     }
 }

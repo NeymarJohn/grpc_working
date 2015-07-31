@@ -83,6 +83,7 @@ void ServerContext::CompletionOp::FillOps(grpc_op* ops, size_t* nops) {
   ops->op = GRPC_OP_RECV_CLOSE_ON_SERVER;
   ops->data.recv_close_on_server.cancelled = &cancelled_;
   ops->flags = 0;
+  ops->reserved = NULL;
   *nops = 1;
 }
 
@@ -177,10 +178,6 @@ std::shared_ptr<const AuthContext> ServerContext::auth_context() const {
     auth_context_ = CreateAuthContext(call_);
   }
   return auth_context_;
-}
-
-const struct census_context* ServerContext::census_context() const {
-  return grpc_census_call_get_context(call_);
 }
 
 }  // namespace grpc

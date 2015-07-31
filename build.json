@@ -18,13 +18,11 @@
         "include/grpc/census.h"
       ],
       "headers": [
-        "src/core/census/context.h",
-        "src/core/census/rpc_stat_id.h"
+        "src/core/census/context.h"
       ],
       "src": [
         "src/core/census/context.c",
-        "src/core/census/initialize.c",
-        "src/core/census/record_stat.c"
+        "src/core/census/initialize.c"
       ]
     },
     {
@@ -43,7 +41,6 @@
         "include/grpc++/config_protobuf.h",
         "include/grpc++/create_channel.h",
         "include/grpc++/credentials.h",
-        "include/grpc++/dynamic_thread_pool.h",
         "include/grpc++/fixed_size_thread_pool.h",
         "include/grpc++/generic_stub.h",
         "include/grpc++/impl/call.h",
@@ -91,7 +88,6 @@
         "src/cpp/proto/proto_utils.cc",
         "src/cpp/server/async_generic_service.cc",
         "src/cpp/server/create_default_thread_pool.cc",
-        "src/cpp/server/dynamic_thread_pool.cc",
         "src/cpp/server/fixed_size_thread_pool.cc",
         "src/cpp/server/insecure_server_credentials.cc",
         "src/cpp/server/server.cc",
@@ -114,6 +110,7 @@
         "include/grpc/status.h"
       ],
       "headers": [
+        "src/core/census/grpc_context.h",
         "src/core/channel/census_filter.h",
         "src/core/channel/channel_args.h",
         "src/core/channel/channel_stack.h",
@@ -132,7 +129,7 @@
         "src/core/client_config/resolver_factory.h",
         "src/core/client_config/resolver_registry.h",
         "src/core/client_config/resolvers/dns_resolver.h",
-        "src/core/client_config/resolvers/sockaddr_resolver.h",
+        "src/core/client_config/resolvers/unix_resolver_posix.h",
         "src/core/client_config/subchannel.h",
         "src/core/client_config/subchannel_factory.h",
         "src/core/client_config/uri_parser.h",
@@ -228,7 +225,7 @@
         "src/core/client_config/resolver_factory.c",
         "src/core/client_config/resolver_registry.c",
         "src/core/client_config/resolvers/dns_resolver.c",
-        "src/core/client_config/resolvers/sockaddr_resolver.c",
+        "src/core/client_config/resolvers/unix_resolver_posix.c",
         "src/core/client_config/subchannel.c",
         "src/core/client_config/subchannel_factory.c",
         "src/core/client_config/uri_parser.c",
@@ -283,7 +280,6 @@
         "src/core/surface/call_details.c",
         "src/core/surface/call_log_batch.c",
         "src/core/surface/channel.c",
-        "src/core/surface/channel_connectivity.c",
         "src/core/surface/channel_create.c",
         "src/core/surface/completion_queue.c",
         "src/core/surface/event_string.c",
@@ -505,7 +501,6 @@
         "gpr"
       ],
       "baselib": true,
-      "dll": "yes",
       "filegroups": [
         "grpc_base",
         "census"
@@ -561,7 +556,6 @@
         "gpr"
       ],
       "baselib": true,
-      "dll": "yes",
       "filegroups": [
         "grpc_base",
         "census"
@@ -591,7 +585,6 @@
         "grpc"
       ],
       "baselib": true,
-      "dll": "yes",
       "filegroups": [
         "grpc++_base"
       ],
@@ -616,6 +609,7 @@
       "headers": [
         "test/cpp/util/cli_call.h",
         "test/cpp/util/create_test_channel.h",
+        "test/cpp/util/fake_credentials.h",
         "test/cpp/util/subprocess.h"
       ],
       "src": [
@@ -624,6 +618,7 @@
         "test/cpp/util/echo_duplicate.proto",
         "test/cpp/util/cli_call.cc",
         "test/cpp/util/create_test_channel.cc",
+        "test/cpp/util/fake_credentials.cc",
         "test/cpp/util/subprocess.cc"
       ],
       "deps": [
@@ -643,7 +638,6 @@
         "grpc_unsecure"
       ],
       "baselib": true,
-      "dll": "yes",
       "filegroups": [
         "grpc++_base"
       ],
@@ -832,7 +826,6 @@
         "gpr",
         "grpc"
       ],
-      "dll": "only",
       "vs_project_guid": "{D64C6D63-4458-4A88-AB38-35678384A7E4}"
     }
   ],
@@ -1899,9 +1892,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1919,9 +1909,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -1980,9 +1967,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2051,21 +2035,6 @@
       "language": "c++",
       "src": [
         "test/cpp/util/time_test.cc"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "dynamic_thread_pool_test",
-      "build": "test",
-      "language": "c++",
-      "src": [
-        "test/cpp/server/dynamic_thread_pool_test.cc"
       ],
       "deps": [
         "grpc_test_util",
@@ -2221,9 +2190,6 @@
         "gpr_test_util",
         "gpr",
         "grpc++_test_config"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2242,9 +2208,6 @@
         "gpr_test_util",
         "gpr",
         "grpc++_test_config"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2259,9 +2222,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2366,9 +2326,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2387,9 +2344,6 @@
         "gpr_test_util",
         "gpr",
         "grpc++_test_config"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2408,9 +2362,6 @@
         "gpr_test_util",
         "gpr",
         "grpc++_test_config"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2462,9 +2413,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2514,9 +2462,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {
@@ -2534,9 +2479,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ],
-      "platforms": [
-        "posix"
       ]
     },
     {

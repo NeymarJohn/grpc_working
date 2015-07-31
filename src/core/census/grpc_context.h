@@ -31,20 +31,27 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H
+/* GRPC <--> CENSUS context interface */
 
-#include <grpc/support/port_platform.h>
+#ifndef CENSUS_GRPC_CONTEXT_H
+#define CENSUS_GRPC_CONTEXT_H
 
-#include "src/core/client_config/resolver_factory.h"
+#include <grpc/census.h>
+#include "src/core/surface/call.h"
 
-grpc_resolver_factory *grpc_ipv4_resolver_factory_create(void);
-
-grpc_resolver_factory *grpc_ipv6_resolver_factory_create(void);
-
-#ifdef GPR_POSIX_SOCKET
-/** Create a unix resolver factory */
-grpc_resolver_factory *grpc_unix_resolver_factory_create(void);
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_UNIX_RESOLVER_H */
+/* Set census context for the call; Must be called before first call to
+   grpc_call_start_batch(). */
+void grpc_census_call_set_context(grpc_call *call, census_context *context);
+
+/* Retrieve the calls current census context. */
+census_context *grpc_census_call_get_context(grpc_call *call);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* CENSUS_GRPC_CONTEXT_H */
