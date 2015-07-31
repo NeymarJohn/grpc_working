@@ -316,25 +316,21 @@ class AsyncClient : public Client {
   }
 
  private:
-  class boolean {  // exists only to avoid data-race on vector<bool>
+  class boolean { // exists only to avoid data-race on vector<bool>
    public:
-    boolean() : val_(false) {}
-    boolean(bool b) : val_(b) {}
-    operator bool() const { return val_; }
-    boolean& operator=(bool b) {
-      val_ = b;
-      return *this;
-    }
-
+    boolean(): val_(false) {}
+    boolean(bool b): val_(b) {}
+    operator bool() const {return val_;}
+    boolean& operator=(bool b) {val_=b; return *this;}
    private:
     bool val_;
   };
   std::vector<std::unique_ptr<CompletionQueue>> cli_cqs_;
 
   std::vector<deadline_list> rpc_deadlines_;  // per thread deadlines
-  std::vector<int> next_channel_;       // per thread round-robin channel ctr
-  std::vector<boolean> issue_allowed_;  // may this thread attempt to issue
-  std::vector<grpc_time> next_issue_;   // when should it issue?
+  std::vector<int> next_channel_;      // per thread round-robin channel ctr
+  std::vector<boolean> issue_allowed_; // may this thread attempt to issue
+  std::vector<grpc_time> next_issue_;  // when should it issue?
 
   std::vector<std::mutex> channel_lock_;
   std::vector<context_list> contexts_;  // per-channel list of idle contexts
@@ -352,17 +348,15 @@ class AsyncUnaryClient GRPC_FINAL : public AsyncClient {
   ~AsyncUnaryClient() GRPC_OVERRIDE { EndThreads(); }
 
  private:
-  static void CheckDone(grpc::Status s, SimpleResponse* response) {}
-  static std::unique_ptr<grpc::ClientAsyncResponseReader<SimpleResponse>>
-  StartReq(TestService::Stub* stub, grpc::ClientContext* ctx,
-           const SimpleRequest& request, CompletionQueue* cq) {
-    return stub->AsyncUnaryCall(ctx, request, cq);
-  };
   static ClientRpcContext* SetupCtx(int channel_id, TestService::Stub* stub,
                                     const SimpleRequest& req) {
+    auto check_done = [](grpc::Status s, SimpleResponse* response) {};
+    auto start_req = [](TestService::Stub* stub, grpc::ClientContext* ctx,
+                        const SimpleRequest& request, CompletionQueue* cq) {
+      return stub->AsyncUnaryCall(ctx, request, cq);
+    };
     return new ClientRpcContextUnaryImpl<SimpleRequest, SimpleResponse>(
-        channel_id, stub, req, AsyncUnaryClient::StartReq,
-        AsyncUnaryClient::CheckDone);
+        channel_id, stub, req, start_req, check_done);
   }
 };
 
@@ -448,19 +442,16 @@ class AsyncStreamingClient GRPC_FINAL : public AsyncClient {
   ~AsyncStreamingClient() GRPC_OVERRIDE { EndThreads(); }
 
  private:
-  static void CheckDone(grpc::Status s, SimpleResponse* response) {}
-  static std::unique_ptr<
-      grpc::ClientAsyncReaderWriter<SimpleRequest, SimpleResponse>>
-  StartReq(TestService::Stub* stub, grpc::ClientContext* ctx,
-           CompletionQueue* cq, void* tag) {
-    auto stream = stub->AsyncStreamingCall(ctx, cq, tag);
-    return stream;
-  };
   static ClientRpcContext* SetupCtx(int channel_id, TestService::Stub* stub,
                                     const SimpleRequest& req) {
+    auto check_done = [](grpc::Status s, SimpleResponse* response) {};
+    auto start_req = [](TestService::Stub* stub, grpc::ClientContext* ctx,
+                        CompletionQueue* cq, void* tag) {
+      auto stream = stub->AsyncStreamingCall(ctx, cq, tag);
+      return stream;
+    };
     return new ClientRpcContextStreamingImpl<SimpleRequest, SimpleResponse>(
-        channel_id, stub, req, AsyncStreamingClient::StartReq,
-        AsyncStreamingClient::CheckDone);
+        channel_id, stub, req, start_req, check_done);
   }
 };
 
