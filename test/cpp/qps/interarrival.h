@@ -36,8 +36,7 @@
 
 #include <chrono>
 #include <cmath>
-#include <cstdlib>
-#include <vector>
+#include <random>
 
 #include <grpc++/config.h>
 
@@ -142,16 +141,17 @@ class ParetoDist GRPC_FINAL : public RandomDist {
 // in an efficient re-entrant way. The random table is built at construction
 // time, and each call must include the thread id of the invoker
 
+typedef std::default_random_engine qps_random_engine;
+
 class InterarrivalTimer {
  public:
   InterarrivalTimer() {}
   void init(const RandomDist& r, int threads, int entries = 1000000) {
+    qps_random_engine gen;
+    std::uniform_real_distribution<double> uniform(0.0, 1.0);
     for (int i = 0; i < entries; i++) {
-      // rand is the only choice that is portable across POSIX and Windows
-      // and that supports new and old compilers
-      double uniform_0_1 = rand() / RAND_MAX;
-      random_table_.push_back(
-          std::chrono::nanoseconds(static_cast<int64_t>(1e9 * r(uniform_0_1))));
+      random_table_.push_back(std::chrono::nanoseconds(
+          static_cast<int64_t>(1e9 * r(uniform(gen)))));
     }
     // Now set up the thread positions
     for (int i = 0; i < threads; i++) {
