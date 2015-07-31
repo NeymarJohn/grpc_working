@@ -149,6 +149,7 @@ cc_library(
     "src/core/tsi/ssl_transport_security.h",
     "src/core/tsi/transport_security.h",
     "src/core/tsi/transport_security_interface.h",
+    "src/core/census/grpc_context.h",
     "src/core/channel/census_filter.h",
     "src/core/channel/channel_args.h",
     "src/core/channel/channel_stack.h",
@@ -407,6 +408,7 @@ cc_library(
 cc_library(
   name = "grpc_unsecure",
   srcs = [
+    "src/core/census/grpc_context.h",
     "src/core/channel/census_filter.h",
     "src/core/channel/channel_args.h",
     "src/core/channel/channel_stack.h",
@@ -633,6 +635,26 @@ cc_library(
   ],
   deps = [
     ":gpr",
+  ],
+)
+
+
+cc_library(
+  name = "grpc_zookeeper",
+  srcs = [
+    "src/core/client_config/resolvers/zookeeper_resolver.h",
+    "src/core/client_config/resolvers/zookeeper_resolver.c",
+  ],
+  hdrs = [
+    "include/grpc/grpc_zookeeper.h",
+  ],
+  includes = [
+    "include",
+    ".",
+  ],
+  deps = [
+    ":gpr",
+    ":grpc",
   ],
 )
 
@@ -1128,6 +1150,7 @@ objc_library(
     "src/core/tsi/ssl_transport_security.h",
     "src/core/tsi/transport_security.h",
     "src/core/tsi/transport_security_interface.h",
+    "src/core/census/grpc_context.h",
     "src/core/channel/census_filter.h",
     "src/core/channel/channel_args.h",
     "src/core/channel/channel_stack.h",
