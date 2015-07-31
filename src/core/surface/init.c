@@ -33,16 +33,12 @@
 
 #include <grpc/support/port_platform.h>
 
-#include <memory.h>
-
 #include <grpc/census.h>
 #include <grpc/grpc.h>
-#include <grpc/support/alloc.h>
 #include <grpc/support/time.h>
 #include "src/core/channel/channel_stack.h"
 #include "src/core/client_config/resolver_registry.h"
 #include "src/core/client_config/resolvers/dns_resolver.h"
-#include "src/core/client_config/resolvers/sockaddr_resolver.h"
 #include "src/core/debug/trace.h"
 #include "src/core/iomgr/iomgr.h"
 #include "src/core/profiling/timers.h"
@@ -50,7 +46,10 @@
 #include "src/core/surface/init.h"
 #include "src/core/surface/surface_trace.h"
 #include "src/core/transport/chttp2_transport.h"
-#include "src/core/transport/connectivity_state.h"
+
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/client_config/resolvers/unix_resolver_posix.h"
+#endif
 
 static gpr_once g_basic_init = GPR_ONCE_INIT;
 static gpr_mu g_init_mu;
@@ -61,31 +60,7 @@ static void do_basic_init(void) {
   g_initializations = 0;
 }
 
-typedef struct grpc_plugin {
-  void (*init)();
-  void (*deinit)();
-  struct grpc_plugin *next;
-} grpc_plugin;
-
-static grpc_plugin *g_plugins_head = NULL;
-
-static grpc_plugin *new_plugin(void (*init)(void), void (*deinit)(void)) {
-  grpc_plugin *plugin = gpr_malloc(sizeof(*plugin));
-  memset(plugin, 0, sizeof(*plugin));
-  plugin->init = init;
-  plugin->deinit = deinit;
-
-  return plugin;
-}
-
-void grpc_register_plugin(void (*init)(void), void (*deinit)(void)) {
-  grpc_plugin *old_head = g_plugins_head;
-  g_plugins_head = new_plugin(init, deinit);
-  g_plugins_head->next = old_head;
-}
-
 void grpc_init(void) {
-  grpc_plugin *plugin;
   gpr_once_init(&g_basic_init, do_basic_init);
 
   gpr_mu_lock(&g_init_mu);
@@ -93,8 +68,6 @@ void grpc_init(void) {
     gpr_time_init();
     grpc_resolver_registry_init("dns:///");
     grpc_register_resolver_type("dns", grpc_dns_resolver_factory_create());
-    grpc_register_resolver_type("ipv4", grpc_ipv4_resolver_factory_create());
-    grpc_register_resolver_type("ipv6", grpc_ipv6_resolver_factory_create());
 #ifdef GPR_POSIX_SOCKET
     grpc_register_resolver_type("unix", grpc_unix_resolver_factory_create());
 #endif
@@ -103,7 +76,6 @@ void grpc_init(void) {
     grpc_register_tracer("http", &grpc_http_trace);
     grpc_register_tracer("flowctl", &grpc_flowctl_trace);
     grpc_register_tracer("batch", &grpc_trace_batch);
-    grpc_register_tracer("connectivity_state", &grpc_connectivity_state_trace);
     grpc_security_pre_init();
     grpc_iomgr_init();
     grpc_tracer_init("GRPC_TRACE");
@@ -111,19 +83,11 @@ void grpc_init(void) {
       gpr_log(GPR_ERROR, "Could not initialize census.");
     }
     grpc_timers_global_init();
-    for (plugin = g_plugins_head; plugin != NULL; plugin = plugin->next) {
-      if (plugin->init) {
-        plugin->init();
-      }
-    }
   }
   gpr_mu_unlock(&g_init_mu);
 }
 
 void grpc_shutdown(void) {
-  grpc_plugin *plugin;
-  grpc_plugin *next;
-
   gpr_mu_lock(&g_init_mu);
   if (--g_initializations == 0) {
     grpc_iomgr_shutdown();
@@ -131,13 +95,6 @@ void grpc_shutdown(void) {
     grpc_timers_global_destroy();
     grpc_tracer_shutdown();
     grpc_resolver_registry_shutdown();
-    for (plugin = g_plugins_head; plugin != NULL; plugin = next) {
-      if (plugin->deinit) {
-        plugin->deinit();
-      }
-      next = plugin->next;
-      gpr_free(plugin);
-    }
   }
   gpr_mu_unlock(&g_init_mu);
 }

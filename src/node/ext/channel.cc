@@ -76,8 +76,6 @@ void Channel::Init(Handle<Object> exports) {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NanSetPrototypeTemplate(tpl, "close",
                           NanNew<FunctionTemplate>(Close)->GetFunction());
-  NanSetPrototypeTemplate(tpl, "getTarget",
-                          NanNew<FunctionTemplate>(GetTarget)->GetFunction());
   NanAssignPersistent(fun_tpl, tpl);
   Handle<Function> ctr = tpl->GetFunction();
   constructor = new NanCallback(ctr);
@@ -105,7 +103,7 @@ NAN_METHOD(Channel::New) {
     NanUtf8String *host = new NanUtf8String(args[0]);
     NanUtf8String *host_override = NULL;
     if (args[1]->IsUndefined()) {
-      wrapped_channel = grpc_insecure_channel_create(**host, NULL);
+      wrapped_channel = grpc_channel_create(**host, NULL);
     } else if (args[1]->IsObject()) {
       grpc_credentials *creds = NULL;
       Handle<Object> args_hash(args[1]->ToObject()->Clone());
@@ -150,7 +148,7 @@ NAN_METHOD(Channel::New) {
         }
       }
       if (creds == NULL) {
-        wrapped_channel = grpc_insecure_channel_create(**host, &channel_args);
+        wrapped_channel = grpc_channel_create(**host, &channel_args);
       } else {
         wrapped_channel =
             grpc_secure_channel_create(creds, **host, &channel_args);
@@ -185,15 +183,6 @@ NAN_METHOD(Channel::Close) {
     channel->wrapped_channel = NULL;
   }
   NanReturnUndefined();
-}
-
-NAN_METHOD(Channel::GetTarget) {
-  NanScope();
-  if (!HasInstance(args.This())) {
-    return NanThrowTypeError("getTarget can only be called on Channel objects");
-  }
-  Channel *channel = ObjectWrap::Unwrap<Channel>(args.This());
-  NanReturnValue(NanNew(grpc_channel_get_target(channel->wrapped_channel)));
 }
 
 }  // namespace node

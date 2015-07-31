@@ -76,9 +76,6 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>grpc</TargetName>
-    <Linkage-grpc_dependencies_zlib>static</Linkage-grpc_dependencies_zlib>
-    <Configuration-grpc_dependencies_zlib>Debug</Configuration-grpc_dependencies_zlib>
-    <Configuration-grpc_dependencies_openssl>Debug</Configuration-grpc_dependencies_openssl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>grpc</TargetName>
@@ -195,7 +192,7 @@
     <ClInclude Include="..\..\src\core\client_config\resolver_factory.h" />
     <ClInclude Include="..\..\src\core\client_config\resolver_registry.h" />
     <ClInclude Include="..\..\src\core\client_config\resolvers\dns_resolver.h" />
-    <ClInclude Include="..\..\src\core\client_config\resolvers\sockaddr_resolver.h" />
+    <ClInclude Include="..\..\src\core\client_config\resolvers\unix_resolver_posix.h" />
     <ClInclude Include="..\..\src\core\client_config\subchannel.h" />
     <ClInclude Include="..\..\src\core\client_config\subchannel_factory.h" />
     <ClInclude Include="..\..\src\core\client_config\uri_parser.h" />
@@ -273,7 +270,6 @@
     <ClInclude Include="..\..\src\core\transport\transport.h" />
     <ClInclude Include="..\..\src\core\transport\transport_impl.h" />
     <ClInclude Include="..\..\src\core\census\context.h" />
-    <ClInclude Include="..\..\src\core\census\rpc_stat_id.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\core\httpcli\format_request.c">
@@ -358,7 +354,7 @@
     </ClCompile>
     <ClCompile Include="..\..\src\core\client_config\resolvers\dns_resolver.c">
     </ClCompile>
-    <ClCompile Include="..\..\src\core\client_config\resolvers\sockaddr_resolver.c">
+    <ClCompile Include="..\..\src\core\client_config\resolvers\unix_resolver_posix.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\client_config\subchannel.c">
     </ClCompile>
@@ -468,8 +464,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\core\surface\channel.c">
     </ClCompile>
-    <ClCompile Include="..\..\src\core\surface\channel_connectivity.c">
-    </ClCompile>
     <ClCompile Include="..\..\src\core\surface\channel_create.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\surface\completion_queue.c">
@@ -547,8 +541,6 @@
     <ClCompile Include="..\..\src\core\census\context.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\census\initialize.c">
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\census\record_stat.c">
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

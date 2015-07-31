@@ -36,14 +36,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
-
 #include "src/core/iomgr/iomgr.h"
 #include "src/core/support/string.h"
 #include "src/core/surface/call.h"
 #include "src/core/surface/init.h"
+#include <grpc/support/alloc.h>
+#include <grpc/support/log.h>
 
 /** Cache grpc-status: X mdelems for X = 0..NUM_CACHED_STATUS_ELEMS.
  *  Avoids needing to take a metadata context lock for sending status
@@ -75,7 +73,6 @@ struct grpc_channel {
   gpr_mu registered_call_mu;
   registered_call *registered_calls;
   grpc_iomgr_closure destroy_closure;
-  char *target;
 };
 
 #define CHANNEL_STACK_FROM_CHANNEL(c) ((grpc_channel_stack *)((c) + 1))
@@ -88,33 +85,31 @@ struct grpc_channel {
 #define DEFAULT_MAX_MESSAGE_LENGTH (100 * 1024 * 1024)
 
 grpc_channel *grpc_channel_create_from_filters(
-    const char *target, const grpc_channel_filter **filters, size_t num_filters,
+    const grpc_channel_filter **filters, size_t num_filters,
     const grpc_channel_args *args, grpc_mdctx *mdctx, int is_client) {
   size_t i;
   size_t size =
       sizeof(grpc_channel) + grpc_channel_stack_size(filters, num_filters);
   grpc_channel *channel = gpr_malloc(size);
   memset(channel, 0, sizeof(*channel));
-  channel->target = gpr_strdup(target);
   GPR_ASSERT(grpc_is_initialized() && "call grpc_init()");
   channel->is_client = is_client;
   /* decremented by grpc_channel_destroy */
   gpr_ref_init(&channel->refs, 1);
   channel->metadata_context = mdctx;
-  channel->grpc_status_string = grpc_mdstr_from_string(mdctx, "grpc-status", 0);
+  channel->grpc_status_string = grpc_mdstr_from_string(mdctx, "grpc-status");
   channel->grpc_compression_algorithm_string =
-      grpc_mdstr_from_string(mdctx, "grpc-encoding", 0);
-  channel->grpc_message_string =
-      grpc_mdstr_from_string(mdctx, "grpc-message", 0);
+      grpc_mdstr_from_string(mdctx, "grpc-encoding");
+  channel->grpc_message_string = grpc_mdstr_from_string(mdctx, "grpc-message");
   for (i = 0; i < NUM_CACHED_STATUS_ELEMS; i++) {
     char buf[GPR_LTOA_MIN_BUFSIZE];
     gpr_ltoa(i, buf);
     channel->grpc_status_elem[i] = grpc_mdelem_from_metadata_strings(
         mdctx, GRPC_MDSTR_REF(channel->grpc_status_string),
-        grpc_mdstr_from_string(mdctx, buf, 0));
+        grpc_mdstr_from_string(mdctx, buf));
   }
-  channel->path_string = grpc_mdstr_from_string(mdctx, ":path", 0);
-  channel->authority_string = grpc_mdstr_from_string(mdctx, ":authority", 0);
+  channel->path_string = grpc_mdstr_from_string(mdctx, ":path");
+  channel->authority_string = grpc_mdstr_from_string(mdctx, ":authority");
   gpr_mu_init(&channel->registered_call_mu);
   channel->registered_calls = NULL;
 
@@ -142,10 +137,6 @@ grpc_channel *grpc_channel_create_from_filters(
   return channel;
 }
 
-char *grpc_channel_get_target(grpc_channel *channel) {
-  return gpr_strdup(channel->target);
-}
-
 static grpc_call *grpc_channel_create_call_internal(
     grpc_channel *channel, grpc_completion_queue *cq, grpc_mdelem *path_mdelem,
     grpc_mdelem *authority_mdelem, gpr_timespec deadline) {
@@ -163,27 +154,29 @@ static grpc_call *grpc_channel_create_call_internal(
 grpc_call *grpc_channel_create_call(grpc_channel *channel,
                                     grpc_completion_queue *cq,
                                     const char *method, const char *host,
-                                    gpr_timespec deadline) {
+                                    gpr_timespec deadline, void *reserved) {
+  GPR_ASSERT(!reserved);
   return grpc_channel_create_call_internal(
       channel, cq,
       grpc_mdelem_from_metadata_strings(
           channel->metadata_context, GRPC_MDSTR_REF(channel->path_string),
-          grpc_mdstr_from_string(channel->metadata_context, method, 0)),
+          grpc_mdstr_from_string(channel->metadata_context, method)),
       grpc_mdelem_from_metadata_strings(
           channel->metadata_context, GRPC_MDSTR_REF(channel->authority_string),
-          grpc_mdstr_from_string(channel->metadata_context, host, 0)),
+          grpc_mdstr_from_string(channel->metadata_context, host)),
       deadline);
 }
 
 void *grpc_channel_register_call(grpc_channel *channel, const char *method,
-                                 const char *host) {
+                                 const char *host, void *reserved) {
   registered_call *rc = gpr_malloc(sizeof(registered_call));
+  GPR_ASSERT(!reserved);
   rc->path = grpc_mdelem_from_metadata_strings(
       channel->metadata_context, GRPC_MDSTR_REF(channel->path_string),
-      grpc_mdstr_from_string(channel->metadata_context, method, 0));
+      grpc_mdstr_from_string(channel->metadata_context, method));
   rc->authority = grpc_mdelem_from_metadata_strings(
       channel->metadata_context, GRPC_MDSTR_REF(channel->authority_string),
-      grpc_mdstr_from_string(channel->metadata_context, host, 0));
+      grpc_mdstr_from_string(channel->metadata_context, host));
   gpr_mu_lock(&channel->registered_call_mu);
   rc->next = channel->registered_calls;
   channel->registered_calls = rc;
@@ -193,8 +186,9 @@ void *grpc_channel_register_call(grpc_channel *channel, const char *method,
 
 grpc_call *grpc_channel_create_registered_call(
     grpc_channel *channel, grpc_completion_queue *completion_queue,
-    void *registered_call_handle, gpr_timespec deadline) {
+    void *registered_call_handle, gpr_timespec deadline, void *reserved) {
   registered_call *rc = registered_call_handle;
+  GPR_ASSERT(!reserved);
   return grpc_channel_create_call_internal(
       channel, completion_queue, GRPC_MDELEM_REF(rc->path),
       GRPC_MDELEM_REF(rc->authority), deadline);
@@ -231,7 +225,6 @@ static void destroy_channel(void *p, int ok) {
   }
   grpc_mdctx_unref(channel->metadata_context);
   gpr_mu_destroy(&channel->registered_call_mu);
-  gpr_free(channel->target);
   gpr_free(channel);
 }
 
@@ -285,7 +278,7 @@ grpc_mdelem *grpc_channel_get_reffed_status_elem(grpc_channel *channel, int i) {
     gpr_ltoa(i, tmp);
     return grpc_mdelem_from_metadata_strings(
         channel->metadata_context, GRPC_MDSTR_REF(channel->grpc_status_string),
-        grpc_mdstr_from_string(channel->metadata_context, tmp, 0));
+        grpc_mdstr_from_string(channel->metadata_context, tmp));
   }
 }
 

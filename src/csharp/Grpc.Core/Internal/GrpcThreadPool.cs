@@ -36,7 +36,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Grpc.Core.Logging;
+using Grpc.Core.Internal;
 
 namespace Grpc.Core.Internal
 {
@@ -45,8 +45,6 @@ namespace Grpc.Core.Internal
     /// </summary>
     internal class GrpcThreadPool
     {
-        static readonly ILogger Logger = GrpcEnvironment.Logger.ForType<GrpcThreadPool>();
-
         readonly GrpcEnvironment environment;
         readonly object myLock = new object();
         readonly List<Thread> threads = new List<Thread>();
@@ -84,7 +82,7 @@ namespace Grpc.Core.Internal
             {
                 cq.Shutdown();
 
-                Logger.Info("Waiting for GRPC threads to finish.");
+                Console.WriteLine("Waiting for GRPC threads to finish.");
                 foreach (var thread in threads)
                 {
                     thread.Join();
@@ -131,12 +129,12 @@ namespace Grpc.Core.Internal
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e, "Exception occured while invoking completion delegate");
+                        Console.WriteLine("Exception occured while invoking completion delegate: " + e);
                     }
                 }
             }
             while (ev.type != GRPCCompletionType.Shutdown);
-            Logger.Info("Completion queue has shutdown successfully, thread {0} exiting.", Thread.CurrentThread.Name);
+            Console.WriteLine("Completion queue has shutdown successfully, thread " + Thread.CurrentThread.Name + " exiting.");
         }
     }
 }

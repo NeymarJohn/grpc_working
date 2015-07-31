@@ -31,11 +31,6 @@
  *
  */
 
-/**
- * Server module
- * @module
- */
-
 'use strict';
 
 var _ = require('lodash');
@@ -77,7 +72,6 @@ function ClientWritableStream(call, serialize) {
 /**
  * Attempt to write the given chunk. Calls the callback when done. This is an
  * implementation of a method needed for implementing stream.Writable.
- * @access private
  * @param {Buffer} chunk The chunk to write
  * @param {string} encoding Ignored
  * @param {function(Error=)} callback Called when the write is complete
@@ -116,7 +110,6 @@ function ClientReadableStream(call, deserialize) {
 
 /**
  * Read the next object from the stream.
- * @access private
  * @param {*} size Ignored because we use objectMode=true
  */
 function _read(size) {
@@ -195,19 +188,6 @@ ClientWritableStream.prototype.cancel = cancel;
 ClientDuplexStream.prototype.cancel = cancel;
 
 /**
- * Get the endpoint this call/stream is connected to.
- * @return {string} The URI of the endpoint
- */
-function getPeer() {
-  /* jshint validthis: true */
-  return this.call.getPeer();
-}
-
-ClientReadableStream.prototype.getPeer = getPeer;
-ClientWritableStream.prototype.getPeer = getPeer;
-ClientDuplexStream.prototype.getPeer = getPeer;
-
-/**
  * Get a function that can make unary requests to the specified method.
  * @param {string} method The name of the method to request
  * @param {function(*):Buffer} serialize The serialization function for inputs
@@ -242,9 +222,6 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
     }
     emitter.cancel = function cancel() {
       call.cancel();
-    };
-    emitter.getPeer = function getPeer() {
-      return call.getPeer();
     };
     this.updateMetadata(this.auth_uri, metadata, function(error, metadata) {
       if (error) {
@@ -526,7 +503,7 @@ var requester_makers = {
  * @param {string} serviceName The name of the service
  * @return {function(string, Object)} New client constructor
  */
-exports.makeClientConstructor = function(methods, serviceName) {
+function makeClientConstructor(methods, serviceName) {
   /**
    * Create a client with the given methods
    * @constructor
@@ -575,7 +552,7 @@ exports.makeClientConstructor = function(methods, serviceName) {
   });
 
   return Client;
-};
+}
 
 /**
  * Creates a constructor for clients for the given service
@@ -583,18 +560,22 @@ exports.makeClientConstructor = function(methods, serviceName) {
  *     for
  * @return {function(string, Object)} New client constructor
  */
-exports.makeProtobufClientConstructor =  function(service) {
+function makeProtobufClientConstructor(service) {
   var method_attrs = common.getProtobufServiceAttrs(service, service.name);
-  var Client = exports.makeClientConstructor(method_attrs);
+  var Client = makeClientConstructor(method_attrs);
   Client.service = service;
+
   return Client;
-};
+}
+
+exports.makeClientConstructor = makeClientConstructor;
+
+exports.makeProtobufClientConstructor = makeProtobufClientConstructor;
 
 /**
- * Map of status code names to status codes
+ * See docs for client.status
  */
 exports.status = grpc.status;
-
 /**
  * See docs for client.callError
  */
