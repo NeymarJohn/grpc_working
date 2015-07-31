@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,12 +29,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+language=$1
+test_case=$2
+
 set -e
+if [ "$language" = "c++" ]
+then
+  sudo docker run grpc/cxx /var/local/git/grpc/bins/opt/interop_client --enable_ssl --use_prod_roots --server_host_override=grpc-test.sandbox.google.com --server_host=grpc-test.sandbox.google.com --server_port=443 --test_case=$test_case
+else
+  echo "interop testss not added for $language"
+  exit 1
+fi
 
-cd $(dirname $0)
-
-# The local test server needs to be compiled before this because pod install of
-# gRPC renames some C gRPC files and not the server's code references to them.
-#
-# Suppress error output because Cocoapods issue #3823 causes a flooding warning.
-pod install 2>/dev/null

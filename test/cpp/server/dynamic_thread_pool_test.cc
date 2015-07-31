@@ -31,27 +31,47 @@
  *
  */
 
-/* GRPC <--> CENSUS context interface */
+#include <condition_variable>
+#include <functional>
+#include <mutex>
 
-#ifndef CENSUS_GRPC_CONTEXT_H
-#define CENSUS_GRPC_CONTEXT_H
+#include <grpc++/dynamic_thread_pool.h>
+#include <gtest/gtest.h>
 
-#include <grpc/census.h>
-#include "src/core/surface/call.h"
+namespace grpc {
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+class DynamicThreadPoolTest : public ::testing::Test {
+ public:
+  DynamicThreadPoolTest() : thread_pool_(0) {}
 
-/* Set census context for the call; Must be called before first call to
-   grpc_call_start_batch(). */
-void grpc_census_call_set_context(grpc_call *call, census_context *context);
+ protected:
+  DynamicThreadPool thread_pool_;
+};
 
-/* Retrieve the calls current census context. */
-census_context *grpc_census_call_get_context(grpc_call *call);
-
-#ifdef __cplusplus
+void Callback(std::mutex* mu, std::condition_variable* cv, bool* done) {
+  std::unique_lock<std::mutex> lock(*mu);
+  *done = true;
+  cv->notify_all();
 }
-#endif
 
-#endif /* CENSUS_GRPC_CONTEXT_H */
+TEST_F(DynamicThreadPoolTest, Add) {
+  std::mutex mu;
+  std::condition_variable cv;
+  bool done = false;
+  std::function<void()> callback = std::bind(Callback, &mu, &cv, &done);
+  thread_pool_.Add(callback);
+
+  // Wait for the callback to finish.
+  std::unique_lock<std::mutex> lock(mu);
+  while (!done) {
+    cv.wait(lock);
+  }
+}
+
+}  // namespace grpc
+
+int main(int argc, char** argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  int result = RUN_ALL_TESTS();
+  return result;
+}
