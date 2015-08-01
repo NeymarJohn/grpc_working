@@ -66,7 +66,7 @@ void free_wrapped_grpc_server(void *object TSRMLS_DC) {
     grpc_server_shutdown_and_notify(server->wrapped, completion_queue, NULL);
     grpc_server_cancel_all_calls(server->wrapped);
     grpc_completion_queue_pluck(completion_queue, NULL,
-                                gpr_inf_future(GPR_CLOCK_REALTIME), NULL);
+                                gpr_inf_future(GPR_CLOCK_REALTIME));
     grpc_server_destroy(server->wrapped);
   }
   efree(server);
@@ -109,14 +109,13 @@ PHP_METHOD(Server, __construct) {
     return;
   }
   if (args_array == NULL) {
-    server->wrapped = grpc_server_create(NULL, NULL);
+    server->wrapped = grpc_server_create(NULL);
   } else {
     php_grpc_read_args_array(args_array, &args);
-    server->wrapped = grpc_server_create(&args, NULL);
+    server->wrapped = grpc_server_create(&args);
     efree(args.args);
   }
-  grpc_server_register_completion_queue(server->wrapped, completion_queue,
-                                        NULL);
+  grpc_server_register_completion_queue(server->wrapped, completion_queue);
 }
 
 /**
@@ -147,7 +146,7 @@ PHP_METHOD(Server, requestCall) {
     goto cleanup;
   }
   event = grpc_completion_queue_pluck(completion_queue, NULL,
-                                      gpr_inf_future(GPR_CLOCK_REALTIME), NULL);
+                                      gpr_inf_future(GPR_CLOCK_REALTIME));
   if (!event.success) {
     zend_throw_exception(spl_ce_LogicException,
                          "Failed to request a call for some reason",
