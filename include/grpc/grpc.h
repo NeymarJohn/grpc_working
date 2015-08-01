@@ -349,19 +349,6 @@ typedef struct grpc_op {
   } data;
 } grpc_op;
 
-/* Propagation bits: this can be bitwise or-ed to form propagation_mask for
- * grpc_call */
-/** Propagate deadline */
-#define GRPC_PROPAGATE_DEADLINE 1
-/** Propagate census context */
-#define GRPC_PROPAGATE_CENSUS_CONTEXT 2
-/* TODO(ctiller):
-#define GRPC_PROPAGATE_CANCELLATION   4
-*/
-
-#define GRPC_PROPAGATE_DEFAULTS \
-  (GRPC_PROPAGATE_DEADLINE | GRPC_PROPAGATE_CENSUS_CONTEXT)
-
 /** Initialize the grpc library.
 
     It is not safe to call any other grpc functions before calling this.
@@ -427,24 +414,15 @@ grpc_connectivity_state grpc_channel_check_connectivity_state(
     Once the channel connectivity state is different from last_observed_state,
     tag will be enqueued on cq with success=1.
     If deadline expires BEFORE the state is changed, tag will be enqueued on cq
-    with success=0.
-    If optional_new_state is non-NULL, it will be set to the newly observed
-    connectivity state of the channel at the same point as tag is enqueued onto 
-    the completion queue. */
+    with success=0. */
 void grpc_channel_watch_connectivity_state(
     grpc_channel *channel, grpc_connectivity_state last_observed_state,
-    grpc_connectivity_state *optional_new_state, gpr_timespec deadline,
-    grpc_completion_queue *cq, void *tag);
+    gpr_timespec deadline, grpc_completion_queue *cq, void *tag);
 
 /** Create a call given a grpc_channel, in order to call 'method'. All
     completions are sent to 'completion_queue'. 'method' and 'host' need only
-    live through the invocation of this function.
-    If parent_call is non-NULL, it must be a server-side call. It will be used
-    to propagate properties from the server call to this new client call. 
-    */
+    live through the invocation of this function. */
 grpc_call *grpc_channel_create_call(grpc_channel *channel,
-                                    grpc_call *parent_call,
-                                    gpr_uint32 propagation_mask,
                                     grpc_completion_queue *completion_queue,
                                     const char *method, const char *host,
                                     gpr_timespec deadline);
@@ -455,9 +433,8 @@ void *grpc_channel_register_call(grpc_channel *channel, const char *method,
 
 /** Create a call given a handle returned from grpc_channel_register_call */
 grpc_call *grpc_channel_create_registered_call(
-    grpc_channel *channel, grpc_call *parent_call, gpr_uint32 propagation_mask,
-    grpc_completion_queue *completion_queue, void *registered_call_handle,
-    gpr_timespec deadline);
+    grpc_channel *channel, grpc_completion_queue *completion_queue,
+    void *registered_call_handle, gpr_timespec deadline);
 
 /** Start a batch of operations defined in the array ops; when complete, post a
     completion of type 'tag' to the completion queue bound to the call.
