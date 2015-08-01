@@ -102,7 +102,6 @@ static grpc_fd *alloc_fd(int fd) {
   r->freelist_next = NULL;
   r->read_watcher = r->write_watcher = NULL;
   r->on_done_closure = NULL;
-  r->closed = 0;
   return r;
 }
 
@@ -168,19 +167,13 @@ int grpc_fd_is_orphaned(grpc_fd *fd) {
   return (gpr_atm_acq_load(&fd->refst) & 1) == 0;
 }
 
-static void pollset_kick_locked(grpc_pollset *pollset) {
-  gpr_mu_lock(GRPC_POLLSET_MU(pollset));
-  grpc_pollset_kick(pollset, NULL);
-  gpr_mu_unlock(GRPC_POLLSET_MU(pollset));
-}
-
 static void maybe_wake_one_watcher_locked(grpc_fd *fd) {
   if (fd->inactive_watcher_root.next != &fd->inactive_watcher_root) {
-    pollset_kick_locked(fd->inactive_watcher_root.next->pollset);
+    grpc_pollset_force_kick(fd->inactive_watcher_root.next->pollset);
   } else if (fd->read_watcher) {
-    pollset_kick_locked(fd->read_watcher->pollset);
+    grpc_pollset_force_kick(fd->read_watcher->pollset);
   } else if (fd->write_watcher) {
-    pollset_kick_locked(fd->write_watcher->pollset);
+    grpc_pollset_force_kick(fd->write_watcher->pollset);
   }
 }
 
@@ -194,13 +187,13 @@ static void wake_all_watchers_locked(grpc_fd *fd) {
   grpc_fd_watcher *watcher;
   for (watcher = fd->inactive_watcher_root.next;
        watcher != &fd->inactive_watcher_root; watcher = watcher->next) {
-    pollset_kick_locked(watcher->pollset);
+    grpc_pollset_force_kick(watcher->pollset);
   }
   if (fd->read_watcher) {
-    pollset_kick_locked(fd->read_watcher->pollset);
+    grpc_pollset_force_kick(fd->read_watcher->pollset);
   }
   if (fd->write_watcher && fd->write_watcher != fd->read_watcher) {
-    pollset_kick_locked(fd->write_watcher->pollset);
+    grpc_pollset_force_kick(fd->write_watcher->pollset);
   }
 }
 
@@ -216,8 +209,6 @@ void grpc_fd_orphan(grpc_fd *fd, grpc_iomgr_closure *on_done,
   REF_BY(fd, 1, reason); /* remove active status, but keep referenced */
   gpr_mu_lock(&fd->watcher_mu);
   if (!has_watchers(fd)) {
-    GPR_ASSERT(!fd->closed);
-    fd->closed = 1;
     close(fd->fd);
     if (fd->on_done_closure) {
       grpc_iomgr_add_callback(fd->on_done_closure);
@@ -435,8 +426,7 @@ void grpc_fd_end_poll(grpc_fd_watcher *watcher, int got_read, int got_write) {
   if (kick) {
     maybe_wake_one_watcher_locked(fd);
   }
-  if (grpc_fd_is_orphaned(fd) && !has_watchers(fd) && !fd->closed) {
-    fd->closed = 1;
+  if (grpc_fd_is_orphaned(fd) && !has_watchers(fd)) {
     close(fd->fd);
     if (fd->on_done_closure != NULL) {
       grpc_iomgr_add_callback(fd->on_done_closure);
