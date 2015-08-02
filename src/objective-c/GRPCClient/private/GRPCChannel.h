@@ -33,12 +33,19 @@
 
 #import <Foundation/Foundation.h>
 
-#include <grpc/grpc.h>
+struct grpc_channel;
 
-// Each separate instance of this class represents at least one TCP connection to the provided host.
-// Create them using one of the subclasses |GRPCSecureChannel| and |GRPCUnsecuredChannel|.
+// Each separate instance of this class represents at least one TCP
+// connection to the provided host. To create a grpc_call, pass the
+// value of the unmanagedChannel property to grpc_channel_create_call.
+// Release this object when the call is finished.
 @interface GRPCChannel : NSObject
-@property(nonatomic) grpc_channel *unmanagedChannel;
+@property(nonatomic, readonly) struct grpc_channel *unmanagedChannel;
 
-- (instancetype)initWithChannel:(grpc_channel *)unmanagedChannel NS_DESIGNATED_INITIALIZER;
+// Convenience constructor to allow for reuse of connections.
++ (instancetype)channelToHost:(NSString *)host;
+
+- (instancetype)initWithHost:(NSString *)host NS_DESIGNATED_INITIALIZER;
+
+- (instancetype)initWithChannel:(struct grpc_channel *)unmanagedChannel NS_DESIGNATED_INITIALIZER;
 @end
