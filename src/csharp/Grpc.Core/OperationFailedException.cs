@@ -32,60 +32,16 @@
 #endregion
 
 using System;
-using Grpc.Core;
-using Grpc.Core.Internal;
-using Grpc.Core.Utils;
-using NUnit.Framework;
 
-namespace Grpc.Core.Tests
+namespace Grpc.Core
 {
-    public class ChannelTest
+    /// <summary>
+    /// Thrown when gRPC operation fails.
+    /// </summary>
+    public class OperationFailedException : Exception
     {
-        [TestFixtureTearDown]
-        public void CleanupClass()
+        public OperationFailedException(string message) : base(message)
         {
-            GrpcEnvironment.Shutdown();
-        }
-
-        [Test]
-        public void Constructor_RejectsInvalidParams()
-        {
-            Assert.Throws(typeof(ArgumentNullException), () => new Channel(null, Credentials.Insecure));
-        }
-
-        [Test]
-        public void State_IdleAfterCreation()
-        {
-            using (var channel = new Channel("localhost", Credentials.Insecure))
-            {
-                Assert.AreEqual(ChannelState.Idle, channel.State);
-            }
-        }
-
-        [Test]
-        public void WaitForStateChangedAsync_InvalidArgument()
-        {
-            using (var channel = new Channel("localhost", Credentials.Insecure))
-            {
-                Assert.Throws(typeof(ArgumentException), () => channel.WaitForStateChangedAsync(ChannelState.FatalFailure));
-            }
-        }
-
-        [Test]
-        public void ResolvedTarget()
-        {
-            using (var channel = new Channel("127.0.0.1", Credentials.Insecure))
-            {
-                Assert.IsTrue(channel.ResolvedTarget.Contains("127.0.0.1"));
-            }
-        }
-
-        [Test]
-        public void Dispose_IsIdempotent()
-        {
-            var channel = new Channel("localhost", Credentials.Insecure);
-            channel.Dispose();
-            channel.Dispose();
         }
     }
 }
