@@ -170,8 +170,6 @@ cc_library(
     "src/core/client_config/resolvers/sockaddr_resolver.h",
     "src/core/client_config/subchannel.h",
     "src/core/client_config/subchannel_factory.h",
-    "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h",
-    "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h",
     "src/core/client_config/uri_parser.h",
     "src/core/compression/message_compress.h",
     "src/core/debug/trace.h",
@@ -292,8 +290,6 @@ cc_library(
     "src/core/client_config/resolvers/sockaddr_resolver.c",
     "src/core/client_config/subchannel.c",
     "src/core/client_config/subchannel_factory.c",
-    "src/core/client_config/subchannel_factory_decorators/add_channel_arg.c",
-    "src/core/client_config/subchannel_factory_decorators/merge_channel_args.c",
     "src/core/client_config/uri_parser.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
@@ -432,8 +428,6 @@ cc_library(
     "src/core/client_config/resolvers/sockaddr_resolver.h",
     "src/core/client_config/subchannel.h",
     "src/core/client_config/subchannel_factory.h",
-    "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h",
-    "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h",
     "src/core/client_config/uri_parser.h",
     "src/core/compression/message_compress.h",
     "src/core/debug/trace.h",
@@ -531,8 +525,6 @@ cc_library(
     "src/core/client_config/resolvers/sockaddr_resolver.c",
     "src/core/client_config/subchannel.c",
     "src/core/client_config/subchannel_factory.c",
-    "src/core/client_config/subchannel_factory_decorators/add_channel_arg.c",
-    "src/core/client_config/subchannel_factory_decorators/merge_channel_args.c",
     "src/core/client_config/uri_parser.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
@@ -641,6 +633,26 @@ cc_library(
   ],
   deps = [
     ":gpr",
+  ],
+)
+
+
+cc_library(
+  name = "grpc_zookeeper",
+  srcs = [
+    "src/core/client_config/resolvers/zookeeper_resolver.h",
+    "src/core/client_config/resolvers/zookeeper_resolver.c",
+  ],
+  hdrs = [
+    "include/grpc/grpc_zookeeper.h",
+  ],
+  includes = [
+    "include",
+    ".",
+  ],
+  deps = [
+    ":gpr",
+    ":grpc",
   ],
 )
 
@@ -1017,8 +1029,6 @@ objc_library(
     "src/core/client_config/resolvers/sockaddr_resolver.c",
     "src/core/client_config/subchannel.c",
     "src/core/client_config/subchannel_factory.c",
-    "src/core/client_config/subchannel_factory_decorators/add_channel_arg.c",
-    "src/core/client_config/subchannel_factory_decorators/merge_channel_args.c",
     "src/core/client_config/uri_parser.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
@@ -1159,8 +1169,6 @@ objc_library(
     "src/core/client_config/resolvers/sockaddr_resolver.h",
     "src/core/client_config/subchannel.h",
     "src/core/client_config/subchannel_factory.h",
-    "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h",
-    "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h",
     "src/core/client_config/uri_parser.h",
     "src/core/compression/message_compress.h",
     "src/core/debug/trace.h",

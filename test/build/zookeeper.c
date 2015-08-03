@@ -31,15 +31,13 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_DECORATORS_ADD_CHANNEL_ARG_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_DECORATORS_ADD_CHANNEL_ARG_H
+/* This is just a compilation test, to see if we have Zookeeper C client
+   library installed. */
 
-#include "src/core/client_config/subchannel_factory.h"
+#include <stdlib.h>
+#include <zookeeper/zookeeper.h>
 
-/** Takes a subchannel factory, returns a new one that mutates incoming
-    channel_args by adding a new argument; ownership of input, arg is retained
-    by the caller. */
-grpc_subchannel_factory *grpc_subchannel_factory_add_channel_arg(
-		grpc_subchannel_factory *input, const grpc_arg *arg);
-
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_DECORATORS_ADD_CHANNEL_ARG_H */
+int main() {
+  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
+  return 0;
+}

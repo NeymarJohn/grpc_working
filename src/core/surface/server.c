@@ -554,10 +554,8 @@ static void server_on_recv(void *ptr, int success) {
           gpr_time_cmp(op_deadline, gpr_inf_future(op_deadline.clock_type))) {
         calld->deadline = op->data.metadata.deadline;
       }
-      if (calld->host && calld->path) {
-        calld->got_initial_metadata = 1;
-        start_new_rpc(elem);
-      }
+      calld->got_initial_metadata = 1;
+      start_new_rpc(elem);
       break;
     }
   }
