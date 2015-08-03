@@ -60,7 +60,6 @@ struct grpc_fd {
 
   gpr_mu set_state_mu;
   gpr_atm shutdown;
-  int closed;
 
   /* The watcher list.
 
