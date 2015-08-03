@@ -646,6 +646,26 @@ cc_library(
 
 
 cc_library(
+  name = "grpc_zookeeper",
+  srcs = [
+    "src/core/client_config/resolvers/zookeeper_resolver.h",
+    "src/core/client_config/resolvers/zookeeper_resolver.c",
+  ],
+  hdrs = [
+    "include/grpc/grpc_zookeeper.h",
+  ],
+  includes = [
+    "include",
+    ".",
+  ],
+  deps = [
+    ":gpr",
+    ":grpc",
+  ],
+)
+
+
+cc_library(
   name = "grpc++",
   srcs = [
     "src/cpp/client/secure_credentials.h",
@@ -725,7 +745,6 @@ cc_library(
     "include/grpc++/status.h",
     "include/grpc++/status_code_enum.h",
     "include/grpc++/stream.h",
-    "include/grpc++/stub_options.h",
     "include/grpc++/thread_pool_interface.h",
     "include/grpc++/time.h",
   ],
@@ -813,7 +832,6 @@ cc_library(
     "include/grpc++/status.h",
     "include/grpc++/status_code_enum.h",
     "include/grpc++/stream.h",
-    "include/grpc++/stub_options.h",
     "include/grpc++/thread_pool_interface.h",
     "include/grpc++/time.h",
   ],
