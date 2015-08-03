@@ -31,18 +31,13 @@
  *
  */
 
-#ifndef GRPC_GRPC_ZOOKEEPER_H
-#define GRPC_GRPC_ZOOKEEPER_H
+#include "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h"
+#include "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/** Register zookeeper name resolver in grpc */
-void grpc_zookeeper_register();
-
-#ifdef __cplusplus
+grpc_subchannel_factory *grpc_subchannel_factory_add_channel_arg(
+		grpc_subchannel_factory *input, const grpc_arg *arg) {
+	grpc_channel_args args;
+	args.num_args = 1;
+	args.args = (grpc_arg *)arg;
+	return grpc_subchannel_factory_merge_channel_args(input, &args);
 }
-#endif
-
-#endif /* GRPC_GRPC_ZOOKEEPER_H */
