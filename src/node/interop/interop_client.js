@@ -268,7 +268,7 @@ function cancelAfterFirstResponse(client, done) {
 function timeoutOnSleepingServer(client, done) {
   var deadline = new Date();
   deadline.setMilliseconds(deadline.getMilliseconds() + 1);
-  var call = client.fullDuplexCall(null, {deadline: deadline});
+  var call = client.fullDuplexCall(null, deadline);
   call.write({
     payload: {body: zeroBuffer(27182)}
   });
@@ -409,7 +409,6 @@ function runTest(address, host_override, test_case, tls, test_ca, done) {
     creds = grpc.Credentials.createSsl(ca_data);
     if (host_override) {
       options['grpc.ssl_target_name_override'] = host_override;
-      options['grpc.default_authority'] = host_override;
     }
   } else {
     creds = grpc.Credentials.createInsecure();

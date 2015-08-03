@@ -208,25 +208,6 @@ ClientWritableStream.prototype.getPeer = getPeer;
 ClientDuplexStream.prototype.getPeer = getPeer;
 
 /**
- * Get a call object built with the provided options. Keys for options are
- * 'deadline', which takes a date or number, and 'host', which takes a string
- * and overrides the hostname to connect to.
- * @param {Object} options Options map.
- */
-function getCall(channel, method, options) {
-  var deadline;
-  var host;
-  if (options) {
-    deadline = options.deadline;
-    host = options.host;
-  }
-  if (deadline === undefined) {
-    deadline = Infinity;
-  }
-  return new grpc.Call(channel, method, deadline, host);
-}
-
-/**
  * Get a function that can make unary requests to the specified method.
  * @param {string} method The name of the method to request
  * @param {function(*):Buffer} serialize The serialization function for inputs
@@ -245,13 +226,17 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
    *     response is received
    * @param {array=} metadata Array of metadata key/value pairs to add to the
    *     call
-   * @param {Object=} options Options map
+   * @param {(number|Date)=} deadline The deadline for processing this request.
+   *     Defaults to infinite future
    * @return {EventEmitter} An event emitter for stream related events
    */
-  function makeUnaryRequest(argument, callback, metadata, options) {
+  function makeUnaryRequest(argument, callback, metadata, deadline) {
     /* jshint validthis: true */
+    if (deadline === undefined) {
+      deadline = Infinity;
+    }
     var emitter = new EventEmitter();
-    var call = getCall(this.channel, method, options);
+    var call = new grpc.Call(this.channel, method, deadline);
     if (metadata === null || metadata === undefined) {
       metadata = {};
     }
@@ -315,12 +300,16 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
    *     response is received
    * @param {array=} metadata Array of metadata key/value pairs to add to the
    *     call
-   * @param {Object=} options Options map
+   * @param {(number|Date)=} deadline The deadline for processing this request.
+   *     Defaults to infinite future
    * @return {EventEmitter} An event emitter for stream related events
    */
-  function makeClientStreamRequest(callback, metadata, options) {
+  function makeClientStreamRequest(callback, metadata, deadline) {
     /* jshint validthis: true */
-    var call = getCall(this.channel, method, options);
+    if (deadline === undefined) {
+      deadline = Infinity;
+    }
+    var call = new grpc.Call(this.channel, method, deadline);
     if (metadata === null || metadata === undefined) {
       metadata = {};
     }
@@ -385,12 +374,16 @@ function makeServerStreamRequestFunction(method, serialize, deserialize) {
    *     serialize
    * @param {array=} metadata Array of metadata key/value pairs to add to the
    *     call
-   * @param {Object} options Options map
+   * @param {(number|Date)=} deadline The deadline for processing this request.
+   *     Defaults to infinite future
    * @return {EventEmitter} An event emitter for stream related events
    */
-  function makeServerStreamRequest(argument, metadata, options) {
+  function makeServerStreamRequest(argument, metadata, deadline) {
     /* jshint validthis: true */
-    var call = getCall(this.channel, method, options);
+    if (deadline === undefined) {
+      deadline = Infinity;
+    }
+    var call = new grpc.Call(this.channel, method, deadline);
     if (metadata === null || metadata === undefined) {
       metadata = {};
     }
@@ -453,12 +446,16 @@ function makeBidiStreamRequestFunction(method, serialize, deserialize) {
    * @this {SurfaceClient} Client object. Must have a channel member.
    * @param {array=} metadata Array of metadata key/value pairs to add to the
    *     call
-   * @param {Options} options Options map
+   * @param {(number|Date)=} deadline The deadline for processing this request.
+   *     Defaults to infinite future
    * @return {EventEmitter} An event emitter for stream related events
    */
-  function makeBidiStreamRequest(metadata, options) {
+  function makeBidiStreamRequest(metadata, deadline) {
     /* jshint validthis: true */
-    var call = getCall(this.channel, method, options);
+    if (deadline === undefined) {
+      deadline = Infinity;
+    }
+    var call = new grpc.Call(this.channel, method, deadline);
     if (metadata === null || metadata === undefined) {
       metadata = {};
     }
