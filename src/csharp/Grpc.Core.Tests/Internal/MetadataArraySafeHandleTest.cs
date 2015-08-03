@@ -53,8 +53,8 @@ namespace Grpc.Core.Internal.Tests
         {
             var metadata = new Metadata
             {
-                { "host", "somehost" },
-                { "header2", "header value" },
+                new Metadata.Entry("host", "somehost"),
+                new Metadata.Entry("header2", "header value"),
             };
             var nativeMetadata = MetadataArraySafeHandle.Create(metadata);
             nativeMetadata.Dispose();
@@ -65,8 +65,8 @@ namespace Grpc.Core.Internal.Tests
         {
             var metadata = new Metadata
             {
-                { "host", "somehost" },
-                { "header2", "header value" }
+                new Metadata.Entry("host", "somehost"),
+                new Metadata.Entry("header2", "header value"),
             };
             var nativeMetadata = MetadataArraySafeHandle.Create(metadata);
 

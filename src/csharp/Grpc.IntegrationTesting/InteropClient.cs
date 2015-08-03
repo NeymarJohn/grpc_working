@@ -404,8 +404,15 @@ namespace Grpc.IntegrationTesting
                 await Task.Delay(1000);
                 cts.Cancel();
 
-                var ex = Assert.Throws<RpcException>(async () => await call.ResponseAsync);
-                Assert.AreEqual(StatusCode.Cancelled, ex.Status.StatusCode);
+                try
+                {
+                    var response = await call.ResponseAsync;
+                    Assert.Fail();
+                }
+                catch (RpcException e)
+                {
+                    Assert.AreEqual(StatusCode.Cancelled, e.Status.StatusCode);
+                }
             }
             Console.WriteLine("Passed!");
         }
@@ -428,8 +435,15 @@ namespace Grpc.IntegrationTesting
 
                 cts.Cancel();
 
-                var ex = Assert.Throws<RpcException>(async () => await call.ResponseStream.MoveNext());
-                Assert.AreEqual(StatusCode.Cancelled, ex.Status.StatusCode);
+                try
+                {
+                    await call.ResponseStream.MoveNext();
+                    Assert.Fail();
+                }
+                catch (RpcException e)
+                {
+                    Assert.AreEqual(StatusCode.Cancelled, e.Status.StatusCode);
+                }
             }
             Console.WriteLine("Passed!");
         }
