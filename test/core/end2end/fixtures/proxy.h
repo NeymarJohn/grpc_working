@@ -31,27 +31,25 @@
  *
  */
 
-#include "src/core/transport/chttp2/alpn.h"
-#include <grpc/support/log.h>
-#include <grpc/support/useful.h>
+#ifndef GRPC_TEST_CORE_END2END_FIXTURES_PROXY_H
+#define GRPC_TEST_CORE_END2END_FIXTURES_PROXY_H
 
-/* in order of preference */
-static const char *const supported_versions[] = {"h2", "h2-17", "h2-16",
-                                                 "h2-15", "h2-14"};
+#include <grpc/grpc.h>
 
-int grpc_chttp2_is_alpn_version_supported(const char *version, size_t size) {
-  size_t i;
-  for (i = 0; i < GPR_ARRAY_SIZE(supported_versions); i++) {
-    if (!strncmp(version, supported_versions[i], size)) return 1;
-  }
-  return 0;
-}
+/* proxy service for _with_proxy fixtures */
 
-size_t grpc_chttp2_num_alpn_versions(void) {
-  return GPR_ARRAY_SIZE(supported_versions);
-}
+typedef struct grpc_end2end_proxy grpc_end2end_proxy;
 
-const char *grpc_chttp2_get_alpn_version_index(size_t i) {
-  GPR_ASSERT(i < GPR_ARRAY_SIZE(supported_versions));
-  return supported_versions[i];
-}
+typedef struct grpc_end2end_proxy_def {
+  grpc_server *(*create_server)(const char *port);
+  grpc_channel *(*create_client)(const char *target);
+} grpc_end2end_proxy_def;
+
+grpc_end2end_proxy *grpc_end2end_proxy_create(
+    const grpc_end2end_proxy_def *def);
+void grpc_end2end_proxy_destroy(grpc_end2end_proxy *proxy);
+
+const char *grpc_end2end_proxy_get_client_target(grpc_end2end_proxy *proxy);
+const char *grpc_end2end_proxy_get_server_port(grpc_end2end_proxy *proxy);
+
+#endif /* GRPC_TEST_CORE_END2END_FIXTURES_PROXY_H */
