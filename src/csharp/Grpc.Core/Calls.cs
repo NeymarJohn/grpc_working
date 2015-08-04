@@ -39,7 +39,7 @@ using Grpc.Core.Internal;
 namespace Grpc.Core
 {
     /// <summary>
-    /// Helper methods for generated clients to make RPC calls.
+    /// Helper methods for generated client stubs to make RPC calls.
     /// </summary>
     public static class Calls
     {
@@ -50,18 +50,18 @@ namespace Grpc.Core
             var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
             // TODO(jtattermusch): this gives a race that cancellation can be requested before the call even starts.
             RegisterCancellationCallback(asyncCall, token);
-            return asyncCall.UnaryCall(call.Channel, call.Name, req, call.Headers, call.Deadline);
+            return asyncCall.UnaryCall(call.Channel, call.Name, req, call.Headers);
         }
 
-        public static AsyncUnaryCall<TResponse> AsyncUnaryCall<TRequest, TResponse>(Call<TRequest, TResponse> call, TRequest req, CancellationToken token)
+        public static async Task<TResponse> AsyncUnaryCall<TRequest, TResponse>(Call<TRequest, TResponse> call, TRequest req, CancellationToken token)
             where TRequest : class
             where TResponse : class
         {
             var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
-            asyncCall.Initialize(call.Channel, call.Channel.CompletionQueue, call.Name, Timespec.FromDateTime(call.Deadline));
-            var asyncResult = asyncCall.UnaryCallAsync(req, call.Headers, call.Deadline);
+            asyncCall.Initialize(call.Channel, GetCompletionQueue(), call.Name);
+            var asyncResult = asyncCall.UnaryCallAsync(req, call.Headers);
             RegisterCancellationCallback(asyncCall, token);
-            return new AsyncUnaryCall<TResponse>(asyncResult, asyncCall.GetStatus, asyncCall.GetTrailers, asyncCall.Cancel);
+            return await asyncResult;
         }
 
         public static AsyncServerStreamingCall<TResponse> AsyncServerStreamingCall<TRequest, TResponse>(Call<TRequest, TResponse> call, TRequest req, CancellationToken token)
@@ -69,11 +69,11 @@ namespace Grpc.Core
             where TResponse : class
         {
             var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
-            asyncCall.Initialize(call.Channel, call.Channel.CompletionQueue, call.Name, Timespec.FromDateTime(call.Deadline));
-            asyncCall.StartServerStreamingCall(req, call.Headers, call.Deadline);
+            asyncCall.Initialize(call.Channel, GetCompletionQueue(), call.Name);
+            asyncCall.StartServerStreamingCall(req, call.Headers);
             RegisterCancellationCallback(asyncCall, token);
             var responseStream = new ClientResponseStream<TRequest, TResponse>(asyncCall);
-            return new AsyncServerStreamingCall<TResponse>(responseStream, asyncCall.GetStatus, asyncCall.GetTrailers, asyncCall.Cancel);
+            return new AsyncServerStreamingCall<TResponse>(responseStream, asyncCall.Cancel);
         }
 
         public static AsyncClientStreamingCall<TRequest, TResponse> AsyncClientStreamingCall<TRequest, TResponse>(Call<TRequest, TResponse> call, CancellationToken token)
@@ -81,11 +81,11 @@ namespace Grpc.Core
             where TResponse : class
         {
             var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
-            asyncCall.Initialize(call.Channel, call.Channel.CompletionQueue, call.Name, Timespec.FromDateTime(call.Deadline));
-            var resultTask = asyncCall.ClientStreamingCallAsync(call.Headers, call.Deadline);
+            asyncCall.Initialize(call.Channel, GetCompletionQueue(), call.Name);
+            var resultTask = asyncCall.ClientStreamingCallAsync(call.Headers);
             RegisterCancellationCallback(asyncCall, token);
             var requestStream = new ClientRequestStream<TRequest, TResponse>(asyncCall);
-            return new AsyncClientStreamingCall<TRequest, TResponse>(requestStream, resultTask, asyncCall.GetStatus, asyncCall.GetTrailers, asyncCall.Cancel);
+            return new AsyncClientStreamingCall<TRequest, TResponse>(requestStream, resultTask, asyncCall.Cancel);
         }
 
         public static AsyncDuplexStreamingCall<TRequest, TResponse> AsyncDuplexStreamingCall<TRequest, TResponse>(Call<TRequest, TResponse> call, CancellationToken token)
@@ -93,12 +93,12 @@ namespace Grpc.Core
             where TResponse : class
         {
             var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
-            asyncCall.Initialize(call.Channel, call.Channel.CompletionQueue, call.Name, Timespec.FromDateTime(call.Deadline));
-            asyncCall.StartDuplexStreamingCall(call.Headers, call.Deadline);
+            asyncCall.Initialize(call.Channel, GetCompletionQueue(), call.Name);
+            asyncCall.StartDuplexStreamingCall(call.Headers);
             RegisterCancellationCallback(asyncCall, token);
             var requestStream = new ClientRequestStream<TRequest, TResponse>(asyncCall);
             var responseStream = new ClientResponseStream<TRequest, TResponse>(asyncCall);
-            return new AsyncDuplexStreamingCall<TRequest, TResponse>(requestStream, responseStream, asyncCall.GetStatus, asyncCall.GetTrailers, asyncCall.Cancel);
+            return new AsyncDuplexStreamingCall<TRequest, TResponse>(requestStream, responseStream, asyncCall.Cancel);
         }
 
         private static void RegisterCancellationCallback<TRequest, TResponse>(AsyncCall<TRequest, TResponse> asyncCall, CancellationToken token)
@@ -107,6 +107,14 @@ namespace Grpc.Core
             {
                 token.Register(() => asyncCall.Cancel());
             }
+        }
+
+        /// <summary>
+        /// Gets shared completion queue used for async calls.
+        /// </summary>
+        private static CompletionQueueSafeHandle GetCompletionQueue()
+        {
+            return GrpcEnvironment.ThreadPool.CompletionQueue;
         }
     }
 }

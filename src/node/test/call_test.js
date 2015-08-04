@@ -48,17 +48,14 @@ function getDeadline(timeout_secs) {
   return deadline;
 }
 
-var insecureCreds = grpc.Credentials.createInsecure();
-
 describe('call', function() {
   var channel;
   var server;
   before(function() {
     server = new grpc.Server();
-    var port = server.addHttp2Port('localhost:0',
-                                   grpc.ServerCredentials.createInsecure());
+    var port = server.addHttp2Port('localhost:0');
     server.start();
-    channel = new grpc.Channel('localhost:' + port, insecureCreds);
+    channel = new grpc.Channel('localhost:' + port);
   });
   after(function() {
     server.shutdown();
@@ -85,7 +82,7 @@ describe('call', function() {
          });
        });
     it('should fail with a closed channel', function() {
-      var local_channel = new grpc.Channel('hostname', insecureCreds);
+      var local_channel = new grpc.Channel('hostname');
       local_channel.close();
       assert.throws(function() {
         new grpc.Call(channel, 'method');
@@ -135,7 +132,7 @@ describe('call', function() {
                                                     'key2': ['value2']};
         call.startBatch(batch, function(err, resp) {
           assert.ifError(err);
-          assert.deepEqual(resp, {'send_metadata': true});
+          assert.deepEqual(resp, {'send metadata': true});
           done();
         });
       });
@@ -150,7 +147,7 @@ describe('call', function() {
         };
         call.startBatch(batch, function(err, resp) {
           assert.ifError(err);
-          assert.deepEqual(resp, {'send_metadata': true});
+          assert.deepEqual(resp, {'send metadata': true});
           done();
         });
       });
@@ -185,12 +182,6 @@ describe('call', function() {
       assert.doesNotThrow(function() {
         call.cancel();
       });
-    });
-  });
-  describe('getPeer', function() {
-    it('should return a string', function() {
-      var call = new grpc.Call(channel, 'method', getDeadline(1));
-      assert.strictEqual(typeof call.getPeer(), 'string');
     });
   });
 });

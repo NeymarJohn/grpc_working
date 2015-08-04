@@ -48,7 +48,7 @@ var grpc = require('bindings')('grpc');
  * @param {ProtoBuf.Reflect.Namespace} value The ProtoBuf object to load.
  * @return {Object<string, *>} The resulting gRPC object
  */
-exports.loadObject = function loadObject(value) {
+function loadObject(value) {
   var result = {};
   if (value.className === 'Namespace') {
     _.each(value.children, function(child) {
@@ -62,9 +62,7 @@ exports.loadObject = function loadObject(value) {
   } else {
     return value;
   }
-};
-
-var loadObject = exports.loadObject;
+}
 
 /**
  * Load a gRPC object from a .proto file.
@@ -73,7 +71,7 @@ var loadObject = exports.loadObject;
  *     'json'. Defaults to 'proto'
  * @return {Object<string, *>} The resulting gRPC object
  */
-exports.load = function load(filename, format) {
+function load(filename, format) {
   if (!format) {
     format = 'proto';
   }
@@ -90,7 +88,7 @@ exports.load = function load(filename, format) {
   }
 
   return loadObject(builder.ns);
-};
+}
 
 /**
  * Get a function that a client can use to update metadata with authentication
@@ -99,7 +97,7 @@ exports.load = function load(filename, format) {
  * @param {Object} credential The credential object to use
  * @return {function(Object, callback)} Metadata updater function
  */
-exports.getGoogleAuthDelegate = function getGoogleAuthDelegate(credential) {
+function getGoogleAuthDelegate(credential) {
   /**
    * Update a metadata object with authentication information.
    * @param {string} authURI The uri to authenticate to
@@ -122,18 +120,27 @@ exports.getGoogleAuthDelegate = function getGoogleAuthDelegate(credential) {
       callback(null, metadata);
     });
   };
-};
+}
 
 /**
- * @see module:src/server.Server
+ * See docs for loadObject
  */
-exports.Server = server.Server;
+exports.loadObject = loadObject;
+
+/**
+ * See docs for load
+ */
+exports.load = load;
+
+/**
+ * See docs for server.makeServerConstructor
+ */
+exports.buildServer = server.makeProtobufServerConstructor;
 
 /**
  * Status name to code number mapping
  */
 exports.status = grpc.status;
-
 /**
  * Call error name to code number mapping
  */
@@ -149,7 +156,8 @@ exports.Credentials = grpc.Credentials;
  */
 exports.ServerCredentials = grpc.ServerCredentials;
 
-/**
- * @see module:src/client.makeClientConstructor
- */
+exports.getGoogleAuthDelegate = getGoogleAuthDelegate;
+
 exports.makeGenericClientConstructor = client.makeClientConstructor;
+
+exports.makeGenericServerConstructor = server.makeServerConstructor;

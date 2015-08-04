@@ -109,7 +109,7 @@ static const char *validate_string_field(const grpc_json *json,
 
 static gpr_timespec validate_time_field(const grpc_json *json,
                                         const char *key) {
-  gpr_timespec result = gpr_time_0(GPR_CLOCK_REALTIME);
+  gpr_timespec result = gpr_time_0;
   if (json->type != GRPC_JSON_NUMBER) {
     gpr_log(GPR_ERROR, "Invalid %s field [%s]", key, json->value);
     return result;
@@ -189,6 +189,7 @@ struct grpc_jwt_claims {
   gpr_slice buffer;
 };
 
+
 void grpc_jwt_claims_destroy(grpc_jwt_claims *claims) {
   grpc_json_destroy(claims->json);
   gpr_slice_unref(claims->buffer);
@@ -221,17 +222,17 @@ const char *grpc_jwt_claims_audience(const grpc_jwt_claims *claims) {
 }
 
 gpr_timespec grpc_jwt_claims_issued_at(const grpc_jwt_claims *claims) {
-  if (claims == NULL) return gpr_inf_past(GPR_CLOCK_REALTIME);
+  if (claims == NULL) return gpr_inf_past;
   return claims->iat;
 }
 
 gpr_timespec grpc_jwt_claims_expires_at(const grpc_jwt_claims *claims) {
-  if (claims == NULL) return gpr_inf_future(GPR_CLOCK_REALTIME);
+  if (claims == NULL) return gpr_inf_future;
   return claims->exp;
 }
 
 gpr_timespec grpc_jwt_claims_not_before(const grpc_jwt_claims *claims) {
-  if (claims == NULL) return gpr_inf_past(GPR_CLOCK_REALTIME);
+  if (claims == NULL) return gpr_inf_past;
   return claims->nbf;
 }
 
@@ -242,9 +243,9 @@ grpc_jwt_claims *grpc_jwt_claims_from_json(grpc_json *json, gpr_slice buffer) {
   memset(claims, 0, sizeof(grpc_jwt_claims));
   claims->json = json;
   claims->buffer = buffer;
-  claims->iat = gpr_inf_past(GPR_CLOCK_REALTIME);
-  claims->nbf = gpr_inf_past(GPR_CLOCK_REALTIME);
-  claims->exp = gpr_inf_future(GPR_CLOCK_REALTIME);
+  claims->iat = gpr_inf_past;
+  claims->nbf = gpr_inf_past;
+  claims->exp = gpr_inf_future;
 
   /* Per the spec, all fields are optional. */
   for (cur = json->child; cur != NULL; cur = cur->next) {
@@ -262,16 +263,13 @@ grpc_jwt_claims *grpc_jwt_claims_from_json(grpc_json *json, gpr_slice buffer) {
       if (claims->jti == NULL) goto error;
     } else if (strcmp(cur->key, "iat") == 0) {
       claims->iat = validate_time_field(cur, "iat");
-      if (gpr_time_cmp(claims->iat, gpr_time_0(GPR_CLOCK_REALTIME)) == 0)
-        goto error;
+      if (gpr_time_cmp(claims->iat, gpr_time_0) == 0) goto error;
     } else if (strcmp(cur->key, "exp") == 0) {
       claims->exp = validate_time_field(cur, "exp");
-      if (gpr_time_cmp(claims->exp, gpr_time_0(GPR_CLOCK_REALTIME)) == 0)
-        goto error;
+      if (gpr_time_cmp(claims->exp, gpr_time_0) == 0) goto error;
     } else if (strcmp(cur->key, "nbf") == 0) {
       claims->nbf = validate_time_field(cur, "nbf");
-      if (gpr_time_cmp(claims->nbf, gpr_time_0(GPR_CLOCK_REALTIME)) == 0)
-        goto error;
+      if (gpr_time_cmp(claims->nbf, gpr_time_0) == 0) goto error;
     }
   }
   return claims;
@@ -288,14 +286,12 @@ grpc_jwt_verifier_status grpc_jwt_claims_check(const grpc_jwt_claims *claims,
 
   GPR_ASSERT(claims != NULL);
 
-  skewed_now =
-      gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), grpc_jwt_verifier_clock_skew);
+  skewed_now = gpr_time_add(gpr_now(), grpc_jwt_verifier_clock_skew);
   if (gpr_time_cmp(skewed_now, claims->nbf) < 0) {
     gpr_log(GPR_ERROR, "JWT is not valid yet.");
     return GRPC_JWT_VERIFIER_TIME_CONSTRAINT_FAILURE;
   }
-  skewed_now =
-      gpr_time_sub(gpr_now(GPR_CLOCK_REALTIME), grpc_jwt_verifier_clock_skew);
+  skewed_now = gpr_time_sub(gpr_now(), grpc_jwt_verifier_clock_skew);
   if (gpr_time_cmp(skewed_now, claims->exp) > 0) {
     gpr_log(GPR_ERROR, "JWT is expired.");
     return GRPC_JWT_VERIFIER_TIME_CONSTRAINT_FAILURE;
@@ -331,10 +327,10 @@ typedef struct {
 
 /* Takes ownership of the header, claims and signature. */
 static verifier_cb_ctx *verifier_cb_ctx_create(
-    grpc_jwt_verifier *verifier, grpc_pollset *pollset, jose_header *header,
-    grpc_jwt_claims *claims, const char *audience, gpr_slice signature,
-    const char *signed_jwt, size_t signed_jwt_len, void *user_data,
-    grpc_jwt_verification_done_cb cb) {
+    grpc_jwt_verifier *verifier, grpc_pollset *pollset,
+    jose_header * header, grpc_jwt_claims *claims, const char *audience,
+    gpr_slice signature, const char *signed_jwt, size_t signed_jwt_len,
+    void *user_data, grpc_jwt_verification_done_cb cb) {
   verifier_cb_ctx *ctx = gpr_malloc(sizeof(verifier_cb_ctx));
   memset(ctx, 0, sizeof(verifier_cb_ctx));
   ctx->verifier = verifier;
@@ -362,10 +358,10 @@ void verifier_cb_ctx_destroy(verifier_cb_ctx *ctx) {
 /* --- grpc_jwt_verifier object. --- */
 
 /* Clock skew defaults to one minute. */
-gpr_timespec grpc_jwt_verifier_clock_skew = {60, 0, GPR_TIMESPAN};
+gpr_timespec grpc_jwt_verifier_clock_skew = {60, 0};
 
 /* Max delay defaults to one minute. */
-gpr_timespec grpc_jwt_verifier_max_delay = {60, 0, GPR_TIMESPAN};
+gpr_timespec grpc_jwt_verifier_max_delay = {60, 0};
 
 typedef struct {
   char *email_domain;
@@ -608,7 +604,7 @@ end:
 
 static void on_openid_config_retrieved(void *user_data,
                                        const grpc_httpcli_response *response) {
-  const grpc_json *cur;
+  const grpc_json* cur;
   grpc_json *json = json_from_http(response);
   verifier_cb_ctx *ctx = (verifier_cb_ctx *)user_data;
   grpc_httpcli_request req;
@@ -636,10 +632,9 @@ static void on_openid_config_retrieved(void *user_data,
   } else {
     *(req.host + (req.path - jwks_uri)) = '\0';
   }
-  grpc_httpcli_get(
-      &ctx->verifier->http_ctx, ctx->pollset, &req,
-      gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), grpc_jwt_verifier_max_delay),
-      on_keys_retrieved, ctx);
+  grpc_httpcli_get(&ctx->verifier->http_ctx, ctx->pollset, &req,
+                   gpr_time_add(gpr_now(), grpc_jwt_verifier_max_delay),
+                   on_keys_retrieved, ctx);
   grpc_json_destroy(json);
   gpr_free(req.host);
   return;
@@ -650,8 +645,8 @@ error:
   verifier_cb_ctx_destroy(ctx);
 }
 
-static email_key_mapping *verifier_get_mapping(grpc_jwt_verifier *v,
-                                               const char *email_domain) {
+static email_key_mapping *verifier_get_mapping(
+    grpc_jwt_verifier *v, const char *email_domain) {
   size_t i;
   if (v->mappings == NULL) return NULL;
   for (i = 0; i < v->num_mappings; i++) {
@@ -738,10 +733,9 @@ static void retrieve_key_and_verify(verifier_cb_ctx *ctx) {
     http_cb = on_openid_config_retrieved;
   }
 
-  grpc_httpcli_get(
-      &ctx->verifier->http_ctx, ctx->pollset, &req,
-      gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), grpc_jwt_verifier_max_delay),
-      http_cb, ctx);
+  grpc_httpcli_get(&ctx->verifier->http_ctx, ctx->pollset, &req,
+                   gpr_time_add(gpr_now(), grpc_jwt_verifier_max_delay),
+                   http_cb, ctx);
   gpr_free(req.host);
   gpr_free(req.path);
   return;
@@ -770,7 +764,7 @@ void grpc_jwt_verifier_verify(grpc_jwt_verifier *verifier,
   dot = strchr(cur, '.');
   if (dot == NULL) goto error;
   json = parse_json_part_from_jwt(cur, dot - cur, &header_buffer);
-  if (json == NULL) goto error;
+  if (json == NULL)  goto error;
   header = jose_header_from_json(json, header_buffer);
   if (header == NULL) goto error;
 
@@ -778,7 +772,7 @@ void grpc_jwt_verifier_verify(grpc_jwt_verifier *verifier,
   dot = strchr(cur, '.');
   if (dot == NULL) goto error;
   json = parse_json_part_from_jwt(cur, dot - cur, &claims_buffer);
-  if (json == NULL) goto error;
+  if (json == NULL)  goto error;
   claims = grpc_jwt_claims_from_json(json, claims_buffer);
   if (claims == NULL) goto error;
 
@@ -833,3 +827,4 @@ void grpc_jwt_verifier_destroy(grpc_jwt_verifier *v) {
   }
   gpr_free(v);
 }
+

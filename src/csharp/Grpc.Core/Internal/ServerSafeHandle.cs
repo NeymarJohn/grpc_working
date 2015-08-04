@@ -48,7 +48,7 @@ namespace Grpc.Core.Internal
         static extern ServerSafeHandle grpcsharp_server_create(CompletionQueueSafeHandle cq, ChannelArgsSafeHandle args);
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern int grpcsharp_server_add_insecure_http2_port(ServerSafeHandle server, string addr);
+        static extern int grpcsharp_server_add_http2_port(ServerSafeHandle server, string addr);
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern int grpcsharp_server_add_secure_http2_port(ServerSafeHandle server, string addr, ServerCredentialsSafeHandle creds);
@@ -77,12 +77,12 @@ namespace Grpc.Core.Internal
             return grpcsharp_server_create(cq, args);
         }
 
-        public int AddInsecurePort(string addr)
+        public int AddListeningPort(string addr)
         {
-            return grpcsharp_server_add_insecure_http2_port(this, addr);
+            return grpcsharp_server_add_http2_port(this, addr);
         }
 
-        public int AddSecurePort(string addr, ServerCredentialsSafeHandle credentials)
+        public int AddListeningPort(string addr, ServerCredentialsSafeHandle credentials)
         {
             return grpcsharp_server_add_secure_http2_port(this, addr, credentials);
         }
@@ -91,19 +91,19 @@ namespace Grpc.Core.Internal
         {
             grpcsharp_server_start(this);
         }
-    
-        public void ShutdownAndNotify(BatchCompletionDelegate callback, GrpcEnvironment environment)
+            
+        public void ShutdownAndNotify(CompletionQueueSafeHandle cq, BatchCompletionDelegate callback)
         {
             var ctx = BatchContextSafeHandle.Create();
-            environment.CompletionRegistry.RegisterBatchCompletion(ctx, callback);
-            grpcsharp_server_shutdown_and_notify_callback(this, environment.CompletionQueue, ctx);
+            GrpcEnvironment.CompletionRegistry.RegisterBatchCompletion(ctx, callback);
+            grpcsharp_server_shutdown_and_notify_callback(this, cq, ctx);
         }
 
-        public void RequestCall(BatchCompletionDelegate callback, GrpcEnvironment environment)
+        public void RequestCall(CompletionQueueSafeHandle cq, BatchCompletionDelegate callback)
         {
             var ctx = BatchContextSafeHandle.Create();
-            environment.CompletionRegistry.RegisterBatchCompletion(ctx, callback);
-            grpcsharp_server_request_call(this, environment.CompletionQueue, ctx).CheckOk();
+            GrpcEnvironment.CompletionRegistry.RegisterBatchCompletion(ctx, callback);
+            grpcsharp_server_request_call(this, cq, ctx).CheckOk();
         }
 
         protected override bool ReleaseHandle()

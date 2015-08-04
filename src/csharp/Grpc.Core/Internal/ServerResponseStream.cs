@@ -56,10 +56,10 @@ namespace Grpc.Core.Internal
             return taskSource.Task;
         }
 
-        public Task WriteStatusAsync(Status status, Metadata trailers)
+        public Task WriteStatusAsync(Status status)
         {
             var taskSource = new AsyncCompletionTaskSource<object>();
-            call.StartSendStatusFromServer(status, trailers, taskSource.CompletionDelegate);
+            call.StartSendStatusFromServer(status, taskSource.CompletionDelegate);
             return taskSource.Task;
         }
     }

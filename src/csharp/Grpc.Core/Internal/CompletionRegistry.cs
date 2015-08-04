@@ -35,7 +35,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Grpc.Core.Logging;
 using Grpc.Core.Utils;
 
 namespace Grpc.Core.Internal
@@ -46,19 +45,11 @@ namespace Grpc.Core.Internal
 
     internal class CompletionRegistry
     {
-        static readonly ILogger Logger = GrpcEnvironment.Logger.ForType<CompletionRegistry>();
-
-        readonly GrpcEnvironment environment;
-        readonly ConcurrentDictionary<IntPtr, OpCompletionDelegate> dict = new ConcurrentDictionary<IntPtr, OpCompletionDelegate>();
-
-        public CompletionRegistry(GrpcEnvironment environment)
-        {
-            this.environment = environment;
-        }
+        readonly ConcurrentDictionary<IntPtr, OpCompletionDelegate> dict = new ConcurrentDictionary<IntPtr, OpCompletionDelegate>();  
 
         public void Register(IntPtr key, OpCompletionDelegate callback)
         {
-            environment.DebugStats.PendingBatchCompletions.Increment();
+            DebugStats.PendingBatchCompletions.Increment();
             Preconditions.CheckState(dict.TryAdd(key, callback));
         }
 
@@ -72,7 +63,7 @@ namespace Grpc.Core.Internal
         {
             OpCompletionDelegate value;
             Preconditions.CheckState(dict.TryRemove(key, out value));
-            environment.DebugStats.PendingBatchCompletions.Decrement();
+            DebugStats.PendingBatchCompletions.Decrement();
             return value;
         }
 
@@ -84,7 +75,7 @@ namespace Grpc.Core.Internal
             }
             catch (Exception e)
             {
-                Logger.Error(e, "Exception occured while invoking completion delegate.");
+                Console.WriteLine("Exception occured while invoking completion delegate: " + e);
             }
             finally
             {

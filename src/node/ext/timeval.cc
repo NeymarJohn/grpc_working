@@ -42,20 +42,18 @@ namespace node {
 
 gpr_timespec MillisecondsToTimespec(double millis) {
   if (millis == std::numeric_limits<double>::infinity()) {
-    return gpr_inf_future(GPR_CLOCK_REALTIME);
+    return gpr_inf_future;
   } else if (millis == -std::numeric_limits<double>::infinity()) {
-    return gpr_inf_past(GPR_CLOCK_REALTIME);
+    return gpr_inf_past;
   } else {
-    return gpr_time_from_micros(static_cast<int64_t>(millis * 1000),
-                                GPR_CLOCK_REALTIME);
+    return gpr_time_from_micros(static_cast<int64_t>(millis * 1000));
   }
 }
 
 double TimespecToMilliseconds(gpr_timespec timespec) {
-  timespec = gpr_convert_clock_type(timespec, GPR_CLOCK_REALTIME);
-  if (gpr_time_cmp(timespec, gpr_inf_future(GPR_CLOCK_REALTIME)) == 0) {
+  if (gpr_time_cmp(timespec, gpr_inf_future) == 0) {
     return std::numeric_limits<double>::infinity();
-  } else if (gpr_time_cmp(timespec, gpr_inf_past(GPR_CLOCK_REALTIME)) == 0) {
+  } else if (gpr_time_cmp(timespec, gpr_inf_past) == 0) {
     return -std::numeric_limits<double>::infinity();
   } else {
     return (static_cast<double>(timespec.tv_sec) * 1000 +

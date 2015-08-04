@@ -96,8 +96,6 @@ typedef struct grpc_tcp {
      to protect ourselves when requesting a shutdown. */
   gpr_mu mu;
   int shutting_down;
-
-  char *peer_string;
 } grpc_tcp;
 
 static void tcp_ref(grpc_tcp *tcp) {
@@ -109,7 +107,6 @@ static void tcp_unref(grpc_tcp *tcp) {
     gpr_slice_buffer_destroy(&tcp->write_slices);
     grpc_winsocket_orphan(tcp->socket);
     gpr_mu_destroy(&tcp->mu);
-    gpr_free(tcp->peer_string);
     gpr_free(tcp);
   }
 }
@@ -151,11 +148,9 @@ static void on_read(void *tcpp, int from_iocp) {
   GPR_ASSERT(tcp->socket->read_info.outstanding);
 
   if (socket->read_info.wsa_error != 0) {
-    if (socket->read_info.wsa_error != WSAECONNRESET) {
-      char *utf8_message = gpr_format_message(info->wsa_error);
-      gpr_log(GPR_ERROR, "ReadFile overlapped error: %s", utf8_message);
-      gpr_free(utf8_message);
-    }
+    char *utf8_message = gpr_format_message(info->wsa_error);
+    gpr_log(GPR_ERROR, "ReadFile overlapped error: %s", utf8_message);
+    gpr_free(utf8_message);
     status = GRPC_ENDPOINT_CB_ERROR;
   } else {
     if (info->bytes_transfered != 0) {
@@ -264,11 +259,9 @@ static void on_write(void *tcpp, int from_iocp) {
   GPR_ASSERT(tcp->socket->write_info.outstanding);
 
   if (info->wsa_error != 0) {
-    if (info->wsa_error != WSAECONNRESET) {
-      char *utf8_message = gpr_format_message(info->wsa_error);
-      gpr_log(GPR_ERROR, "WSASend overlapped error: %s", utf8_message);
-      gpr_free(utf8_message);
-    }
+    char *utf8_message = gpr_format_message(info->wsa_error);
+    gpr_log(GPR_ERROR, "WSASend overlapped error: %s", utf8_message);
+    gpr_free(utf8_message);
     status = GRPC_ENDPOINT_CB_ERROR;
   } else {
     GPR_ASSERT(info->bytes_transfered == tcp->write_slices.length);
@@ -332,11 +325,9 @@ static grpc_endpoint_write_status win_write(grpc_endpoint *ep,
       ret = GRPC_ENDPOINT_WRITE_DONE;
       GPR_ASSERT(bytes_sent == tcp->write_slices.length);
     } else {
-      if (socket->read_info.wsa_error != WSAECONNRESET) {
-        char *utf8_message = gpr_format_message(info->wsa_error);
-        gpr_log(GPR_ERROR, "WSASend error: %s", utf8_message);
-        gpr_free(utf8_message);
-      }
+      char *utf8_message = gpr_format_message(info->wsa_error);
+      gpr_log(GPR_ERROR, "WSASend error: %s", utf8_message);
+      gpr_free(utf8_message);
     }
     if (allocated) gpr_free(allocated);
     gpr_slice_buffer_reset_and_unref(&tcp->write_slices);
@@ -368,14 +359,7 @@ static grpc_endpoint_write_status win_write(grpc_endpoint *ep,
   return GRPC_ENDPOINT_WRITE_PENDING;
 }
 
-static void win_add_to_pollset(grpc_endpoint *ep, grpc_pollset *ps) {
-  (void) ps;
-  grpc_tcp *tcp = (grpc_tcp *) ep;
-  grpc_iocp_add_socket(tcp->socket);
-}
-
-static void win_add_to_pollset_set(grpc_endpoint *ep, grpc_pollset_set *pss) {
-  (void) pss;
+static void win_add_to_pollset(grpc_endpoint *ep, grpc_pollset *pollset) {
   grpc_tcp *tcp = (grpc_tcp *) ep;
   grpc_iocp_add_socket(tcp->socket);
 }
@@ -403,17 +387,11 @@ static void win_destroy(grpc_endpoint *ep) {
   tcp_unref(tcp);
 }
 
-static char *win_get_peer(grpc_endpoint *ep) {
-  grpc_tcp *tcp = (grpc_tcp *)ep;
-  return gpr_strdup(tcp->peer_string);
-}
+static grpc_endpoint_vtable vtable = {
+  win_notify_on_read, win_write, win_add_to_pollset, win_shutdown, win_destroy
+};
 
-static grpc_endpoint_vtable vtable = {win_notify_on_read, win_write,
-                                      win_add_to_pollset, win_add_to_pollset_set,
-                                      win_shutdown,       win_destroy,
-                                      win_get_peer};
-
-grpc_endpoint *grpc_tcp_create(grpc_winsocket *socket, char *peer_string) {
+grpc_endpoint *grpc_tcp_create(grpc_winsocket *socket) {
   grpc_tcp *tcp = (grpc_tcp *) gpr_malloc(sizeof(grpc_tcp));
   memset(tcp, 0, sizeof(grpc_tcp));
   tcp->base.vtable = &vtable;
@@ -421,7 +399,6 @@ grpc_endpoint *grpc_tcp_create(grpc_winsocket *socket, char *peer_string) {
   gpr_mu_init(&tcp->mu);
   gpr_slice_buffer_init(&tcp->write_slices);
   gpr_ref_init(&tcp->refcount, 1);
-  tcp->peer_string = gpr_strdup(peer_string);
   return &tcp->base;
 }
 
