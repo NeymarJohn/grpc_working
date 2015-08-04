@@ -45,22 +45,17 @@ namespace math
     /// </summary>
     public class MathServiceImpl : Math.IMath
     {
-        public Task<DivReply> Div(DivArgs request, ServerCallContext context)
+        public Task<DivReply> Div(ServerCallContext context, DivArgs request)
         {
             return Task.FromResult(DivInternal(request));
         }
 
-        public async Task Fib(FibArgs request, IServerStreamWriter<Num> responseStream, ServerCallContext context)
+        public async Task Fib(ServerCallContext context, FibArgs request, IServerStreamWriter<Num> responseStream)
         {
             if (request.Limit <= 0)
             {
-                // keep streaming the sequence until cancelled.
-                IEnumerator<Num> fibEnumerator = FibInternal(long.MaxValue).GetEnumerator();
-                while (!context.CancellationToken.IsCancellationRequested && fibEnumerator.MoveNext())
-                {
-                    await responseStream.WriteAsync(fibEnumerator.Current);
-                    await Task.Delay(100);
-                }
+                // TODO(jtattermusch): support cancellation
+                throw new NotImplementedException("Not implemented yet");
             }
 
             if (request.Limit > 0)
@@ -72,7 +67,7 @@ namespace math
             }
         }
 
-        public async Task<Num> Sum(IAsyncStreamReader<Num> requestStream, ServerCallContext context)
+        public async Task<Num> Sum(ServerCallContext context, IAsyncStreamReader<Num> requestStream)
         {
             long sum = 0;
             await requestStream.ForEach(async num =>
@@ -82,7 +77,7 @@ namespace math
             return Num.CreateBuilder().SetNum_(sum).Build();
         }
 
-        public async Task DivMany(IAsyncStreamReader<DivArgs> requestStream, IServerStreamWriter<DivReply> responseStream, ServerCallContext context)
+        public async Task DivMany(ServerCallContext context, IAsyncStreamReader<DivArgs> requestStream, IServerStreamWriter<DivReply> responseStream)
         {
             await requestStream.ForEach(async divArgs =>
             {

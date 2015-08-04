@@ -88,6 +88,8 @@ namespace Grpc.IntegrationTesting
 
         private void Run()
         {
+            GrpcEnvironment.Initialize();
+
             var server = new Server();
             server.AddServiceDefinition(TestService.BindService(new TestServiceImpl()));
 
@@ -95,11 +97,11 @@ namespace Grpc.IntegrationTesting
             int port = options.port.Value;
             if (options.useTls)
             {
-                server.AddPort(host, port, TestCredentials.CreateTestServerCredentials());
+                server.AddListeningPort(host, port, TestCredentials.CreateTestServerCredentials());
             }
             else
             {
-                server.AddPort(host, options.port.Value, ServerCredentials.Insecure);
+                server.AddListeningPort(host, options.port.Value);
             }
             Console.WriteLine("Running server on " + string.Format("{0}:{1}", host, port));
             server.Start();

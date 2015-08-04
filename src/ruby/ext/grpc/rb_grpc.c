@@ -51,8 +51,7 @@ static VALUE grpc_rb_cTimeVal = Qnil;
 
 static rb_data_type_t grpc_rb_timespec_data_type = {
     "gpr_timespec",
-    {GRPC_RB_GC_NOT_MARKED, GRPC_RB_GC_DONT_FREE, GRPC_RB_MEMSIZE_UNAVAILABLE,
-     {NULL, NULL}},
+    {GRPC_RB_GC_NOT_MARKED, GRPC_RB_GC_DONT_FREE, GRPC_RB_MEMSIZE_UNAVAILABLE},
     NULL,
     NULL,
     RUBY_TYPED_FREE_IMMEDIATELY};
@@ -76,7 +75,6 @@ VALUE grpc_rb_cannot_init(VALUE self) {
 
 /* Init/Clone func that fails by raising an exception. */
 VALUE grpc_rb_cannot_init_copy(VALUE copy, VALUE self) {
-  (void)self;
   rb_raise(rb_eTypeError,
            "initialization of %s only allowed from the gRPC native layer",
            rb_obj_classname(copy));
@@ -100,7 +98,6 @@ gpr_timespec grpc_rb_time_timeval(VALUE time, int interval) {
   const char *tstr = interval ? "time interval" : "time";
   const char *want = " want <secs from epoch>|<Time>|<GRPC::TimeConst.*>";
 
-  t.clock_type = GPR_CLOCK_REALTIME;
   switch (TYPE(time)) {
     case T_DATA:
       if (CLASS_OF(time) == grpc_rb_cTimeVal) {
@@ -139,7 +136,7 @@ gpr_timespec grpc_rb_time_timeval(VALUE time, int interval) {
           rb_raise(rb_eRangeError, "%f out of Time range",
                    RFLOAT_VALUE(time));
         }
-        t.tv_nsec = (int)(d * 1e9 + 0.5);
+        t.tv_nsec = (time_t)(d * 1e9 + 0.5);
       }
       break;
 
@@ -209,12 +206,10 @@ static ID id_to_s;
 /* Converts a wrapped time constant to a standard time. */
 static VALUE grpc_rb_time_val_to_time(VALUE self) {
   gpr_timespec *time_const = NULL;
-  gpr_timespec real_time;
   TypedData_Get_Struct(self, gpr_timespec, &grpc_rb_timespec_data_type,
                        time_const);
-  real_time = gpr_convert_clock_type(*time_const, GPR_CLOCK_REALTIME);
-  return rb_funcall(rb_cTime, id_at, 2, INT2NUM(real_time.tv_sec),
-                    INT2NUM(real_time.tv_nsec));
+  return rb_funcall(rb_cTime, id_at, 2, INT2NUM(time_const->tv_sec),
+                    INT2NUM(time_const->tv_nsec));
 }
 
 /* Invokes inspect on the ctime version of the time val. */
@@ -227,31 +222,24 @@ static VALUE grpc_rb_time_val_to_s(VALUE self) {
   return rb_funcall(grpc_rb_time_val_to_time(self), id_to_s, 0);
 }
 
-static gpr_timespec zero_realtime;
-static gpr_timespec inf_future_realtime;
-static gpr_timespec inf_past_realtime;
-
 /* Adds a module with constants that map to gpr's static timeval structs. */
 static void Init_grpc_time_consts() {
   VALUE grpc_rb_mTimeConsts =
       rb_define_module_under(grpc_rb_mGrpcCore, "TimeConsts");
   grpc_rb_cTimeVal =
       rb_define_class_under(grpc_rb_mGrpcCore, "TimeSpec", rb_cObject);
-  zero_realtime = gpr_time_0(GPR_CLOCK_REALTIME);
-  inf_future_realtime = gpr_inf_future(GPR_CLOCK_REALTIME);
-  inf_past_realtime = gpr_inf_past(GPR_CLOCK_REALTIME);
   rb_define_const(
       grpc_rb_mTimeConsts, "ZERO",
       TypedData_Wrap_Struct(grpc_rb_cTimeVal, &grpc_rb_timespec_data_type,
-                            (void *)&zero_realtime));
+                            (void *)&gpr_time_0));
   rb_define_const(
       grpc_rb_mTimeConsts, "INFINITE_FUTURE",
       TypedData_Wrap_Struct(grpc_rb_cTimeVal, &grpc_rb_timespec_data_type,
-                            (void *)&inf_future_realtime));
+                            (void *)&gpr_inf_future));
   rb_define_const(
       grpc_rb_mTimeConsts, "INFINITE_PAST",
       TypedData_Wrap_Struct(grpc_rb_cTimeVal, &grpc_rb_timespec_data_type,
-                            (void *)&inf_past_realtime));
+                            (void *)&gpr_inf_past));
   rb_define_method(grpc_rb_cTimeVal, "to_time", grpc_rb_time_val_to_time, 0);
   rb_define_method(grpc_rb_cTimeVal, "inspect", grpc_rb_time_val_inspect, 0);
   rb_define_method(grpc_rb_cTimeVal, "to_s", grpc_rb_time_val_to_s, 0);
@@ -262,10 +250,7 @@ static void Init_grpc_time_consts() {
   id_tv_nsec = rb_intern("tv_nsec");
 }
 
-static void grpc_rb_shutdown(ruby_vm_t *vm) {
-  (void)vm;
-  grpc_shutdown();
-}
+static void grpc_rb_shutdown(ruby_vm_t *vm) { grpc_shutdown(); }
 
 /* Initialize the GRPC module structs */
 

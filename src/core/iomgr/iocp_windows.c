@@ -127,6 +127,7 @@ static void iocp_loop(void *p) {
     grpc_maybe_call_delayed_callbacks(NULL, 1);
     do_iocp_work();
   }
+  gpr_log(GPR_DEBUG, "iocp_loop is done");
 
   gpr_event_set(&g_iocp_done, (void *)1);
 }
@@ -157,7 +158,7 @@ void grpc_iocp_shutdown(void) {
   BOOL success;
   gpr_event_set(&g_shutdown_iocp, (void *)1);
   grpc_iocp_kick();
-  gpr_event_wait(&g_iocp_done, gpr_inf_future(GPR_CLOCK_REALTIME));
+  gpr_event_wait(&g_iocp_done, gpr_inf_future);
   success = CloseHandle(g_iocp);
   GPR_ASSERT(success);
 }

@@ -38,7 +38,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Grpc.Core.Internal;
-using Grpc.Core.Logging;
 using Grpc.Core.Utils;
 
 namespace Grpc.Core
@@ -53,10 +52,6 @@ namespace Grpc.Core
         /// </summary>
         public const int PickUnusedPort = 0;
 
-        static readonly ILogger Logger = GrpcEnvironment.Logger.ForType<Server>();
-
-        readonly GrpcEnvironment environment;
-        readonly List<ChannelOption> options;
         readonly ServerSafeHandle handle;
         readonly object myLock = new object();
 
@@ -72,11 +67,9 @@ namespace Grpc.Core
         /// <param name="options">Channel options.</param>
         public Server(IEnumerable<ChannelOption> options = null)
         {
-            this.environment = GrpcEnvironment.GetInstance();
-            this.options = options != null ? new List<ChannelOption>(options) : new List<ChannelOption>();
-            using (var channelArgs = ChannelOptions.CreateChannelArgs(this.options))
+            using (var channelArgs = ChannelOptions.CreateChannelArgs(options))
             {
-                this.handle = ServerSafeHandle.NewServer(environment.CompletionQueue, channelArgs);
+                this.handle = ServerSafeHandle.NewServer(GetCompletionQueue(), channelArgs);
             }
         }
 
@@ -98,31 +91,28 @@ namespace Grpc.Core
         }
 
         /// <summary>
-        /// Add a port on which server should listen.
+        /// Add a non-secure port on which server should listen.
         /// Only call this before Start().
         /// </summary>
         /// <returns>The port on which server will be listening.</returns>
         /// <param name="host">the host</param>
         /// <param name="port">the port. If zero, an unused port is chosen automatically.</param>
-        public int AddPort(string host, int port, ServerCredentials credentials)
+        public int AddListeningPort(string host, int port)
         {
-            lock (myLock)
-            {
-                Preconditions.CheckNotNull(credentials);
-                Preconditions.CheckState(!startRequested);
-                var address = string.Format("{0}:{1}", host, port);
-                using (var nativeCredentials = credentials.ToNativeCredentials())
-                {
-                    if (nativeCredentials != null)
-                    {
-                        return handle.AddSecurePort(address, nativeCredentials);
-                    }
-                    else
-                    {
-                        return handle.AddInsecurePort(address);
-                    }
-                }
-            }
+            return AddListeningPortInternal(host, port, null);
+        }
+
+        /// <summary>
+        /// Add a non-secure port on which server should listen.
+        /// Only call this before Start().
+        /// </summary>
+        /// <returns>The port on which server will be listening.</returns>
+        /// <param name="host">the host</param>
+        /// <param name="port">the port. If zero, an unused port is chosen automatically.</param>
+        public int AddListeningPort(string host, int port, ServerCredentials credentials)
+        {
+            Preconditions.CheckNotNull(credentials);
+            return AddListeningPortInternal(host, port, credentials);
         }
 
         /// <summary>
@@ -154,7 +144,7 @@ namespace Grpc.Core
                 shutdownRequested = true;
             }
 
-            handle.ShutdownAndNotify(HandleServerShutdown, environment);
+            handle.ShutdownAndNotify(GetCompletionQueue(), HandleServerShutdown);
             await shutdownTcs.Task;
             handle.Dispose();
         }
@@ -183,10 +173,30 @@ namespace Grpc.Core
                 shutdownRequested = true;
             }
 
-            handle.ShutdownAndNotify(HandleServerShutdown, environment);
+            handle.ShutdownAndNotify(GetCompletionQueue(), HandleServerShutdown);
             handle.CancelAllCalls();
             await shutdownTcs.Task;
             handle.Dispose();
+        }
+
+        private int AddListeningPortInternal(string host, int port, ServerCredentials credentials)
+        {
+            lock (myLock)
+            {
+                Preconditions.CheckState(!startRequested);    
+                var address = string.Format("{0}:{1}", host, port);
+                if (credentials != null)
+                {
+                    using (var nativeCredentials = credentials.ToNativeCredentials())
+                    {
+                        return handle.AddListeningPort(address, nativeCredentials);
+                    }
+                }
+                else
+                {
+                    return handle.AddListeningPort(address);    
+                }
+            }
         }
 
         /// <summary>
@@ -198,7 +208,7 @@ namespace Grpc.Core
             {
                 if (!shutdownRequested)
                 {
-                    handle.RequestCall(HandleNewServerRpc, environment);
+                    handle.RequestCall(GetCompletionQueue(), HandleNewServerRpc);
                 }
             }
         }
@@ -206,20 +216,20 @@ namespace Grpc.Core
         /// <summary>
         /// Selects corresponding handler for given call and handles the call.
         /// </summary>
-        private async Task HandleCallAsync(ServerRpcNew newRpc)
+        private async Task InvokeCallHandler(CallSafeHandle call, string method)
         {
             try
             {
                 IServerCallHandler callHandler;
-                if (!callHandlers.TryGetValue(newRpc.Method, out callHandler))
+                if (!callHandlers.TryGetValue(method, out callHandler))
                 {
-                    callHandler = NoSuchMethodCallHandler.Instance;
+                    callHandler = new NoSuchMethodCallHandler();
                 }
-                await callHandler.HandleCall(newRpc, environment);
+                await callHandler.HandleCall(method, call, GetCompletionQueue());
             }
             catch (Exception e)
             {
-                Logger.Warning(e, "Exception while handling RPC.");
+                Console.WriteLine("Exception while handling RPC: " + e);
             }
         }
 
@@ -228,15 +238,15 @@ namespace Grpc.Core
         /// </summary>
         private void HandleNewServerRpc(bool success, BatchContextSafeHandle ctx)
         {
-            if (success)
-            {
-                ServerRpcNew newRpc = ctx.GetServerRpcNew();
+            // TODO: handle error
 
-                // after server shutdown, the callback returns with null call
-                if (!newRpc.Call.IsInvalid)
-                {
-                    Task.Run(async () => await HandleCallAsync(newRpc));
-                }
+            CallSafeHandle call = ctx.GetServerRpcNewCall();
+            string method = ctx.GetServerRpcNewMethod();
+
+            // after server shutdown, the callback returns with null call
+            if (!call.IsInvalid)
+            {
+                Task.Run(async () => await InvokeCallHandler(call, method));
             }
 
             AllowOneRpc();
@@ -248,6 +258,11 @@ namespace Grpc.Core
         private void HandleServerShutdown(bool success, BatchContextSafeHandle ctx)
         {
             shutdownTcs.SetResult(null);
+        }
+
+        private static CompletionQueueSafeHandle GetCompletionQueue()
+        {
+            return GrpcEnvironment.ThreadPool.CompletionQueue;
         }
     }
 }

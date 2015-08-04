@@ -43,28 +43,24 @@ namespace Grpc.Core
     public sealed class AsyncClientStreamingCall<TRequest, TResponse> : IDisposable
     {
         readonly IClientStreamWriter<TRequest> requestStream;
-        readonly Task<TResponse> responseAsync;
-        readonly Func<Status> getStatusFunc;
-        readonly Func<Metadata> getTrailersFunc;
+        readonly Task<TResponse> result;
         readonly Action disposeAction;
 
-        public AsyncClientStreamingCall(IClientStreamWriter<TRequest> requestStream, Task<TResponse> responseAsync, Func<Status> getStatusFunc, Func<Metadata> getTrailersFunc, Action disposeAction)
+        public AsyncClientStreamingCall(IClientStreamWriter<TRequest> requestStream, Task<TResponse> result, Action disposeAction)
         {
             this.requestStream = requestStream;
-            this.responseAsync = responseAsync;
-            this.getStatusFunc = getStatusFunc;
-            this.getTrailersFunc = getTrailersFunc;
+            this.result = result;
             this.disposeAction = disposeAction;
         }
 
         /// <summary>
         /// Asynchronous call result.
         /// </summary>
-        public Task<TResponse> ResponseAsync
+        public Task<TResponse> Result
         {
             get
             {
-                return this.responseAsync;
+                return this.result;
             }
         }
 
@@ -85,11 +81,11 @@ namespace Grpc.Core
         /// <returns></returns>
         public TaskAwaiter<TResponse> GetAwaiter()
         {
-            return responseAsync.GetAwaiter();
+            return result.GetAwaiter();
         }
 
         /// <summary>
-        /// Provides means to cleanup after the call.
+        /// Provides means to provide after the call.
         /// If the call has already finished normally (request stream has been completed and call result has been received), doesn't do anything.
         /// Otherwise, requests cancellation of the call which should terminate all pending async operations associated with the call.
         /// As a result, all resources being used by the call should be released eventually.

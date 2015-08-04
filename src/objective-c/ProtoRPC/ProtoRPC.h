@@ -40,7 +40,7 @@
 
 - (instancetype)initWithHost:(NSString *)host
                       method:(ProtoMethod *)method
-              requestsWriter:(GRXWriter *)requestsWriter
+              requestsWriter:(id<GRXWriter>)requestsWriter
                responseClass:(Class)responseClass
           responsesWriteable:(id<GRXWriteable>)responsesWriteable NS_DESIGNATED_INITIALIZER;
 

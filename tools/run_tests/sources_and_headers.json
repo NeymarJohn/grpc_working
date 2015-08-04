@@ -338,18 +338,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "gpr_stack_lockfree_test", 
-    "src": [
-      "test/core/support/stack_lockfree_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "gpr_string_test", 
     "src": [
       "test/core/support/string_test.c"
@@ -938,6 +926,20 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "time_test", 
+    "src": [
+      "test/core/support/time_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "timeout_encoding_test", 
     "src": [
       "test/core/transport/chttp2/timeout_encoding_test.c"
@@ -983,6 +985,20 @@
     "name": "transport_security_test", 
     "src": [
       "test/core/tsi/transport_security_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "udp_server_test", 
+    "src": [
+      "test/core/iomgr/udp_server_test.c"
     ]
   }, 
   {
@@ -1047,19 +1063,6 @@
     "name": "async_unary_ping_pong_test", 
     "src": [
       "test/cpp/qps/async_unary_ping_pong_test.cc"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "grpc", 
-      "grpc++"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "auth_property_iterator_test", 
-    "src": [
-      "test/cpp/common/auth_property_iterator_test.cc"
     ]
   }, 
   {
@@ -1187,21 +1190,6 @@
       "gpr_test_util", 
       "grpc", 
       "grpc++", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "dynamic_thread_pool_test", 
-    "src": [
-      "test/cpp/server/dynamic_thread_pool_test.cc"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc++", 
       "grpc++_test_util", 
       "grpc_test_util"
     ], 
@@ -1210,21 +1198,6 @@
     "name": "end2end_test", 
     "src": [
       "test/cpp/end2end/end2end_test.cc"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc++", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "fixed_size_thread_pool_test", 
-    "src": [
-      "test/cpp/server/fixed_size_thread_pool_test.cc"
     ]
   }, 
   {
@@ -1478,9 +1451,9 @@
     ], 
     "headers": [], 
     "language": "c++", 
-    "name": "qps_openloop_test", 
+    "name": "qps_test", 
     "src": [
-      "test/cpp/qps/qps_openloop_test.cc"
+      "test/cpp/qps/qps_test.cc"
     ]
   }, 
   {
@@ -1496,9 +1469,9 @@
     ], 
     "headers": [], 
     "language": "c++", 
-    "name": "qps_test", 
+    "name": "qps_test_openloop", 
     "src": [
-      "test/cpp/qps/qps_test.cc"
+      "test/cpp/qps/qps_test_openloop.cc"
     ]
   }, 
   {
@@ -1522,19 +1495,6 @@
       "test/cpp/qps/client.h", 
       "test/cpp/qps/server.h", 
       "test/cpp/qps/worker.cc"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "grpc", 
-      "grpc++"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "secure_auth_context_test", 
-    "src": [
-      "test/cpp/common/secure_auth_context_test.cc"
     ]
   }, 
   {
@@ -1616,6 +1576,21 @@
     "name": "sync_unary_ping_pong_test", 
     "src": [
       "test/cpp/qps/sync_unary_ping_pong_test.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc++", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c++", 
+    "name": "thread_pool_test", 
+    "src": [
+      "test/cpp/server/thread_pool_test.cc"
     ]
   }, 
   {
@@ -1737,36 +1712,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fake_security_census_simple_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fake_security", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fake_security_channel_connectivity_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fake_security", 
-      "end2end_test_default_host", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fake_security_default_host_test", 
     "src": []
   }, 
   {
@@ -2013,21 +1958,6 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_fake_security", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fake_security_request_with_compressed_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fake_security", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -2232,36 +2162,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fullstack_census_simple_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_channel_connectivity_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack", 
-      "end2end_test_default_host", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_default_host_test", 
     "src": []
   }, 
   {
@@ -2508,21 +2408,6 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_fullstack", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_request_with_compressed_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -2622,501 +2507,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fullstack_simple_request_with_high_initial_sequence_number_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_bad_hostname", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_bad_hostname_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_cancel_after_accept", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_cancel_after_accept_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_cancel_after_accept_and_writes_closed", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_cancel_after_accept_and_writes_closed_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_cancel_after_invoke", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_cancel_after_invoke_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_cancel_before_invoke", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_cancel_before_invoke_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_cancel_in_a_vacuum", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_cancel_in_a_vacuum_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_census_simple_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_census_simple_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_channel_connectivity_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_default_host", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_default_host_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_disappearing_server", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_disappearing_server_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_early_server_shutdown_finishes_inflight_calls", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_early_server_shutdown_finishes_inflight_calls_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_early_server_shutdown_finishes_tags", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_early_server_shutdown_finishes_tags_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_empty_batch", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_empty_batch_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_graceful_server_shutdown", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_graceful_server_shutdown_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_invoke_large_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_invoke_large_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_max_concurrent_streams", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_max_concurrent_streams_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_max_message_length", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_max_message_length_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_no_op", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_no_op_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_ping_pong_streaming", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_ping_pong_streaming_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_registered_call", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_registered_call_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_response_with_binary_metadata_and_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_response_with_binary_metadata_and_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_response_with_metadata_and_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_response_with_metadata_and_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_response_with_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_response_with_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_response_with_payload_and_call_creds", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_response_with_payload_and_call_creds_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_response_with_trailing_metadata_and_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_response_with_trailing_metadata_and_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_with_compressed_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_with_flags", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_with_flags_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_with_large_metadata", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_with_large_metadata_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_with_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_with_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_server_finishes_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_server_finishes_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_simple_delayed_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_simple_delayed_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_simple_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_simple_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_simple_request_with_high_initial_sequence_number", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_simple_request_with_high_initial_sequence_number_test", 
     "src": []
   }, 
   {
@@ -3222,21 +2612,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_census_simple_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_channel_connectivity_test", 
     "src": []
   }, 
   {
@@ -3483,21 +2858,6 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_fullstack_uds_posix", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_request_with_compressed_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -3597,486 +2957,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_simple_request_with_high_initial_sequence_number_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_bad_hostname", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_bad_hostname_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_cancel_after_accept", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_cancel_after_accept_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_cancel_after_accept_and_writes_closed", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_cancel_after_accept_and_writes_closed_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_cancel_after_invoke", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_cancel_after_invoke_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_cancel_before_invoke", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_cancel_before_invoke_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_cancel_in_a_vacuum", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_cancel_in_a_vacuum_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_census_simple_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_census_simple_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_channel_connectivity_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_disappearing_server", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_disappearing_server_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_early_server_shutdown_finishes_inflight_calls", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_early_server_shutdown_finishes_inflight_calls_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_early_server_shutdown_finishes_tags", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_early_server_shutdown_finishes_tags_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_empty_batch", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_empty_batch_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_graceful_server_shutdown", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_graceful_server_shutdown_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_invoke_large_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_invoke_large_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_max_concurrent_streams", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_max_concurrent_streams_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_max_message_length", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_max_message_length_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_no_op", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_no_op_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_ping_pong_streaming", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_ping_pong_streaming_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_registered_call", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_registered_call_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_response_with_binary_metadata_and_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_binary_metadata_and_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_response_with_metadata_and_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_metadata_and_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_response_with_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_response_with_payload_and_call_creds", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_payload_and_call_creds_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_response_with_trailing_metadata_and_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_trailing_metadata_and_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_with_compressed_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_with_flags", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_with_flags_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_with_large_metadata", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_with_large_metadata_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_with_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_with_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_server_finishes_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_server_finishes_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_simple_delayed_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_simple_delayed_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_simple_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_simple_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_simple_request_with_high_initial_sequence_number", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_simple_request_with_high_initial_sequence_number_test", 
     "src": []
   }, 
   {
@@ -4182,36 +3062,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_census_simple_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_with_poll", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_with_poll_channel_connectivity_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_with_poll", 
-      "end2end_test_default_host", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_with_poll_default_host_test", 
     "src": []
   }, 
   {
@@ -4458,21 +3308,6 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_fullstack_with_poll", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_with_poll_request_with_compressed_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_fullstack_with_poll", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -4677,36 +3512,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_census_simple_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_simple_ssl_fullstack", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_simple_ssl_fullstack_channel_connectivity_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_simple_ssl_fullstack", 
-      "end2end_test_default_host", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_simple_ssl_fullstack_default_host_test", 
     "src": []
   }, 
   {
@@ -4953,21 +3758,6 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_simple_ssl_fullstack", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_simple_ssl_fullstack_request_with_compressed_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_simple_ssl_fullstack", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -5172,36 +3962,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_census_simple_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_simple_ssl_fullstack_with_poll", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_simple_ssl_fullstack_with_poll_channel_connectivity_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_simple_ssl_fullstack_with_poll", 
-      "end2end_test_default_host", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_simple_ssl_fullstack_with_poll_default_host_test", 
     "src": []
   }, 
   {
@@ -5448,21 +4208,6 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_simple_ssl_fullstack_with_poll", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_simple_ssl_fullstack_with_poll_request_with_compressed_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_simple_ssl_fullstack_with_poll", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -5667,36 +4412,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_census_simple_request_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_simple_ssl_with_oauth2_fullstack_channel_connectivity_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack", 
-      "end2end_test_default_host", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_simple_ssl_with_oauth2_fullstack_default_host_test", 
     "src": []
   }, 
   {
@@ -5943,21 +4658,6 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_simple_ssl_with_oauth2_fullstack_request_with_compressed_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -6162,6 +4862,21 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_socket_pair_census_simple_request_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_chttp2_socket_pair", 
+      "end2end_test_disappearing_server", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_socket_pair_disappearing_server_test", 
     "src": []
   }, 
   {
@@ -6393,21 +5108,6 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_socket_pair", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_socket_pair_request_with_compressed_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_socket_pair", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -6462,6 +5162,21 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_socket_pair_server_finishes_request_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_chttp2_socket_pair", 
+      "end2end_test_simple_delayed_request", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_socket_pair_simple_delayed_request_test", 
     "src": []
   }, 
   {
@@ -6597,6 +5312,21 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_census_simple_request_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_chttp2_socket_pair_one_byte_at_a_time", 
+      "end2end_test_disappearing_server", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_socket_pair_one_byte_at_a_time_disappearing_server_test", 
     "src": []
   }, 
   {
@@ -6828,21 +5558,6 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_socket_pair_one_byte_at_a_time", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_socket_pair_one_byte_at_a_time_request_with_compressed_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_socket_pair_one_byte_at_a_time", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -6897,6 +5612,21 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_server_finishes_request_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_chttp2_socket_pair_one_byte_at_a_time", 
+      "end2end_test_simple_delayed_request", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_test", 
     "src": []
   }, 
   {
@@ -7032,6 +5762,21 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_census_simple_request_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_chttp2_socket_pair_with_grpc_trace", 
+      "end2end_test_disappearing_server", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_socket_pair_with_grpc_trace_disappearing_server_test", 
     "src": []
   }, 
   {
@@ -7263,21 +6008,6 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_socket_pair_with_grpc_trace", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_socket_pair_with_grpc_trace_request_with_compressed_payload_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_certs", 
-      "end2end_fixture_chttp2_socket_pair_with_grpc_trace", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -7332,6 +6062,21 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_server_finishes_request_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_chttp2_socket_pair_with_grpc_trace", 
+      "end2end_test_simple_delayed_request", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_socket_pair_with_grpc_trace_simple_delayed_request_test", 
     "src": []
   }, 
   {
@@ -7460,34 +6205,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fullstack_census_simple_request_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_channel_connectivity_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack", 
-      "end2end_test_default_host", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_default_host_unsecure_test", 
     "src": []
   }, 
   {
@@ -7703,20 +6420,6 @@
   {
     "deps": [
       "end2end_fixture_chttp2_fullstack", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_request_with_compressed_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -7810,454 +6513,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fullstack_simple_request_with_high_initial_sequence_number_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_bad_hostname", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_bad_hostname_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_cancel_after_accept", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_cancel_after_accept_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_cancel_after_accept_and_writes_closed", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_cancel_after_accept_and_writes_closed_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_cancel_after_invoke", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_cancel_after_invoke_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_cancel_before_invoke", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_cancel_before_invoke_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_cancel_in_a_vacuum", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_cancel_in_a_vacuum_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_census_simple_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_census_simple_request_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_channel_connectivity_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_default_host", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_default_host_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_disappearing_server", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_disappearing_server_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_early_server_shutdown_finishes_inflight_calls", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_early_server_shutdown_finishes_inflight_calls_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_early_server_shutdown_finishes_tags", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_early_server_shutdown_finishes_tags_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_empty_batch", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_empty_batch_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_graceful_server_shutdown", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_graceful_server_shutdown_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_invoke_large_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_invoke_large_request_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_max_concurrent_streams", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_max_concurrent_streams_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_max_message_length", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_max_message_length_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_no_op", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_no_op_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_ping_pong_streaming", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_ping_pong_streaming_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_registered_call", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_registered_call_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_response_with_binary_metadata_and_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_response_with_binary_metadata_and_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_response_with_metadata_and_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_response_with_metadata_and_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_response_with_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_response_with_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_response_with_trailing_metadata_and_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_response_with_trailing_metadata_and_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_with_compressed_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_with_flags", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_with_flags_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_with_large_metadata", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_with_large_metadata_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_request_with_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_request_with_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_server_finishes_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_server_finishes_request_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_simple_delayed_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_simple_delayed_request_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_simple_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_simple_request_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_compression", 
-      "end2end_test_simple_request_with_high_initial_sequence_number", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_compression_simple_request_with_high_initial_sequence_number_unsecure_test", 
     "src": []
   }, 
   {
@@ -8356,20 +6611,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_census_simple_request_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_channel_connectivity_unsecure_test", 
     "src": []
   }, 
   {
@@ -8585,20 +6826,6 @@
   {
     "deps": [
       "end2end_fixture_chttp2_fullstack_uds_posix", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_request_with_compressed_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -8692,440 +6919,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_simple_request_with_high_initial_sequence_number_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_bad_hostname", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_bad_hostname_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_cancel_after_accept", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_cancel_after_accept_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_cancel_after_accept_and_writes_closed", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_cancel_after_accept_and_writes_closed_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_cancel_after_invoke", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_cancel_after_invoke_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_cancel_before_invoke", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_cancel_before_invoke_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_cancel_in_a_vacuum", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_cancel_in_a_vacuum_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_census_simple_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_census_simple_request_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_channel_connectivity_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_disappearing_server", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_disappearing_server_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_early_server_shutdown_finishes_inflight_calls", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_early_server_shutdown_finishes_inflight_calls_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_early_server_shutdown_finishes_tags", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_early_server_shutdown_finishes_tags_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_empty_batch", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_empty_batch_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_graceful_server_shutdown", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_graceful_server_shutdown_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_invoke_large_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_invoke_large_request_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_max_concurrent_streams", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_max_concurrent_streams_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_max_message_length", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_max_message_length_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_no_op", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_no_op_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_ping_pong_streaming", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_ping_pong_streaming_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_registered_call", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_registered_call_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_response_with_binary_metadata_and_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_binary_metadata_and_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_response_with_metadata_and_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_metadata_and_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_response_with_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_response_with_trailing_metadata_and_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_trailing_metadata_and_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_with_compressed_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_with_flags", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_with_flags_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_with_large_metadata", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_with_large_metadata_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_request_with_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_request_with_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_server_finishes_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_server_finishes_request_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_simple_delayed_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_simple_delayed_request_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_simple_request", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_simple_request_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-      "end2end_test_simple_request_with_high_initial_sequence_number", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_uds_posix_with_poll_simple_request_with_high_initial_sequence_number_unsecure_test", 
     "src": []
   }, 
   {
@@ -9224,34 +7017,6 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_census_simple_request_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_with_poll", 
-      "end2end_test_channel_connectivity", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_with_poll_channel_connectivity_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_with_poll", 
-      "end2end_test_default_host", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_with_poll_default_host_unsecure_test", 
     "src": []
   }, 
   {
@@ -9467,20 +7232,6 @@
   {
     "deps": [
       "end2end_fixture_chttp2_fullstack_with_poll", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_fullstack_with_poll_request_with_compressed_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_fullstack_with_poll", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -9672,6 +7423,20 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_socket_pair_census_simple_request_unsecure_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_fixture_chttp2_socket_pair", 
+      "end2end_test_disappearing_server", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_socket_pair_disappearing_server_unsecure_test", 
     "src": []
   }, 
   {
@@ -9873,20 +7638,6 @@
   {
     "deps": [
       "end2end_fixture_chttp2_socket_pair", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_socket_pair_request_with_compressed_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_socket_pair", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -9938,6 +7689,20 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_socket_pair_server_finishes_request_unsecure_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_fixture_chttp2_socket_pair", 
+      "end2end_test_simple_delayed_request", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_socket_pair_simple_delayed_request_unsecure_test", 
     "src": []
   }, 
   {
@@ -10064,6 +7829,20 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_census_simple_request_unsecure_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_fixture_chttp2_socket_pair_one_byte_at_a_time", 
+      "end2end_test_disappearing_server", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_socket_pair_one_byte_at_a_time_disappearing_server_unsecure_test", 
     "src": []
   }, 
   {
@@ -10265,20 +8044,6 @@
   {
     "deps": [
       "end2end_fixture_chttp2_socket_pair_one_byte_at_a_time", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_socket_pair_one_byte_at_a_time_request_with_compressed_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_socket_pair_one_byte_at_a_time", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -10330,6 +8095,20 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_server_finishes_request_unsecure_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_fixture_chttp2_socket_pair_one_byte_at_a_time", 
+      "end2end_test_simple_delayed_request", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_socket_pair_one_byte_at_a_time_simple_delayed_request_unsecure_test", 
     "src": []
   }, 
   {
@@ -10456,6 +8235,20 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_census_simple_request_unsecure_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_fixture_chttp2_socket_pair_with_grpc_trace", 
+      "end2end_test_disappearing_server", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_socket_pair_with_grpc_trace_disappearing_server_unsecure_test", 
     "src": []
   }, 
   {
@@ -10657,20 +8450,6 @@
   {
     "deps": [
       "end2end_fixture_chttp2_socket_pair_with_grpc_trace", 
-      "end2end_test_request_with_compressed_payload", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "chttp2_socket_pair_with_grpc_trace_request_with_compressed_payload_unsecure_test", 
-    "src": []
-  }, 
-  {
-    "deps": [
-      "end2end_fixture_chttp2_socket_pair_with_grpc_trace", 
       "end2end_test_request_with_flags", 
       "gpr", 
       "gpr_test_util", 
@@ -10722,6 +8501,20 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_server_finishes_request_unsecure_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_fixture_chttp2_socket_pair_with_grpc_trace", 
+      "end2end_test_simple_delayed_request", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_socket_pair_with_grpc_trace_simple_delayed_request_unsecure_test", 
     "src": []
   }, 
   {
@@ -10816,7 +8609,6 @@
       "src/core/support/env.h", 
       "src/core/support/file.h", 
       "src/core/support/murmur_hash.h", 
-      "src/core/support/stack_lockfree.h", 
       "src/core/support/string.h", 
       "src/core/support/string_win32.h", 
       "src/core/support/thd_internal.h"
@@ -10878,8 +8670,6 @@
       "src/core/support/murmur_hash.h", 
       "src/core/support/slice.c", 
       "src/core/support/slice_buffer.c", 
-      "src/core/support/stack_lockfree.c", 
-      "src/core/support/stack_lockfree.h", 
       "src/core/support/string.c", 
       "src/core/support/string.h", 
       "src/core/support/string_posix.c", 
@@ -10926,12 +8716,11 @@
       "include/grpc/grpc_security.h", 
       "include/grpc/status.h", 
       "src/core/census/context.h", 
-      "src/core/census/rpc_stat_id.h", 
+      "src/core/census/grpc_context.h", 
       "src/core/channel/census_filter.h", 
       "src/core/channel/channel_args.h", 
       "src/core/channel/channel_stack.h", 
       "src/core/channel/client_channel.h", 
-      "src/core/channel/compress_filter.h", 
       "src/core/channel/connected_channel.h", 
       "src/core/channel/context.h", 
       "src/core/channel/http_client_filter.h", 
@@ -10945,11 +8734,9 @@
       "src/core/client_config/resolver_factory.h", 
       "src/core/client_config/resolver_registry.h", 
       "src/core/client_config/resolvers/dns_resolver.h", 
-      "src/core/client_config/resolvers/sockaddr_resolver.h", 
+      "src/core/client_config/resolvers/unix_resolver_posix.h", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.h", 
-      "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h", 
-      "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/message_compress.h", 
       "src/core/debug/trace.h", 
@@ -10986,6 +8773,7 @@
       "src/core/iomgr/tcp_server.h", 
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.h", 
+      "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.h", 
       "src/core/json/json.h", 
@@ -11055,9 +8843,8 @@
       "src/core/census/context.c", 
       "src/core/census/context.h", 
       "src/core/census/grpc_context.c", 
+      "src/core/census/grpc_context.h", 
       "src/core/census/initialize.c", 
-      "src/core/census/record_stat.c", 
-      "src/core/census/rpc_stat_id.h", 
       "src/core/channel/census_filter.h", 
       "src/core/channel/channel_args.c", 
       "src/core/channel/channel_args.h", 
@@ -11065,8 +8852,6 @@
       "src/core/channel/channel_stack.h", 
       "src/core/channel/client_channel.c", 
       "src/core/channel/client_channel.h", 
-      "src/core/channel/compress_filter.c", 
-      "src/core/channel/compress_filter.h", 
       "src/core/channel/connected_channel.c", 
       "src/core/channel/connected_channel.h", 
       "src/core/channel/context.h", 
@@ -11092,16 +8877,12 @@
       "src/core/client_config/resolver_registry.h", 
       "src/core/client_config/resolvers/dns_resolver.c", 
       "src/core/client_config/resolvers/dns_resolver.h", 
-      "src/core/client_config/resolvers/sockaddr_resolver.c", 
-      "src/core/client_config/resolvers/sockaddr_resolver.h", 
+      "src/core/client_config/resolvers/unix_resolver_posix.c", 
+      "src/core/client_config/resolvers/unix_resolver_posix.h", 
       "src/core/client_config/subchannel.c", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.c", 
       "src/core/client_config/subchannel_factory.h", 
-      "src/core/client_config/subchannel_factory_decorators/add_channel_arg.c", 
-      "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h", 
-      "src/core/client_config/subchannel_factory_decorators/merge_channel_args.c", 
-      "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h", 
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 
@@ -11177,6 +8958,8 @@
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.c", 
       "src/core/iomgr/time_averaged_stats.h", 
+      "src/core/iomgr/udp_server.c", 
+      "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_eventfd.c", 
       "src/core/iomgr/wakeup_fd_nospecial.c", 
       "src/core/iomgr/wakeup_fd_pipe.c", 
@@ -11229,7 +9012,6 @@
       "src/core/surface/call_log_batch.c", 
       "src/core/surface/channel.c", 
       "src/core/surface/channel.h", 
-      "src/core/surface/channel_connectivity.c", 
       "src/core/surface/channel_create.c", 
       "src/core/surface/completion_queue.c", 
       "src/core/surface/completion_queue.h", 
@@ -11247,7 +9029,6 @@
       "src/core/surface/server_create.c", 
       "src/core/surface/surface_trace.c", 
       "src/core/surface/surface_trace.h", 
-      "src/core/surface/version.c", 
       "src/core/transport/chttp2/alpn.c", 
       "src/core/transport/chttp2/alpn.h", 
       "src/core/transport/chttp2/bin_encoder.c", 
@@ -11319,7 +9100,6 @@
       "test/core/end2end/cq_verifier.h", 
       "test/core/end2end/data/ssl_test_data.h", 
       "test/core/iomgr/endpoint_tests.h", 
-      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.h", 
       "test/core/util/port.h", 
@@ -11336,8 +9116,6 @@
       "test/core/end2end/data/test_root_cert.c", 
       "test/core/iomgr/endpoint_tests.c", 
       "test/core/iomgr/endpoint_tests.h", 
-      "test/core/security/oauth2_utils.c", 
-      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.c", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.c", 
@@ -11358,7 +9136,6 @@
     "headers": [
       "test/core/end2end/cq_verifier.h", 
       "test/core/iomgr/endpoint_tests.h", 
-      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.h", 
       "test/core/util/port.h", 
@@ -11371,8 +9148,6 @@
       "test/core/end2end/cq_verifier.h", 
       "test/core/iomgr/endpoint_tests.c", 
       "test/core/iomgr/endpoint_tests.h", 
-      "test/core/security/oauth2_utils.c", 
-      "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.c", 
       "test/core/util/grpc_profiler.h", 
       "test/core/util/parse_hexstring.c", 
@@ -11396,12 +9171,11 @@
       "include/grpc/grpc.h", 
       "include/grpc/status.h", 
       "src/core/census/context.h", 
-      "src/core/census/rpc_stat_id.h", 
+      "src/core/census/grpc_context.h", 
       "src/core/channel/census_filter.h", 
       "src/core/channel/channel_args.h", 
       "src/core/channel/channel_stack.h", 
       "src/core/channel/client_channel.h", 
-      "src/core/channel/compress_filter.h", 
       "src/core/channel/connected_channel.h", 
       "src/core/channel/context.h", 
       "src/core/channel/http_client_filter.h", 
@@ -11415,11 +9189,9 @@
       "src/core/client_config/resolver_factory.h", 
       "src/core/client_config/resolver_registry.h", 
       "src/core/client_config/resolvers/dns_resolver.h", 
-      "src/core/client_config/resolvers/sockaddr_resolver.h", 
+      "src/core/client_config/resolvers/unix_resolver_posix.h", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.h", 
-      "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h", 
-      "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/message_compress.h", 
       "src/core/debug/trace.h", 
@@ -11452,6 +9224,7 @@
       "src/core/iomgr/tcp_server.h", 
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.h", 
+      "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.h", 
       "src/core/json/json.h", 
@@ -11507,9 +9280,8 @@
       "src/core/census/context.c", 
       "src/core/census/context.h", 
       "src/core/census/grpc_context.c", 
+      "src/core/census/grpc_context.h", 
       "src/core/census/initialize.c", 
-      "src/core/census/record_stat.c", 
-      "src/core/census/rpc_stat_id.h", 
       "src/core/channel/census_filter.h", 
       "src/core/channel/channel_args.c", 
       "src/core/channel/channel_args.h", 
@@ -11517,8 +9289,6 @@
       "src/core/channel/channel_stack.h", 
       "src/core/channel/client_channel.c", 
       "src/core/channel/client_channel.h", 
-      "src/core/channel/compress_filter.c", 
-      "src/core/channel/compress_filter.h", 
       "src/core/channel/connected_channel.c", 
       "src/core/channel/connected_channel.h", 
       "src/core/channel/context.h", 
@@ -11544,16 +9314,12 @@
       "src/core/client_config/resolver_registry.h", 
       "src/core/client_config/resolvers/dns_resolver.c", 
       "src/core/client_config/resolvers/dns_resolver.h", 
-      "src/core/client_config/resolvers/sockaddr_resolver.c", 
-      "src/core/client_config/resolvers/sockaddr_resolver.h", 
+      "src/core/client_config/resolvers/unix_resolver_posix.c", 
+      "src/core/client_config/resolvers/unix_resolver_posix.h", 
       "src/core/client_config/subchannel.c", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.c", 
       "src/core/client_config/subchannel_factory.h", 
-      "src/core/client_config/subchannel_factory_decorators/add_channel_arg.c", 
-      "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h", 
-      "src/core/client_config/subchannel_factory_decorators/merge_channel_args.c", 
-      "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h", 
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 
@@ -11621,6 +9387,8 @@
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.c", 
       "src/core/iomgr/time_averaged_stats.h", 
+      "src/core/iomgr/udp_server.c", 
+      "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_eventfd.c", 
       "src/core/iomgr/wakeup_fd_nospecial.c", 
       "src/core/iomgr/wakeup_fd_pipe.c", 
@@ -11649,7 +9417,6 @@
       "src/core/surface/call_log_batch.c", 
       "src/core/surface/channel.c", 
       "src/core/surface/channel.h", 
-      "src/core/surface/channel_connectivity.c", 
       "src/core/surface/channel_create.c", 
       "src/core/surface/completion_queue.c", 
       "src/core/surface/completion_queue.h", 
@@ -11666,7 +9433,6 @@
       "src/core/surface/server_create.c", 
       "src/core/surface/surface_trace.c", 
       "src/core/surface/surface_trace.h", 
-      "src/core/surface/version.c", 
       "src/core/transport/chttp2/alpn.c", 
       "src/core/transport/chttp2/alpn.h", 
       "src/core/transport/chttp2/bin_encoder.c", 
@@ -11729,8 +9495,6 @@
     "headers": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
-      "include/grpc++/auth_context.h", 
-      "include/grpc++/auth_property_iterator.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -11740,8 +9504,6 @@
       "include/grpc++/config_protobuf.h", 
       "include/grpc++/create_channel.h", 
       "include/grpc++/credentials.h", 
-      "include/grpc++/dynamic_thread_pool.h", 
-      "include/grpc++/fixed_size_thread_pool.h", 
       "include/grpc++/generic_stub.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
@@ -11770,17 +9532,14 @@
       "include/grpc++/time.h", 
       "src/cpp/client/channel.h", 
       "src/cpp/client/secure_credentials.h", 
-      "src/cpp/common/create_auth_context.h", 
-      "src/cpp/common/secure_auth_context.h", 
-      "src/cpp/server/secure_server_credentials.h"
+      "src/cpp/server/secure_server_credentials.h", 
+      "src/cpp/server/thread_pool.h"
     ], 
     "language": "c++", 
     "name": "grpc++", 
     "src": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
-      "include/grpc++/auth_context.h", 
-      "include/grpc++/auth_property_iterator.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -11790,8 +9549,6 @@
       "include/grpc++/config_protobuf.h", 
       "include/grpc++/create_channel.h", 
       "include/grpc++/credentials.h", 
-      "include/grpc++/dynamic_thread_pool.h", 
-      "include/grpc++/fixed_size_thread_pool.h", 
       "include/grpc++/generic_stub.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
@@ -11830,19 +9587,12 @@
       "src/cpp/client/secure_channel_arguments.cc", 
       "src/cpp/client/secure_credentials.cc", 
       "src/cpp/client/secure_credentials.h", 
-      "src/cpp/common/auth_property_iterator.cc", 
       "src/cpp/common/call.cc", 
       "src/cpp/common/completion_queue.cc", 
-      "src/cpp/common/create_auth_context.h", 
       "src/cpp/common/rpc_method.cc", 
-      "src/cpp/common/secure_auth_context.cc", 
-      "src/cpp/common/secure_auth_context.h", 
-      "src/cpp/common/secure_create_auth_context.cc", 
       "src/cpp/proto/proto_utils.cc", 
       "src/cpp/server/async_generic_service.cc", 
       "src/cpp/server/create_default_thread_pool.cc", 
-      "src/cpp/server/dynamic_thread_pool.cc", 
-      "src/cpp/server/fixed_size_thread_pool.cc", 
       "src/cpp/server/insecure_server_credentials.cc", 
       "src/cpp/server/secure_server_credentials.cc", 
       "src/cpp/server/secure_server_credentials.h", 
@@ -11850,6 +9600,8 @@
       "src/cpp/server/server_builder.cc", 
       "src/cpp/server/server_context.cc", 
       "src/cpp/server/server_credentials.cc", 
+      "src/cpp/server/thread_pool.cc", 
+      "src/cpp/server/thread_pool.h", 
       "src/cpp/util/byte_buffer.cc", 
       "src/cpp/util/slice.cc", 
       "src/cpp/util/status.cc", 
@@ -11880,6 +9632,7 @@
       "test/cpp/util/echo.pb.h", 
       "test/cpp/util/echo_duplicate.grpc.pb.h", 
       "test/cpp/util/echo_duplicate.pb.h", 
+      "test/cpp/util/fake_credentials.h", 
       "test/cpp/util/messages.grpc.pb.h", 
       "test/cpp/util/messages.pb.h", 
       "test/cpp/util/subprocess.h"
@@ -11891,6 +9644,8 @@
       "test/cpp/util/cli_call.h", 
       "test/cpp/util/create_test_channel.cc", 
       "test/cpp/util/create_test_channel.h", 
+      "test/cpp/util/fake_credentials.cc", 
+      "test/cpp/util/fake_credentials.h", 
       "test/cpp/util/subprocess.cc", 
       "test/cpp/util/subprocess.h"
     ]
@@ -11903,8 +9658,6 @@
     "headers": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
-      "include/grpc++/auth_context.h", 
-      "include/grpc++/auth_property_iterator.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -11914,8 +9667,6 @@
       "include/grpc++/config_protobuf.h", 
       "include/grpc++/create_channel.h", 
       "include/grpc++/credentials.h", 
-      "include/grpc++/dynamic_thread_pool.h", 
-      "include/grpc++/fixed_size_thread_pool.h", 
       "include/grpc++/generic_stub.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
@@ -11943,15 +9694,13 @@
       "include/grpc++/thread_pool_interface.h", 
       "include/grpc++/time.h", 
       "src/cpp/client/channel.h", 
-      "src/cpp/common/create_auth_context.h"
+      "src/cpp/server/thread_pool.h"
     ], 
     "language": "c++", 
     "name": "grpc++_unsecure", 
     "src": [
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
-      "include/grpc++/auth_context.h", 
-      "include/grpc++/auth_property_iterator.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -11961,8 +9710,6 @@
       "include/grpc++/config_protobuf.h", 
       "include/grpc++/create_channel.h", 
       "include/grpc++/credentials.h", 
-      "include/grpc++/dynamic_thread_pool.h", 
-      "include/grpc++/fixed_size_thread_pool.h", 
       "include/grpc++/generic_stub.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
@@ -12000,19 +9747,17 @@
       "src/cpp/client/internal_stub.cc", 
       "src/cpp/common/call.cc", 
       "src/cpp/common/completion_queue.cc", 
-      "src/cpp/common/create_auth_context.h", 
-      "src/cpp/common/insecure_create_auth_context.cc", 
       "src/cpp/common/rpc_method.cc", 
       "src/cpp/proto/proto_utils.cc", 
       "src/cpp/server/async_generic_service.cc", 
       "src/cpp/server/create_default_thread_pool.cc", 
-      "src/cpp/server/dynamic_thread_pool.cc", 
-      "src/cpp/server/fixed_size_thread_pool.cc", 
       "src/cpp/server/insecure_server_credentials.cc", 
       "src/cpp/server/server.cc", 
       "src/cpp/server/server_builder.cc", 
       "src/cpp/server/server_context.cc", 
       "src/cpp/server/server_credentials.cc", 
+      "src/cpp/server/thread_pool.cc", 
+      "src/cpp/server/thread_pool.h", 
       "src/cpp/util/byte_buffer.cc", 
       "src/cpp/util/slice.cc", 
       "src/cpp/util/status.cc", 
@@ -12283,44 +10028,10 @@
       "test/core/end2end/end2end_tests.h"
     ], 
     "language": "c", 
-    "name": "end2end_fixture_chttp2_fullstack_compression", 
-    "src": [
-      "test/core/end2end/end2end_tests.h", 
-      "test/core/end2end/fixtures/chttp2_fullstack_compression.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [
-      "test/core/end2end/end2end_tests.h"
-    ], 
-    "language": "c", 
     "name": "end2end_fixture_chttp2_fullstack_uds_posix", 
     "src": [
       "test/core/end2end/end2end_tests.h", 
       "test/core/end2end/fixtures/chttp2_fullstack_uds_posix.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [
-      "test/core/end2end/end2end_tests.h"
-    ], 
-    "language": "c", 
-    "name": "end2end_fixture_chttp2_fullstack_uds_posix_with_poll", 
-    "src": [
-      "test/core/end2end/end2end_tests.h", 
-      "test/core/end2end/fixtures/chttp2_fullstack_uds_posix_with_poll.c"
     ]
   }, 
   {
@@ -12576,44 +10287,6 @@
       "test/core/end2end/end2end_tests.h", 
       "test/core/end2end/tests/cancel_test_helpers.h", 
       "test/core/end2end/tests/census_simple_request.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [
-      "test/core/end2end/end2end_tests.h", 
-      "test/core/end2end/tests/cancel_test_helpers.h"
-    ], 
-    "language": "c", 
-    "name": "end2end_test_channel_connectivity", 
-    "src": [
-      "test/core/end2end/end2end_tests.h", 
-      "test/core/end2end/tests/cancel_test_helpers.h", 
-      "test/core/end2end/tests/channel_connectivity.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [
-      "test/core/end2end/end2end_tests.h", 
-      "test/core/end2end/tests/cancel_test_helpers.h"
-    ], 
-    "language": "c", 
-    "name": "end2end_test_default_host", 
-    "src": [
-      "test/core/end2end/end2end_tests.h", 
-      "test/core/end2end/tests/cancel_test_helpers.h", 
-      "test/core/end2end/tests/default_host.c"
     ]
   }, 
   {
@@ -12919,25 +10592,6 @@
       "test/core/end2end/end2end_tests.h", 
       "test/core/end2end/tests/cancel_test_helpers.h", 
       "test/core/end2end/tests/request_response_with_trailing_metadata_and_payload.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [
-      "test/core/end2end/end2end_tests.h", 
-      "test/core/end2end/tests/cancel_test_helpers.h"
-    ], 
-    "language": "c", 
-    "name": "end2end_test_request_with_compressed_payload", 
-    "src": [
-      "test/core/end2end/end2end_tests.h", 
-      "test/core/end2end/tests/cancel_test_helpers.h", 
-      "test/core/end2end/tests/request_with_compressed_payload.c"
     ]
   }, 
   {
