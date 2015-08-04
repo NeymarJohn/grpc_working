@@ -57,12 +57,9 @@ class ServerContext::CompletionOp GRPC_FINAL : public CallOpSetInterface {
 
   bool CheckCancelled(CompletionQueue* cq);
 
-  void set_tag(void* tag) { tag_ = tag; }
-
   void Unref();
 
  private:
-  void* tag_;
   grpc::mutex mu_;
   int refs_;
   bool finalized_;
@@ -93,24 +90,18 @@ void ServerContext::CompletionOp::FillOps(grpc_op* ops, size_t* nops) {
 bool ServerContext::CompletionOp::FinalizeResult(void** tag, bool* status) {
   grpc::unique_lock<grpc::mutex> lock(mu_);
   finalized_ = true;
-  bool ret = false;
-  if (tag_) {
-    *tag = tag_;
-    ret = true;
-  }
   if (!*status) cancelled_ = 1;
   if (--refs_ == 0) {
     lock.unlock();
     delete this;
   }
-  return ret;
+  return false;
 }
 
 // ServerContext body
 
 ServerContext::ServerContext()
     : completion_op_(nullptr),
-      async_notify_when_done_tag_(nullptr),
       call_(nullptr),
       cq_(nullptr),
       sent_initial_metadata_(false) {}
@@ -118,7 +109,6 @@ ServerContext::ServerContext()
 ServerContext::ServerContext(gpr_timespec deadline, grpc_metadata* metadata,
                              size_t metadata_count)
     : completion_op_(nullptr),
-      async_notify_when_done_tag_(nullptr),
       deadline_(deadline),
       call_(nullptr),
       cq_(nullptr),
@@ -143,7 +133,6 @@ ServerContext::~ServerContext() {
 void ServerContext::BeginCompletionOp(Call* call) {
   GPR_ASSERT(!completion_op_);
   completion_op_ = new CompletionOp();
-  completion_op_->set_tag(async_notify_when_done_tag_);
   call->PerformOps(completion_op_);
 }
 
