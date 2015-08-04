@@ -186,6 +186,7 @@ cc_library(
     "src/core/iomgr/iomgr_internal.h",
     "src/core/iomgr/iomgr_posix.h",
     "src/core/iomgr/pollset.h",
+    "src/core/iomgr/pollset_kick_posix.h",
     "src/core/iomgr/pollset_posix.h",
     "src/core/iomgr/pollset_set.h",
     "src/core/iomgr/pollset_set_posix.h",
@@ -307,6 +308,7 @@ cc_library(
     "src/core/iomgr/iomgr.c",
     "src/core/iomgr/iomgr_posix.c",
     "src/core/iomgr/iomgr_windows.c",
+    "src/core/iomgr/pollset_kick_posix.c",
     "src/core/iomgr/pollset_multipoller_with_epoll.c",
     "src/core/iomgr/pollset_multipoller_with_poll_posix.c",
     "src/core/iomgr/pollset_posix.c",
@@ -446,6 +448,7 @@ cc_library(
     "src/core/iomgr/iomgr_internal.h",
     "src/core/iomgr/iomgr_posix.h",
     "src/core/iomgr/pollset.h",
+    "src/core/iomgr/pollset_kick_posix.h",
     "src/core/iomgr/pollset_posix.h",
     "src/core/iomgr/pollset_set.h",
     "src/core/iomgr/pollset_set_posix.h",
@@ -544,6 +547,7 @@ cc_library(
     "src/core/iomgr/iomgr.c",
     "src/core/iomgr/iomgr_posix.c",
     "src/core/iomgr/iomgr_windows.c",
+    "src/core/iomgr/pollset_kick_posix.c",
     "src/core/iomgr/pollset_multipoller_with_epoll.c",
     "src/core/iomgr/pollset_multipoller_with_poll_posix.c",
     "src/core/iomgr/pollset_posix.c",
@@ -637,6 +641,26 @@ cc_library(
   ],
   deps = [
     ":gpr",
+  ],
+)
+
+
+cc_library(
+  name = "grpc_zookeeper",
+  srcs = [
+    "src/core/client_config/resolvers/zookeeper_resolver.h",
+    "src/core/client_config/resolvers/zookeeper_resolver.c",
+  ],
+  hdrs = [
+    "include/grpc/grpc_zookeeper.h",
+  ],
+  includes = [
+    "include",
+    ".",
+  ],
+  deps = [
+    ":gpr",
+    ":grpc",
   ],
 )
 
@@ -1029,6 +1053,7 @@ objc_library(
     "src/core/iomgr/iomgr.c",
     "src/core/iomgr/iomgr_posix.c",
     "src/core/iomgr/iomgr_windows.c",
+    "src/core/iomgr/pollset_kick_posix.c",
     "src/core/iomgr/pollset_multipoller_with_epoll.c",
     "src/core/iomgr/pollset_multipoller_with_poll_posix.c",
     "src/core/iomgr/pollset_posix.c",
@@ -1170,6 +1195,7 @@ objc_library(
     "src/core/iomgr/iomgr_internal.h",
     "src/core/iomgr/iomgr_posix.h",
     "src/core/iomgr/pollset.h",
+    "src/core/iomgr/pollset_kick_posix.h",
     "src/core/iomgr/pollset_posix.h",
     "src/core/iomgr/pollset_set.h",
     "src/core/iomgr/pollset_set_posix.h",
