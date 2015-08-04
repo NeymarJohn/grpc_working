@@ -3698,7 +3698,10 @@ endif
 
 
 LIBGRPC_SRC = \
+    src/core/httpcli/format_request.c \
+    src/core/httpcli/httpcli.c \
     src/core/httpcli/httpcli_security_connector.c \
+    src/core/httpcli/parser.c \
     src/core/security/base64.c \
     src/core/security/client_auth_filter.c \
     src/core/security/credentials.c \
@@ -3745,9 +3748,6 @@ LIBGRPC_SRC = \
     src/core/compression/algorithm.c \
     src/core/compression/message_compress.c \
     src/core/debug/trace.c \
-    src/core/httpcli/format_request.c \
-    src/core/httpcli/httpcli.c \
-    src/core/httpcli/parser.c \
     src/core/iomgr/alarm.c \
     src/core/iomgr/alarm_heap.c \
     src/core/iomgr/endpoint.c \
@@ -4016,9 +4016,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/compression/algorithm.c \
     src/core/compression/message_compress.c \
     src/core/debug/trace.c \
-    src/core/httpcli/format_request.c \
-    src/core/httpcli/httpcli.c \
-    src/core/httpcli/parser.c \
     src/core/iomgr/alarm.c \
     src/core/iomgr/alarm_heap.c \
     src/core/iomgr/endpoint.c \
@@ -18683,7 +18680,10 @@ ifneq ($(OPENSSL_DEP),)
 # This is to ensure the embedded OpenSSL is built beforehand, properly
 # installing headers to their final destination on the drive. We need this
 # otherwise parallel compilation will fail if a source is compiled first.
+src/core/httpcli/format_request.c: $(OPENSSL_DEP)
+src/core/httpcli/httpcli.c: $(OPENSSL_DEP)
 src/core/httpcli/httpcli_security_connector.c: $(OPENSSL_DEP)
+src/core/httpcli/parser.c: $(OPENSSL_DEP)
 src/core/security/base64.c: $(OPENSSL_DEP)
 src/core/security/client_auth_filter.c: $(OPENSSL_DEP)
 src/core/security/credentials.c: $(OPENSSL_DEP)
