@@ -186,17 +186,6 @@ error:
   return -1;
 }
 
-static void decrement_active_ports_and_notify(server_port *sp) {
-  sp->shutting_down = 0;
-  sp->socket->read_info.outstanding = 0;
-  gpr_mu_lock(&sp->server->mu);
-  GPR_ASSERT(sp->server->active_ports > 0);
-  if (0 == --sp->server->active_ports) {
-    gpr_cv_broadcast(&sp->server->cv);
-  }
-  gpr_mu_unlock(&sp->server->mu);
-}
-
 /* start_accept will reference that for the IOCP notification request. */
 static void on_accept(void *arg, int from_iocp);
 
@@ -245,11 +234,6 @@ static void start_accept(server_port *port) {
   return;
 
 failure:
-  if (port->shutting_down) {
-    /* We are abandoning the listener port, take that into account to prevent
-       occasional hangs on shutdown. */
-    decrement_active_ports_and_notify(port);
-  }
   utf8_message = gpr_format_message(WSAGetLastError());
   gpr_log(GPR_ERROR, message, utf8_message);
   gpr_free(utf8_message);
@@ -293,7 +277,14 @@ static void on_accept(void *arg, int from_iocp) {
     if (sp->shutting_down) {
       /* During the shutdown case, we ARE expecting an error. So that's well,
          and we can wake up the shutdown thread. */
-      decrement_active_ports_and_notify(sp);
+      sp->shutting_down = 0;
+      sp->socket->read_info.outstanding = 0;
+      gpr_mu_lock(&sp->server->mu);
+      GPR_ASSERT(sp->server->active_ports > 0);
+      if (0 == --sp->server->active_ports) {
+        gpr_cv_broadcast(&sp->server->cv);
+      }
+      gpr_mu_unlock(&sp->server->mu);
       return;
     } else {
       char *utf8_message = gpr_format_message(WSAGetLastError());
