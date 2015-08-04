@@ -31,41 +31,12 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_CLIENT_CHANNEL_H
-#define GRPC_INTERNAL_CPP_CLIENT_CHANNEL_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-#include <memory>
+#include "src/core/client_config/resolver_factory.h"
 
-#include <grpc++/channel_interface.h>
-#include <grpc++/config.h>
-#include <grpc++/impl/grpc_library.h>
+/** Create a zookeeper resolver factory */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
 
-struct grpc_channel;
-
-namespace grpc {
-class Call;
-class CallOpSetInterface;
-class ChannelArguments;
-class CompletionQueue;
-class Credentials;
-class StreamContextInterface;
-
-class Channel GRPC_FINAL : public GrpcLibrary, public ChannelInterface {
- public:
-  Channel(const grpc::string& target, grpc_channel* c_channel);
-  ~Channel() GRPC_OVERRIDE;
-
-  virtual void* RegisterMethod(const char* method) GRPC_OVERRIDE;
-  virtual Call CreateCall(const RpcMethod& method, ClientContext* context,
-                          CompletionQueue* cq) GRPC_OVERRIDE;
-  virtual void PerformOpsOnCall(CallOpSetInterface* ops,
-                                Call* call) GRPC_OVERRIDE;
-
- private:
-  const grpc::string target_;
-  grpc_channel* const c_channel_;  // owned
-};
-
-}  // namespace grpc
-
-#endif  // GRPC_INTERNAL_CPP_CLIENT_CHANNEL_H
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */
