@@ -268,21 +268,34 @@ INCLUDES = . include $(GENDIR)
 LDFLAGS += -Llibs/$(CONFIG)
 
 ifeq ($(SYSTEM),Darwin)
-LIBS += m
+ifneq ($(wildcard /usr/local/ssl/include),)
+INCLUDES += /usr/local/ssl/include
+endif
+ifneq ($(wildcard /opt/local/include),)
+INCLUDES += /opt/local/include
+endif
+ifneq ($(wildcard /usr/local/include),)
+INCLUDES += /usr/local/include
+endif
+LIBS = m z
+ifneq ($(wildcard /usr/local/ssl/lib),)
+LDFLAGS += -L/usr/local/ssl/lib
+endif
+ifneq ($(wildcard /opt/local/lib),)
+LDFLAGS += -L/opt/local/lib
+endif
+ifneq ($(wildcard /usr/local/lib),)
+LDFLAGS += -L/usr/local/lib
+endif
 endif
 
 ifeq ($(SYSTEM),Linux)
-LIBS += rt m pthread
+LIBS = rt m z pthread
 LDFLAGS += -pthread
 endif
 
 ifeq ($(SYSTEM),MINGW32)
-LIBS += m pthread
-LDFLAGS += -pthread
-endif
-
-ifeq ($(SYSTEM),FreeBSD)
-LIBS += pthread
+LIBS = m z pthread
 LDFLAGS += -pthread
 endif
 
@@ -373,39 +386,6 @@ OPENSSL_NPN_CHECK_CMD = $(PKG_CONFIG) --atleast-version=1.0.1 openssl
 ZLIB_CHECK_CMD = $(PKG_CONFIG) --exists zlib
 PROTOBUF_CHECK_CMD = $(PKG_CONFIG) --atleast-version=3.0.0-alpha-3 protobuf
 else # HAS_PKG_CONFIG
-
-ifeq ($(SYSTEM),Darwin)
-ifneq ($(wildcard /usr/local/ssl/include),)
-INCLUDES += /usr/local/ssl/include
-endif
-ifneq ($(wildcard /opt/local/include),)
-INCLUDES += /opt/local/include
-endif
-ifneq ($(wildcard /usr/local/include),)
-INCLUDES += /usr/local/include
-endif
-ifneq ($(wildcard /usr/local/ssl/lib),)
-LDFLAGS += -L/usr/local/ssl/lib
-endif
-ifneq ($(wildcard /opt/local/lib),)
-LDFLAGS += -L/opt/local/lib
-endif
-ifneq ($(wildcard /usr/local/lib),)
-LDFLAGS += -L/usr/local/lib
-endif
-endif
-
-ifeq ($(SYSTEM),Linux)
-LIBS += z
-endif
-
-ifeq ($(SYSTEM),MINGW32)
-LIBS += z
-endif
-
-ifeq ($(SYSTEM),FreeBSD)
-LIBS += z
-endif
 
 ifeq ($(SYSTEM),MINGW32)
 OPENSSL_LIBS = ssl32 eay32
@@ -3718,10 +3698,7 @@ endif
 
 
 LIBGRPC_SRC = \
-    src/core/httpcli/format_request.c \
-    src/core/httpcli/httpcli.c \
     src/core/httpcli/httpcli_security_connector.c \
-    src/core/httpcli/parser.c \
     src/core/security/base64.c \
     src/core/security/client_auth_filter.c \
     src/core/security/credentials.c \
@@ -3768,6 +3745,9 @@ LIBGRPC_SRC = \
     src/core/compression/algorithm.c \
     src/core/compression/message_compress.c \
     src/core/debug/trace.c \
+    src/core/httpcli/format_request.c \
+    src/core/httpcli/httpcli.c \
+    src/core/httpcli/parser.c \
     src/core/iomgr/alarm.c \
     src/core/iomgr/alarm_heap.c \
     src/core/iomgr/endpoint.c \
@@ -4036,6 +4016,9 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/compression/algorithm.c \
     src/core/compression/message_compress.c \
     src/core/debug/trace.c \
+    src/core/httpcli/format_request.c \
+    src/core/httpcli/httpcli.c \
+    src/core/httpcli/parser.c \
     src/core/iomgr/alarm.c \
     src/core/iomgr/alarm_heap.c \
     src/core/iomgr/endpoint.c \
@@ -18700,10 +18683,7 @@ ifneq ($(OPENSSL_DEP),)
 # This is to ensure the embedded OpenSSL is built beforehand, properly
 # installing headers to their final destination on the drive. We need this
 # otherwise parallel compilation will fail if a source is compiled first.
-src/core/httpcli/format_request.c: $(OPENSSL_DEP)
-src/core/httpcli/httpcli.c: $(OPENSSL_DEP)
 src/core/httpcli/httpcli_security_connector.c: $(OPENSSL_DEP)
-src/core/httpcli/parser.c: $(OPENSSL_DEP)
 src/core/security/base64.c: $(OPENSSL_DEP)
 src/core/security/client_auth_filter.c: $(OPENSSL_DEP)
 src/core/security/credentials.c: $(OPENSSL_DEP)
