@@ -134,8 +134,7 @@ namespace Grpc.Core.Tests
             }
             catch (RpcException e)
             {
-                // We can't guarantee the status code always DeadlineExceeded. See issue #2685.
-                Assert.Contains(e.Status.StatusCode, new[] { StatusCode.DeadlineExceeded, StatusCode.Internal });
+                Assert.AreEqual(StatusCode.DeadlineExceeded, e.Status.StatusCode);
             }
         }
 
@@ -152,8 +151,7 @@ namespace Grpc.Core.Tests
             }
             catch (RpcException e)
             {
-                // We can't guarantee the status code always DeadlineExceeded. See issue #2685.
-                Assert.Contains(e.Status.StatusCode, new[] { StatusCode.DeadlineExceeded, StatusCode.Internal });
+                Assert.AreEqual(StatusCode.DeadlineExceeded, e.Status.StatusCode);
             }
         }
 
@@ -170,8 +168,7 @@ namespace Grpc.Core.Tests
             }
             catch (RpcException e)
             {
-                // We can't guarantee the status code is always DeadlineExceeded. See issue #2685.
-                Assert.Contains(e.Status.StatusCode, new[] { StatusCode.DeadlineExceeded, StatusCode.Internal });
+                Assert.AreEqual(StatusCode.DeadlineExceeded, e.Status.StatusCode);
             }
             Assert.AreEqual("CANCELLED", stringFromServerHandlerTcs.Task.Result);
         }

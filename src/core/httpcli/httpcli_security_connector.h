@@ -31,27 +31,13 @@
  *
  */
 
-#include "src/core/transport/chttp2/alpn.h"
-#include <grpc/support/log.h>
-#include <grpc/support/useful.h>
+#ifndef GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONNECTOR_H
+#define GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONNECTOR_H
 
-/* in order of preference */
-static const char *const supported_versions[] = {"h2", "h2-17", "h2-16",
-                                                 "h2-15", "h2-14"};
+#include "src/core/security/security_connector.h"
 
-int grpc_chttp2_is_alpn_version_supported(const char *version, size_t size) {
-  size_t i;
-  for (i = 0; i < GPR_ARRAY_SIZE(supported_versions); i++) {
-    if (!strncmp(version, supported_versions[i], size)) return 1;
-  }
-  return 0;
-}
+grpc_security_status grpc_httpcli_ssl_channel_security_connector_create(
+    const unsigned char *pem_root_certs, size_t pem_root_certs_size,
+    const char *secure_peer_name, grpc_channel_security_connector **sc);
 
-size_t grpc_chttp2_num_alpn_versions(void) {
-  return GPR_ARRAY_SIZE(supported_versions);
-}
-
-const char *grpc_chttp2_get_alpn_version_index(size_t i) {
-  GPR_ASSERT(i < GPR_ARRAY_SIZE(supported_versions));
-  return supported_versions[i];
-}
+#endif  /* GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONNECTOR_H */

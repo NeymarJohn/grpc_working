@@ -32,7 +32,6 @@
 
 import argparse
 import glob
-import hashlib
 import itertools
 import json
 import multiprocessing
@@ -44,7 +43,6 @@ import subprocess
 import sys
 import time
 import xml.etree.cElementTree as ET
-import urllib2
 
 import jobset
 import watch_dirs
@@ -54,6 +52,17 @@ os.chdir(ROOT)
 
 
 _FORCE_ENVIRON_FOR_WRAPPERS = {}
+
+
+def platform_string():
+  if platform.system() == 'Windows':
+    return 'windows'
+  elif platform.system() == 'Darwin':
+    return 'mac'
+  elif platform.system() == 'Linux':
+    return 'linux'
+  else:
+    return 'posix'
 
 
 # SimpleConfig: just compile with CONFIG=config, and run the binary to test
@@ -111,11 +120,7 @@ class CLanguage(object):
 
   def __init__(self, make_target, test_lang):
     self.make_target = make_target
-    if platform.system() == 'Windows':
-      plat = 'windows'
-    else:
-      plat = 'posix'
-    self.platform = plat
+    self.platform = platform_string()
     with open('tools/run_tests/tests.json') as f:
       js = json.load(f)
       self.binaries = [tgt
@@ -247,16 +252,11 @@ class RubyLanguage(object):
 
 class CSharpLanguage(object):
   def __init__(self):
-    if platform.system() == 'Windows':
-      plat = 'windows'
-    else:
-      plat = 'posix'
-    self.platform = plat
+    self.platform = platform_string()
 
   def test_specs(self, config, travis):
     assemblies = ['Grpc.Core.Tests',
                   'Grpc.Examples.Tests',
-                  'Grpc.HealthCheck.Tests',
                   'Grpc.IntegrationTesting']
     if self.platform == 'windows':
       cmd = 'tools\\run_tests\\run_csharp.bat'
@@ -265,7 +265,7 @@ class CSharpLanguage(object):
     return [config.job_spec([cmd, assembly],
             None, shortname=assembly,
             environ=_FORCE_ENVIRON_FOR_WRAPPERS)
-            for assembly in assemblies ]
+            for assembly in assemblies]
 
   def make_targets(self):
     # For Windows, this target doesn't really build anything,
@@ -525,43 +525,7 @@ class TestCache(object):
         self.parse(json.loads(f.read()))
 
 
-def _start_port_server(port_server_port):
-  # check if a compatible port server is running
-  # if incompatible (version mismatch) ==> start a new one
-  # if not running ==> start a new one
-  # otherwise, leave it up
-  try:
-    version = urllib2.urlopen('http://localhost:%d/version' % port_server_port).read()
-    running = True
-  except Exception:
-    running = False
-  if running:
-    with open('tools/run_tests/port_server.py') as f:
-      current_version = hashlib.sha1(f.read()).hexdigest()
-      running = (version == current_version)
-      if not running:
-        urllib2.urlopen('http://localhost:%d/quit' % port_server_port).read()
-        time.sleep(1)
-  if not running:
-    port_log = open('portlog.txt', 'w')
-    port_server = subprocess.Popen(
-        ['tools/run_tests/port_server.py', '-p', '%d' % port_server_port],
-        stderr=subprocess.STDOUT,
-        stdout=port_log)
-    # ensure port server is up
-    while True:
-      try:
-        urllib2.urlopen('http://localhost:%d/get' % port_server_port).read()
-        break
-      except urllib2.URLError:
-        time.sleep(0.5)
-      except:
-        port_server.kill()
-        raise
-
-
-def _build_and_run(
-    check_cancelled, newline_on_success, travis, cache, xml_report=None):
+def _build_and_run(check_cancelled, newline_on_success, travis, cache, xml_report=None):
   """Do one pass of building & running tests."""
   # build latest sequentially
   if not jobset.run(build_steps, maxjobs=1,
@@ -571,8 +535,6 @@ def _build_and_run(
   # start antagonists
   antagonists = [subprocess.Popen(['tools/run_tests/antagonist.py'])
                  for _ in range(0, args.antagonists)]
-  port_server_port = 9999
-  _start_port_server(port_server_port)
   try:
     infinite_runs = runs_per_test == 0
     # When running on travis, we want out test runs to be as similar as possible
@@ -599,8 +561,7 @@ def _build_and_run(
                       maxjobs=args.jobs,
                       stop_on_failure=args.stop_on_failure,
                       cache=cache if not xml_report else None,
-                      xml_report=testsuite,
-                      add_env={'GRPC_TEST_PORT_SERVER': 'localhost:%d' % port_server_port}):
+                      xml_report=testsuite):
       return 2
   finally:
     for antagonist in antagonists:
