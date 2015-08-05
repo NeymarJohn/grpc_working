@@ -826,20 +826,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "poll_kick_posix_test", 
-    "src": [
-      "test/core/iomgr/poll_kick_posix_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "resolve_address_test", 
     "src": [
       "test/core/iomgr/resolve_address_test.c"
@@ -1527,6 +1513,55 @@
   {
     "deps": [
       "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc++", 
+      "grpc++_test_config", 
+      "grpc++_test_util", 
+      "grpc_test_util"
+    ], 
+    "headers": [
+      "test/proto/empty.grpc.pb.h", 
+      "test/proto/empty.pb.h", 
+      "test/proto/messages.grpc.pb.h", 
+      "test/proto/messages.pb.h", 
+      "test/proto/test.grpc.pb.h", 
+      "test/proto/test.pb.h"
+    ], 
+    "language": "c++", 
+    "name": "reconnect_interop_client", 
+    "src": [
+      "test/cpp/interop/reconnect_interop_client.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc++", 
+      "grpc++_test_config", 
+      "grpc++_test_util", 
+      "grpc_test_util", 
+      "reconnect_server"
+    ], 
+    "headers": [
+      "test/proto/empty.grpc.pb.h", 
+      "test/proto/empty.pb.h", 
+      "test/proto/messages.grpc.pb.h", 
+      "test/proto/messages.pb.h", 
+      "test/proto/test.grpc.pb.h", 
+      "test/proto/test.pb.h"
+    ], 
+    "language": "c++", 
+    "name": "reconnect_interop_server", 
+    "src": [
+      "test/cpp/interop/reconnect_interop_server.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
       "grpc", 
       "grpc++"
     ], 
@@ -1632,6 +1667,23 @@
     "name": "thread_stress_test", 
     "src": [
       "test/cpp/end2end/thread_stress_test.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc++", 
+      "grpc++_test_util", 
+      "grpc_test_util", 
+      "grpc_zookeeper"
+    ], 
+    "headers": [], 
+    "language": "c++", 
+    "name": "zookeeper_test", 
+    "src": [
+      "test/cpp/end2end/zookeeper_test.cc"
     ]
   }, 
   {
@@ -10968,7 +11020,6 @@
       "src/core/iomgr/iomgr_internal.h", 
       "src/core/iomgr/iomgr_posix.h", 
       "src/core/iomgr/pollset.h", 
-      "src/core/iomgr/pollset_kick_posix.h", 
       "src/core/iomgr/pollset_posix.h", 
       "src/core/iomgr/pollset_set.h", 
       "src/core/iomgr/pollset_set_posix.h", 
@@ -11138,8 +11189,6 @@
       "src/core/iomgr/iomgr_posix.h", 
       "src/core/iomgr/iomgr_windows.c", 
       "src/core/iomgr/pollset.h", 
-      "src/core/iomgr/pollset_kick_posix.c", 
-      "src/core/iomgr/pollset_kick_posix.h", 
       "src/core/iomgr/pollset_multipoller_with_epoll.c", 
       "src/core/iomgr/pollset_multipoller_with_poll_posix.c", 
       "src/core/iomgr/pollset_posix.c", 
@@ -11434,7 +11483,6 @@
       "src/core/iomgr/iomgr_internal.h", 
       "src/core/iomgr/iomgr_posix.h", 
       "src/core/iomgr/pollset.h", 
-      "src/core/iomgr/pollset_kick_posix.h", 
       "src/core/iomgr/pollset_posix.h", 
       "src/core/iomgr/pollset_set.h", 
       "src/core/iomgr/pollset_set_posix.h", 
@@ -11582,8 +11630,6 @@
       "src/core/iomgr/iomgr_posix.h", 
       "src/core/iomgr/iomgr_windows.c", 
       "src/core/iomgr/pollset.h", 
-      "src/core/iomgr/pollset_kick_posix.c", 
-      "src/core/iomgr/pollset_kick_posix.h", 
       "src/core/iomgr/pollset_multipoller_with_epoll.c", 
       "src/core/iomgr/pollset_multipoller_with_poll_posix.c", 
       "src/core/iomgr/pollset_posix.c", 
@@ -11719,6 +11765,40 @@
       "src/core/transport/transport.h", 
       "src/core/transport/transport_impl.h", 
       "src/core/transport/transport_op_string.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "grpc"
+    ], 
+    "headers": [
+      "include/grpc/grpc_zookeeper.h", 
+      "src/core/client_config/resolvers/zookeeper_resolver.h"
+    ], 
+    "language": "c", 
+    "name": "grpc_zookeeper", 
+    "src": [
+      "include/grpc/grpc_zookeeper.h", 
+      "src/core/client_config/resolvers/zookeeper_resolver.c", 
+      "src/core/client_config/resolvers/zookeeper_resolver.h"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [
+      "test/core/util/reconnect_server.h"
+    ], 
+    "language": "c", 
+    "name": "reconnect_server", 
+    "src": [
+      "test/core/util/reconnect_server.c", 
+      "test/core/util/reconnect_server.h"
     ]
   }, 
   {
