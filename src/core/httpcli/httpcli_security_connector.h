@@ -31,13 +31,13 @@
  *
  */
 
-#import <XCTest/XCTest.h>
+#ifndef GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONNECTOR_H
+#define GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONNECTOR_H
 
-// Implements tests as described here:
-// https://github.com/grpc/grpc/blob/master/doc/interop-test-descriptions.md
+#include "src/core/security/security_connector.h"
 
-@interface InteropTests : XCTestCase
-// Returns @"grpc-test.sandbox.google.com".
-// Override in a subclass to perform the same tests against a different address.
-+ (NSString *)host;
-@end
+grpc_security_status grpc_httpcli_ssl_channel_security_connector_create(
+    const unsigned char *pem_root_certs, size_t pem_root_certs_size,
+    const char *secure_peer_name, grpc_channel_security_connector **sc);
+
+#endif  /* GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONNECTOR_H */
