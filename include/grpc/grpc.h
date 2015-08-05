@@ -126,8 +126,6 @@ typedef struct {
 /** Initial sequence number for http2 transports */
 #define GRPC_ARG_HTTP2_INITIAL_SEQUENCE_NUMBER \
   "grpc.http2.initial_sequence_number"
-/** Default authority to pass if none specified on call construction */
-#define GRPC_ARG_DEFAULT_AUTHORITY "grpc.default_authority"
 /** Primary user agent: goes at the start of the user-agent metadata
     sent on each request */
 #define GRPC_ARG_PRIMARY_USER_AGENT_STRING "grpc.primary_user_agent"
@@ -351,12 +349,6 @@ typedef struct grpc_op {
   } data;
 } grpc_op;
 
-/** Registers a plugin to be initialized and deinitialized with the library.
-
-    It is safe to pass NULL to either argument. The initialization and
-    deinitialization order isn't guaranteed. */
-void grpc_register_plugin(void (*init)(void), void (*deinit)(void));
-
 /** Initialize the grpc library.
 
     It is not safe to call any other grpc functions before calling this.
@@ -397,16 +389,9 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cq,
     otherwise a grpc_event describing the event that occurred.
 
     Callers must not call grpc_completion_queue_next and
-    grpc_completion_queue_pluck simultaneously on the same completion queue. 
-    
-    Completion queues support a maximum of GRPC_MAX_COMPLETION_QUEUE_PLUCKERS
-    concurrently executing plucks at any time. */
+    grpc_completion_queue_pluck simultaneously on the same completion queue. */
 grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cq, void *tag,
                                        gpr_timespec deadline);
-
-/** Maximum number of outstanding grpc_completion_queue_pluck executions per
-    completion queue */
-#define GRPC_MAX_COMPLETION_QUEUE_PLUCKERS 6
 
 /** Begin destruction of a completion queue. Once all possible events are
     drained then grpc_completion_queue_next will start to produce
@@ -429,10 +414,14 @@ grpc_connectivity_state grpc_channel_check_connectivity_state(
     Once the channel connectivity state is different from last_observed_state,
     tag will be enqueued on cq with success=1.
     If deadline expires BEFORE the state is changed, tag will be enqueued on cq
-    with success=0. */
+    with success=0.
+    If optional_new_state is non-NULL, it will be set to the newly observed
+    connectivity state of the channel at the same point as tag is enqueued onto 
+    the completion queue. */
 void grpc_channel_watch_connectivity_state(
     grpc_channel *channel, grpc_connectivity_state last_observed_state,
-    gpr_timespec deadline, grpc_completion_queue *cq, void *tag);
+    grpc_connectivity_state *optional_new_state, gpr_timespec deadline,
+    grpc_completion_queue *cq, void *tag);
 
 /** Create a call given a grpc_channel, in order to call 'method'. All
     completions are sent to 'completion_queue'. 'method' and 'host' need only
@@ -575,7 +564,7 @@ void grpc_server_register_completion_queue(grpc_server *server,
 /** Add a HTTP2 over plaintext over tcp listener.
     Returns bound port number on success, 0 on failure.
     REQUIRES: server not started */
-int grpc_server_add_insecure_http2_port(grpc_server *server, const char *addr);
+int grpc_server_add_http2_port(grpc_server *server, const char *addr);
 
 /** Start a server - tells all listeners to start listening */
 void grpc_server_start(grpc_server *server);

@@ -31,13 +31,15 @@
  *
  */
 
-/* This is just a compilation test, to see if we have Zookeeper C client
-   library installed. */
+#import "GRPCCall.h"
 
-#include <stdlib.h>
-#include <zookeeper/zookeeper.h>
+@interface GRPCCall (Tests)
 
-int main() {
-  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
-  return 0;
-}
+// Establish all SSL connections to the provided host using the passed SSL target name and the root
+// certificates found in the file at |certsPath|.
+// Must be called before any gRPC call to that host is made.
++ (void)useTestCertsPath:(NSString *)certsPath
+                testName:(NSString *)testName
+                 forHost:(NSString *)host;
+
+@end
