@@ -48,7 +48,6 @@
 #include <grpc++/impl/call.h>
 #include <grpc++/impl/rpc_method.h>
 #include <grpc++/status.h>
-#include <grpc++/time.h>
 
 namespace grpc {
 
@@ -62,16 +61,18 @@ Channel::~Channel() { grpc_channel_destroy(c_channel_); }
 Call Channel::CreateCall(const RpcMethod& method, ClientContext* context,
                          CompletionQueue* cq) {
   const char* host_str = host_.empty() ? NULL : host_.c_str();
-  auto c_call =
-      method.channel_tag() && context->authority().empty()
-          ? grpc_channel_create_registered_call(c_channel_, cq->cq(),
-                                                method.channel_tag(),
-                                                context->raw_deadline())
-          : grpc_channel_create_call(c_channel_, cq->cq(), method.name(),
-                                     context->authority().empty()
-                                         ? host_str
-                                         : context->authority().c_str(),
-                                     context->raw_deadline());
+  auto c_call = method.channel_tag() && context->authority().empty()
+                    ? grpc_channel_create_registered_call(
+                          c_channel_, context->propagate_from_call_,
+                          context->propagation_options_.c_bitmask(), cq->cq(),
+                          method.channel_tag(), context->raw_deadline())
+                    : grpc_channel_create_call(
+                          c_channel_, context->propagate_from_call_,
+                          context->propagation_options_.c_bitmask(), cq->cq(),
+                          method.name(), context->authority().empty()
+                                             ? host_str
+                                             : context->authority().c_str(),
+                          context->raw_deadline());
   grpc_census_call_set_context(c_call, context->census_context());
   GRPC_TIMER_MARK(GRPC_PTAG_CPP_CALL_CREATED, c_call);
   context->set_call(c_call, shared_from_this());
@@ -94,73 +95,4 @@ void* Channel::RegisterMethod(const char* method) {
                                     host_.empty() ? NULL : host_.c_str());
 }
 
-grpc_connectivity_state Channel::GetState(bool try_to_connect) {
-  return grpc_channel_check_connectivity_state(c_channel_, try_to_connect);
-}
-
-namespace {
-class TagSaver GRPC_FINAL : public CompletionQueueTag {
- public:
-  explicit TagSaver(void* tag) : tag_(tag) {}
-  ~TagSaver() GRPC_OVERRIDE {}
-  bool FinalizeResult(void** tag, bool* status) GRPC_OVERRIDE {
-    *tag = tag_;
-    delete this;
-    return true;
-  }
- private:
-  void* tag_;
-};
-
-template <typename T>
-void NotifyOnStateChangeShared(grpc_channel* channel,
-                               grpc_connectivity_state last_observed,
-                               const T& deadline,
-                               CompletionQueue* cq, void* tag) {
-  TimePoint<T> deadline_tp(deadline);
-  TagSaver* tag_saver = new TagSaver(tag);
-  grpc_channel_watch_connectivity_state(
-      channel, last_observed, deadline_tp.raw_time(), cq->cq(), tag_saver);
-}
-
-template <typename T>
-bool WaitForStateChangeShared(grpc_channel* channel,
-                              grpc_connectivity_state last_observed,
-                              const T& deadline) {
-  CompletionQueue cq;
-  bool ok = false;
-  void* tag = NULL;
-  NotifyOnStateChangeShared(channel, last_observed, deadline, &cq, NULL);
-  cq.Next(&tag, &ok);
-  GPR_ASSERT(tag == NULL);
-  return ok;
-}
-
-}  // namespace
-
-void Channel::NotifyOnStateChange(grpc_connectivity_state last_observed,
-                                  gpr_timespec deadline,
-                                  CompletionQueue* cq, void* tag) {
-  NotifyOnStateChangeShared(c_channel_, last_observed, deadline, cq, tag);
-}
-
-bool Channel::WaitForStateChange(grpc_connectivity_state last_observed,
-                                 gpr_timespec deadline) {
-  return WaitForStateChangeShared(c_channel_, last_observed, deadline);
-}
-
-#ifndef GRPC_CXX0X_NO_CHRONO
-void Channel::NotifyOnStateChange(
-      grpc_connectivity_state last_observed,
-      const std::chrono::system_clock::time_point& deadline,
-      CompletionQueue* cq, void* tag) {
-  NotifyOnStateChangeShared(c_channel_, last_observed, deadline, cq, tag);
-}
-
-bool Channel::WaitForStateChange(
-      grpc_connectivity_state last_observed,
-      const std::chrono::system_clock::time_point& deadline) {
-  return WaitForStateChangeShared(c_channel_, last_observed, deadline);
-}
-#endif  // !GRPC_CXX0X_NO_CHRONO
 }  // namespace grpc
