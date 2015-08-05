@@ -31,34 +31,25 @@
  *
  */
 
-#ifndef GRPCXX_CHANNEL_INTERFACE_H
-#define GRPCXX_CHANNEL_INTERFACE_H
+#ifndef GRPC_TEST_CORE_END2END_FIXTURES_PROXY_H
+#define GRPC_TEST_CORE_END2END_FIXTURES_PROXY_H
 
-#include <memory>
+#include <grpc/grpc.h>
 
-#include <grpc++/status.h>
-#include <grpc++/impl/call.h>
+/* proxy service for _with_proxy fixtures */
 
-struct grpc_call;
+typedef struct grpc_end2end_proxy grpc_end2end_proxy;
 
-namespace grpc {
-class Call;
-class CallOpBuffer;
-class ClientContext;
-class CompletionQueue;
-class RpcMethod;
-class CallInterface;
+typedef struct grpc_end2end_proxy_def {
+  grpc_server *(*create_server)(const char *port);
+  grpc_channel *(*create_client)(const char *target);
+} grpc_end2end_proxy_def;
 
-class ChannelInterface : public CallHook,
-                         public std::enable_shared_from_this<ChannelInterface> {
- public:
-  virtual ~ChannelInterface() {}
+grpc_end2end_proxy *grpc_end2end_proxy_create(
+    const grpc_end2end_proxy_def *def);
+void grpc_end2end_proxy_destroy(grpc_end2end_proxy *proxy);
 
-  virtual void* RegisterMethod(const char* method_name) = 0;
-  virtual Call CreateCall(const RpcMethod& method, ClientContext* context,
-                          CompletionQueue* cq) = 0;
-};
+const char *grpc_end2end_proxy_get_client_target(grpc_end2end_proxy *proxy);
+const char *grpc_end2end_proxy_get_server_port(grpc_end2end_proxy *proxy);
 
-}  // namespace grpc
-
-#endif  // GRPCXX_CHANNEL_INTERFACE_H
+#endif /* GRPC_TEST_CORE_END2END_FIXTURES_PROXY_H */
