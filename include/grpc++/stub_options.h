@@ -31,39 +31,13 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_UTIL_RECONNECT_SERVER_H
-#define GRPC_TEST_CORE_UTIL_RECONNECT_SERVER_H
+#ifndef GRPCXX_STUB_OPTIONS_H
+#define GRPCXX_STUB_OPTIONS_H
 
-#include <grpc/support/sync.h>
-#include <grpc/support/time.h>
-#include "src/core/iomgr/tcp_server.h"
+namespace grpc {
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+class StubOptions {};
 
-typedef struct timestamp_list {
-  gpr_timespec timestamp;
-  struct timestamp_list *next;
-} timestamp_list;
+}  // namespace grpc
 
-typedef struct reconnect_server {
-  grpc_tcp_server *tcp_server;
-  grpc_pollset pollset;
-  grpc_pollset *pollsets[1];
-  timestamp_list *head;
-  timestamp_list *tail;
-  char *peer;
-} reconnect_server;
-
-void reconnect_server_init(reconnect_server *server);
-void reconnect_server_start(reconnect_server *server, int port);
-void reconnect_server_poll(reconnect_server *server, int seconds);
-void reconnect_server_destroy(reconnect_server *server);
-void reconnect_server_clear_timestamps(reconnect_server *server);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* GRPC_TEST_CORE_UTIL_RECONNECT_SERVER_H */
+#endif  // GRPCXX_STUB_OPTIONS_H
