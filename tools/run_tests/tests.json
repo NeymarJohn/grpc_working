@@ -466,14 +466,6 @@
   {
     "flaky": false, 
     "language": "c", 
-    "name": "poll_kick_posix_test", 
-    "platforms": [
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c", 
     "name": "resolve_address_test", 
     "platforms": [
       "windows", 
@@ -787,15 +779,6 @@
     "flaky": false, 
     "language": "c++", 
     "name": "thread_stress_test", 
-    "platforms": [
-      "windows", 
-      "posix"
-    ]
-  }, 
-  {
-    "flaky": false, 
-    "language": "c++", 
-    "name": "zookeeper_test", 
     "platforms": [
       "windows", 
       "posix"
