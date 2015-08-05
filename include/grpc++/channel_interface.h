@@ -36,7 +36,6 @@
 
 #include <memory>
 
-#include <grpc/grpc.h>
 #include <grpc++/status.h>
 #include <grpc++/impl/call.h>
 
@@ -58,31 +57,6 @@ class ChannelInterface : public CallHook,
   virtual void* RegisterMethod(const char* method_name) = 0;
   virtual Call CreateCall(const RpcMethod& method, ClientContext* context,
                           CompletionQueue* cq) = 0;
-
-  // Get the current channel state. If the channel is in IDLE and try_to_connect
-  // is set to true, try to connect.
-  virtual grpc_connectivity_state GetState(bool try_to_connect) = 0;
-
-  // Return the tag on cq when the channel state is changed or deadline expires.
-  // GetState needs to called to get the current state.
-  virtual void NotifyOnStateChange(grpc_connectivity_state last_observed,
-                                   gpr_timespec deadline,
-                                   CompletionQueue* cq, void* tag) = 0;
-
-  // Blocking wait for channel state change or deadline expires.
-  // GetState needs to called to get the current state.
-  virtual bool WaitForStateChange(grpc_connectivity_state last_observed,
-                                  gpr_timespec deadline) = 0;
-#ifndef GRPC_CXX0X_NO_CHRONO
-  virtual void NotifyOnStateChange(
-      grpc_connectivity_state last_observed,
-      const std::chrono::system_clock::time_point& deadline,
-      CompletionQueue* cq, void* tag) = 0;
-  virtual bool WaitForStateChange(
-      grpc_connectivity_state last_observed,
-      const std::chrono::system_clock::time_point& deadline) = 0;
-#endif  // !GRPC_CXX0X_NO_CHRONO
-
 };
 
 }  // namespace grpc
