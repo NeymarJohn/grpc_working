@@ -33,13 +33,14 @@ import abc
 import unittest
 
 from grpc.framework.face import interfaces
-from grpc_test.framework.common import test_constants
 from grpc_test.framework.face.testing import callback as testing_callback
 from grpc_test.framework.face.testing import control
 from grpc_test.framework.face.testing import coverage
 from grpc_test.framework.face.testing import digest
 from grpc_test.framework.face.testing import stock_service
 from grpc_test.framework.face.testing import test_case
+
+_TIMEOUT = 3
 
 
 class EventInvocationSynchronousEventServiceTestCase(
@@ -78,8 +79,7 @@ class EventInvocationSynchronousEventServiceTestCase(
         callback = testing_callback.Callback()
 
         self.stub.event_value_in_value_out(
-            name, request, callback.complete, callback.abort,
-            test_constants.SHORT_TIMEOUT)
+            name, request, callback.complete, callback.abort, _TIMEOUT)
         callback.block_until_terminated()
         response = callback.response()
 
@@ -93,8 +93,7 @@ class EventInvocationSynchronousEventServiceTestCase(
         callback = testing_callback.Callback()
 
         self.stub.event_value_in_stream_out(
-            name, request, callback, callback.abort,
-            test_constants.SHORT_TIMEOUT)
+            name, request, callback, callback.abort, _TIMEOUT)
         callback.block_until_terminated()
         responses = callback.responses()
 
@@ -108,8 +107,7 @@ class EventInvocationSynchronousEventServiceTestCase(
         callback = testing_callback.Callback()
 
         unused_call, request_consumer = self.stub.event_stream_in_value_out(
-            name, callback.complete, callback.abort,
-            test_constants.SHORT_TIMEOUT)
+            name, callback.complete, callback.abort, _TIMEOUT)
         for request in requests:
           request_consumer.consume(request)
         request_consumer.terminate()
@@ -126,7 +124,7 @@ class EventInvocationSynchronousEventServiceTestCase(
         callback = testing_callback.Callback()
 
         unused_call, request_consumer = self.stub.event_stream_in_stream_out(
-            name, callback, callback.abort, test_constants.SHORT_TIMEOUT)
+            name, callback, callback.abort, _TIMEOUT)
         for request in requests:
           request_consumer.consume(request)
         request_consumer.terminate()
@@ -149,11 +147,11 @@ class EventInvocationSynchronousEventServiceTestCase(
           first_callback.complete(first_response)
           self.stub.event_value_in_value_out(
               name, second_request, second_callback.complete,
-              second_callback.abort, test_constants.SHORT_TIMEOUT)
+              second_callback.abort, _TIMEOUT)
 
         self.stub.event_value_in_value_out(
             name, first_request, make_second_invocation, first_callback.abort,
-           test_constants.SHORT_TIMEOUT)
+            _TIMEOUT)
         second_callback.block_until_terminated()
 
         first_response = first_callback.response()
@@ -170,8 +168,7 @@ class EventInvocationSynchronousEventServiceTestCase(
 
         with self.control.pause():
           self.stub.event_value_in_value_out(
-              name, request, callback.complete, callback.abort,
-              test_constants.SHORT_TIMEOUT)
+              name, request, callback.complete, callback.abort, _TIMEOUT)
           callback.block_until_terminated()
 
         self.assertEqual(interfaces.Abortion.EXPIRED, callback.abortion())
@@ -185,8 +182,7 @@ class EventInvocationSynchronousEventServiceTestCase(
 
         with self.control.pause():
           self.stub.event_value_in_stream_out(
-              name, request, callback, callback.abort,
-              test_constants.SHORT_TIMEOUT)
+              name, request, callback, callback.abort, _TIMEOUT)
           callback.block_until_terminated()
 
         self.assertEqual(interfaces.Abortion.EXPIRED, callback.abortion())
@@ -198,8 +194,7 @@ class EventInvocationSynchronousEventServiceTestCase(
         callback = testing_callback.Callback()
 
         self.stub.event_stream_in_value_out(
-            name, callback.complete, callback.abort,
-            test_constants.SHORT_TIMEOUT)
+            name, callback.complete, callback.abort, _TIMEOUT)
         callback.block_until_terminated()
 
         self.assertEqual(interfaces.Abortion.EXPIRED, callback.abortion())
@@ -212,7 +207,7 @@ class EventInvocationSynchronousEventServiceTestCase(
         callback = testing_callback.Callback()
 
         unused_call, request_consumer = self.stub.event_stream_in_stream_out(
-            name, callback, callback.abort, test_constants.SHORT_TIMEOUT)
+            name, callback, callback.abort, _TIMEOUT)
         for request in requests:
           request_consumer.consume(request)
         callback.block_until_terminated()
@@ -228,12 +223,10 @@ class EventInvocationSynchronousEventServiceTestCase(
 
         with self.control.fail():
           self.stub.event_value_in_value_out(
-              name, request, callback.complete, callback.abort,
-              test_constants.SHORT_TIMEOUT)
+              name, request, callback.complete, callback.abort, _TIMEOUT)
           callback.block_until_terminated()
 
-        self.assertEqual(interfaces.Abortion.SERVICER_FAILURE,
-                         callback.abortion())
+        self.assertEqual(interfaces.Abortion.SERVICER_FAILURE, callback.abortion())
 
   def testFailedUnaryRequestStreamResponse(self):
     for name, test_messages_sequence in (
@@ -244,12 +237,10 @@ class EventInvocationSynchronousEventServiceTestCase(
 
         with self.control.fail():
           self.stub.event_value_in_stream_out(
-              name, request, callback, callback.abort,
-              test_constants.SHORT_TIMEOUT)
+              name, request, callback, callback.abort, _TIMEOUT)
           callback.block_until_terminated()
 
-        self.assertEqual(interfaces.Abortion.SERVICER_FAILURE,
-                         callback.abortion())
+        self.assertEqual(interfaces.Abortion.SERVICER_FAILURE, callback.abortion())
 
   def testFailedStreamRequestUnaryResponse(self):
     for name, test_messages_sequence in (
@@ -260,15 +251,13 @@ class EventInvocationSynchronousEventServiceTestCase(
 
         with self.control.fail():
           unused_call, request_consumer = self.stub.event_stream_in_value_out(
-              name, callback.complete, callback.abort,
-              test_constants.SHORT_TIMEOUT)
+              name, callback.complete, callback.abort, _TIMEOUT)
           for request in requests:
             request_consumer.consume(request)
           request_consumer.terminate()
           callback.block_until_terminated()
 
-        self.assertEqual(interfaces.Abortion.SERVICER_FAILURE,
-                         callback.abortion())
+        self.assertEqual(interfaces.Abortion.SERVICER_FAILURE, callback.abortion())
 
   def testFailedStreamRequestStreamResponse(self):
     for name, test_messages_sequence in (
@@ -279,7 +268,7 @@ class EventInvocationSynchronousEventServiceTestCase(
 
         with self.control.fail():
           unused_call, request_consumer = self.stub.event_stream_in_stream_out(
-              name, callback, callback.abort, test_constants.SHORT_TIMEOUT)
+              name, callback, callback.abort, _TIMEOUT)
           for request in requests:
             request_consumer.consume(request)
           request_consumer.terminate()
@@ -298,10 +287,10 @@ class EventInvocationSynchronousEventServiceTestCase(
 
         self.stub.event_value_in_value_out(
             name, first_request, first_callback.complete, first_callback.abort,
-           test_constants.SHORT_TIMEOUT)
+            _TIMEOUT)
         self.stub.event_value_in_value_out(
             name, second_request, second_callback.complete,
-            second_callback.abort, test_constants.SHORT_TIMEOUT)
+            second_callback.abort, _TIMEOUT)
         first_callback.block_until_terminated()
         second_callback.block_until_terminated()
 
@@ -323,8 +312,7 @@ class EventInvocationSynchronousEventServiceTestCase(
 
         with self.control.pause():
           call = self.stub.event_value_in_value_out(
-              name, request, callback.complete, callback.abort,
-              test_constants.SHORT_TIMEOUT)
+              name, request, callback.complete, callback.abort, _TIMEOUT)
           call.cancel()
           callback.block_until_terminated()
 
@@ -338,8 +326,7 @@ class EventInvocationSynchronousEventServiceTestCase(
         callback = testing_callback.Callback()
 
         call = self.stub.event_value_in_stream_out(
-            name, request, callback, callback.abort,
-            test_constants.SHORT_TIMEOUT)
+            name, request, callback, callback.abort, _TIMEOUT)
         call.cancel()
         callback.block_until_terminated()
 
@@ -353,8 +340,7 @@ class EventInvocationSynchronousEventServiceTestCase(
         callback = testing_callback.Callback()
 
         call, request_consumer = self.stub.event_stream_in_value_out(
-            name, callback.complete, callback.abort,
-            test_constants.SHORT_TIMEOUT)
+            name, callback.complete, callback.abort, _TIMEOUT)
         for request in requests:
           request_consumer.consume(request)
         call.cancel()
@@ -369,7 +355,7 @@ class EventInvocationSynchronousEventServiceTestCase(
         callback = testing_callback.Callback()
 
         call, unused_request_consumer = self.stub.event_stream_in_stream_out(
-            name, callback, callback.abort, test_constants.SHORT_TIMEOUT)
+            name, callback, callback.abort, _TIMEOUT)
         call.cancel()
         callback.block_until_terminated()
 
