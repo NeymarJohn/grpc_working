@@ -4223,7 +4223,6 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/status.h \
     include/grpc++/status_code_enum.h \
     include/grpc++/stream.h \
-    include/grpc++/stub_options.h \
     include/grpc++/thread_pool_interface.h \
     include/grpc++/time.h \
 
@@ -4467,7 +4466,6 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/status.h \
     include/grpc++/status_code_enum.h \
     include/grpc++/stream.h \
-    include/grpc++/stub_options.h \
     include/grpc++/thread_pool_interface.h \
     include/grpc++/time.h \
 
@@ -18741,6 +18739,7 @@ test/cpp/qps/timer.cc: $(OPENSSL_DEP)
 test/cpp/util/benchmark_config.cc: $(OPENSSL_DEP)
 test/cpp/util/cli_call.cc: $(OPENSSL_DEP)
 test/cpp/util/create_test_channel.cc: $(OPENSSL_DEP)
+test/cpp/util/fake_credentials.cc: $(OPENSSL_DEP)
 test/cpp/util/subprocess.cc: $(OPENSSL_DEP)
 test/cpp/util/test_config.cc: $(OPENSSL_DEP)
 endif
