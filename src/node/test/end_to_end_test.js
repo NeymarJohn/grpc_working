@@ -64,8 +64,7 @@ describe('end-to-end', function() {
   var channel;
   before(function() {
     server = new grpc.Server();
-    var port_num = server.addHttp2Port('0.0.0.0:0',
-                                       grpc.ServerCredentials.createInsecure());
+    var port_num = server.addHttp2Port('0.0.0.0:0');
     server.start();
     channel = new grpc.Channel('localhost:' + port_num, insecureCreds);
   });

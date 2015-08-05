@@ -6,4 +6,3 @@ dist/
 *.egg/
 *.eggs/
 doc/
-_grpcio_metadata.py

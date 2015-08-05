@@ -41,6 +41,8 @@
 
 #include <condition_variable>
 #include <mutex>
+#include <grpc++/config.h>
+#include <grpc++/config.h>
 
 namespace grpc {
 
@@ -67,10 +69,10 @@ typedef std::chrono::time_point<grpc_time_source> grpc_time;
 class Client {
  public:
   explicit Client(const ClientConfig& config)
-      : timer_(new Timer), interarrival_timer_() {
+    : channels_(config.client_channels()), timer_(new Timer), interarrival_timer_() {
     for (int i = 0; i < config.client_channels(); i++) {
-      channels_.push_back(ClientChannelInfo(
-          config.server_targets(i % config.server_targets_size()), config));
+      channels_[i].init(config.server_targets(i % config.server_targets_size()),
+			config);
     }
     request_.set_response_type(grpc::testing::PayloadType::COMPRESSABLE);
     request_.set_response_size(config.payload_size());
@@ -79,7 +81,7 @@ class Client {
 
   ClientStats Mark() {
     Histogram latencies;
-    std::vector<Histogram> to_merge(threads_.size());
+    Histogram to_merge[threads_.size()]; // avoid std::vector for old compilers
     for (size_t i = 0; i < threads_.size(); i++) {
       threads_[i]->BeginSwap(&to_merge[i]);
     }
@@ -106,12 +108,16 @@ class Client {
 
   class ClientChannelInfo {
    public:
-    ClientChannelInfo(const grpc::string& target, const ClientConfig& config)
-        : channel_(CreateTestChannel(target, config.enable_ssl())),
-          stub_(TestService::NewStub(channel_)) {}
+    ClientChannelInfo() {}
+    ClientChannelInfo(const ClientChannelInfo& i): channel_(), stub_() {
+      GPR_ASSERT(!i.channel_ && !i.stub_);
+    }
+    void init(const grpc::string& target, const ClientConfig& config) {
+      channel_ = CreateTestChannel(target, config.enable_ssl());
+      stub_ = TestService::NewStub(channel_);
+    }
     ChannelInterface* get_channel() { return channel_.get(); }
     TestService::Stub* get_stub() { return stub_.get(); }
-
    private:
     std::shared_ptr<ChannelInterface> channel_;
     std::unique_ptr<TestService::Stub> stub_;
@@ -189,27 +195,9 @@ class Client {
     Thread(Client* client, size_t idx)
         : done_(false),
           new_(nullptr),
-          impl_([this, idx, client]() {
-            for (;;) {
-              // run the loop body
-              bool thread_still_ok = client->ThreadFunc(&histogram_, idx);
-              // lock, see if we're done
-              std::lock_guard<std::mutex> g(mu_);
-              if (!thread_still_ok) {
-                gpr_log(GPR_ERROR, "Finishing client thread due to RPC error");
-                done_ = true;
-              }
-              if (done_) {
-                return;
-              }
-              // check if we're marking, swap out the histogram if so
-              if (new_) {
-                new_->Swap(&histogram_);
-                new_ = nullptr;
-                cv_.notify_one();
-              }
-            }
-          }) {}
+          client_(client),
+          idx_(idx),
+          impl_(&Thread::ThreadFunc, this) {}
 
     ~Thread() {
       {
@@ -226,12 +214,36 @@ class Client {
 
     void EndSwap() {
       std::unique_lock<std::mutex> g(mu_);
-      cv_.wait(g, [this]() { return new_ == nullptr; });
+      while (new_ != nullptr) {
+        cv_.wait(g);
+      };
     }
 
    private:
     Thread(const Thread&);
     Thread& operator=(const Thread&);
+
+    void ThreadFunc() {
+      for (;;) {
+        // run the loop body
+        bool thread_still_ok = client_->ThreadFunc(&histogram_, idx_);
+        // lock, see if we're done
+        std::lock_guard<std::mutex> g(mu_);
+        if (!thread_still_ok) {
+          gpr_log(GPR_ERROR, "Finishing client thread due to RPC error");
+          done_ = true;
+        }
+        if (done_) {
+          return;
+        }
+        // check if we're marking, swap out the histogram if so
+        if (new_) {
+          new_->Swap(&histogram_);
+          new_ = nullptr;
+          cv_.notify_one();
+        }
+      }
+    }
 
     TestService::Stub* stub_;
     ClientConfig config_;
@@ -240,6 +252,8 @@ class Client {
     bool done_;
     Histogram* new_;
     Histogram histogram_;
+    Client* client_;
+    size_t idx_;
     std::thread impl_;
   };
 

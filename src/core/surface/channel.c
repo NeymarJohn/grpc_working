@@ -229,9 +229,7 @@ static void destroy_channel(void *p, int ok) {
     registered_call *rc = channel->registered_calls;
     channel->registered_calls = rc->next;
     GRPC_MDELEM_UNREF(rc->path);
-    if (rc->authority) {
-      GRPC_MDELEM_UNREF(rc->authority);
-    }
+    GRPC_MDELEM_UNREF(rc->authority);
     gpr_free(rc);
   }
   grpc_mdctx_unref(channel->metadata_context);
