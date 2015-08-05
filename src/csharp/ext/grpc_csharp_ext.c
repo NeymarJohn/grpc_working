@@ -379,7 +379,8 @@ GPR_EXPORT grpc_call *GPR_CALLTYPE
 grpcsharp_channel_create_call(grpc_channel *channel, grpc_completion_queue *cq,
                               const char *method, const char *host,
                               gpr_timespec deadline) {
-  return grpc_channel_create_call(channel, cq, method, host, deadline);
+  return grpc_channel_create_call(channel, NULL, GRPC_PROPAGATE_DEFAULTS, cq,
+                                  method, host, deadline);
 }
 
 GPR_EXPORT grpc_connectivity_state GPR_CALLTYPE
@@ -731,7 +732,7 @@ grpcsharp_server_create(grpc_completion_queue *cq,
 
 GPR_EXPORT gpr_int32 GPR_CALLTYPE
 grpcsharp_server_add_insecure_http2_port(grpc_server *server, const char *addr) {
-  return grpc_server_add_http2_port(server, addr);
+  return grpc_server_add_insecure_http2_port(server, addr);
 }
 
 GPR_EXPORT void GPR_CALLTYPE grpcsharp_server_start(grpc_server *server) {
