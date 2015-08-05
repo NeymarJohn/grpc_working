@@ -31,27 +31,13 @@
  *
  */
 
-#include <memory>
-#include <sstream>
+/* This is just a compilation test, to see if we have Zookeeper C client
+   library installed. */
 
-#include "src/cpp/client/channel.h"
-#include <grpc++/channel_interface.h>
-#include <grpc++/channel_arguments.h>
-#include <grpc++/create_channel.h>
+#include <stdlib.h>
+#include <zookeeper/zookeeper.h>
 
-namespace grpc {
-class ChannelArguments;
-
-std::shared_ptr<ChannelInterface> CreateChannel(
-    const grpc::string& target, const std::shared_ptr<Credentials>& creds,
-    const ChannelArguments& args) {
-  ChannelArguments cp_args = args;
-  std::ostringstream user_agent_prefix;
-  user_agent_prefix << "grpc-c++/" << grpc_version_string();
-  cp_args.SetString(GRPC_ARG_PRIMARY_USER_AGENT_STRING,
-                    user_agent_prefix.str());
-  return creds ? creds->CreateChannel(target, cp_args)
-               : std::shared_ptr<ChannelInterface>(
-                     new Channel(grpc_lame_client_channel_create(NULL)));
+int main() {
+  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
+  return 0;
 }
-}  // namespace grpc

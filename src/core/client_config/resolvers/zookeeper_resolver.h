@@ -31,27 +31,12 @@
  *
  */
 
-#include <memory>
-#include <sstream>
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-#include "src/cpp/client/channel.h"
-#include <grpc++/channel_interface.h>
-#include <grpc++/channel_arguments.h>
-#include <grpc++/create_channel.h>
+#include "src/core/client_config/resolver_factory.h"
 
-namespace grpc {
-class ChannelArguments;
+/** Create a zookeeper resolver factory */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
 
-std::shared_ptr<ChannelInterface> CreateChannel(
-    const grpc::string& target, const std::shared_ptr<Credentials>& creds,
-    const ChannelArguments& args) {
-  ChannelArguments cp_args = args;
-  std::ostringstream user_agent_prefix;
-  user_agent_prefix << "grpc-c++/" << grpc_version_string();
-  cp_args.SetString(GRPC_ARG_PRIMARY_USER_AGENT_STRING,
-                    user_agent_prefix.str());
-  return creds ? creds->CreateChannel(target, cp_args)
-               : std::shared_ptr<ChannelInterface>(
-                     new Channel(grpc_lame_client_channel_create(NULL)));
-}
-}  // namespace grpc
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */

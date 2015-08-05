@@ -351,6 +351,12 @@ typedef struct grpc_op {
   } data;
 } grpc_op;
 
+/** Registers a plugin to be initialized and deinitialized with the library.
+
+    It is safe to pass NULL to either argument. The initialization and
+    deinitialization order isn't guaranteed. */
+void grpc_register_plugin(void (*init)(void), void (*deinit)(void));
+
 /** Initialize the grpc library.
 
     It is not safe to call any other grpc functions before calling this.
@@ -562,7 +568,7 @@ void grpc_server_register_completion_queue(grpc_server *server,
 /** Add a HTTP2 over plaintext over tcp listener.
     Returns bound port number on success, 0 on failure.
     REQUIRES: server not started */
-int grpc_server_add_http2_port(grpc_server *server, const char *addr);
+int grpc_server_add_insecure_http2_port(grpc_server *server, const char *addr);
 
 /** Start a server - tells all listeners to start listening */
 void grpc_server_start(grpc_server *server);

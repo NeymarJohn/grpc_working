@@ -104,7 +104,8 @@ grpc_channel *grpc_channel_create_from_filters(
   channel->grpc_status_string = grpc_mdstr_from_string(mdctx, "grpc-status", 0);
   channel->grpc_compression_algorithm_string =
       grpc_mdstr_from_string(mdctx, "grpc-encoding", 0);
-  channel->grpc_message_string = grpc_mdstr_from_string(mdctx, "grpc-message", 0);
+  channel->grpc_message_string =
+      grpc_mdstr_from_string(mdctx, "grpc-message", 0);
   for (i = 0; i < NUM_CACHED_STATUS_ELEMS; i++) {
     char buf[GPR_LTOA_MIN_BUFSIZE];
     gpr_ltoa(i, buf);
@@ -229,7 +230,9 @@ static void destroy_channel(void *p, int ok) {
     registered_call *rc = channel->registered_calls;
     channel->registered_calls = rc->next;
     GRPC_MDELEM_UNREF(rc->path);
-    GRPC_MDELEM_UNREF(rc->authority);
+    if (rc->authority) {
+      GRPC_MDELEM_UNREF(rc->authority);
+    }
     gpr_free(rc);
   }
   grpc_mdctx_unref(channel->metadata_context);
