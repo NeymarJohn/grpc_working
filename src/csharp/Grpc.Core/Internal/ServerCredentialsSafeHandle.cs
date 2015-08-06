@@ -42,7 +42,7 @@ namespace Grpc.Core.Internal
     internal class ServerCredentialsSafeHandle : SafeHandleZeroIsInvalid
     {
         [DllImport("grpc_csharp_ext.dll", CharSet = CharSet.Ansi)]
-        static extern ServerCredentialsSafeHandle grpcsharp_ssl_server_credentials_create(string pemRootCerts, string[] keyCertPairCertChainArray, string[] keyCertPairPrivateKeyArray, UIntPtr numKeyCertPairs, bool forceClientAuth);
+        static extern ServerCredentialsSafeHandle grpcsharp_ssl_server_credentials_create(string pemRootCerts, string[] keyCertPairCertChainArray, string[] keyCertPairPrivateKeyArray, UIntPtr numKeyCertPairs);
 
         [DllImport("grpc_csharp_ext.dll")]
         static extern void grpcsharp_server_credentials_release(IntPtr credentials);
@@ -51,13 +51,12 @@ namespace Grpc.Core.Internal
         {
         }
 
-        public static ServerCredentialsSafeHandle CreateSslCredentials(string pemRootCerts, string[] keyCertPairCertChainArray, string[] keyCertPairPrivateKeyArray, bool forceClientAuth)
+        public static ServerCredentialsSafeHandle CreateSslCredentials(string pemRootCerts, string[] keyCertPairCertChainArray, string[] keyCertPairPrivateKeyArray)
         {
             Preconditions.CheckArgument(keyCertPairCertChainArray.Length == keyCertPairPrivateKeyArray.Length);
             return grpcsharp_ssl_server_credentials_create(pemRootCerts,
                                                            keyCertPairCertChainArray, keyCertPairPrivateKeyArray,
-                                                           new UIntPtr((ulong)keyCertPairCertChainArray.Length),
-                                                           forceClientAuth);
+                                                           new UIntPtr((ulong)keyCertPairCertChainArray.Length));
         }
 
         protected override bool ReleaseHandle()

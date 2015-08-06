@@ -31,30 +31,13 @@
  *
  */
 
-#import "GRPCSecureChannel.h"
+/* This is just a compilation test, to see if we have Zookeeper C client
+   library installed. */
 
-#import <grpc/grpc_security.h>
+#include <stdlib.h>
+#include <zookeeper/zookeeper.h>
 
-@implementation GRPCSecureChannel
-
-- (instancetype)initWithHost:(NSString *)host {
-  static grpc_credentials *kCredentials;
-  static dispatch_once_t loading;
-  dispatch_once(&loading, ^{
-    // Do not use NSBundle.mainBundle, as it's nil for tests of library projects.
-    NSBundle *bundle = [NSBundle bundleForClass:self.class];
-    NSString *certsPath = [bundle pathForResource:@"gRPCCertificates.bundle/roots" ofType:@"pem"];
-    NSAssert(certsPath.length,
-             @"gRPCCertificates.bundle/roots.pem not found under %@. This file, with the root "
-             "certificates, is needed to establish TLS (HTTPS) connections.", bundle.bundlePath);
-    NSData *certsData = [NSData dataWithContentsOfFile:certsPath];
-    NSAssert(certsData.length, @"No data read from %@", certsPath);
-    NSString *certsString = [[NSString alloc] initWithData:certsData encoding:NSUTF8StringEncoding];
-    kCredentials = grpc_ssl_credentials_create(certsString.UTF8String, NULL);
-  });
-  return (self = [super initWithChannel:grpc_secure_channel_create(kCredentials,
-                                                                   host.UTF8String,
-                                                                   NULL)]);
+int main() {
+  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
+  return 0;
 }
-
-@end

@@ -31,65 +31,18 @@
  *
  */
 
-#import <Foundation/Foundation.h>
-#include <grpc/grpc.h>
+#ifndef GRPC_GRPC_ZOOKEEPER_H
+#define GRPC_GRPC_ZOOKEEPER_H
 
-#import "GRPCChannel.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-@interface GRPCOperation : NSObject
-@property(nonatomic, readonly) grpc_op op;
-// Guaranteed to be called when the operation has finished.
-- (void)finish;
-@end
+/** Register zookeeper name resolver in grpc */
+void grpc_zookeeper_register();
 
-@interface GRPCOpSendMetadata : GRPCOperation
+#ifdef __cplusplus
+}
+#endif
 
-- (instancetype)initWithMetadata:(NSDictionary *)metadata
-                         handler:(void(^)())handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpSendMessage : GRPCOperation
-
-- (instancetype)initWithMessage:(NSData *)message
-                        handler:(void(^)())handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpSendClose : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)())handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpRecvMetadata : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)(NSDictionary *))handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpRecvMessage : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)(grpc_byte_buffer *))handler NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCOpRecvStatus : GRPCOperation
-
-- (instancetype)initWithHandler:(void(^)(NSError *, NSDictionary *))handler
-    NS_DESIGNATED_INITIALIZER;
-
-@end
-
-@interface GRPCWrappedCall : NSObject
-
-- (instancetype)initWithChannel:(GRPCChannel *)channel
-                           path:(NSString *)path
-                           host:(NSString *)host NS_DESIGNATED_INITIALIZER;
-
-- (void)startBatchWithOperations:(NSArray *)ops errorHandler:(void(^)())errorHandler;
-
-- (void)startBatchWithOperations:(NSArray *)ops;
-
-- (void)cancel;
-@end
+#endif /* GRPC_GRPC_ZOOKEEPER_H */

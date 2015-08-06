@@ -31,30 +31,12 @@
  *
  */
 
-#import "GRPCSecureChannel.h"
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-#import <grpc/grpc_security.h>
+#include "src/core/client_config/resolver_factory.h"
 
-@implementation GRPCSecureChannel
+/** Create a zookeeper resolver factory */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
 
-- (instancetype)initWithHost:(NSString *)host {
-  static grpc_credentials *kCredentials;
-  static dispatch_once_t loading;
-  dispatch_once(&loading, ^{
-    // Do not use NSBundle.mainBundle, as it's nil for tests of library projects.
-    NSBundle *bundle = [NSBundle bundleForClass:self.class];
-    NSString *certsPath = [bundle pathForResource:@"gRPCCertificates.bundle/roots" ofType:@"pem"];
-    NSAssert(certsPath.length,
-             @"gRPCCertificates.bundle/roots.pem not found under %@. This file, with the root "
-             "certificates, is needed to establish TLS (HTTPS) connections.", bundle.bundlePath);
-    NSData *certsData = [NSData dataWithContentsOfFile:certsPath];
-    NSAssert(certsData.length, @"No data read from %@", certsPath);
-    NSString *certsString = [[NSString alloc] initWithData:certsData encoding:NSUTF8StringEncoding];
-    kCredentials = grpc_ssl_credentials_create(certsString.UTF8String, NULL);
-  });
-  return (self = [super initWithChannel:grpc_secure_channel_create(kCredentials,
-                                                                   host.UTF8String,
-                                                                   NULL)]);
-}
-
-@end
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */
