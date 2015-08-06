@@ -31,20 +31,32 @@
  *
  */
 
-#import "GRPCUnsecuredChannel.h"
+// Repeat of the tests in InteropTests.m, but using SSL to communicate with the local server instead
+// of cleartext.
 
-#include <grpc/grpc.h>
+#import <GRPCClient/GRPCCall+Tests.h>
 
-@implementation GRPCUnsecuredChannel
+#import "InteropTests.h"
 
-- (instancetype)initWithHost:(NSString *)host {
-  return (self = [super initWithChannel:grpc_insecure_channel_create(host.UTF8String, NULL)]);
+static NSString * const kLocalSSLHost = @"localhost:5051";
+
+@interface InteropTestsLocalSSL : InteropTests
+@end
+
+@implementation InteropTestsLocalSSL
+
++ (NSString *)host {
+  return kLocalSSLHost;
 }
 
-// TODO(jcanizales): GRPCSecureChannel and GRPCUnsecuredChannel are just convenience initializers
-// for GRPCChannel. Move them into GRPCChannel, which will make the following unnecessary.
-- (instancetype)initWithChannel:(grpc_channel *)unmanagedChannel {
-  [NSException raise:NSInternalInconsistencyException format:@"use the other initializer"];
-  return [self initWithHost:nil]; // silence warnings
+- (void)setUp {
+  // Register test server certificates and name.
+  NSBundle *bundle = [NSBundle bundleForClass:self.class];
+  NSString *certsPath = [bundle pathForResource:@"TestCertificates.bundle/test-certificates"
+                                         ofType:@"pem"];
+  [GRPCCall useTestCertsPath:certsPath testName:@"foo.test.google.fr" forHost:kLocalSSLHost];
+
+  [super setUp];
 }
+
 @end
