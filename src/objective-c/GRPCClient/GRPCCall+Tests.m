@@ -31,15 +31,17 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_DECORATORS_MERGE_CHANNEL_ARGS_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_DECORATORS_MERGE_CHANNEL_ARGS_H
+#import "GRPCCall+Tests.h"
 
-#include "src/core/client_config/subchannel_factory.h"
+#import "private/GRPCHost.h"
 
-/** Takes a subchannel factory, returns a new one that mutates incoming
-    channel_args by adding a new argument; ownership of input, args is retained
-    by the caller. */
-grpc_subchannel_factory *grpc_subchannel_factory_merge_channel_args(
-		grpc_subchannel_factory *input, const grpc_channel_args *args);
-
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_DECORATORS_MERGE_CHANNEL_ARGS_H */
+@implementation GRPCCall (Tests)
++ (void)useTestCertsPath:(NSString *)certsPath
+                testName:(NSString *)testName
+                 forHost:(NSString *)host {
+  GRPCHost *hostConfig = [GRPCHost hostWithAddress:host];
+  hostConfig.secure = YES;
+  hostConfig.pathToCertificates = certsPath;
+  hostConfig.hostNameOverride = testName;
+}
+@end

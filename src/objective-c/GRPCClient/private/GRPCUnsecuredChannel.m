@@ -41,4 +41,8 @@
   return (self = [super initWithChannel:grpc_insecure_channel_create(host.UTF8String, NULL)]);
 }
 
+- (instancetype)initWithChannel:(grpc_channel *)unmanagedChannel {
+  [NSException raise:NSInternalInconsistencyException format:@"use the other initializer"];
+  return [self initWithHost:nil]; // silence warnings
+}
 @end
