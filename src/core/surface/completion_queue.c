@@ -169,6 +169,8 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
                                       gpr_timespec deadline) {
   grpc_event ret;
   grpc_pollset_worker worker;
+  int first_loop = 1;
+  gpr_timespec now;
 
   deadline = gpr_convert_clock_type(deadline, GPR_CLOCK_MONOTONIC);
 
@@ -194,12 +196,15 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
       ret.type = GRPC_QUEUE_SHUTDOWN;
       break;
     }
-    if (!grpc_pollset_work(&cc->pollset, &worker, deadline)) {
+    now = gpr_now(GPR_CLOCK_MONOTONIC);
+    if (!first_loop && gpr_time_cmp(now, deadline) >= 0) {
       gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
       memset(&ret, 0, sizeof(ret));
       ret.type = GRPC_QUEUE_TIMEOUT;
       break;
     }
+    first_loop = 0;
+    grpc_pollset_work(&cc->pollset, &worker, now, deadline);
   }
   GRPC_SURFACE_TRACE_RETURNED_EVENT(cc, &ret);
   GRPC_CQ_INTERNAL_UNREF(cc, "next");
@@ -237,6 +242,8 @@ grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
   grpc_cq_completion *c;
   grpc_cq_completion *prev;
   grpc_pollset_worker worker;
+  gpr_timespec now;
+  int first_loop = 1;
 
   deadline = gpr_convert_clock_type(deadline, GPR_CLOCK_MONOTONIC);
 
@@ -277,13 +284,16 @@ grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
       ret.type = GRPC_QUEUE_TIMEOUT;
       break;
     }
-    if (!grpc_pollset_work(&cc->pollset, &worker, deadline)) {
+    now = gpr_now(GPR_CLOCK_MONOTONIC);
+    if (!first_loop && gpr_time_cmp(now, deadline) >= 0) {
       del_plucker(cc, tag, &worker);
       gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
       memset(&ret, 0, sizeof(ret));
       ret.type = GRPC_QUEUE_TIMEOUT;
       break;
     }
+    first_loop = 0;
+    grpc_pollset_work(&cc->pollset, &worker, now, deadline);
     del_plucker(cc, tag, &worker);
   }
 done:
