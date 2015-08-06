@@ -76,7 +76,6 @@
     <Compile Include="Internal\TimespecTest.cs" />
     <Compile Include="TimeoutsTest.cs" />
     <Compile Include="NUnitVersionTest.cs" />
-    <Compile Include="ChannelTest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
