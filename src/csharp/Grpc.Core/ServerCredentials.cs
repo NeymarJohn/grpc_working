@@ -33,6 +33,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Grpc.Core.Internal;
 using Grpc.Core.Utils;
 
@@ -79,26 +80,18 @@ namespace Grpc.Core
     {
         readonly IList<KeyCertificatePair> keyCertificatePairs;
         readonly string rootCertificates;
-        readonly bool forceClientAuth;
 
         /// <summary>
         /// Creates server-side SSL credentials.
         /// </summary>
-        /// <param name="keyCertificatePairs">Key-certificates to use.</param>
         /// <param name="rootCertificates">PEM encoded client root certificates used to authenticate client.</param>
-        /// <param name="forceClientAuth">If true, client will be rejected unless it proves its unthenticity using against rootCertificates.</param>
-        public SslServerCredentials(IEnumerable<KeyCertificatePair> keyCertificatePairs, string rootCertificates, bool forceClientAuth)
+        /// <param name="keyCertificatePairs">Key-certificates to use.</param>
+        public SslServerCredentials(IEnumerable<KeyCertificatePair> keyCertificatePairs, string rootCertificates)
         {
             this.keyCertificatePairs = new List<KeyCertificatePair>(keyCertificatePairs).AsReadOnly();
             Preconditions.CheckArgument(this.keyCertificatePairs.Count > 0,
                 "At least one KeyCertificatePair needs to be provided");
-            if (forceClientAuth)
-            {
-                Preconditions.CheckNotNull(rootCertificates,
-                    "Cannot force client authentication unless you provide rootCertificates.");
-            }
             this.rootCertificates = rootCertificates;
-            this.forceClientAuth = forceClientAuth;
         }
 
         /// <summary>
@@ -107,7 +100,7 @@ namespace Grpc.Core
         /// using client root certificates.
         /// </summary>
         /// <param name="keyCertificatePairs">Key-certificates to use.</param>
-        public SslServerCredentials(IEnumerable<KeyCertificatePair> keyCertificatePairs) : this(keyCertificatePairs, null, false)
+        public SslServerCredentials(IEnumerable<KeyCertificatePair> keyCertificatePairs) : this(keyCertificatePairs, null)
         {
         }
 
@@ -133,17 +126,6 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>
-        /// If true, the authenticity of client check will be enforced.
-        /// </summary>
-        public bool ForceClientAuthentication
-        {
-            get
-            {
-                return this.forceClientAuth;
-            }
-        }
-
         internal override ServerCredentialsSafeHandle ToNativeCredentials()
         {
             int count = keyCertificatePairs.Count;
@@ -154,7 +136,7 @@ namespace Grpc.Core
                 certChains[i] = keyCertificatePairs[i].CertificateChain;
                 keys[i] = keyCertificatePairs[i].PrivateKey;
             }
-            return ServerCredentialsSafeHandle.CreateSslCredentials(rootCertificates, certChains, keys, forceClientAuth);
+            return ServerCredentialsSafeHandle.CreateSslCredentials(rootCertificates, certChains, keys);
         }
     }
 }
