@@ -31,15 +31,15 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_DECORATORS_ADD_CHANNEL_ARG_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_DECORATORS_ADD_CHANNEL_ARG_H
+#import "GRPCCall.h"
 
-#include "src/core/client_config/subchannel_factory.h"
+@interface GRPCCall (Tests)
 
-/** Takes a subchannel factory, returns a new one that mutates incoming
-    channel_args by adding a new argument; ownership of input, arg is retained
-    by the caller. */
-grpc_subchannel_factory *grpc_subchannel_factory_add_channel_arg(
-		grpc_subchannel_factory *input, const grpc_arg *arg);
+// Establish all SSL connections to the provided host using the passed SSL target name and the root
+// certificates found in the file at |certsPath|.
+// Must be called before any gRPC call to that host is made.
++ (void)useTestCertsPath:(NSString *)certsPath
+                testName:(NSString *)testName
+                 forHost:(NSString *)host;
 
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_DECORATORS_ADD_CHANNEL_ARG_H */
+@end

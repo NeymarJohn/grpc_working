@@ -33,9 +33,7 @@ set -ex
 # change to grpc repo root
 cd $(dirname $0)/../..
 
-ROOT=`pwd`
-GRPCIO=$ROOT/src/python/grpcio
-GRPCIO_TEST=$ROOT/src/python/grpcio_test
+root=`pwd`
 
 make_virtualenv() {
   virtualenv_name="python"$1"_virtual_environment"
@@ -44,16 +42,9 @@ make_virtualenv() {
     # Build the entire virtual environment
     virtualenv -p `which "python"$1` $virtualenv_name
     source $virtualenv_name/bin/activate
-
-    # Install grpcio
-    cd $GRPCIO
-    pip install -r requirements.txt
-    CFLAGS="-I$ROOT/include -std=c89" LDFLAGS=-L$ROOT/libs/$CONFIG GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip install $GRPCIO
-
-    # Install grpcio_test
-    cd $GRPCIO_TEST
-    pip install -r requirements.txt
-    pip install $GRPCIO_TEST
+    pip install -r src/python/requirements.txt
+    CFLAGS="-I$root/include -std=c89" LDFLAGS=-L$root/libs/$CONFIG GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip install src/python/grpcio
+    pip install src/python/grpcio_test
   else
     source $virtualenv_name/bin/activate
     # Uninstall and re-install the packages we care about. Don't use
@@ -62,12 +53,12 @@ make_virtualenv() {
     # dependency upgrades.
     (yes | pip uninstall grpcio) || true
     (yes | pip uninstall grpcio_test) || true
-    (CFLAGS="-I$ROOT/include -std=c89" LDFLAGS=-L$ROOT/libs/$CONFIG GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip install $GRPCIO) || (
+    (CFLAGS="-I$root/include -std=c89" LDFLAGS=-L$root/libs/$CONFIG GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip install src/python/grpcio) || (
       # Fall back to rebuilding the entire environment
       rm -rf $virtualenv_name
       make_virtualenv $1
     )
-    pip install $GRPCIO_TEST
+    pip install src/python/grpcio_test
   fi
 }
 
