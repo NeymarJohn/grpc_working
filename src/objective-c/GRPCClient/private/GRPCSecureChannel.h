@@ -31,18 +31,8 @@
  *
  */
 
-#import <grpc/grpc_security.h>
-
 #import "GRPCChannel.h"
 
 @interface GRPCSecureChannel : GRPCChannel
-- (instancetype)initWithHost:(NSString *)host;
 
-- (instancetype)initWithHost:(NSString *)host
-          pathToCertificates:(NSString *)path
-            hostNameOverride:(NSString *)hostNameOverride;
-
-- (instancetype)initWithHost:(NSString *)host
-                 credentials:(grpc_credentials *)credentials
-                        args:(grpc_channel_args *)args NS_DESIGNATED_INITIALIZER;
 @end

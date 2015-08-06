@@ -826,20 +826,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "poll_kick_posix_test", 
-    "src": [
-      "test/core/iomgr/poll_kick_posix_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "resolve_address_test", 
     "src": [
       "test/core/iomgr/resolve_address_test.c"
@@ -1527,6 +1513,55 @@
   {
     "deps": [
       "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc++", 
+      "grpc++_test_config", 
+      "grpc++_test_util", 
+      "grpc_test_util"
+    ], 
+    "headers": [
+      "test/proto/empty.grpc.pb.h", 
+      "test/proto/empty.pb.h", 
+      "test/proto/messages.grpc.pb.h", 
+      "test/proto/messages.pb.h", 
+      "test/proto/test.grpc.pb.h", 
+      "test/proto/test.pb.h"
+    ], 
+    "language": "c++", 
+    "name": "reconnect_interop_client", 
+    "src": [
+      "test/cpp/interop/reconnect_interop_client.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc++", 
+      "grpc++_test_config", 
+      "grpc++_test_util", 
+      "grpc_test_util", 
+      "reconnect_server"
+    ], 
+    "headers": [
+      "test/proto/empty.grpc.pb.h", 
+      "test/proto/empty.pb.h", 
+      "test/proto/messages.grpc.pb.h", 
+      "test/proto/messages.pb.h", 
+      "test/proto/test.grpc.pb.h", 
+      "test/proto/test.pb.h"
+    ], 
+    "language": "c++", 
+    "name": "reconnect_interop_server", 
+    "src": [
+      "test/cpp/interop/reconnect_interop_server.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
       "grpc", 
       "grpc++"
     ], 
@@ -1632,6 +1667,23 @@
     "name": "thread_stress_test", 
     "src": [
       "test/cpp/end2end/thread_stress_test.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc++", 
+      "grpc++_test_util", 
+      "grpc_test_util", 
+      "grpc_zookeeper"
+    ], 
+    "headers": [], 
+    "language": "c++", 
+    "name": "zookeeper_test", 
+    "src": [
+      "test/cpp/end2end/zookeeper_test.cc"
     ]
   }, 
   {
@@ -1752,6 +1804,21 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fake_security_channel_connectivity_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_chttp2_fake_security", 
+      "end2end_test_default_host", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_fake_security_default_host_test", 
     "src": []
   }, 
   {
@@ -2238,6 +2305,21 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_fullstack", 
+      "end2end_test_default_host", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_fullstack_default_host_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_chttp2_fullstack", 
       "end2end_test_disappearing_server", 
       "gpr", 
       "gpr_test_util", 
@@ -2712,6 +2794,21 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fullstack_compression_channel_connectivity_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_chttp2_fullstack_compression", 
+      "end2end_test_default_host", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_fullstack_compression_default_host_test", 
     "src": []
   }, 
   {
@@ -4158,6 +4255,21 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_fullstack_with_poll", 
+      "end2end_test_default_host", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_fullstack_with_poll_default_host_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_chttp2_fullstack_with_poll", 
       "end2end_test_disappearing_server", 
       "gpr", 
       "gpr_test_util", 
@@ -4632,6 +4744,21 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_channel_connectivity_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_chttp2_simple_ssl_fullstack", 
+      "end2end_test_default_host", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_simple_ssl_fullstack_default_host_test", 
     "src": []
   }, 
   {
@@ -5118,6 +5245,21 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_simple_ssl_fullstack_with_poll", 
+      "end2end_test_default_host", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_simple_ssl_fullstack_with_poll_default_host_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_chttp2_simple_ssl_fullstack_with_poll", 
       "end2end_test_disappearing_server", 
       "gpr", 
       "gpr_test_util", 
@@ -5592,6 +5734,21 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_channel_connectivity_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_chttp2_simple_ssl_with_oauth2_fullstack", 
+      "end2end_test_default_host", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_simple_ssl_with_oauth2_fullstack_default_host_test", 
     "src": []
   }, 
   {
@@ -7374,6 +7531,20 @@
   {
     "deps": [
       "end2end_fixture_chttp2_fullstack", 
+      "end2end_test_default_host", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_fullstack_default_host_unsecure_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_fixture_chttp2_fullstack", 
       "end2end_test_disappearing_server", 
       "gpr", 
       "gpr_test_util", 
@@ -7803,6 +7974,20 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fullstack_compression_channel_connectivity_unsecure_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_fixture_chttp2_fullstack_compression", 
+      "end2end_test_default_host", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_fullstack_compression_default_host_unsecure_test", 
     "src": []
   }, 
   {
@@ -9105,6 +9290,20 @@
     "headers": [], 
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_channel_connectivity_unsecure_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_fixture_chttp2_fullstack_with_poll", 
+      "end2end_test_default_host", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "chttp2_fullstack_with_poll_default_host_unsecure_test", 
     "src": []
   }, 
   {
@@ -10801,6 +11000,8 @@
       "src/core/client_config/resolvers/sockaddr_resolver.h", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.h", 
+      "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h", 
+      "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/message_compress.h", 
       "src/core/debug/trace.h", 
@@ -10819,7 +11020,6 @@
       "src/core/iomgr/iomgr_internal.h", 
       "src/core/iomgr/iomgr_posix.h", 
       "src/core/iomgr/pollset.h", 
-      "src/core/iomgr/pollset_kick_posix.h", 
       "src/core/iomgr/pollset_posix.h", 
       "src/core/iomgr/pollset_set.h", 
       "src/core/iomgr/pollset_set_posix.h", 
@@ -10949,6 +11149,10 @@
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.c", 
       "src/core/client_config/subchannel_factory.h", 
+      "src/core/client_config/subchannel_factory_decorators/add_channel_arg.c", 
+      "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h", 
+      "src/core/client_config/subchannel_factory_decorators/merge_channel_args.c", 
+      "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h", 
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 
@@ -10985,8 +11189,6 @@
       "src/core/iomgr/iomgr_posix.h", 
       "src/core/iomgr/iomgr_windows.c", 
       "src/core/iomgr/pollset.h", 
-      "src/core/iomgr/pollset_kick_posix.c", 
-      "src/core/iomgr/pollset_kick_posix.h", 
       "src/core/iomgr/pollset_multipoller_with_epoll.c", 
       "src/core/iomgr/pollset_multipoller_with_poll_posix.c", 
       "src/core/iomgr/pollset_posix.c", 
@@ -11265,6 +11467,8 @@
       "src/core/client_config/resolvers/sockaddr_resolver.h", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.h", 
+      "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h", 
+      "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/message_compress.h", 
       "src/core/debug/trace.h", 
@@ -11279,7 +11483,6 @@
       "src/core/iomgr/iomgr_internal.h", 
       "src/core/iomgr/iomgr_posix.h", 
       "src/core/iomgr/pollset.h", 
-      "src/core/iomgr/pollset_kick_posix.h", 
       "src/core/iomgr/pollset_posix.h", 
       "src/core/iomgr/pollset_set.h", 
       "src/core/iomgr/pollset_set_posix.h", 
@@ -11395,6 +11598,10 @@
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.c", 
       "src/core/client_config/subchannel_factory.h", 
+      "src/core/client_config/subchannel_factory_decorators/add_channel_arg.c", 
+      "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h", 
+      "src/core/client_config/subchannel_factory_decorators/merge_channel_args.c", 
+      "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h", 
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 
@@ -11423,8 +11630,6 @@
       "src/core/iomgr/iomgr_posix.h", 
       "src/core/iomgr/iomgr_windows.c", 
       "src/core/iomgr/pollset.h", 
-      "src/core/iomgr/pollset_kick_posix.c", 
-      "src/core/iomgr/pollset_kick_posix.h", 
       "src/core/iomgr/pollset_multipoller_with_epoll.c", 
       "src/core/iomgr/pollset_multipoller_with_poll_posix.c", 
       "src/core/iomgr/pollset_posix.c", 
@@ -11560,6 +11765,40 @@
       "src/core/transport/transport.h", 
       "src/core/transport/transport_impl.h", 
       "src/core/transport/transport_op_string.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "grpc"
+    ], 
+    "headers": [
+      "include/grpc/grpc_zookeeper.h", 
+      "src/core/client_config/resolvers/zookeeper_resolver.h"
+    ], 
+    "language": "c", 
+    "name": "grpc_zookeeper", 
+    "src": [
+      "include/grpc/grpc_zookeeper.h", 
+      "src/core/client_config/resolvers/zookeeper_resolver.c", 
+      "src/core/client_config/resolvers/zookeeper_resolver.h"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [
+      "test/core/util/reconnect_server.h"
+    ], 
+    "language": "c", 
+    "name": "reconnect_server", 
+    "src": [
+      "test/core/util/reconnect_server.c", 
+      "test/core/util/reconnect_server.h"
     ]
   }, 
   {
@@ -12436,6 +12675,25 @@
       "test/core/end2end/end2end_tests.h", 
       "test/core/end2end/tests/cancel_test_helpers.h", 
       "test/core/end2end/tests/channel_connectivity.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [
+      "test/core/end2end/end2end_tests.h", 
+      "test/core/end2end/tests/cancel_test_helpers.h"
+    ], 
+    "language": "c", 
+    "name": "end2end_test_default_host", 
+    "src": [
+      "test/core/end2end/end2end_tests.h", 
+      "test/core/end2end/tests/cancel_test_helpers.h", 
+      "test/core/end2end/tests/default_host.c"
     ]
   }, 
   {

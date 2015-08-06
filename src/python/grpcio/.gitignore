@@ -1,5 +1,5 @@
 MANIFEST
-grpcio.egg-info/
+*.egg-info/
 build/
 dist/
 *.egg
