@@ -192,7 +192,7 @@ class SendMetadataOp : public Op {
   }
  protected:
   std::string GetTypeString() const {
-    return "send_metadata";
+    return "send metadata";
   }
 };
 
@@ -216,7 +216,7 @@ class SendMessageOp : public Op {
   }
  protected:
   std::string GetTypeString() const {
-    return "send_message";
+    return "send message";
   }
 };
 
@@ -232,7 +232,7 @@ class SendClientCloseOp : public Op {
   }
  protected:
   std::string GetTypeString() const {
-    return "client_close";
+    return "client close";
   }
 };
 
@@ -276,7 +276,7 @@ class SendServerStatusOp : public Op {
   }
  protected:
   std::string GetTypeString() const {
-    return "send_status";
+    return "send status";
   }
 };
 
@@ -453,8 +453,6 @@ void Call::Init(Handle<Object> exports) {
                           NanNew<FunctionTemplate>(StartBatch)->GetFunction());
   NanSetPrototypeTemplate(tpl, "cancel",
                           NanNew<FunctionTemplate>(Cancel)->GetFunction());
-  NanSetPrototypeTemplate(tpl, "getPeer",
-                          NanNew<FunctionTemplate>(GetPeer)->GetFunction());
   NanAssignPersistent(fun_tpl, tpl);
   Handle<Function> ctr = tpl->GetFunction();
   ctr->Set(NanNew("WRITE_BUFFER_HINT"),
@@ -511,9 +509,8 @@ NAN_METHOD(Call::New) {
       double deadline = args[2]->NumberValue();
       grpc_channel *wrapped_channel = channel->GetWrappedChannel();
       grpc_call *wrapped_call = grpc_channel_create_call(
-          wrapped_channel, NULL, GRPC_PROPAGATE_DEFAULTS,
-          CompletionQueueAsyncWorker::GetQueue(), *method, channel->GetHost(),
-          MillisecondsToTimespec(deadline));
+          wrapped_channel, CompletionQueueAsyncWorker::GetQueue(), *method,
+          channel->GetHost(), MillisecondsToTimespec(deadline), NULL);
       call = new Call(wrapped_call);
       args.This()->SetHiddenValue(NanNew("channel_"), channel_object);
     }
@@ -590,7 +587,7 @@ NAN_METHOD(Call::StartBatch) {
   NanCallback *callback = new NanCallback(callback_func);
   grpc_call_error error = grpc_call_start_batch(
       call->wrapped_call, &ops[0], nops, new struct tag(
-          callback, op_vector.release(), resources));
+          callback, op_vector.release(), resources), NULL);
   if (error != GRPC_CALL_OK) {
     return NanThrowError("startBatch failed", error);
   }
@@ -604,23 +601,11 @@ NAN_METHOD(Call::Cancel) {
     return NanThrowTypeError("cancel can only be called on Call objects");
   }
   Call *call = ObjectWrap::Unwrap<Call>(args.This());
-  grpc_call_error error = grpc_call_cancel(call->wrapped_call);
+  grpc_call_error error = grpc_call_cancel(call->wrapped_call, NULL);
   if (error != GRPC_CALL_OK) {
     return NanThrowError("cancel failed", error);
   }
   NanReturnUndefined();
-}
-
-NAN_METHOD(Call::GetPeer) {
-  NanScope();
-  if (!HasInstance(args.This())) {
-    return NanThrowTypeError("getPeer can only be called on Call objects");
-  }
-  Call *call = ObjectWrap::Unwrap<Call>(args.This());
-  char *peer = grpc_call_get_peer(call->wrapped_call);
-  Handle<Value> peer_value = NanNew(peer);
-  gpr_free(peer);
-  NanReturnValue(peer_value);
 }
 
 }  // namespace node

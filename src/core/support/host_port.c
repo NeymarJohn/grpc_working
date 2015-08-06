@@ -50,7 +50,7 @@ int gpr_join_host_port(char **out, const char *host, int port) {
   }
 }
 
-int gpr_split_host_port(const char *name, char **host, char **port) {
+void gpr_split_host_port(const char *name, char **host, char **port) {
   const char *host_start;
   size_t host_len;
   const char *port_start;
@@ -63,7 +63,7 @@ int gpr_split_host_port(const char *name, char **host, char **port) {
     const char *rbracket = strchr(name, ']');
     if (rbracket == NULL) {
       /* Unmatched [ */
-      return 0;
+      return;
     }
     if (rbracket[1] == '\0') {
       /* ]<end> */
@@ -73,14 +73,14 @@ int gpr_split_host_port(const char *name, char **host, char **port) {
       port_start = rbracket + 2;
     } else {
       /* ]<invalid> */
-      return 0;
+      return;
     }
     host_start = name + 1;
     host_len = (size_t)(rbracket - host_start);
     if (memchr(host_start, ':', host_len) == NULL) {
       /* Require all bracketed hosts to contain a colon, because a hostname or
       IPv4 address should never use brackets. */
-      return 0;
+      return;
     }
   } else {
     const char *colon = strchr(name, ':');
@@ -105,6 +105,4 @@ int gpr_split_host_port(const char *name, char **host, char **port) {
   if (port_start != NULL) {
     *port = gpr_strdup(port_start);
   }
-
-  return 1;
 }

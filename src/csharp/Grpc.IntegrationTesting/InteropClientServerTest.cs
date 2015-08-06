@@ -33,7 +33,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using grpc.testing;
@@ -48,7 +47,7 @@ namespace Grpc.IntegrationTesting
     /// </summary>
     public class InteropClientServerTest
     {
-        const string Host = "localhost";
+        string host = "localhost";
         Server server;
         Channel channel;
         TestService.ITestServiceClient client;
@@ -56,19 +55,16 @@ namespace Grpc.IntegrationTesting
         [TestFixtureSetUp]
         public void Init()
         {
-            server = new Server
-            {
-                Services = { TestService.BindService(new TestServiceImpl()) },
-                Ports = { { Host, ServerPort.PickUnused, TestCredentials.CreateTestServerCredentials() } }
-            };
+            server = new Server();
+            server.AddServiceDefinition(TestService.BindService(new TestServiceImpl()));
+            int port = server.AddListeningPort(host, Server.PickUnusedPort, TestCredentials.CreateTestServerCredentials());
             server.Start();
 
             var options = new List<ChannelOption>
             {
                 new ChannelOption(ChannelOptions.SslTargetNameOverride, TestCredentials.DefaultHostOverride)
             };
-            int port = server.Ports.Single().BoundPort;
-            channel = new Channel(Host, port, TestCredentials.CreateTestClientCredentials(true), options);
+            channel = new Channel(host, port, TestCredentials.CreateTestClientCredentials(true), options);
             client = TestService.NewClient(channel);
         }
 
@@ -93,39 +89,39 @@ namespace Grpc.IntegrationTesting
         }
 
         [Test]
-        public async Task ClientStreaming()
+        public void ClientStreaming()
         {
-            await InteropClient.RunClientStreamingAsync(client);
+            InteropClient.RunClientStreaming(client);
         }
 
         [Test]
-        public async Task ServerStreaming()
+        public void ServerStreaming()
         {
-            await InteropClient.RunServerStreamingAsync(client);
+            InteropClient.RunServerStreaming(client);
         }
 
         [Test]
-        public async Task PingPong()
+        public void PingPong()
         {
-            await InteropClient.RunPingPongAsync(client);
+            InteropClient.RunPingPong(client);
         }
 
         [Test]
-        public async Task EmptyStream()
+        public void EmptyStream()
         {
-            await InteropClient.RunEmptyStreamAsync(client);
+            InteropClient.RunEmptyStream(client);
         }
 
         [Test]
-        public async Task CancelAfterBegin()
+        public void CancelAfterBegin()
         {
-            await InteropClient.RunCancelAfterBeginAsync(client);
+            InteropClient.RunCancelAfterBegin(client);
         }
 
         [Test]
-        public async Task CancelAfterFirstResponse()
+        public void CancelAfterFirstResponse()
         {
-            await InteropClient.RunCancelAfterFirstResponseAsync(client);
+            InteropClient.RunCancelAfterFirstResponse(client);
         }
     }
 }

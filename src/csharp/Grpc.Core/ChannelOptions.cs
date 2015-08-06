@@ -30,6 +30,7 @@
 #endregion
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -133,9 +134,6 @@ namespace Grpc.Core
 
         /// <summary>Initial sequence number for http2 transports</summary>
         public const string Http2InitialSequenceNumber = "grpc.http2.initial_sequence_number";
-
-        /// <summary>Default authority for calls.</summary>
-        public const string DefaultAuthority = "grpc.default_authority";
 
         /// <summary>Primary user agent: goes at the start of the user-agent metadata</summary>
         public const string PrimaryUserAgentString = "grpc.primary_user_agent";

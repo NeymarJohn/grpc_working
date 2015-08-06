@@ -47,7 +47,6 @@ namespace Grpc.Core
 
         private readonly string method;
         private readonly string host;
-        private readonly string peer;
         private readonly DateTime deadline;
         private readonly Metadata requestHeaders;
         private readonly CancellationToken cancellationToken;
@@ -55,17 +54,16 @@ namespace Grpc.Core
 
         private Status status = Status.DefaultSuccess;
 
-        public ServerCallContext(string method, string host, string peer, DateTime deadline, Metadata requestHeaders, CancellationToken cancellationToken)
+        public ServerCallContext(string method, string host, DateTime deadline, Metadata requestHeaders, CancellationToken cancellationToken)
         {
             this.method = method;
             this.host = host;
-            this.peer = peer;
             this.deadline = deadline;
             this.requestHeaders = requestHeaders;
             this.cancellationToken = cancellationToken;
         }
             
-        /// <summary>Name of method called in this RPC.</summary>
+        /// <summary> Name of method called in this RPC. </summary>
         public string Method
         {
             get
@@ -74,7 +72,7 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>Name of host called in this RPC.</summary>
+        /// <summary> Name of host called in this RPC. </summary>
         public string Host
         {
             get
@@ -83,16 +81,7 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>Address of the remote endpoint in URI format.</summary>
-        public string Peer
-        {
-            get
-            {
-                return this.peer;
-            }
-        }
-
-        /// <summary>Deadline for this RPC.</summary>
+        /// <summary> Deadline for this RPC. </summary>
         public DateTime Deadline
         {
             get
@@ -101,7 +90,7 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>Initial metadata sent by client.</summary>
+        /// <summary> Initial metadata sent by client. </summary>
         public Metadata RequestHeaders
         {
             get
@@ -110,7 +99,8 @@ namespace Grpc.Core
             }
         }
 
-        ///<summary>Cancellation token signals when call is cancelled.</summary>
+        // TODO(jtattermusch): support signalling cancellation.
+        /// <summary> Cancellation token signals when call is cancelled. </summary>
         public CancellationToken CancellationToken
         {
             get
@@ -119,7 +109,7 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>Trailers to send back to client after RPC finishes.</summary>
+        /// <summary> Trailers to send back to client after RPC finishes.</summary>
         public Metadata ResponseTrailers
         {
             get

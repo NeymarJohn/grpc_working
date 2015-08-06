@@ -46,15 +46,13 @@ namespace Grpc.Core.Utils
         /// </summary>
         public static void RunBenchmark(int warmupIterations, int benchmarkIterations, Action action)
         {
-            var logger = GrpcEnvironment.Logger;
-            
-            logger.Info("Warmup iterations: {0}", warmupIterations);
+            Console.WriteLine("Warmup iterations: " + warmupIterations);
             for (int i = 0; i < warmupIterations; i++)
             {
                 action();
             }
 
-            logger.Info("Benchmark iterations: {0}", benchmarkIterations);
+            Console.WriteLine("Benchmark iterations: " + benchmarkIterations);
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             for (int i = 0; i < benchmarkIterations; i++)
@@ -62,8 +60,8 @@ namespace Grpc.Core.Utils
                 action();
             }
             stopwatch.Stop();
-            logger.Info("Elapsed time: {0}ms", stopwatch.ElapsedMilliseconds);
-            logger.Info("Ops per second: {0}", (int)((double)benchmarkIterations  * 1000 / stopwatch.ElapsedMilliseconds));
+            Console.WriteLine("Elapsed time: " + stopwatch.ElapsedMilliseconds + "ms");
+            Console.WriteLine("Ops per second: " + (int)((double)benchmarkIterations  * 1000 / stopwatch.ElapsedMilliseconds));
         }
     }
 }

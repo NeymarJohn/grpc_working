@@ -43,52 +43,70 @@ namespace Grpc.Core
     /// </summary>
     public static class Calls
     {
-        public static TResponse BlockingUnaryCall<TRequest, TResponse>(CallInvocationDetails<TRequest, TResponse> call, TRequest req)
+        public static TResponse BlockingUnaryCall<TRequest, TResponse>(Call<TRequest, TResponse> call, TRequest req, CancellationToken token)
             where TRequest : class
             where TResponse : class
         {
-            var asyncCall = new AsyncCall<TRequest, TResponse>(call);
-            return asyncCall.UnaryCall(req);
+            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
+            // TODO(jtattermusch): this gives a race that cancellation can be requested before the call even starts.
+            RegisterCancellationCallback(asyncCall, token);
+            return asyncCall.UnaryCall(call.Channel, call.Name, req, call.Headers);
         }
 
-        public static AsyncUnaryCall<TResponse> AsyncUnaryCall<TRequest, TResponse>(CallInvocationDetails<TRequest, TResponse> call, TRequest req)
+        public static AsyncUnaryCall<TResponse> AsyncUnaryCall<TRequest, TResponse>(Call<TRequest, TResponse> call, TRequest req, CancellationToken token)
             where TRequest : class
             where TResponse : class
         {
-            var asyncCall = new AsyncCall<TRequest, TResponse>(call);
-            var asyncResult = asyncCall.UnaryCallAsync(req);
+            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
+            asyncCall.Initialize(call.Channel, call.Channel.CompletionQueue, call.Name);
+            var asyncResult = asyncCall.UnaryCallAsync(req, call.Headers);
+            RegisterCancellationCallback(asyncCall, token);
             return new AsyncUnaryCall<TResponse>(asyncResult, asyncCall.GetStatus, asyncCall.GetTrailers, asyncCall.Cancel);
         }
 
-        public static AsyncServerStreamingCall<TResponse> AsyncServerStreamingCall<TRequest, TResponse>(CallInvocationDetails<TRequest, TResponse> call, TRequest req)
+        public static AsyncServerStreamingCall<TResponse> AsyncServerStreamingCall<TRequest, TResponse>(Call<TRequest, TResponse> call, TRequest req, CancellationToken token)
             where TRequest : class
             where TResponse : class
         {
-            var asyncCall = new AsyncCall<TRequest, TResponse>(call);
-            asyncCall.StartServerStreamingCall(req);
+            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
+            asyncCall.Initialize(call.Channel, call.Channel.CompletionQueue, call.Name);
+            asyncCall.StartServerStreamingCall(req, call.Headers);
+            RegisterCancellationCallback(asyncCall, token);
             var responseStream = new ClientResponseStream<TRequest, TResponse>(asyncCall);
             return new AsyncServerStreamingCall<TResponse>(responseStream, asyncCall.GetStatus, asyncCall.GetTrailers, asyncCall.Cancel);
         }
 
-        public static AsyncClientStreamingCall<TRequest, TResponse> AsyncClientStreamingCall<TRequest, TResponse>(CallInvocationDetails<TRequest, TResponse> call)
+        public static AsyncClientStreamingCall<TRequest, TResponse> AsyncClientStreamingCall<TRequest, TResponse>(Call<TRequest, TResponse> call, CancellationToken token)
             where TRequest : class
             where TResponse : class
         {
-            var asyncCall = new AsyncCall<TRequest, TResponse>(call);
-            var resultTask = asyncCall.ClientStreamingCallAsync();
+            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
+            asyncCall.Initialize(call.Channel, call.Channel.CompletionQueue, call.Name);
+            var resultTask = asyncCall.ClientStreamingCallAsync(call.Headers);
+            RegisterCancellationCallback(asyncCall, token);
             var requestStream = new ClientRequestStream<TRequest, TResponse>(asyncCall);
             return new AsyncClientStreamingCall<TRequest, TResponse>(requestStream, resultTask, asyncCall.GetStatus, asyncCall.GetTrailers, asyncCall.Cancel);
         }
 
-        public static AsyncDuplexStreamingCall<TRequest, TResponse> AsyncDuplexStreamingCall<TRequest, TResponse>(CallInvocationDetails<TRequest, TResponse> call)
+        public static AsyncDuplexStreamingCall<TRequest, TResponse> AsyncDuplexStreamingCall<TRequest, TResponse>(Call<TRequest, TResponse> call, CancellationToken token)
             where TRequest : class
             where TResponse : class
         {
-            var asyncCall = new AsyncCall<TRequest, TResponse>(call);
-            asyncCall.StartDuplexStreamingCall();
+            var asyncCall = new AsyncCall<TRequest, TResponse>(call.RequestMarshaller.Serializer, call.ResponseMarshaller.Deserializer);
+            asyncCall.Initialize(call.Channel, call.Channel.CompletionQueue, call.Name);
+            asyncCall.StartDuplexStreamingCall(call.Headers);
+            RegisterCancellationCallback(asyncCall, token);
             var requestStream = new ClientRequestStream<TRequest, TResponse>(asyncCall);
             var responseStream = new ClientResponseStream<TRequest, TResponse>(asyncCall);
             return new AsyncDuplexStreamingCall<TRequest, TResponse>(requestStream, responseStream, asyncCall.GetStatus, asyncCall.GetTrailers, asyncCall.Cancel);
+        }
+
+        private static void RegisterCancellationCallback<TRequest, TResponse>(AsyncCall<TRequest, TResponse> asyncCall, CancellationToken token)
+        {
+            if (token.CanBeCanceled)
+            {
+                token.Register(() => asyncCall.Cancel());
+            }
         }
     }
 }
