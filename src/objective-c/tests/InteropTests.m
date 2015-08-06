@@ -31,9 +31,10 @@
  *
  */
 
-#import "InteropTests.h"
-
 #include <grpc/status.h>
+
+#import <UIKit/UIKit.h>
+#import <XCTest/XCTest.h>
 
 #import <ProtoRPC/ProtoRPC.h>
 #import <RemoteTest/Empty.pbobjc.h>
@@ -75,17 +76,20 @@
 }
 @end
 
+@interface InteropTests : XCTestCase
+@end
+
 @implementation InteropTests {
   RMTTestService *_service;
 }
 
-+ (NSString *)host {
-  return @"http://localhost:5050";
-}
+// grpc-test.sandbox.google.com
 
 - (void)setUp {
-  _service = [[RMTTestService alloc] initWithHost:self.class.host];
+  _service = [[RMTTestService alloc] initWithHost:@"http://localhost:5050"];
 }
+
+// Tests as described here: https://github.com/grpc/grpc/blob/master/doc/interop-test-descriptions.md
 
 - (void)testEmptyUnaryRPC {
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"EmptyUnary"];
