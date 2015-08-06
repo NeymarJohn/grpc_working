@@ -31,20 +31,23 @@
  *
  */
 
-#import "GRPCUnsecuredChannel.h"
+#import "GRPCCall+Tests.h"
 
-#include <grpc/grpc.h>
+#import "private/GRPCHost.h"
 
-@implementation GRPCUnsecuredChannel
+@implementation GRPCCall (Tests)
 
-- (instancetype)initWithHost:(NSString *)host {
-  return (self = [super initWithChannel:grpc_insecure_channel_create(host.UTF8String, NULL)]);
++ (void)useTestCertsPath:(NSString *)certsPath
+                testName:(NSString *)testName
+                 forHost:(NSString *)host {
+  GRPCHost *hostConfig = [GRPCHost hostWithAddress:host];
+  hostConfig.pathToCertificates = certsPath;
+  hostConfig.hostNameOverride = testName;
 }
 
-// TODO(jcanizales): GRPCSecureChannel and GRPCUnsecuredChannel are just convenience initializers
-// for GRPCChannel. Move them into GRPCChannel, which will make the following unnecessary.
-- (instancetype)initWithChannel:(grpc_channel *)unmanagedChannel {
-  [NSException raise:NSInternalInconsistencyException format:@"use the other initializer"];
-  return [self initWithHost:nil]; // silence warnings
++ (void)useInsecureConnectionsForHost:(NSString *)host {
+  GRPCHost *hostConfig = [GRPCHost hostWithAddress:host];
+  hostConfig.secure = NO;
 }
+
 @end

@@ -31,20 +31,14 @@
  *
  */
 
-#import "GRPCUnsecuredChannel.h"
+#import <XCTest/XCTest.h>
 
-#include <grpc/grpc.h>
+// Implements tests as described here:
+// https://github.com/grpc/grpc/blob/master/doc/interop-test-descriptions.md
 
-@implementation GRPCUnsecuredChannel
-
-- (instancetype)initWithHost:(NSString *)host {
-  return (self = [super initWithChannel:grpc_insecure_channel_create(host.UTF8String, NULL)]);
-}
-
-// TODO(jcanizales): GRPCSecureChannel and GRPCUnsecuredChannel are just convenience initializers
-// for GRPCChannel. Move them into GRPCChannel, which will make the following unnecessary.
-- (instancetype)initWithChannel:(grpc_channel *)unmanagedChannel {
-  [NSException raise:NSInternalInconsistencyException format:@"use the other initializer"];
-  return [self initWithHost:nil]; // silence warnings
-}
+@interface InteropTests : XCTestCase
+// Returns @"localhost:5050".
+// Override in a subclass to perform the same tests against a different address.
+// For interop tests, use @"grpc-test.sandbox.google.com".
++ (NSString *)host;
 @end
