@@ -31,21 +31,8 @@
  *
  */
 
-struct grpc_credentials;
-struct grpc_channel_args;
-
 #import "GRPCChannel.h"
 
 @interface GRPCSecureChannel : GRPCChannel
-- (instancetype)initWithHost:(NSString *)host;
 
-// Only in tests shouldn't pathToCertificates or hostNameOverride be nil. Passing nil for
-// pathToCertificates results in using the default root certificates distributed with the library.
-- (instancetype)initWithHost:(NSString *)host
-          pathToCertificates:(NSString *)path
-            hostNameOverride:(NSString *)hostNameOverride;
-
-- (instancetype)initWithHost:(NSString *)host
-                 credentials:(struct grpc_credentials *)credentials
-                        args:(struct grpc_channel_args *)args NS_DESIGNATED_INITIALIZER;
 @end
