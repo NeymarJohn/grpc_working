@@ -6,8 +6,8 @@
     "language": "c", 
     "name": "alarm_heap_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -15,8 +15,8 @@
     "language": "c", 
     "name": "alarm_list_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -24,8 +24,8 @@
     "language": "c", 
     "name": "alarm_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -33,8 +33,8 @@
     "language": "c", 
     "name": "alpn_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -42,8 +42,8 @@
     "language": "c", 
     "name": "bin_encoder_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -51,8 +51,8 @@
     "language": "c", 
     "name": "chttp2_status_conversion_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -60,8 +60,8 @@
     "language": "c", 
     "name": "chttp2_stream_encoder_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -69,8 +69,8 @@
     "language": "c", 
     "name": "chttp2_stream_map_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -78,8 +78,6 @@
     "language": "c", 
     "name": "dualstack_socket_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -88,8 +86,6 @@
     "language": "c", 
     "name": "fd_conservation_posix_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -98,8 +94,6 @@
     "language": "c", 
     "name": "fd_posix_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -108,8 +102,6 @@
     "language": "c", 
     "name": "fling_stream_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -118,8 +110,6 @@
     "language": "c", 
     "name": "fling_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -128,8 +118,8 @@
     "language": "c", 
     "name": "gpr_cancellable_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -137,8 +127,8 @@
     "language": "c", 
     "name": "gpr_cmdline_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -146,8 +136,8 @@
     "language": "c", 
     "name": "gpr_env_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -155,8 +145,8 @@
     "language": "c", 
     "name": "gpr_file_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -164,8 +154,8 @@
     "language": "c", 
     "name": "gpr_histogram_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -173,8 +163,8 @@
     "language": "c", 
     "name": "gpr_host_port_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -182,8 +172,8 @@
     "language": "c", 
     "name": "gpr_log_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -191,8 +181,8 @@
     "language": "c", 
     "name": "gpr_slice_buffer_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -200,8 +190,8 @@
     "language": "c", 
     "name": "gpr_slice_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -209,8 +199,8 @@
     "language": "c", 
     "name": "gpr_stack_lockfree_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -218,8 +208,8 @@
     "language": "c", 
     "name": "gpr_string_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -227,8 +217,8 @@
     "language": "c", 
     "name": "gpr_sync_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -236,8 +226,8 @@
     "language": "c", 
     "name": "gpr_thd_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -245,8 +235,8 @@
     "language": "c", 
     "name": "gpr_time_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -254,8 +244,8 @@
     "language": "c", 
     "name": "gpr_tls_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -263,8 +253,8 @@
     "language": "c", 
     "name": "gpr_useful_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -272,8 +262,8 @@
     "language": "c", 
     "name": "grpc_auth_context_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -281,8 +271,8 @@
     "language": "c", 
     "name": "grpc_base64_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -290,8 +280,8 @@
     "language": "c", 
     "name": "grpc_byte_buffer_reader_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -299,8 +289,8 @@
     "language": "c", 
     "name": "grpc_channel_stack_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -308,8 +298,8 @@
     "language": "c", 
     "name": "grpc_completion_queue_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -317,8 +307,8 @@
     "language": "c", 
     "name": "grpc_credentials_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -326,8 +316,8 @@
     "language": "c", 
     "name": "grpc_json_token_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -335,8 +325,8 @@
     "language": "c", 
     "name": "grpc_jwt_verifier_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -344,8 +334,8 @@
     "language": "c", 
     "name": "grpc_security_connector_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -353,8 +343,8 @@
     "language": "c", 
     "name": "grpc_stream_op_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -362,8 +352,8 @@
     "language": "c", 
     "name": "hpack_parser_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -371,8 +361,8 @@
     "language": "c", 
     "name": "hpack_table_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -380,8 +370,8 @@
     "language": "c", 
     "name": "httpcli_format_request_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -389,8 +379,8 @@
     "language": "c", 
     "name": "httpcli_parser_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -398,8 +388,6 @@
     "language": "c", 
     "name": "httpcli_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -408,8 +396,8 @@
     "language": "c", 
     "name": "json_rewrite_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -417,8 +405,8 @@
     "language": "c", 
     "name": "json_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -426,8 +414,8 @@
     "language": "c", 
     "name": "lame_client_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -435,8 +423,8 @@
     "language": "c", 
     "name": "message_compress_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -444,8 +432,8 @@
     "language": "c", 
     "name": "multi_init_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -453,8 +441,8 @@
     "language": "c", 
     "name": "multiple_server_queues_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -462,8 +450,8 @@
     "language": "c", 
     "name": "murmur_hash_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -471,8 +459,8 @@
     "language": "c", 
     "name": "no_server_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -480,8 +468,8 @@
     "language": "c", 
     "name": "resolve_address_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -489,8 +477,8 @@
     "language": "c", 
     "name": "secure_endpoint_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -498,8 +486,8 @@
     "language": "c", 
     "name": "sockaddr_utils_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -507,8 +495,6 @@
     "language": "c", 
     "name": "tcp_client_posix_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -517,8 +503,6 @@
     "language": "c", 
     "name": "tcp_posix_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -527,8 +511,6 @@
     "language": "c", 
     "name": "tcp_server_posix_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -537,8 +519,8 @@
     "language": "c", 
     "name": "time_averaged_stats_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -546,8 +528,8 @@
     "language": "c", 
     "name": "timeout_encoding_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -555,8 +537,8 @@
     "language": "c", 
     "name": "timers_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -564,8 +546,8 @@
     "language": "c", 
     "name": "transport_metadata_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -573,8 +555,8 @@
     "language": "c", 
     "name": "transport_security_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -582,8 +564,8 @@
     "language": "c", 
     "name": "uri_parser_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -591,8 +573,8 @@
     "language": "c++", 
     "name": "async_end2end_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -600,8 +582,6 @@
     "language": "c++", 
     "name": "async_streaming_ping_pong_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -610,8 +590,6 @@
     "language": "c++", 
     "name": "async_unary_ping_pong_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -620,8 +598,8 @@
     "language": "c++", 
     "name": "auth_property_iterator_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -629,8 +607,8 @@
     "language": "c++", 
     "name": "channel_arguments_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -638,8 +616,8 @@
     "language": "c++", 
     "name": "cli_call_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -647,8 +625,6 @@
     "language": "c++", 
     "name": "client_crash_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -657,8 +633,8 @@
     "language": "c++", 
     "name": "credentials_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -666,8 +642,8 @@
     "language": "c++", 
     "name": "cxx_byte_buffer_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -675,8 +651,8 @@
     "language": "c++", 
     "name": "cxx_slice_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -684,8 +660,8 @@
     "language": "c++", 
     "name": "cxx_time_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -693,8 +669,8 @@
     "language": "c++", 
     "name": "dynamic_thread_pool_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -702,8 +678,8 @@
     "language": "c++", 
     "name": "end2end_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -711,8 +687,8 @@
     "language": "c++", 
     "name": "fixed_size_thread_pool_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -720,8 +696,8 @@
     "language": "c++", 
     "name": "generic_end2end_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -729,8 +705,6 @@
     "language": "c++", 
     "name": "interop_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -739,8 +713,8 @@
     "language": "c++", 
     "name": "mock_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -748,8 +722,6 @@
     "language": "c++", 
     "name": "qps_openloop_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -758,8 +730,6 @@
     "language": "c++", 
     "name": "qps_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -768,8 +738,8 @@
     "language": "c++", 
     "name": "secure_auth_context_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -777,8 +747,6 @@
     "language": "c++", 
     "name": "server_crash_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -787,8 +755,8 @@
     "language": "c++", 
     "name": "status_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -796,8 +764,6 @@
     "language": "c++", 
     "name": "sync_streaming_ping_pong_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -806,8 +772,6 @@
     "language": "c++", 
     "name": "sync_unary_ping_pong_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -816,8 +780,8 @@
     "language": "c++", 
     "name": "thread_stress_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -825,10 +789,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_bad_hostname_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -836,10 +798,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_cancel_after_accept_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -847,10 +807,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -858,10 +816,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_cancel_after_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -869,10 +825,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_cancel_before_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -880,10 +834,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -891,10 +843,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_census_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -902,10 +852,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_channel_connectivity_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -913,10 +861,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_default_host_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -924,10 +870,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_disappearing_server_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -935,10 +879,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -946,10 +888,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -957,10 +897,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_empty_batch_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -968,10 +906,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_graceful_server_shutdown_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -979,10 +915,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_invoke_large_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -990,10 +924,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_max_concurrent_streams_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1001,10 +933,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_max_message_length_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1012,10 +942,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_no_op_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1023,10 +951,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_ping_pong_streaming_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1034,10 +960,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_registered_call_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1045,10 +969,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1056,10 +978,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1067,10 +987,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_request_response_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1078,10 +996,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1089,10 +1005,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1100,10 +1014,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_request_with_compressed_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1111,10 +1023,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_request_with_flags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1122,10 +1032,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_request_with_large_metadata_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1133,10 +1041,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_request_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1144,10 +1050,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_server_finishes_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1155,10 +1059,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_simple_delayed_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1166,10 +1068,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1177,10 +1077,8 @@
     "language": "c", 
     "name": "chttp2_fake_security_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1188,10 +1086,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_bad_hostname_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1199,10 +1095,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_cancel_after_accept_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1210,10 +1104,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1221,10 +1113,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_cancel_after_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1232,10 +1122,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_cancel_before_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1243,10 +1131,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1254,10 +1140,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_census_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1265,10 +1149,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_channel_connectivity_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1276,10 +1158,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_default_host_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1287,10 +1167,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_disappearing_server_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1298,10 +1176,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1309,10 +1185,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1320,10 +1194,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_empty_batch_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1331,10 +1203,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_graceful_server_shutdown_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1342,10 +1212,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_invoke_large_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1353,10 +1221,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_max_concurrent_streams_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1364,10 +1230,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_max_message_length_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1375,10 +1239,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_no_op_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1386,10 +1248,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_ping_pong_streaming_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1397,10 +1257,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_registered_call_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1408,10 +1266,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1419,10 +1275,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1430,10 +1284,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_response_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1441,10 +1293,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1452,10 +1302,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1463,10 +1311,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_with_compressed_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1474,10 +1320,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_with_flags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1485,10 +1329,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_with_large_metadata_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1496,10 +1338,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1507,10 +1347,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_server_finishes_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1518,10 +1356,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_simple_delayed_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1529,10 +1365,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1540,10 +1374,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1551,10 +1383,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_bad_hostname_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1562,10 +1392,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_cancel_after_accept_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1573,10 +1401,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1584,10 +1410,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_cancel_after_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1595,10 +1419,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_cancel_before_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1606,10 +1428,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1617,10 +1437,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_census_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1628,10 +1446,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_channel_connectivity_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1639,10 +1455,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_default_host_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1650,10 +1464,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_disappearing_server_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1661,10 +1473,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1672,10 +1482,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1683,10 +1491,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_empty_batch_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1694,10 +1500,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_graceful_server_shutdown_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1705,10 +1509,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_invoke_large_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1716,10 +1518,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_max_concurrent_streams_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1727,10 +1527,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_max_message_length_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1738,10 +1536,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_no_op_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1749,10 +1545,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_ping_pong_streaming_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1760,10 +1554,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_registered_call_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1771,10 +1563,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1782,10 +1572,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1793,10 +1581,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_response_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1804,10 +1590,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1815,10 +1599,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1826,10 +1608,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_with_compressed_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1837,10 +1617,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_with_flags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1848,10 +1626,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_with_large_metadata_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1859,10 +1635,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1870,10 +1644,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_server_finishes_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1881,10 +1653,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_simple_delayed_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1892,10 +1662,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1903,10 +1671,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -1914,8 +1680,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_bad_hostname_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -1924,8 +1688,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_cancel_after_accept_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -1934,8 +1696,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -1944,8 +1704,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_cancel_after_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -1954,8 +1712,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_cancel_before_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -1964,8 +1720,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -1974,8 +1728,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_census_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -1984,8 +1736,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_channel_connectivity_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -1994,8 +1744,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_disappearing_server_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2004,8 +1752,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2014,8 +1760,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2024,8 +1768,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_empty_batch_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2034,8 +1776,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_graceful_server_shutdown_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2044,8 +1784,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_invoke_large_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2054,8 +1792,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_max_concurrent_streams_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2064,8 +1800,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_max_message_length_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2074,8 +1808,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_no_op_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2084,8 +1816,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_ping_pong_streaming_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2094,8 +1824,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_registered_call_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2104,8 +1832,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2114,8 +1840,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2124,8 +1848,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_response_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2134,8 +1856,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2144,8 +1864,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2154,8 +1872,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_with_compressed_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2164,8 +1880,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_with_flags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2174,8 +1888,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_with_large_metadata_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2184,8 +1896,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2194,8 +1904,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_server_finishes_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2204,8 +1912,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_simple_delayed_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2214,8 +1920,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2224,8 +1928,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -2234,7 +1936,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_bad_hostname_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2242,7 +1944,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_cancel_after_accept_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2250,7 +1952,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2258,7 +1960,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_cancel_after_invoke_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2266,7 +1968,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_cancel_before_invoke_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2274,7 +1976,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2282,7 +1984,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_census_simple_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2290,7 +1992,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_channel_connectivity_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2298,7 +2000,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_disappearing_server_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2306,7 +2008,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2314,7 +2016,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2322,7 +2024,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_empty_batch_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2330,7 +2032,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_graceful_server_shutdown_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2338,7 +2040,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_invoke_large_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2346,7 +2048,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_max_concurrent_streams_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2354,7 +2056,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_max_message_length_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2362,7 +2064,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_no_op_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2370,7 +2072,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_ping_pong_streaming_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2378,7 +2080,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_registered_call_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2386,7 +2088,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2394,7 +2096,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2402,7 +2104,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2410,7 +2112,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2418,7 +2120,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2426,7 +2128,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_with_compressed_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2434,7 +2136,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_with_flags_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2442,7 +2144,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_with_large_metadata_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2450,7 +2152,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_with_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2458,7 +2160,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_server_finishes_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2466,7 +2168,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_simple_delayed_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2474,7 +2176,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_simple_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2482,7 +2184,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2490,7 +2192,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_bad_hostname_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2498,7 +2200,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_cancel_after_accept_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2506,7 +2208,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2514,7 +2216,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_cancel_after_invoke_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2522,7 +2224,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_cancel_before_invoke_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2530,7 +2232,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2538,7 +2240,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_census_simple_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2546,7 +2248,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_channel_connectivity_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2554,7 +2256,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_default_host_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2562,7 +2264,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_disappearing_server_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2570,7 +2272,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2578,7 +2280,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2586,7 +2288,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_empty_batch_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2594,7 +2296,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_graceful_server_shutdown_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2602,7 +2304,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_invoke_large_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2610,7 +2312,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_max_concurrent_streams_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2618,7 +2320,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_max_message_length_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2626,7 +2328,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_no_op_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2634,7 +2336,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_ping_pong_streaming_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2642,7 +2344,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_registered_call_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2650,7 +2352,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2658,7 +2360,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2666,7 +2368,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_response_with_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2674,7 +2376,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2682,7 +2384,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2690,7 +2392,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_with_compressed_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2698,7 +2400,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_with_flags_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2706,7 +2408,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_with_large_metadata_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2714,7 +2416,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_with_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2722,7 +2424,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_server_finishes_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2730,7 +2432,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_simple_delayed_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2738,7 +2440,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_simple_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2746,7 +2448,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -2754,10 +2456,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_bad_hostname_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2765,10 +2465,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_cancel_after_accept_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2776,10 +2474,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2787,10 +2483,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_cancel_after_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2798,10 +2492,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_cancel_before_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2809,10 +2501,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2820,10 +2510,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_census_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2831,10 +2519,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_default_host_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2842,10 +2528,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_disappearing_server_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2853,10 +2537,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2864,10 +2546,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2875,10 +2555,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_empty_batch_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2886,10 +2564,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_graceful_server_shutdown_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2897,10 +2573,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_invoke_large_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2908,10 +2582,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_max_message_length_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2919,10 +2591,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_no_op_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2930,10 +2600,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_ping_pong_streaming_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2941,10 +2609,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_registered_call_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2952,10 +2618,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2963,10 +2627,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2974,10 +2636,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_request_response_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2985,10 +2645,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -2996,10 +2654,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3007,10 +2663,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_request_with_large_metadata_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3018,10 +2672,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_request_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3029,10 +2681,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_server_finishes_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3040,10 +2690,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_simple_delayed_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3051,10 +2699,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3062,10 +2708,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3073,10 +2717,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_bad_hostname_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3084,10 +2726,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_cancel_after_accept_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3095,10 +2735,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3106,10 +2744,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_cancel_after_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3117,10 +2753,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_cancel_before_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3128,10 +2762,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3139,10 +2771,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_census_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3150,10 +2780,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_channel_connectivity_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3161,10 +2789,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_default_host_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3172,10 +2798,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_disappearing_server_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3183,10 +2807,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3194,10 +2816,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3205,10 +2825,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_empty_batch_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3216,10 +2834,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_graceful_server_shutdown_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3227,10 +2843,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_invoke_large_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3238,10 +2852,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_max_concurrent_streams_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3249,10 +2861,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_max_message_length_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3260,10 +2870,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_no_op_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3271,10 +2879,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_ping_pong_streaming_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3282,10 +2888,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_registered_call_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3293,10 +2897,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3304,10 +2906,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3315,10 +2915,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_request_response_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3326,10 +2924,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3337,10 +2933,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3348,10 +2942,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_request_with_compressed_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3359,10 +2951,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_request_with_flags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3370,10 +2960,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_request_with_large_metadata_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3381,10 +2969,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_request_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3392,10 +2978,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_server_finishes_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3403,10 +2987,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_simple_delayed_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3414,10 +2996,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3425,10 +3005,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3436,7 +3014,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_bad_hostname_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3444,7 +3022,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_cancel_after_accept_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3452,7 +3030,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3460,7 +3038,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_cancel_after_invoke_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3468,7 +3046,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_cancel_before_invoke_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3476,7 +3054,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3484,7 +3062,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_census_simple_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3492,7 +3070,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_channel_connectivity_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3500,7 +3078,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_default_host_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3508,7 +3086,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_disappearing_server_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3516,7 +3094,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3524,7 +3102,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3532,7 +3110,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_empty_batch_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3540,7 +3118,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_graceful_server_shutdown_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3548,7 +3126,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_invoke_large_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3556,7 +3134,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_max_concurrent_streams_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3564,7 +3142,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_max_message_length_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3572,7 +3150,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_no_op_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3580,7 +3158,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_ping_pong_streaming_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3588,7 +3166,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_registered_call_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3596,7 +3174,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3604,7 +3182,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3612,7 +3190,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_request_response_with_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3620,7 +3198,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3628,7 +3206,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3636,7 +3214,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_request_with_compressed_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3644,7 +3222,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_request_with_flags_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3652,7 +3230,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_request_with_large_metadata_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3660,7 +3238,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_request_with_payload_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3668,7 +3246,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_server_finishes_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3676,7 +3254,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_simple_delayed_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3684,7 +3262,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_simple_request_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3692,7 +3270,7 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_poll_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -3700,10 +3278,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_bad_hostname_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3711,10 +3287,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_cancel_after_accept_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3722,10 +3296,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3733,10 +3305,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_cancel_after_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3744,10 +3314,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_cancel_before_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3755,10 +3323,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3766,10 +3332,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_census_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3777,10 +3341,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_default_host_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3788,10 +3350,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_disappearing_server_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3799,10 +3359,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3810,10 +3368,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3821,10 +3377,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_empty_batch_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3832,10 +3386,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_graceful_server_shutdown_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3843,10 +3395,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_invoke_large_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3854,10 +3404,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_max_message_length_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3865,10 +3413,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_no_op_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3876,10 +3422,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_ping_pong_streaming_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3887,10 +3431,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_registered_call_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3898,10 +3440,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3909,10 +3449,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3920,10 +3458,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_request_response_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3931,10 +3467,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3942,10 +3476,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3953,10 +3485,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_request_with_large_metadata_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3964,10 +3494,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_request_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3975,10 +3503,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_server_finishes_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3986,10 +3512,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_simple_delayed_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -3997,10 +3521,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4008,10 +3530,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_fullstack_with_proxy_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4019,10 +3539,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_bad_hostname_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4030,10 +3548,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4041,10 +3557,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4052,10 +3566,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_cancel_after_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4063,10 +3575,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_cancel_before_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4074,10 +3584,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4085,10 +3593,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_census_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4096,10 +3602,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_channel_connectivity_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4107,10 +3611,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_default_host_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4118,10 +3620,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_disappearing_server_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4129,10 +3629,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4140,10 +3638,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4151,10 +3647,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_empty_batch_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4162,10 +3656,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_graceful_server_shutdown_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4173,10 +3665,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_invoke_large_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4184,10 +3674,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_max_concurrent_streams_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4195,10 +3683,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_max_message_length_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4206,10 +3692,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_no_op_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4217,10 +3701,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_ping_pong_streaming_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4228,10 +3710,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_registered_call_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4239,10 +3719,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4250,10 +3728,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4261,10 +3737,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4272,10 +3746,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4283,10 +3755,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4294,10 +3764,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_request_with_compressed_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4305,10 +3773,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_request_with_flags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4316,10 +3782,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_request_with_large_metadata_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4327,10 +3791,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_request_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4338,10 +3800,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_server_finishes_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4349,10 +3809,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_simple_delayed_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4360,10 +3818,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4371,10 +3827,8 @@
     "language": "c", 
     "name": "chttp2_simple_ssl_with_oauth2_fullstack_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4382,10 +3836,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_bad_hostname_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4393,10 +3845,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_cancel_after_accept_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4404,10 +3854,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4415,10 +3863,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_cancel_after_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4426,10 +3872,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_cancel_before_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4437,10 +3881,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4448,10 +3890,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_census_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4459,10 +3899,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4470,10 +3908,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4481,10 +3917,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_empty_batch_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4492,10 +3926,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_graceful_server_shutdown_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4503,10 +3935,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_invoke_large_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4514,10 +3944,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_max_concurrent_streams_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4525,10 +3953,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_max_message_length_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4536,10 +3962,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_no_op_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4547,10 +3971,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_ping_pong_streaming_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4558,10 +3980,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_registered_call_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4569,10 +3989,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4580,10 +3998,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4591,10 +4007,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_response_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4602,10 +4016,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4613,10 +4025,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4624,10 +4034,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_with_compressed_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4635,10 +4043,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_with_flags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4646,10 +4052,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_with_large_metadata_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4657,10 +4061,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4668,10 +4070,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_server_finishes_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4679,10 +4079,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4690,10 +4088,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4701,10 +4097,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_bad_hostname_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4712,10 +4106,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4723,10 +4115,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4734,10 +4124,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4745,10 +4133,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4756,10 +4142,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4767,10 +4151,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_census_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4778,10 +4160,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4789,10 +4169,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4800,10 +4178,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_empty_batch_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4811,10 +4187,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4822,10 +4196,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4833,10 +4205,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4844,10 +4214,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_max_message_length_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4855,10 +4223,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_no_op_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4866,10 +4232,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4877,10 +4241,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_registered_call_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4888,10 +4250,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4899,10 +4259,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4910,10 +4268,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4921,10 +4277,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4932,10 +4286,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4943,10 +4295,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_with_compressed_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4954,10 +4304,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_with_flags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4965,10 +4313,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4976,10 +4322,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4987,10 +4331,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_server_finishes_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -4998,10 +4340,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5009,10 +4349,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5020,10 +4358,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_bad_hostname_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5031,10 +4367,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_cancel_after_accept_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5042,10 +4376,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_cancel_after_accept_and_writes_closed_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5053,10 +4385,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_cancel_after_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5064,10 +4394,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_cancel_before_invoke_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5075,10 +4403,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_cancel_in_a_vacuum_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5086,10 +4412,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_census_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5097,10 +4421,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_early_server_shutdown_finishes_inflight_calls_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5108,10 +4430,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_early_server_shutdown_finishes_tags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5119,10 +4439,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_empty_batch_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5130,10 +4448,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_graceful_server_shutdown_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5141,10 +4457,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_invoke_large_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5152,10 +4466,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_max_concurrent_streams_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5163,10 +4475,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_max_message_length_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5174,10 +4484,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_no_op_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5185,10 +4493,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_ping_pong_streaming_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5196,10 +4502,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_registered_call_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5207,10 +4511,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_response_with_binary_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5218,10 +4520,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_response_with_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5229,10 +4529,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_response_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5240,10 +4538,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_response_with_payload_and_call_creds_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5251,10 +4547,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_response_with_trailing_metadata_and_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5262,10 +4556,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_with_compressed_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5273,10 +4565,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_with_flags_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5284,10 +4574,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_with_large_metadata_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5295,10 +4583,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_with_payload_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5306,10 +4592,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_server_finishes_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5317,10 +4601,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_simple_request_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5328,10 +4610,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_simple_request_with_high_initial_sequence_number_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5339,10 +4619,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_bad_hostname_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5350,10 +4628,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_cancel_after_accept_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5361,10 +4637,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_cancel_after_accept_and_writes_closed_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5372,10 +4646,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_cancel_after_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5383,10 +4655,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_cancel_before_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5394,10 +4664,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_cancel_in_a_vacuum_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5405,10 +4673,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_census_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5416,10 +4682,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_channel_connectivity_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5427,10 +4691,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_default_host_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5438,10 +4700,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_disappearing_server_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5449,10 +4709,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_early_server_shutdown_finishes_inflight_calls_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5460,10 +4718,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_early_server_shutdown_finishes_tags_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5471,10 +4727,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_empty_batch_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5482,10 +4736,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_graceful_server_shutdown_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5493,10 +4745,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_invoke_large_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5504,10 +4754,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_max_concurrent_streams_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5515,10 +4763,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_max_message_length_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5526,10 +4772,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_no_op_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5537,10 +4781,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_ping_pong_streaming_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5548,10 +4790,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_registered_call_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5559,10 +4799,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_response_with_binary_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5570,10 +4808,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_response_with_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5581,10 +4817,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_response_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5592,10 +4826,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_response_with_trailing_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5603,10 +4835,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_with_compressed_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5614,10 +4844,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_with_flags_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5625,10 +4853,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_with_large_metadata_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5636,10 +4862,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_request_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5647,10 +4871,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_server_finishes_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5658,10 +4880,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_simple_delayed_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5669,10 +4889,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5680,10 +4898,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_simple_request_with_high_initial_sequence_number_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5691,10 +4907,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_bad_hostname_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5702,10 +4916,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_cancel_after_accept_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5713,10 +4925,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_cancel_after_accept_and_writes_closed_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5724,10 +4934,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_cancel_after_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5735,10 +4943,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_cancel_before_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5746,10 +4952,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_cancel_in_a_vacuum_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5757,10 +4961,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_census_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5768,10 +4970,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_channel_connectivity_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5779,10 +4979,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_default_host_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5790,10 +4988,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_disappearing_server_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5801,10 +4997,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_early_server_shutdown_finishes_inflight_calls_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5812,10 +5006,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_early_server_shutdown_finishes_tags_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5823,10 +5015,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_empty_batch_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5834,10 +5024,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_graceful_server_shutdown_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5845,10 +5033,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_invoke_large_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5856,10 +5042,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_max_concurrent_streams_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5867,10 +5051,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_max_message_length_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5878,10 +5060,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_no_op_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5889,10 +5069,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_ping_pong_streaming_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5900,10 +5078,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_registered_call_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5911,10 +5087,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_response_with_binary_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5922,10 +5096,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_response_with_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5933,10 +5105,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_response_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5944,10 +5114,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_response_with_trailing_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5955,10 +5123,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_with_compressed_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5966,10 +5132,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_with_flags_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5977,10 +5141,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_with_large_metadata_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5988,10 +5150,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_request_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -5999,10 +5159,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_server_finishes_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6010,10 +5168,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_simple_delayed_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6021,10 +5177,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6032,10 +5186,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_compression_simple_request_with_high_initial_sequence_number_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6043,8 +5195,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_bad_hostname_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6053,8 +5203,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_cancel_after_accept_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6063,8 +5211,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_cancel_after_accept_and_writes_closed_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6073,8 +5219,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_cancel_after_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6083,8 +5227,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_cancel_before_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6093,8 +5235,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_cancel_in_a_vacuum_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6103,8 +5243,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_census_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6113,8 +5251,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_channel_connectivity_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6123,8 +5259,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_disappearing_server_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6133,8 +5267,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_early_server_shutdown_finishes_inflight_calls_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6143,8 +5275,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_early_server_shutdown_finishes_tags_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6153,8 +5283,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_empty_batch_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6163,8 +5291,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_graceful_server_shutdown_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6173,8 +5299,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_invoke_large_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6183,8 +5307,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_max_concurrent_streams_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6193,8 +5315,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_max_message_length_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6203,8 +5323,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_no_op_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6213,8 +5331,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_ping_pong_streaming_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6223,8 +5339,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_registered_call_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6233,8 +5347,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_response_with_binary_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6243,8 +5355,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_response_with_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6253,8 +5363,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_response_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6263,8 +5371,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_response_with_trailing_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6273,8 +5379,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_with_compressed_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6283,8 +5387,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_with_flags_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6293,8 +5395,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_with_large_metadata_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6303,8 +5403,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_request_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6313,8 +5411,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_server_finishes_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6323,8 +5419,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_simple_delayed_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6333,8 +5427,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6343,8 +5435,6 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_simple_request_with_high_initial_sequence_number_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ]
   }, 
@@ -6353,7 +5443,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_bad_hostname_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6361,7 +5451,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_cancel_after_accept_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6369,7 +5459,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_cancel_after_accept_and_writes_closed_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6377,7 +5467,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_cancel_after_invoke_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6385,7 +5475,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_cancel_before_invoke_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6393,7 +5483,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_cancel_in_a_vacuum_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6401,7 +5491,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_census_simple_request_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6409,7 +5499,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_channel_connectivity_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6417,7 +5507,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_disappearing_server_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6425,7 +5515,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_early_server_shutdown_finishes_inflight_calls_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6433,7 +5523,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_early_server_shutdown_finishes_tags_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6441,7 +5531,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_empty_batch_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6449,7 +5539,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_graceful_server_shutdown_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6457,7 +5547,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_invoke_large_request_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6465,7 +5555,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_max_concurrent_streams_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6473,7 +5563,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_max_message_length_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6481,7 +5571,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_no_op_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6489,7 +5579,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_ping_pong_streaming_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6497,7 +5587,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_registered_call_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6505,7 +5595,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_binary_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6513,7 +5603,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6521,7 +5611,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_payload_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6529,7 +5619,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_response_with_trailing_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6537,7 +5627,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_with_compressed_payload_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6545,7 +5635,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_with_flags_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6553,7 +5643,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_with_large_metadata_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6561,7 +5651,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_request_with_payload_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6569,7 +5659,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_server_finishes_request_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6577,7 +5667,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_simple_delayed_request_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6585,7 +5675,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_simple_request_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6593,7 +5683,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_uds_posix_with_poll_simple_request_with_high_initial_sequence_number_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6601,7 +5691,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_bad_hostname_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6609,7 +5699,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_cancel_after_accept_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6617,7 +5707,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_cancel_after_accept_and_writes_closed_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6625,7 +5715,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_cancel_after_invoke_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6633,7 +5723,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_cancel_before_invoke_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6641,7 +5731,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_cancel_in_a_vacuum_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6649,7 +5739,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_census_simple_request_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6657,7 +5747,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_channel_connectivity_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6665,7 +5755,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_default_host_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6673,7 +5763,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_disappearing_server_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6681,7 +5771,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_early_server_shutdown_finishes_inflight_calls_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6689,7 +5779,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_early_server_shutdown_finishes_tags_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6697,7 +5787,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_empty_batch_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6705,7 +5795,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_graceful_server_shutdown_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6713,7 +5803,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_invoke_large_request_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6721,7 +5811,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_max_concurrent_streams_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6729,7 +5819,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_max_message_length_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6737,7 +5827,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_no_op_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6745,7 +5835,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_ping_pong_streaming_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6753,7 +5843,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_registered_call_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6761,7 +5851,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_response_with_binary_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6769,7 +5859,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_response_with_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6777,7 +5867,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_response_with_payload_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6785,7 +5875,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_response_with_trailing_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6793,7 +5883,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_with_compressed_payload_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6801,7 +5891,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_with_flags_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6809,7 +5899,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_with_large_metadata_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6817,7 +5907,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_request_with_payload_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6825,7 +5915,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_server_finishes_request_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6833,7 +5923,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_simple_delayed_request_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6841,7 +5931,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_simple_request_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6849,7 +5939,7 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_poll_simple_request_with_high_initial_sequence_number_unsecure_test", 
     "platforms": [
-      "linux"
+      "posix"
     ]
   }, 
   {
@@ -6857,10 +5947,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_bad_hostname_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6868,10 +5956,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_cancel_after_accept_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6879,10 +5965,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_cancel_after_accept_and_writes_closed_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6890,10 +5974,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_cancel_after_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6901,10 +5983,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_cancel_before_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6912,10 +5992,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_cancel_in_a_vacuum_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6923,10 +6001,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_census_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6934,10 +6010,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_default_host_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6945,10 +6019,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_disappearing_server_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6956,10 +6028,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_early_server_shutdown_finishes_inflight_calls_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6967,10 +6037,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_early_server_shutdown_finishes_tags_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6978,10 +6046,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_empty_batch_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -6989,10 +6055,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_graceful_server_shutdown_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7000,10 +6064,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_invoke_large_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7011,10 +6073,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_max_message_length_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7022,10 +6082,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_no_op_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7033,10 +6091,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_ping_pong_streaming_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7044,10 +6100,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_registered_call_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7055,10 +6109,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_request_response_with_binary_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7066,10 +6118,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_request_response_with_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7077,10 +6127,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_request_response_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7088,10 +6136,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_request_response_with_trailing_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7099,10 +6145,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_request_with_large_metadata_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7110,10 +6154,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_request_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7121,10 +6163,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_server_finishes_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7132,10 +6172,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_simple_delayed_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7143,10 +6181,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7154,10 +6190,8 @@
     "language": "c", 
     "name": "chttp2_fullstack_with_proxy_simple_request_with_high_initial_sequence_number_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7165,10 +6199,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_bad_hostname_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7176,10 +6208,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_cancel_after_accept_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7187,10 +6217,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_cancel_after_accept_and_writes_closed_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7198,10 +6226,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_cancel_after_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7209,10 +6235,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_cancel_before_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7220,10 +6244,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_cancel_in_a_vacuum_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7231,10 +6253,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_census_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7242,10 +6262,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_early_server_shutdown_finishes_inflight_calls_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7253,10 +6271,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_early_server_shutdown_finishes_tags_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7264,10 +6280,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_empty_batch_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7275,10 +6289,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_graceful_server_shutdown_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7286,10 +6298,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_invoke_large_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7297,10 +6307,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_max_concurrent_streams_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7308,10 +6316,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_max_message_length_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7319,10 +6325,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_no_op_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7330,10 +6334,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_ping_pong_streaming_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7341,10 +6343,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_registered_call_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7352,10 +6352,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_response_with_binary_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7363,10 +6361,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_response_with_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7374,10 +6370,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_response_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7385,10 +6379,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_response_with_trailing_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7396,10 +6388,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_with_compressed_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7407,10 +6397,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_with_flags_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7418,10 +6406,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_with_large_metadata_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7429,10 +6415,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_request_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7440,10 +6424,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_server_finishes_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7451,10 +6433,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7462,10 +6442,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_simple_request_with_high_initial_sequence_number_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7473,10 +6451,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_bad_hostname_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7484,10 +6460,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7495,10 +6469,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_cancel_after_accept_and_writes_closed_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7506,10 +6478,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_cancel_after_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7517,10 +6487,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_cancel_before_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7528,10 +6496,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_cancel_in_a_vacuum_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7539,10 +6505,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_census_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7550,10 +6514,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_inflight_calls_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7561,10 +6523,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_early_server_shutdown_finishes_tags_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7572,10 +6532,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_empty_batch_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7583,10 +6541,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_graceful_server_shutdown_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7594,10 +6550,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_invoke_large_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7605,10 +6559,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_max_concurrent_streams_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7616,10 +6568,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_max_message_length_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7627,10 +6577,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_no_op_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7638,10 +6586,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_ping_pong_streaming_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7649,10 +6595,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_registered_call_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7660,10 +6604,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_response_with_binary_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7671,10 +6613,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_response_with_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7682,10 +6622,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_response_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7693,10 +6631,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_response_with_trailing_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7704,10 +6640,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_with_compressed_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7715,10 +6649,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_with_flags_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7726,10 +6658,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_with_large_metadata_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7737,10 +6667,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_request_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7748,10 +6676,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_server_finishes_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7759,10 +6685,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7770,10 +6694,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_one_byte_at_a_time_simple_request_with_high_initial_sequence_number_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7781,10 +6703,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_bad_hostname_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7792,10 +6712,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_cancel_after_accept_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7803,10 +6721,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_cancel_after_accept_and_writes_closed_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7814,10 +6730,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_cancel_after_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7825,10 +6739,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_cancel_before_invoke_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7836,10 +6748,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_cancel_in_a_vacuum_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7847,10 +6757,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_census_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7858,10 +6766,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_early_server_shutdown_finishes_inflight_calls_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7869,10 +6775,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_early_server_shutdown_finishes_tags_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7880,10 +6784,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_empty_batch_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7891,10 +6793,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_graceful_server_shutdown_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7902,10 +6802,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_invoke_large_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7913,10 +6811,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_max_concurrent_streams_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7924,10 +6820,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_max_message_length_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7935,10 +6829,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_no_op_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7946,10 +6838,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_ping_pong_streaming_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7957,10 +6847,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_registered_call_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7968,10 +6856,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_response_with_binary_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7979,10 +6865,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_response_with_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -7990,10 +6874,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_response_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -8001,10 +6883,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_response_with_trailing_metadata_and_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -8012,10 +6892,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_with_compressed_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -8023,10 +6901,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_with_flags_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -8034,10 +6910,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_with_large_metadata_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -8045,10 +6919,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_request_with_payload_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -8056,10 +6928,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_server_finishes_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -8067,10 +6937,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_simple_request_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -8078,10 +6946,8 @@
     "language": "c", 
     "name": "chttp2_socket_pair_with_grpc_trace_simple_request_with_high_initial_sequence_number_unsecure_test", 
     "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -8089,8 +6955,8 @@
     "language": "c", 
     "name": "connection_prefix_bad_client_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }, 
   {
@@ -8098,8 +6964,8 @@
     "language": "c", 
     "name": "initial_settings_frame_bad_client_test", 
     "platforms": [
-      "posix", 
-      "windows"
+      "windows", 
+      "posix"
     ]
   }
 ]
