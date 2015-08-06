@@ -32,14 +32,11 @@
  */
 
 #import "GRPCWrappedCall.h"
-
 #import <Foundation/Foundation.h>
 #include <grpc/grpc.h>
 #include <grpc/byte_buffer.h>
 #include <grpc/support/alloc.h>
-
 #import "GRPCCompletionQueue.h"
-#import "GRPCHost.h"
 #import "NSDictionary+GRPC.h"
 #import "NSData+GRPC.h"
 #import "NSError+GRPC.h"
@@ -222,36 +219,37 @@
 
 @end
 
-#pragma mark GRPCWrappedCall
-
-@implementation GRPCWrappedCall {
-  GRPCCompletionQueue *_queue;
+@implementation GRPCWrappedCall{
   grpc_call *_call;
+  GRPCCompletionQueue *_queue;
 }
 
 - (instancetype)init {
-  return [self initWithHost:nil path:nil];
+  return [self initWithChannel:nil path:nil host:nil];
 }
 
-- (instancetype)initWithHost:(NSString *)host
-                        path:(NSString *)path {
-  if (!path || !host) {
+- (instancetype)initWithChannel:(GRPCChannel *)channel
+                           path:(NSString *)path
+                           host:(NSString *)host {
+  if (!channel || !path || !host) {
     [NSException raise:NSInvalidArgumentException
-                format:@"path and host cannot be nil."];
+                format:@"channel, method, and host cannot be nil."];
   }
-
+  
   if (self = [super init]) {
     static dispatch_once_t initialization;
     dispatch_once(&initialization, ^{
       grpc_init();
     });
-
-    // Each completion queue consumes one thread. There's a trade to be made between creating and
-    // consuming too many threads and having contention of multiple calls in a single completion
-    // queue. Currently we favor latency and use one per call.
+    
     _queue = [GRPCCompletionQueue completionQueue];
-
-    _call = [[GRPCHost hostWithAddress:host] unmanagedCallWithPath:path completionQueue:_queue];
+    if (!_queue) {
+      return nil;
+    }
+    _call = grpc_channel_create_call(
+        channel.unmanagedChannel, NULL, GRPC_PROPAGATE_DEFAULTS,
+        _queue.unmanagedQueue, path.UTF8String, host.UTF8String,
+        gpr_inf_future(GPR_CLOCK_REALTIME));
     if (_call == NULL) {
       return nil;
     }
