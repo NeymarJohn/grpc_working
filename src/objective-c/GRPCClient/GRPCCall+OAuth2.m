@@ -31,12 +31,33 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#import "GRPCCall+OAuth2.h"
 
-#include "src/core/client_config/resolver_factory.h"
+static NSString * const kAuthorizationHeader = @"authorization";
+static NSString * const kBearerPrefix = @"Bearer ";
+static NSString * const kChallengeHeader = @"www-authenticate";
 
-/** Create a zookeeper resolver factory */
-grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
+@implementation GRPCCall (OAuth2)
 
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */
+- (NSString *)oauth2AccessToken {
+  NSString *headerValue = self.requestMetadata[kAuthorizationHeader];
+  if ([headerValue hasPrefix:kBearerPrefix]) {
+    return [headerValue substringFromIndex:kBearerPrefix.length];
+  } else {
+    return nil;
+  }
+}
+
+- (void)setOauth2AccessToken:(NSString *)token {
+  if (token) {
+    self.requestMetadata[kAuthorizationHeader] = [kBearerPrefix stringByAppendingString:token];
+  } else {
+    [self.requestMetadata removeObjectForKey:kAuthorizationHeader];
+  }
+}
+
+- (NSString *)oauth2ChallengeHeader {
+  return self.responseMetadata[kChallengeHeader];
+}
+
+@end
