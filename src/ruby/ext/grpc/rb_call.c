@@ -170,7 +170,7 @@ static VALUE grpc_rb_call_cancel(VALUE self) {
   grpc_call *call = NULL;
   grpc_call_error err;
   TypedData_Get_Struct(self, grpc_call, &grpc_call_data_type, call);
-  err = grpc_call_cancel(call, NULL);
+  err = grpc_call_cancel(call);
   if (err != GRPC_CALL_OK) {
     rb_raise(grpc_rb_eCallError, "cancel failed: %s (code=%d)",
              grpc_call_error_detail_of(err), err);
@@ -235,8 +235,8 @@ static VALUE grpc_rb_call_set_metadata(VALUE self, VALUE metadata) {
 */
 static int grpc_rb_md_ary_fill_hash_cb(VALUE key, VALUE val, VALUE md_ary_obj) {
   grpc_metadata_array *md_ary = NULL;
-  int array_length;
-  int i;
+  long array_length;
+  long i;
 
   /* Construct a metadata object from key and value and add it */
   TypedData_Get_Struct(md_ary_obj, grpc_metadata_array,
@@ -602,7 +602,7 @@ static VALUE grpc_rb_call_run_batch(VALUE self, VALUE cqueue, VALUE tag,
 
   /* call grpc_call_start_batch, then wait for it to complete using
    * pluck_event */
-  err = grpc_call_start_batch(call, st.ops, st.op_num, ROBJECT(tag), NULL);
+  err = grpc_call_start_batch(call, st.ops, st.op_num, ROBJECT(tag));
   if (err != GRPC_CALL_OK) {
     grpc_run_batch_stack_cleanup(&st);
     rb_raise(grpc_rb_eCallError,
