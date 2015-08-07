@@ -964,6 +964,17 @@
   }, 
   {
     "flaky": false, 
+    "language": "c++", 
+    "name": "zookeeper_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "flaky": false, 
     "language": "c", 
     "name": "chttp2_fake_security_bad_hostname_test", 
     "platforms": [

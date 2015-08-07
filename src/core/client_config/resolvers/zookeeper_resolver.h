@@ -31,15 +31,12 @@
  *
  */
 
-#import "GRPCCall.h"
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-@interface GRPCCall (Tests)
+#include "src/core/client_config/resolver_factory.h"
 
-// Establish all SSL connections to the provided host using the passed SSL target name and the root
-// certificates found in the file at |certsPath|.
-// Must be called before any gRPC call to that host is made.
-+ (void)useTestCertsPath:(NSString *)certsPath
-                testName:(NSString *)testName
-                 forHost:(NSString *)host;
+/** Create a zookeeper resolver factory */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
 
-@end
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */

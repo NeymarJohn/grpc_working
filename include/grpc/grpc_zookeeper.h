@@ -31,15 +31,18 @@
  *
  */
 
-#import "GRPCCall.h"
+#ifndef GRPC_GRPC_ZOOKEEPER_H
+#define GRPC_GRPC_ZOOKEEPER_H
 
-@interface GRPCCall (Tests)
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-// Establish all SSL connections to the provided host using the passed SSL target name and the root
-// certificates found in the file at |certsPath|.
-// Must be called before any gRPC call to that host is made.
-+ (void)useTestCertsPath:(NSString *)certsPath
-                testName:(NSString *)testName
-                 forHost:(NSString *)host;
+/** Register zookeeper name resolver in grpc */
+void grpc_zookeeper_register();
 
-@end
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* GRPC_GRPC_ZOOKEEPER_H */
