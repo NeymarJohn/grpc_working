@@ -31,13 +31,19 @@
  *
  */
 
-/* This is just a compilation test, to see if we have Zookeeper C client
-   library installed. */
+#import "GRPCCall.h"
 
-#include <stdlib.h>
-#include <zookeeper/zookeeper.h>
+// Helpers for setting and reading headers compatible with OAuth2.
+@interface GRPCCall (OAuth2)
 
-int main() {
-  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
-  return 0;
-}
+// Setting this property is equivalent to setting "Bearer <passed token>" as the value of the
+// request header with key "authorization" (the authorization header). Setting it to nil removes the
+// authorization header from the request.
+// The value obtained by getting the property is the OAuth2 bearer token if the authorization header
+// of the request has the form "Bearer <token>", or nil otherwise.
+@property(atomic, copy) NSString *oauth2AccessToken;
+
+// Returns the value (if any) of the "www-authenticate" response header (the challenge header).
+@property(atomic, readonly) NSString *oauth2ChallengeHeader;
+
+@end
