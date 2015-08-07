@@ -32,52 +32,73 @@
 #endregion
 
 using System;
+using Grpc.Core.Internal;
 using Grpc.Core.Utils;
 
 namespace Grpc.Core
 {
     /// <summary>
-    /// Method types supported by gRPC.
+    /// Abstraction of a call to be invoked on a client.
     /// </summary>
-    public enum MethodType
+    public class Call<TRequest, TResponse>
     {
-        Unary,  // Unary request, unary response.
-        ClientStreaming,  // Streaming request, unary response.
-        ServerStreaming,  // Unary request, streaming response.
-        DuplexStreaming  // Streaming request, streaming response.
-    }
-
-    /// <summary>
-    /// A description of a service method.
-    /// </summary>
-    public class Method<TRequest, TResponse>
-    {
-        readonly MethodType type;
         readonly string name;
         readonly Marshaller<TRequest> requestMarshaller;
         readonly Marshaller<TResponse> responseMarshaller;
+        readonly Channel channel;
+        readonly Metadata headers;
+        readonly DateTime deadline;
 
-        public Method(MethodType type, string name, Marshaller<TRequest> requestMarshaller, Marshaller<TResponse> responseMarshaller)
+        public Call(string serviceName, Method<TRequest, TResponse> method, Channel channel, Metadata headers)
+            : this(serviceName, method, channel, headers, DateTime.MaxValue)
         {
-            this.type = type;
-            this.name = name;
-            this.requestMarshaller = requestMarshaller;
-            this.responseMarshaller = responseMarshaller;
         }
 
-        public MethodType Type
+        public Call(string serviceName, Method<TRequest, TResponse> method, Channel channel, Metadata headers, DateTime deadline)
+        {
+            this.name = method.GetFullName(serviceName);
+            this.requestMarshaller = method.RequestMarshaller;
+            this.responseMarshaller = method.ResponseMarshaller;
+            this.channel = Preconditions.CheckNotNull(channel);
+            this.headers = Preconditions.CheckNotNull(headers);
+            this.deadline = deadline;
+        }
+
+        public Channel Channel
         {
             get
             {
-                return this.type;
+                return this.channel;
             }
         }
 
+        /// <summary>
+        /// Full methods name including the service name.
+        /// </summary>
         public string Name
         {
             get
             {
-                return this.name;
+                return name;
+            }
+        }
+
+        /// <summary>
+        /// Headers to send at the beginning of the call.
+        /// </summary>
+        public Metadata Headers
+        {
+            get
+            {
+                return headers;
+            }
+        }
+
+        public DateTime Deadline
+        {
+            get
+            {
+                return this.deadline;
             }
         }
 
@@ -85,7 +106,7 @@ namespace Grpc.Core
         {
             get
             {
-                return this.requestMarshaller;
+                return requestMarshaller;
             }
         }
 
@@ -93,16 +114,8 @@ namespace Grpc.Core
         {
             get
             {
-                return this.responseMarshaller;
+                return responseMarshaller;
             }
-        }
-
-        /// <summary>
-        /// Gets full name of the method including the service name.
-        /// </summary>
-        internal string GetFullName(string serviceName)
-        {
-            return "/" + Preconditions.CheckNotNull(serviceName) + "/" + this.Name;
         }
     }
 }

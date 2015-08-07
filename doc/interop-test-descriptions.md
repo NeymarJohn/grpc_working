@@ -55,7 +55,7 @@ Server features:
 Procedure:
  1. Client calls EmptyCall with the default Empty message
 
-Client asserts:
+Asserts:
 * call was successful
 * response is non-null
 
@@ -84,7 +84,7 @@ Procedure:
     }
     ```
 
-Client asserts:
+Asserts:
 * call was successful
 * response payload type is COMPRESSABLE
 * response payload body is 314159 bytes in size
@@ -110,7 +110,6 @@ Procedure:
       }
     }
     ```
-
  3. Client then sends:
 
     ```
@@ -120,7 +119,6 @@ Procedure:
       }
     }
     ```
-
  4. Client then sends:
 
     ```
@@ -130,7 +128,6 @@ Procedure:
       }
     }
     ```
-
  5. Client then sends:
 
     ```
@@ -140,10 +137,9 @@ Procedure:
       }
     }
     ```
+ 6. Client halfCloses
 
- 6. Client half-closes
-
-Client asserts:
+Asserts:
 * call was successful
 * response aggregated_payload_size is 74922
 
@@ -176,7 +172,7 @@ Procedure:
     }
     ```
 
-Client asserts:
+Asserts:
 * call was successful
 * exactly four responses
 * response payloads are COMPRESSABLE
@@ -206,7 +202,6 @@ Procedure:
       }
     }
     ```
-
  2. After getting a reply, it sends:
 
     ```
@@ -220,7 +215,6 @@ Procedure:
       }
     }
     ```
-
  3. After getting a reply, it sends:
 
     ```
@@ -234,7 +228,6 @@ Procedure:
       }
     }
     ```
-
  4. After getting a reply, it sends:
 
     ```
@@ -249,9 +242,7 @@ Procedure:
     }
     ```
 
- 5. After getting a reply, client half-closes
-
-Client asserts:
+Asserts:
 * call was successful
 * exactly four responses
 * response payloads are COMPRESSABLE
@@ -270,7 +261,7 @@ Server features:
 Procedure:
  1. Client calls FullDuplexCall and then half-closes
 
-Client asserts:
+Asserts:
 * call was successful
 * exactly zero responses
 
@@ -309,7 +300,7 @@ Procedure:
     }
     ```
 
-Client asserts:
+Asserts:
 * call was successful
 * received SimpleResponse.username equals the value of `--default_service_account` flag
 * received SimpleResponse.oauth_scope is in `--oauth_scope`
@@ -337,7 +328,7 @@ Server features:
 * [Echo OAuth Scope][]
 
 Procedure:
- 1. Client configures the channel to use ServiceAccountCredentials
+ 1. Client configures the channel to use ServiceAccountCredentials.
  2. Client calls UnaryCall with:
 
     ```
@@ -352,7 +343,7 @@ Procedure:
     }
     ```
 
-Client asserts:
+Asserts:
 * call was successful
 * received SimpleResponse.username is in the json key file read from
    `--service_account_key_file`
@@ -379,7 +370,7 @@ Server features:
 * [Echo OAuth Scope][]
 
 Procedure:
- 1. Client configures the channel to use JWTTokenCredentials
+ 1. Client configures the channel to use JWTTokenCredentials.
  2. Client calls UnaryCall with:
 
     ```
@@ -393,7 +384,7 @@ Procedure:
     }
     ```
 
-Client asserts:
+Asserts:
 * call was successful
 * received SimpleResponse.username is in the json key file read from
   `--service_account_key_file`
@@ -431,7 +422,7 @@ Server features:
 
 Procedure:
  1. Client uses the auth library to obtain an authorization token
- 2. Client configures the channel to use AccessTokenCredentials with the access token obtained in step 1
+ 2. Client configures the channel to use AccessTokenCredentials with the access token obtained in step 1.
  3. Client calls UnaryCall with the following message
 
     ```
@@ -440,8 +431,8 @@ Procedure:
       fill_oauth_scope: true
     }
     ```
-
-Client asserts:
+    
+Asserts:
 * call was successful
 * received SimpleResponse.username is in the json key file used by the auth
 library to obtain the authorization token
@@ -473,10 +464,10 @@ Server features:
 
 Procedure:
  1. Client uses the auth library to obtain an authorization token
- 2. Client configures the channel with just SSL credentials
+ 2. Client configures the channel with just SSL credentials.
  3. Client calls UnaryCall, setting per-call credentials to
-    AccessTokenCredentials with the access token obtained in step 1. The request
-    is the following message
+ AccessTokenCredentials with the access token obtained in step 1. The request is
+ the following message
 
     ```
     {
@@ -484,8 +475,8 @@ Procedure:
       fill_oauth_scope: true
     }
     ```
-
-Client asserts:
+    
+Asserts:
 * call was successful
 * received SimpleResponse.username is in the json key file used by the auth
 library to obtain the authorization token
@@ -505,14 +496,8 @@ Server features:
 * [Echo Metadata][]
 
 Procedure:
- 1. The client attaches custom metadata with the following keys and values:
-
-    ```
-    key: "x-grpc-test-echo-initial", value: "test_initial_metadata_value"
-    key: "x-grpc-test-echo-trailing-bin", value: 0xababab
-    ```
-
-    to a UnaryCall with request:
+ 1. While sending custom metadata (ascii + binary) in the header, client calls
+ UnaryCall with:
 
     ```
     {
@@ -523,41 +508,23 @@ Procedure:
       }
     }
     ```
-
- 2. The client attaches custom metadata with the following keys and values:
-
+The client attaches custom metadata with the following keys and values:
     ```
     key: "x-grpc-test-echo-initial", value: "test_initial_metadata_value"
     key: "x-grpc-test-echo-trailing-bin", value: 0xababab
     ```
+ 2. Client repeats step 1. with FullDuplexCall instead of UnaryCall.
 
-    to a FullDuplexCall with request:
-
-    ```
-    {
-      response_type: COMPRESSABLE
-      response_size: 314159
-      payload:{
-        body: 271828 bytes of zeros
-      }
-    }
-    ```
-
-    and then half-closes
-
-Client asserts:
+Asserts:
 * call was successful
-* metadata with key `"x-grpc-test-echo-initial"` and value
-  `"test_initial_metadata_value"`is received in the initial metadata for calls
-  in Procedure steps 1 and 2.
-* metadata with key `"x-grpc-test-echo-trailing-bin"` and value `0xababab` is
-  received in the trailing metadata for calls in Procedure steps 1 and 2.
+* metadata with key `"x-grpc-test-echo-initial"` and value `"test_initial_metadata_value"`is received in the initial metadata.
+* metadata with key `"x-grpc-test-echo-trailing-bin"` and value `0xababab` is received in the trailing metadata.
 
 
 
 ### status_code_and_message
 
-This test verifies unary calls succeed in sending messages, and propagate back
+This test verifies unary calls succeed in sending messages, and propagates back
 status code and message sent along with the messages.
 
 Server features:
@@ -576,26 +543,12 @@ Procedure:
       }
     }
     ```
-
- 2. Client calls FullDuplexCall with:
-
-    ```
-    {
-      response_status:{
-        code: 2
-        message: "test status message"
-      }
-    }
-    ```
-
-    and then half-closes
+2. Client repeats step 1. with FullDuplexCall instead of UnaryCall.
 
 
-Client asserts:
-* received status code is the same as the sent code for both Procedure steps 1
-  and 2
-* received status message is the same as the sent message for both Procedure
-  steps 1 and 2
+Asserts:
+* received status code is the same with sent code
+* received status message is the same with sent message
 
 ### unimplemented_method
 
@@ -603,19 +556,15 @@ Status: Ready for implementation. Blocking beta.
 
 This test verifies calling unimplemented RPC method returns the UNIMPLEMENTED status code.
 
-Server features:
-N/A
-
 Procedure:
-* Client calls `grpc.testing.UnimplementedService/UnimplementedCall` with an
-  empty request (defined as `grpc.testing.Empty`):
+* Client calls `grpc.testing.UnimplementedService/UnimplementedCall` with an empty request (defined as `grpc.testing.Empty`):
 
     ```
     {
     }
     ```
 
-Client asserts:
+Asserts:
 * received status code is 12 (UNIMPLEMENTED)
 * received status message is empty or null/unset
 
@@ -631,7 +580,7 @@ Procedure:
  1. Client starts StreamingInputCall
  2. Client immediately cancels request
 
-Client asserts:
+Asserts:
 * Call completed with status CANCELLED
 
 ### cancel_after_first_response
@@ -657,10 +606,9 @@ Procedure:
       }
     }
     ```
-
  2. After receiving a response, client cancels request
 
-Client asserts:
+Asserts:
 * Call completed with status CANCELLED
 
 ### timeout_on_sleeping_server
@@ -672,8 +620,7 @@ Server features:
 * [FullDuplexCall][]
 
 Procedure:
- 1. Client calls FullDuplexCall with the following request and sets its timeout
-    to 1ms
+ 1. Client calls FullDuplexCall with the following request and sets its timeout to 1ms.
 
     ```
     {
@@ -683,9 +630,7 @@ Procedure:
     }
     ```
 
- 2. Client waits
-
-Client asserts:
+Asserts:
 * Call completed with status DEADLINE_EXCEEDED.
 
 ### concurrent_large_unary
