@@ -141,9 +141,6 @@
         "src/core/client_config/uri_parser.h",
         "src/core/compression/message_compress.h",
         "src/core/debug/trace.h",
-        "src/core/httpcli/format_request.h",
-        "src/core/httpcli/httpcli.h",
-        "src/core/httpcli/parser.h",
         "src/core/iomgr/alarm.h",
         "src/core/iomgr/alarm_heap.h",
         "src/core/iomgr/alarm_internal.h",
@@ -242,9 +239,6 @@
         "src/core/compression/algorithm.c",
         "src/core/compression/message_compress.c",
         "src/core/debug/trace.c",
-        "src/core/httpcli/format_request.c",
-        "src/core/httpcli/httpcli.c",
-        "src/core/httpcli/parser.c",
         "src/core/iomgr/alarm.c",
         "src/core/iomgr/alarm_heap.c",
         "src/core/iomgr/endpoint.c",
@@ -468,6 +462,10 @@
         "include/grpc/grpc_security.h"
       ],
       "headers": [
+        "src/core/httpcli/format_request.h",
+        "src/core/httpcli/httpcli.h",
+        "src/core/httpcli/httpcli_security_connector.h",
+        "src/core/httpcli/parser.h",
         "src/core/security/auth_filters.h",
         "src/core/security/base64.h",
         "src/core/security/credentials.h",
@@ -483,7 +481,10 @@
         "src/core/tsi/transport_security_interface.h"
       ],
       "src": [
+        "src/core/httpcli/format_request.c",
+        "src/core/httpcli/httpcli.c",
         "src/core/httpcli/httpcli_security_connector.c",
+        "src/core/httpcli/parser.c",
         "src/core/security/base64.c",
         "src/core/security/client_auth_filter.c",
         "src/core/security/credentials.c",
@@ -572,6 +573,29 @@
       ],
       "secure": "no",
       "vs_project_guid": "{46CEDFFF-9692-456A-AA24-38B5D6BCF4C5}"
+    },
+    {
+      "name": "grpc_zookeeper",
+      "build": "all",
+      "language": "c",
+      "public_headers": [
+        "include/grpc/grpc_zookeeper.h"
+      ],
+      "headers": [
+        "src/core/client_config/resolvers/zookeeper_resolver.h"
+      ],
+      "src": [
+        "src/core/client_config/resolvers/zookeeper_resolver.c"
+      ],
+      "deps": [
+        "gpr",
+        "grpc"
+      ],
+      "external_deps": [
+        "zookeeper"
+      ],
+      "secure": "no",
+      "vs_project_guid": "{F14EBEC1-DC43-45D3-8A7D-1A47072EFE50}"
     },
     {
       "name": "reconnect_server",
@@ -2642,6 +2666,26 @@
         "grpc",
         "gpr_test_util",
         "gpr"
+      ]
+    },
+    {
+      "name": "zookeeper_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "test/cpp/end2end/zookeeper_test.cc"
+      ],
+      "deps": [
+        "grpc++_test_util",
+        "grpc_test_util",
+        "grpc++",
+        "grpc_zookeeper",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ],
+      "external_deps": [
+        "zookeeper"
       ]
     }
   ]

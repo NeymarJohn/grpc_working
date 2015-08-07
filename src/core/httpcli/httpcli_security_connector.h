@@ -31,34 +31,13 @@
  *
  */
 
-#ifndef GRPCXX_CHANNEL_INTERFACE_H
-#define GRPCXX_CHANNEL_INTERFACE_H
+#ifndef GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONNECTOR_H
+#define GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONNECTOR_H
 
-#include <memory>
+#include "src/core/security/security_connector.h"
 
-#include <grpc++/status.h>
-#include <grpc++/impl/call.h>
+grpc_security_status grpc_httpcli_ssl_channel_security_connector_create(
+    const unsigned char *pem_root_certs, size_t pem_root_certs_size,
+    const char *secure_peer_name, grpc_channel_security_connector **sc);
 
-struct grpc_call;
-
-namespace grpc {
-class Call;
-class CallOpBuffer;
-class ClientContext;
-class CompletionQueue;
-class RpcMethod;
-class CallInterface;
-
-class ChannelInterface : public CallHook,
-                         public std::enable_shared_from_this<ChannelInterface> {
- public:
-  virtual ~ChannelInterface() {}
-
-  virtual void* RegisterMethod(const char* method_name) = 0;
-  virtual Call CreateCall(const RpcMethod& method, ClientContext* context,
-                          CompletionQueue* cq) = 0;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_CHANNEL_INTERFACE_H
+#endif  /* GRPC_INTERNAL_CORE_HTTPCLI_HTTPCLI_SECURITY_CONNECTOR_H */
