@@ -69,6 +69,7 @@
         "include/grpc++/status.h",
         "include/grpc++/status_code_enum.h",
         "include/grpc++/stream.h",
+        "include/grpc++/stub_options.h",
         "include/grpc++/thread_pool_interface.h",
         "include/grpc++/time.h"
       ],
@@ -140,9 +141,6 @@
         "src/core/client_config/uri_parser.h",
         "src/core/compression/message_compress.h",
         "src/core/debug/trace.h",
-        "src/core/httpcli/format_request.h",
-        "src/core/httpcli/httpcli.h",
-        "src/core/httpcli/parser.h",
         "src/core/iomgr/alarm.h",
         "src/core/iomgr/alarm_heap.h",
         "src/core/iomgr/alarm_internal.h",
@@ -154,7 +152,6 @@
         "src/core/iomgr/iomgr_internal.h",
         "src/core/iomgr/iomgr_posix.h",
         "src/core/iomgr/pollset.h",
-        "src/core/iomgr/pollset_kick_posix.h",
         "src/core/iomgr/pollset_posix.h",
         "src/core/iomgr/pollset_set.h",
         "src/core/iomgr/pollset_set_posix.h",
@@ -242,9 +239,6 @@
         "src/core/compression/algorithm.c",
         "src/core/compression/message_compress.c",
         "src/core/debug/trace.c",
-        "src/core/httpcli/format_request.c",
-        "src/core/httpcli/httpcli.c",
-        "src/core/httpcli/parser.c",
         "src/core/iomgr/alarm.c",
         "src/core/iomgr/alarm_heap.c",
         "src/core/iomgr/endpoint.c",
@@ -255,7 +249,6 @@
         "src/core/iomgr/iomgr.c",
         "src/core/iomgr/iomgr_posix.c",
         "src/core/iomgr/iomgr_windows.c",
-        "src/core/iomgr/pollset_kick_posix.c",
         "src/core/iomgr/pollset_multipoller_with_epoll.c",
         "src/core/iomgr/pollset_multipoller_with_poll_posix.c",
         "src/core/iomgr/pollset_posix.c",
@@ -337,6 +330,7 @@
       "name": "grpc_test_util_base",
       "headers": [
         "test/core/end2end/cq_verifier.h",
+        "test/core/end2end/fixtures/proxy.h",
         "test/core/iomgr/endpoint_tests.h",
         "test/core/security/oauth2_utils.h",
         "test/core/util/grpc_profiler.h",
@@ -346,6 +340,7 @@
       ],
       "src": [
         "test/core/end2end/cq_verifier.c",
+        "test/core/end2end/fixtures/proxy.c",
         "test/core/iomgr/endpoint_tests.c",
         "test/core/security/oauth2_utils.c",
         "test/core/util/grpc_profiler.c",
@@ -467,6 +462,10 @@
         "include/grpc/grpc_security.h"
       ],
       "headers": [
+        "src/core/httpcli/format_request.h",
+        "src/core/httpcli/httpcli.h",
+        "src/core/httpcli/httpcli_security_connector.h",
+        "src/core/httpcli/parser.h",
         "src/core/security/auth_filters.h",
         "src/core/security/base64.h",
         "src/core/security/credentials.h",
@@ -482,7 +481,10 @@
         "src/core/tsi/transport_security_interface.h"
       ],
       "src": [
+        "src/core/httpcli/format_request.c",
+        "src/core/httpcli/httpcli.c",
         "src/core/httpcli/httpcli_security_connector.c",
+        "src/core/httpcli/parser.c",
         "src/core/security/base64.c",
         "src/core/security/client_auth_filter.c",
         "src/core/security/credentials.c",
@@ -571,6 +573,23 @@
       ],
       "secure": "no",
       "vs_project_guid": "{46CEDFFF-9692-456A-AA24-38B5D6BCF4C5}"
+    },
+    {
+      "name": "reconnect_server",
+      "build": "private",
+      "language": "c",
+      "headers": [
+        "test/core/util/reconnect_server.h"
+      ],
+      "src": [
+        "test/core/util/reconnect_server.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
     },
     {
       "name": "grpc++",
@@ -966,6 +985,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -983,6 +1004,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -1000,6 +1023,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -1047,6 +1072,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -1064,6 +1091,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -1537,6 +1566,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -1678,23 +1709,6 @@
       ]
     },
     {
-      "name": "poll_kick_posix_test",
-      "build": "test",
-      "language": "c",
-      "src": [
-        "test/core/iomgr/poll_kick_posix_test.c"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ],
-      "platforms": [
-        "posix"
-      ]
-    },
-    {
       "name": "resolve_address_test",
       "build": "test",
       "language": "c",
@@ -1750,6 +1764,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -1767,6 +1783,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -1784,6 +1802,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -1904,6 +1924,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -1924,6 +1946,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -1985,6 +2009,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -2226,6 +2252,8 @@
         "grpc++_test_config"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -2247,6 +2275,8 @@
         "grpc++_test_config"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -2264,6 +2294,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -2371,6 +2403,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -2392,6 +2426,8 @@
         "grpc++_test_config"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -2413,6 +2449,8 @@
         "grpc++_test_config"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -2429,6 +2467,49 @@
       ],
       "deps": [
         "qps",
+        "grpc++_test_util",
+        "grpc_test_util",
+        "grpc++",
+        "grpc",
+        "gpr_test_util",
+        "gpr",
+        "grpc++_test_config"
+      ]
+    },
+    {
+      "name": "reconnect_interop_client",
+      "build": "test",
+      "run": false,
+      "language": "c++",
+      "src": [
+        "test/proto/empty.proto",
+        "test/proto/messages.proto",
+        "test/proto/test.proto",
+        "test/cpp/interop/reconnect_interop_client.cc"
+      ],
+      "deps": [
+        "grpc++_test_util",
+        "grpc_test_util",
+        "grpc++",
+        "grpc",
+        "gpr_test_util",
+        "gpr",
+        "grpc++_test_config"
+      ]
+    },
+    {
+      "name": "reconnect_interop_server",
+      "build": "test",
+      "run": false,
+      "language": "c++",
+      "src": [
+        "test/proto/empty.proto",
+        "test/proto/messages.proto",
+        "test/proto/test.proto",
+        "test/cpp/interop/reconnect_interop_server.cc"
+      ],
+      "deps": [
+        "reconnect_server",
         "grpc++_test_util",
         "grpc_test_util",
         "grpc++",
@@ -2467,6 +2548,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -2519,6 +2602,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
@@ -2539,6 +2624,8 @@
         "gpr"
       ],
       "platforms": [
+        "mac",
+        "linux",
         "posix"
       ]
     },
