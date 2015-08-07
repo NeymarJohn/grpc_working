@@ -69,7 +69,6 @@
         "include/grpc++/status.h",
         "include/grpc++/status_code_enum.h",
         "include/grpc++/stream.h",
-        "include/grpc++/stub_options.h",
         "include/grpc++/thread_pool_interface.h",
         "include/grpc++/time.h"
       ],
@@ -330,7 +329,6 @@
       "name": "grpc_test_util_base",
       "headers": [
         "test/core/end2end/cq_verifier.h",
-        "test/core/end2end/fixtures/proxy.h",
         "test/core/iomgr/endpoint_tests.h",
         "test/core/security/oauth2_utils.h",
         "test/core/util/grpc_profiler.h",
@@ -340,7 +338,6 @@
       ],
       "src": [
         "test/core/end2end/cq_verifier.c",
-        "test/core/end2end/fixtures/proxy.c",
         "test/core/iomgr/endpoint_tests.c",
         "test/core/security/oauth2_utils.c",
         "test/core/util/grpc_profiler.c",
@@ -985,8 +982,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -1004,8 +999,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -1023,8 +1016,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -1072,8 +1063,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -1091,8 +1080,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -1566,8 +1553,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -1764,8 +1749,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -1783,8 +1766,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -1802,8 +1783,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -1924,8 +1903,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -1946,8 +1923,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -2009,8 +1984,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -2252,8 +2225,6 @@
         "grpc++_test_config"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -2275,8 +2246,6 @@
         "grpc++_test_config"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -2294,8 +2263,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -2403,8 +2370,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -2426,8 +2391,6 @@
         "grpc++_test_config"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -2449,8 +2412,6 @@
         "grpc++_test_config"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -2548,8 +2509,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -2602,8 +2561,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
@@ -2624,8 +2581,6 @@
         "gpr"
       ],
       "platforms": [
-        "mac",
-        "linux",
         "posix"
       ]
     },
