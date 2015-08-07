@@ -31,34 +31,18 @@
  *
  */
 
-#ifndef GRPCXX_CHANNEL_INTERFACE_H
-#define GRPCXX_CHANNEL_INTERFACE_H
+#ifndef GRPC_GRPC_ZOOKEEPER_H
+#define GRPC_GRPC_ZOOKEEPER_H
 
-#include <memory>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include <grpc++/status.h>
-#include <grpc++/impl/call.h>
+/** Register zookeeper name resolver in grpc */
+void grpc_zookeeper_register();
 
-struct grpc_call;
+#ifdef __cplusplus
+}
+#endif
 
-namespace grpc {
-class Call;
-class CallOpBuffer;
-class ClientContext;
-class CompletionQueue;
-class RpcMethod;
-class CallInterface;
-
-class ChannelInterface : public CallHook,
-                         public std::enable_shared_from_this<ChannelInterface> {
- public:
-  virtual ~ChannelInterface() {}
-
-  virtual void* RegisterMethod(const char* method_name) = 0;
-  virtual Call CreateCall(const RpcMethod& method, ClientContext* context,
-                          CompletionQueue* cq) = 0;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_CHANNEL_INTERFACE_H
+#endif /* GRPC_GRPC_ZOOKEEPER_H */
