@@ -31,34 +31,33 @@
  *
  */
 
-#ifndef GRPCXX_CHANNEL_INTERFACE_H
-#define GRPCXX_CHANNEL_INTERFACE_H
+#import "GRPCCall+OAuth2.h"
 
-#include <memory>
+static NSString * const kAuthorizationHeader = @"authorization";
+static NSString * const kBearerPrefix = @"Bearer ";
+static NSString * const kChallengeHeader = @"www-authenticate";
 
-#include <grpc++/status.h>
-#include <grpc++/impl/call.h>
+@implementation GRPCCall (OAuth2)
 
-struct grpc_call;
+- (NSString *)oauth2_accessToken {
+  NSString *headerValue = self.requestMetadata[kAuthorizationHeader];
+  if ([headerValue hasPrefix:kBearerPrefix]) {
+    return [headerValue substringFromIndex:kBearerPrefix.length];
+  } else {
+    return nil;
+  }
+}
 
-namespace grpc {
-class Call;
-class CallOpBuffer;
-class ClientContext;
-class CompletionQueue;
-class RpcMethod;
-class CallInterface;
+- (void)setOauth2_accessToken:(NSString *)token {
+  if (token) {
+    self.requestMetadata[kAuthorizationHeader] = [kBearerPrefix stringByAppendingString:token];
+  } else {
+    [self.requestMetadata removeObjectForKey:kAuthorizationHeader];
+  }
+}
 
-class ChannelInterface : public CallHook,
-                         public std::enable_shared_from_this<ChannelInterface> {
- public:
-  virtual ~ChannelInterface() {}
+- (NSString *)oauth2_challengeHeader {
+  return self.responseMetadata[kChallengeHeader];
+}
 
-  virtual void* RegisterMethod(const char* method_name) = 0;
-  virtual Call CreateCall(const RpcMethod& method, ClientContext* context,
-                          CompletionQueue* cq) = 0;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_CHANNEL_INTERFACE_H
+@end

@@ -31,34 +31,19 @@
  *
  */
 
-#ifndef GRPCXX_CHANNEL_INTERFACE_H
-#define GRPCXX_CHANNEL_INTERFACE_H
+#import "GRPCCall.h"
 
-#include <memory>
+// Helpers for setting and reading headers compatible with OAuth2.
+@interface GRPCCall (OAuth2)
 
-#include <grpc++/status.h>
-#include <grpc++/impl/call.h>
+// Setting this property is equivalent to setting "Bearer <passed token>" as the value of the
+// request header with key "authorization" (the authorization header). Setting it to nil removes the
+// authorization header from the request.
+// The value obtained by getting the property is the OAuth2 bearer token if the authorization header
+// of the request has the form "Bearer <token>", or nil otherwise.
+@property(atomic, copy) NSString *oauth2_accessToken;
 
-struct grpc_call;
+// Returns the value (if any) of the "www-authenticate" response header (the challenge header).
+@property(atomic, readonly) NSString *oauth2_challengeHeader;
 
-namespace grpc {
-class Call;
-class CallOpBuffer;
-class ClientContext;
-class CompletionQueue;
-class RpcMethod;
-class CallInterface;
-
-class ChannelInterface : public CallHook,
-                         public std::enable_shared_from_this<ChannelInterface> {
- public:
-  virtual ~ChannelInterface() {}
-
-  virtual void* RegisterMethod(const char* method_name) = 0;
-  virtual Call CreateCall(const RpcMethod& method, ClientContext* context,
-                          CompletionQueue* cq) = 0;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_CHANNEL_INTERFACE_H
+@end
