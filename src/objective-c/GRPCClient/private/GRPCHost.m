@@ -78,7 +78,6 @@
     if (cachedHost) {
       return cachedHost;
     }
-  }
 
   if ((self = [super init])) {
     _address = address;

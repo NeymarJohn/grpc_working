@@ -35,7 +35,6 @@
 #import <XCTest/XCTest.h>
 
 #import <GRPCClient/GRPCCall.h>
-#import <GRPCClient/GRPCCall+OAuth2.h>
 #import <GRPCClient/GRPCCall+Tests.h>
 #import <ProtoRPC/ProtoMethod.h>
 #import <RemoteTest/Messages.pbobjc.h>
@@ -161,7 +160,7 @@ static ProtoMethod *kUnaryCallMethod;
                                              path:kUnaryCallMethod.HTTPPath
                                    requestsWriter:requestsWriter];
 
-  call.oauth2_accessToken = @"bogusToken";
+  call.requestMetadata[@"Authorization"] = @"Bearer bogusToken";
 
   id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {
     XCTFail(@"Received unexpected response: %@", value);
@@ -170,7 +169,7 @@ static ProtoMethod *kUnaryCallMethod;
     XCTAssertEqual(errorOrNil.code, 16, @"Finished with unexpected error: %@", errorOrNil);
     XCTAssertEqualObjects(call.responseMetadata, errorOrNil.userInfo[kGRPCStatusMetadataKey],
                           @"Metadata in the NSError object and call object differ.");
-    NSString *challengeHeader = call.oauth2_challengeHeader;
+    NSString *challengeHeader = call.responseMetadata[@"www-authenticate"];
     XCTAssertGreaterThan(challengeHeader.length, 0,
                          @"No challenge in response headers %@", call.responseMetadata);
     [expectation fulfill];
