@@ -116,7 +116,7 @@ NAN_METHOD(Channel::New) {
     grpc_channel_args *channel_args_ptr;
     if (args[2]->IsUndefined()) {
       channel_args_ptr = NULL;
-      wrapped_channel = grpc_insecure_channel_create(**host, NULL);
+      wrapped_channel = grpc_insecure_channel_create(**host, NULL, NULL);
     } else if (args[2]->IsObject()) {
       Handle<Object> args_hash(args[2]->ToObject()->Clone());
       if (args_hash->HasOwnProperty(NanNew(GRPC_SSL_TARGET_NAME_OVERRIDE_ARG))) {
