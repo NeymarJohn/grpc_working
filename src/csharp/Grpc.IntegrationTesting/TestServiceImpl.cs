@@ -35,11 +35,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Google.Protobuf;
+using Google.ProtocolBuffers;
 using Grpc.Core;
 using Grpc.Core.Utils;
 
-namespace Grpc.Testing
+namespace grpc.testing
 {
     /// <summary>
     /// Implementation of TestService server
@@ -48,20 +48,22 @@ namespace Grpc.Testing
     {
         public Task<Empty> EmptyCall(Empty request, ServerCallContext context)
         {
-            return Task.FromResult(new Empty());
+            return Task.FromResult(Empty.DefaultInstance);
         }
 
         public Task<SimpleResponse> UnaryCall(SimpleRequest request, ServerCallContext context)
         {
-            var response = new SimpleResponse { Payload = CreateZerosPayload(request.ResponseSize) };
+            var response = SimpleResponse.CreateBuilder()
+                .SetPayload(CreateZerosPayload(request.ResponseSize)).Build();
             return Task.FromResult(response);
         }
 
         public async Task StreamingOutputCall(StreamingOutputCallRequest request, IServerStreamWriter<StreamingOutputCallResponse> responseStream, ServerCallContext context)
         {
-            foreach (var responseParam in request.ResponseParameters)
+            foreach (var responseParam in request.ResponseParametersList)
             {
-                var response = new StreamingOutputCallResponse { Payload = CreateZerosPayload(responseParam.Size) };
+                var response = StreamingOutputCallResponse.CreateBuilder()
+                    .SetPayload(CreateZerosPayload(responseParam.Size)).Build();
                 await responseStream.WriteAsync(response);
             }
         }
@@ -73,16 +75,17 @@ namespace Grpc.Testing
             {
                 sum += request.Payload.Body.Length;
             });
-            return new StreamingInputCallResponse { AggregatedPayloadSize = sum };
+            return StreamingInputCallResponse.CreateBuilder().SetAggregatedPayloadSize(sum).Build();
         }
 
         public async Task FullDuplexCall(IAsyncStreamReader<StreamingOutputCallRequest> requestStream, IServerStreamWriter<StreamingOutputCallResponse> responseStream, ServerCallContext context)
         {
             await requestStream.ForEach(async request =>
             {
-                foreach (var responseParam in request.ResponseParameters)
+                foreach (var responseParam in request.ResponseParametersList)
                 {
-                    var response = new StreamingOutputCallResponse { Payload = CreateZerosPayload(responseParam.Size) };
+                    var response = StreamingOutputCallResponse.CreateBuilder()
+                        .SetPayload(CreateZerosPayload(responseParam.Size)).Build();
                     await responseStream.WriteAsync(response);
                 }
             });
@@ -95,7 +98,7 @@ namespace Grpc.Testing
 
         private static Payload CreateZerosPayload(int size)
         {
-            return new Payload { Body = ByteString.CopyFrom(new byte[size]) };
+            return Payload.CreateBuilder().SetBody(ByteString.CopyFrom(new byte[size])).Build();
         }
     }
 }
