@@ -1,4 +1,4 @@
-﻿#region Copyright notice and license
+#region Copyright notice and license
 
 // Copyright 2015, Google Inc.
 // All rights reserved.
@@ -32,35 +32,52 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Grpc.Core
 {
     /// <summary>
-    /// A writable stream of messages.
+    /// Flags for write operations.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public interface IAsyncStreamWriter<T>
+    [Flags]
+    public enum WriteFlags
     {
         /// <summary>
-        /// Writes a single asynchronously. Only one write can be pending at a time.
+        /// Hint that the write may be buffered and need not go out on the wire immediately.
+        /// gRPC is free to buffer the message until the next non-buffered
+        /// write, or until write stream completion, but it need not buffer completely or at all.
         /// </summary>
-        /// <param name="message">the message to be written. Cannot be null.</param>
-        Task WriteAsync(T message);
+        BufferHint = 0x1,
 
         /// <summary>
-        /// Write options that will be used for the next write.
-        /// If null, default options will be used.
-        /// Once set, this property maintains its value across subsequent
-        /// writes.
-        /// Internally, closing the stream is on client and sending
-        /// status from server is treated as a write, so write options
-        /// are also applied to these operations.
+        /// Force compression to be disabled for a particular write.
         /// </summary>
-        /// <value>The write options.</value>
-        WriteOptions WriteOptions { get; set; }
+        NoCompress = 0x2
+    }
+
+
+    /// <summary>
+    /// Options for write operations.
+    /// </summary>
+    public class WriteOptions
+    {
+        /// <summary>
+        /// Default write options.
+        /// </summary>
+        public static readonly WriteOptions Default = new WriteOptions();
+            
+        private WriteFlags flags;
+
+        public WriteOptions(WriteFlags flags = default(WriteFlags))
+        {
+            this.flags = flags;
+        }
+
+        public WriteFlags Flags
+        {
+            get
+            {
+                return this.flags;
+            }
+        }
     }
 }

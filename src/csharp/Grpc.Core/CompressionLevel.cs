@@ -1,4 +1,4 @@
-﻿#region Copyright notice and license
+#region Copyright notice and license
 
 // Copyright 2015, Google Inc.
 // All rights reserved.
@@ -32,35 +32,32 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Grpc.Core
 {
     /// <summary>
-    /// A writable stream of messages.
+    /// Compression level based on grpc_compression_level from grpc/compression.h
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public interface IAsyncStreamWriter<T>
+    public enum CompressionLevel
     {
         /// <summary>
-        /// Writes a single asynchronously. Only one write can be pending at a time.
+        /// No compression.
         /// </summary>
-        /// <param name="message">the message to be written. Cannot be null.</param>
-        Task WriteAsync(T message);
+        None = 0,
 
         /// <summary>
-        /// Write options that will be used for the next write.
-        /// If null, default options will be used.
-        /// Once set, this property maintains its value across subsequent
-        /// writes.
-        /// Internally, closing the stream is on client and sending
-        /// status from server is treated as a write, so write options
-        /// are also applied to these operations.
+        /// Low compression.
         /// </summary>
-        /// <value>The write options.</value>
-        WriteOptions WriteOptions { get; set; }
+        Low,
+
+        /// <summary>
+        /// Medium compression.
+        /// </summary>
+        Medium,
+
+        /// <summary>
+        /// High compression.
+        /// </summary>
+        High,
     }
 }
