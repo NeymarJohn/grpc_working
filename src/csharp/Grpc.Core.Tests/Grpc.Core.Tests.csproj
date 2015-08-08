@@ -77,8 +77,6 @@
     <Compile Include="TimeoutsTest.cs" />
     <Compile Include="NUnitVersionTest.cs" />
     <Compile Include="ChannelTest.cs" />
-    <Compile Include="MockServiceHelper.cs" />
-    <Compile Include="ResponseHeadersTest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
