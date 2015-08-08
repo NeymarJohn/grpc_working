@@ -36,15 +36,15 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Grpc.Core.Internal;
-
 namespace Grpc.Core
 {
     /// <summary>
     /// Context for a server-side call.
     /// </summary>
-    public class ServerCallContext
+    public sealed class ServerCallContext
     {
+        // TODO(jtattermusch): expose method to send initial metadata back to client
+
         private readonly string method;
         private readonly string host;
         private readonly string peer;
@@ -54,11 +54,8 @@ namespace Grpc.Core
         private readonly Metadata responseTrailers = new Metadata();
 
         private Status status = Status.DefaultSuccess;
-        private Func<Metadata, Task> writeHeadersFunc;
-        private IHasWriteOptions writeOptionsHolder;
 
-        public ServerCallContext(string method, string host, string peer, DateTime deadline, Metadata requestHeaders, CancellationToken cancellationToken,
-            Func<Metadata, Task> writeHeadersFunc, IHasWriteOptions writeOptionsHolder)
+        public ServerCallContext(string method, string host, string peer, DateTime deadline, Metadata requestHeaders, CancellationToken cancellationToken)
         {
             this.method = method;
             this.host = host;
@@ -66,13 +63,6 @@ namespace Grpc.Core
             this.deadline = deadline;
             this.requestHeaders = requestHeaders;
             this.cancellationToken = cancellationToken;
-            this.writeHeadersFunc = writeHeadersFunc;
-            this.writeOptionsHolder = writeOptionsHolder;
-        }
-
-        public Task WriteResponseHeadersAsync(Metadata responseHeaders)
-        {
-            return writeHeadersFunc(responseHeaders);
         }
             
         /// <summary>Name of method called in this RPC.</summary>
@@ -120,7 +110,7 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>Cancellation token signals when call is cancelled.</summary>
+        ///<summary>Cancellation token signals when call is cancelled.</summary>
         public CancellationToken CancellationToken
         {
             get
@@ -151,31 +141,5 @@ namespace Grpc.Core
                 status = value;
             }
         }
-
-        /// <summary>
-        /// Allows setting write options for the following write.
-        /// For streaming response calls, this property is also exposed as on IServerStreamWriter for convenience.
-        /// Both properties are backed by the same underlying value.
-        /// </summary>
-        public WriteOptions WriteOptions
-        {
-            get
-            {
-                return writeOptionsHolder.WriteOptions;
-            }
-
-            set
-            {
-                writeOptionsHolder.WriteOptions = value;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Allows sharing write options between ServerCallContext and other objects.
-    /// </summary>
-    public interface IHasWriteOptions
-    {
-        WriteOptions WriteOptions { get; set; }
     }
 }
