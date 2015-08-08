@@ -38,6 +38,7 @@
 
 #include <grpc/support/alloc.h>
 
+#include "src/core/channel/census_filter.h"
 #include "src/core/channel/channel_args.h"
 #include "src/core/channel/client_channel.h"
 #include "src/core/channel/compress_filter.h"
@@ -88,8 +89,8 @@ static void on_secure_transport_setup_done(void *arg,
         c->args.channel_args, secure_endpoint, c->args.metadata_context, 1);
     grpc_chttp2_transport_start_reading(c->result->transport, NULL, 0);
     c->result->filters = gpr_malloc(sizeof(grpc_channel_filter *) * 2);
-    c->result->filters[0] = &grpc_http_client_filter;
-    c->result->filters[1] = &grpc_client_auth_filter;
+    c->result->filters[0] = &grpc_client_auth_filter;
+    c->result->filters[1] = &grpc_http_client_filter;
     c->result->num_filters = 2;
   }
   notify = c->notify;
@@ -213,10 +214,9 @@ grpc_channel *grpc_secure_channel_create(grpc_credentials *creds,
   args_copy = grpc_channel_args_copy_and_add(
       new_args_from_connector != NULL ? new_args_from_connector : args,
       &connector_arg, 1);
-  /* TODO(census)
   if (grpc_channel_args_is_census_enabled(args)) {
     filters[n++] = &grpc_client_census_filter;
-    } */
+  }
   filters[n++] = &grpc_compress_filter;
   filters[n++] = &grpc_client_channel_filter;
   GPR_ASSERT(n <= MAX_FILTERS);
