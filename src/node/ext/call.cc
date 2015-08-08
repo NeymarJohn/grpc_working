@@ -513,7 +513,7 @@ NAN_METHOD(Call::New) {
       grpc_call *wrapped_call = grpc_channel_create_call(
           wrapped_channel, NULL, GRPC_PROPAGATE_DEFAULTS,
           CompletionQueueAsyncWorker::GetQueue(), *method, channel->GetHost(),
-          MillisecondsToTimespec(deadline), NULL);
+          MillisecondsToTimespec(deadline));
       call = new Call(wrapped_call);
       args.This()->SetHiddenValue(NanNew("channel_"), channel_object);
     }
@@ -590,7 +590,7 @@ NAN_METHOD(Call::StartBatch) {
   NanCallback *callback = new NanCallback(callback_func);
   grpc_call_error error = grpc_call_start_batch(
       call->wrapped_call, &ops[0], nops, new struct tag(
-          callback, op_vector.release(), resources), NULL);
+          callback, op_vector.release(), resources));
   if (error != GRPC_CALL_OK) {
     return NanThrowError("startBatch failed", error);
   }
@@ -604,7 +604,7 @@ NAN_METHOD(Call::Cancel) {
     return NanThrowTypeError("cancel can only be called on Call objects");
   }
   Call *call = ObjectWrap::Unwrap<Call>(args.This());
-  grpc_call_error error = grpc_call_cancel(call->wrapped_call, NULL);
+  grpc_call_error error = grpc_call_cancel(call->wrapped_call);
   if (error != GRPC_CALL_OK) {
     return NanThrowError("cancel failed", error);
   }

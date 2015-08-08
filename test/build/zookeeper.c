@@ -31,13 +31,13 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "src/core/surface/completion_queue.h"
-#include "src/core/surface/server.h"
-#include "src/core/channel/compress_filter.h"
+/* This is just a compilation test, to see if we have Zookeeper C client
+   library installed. */
 
-grpc_server *grpc_server_create(const grpc_channel_args *args) {
-  const grpc_channel_filter *filters[] = {&grpc_compress_filter};
-  return grpc_server_create_from_filters(filters, GPR_ARRAY_SIZE(filters),
-                                         args);
+#include <stdlib.h>
+#include <zookeeper/zookeeper.h>
+
+int main() {
+  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
+  return 0;
 }

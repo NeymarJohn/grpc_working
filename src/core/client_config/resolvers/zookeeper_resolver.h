@@ -31,13 +31,12 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "src/core/surface/completion_queue.h"
-#include "src/core/surface/server.h"
-#include "src/core/channel/compress_filter.h"
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-grpc_server *grpc_server_create(const grpc_channel_args *args) {
-  const grpc_channel_filter *filters[] = {&grpc_compress_filter};
-  return grpc_server_create_from_filters(filters, GPR_ARRAY_SIZE(filters),
-                                         args);
-}
+#include "src/core/client_config/resolver_factory.h"
+
+/** Create a zookeeper resolver factory */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
+
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */

@@ -49,7 +49,6 @@ int main(int argc, char **argv) {
   grpc_op *op;
   grpc_metadata_array trailing_metadata_recv;
   grpc_status_code status;
-  grpc_call_error error;
   char *details = NULL;
   size_t details_capacity = 0;
 
@@ -60,11 +59,10 @@ int main(int argc, char **argv) {
 
   chan = grpc_lame_client_channel_create("lampoon:national");
   GPR_ASSERT(chan);
-  cq = grpc_completion_queue_create(NULL);
+  cq = grpc_completion_queue_create();
   call = grpc_channel_create_call(chan, NULL, GRPC_PROPAGATE_DEFAULTS, cq,
                                   "/Foo", "anywhere",
-                                  GRPC_TIMEOUT_SECONDS_TO_DEADLINE(100),
-                                  NULL);
+                                  GRPC_TIMEOUT_SECONDS_TO_DEADLINE(100));
   GPR_ASSERT(call);
   cqv = cq_verifier_create(cq);
 
@@ -72,7 +70,6 @@ int main(int argc, char **argv) {
   op->op = GRPC_OP_SEND_INITIAL_METADATA;
   op->data.send_initial_metadata.count = 0;
   op->flags = 0;
-  op->reserved = NULL;
   op++;
   op->op = GRPC_OP_RECV_STATUS_ON_CLIENT;
   op->data.recv_status_on_client.trailing_metadata = &trailing_metadata_recv;
@@ -80,10 +77,9 @@ int main(int argc, char **argv) {
   op->data.recv_status_on_client.status_details = &details;
   op->data.recv_status_on_client.status_details_capacity = &details_capacity;
   op->flags = 0;
-  op->reserved = NULL;
   op++;
-  error = grpc_call_start_batch(call, ops, op - ops, tag(1), NULL);
-  GPR_ASSERT(GRPC_CALL_OK == error);
+  GPR_ASSERT(GRPC_CALL_OK ==
+             grpc_call_start_batch(call, ops, op - ops, tag(1)));
 
   /* the call should immediately fail */
   cq_expect_completion(cqv, tag(1), 1);

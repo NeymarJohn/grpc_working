@@ -31,13 +31,18 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "src/core/surface/completion_queue.h"
-#include "src/core/surface/server.h"
-#include "src/core/channel/compress_filter.h"
+#ifndef GRPC_GRPC_ZOOKEEPER_H
+#define GRPC_GRPC_ZOOKEEPER_H
 
-grpc_server *grpc_server_create(const grpc_channel_args *args) {
-  const grpc_channel_filter *filters[] = {&grpc_compress_filter};
-  return grpc_server_create_from_filters(filters, GPR_ARRAY_SIZE(filters),
-                                         args);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/** Register zookeeper name resolver in grpc */
+void grpc_zookeeper_register();
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* GRPC_GRPC_ZOOKEEPER_H */

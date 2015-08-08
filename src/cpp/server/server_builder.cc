@@ -103,8 +103,7 @@ std::unique_ptr<Server> ServerBuilder::BuildAndStart() {
   std::unique_ptr<Server> server(
       new Server(thread_pool_, thread_pool_owned, max_message_size_));
   for (auto cq = cqs_.begin(); cq != cqs_.end(); ++cq) {
-    grpc_server_register_completion_queue(server->server_, (*cq)->cq(),
-                                          nullptr);
+    grpc_server_register_completion_queue(server->server_, (*cq)->cq());
   }
   for (auto service = services_.begin(); service != services_.end();
        service++) {
