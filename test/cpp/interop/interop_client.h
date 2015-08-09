@@ -52,12 +52,10 @@ class InteropClient {
 
   void DoEmpty();
   void DoLargeUnary();
-  void DoLargeCompressedUnary();
   void DoPingPong();
   void DoHalfDuplex();
   void DoRequestStreaming();
   void DoResponseStreaming();
-  void DoResponseCompressedStreaming();
   void DoResponseStreamingWithSlowConsumer();
   void DoCancelAfterBegin();
   void DoCancelAfterFirstResponse();
@@ -80,8 +78,6 @@ class InteropClient {
 
  private:
   void PerformLargeUnary(SimpleRequest* request, SimpleResponse* response);
-  void PerformLargeCompressedUnary(SimpleRequest* request,
-                                   SimpleResponse* response);
   void AssertOkOrPrintErrorStatus(const Status& s);
 
   std::shared_ptr<ChannelInterface> channel_;
