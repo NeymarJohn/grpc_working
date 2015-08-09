@@ -40,7 +40,7 @@ using Grpc.Core;
 using Grpc.Core.Utils;
 using NUnit.Framework;
 
-namespace Math.Tests
+namespace math.Tests
 {
     /// <summary>
     /// Math client talks to local math server.
@@ -76,7 +76,7 @@ namespace Math.Tests
         [Test]
         public void Div1()
         {
-            DivReply response = client.Div(new DivArgs { Dividend = 10, Divisor = 3 });
+            DivReply response = client.Div(new DivArgs.Builder { Dividend = 10, Divisor = 3 }.Build());
             Assert.AreEqual(3, response.Quotient);
             Assert.AreEqual(1, response.Remainder);
         }
@@ -84,7 +84,7 @@ namespace Math.Tests
         [Test]
         public void Div2()
         {
-            DivReply response = client.Div(new DivArgs { Dividend = 0, Divisor = 1 });
+            DivReply response = client.Div(new DivArgs.Builder { Dividend = 0, Divisor = 1 }.Build());
             Assert.AreEqual(0, response.Quotient);
             Assert.AreEqual(0, response.Remainder);
         }
@@ -92,21 +92,14 @@ namespace Math.Tests
         [Test]
         public void DivByZero()
         {
-            try
-            {
-                DivReply response = client.Div(new DivArgs { Dividend = 0, Divisor = 0 });
-                Assert.Fail();
-            }
-            catch (RpcException e)
-            {
-                Assert.AreEqual(StatusCode.Unknown, e.Status.StatusCode);
-            }   
+            var ex = Assert.Throws<RpcException>(() => client.Div(new DivArgs.Builder { Dividend = 0, Divisor = 0 }.Build()));
+            Assert.AreEqual(StatusCode.Unknown, ex.Status.StatusCode);
         }
 
         [Test]
         public async Task DivAsync()
         {
-            DivReply response = await client.DivAsync(new DivArgs { Dividend = 10, Divisor = 3 });
+            DivReply response = await client.DivAsync(new DivArgs.Builder { Dividend = 10, Divisor = 3 }.Build());
             Assert.AreEqual(3, response.Quotient);
             Assert.AreEqual(1, response.Remainder);
         }
@@ -114,7 +107,7 @@ namespace Math.Tests
         [Test]
         public async Task Fib()
         {
-            using (var call = client.Fib(new FibArgs { Limit = 6 }))
+            using (var call = client.Fib(new FibArgs.Builder { Limit = 6 }.Build()))
             {
                 var responses = await call.ResponseStream.ToList();
                 CollectionAssert.AreEqual(new List<long> { 1, 1, 2, 3, 5, 8 },
@@ -127,7 +120,8 @@ namespace Math.Tests
         {
             var cts = new CancellationTokenSource();
 
-            using (var call = client.Fib(new FibArgs { Limit = 0 }, cancellationToken: cts.Token))
+            using (var call = client.Fib(new FibArgs.Builder { Limit = 0 }.Build(), 
+                cancellationToken: cts.Token))
             {
                 List<long> responses = new List<long>();
 
@@ -154,18 +148,13 @@ namespace Math.Tests
         [Test]
         public async Task FibWithDeadline()
         {
-            using (var call = client.Fib(new FibArgs { Limit = 0 }, 
+            using (var call = client.Fib(new FibArgs.Builder { Limit = 0 }.Build(), 
                 deadline: DateTime.UtcNow.AddMilliseconds(500)))
             {
-                try
-                {
-                    await call.ResponseStream.ToList();
-                    Assert.Fail();
-                }
-                catch (RpcException e)
-                {
-                    Assert.AreEqual(StatusCode.DeadlineExceeded, e.Status.StatusCode);
-                }
+                var ex = Assert.Throws<RpcException>(async () => await call.ResponseStream.ToList());
+
+                // We can't guarantee the status code always DeadlineExceeded. See issue #2685.
+                Assert.Contains(ex.Status.StatusCode, new[] { StatusCode.DeadlineExceeded, StatusCode.Internal });
             }
         }
 
@@ -175,7 +164,8 @@ namespace Math.Tests
         {
             using (var call = client.Sum())
             {
-                var numbers = new List<long> { 10, 20, 30 }.ConvertAll(n => new Num{ Num_ = n });
+                var numbers = new List<long> { 10, 20, 30 }.ConvertAll(
+                            n => Num.CreateBuilder().SetNum_(n).Build());
 
                 await call.RequestStream.WriteAll(numbers);
                 var result = await call.ResponseAsync;
@@ -188,9 +178,9 @@ namespace Math.Tests
         {
             var divArgsList = new List<DivArgs>
             {
-                new DivArgs { Dividend = 10, Divisor = 3 },
-                new DivArgs { Dividend = 100, Divisor = 21 },
-                new DivArgs { Dividend = 7, Divisor = 2 }
+                new DivArgs.Builder { Dividend = 10, Divisor = 3 }.Build(),
+                new DivArgs.Builder { Dividend = 100, Divisor = 21 }.Build(),
+                new DivArgs.Builder { Dividend = 7, Divisor = 2 }.Build()
             };
 
             using (var call = client.DivMany())
