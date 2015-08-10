@@ -31,29 +31,30 @@
  *
  */
 
-/** Support zookeeper as alternative name system in addition to DNS
- *  Zookeeper name in gRPC is represented as a URI:
- *  zookeeper://host:port/path/service/instance
- *
- *  Where zookeeper is the name system scheme
- *  host:port is the address of a zookeeper server
- *  /path/service/instance is the zookeeper name to be resolved
- *
- *  Refer doc/naming.md for more details
- */
+#ifndef GRPCXX_AUTH_METADATA_PROCESSOR_H_
+#define GRPCXX_AUTH_METADATA_PROCESSOR_H_
 
-#ifndef GRPC_GRPC_ZOOKEEPER_H
-#define GRPC_GRPC_ZOOKEEPER_H
+#include <map>
+#include <string>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <grpc++/auth_context.h>
 
-/** Register zookeeper name resolver in grpc */
-void grpc_zookeeper_register();
+namespace grpc {
 
-#ifdef __cplusplus
-}
-#endif
+class AuthMetadataProcessor {
+ public:
+  virtual ~AuthMetadataProcessor() {}
 
-#endif /* GRPC_GRPC_ZOOKEEPER_H */
+  // context is read/write: it contains the properties of the channel peer and
+  // it is the job of the Process method to augment it with properties derived
+  // from the passed-in auth_metadata.
+  virtual bool Process(
+      std::multimap<grpc::string, grpc::string>& auth_metadata,
+      AuthContext* context,
+      std::multimap<grpc::string, grpc::string>* consumed_auth_metadata) = 0;
+};
+
+}  // namespace grpc
+
+#endif  // GRPCXX_AUTH_METADATA_PROCESSOR_H_
+

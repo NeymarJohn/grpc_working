@@ -258,31 +258,44 @@ void grpc_call_details_destroy(grpc_call_details *details);
 
 typedef enum {
   /** Send initial metadata: one and only one instance MUST be sent for each
-      call, unless the call was cancelled - in which case this can be skipped */
+      call, unless the call was cancelled - in which case this can be skipped.
+      This op completes after all bytes of metadata have been accepted by
+      outgoing flow control. */
   GRPC_OP_SEND_INITIAL_METADATA = 0,
-  /** Send a message: 0 or more of these operations can occur for each call */
+  /** Send a message: 0 or more of these operations can occur for each call.
+      This op completes after all bytes for the message have been accepted by
+      outgoing flow control. */
   GRPC_OP_SEND_MESSAGE,
   /** Send a close from the client: one and only one instance MUST be sent from
       the client, unless the call was cancelled - in which case this can be
-      skipped */
+      skipped.
+      This op completes after all bytes for the call (including the close)
+      have passed outgoing flow control. */
   GRPC_OP_SEND_CLOSE_FROM_CLIENT,
   /** Send status from the server: one and only one instance MUST be sent from
       the server unless the call was cancelled - in which case this can be
-      skipped */
+      skipped.
+      This op completes after all bytes for the call (including the status)
+      have passed outgoing flow control. */
   GRPC_OP_SEND_STATUS_FROM_SERVER,
   /** Receive initial metadata: one and only one MUST be made on the client,
-      must not be made on the server */
+      must not be made on the server.
+      This op completes after all initial metadata has been read from the
+      peer. */
   GRPC_OP_RECV_INITIAL_METADATA,
-  /** Receive a message: 0 or more of these operations can occur for each call
-     */
+  /** Receive a message: 0 or more of these operations can occur for each call.
+      This op completes after all bytes of the received message have been
+      read, or after a half-close has been received on this call. */
   GRPC_OP_RECV_MESSAGE,
   /** Receive status on the client: one and only one must be made on the client.
-     This operation always succeeds, meaning ops paired with this operation
-     will also appear to succeed, even though they may not have. In that case
-     the status will indicate some failure. */
+      This operation always succeeds, meaning ops paired with this operation
+      will also appear to succeed, even though they may not have. In that case
+      the status will indicate some failure.
+      This op completes after all activity on the call has completed. */
   GRPC_OP_RECV_STATUS_ON_CLIENT,
   /** Receive close on the server: one and only one must be made on the
-      server */
+      server.
+      This op completes after the close has been received by the server. */
   GRPC_OP_RECV_CLOSE_ON_SERVER
 } grpc_op_type;
 
@@ -355,23 +368,6 @@ typedef struct grpc_op {
   } data;
 } grpc_op;
 
-/** Registers a plugin to be initialized and destroyed with the library.
-
-    The \a init and \a destroy functions will be invoked as part of 
-    \a grpc_init() and \a grpc_shutdown(), respectively. 
-    Note that these functions can be invoked an arbitrary number of times
-    (and hence so will \a init and \a destroy).
-    It is safe to pass NULL to either argument. Plugins are destroyed in 
-    the reverse order they were initialized. */
-void grpc_register_plugin(void (*init)(void), void (*destroy)(void));
-
-/** Frees the memory used by all the plugin information.
-
-    While grpc_init and grpc_shutdown can be called multiple times, the plugins
-    won't be unregistered and their memory cleaned up unless you call that
-    function. Using atexit(grpc_unregister_all_plugins) is a valid method. */
-void grpc_unregister_all_plugins();
-
 /* Propagation bits: this can be bitwise or-ed to form propagation_mask for
  * grpc_call */
 /** Propagate deadline */
@@ -384,8 +380,8 @@ void grpc_unregister_all_plugins();
 
 /* Default propagation mask: clients of the core API are encouraged to encode
    deltas from this in their implementations... ie write:
-   GRPC_PROPAGATE_DEFAULTS & ~GRPC_PROPAGATE_DEADLINE to disable deadline
-   propagation. Doing so gives flexibility in the future to define new
+   GRPC_PROPAGATE_DEFAULTS & ~GRPC_PROPAGATE_DEADLINE to disable deadline 
+   propagation. Doing so gives flexibility in the future to define new 
    propagation types that are default inherited or not. */
 #define GRPC_PROPAGATE_DEFAULTS                                                \
   ((gpr_uint32)((                                                              \
@@ -432,8 +428,8 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cq,
     otherwise a grpc_event describing the event that occurred.
 
     Callers must not call grpc_completion_queue_next and
-    grpc_completion_queue_pluck simultaneously on the same completion queue.
-
+    grpc_completion_queue_pluck simultaneously on the same completion queue. 
+    
     Completion queues support a maximum of GRPC_MAX_COMPLETION_QUEUE_PLUCKERS
     concurrently executing plucks at any time. */
 grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cq, void *tag,
@@ -473,7 +469,7 @@ void grpc_channel_watch_connectivity_state(
     completions are sent to 'completion_queue'. 'method' and 'host' need only
     live through the invocation of this function.
     If parent_call is non-NULL, it must be a server-side call. It will be used
-    to propagate properties from the server call to this new client call.
+    to propagate properties from the server call to this new client call. 
     */
 grpc_call *grpc_channel_create_call(grpc_channel *channel,
                                     grpc_call *parent_call,
