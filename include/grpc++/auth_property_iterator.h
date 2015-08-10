@@ -31,35 +31,47 @@
  *
  */
 
-#ifndef GRPCXX_AUTH_CONTEXT_H
-#define GRPCXX_AUTH_CONTEXT_H
+#ifndef GRPCXX_AUTH_PROPERTY_ITERATOR_H
+#define GRPCXX_AUTH_PROPERTY_ITERATOR_H
 
+#include <iterator>
 #include <vector>
 
-#include <grpc++/auth_property_iterator.h>
 #include <grpc++/config.h>
 
+struct grpc_auth_context;
+struct grpc_auth_property;
+struct grpc_auth_property_iterator;
+
 namespace grpc {
+class SecureAuthContext;
 
-class AuthContext {
+typedef std::pair<grpc::string, grpc::string> AuthProperty;
+
+class AuthPropertyIterator
+    : public std::iterator<std::input_iterator_tag, const AuthProperty> {
  public:
-  virtual ~AuthContext() {}
+  ~AuthPropertyIterator();
+  AuthPropertyIterator& operator++();
+  AuthPropertyIterator operator++(int);
+  bool operator==(const AuthPropertyIterator& rhs) const;
+  bool operator!=(const AuthPropertyIterator& rhs) const;
+  const AuthProperty operator*();
 
-  // A peer identity, in general is one or more properties (in which case they
-  // have the same name).
-  virtual std::vector<grpc::string> GetPeerIdentity() const = 0;
-  virtual grpc::string GetPeerIdentityPropertyName() const = 0;
-
-  // Returns all the property values with the given name.
-  virtual std::vector<grpc::string> FindPropertyValues(
-      const grpc::string& name) const = 0;
-
-  // Iteration over all the properties.
-  virtual AuthPropertyIterator begin() const = 0;
-  virtual AuthPropertyIterator end() const = 0;
+ protected:
+  AuthPropertyIterator();
+  AuthPropertyIterator(const grpc_auth_property* property,
+                       const grpc_auth_property_iterator* iter);
+ private:
+  friend class SecureAuthContext;
+  const grpc_auth_property* property_;
+  // The following items form a grpc_auth_property_iterator.
+  const grpc_auth_context* ctx_;
+  size_t index_;
+  const char* name_;
 };
 
 }  // namespace grpc
 
-#endif  // GRPCXX_AUTH_CONTEXT_H
+ #endif  // GRPCXX_AUTH_PROPERTY_ITERATOR_H
 
