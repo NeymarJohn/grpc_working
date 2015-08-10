@@ -37,7 +37,6 @@
 #include <memory>
 #include <vector>
 
-#include <grpc/compression.h>
 #include <grpc++/config.h>
 
 namespace grpc {
@@ -60,24 +59,24 @@ class ServerBuilder {
   // The service must exist for the lifetime of the Server instance returned by
   // BuildAndStart().
   // Matches requests with any :authority
-  ServerBuilder& RegisterService(SynchronousService* service);
+  void RegisterService(SynchronousService* service);
 
   // Register an asynchronous service.
   // This call does not take ownership of the service or completion queue.
   // The service and completion queuemust exist for the lifetime of the Server
   // instance returned by BuildAndStart().
   // Matches requests with any :authority
-  ServerBuilder& RegisterAsyncService(AsynchronousService* service);
+  void RegisterAsyncService(AsynchronousService* service);
 
   // Register a generic service.
   // Matches requests with any :authority
-  ServerBuilder& RegisterAsyncGenericService(AsyncGenericService* service);
+  void RegisterAsyncGenericService(AsyncGenericService* service);
 
   // Register a service. This call does not take ownership of the service.
   // The service must exist for the lifetime of the Server instance returned by
   // BuildAndStart().
   // Only matches requests with :authority \a host
-  ServerBuilder& RegisterService(const grpc::string& host,
+  void RegisterService(const grpc::string& host, 
                        SynchronousService* service);
 
   // Register an asynchronous service.
@@ -85,23 +84,22 @@ class ServerBuilder {
   // The service and completion queuemust exist for the lifetime of the Server
   // instance returned by BuildAndStart().
   // Only matches requests with :authority \a host
-  ServerBuilder& RegisterAsyncService(const grpc::string& host,
+  void RegisterAsyncService(const grpc::string& host, 
                             AsynchronousService* service);
 
   // Set max message size in bytes.
-  ServerBuilder& SetMaxMessageSize(int max_message_size);
+  void SetMaxMessageSize(int max_message_size) {
+    max_message_size_ = max_message_size;
+  }
 
   // Add a listening port. Can be called multiple times.
-  ServerBuilder& AddListeningPort(const grpc::string& addr,
+  void AddListeningPort(const grpc::string& addr,
                         std::shared_ptr<ServerCredentials> creds,
                         int* selected_port = nullptr);
 
   // Set the thread pool used for running appliation rpc handlers.
   // Does not take ownership.
-  ServerBuilder& SetThreadPool(ThreadPoolInterface* thread_pool);
-
-  // Set the compression options to be used by the server.
-  ServerBuilder& SetCompressionOptions(const grpc_compression_options& options);
+  void SetThreadPool(ThreadPoolInterface* thread_pool);
 
   // Add a completion queue for handling asynchronous services
   // Caller is required to keep this completion queue live until calling
@@ -128,7 +126,6 @@ class ServerBuilder {
   };
 
   int max_message_size_;
-  grpc_compression_options compression_options_;
   std::vector<std::unique_ptr<NamedService<RpcService>>> services_;
   std::vector<std::unique_ptr<NamedService<AsynchronousService>>> async_services_;
   std::vector<Port> ports_;

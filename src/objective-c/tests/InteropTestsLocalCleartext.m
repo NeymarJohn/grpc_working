@@ -31,47 +31,29 @@
  *
  */
 
-#include <stdlib.h>
-#include <string.h>
+// Repeat of the tests in InteropTests.m, but sending the RPCs to a local cleartext server instead
+// of the remote SSL one.
 
-#include <grpc/compression.h>
-#include <grpc/support/log.h>
-#include <grpc/support/useful.h>
+#import <GRPCClient/GRPCCall+Tests.h>
 
-#include "test/core/util/test_config.h"
+#import "InteropTests.h"
 
-static void test_compression_algorithm_parse(void) {
-  size_t i;
-  const char* valid_names[] = {"none", "gzip", "deflate"};
-  const grpc_compression_algorithm valid_algorithms[] = {
-      GRPC_COMPRESS_NONE, GRPC_COMPRESS_GZIP, GRPC_COMPRESS_DEFLATE};
-  const char* invalid_names[] = {"gzip2", "foo", "", "2gzip"};
+static NSString * const kLocalCleartextHost = @"localhost:5050";
 
-  gpr_log(GPR_DEBUG, "test_compression_algorithm_parse");
+@interface InteropTestsLocalCleartext : InteropTests
+@end
 
-  for (i = 0; i < GPR_ARRAY_SIZE(valid_names); i++) {
-    const char* valid_name = valid_names[i];
-    grpc_compression_algorithm algorithm;
-    int success;
-    success = grpc_compression_algorithm_parse(valid_name, strlen(valid_name),
-                                               &algorithm);
-    GPR_ASSERT(success != 0);
-    GPR_ASSERT(algorithm == valid_algorithms[i]);
-  }
+@implementation InteropTestsLocalCleartext
 
-  for (i = 0; i < GPR_ARRAY_SIZE(invalid_names); i++) {
-    const char* invalid_name = invalid_names[i];
-    grpc_compression_algorithm algorithm;
-    int success;
-    success = grpc_compression_algorithm_parse(
-        invalid_name, strlen(invalid_name), &algorithm);
-    GPR_ASSERT(success == 0);
-    /* the value of "algorithm" is undefined upon failure */
-  }
++ (NSString *)host {
+  return kLocalCleartextHost;
 }
 
-int main(int argc, char **argv) {
-  test_compression_algorithm_parse();
+- (void)setUp {
+  // Register test server as non-SSL.
+  [GRPCCall useInsecureConnectionsForHost:kLocalCleartextHost];
 
-  return 0;
+  [super setUp];
 }
+
+@end
