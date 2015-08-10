@@ -31,31 +31,47 @@
  *
  */
 
-#include <stdlib.h>
+#ifndef GRPCXX_AUTH_PROPERTY_ITERATOR_H
+#define GRPCXX_AUTH_PROPERTY_ITERATOR_H
 
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-#include <grpc/grpc.h>
+#include <iterator>
+#include <vector>
 
-#include "grpc/_adapter/_c/types.h"
+#include <grpc++/config.h>
 
-static PyMethodDef c_methods[] = {
-    {NULL}
+struct grpc_auth_context;
+struct grpc_auth_property;
+struct grpc_auth_property_iterator;
+
+namespace grpc {
+class SecureAuthContext;
+
+typedef std::pair<grpc::string, grpc::string> AuthProperty;
+
+class AuthPropertyIterator
+    : public std::iterator<std::input_iterator_tag, const AuthProperty> {
+ public:
+  ~AuthPropertyIterator();
+  AuthPropertyIterator& operator++();
+  AuthPropertyIterator operator++(int);
+  bool operator==(const AuthPropertyIterator& rhs) const;
+  bool operator!=(const AuthPropertyIterator& rhs) const;
+  const AuthProperty operator*();
+
+ protected:
+  AuthPropertyIterator();
+  AuthPropertyIterator(const grpc_auth_property* property,
+                       const grpc_auth_property_iterator* iter);
+ private:
+  friend class SecureAuthContext;
+  const grpc_auth_property* property_;
+  // The following items form a grpc_auth_property_iterator.
+  const grpc_auth_context* ctx_;
+  size_t index_;
+  const char* name_;
 };
 
-PyMODINIT_FUNC init_c(void) {
-  PyObject *module;
+}  // namespace grpc
 
-  module = Py_InitModule3("_c", c_methods,
-                          "Wrappings of C structures and functions.");
+ #endif  // GRPCXX_AUTH_PROPERTY_ITERATOR_H
 
-  if (pygrpc_module_add_types(module) < 0) {
-    return;
-  }
-
-  /* GRPC maintains an internal counter of how many times it has been
-     initialized and handles multiple pairs of grpc_init()/grpc_shutdown()
-     invocations accordingly. */
-  grpc_init();
-  atexit(&grpc_shutdown);
-}
