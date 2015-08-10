@@ -37,8 +37,7 @@ cd $(dirname $0)
 
 # Run the tests server.
 ../../../bins/$CONFIG/interop_server --port=5050 &
-../../../bins/$CONFIG/interop_server --port=5051 --enable_ssl &
-# Kill them when this script exits.
+# Kill it when this script exits.
 trap 'kill -9 `jobs -p`' EXIT
 
 # xcodebuild is very verbose. We filter its output and tell Bash to fail if any
