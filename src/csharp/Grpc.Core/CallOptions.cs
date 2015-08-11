@@ -47,8 +47,6 @@ namespace Grpc.Core
         readonly Metadata headers;
         readonly DateTime deadline;
         readonly CancellationToken cancellationToken;
-        readonly WriteOptions writeOptions;
-        readonly ContextPropagationToken propagationToken;
 
         /// <summary>
         /// Creates a new instance of <c>CallOptions</c>.
@@ -56,17 +54,12 @@ namespace Grpc.Core
         /// <param name="headers">Headers to be sent with the call.</param>
         /// <param name="deadline">Deadline for the call to finish. null means no deadline.</param>
         /// <param name="cancellationToken">Can be used to request cancellation of the call.</param>
-        /// <param name="writeOptions">Write options that will be used for this call.</param>
-        /// <param name="propagationToken">Context propagation token obtained from <see cref="ServerCallContext"/>.</param>
-        public CallOptions(Metadata headers = null, DateTime? deadline = null, CancellationToken? cancellationToken = null,
-                           WriteOptions writeOptions = null, ContextPropagationToken propagationToken = null)
+        public CallOptions(Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // TODO(jtattermusch): consider only creating metadata object once it's really needed.
-            this.headers = headers ?? new Metadata();
-            this.deadline = deadline ?? (propagationToken != null ? propagationToken.Deadline : DateTime.MaxValue);
-            this.cancellationToken = cancellationToken ?? (propagationToken != null ? propagationToken.CancellationToken : CancellationToken.None);
-            this.writeOptions = writeOptions;
-            this.propagationToken = propagationToken;
+            this.headers = headers != null ? headers : new Metadata();
+            this.deadline = deadline.HasValue ? deadline.Value : DateTime.MaxValue;
+            this.cancellationToken = cancellationToken;
         }
 
         /// <summary>
@@ -91,28 +84,6 @@ namespace Grpc.Core
         public CancellationToken CancellationToken
         {
             get { return cancellationToken; }
-        }
-
-        /// <summary>
-        /// Write options that will be used for this call.
-        /// </summary>
-        public WriteOptions WriteOptions
-        {
-            get
-            {
-                return this.writeOptions;
-            }
-        }
-
-        /// <summary>
-        /// Token for propagating parent call context.
-        /// </summary>
-        public ContextPropagationToken PropagationToken
-        {
-            get
-            {
-                return this.propagationToken;
-            }
         }
     }
 }

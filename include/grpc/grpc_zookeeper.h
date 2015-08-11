@@ -31,32 +31,18 @@
  *
  */
 
-// Repeat of the tests in InteropTests.m, but using SSL to communicate with the local server instead
-// of cleartext.
+#ifndef GRPC_GRPC_ZOOKEEPER_H
+#define GRPC_GRPC_ZOOKEEPER_H
 
-#import <GRPCClient/GRPCCall+Tests.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#import "InteropTests.h"
+/** Register zookeeper name resolver in grpc */
+void grpc_zookeeper_register();
 
-static NSString * const kLocalSSLHost = @"localhost:5051";
-
-@interface InteropTestsLocalSSL : InteropTests
-@end
-
-@implementation InteropTestsLocalSSL
-
-+ (NSString *)host {
-  return kLocalSSLHost;
+#ifdef __cplusplus
 }
+#endif
 
-- (void)setUp {
-  // Register test server certificates and name.
-  NSBundle *bundle = [NSBundle bundleForClass:self.class];
-  NSString *certsPath = [bundle pathForResource:@"TestCertificates.bundle/test-certificates"
-                                         ofType:@"pem"];
-  [GRPCCall useTestCertsPath:certsPath testName:@"foo.test.google.fr" forHost:kLocalSSLHost];
-
-  [super setUp];
-}
-
-@end
+#endif /* GRPC_GRPC_ZOOKEEPER_H */

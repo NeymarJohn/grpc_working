@@ -647,6 +647,26 @@ cc_library(
 
 
 cc_library(
+  name = "grpc_zookeeper",
+  srcs = [
+    "src/core/client_config/resolvers/zookeeper_resolver.h",
+    "src/core/client_config/resolvers/zookeeper_resolver.c",
+  ],
+  hdrs = [
+    "include/grpc/grpc_zookeeper.h",
+  ],
+  includes = [
+    "include",
+    ".",
+  ],
+  deps = [
+    ":gpr",
+    ":grpc",
+  ],
+)
+
+
+cc_library(
   name = "grpc++",
   srcs = [
     "src/cpp/client/secure_credentials.h",
@@ -690,6 +710,7 @@ cc_library(
     "include/grpc++/async_generic_service.h",
     "include/grpc++/async_unary_call.h",
     "include/grpc++/auth_context.h",
+    "include/grpc++/auth_property_iterator.h",
     "include/grpc++/byte_buffer.h",
     "include/grpc++/channel_arguments.h",
     "include/grpc++/channel_interface.h",
@@ -777,6 +798,7 @@ cc_library(
     "include/grpc++/async_generic_service.h",
     "include/grpc++/async_unary_call.h",
     "include/grpc++/auth_context.h",
+    "include/grpc++/auth_property_iterator.h",
     "include/grpc++/byte_buffer.h",
     "include/grpc++/channel_arguments.h",
     "include/grpc++/channel_interface.h",

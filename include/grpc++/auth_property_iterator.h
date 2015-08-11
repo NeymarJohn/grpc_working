@@ -31,32 +31,47 @@
  *
  */
 
-// Repeat of the tests in InteropTests.m, but using SSL to communicate with the local server instead
-// of cleartext.
+#ifndef GRPCXX_AUTH_PROPERTY_ITERATOR_H
+#define GRPCXX_AUTH_PROPERTY_ITERATOR_H
 
-#import <GRPCClient/GRPCCall+Tests.h>
+#include <iterator>
+#include <vector>
 
-#import "InteropTests.h"
+#include <grpc++/config.h>
 
-static NSString * const kLocalSSLHost = @"localhost:5051";
+struct grpc_auth_context;
+struct grpc_auth_property;
+struct grpc_auth_property_iterator;
 
-@interface InteropTestsLocalSSL : InteropTests
-@end
+namespace grpc {
+class SecureAuthContext;
 
-@implementation InteropTestsLocalSSL
+typedef std::pair<grpc::string, grpc::string> AuthProperty;
 
-+ (NSString *)host {
-  return kLocalSSLHost;
-}
+class AuthPropertyIterator
+    : public std::iterator<std::input_iterator_tag, const AuthProperty> {
+ public:
+  ~AuthPropertyIterator();
+  AuthPropertyIterator& operator++();
+  AuthPropertyIterator operator++(int);
+  bool operator==(const AuthPropertyIterator& rhs) const;
+  bool operator!=(const AuthPropertyIterator& rhs) const;
+  const AuthProperty operator*();
 
-- (void)setUp {
-  // Register test server certificates and name.
-  NSBundle *bundle = [NSBundle bundleForClass:self.class];
-  NSString *certsPath = [bundle pathForResource:@"TestCertificates.bundle/test-certificates"
-                                         ofType:@"pem"];
-  [GRPCCall useTestCertsPath:certsPath testName:@"foo.test.google.fr" forHost:kLocalSSLHost];
+ protected:
+  AuthPropertyIterator();
+  AuthPropertyIterator(const grpc_auth_property* property,
+                       const grpc_auth_property_iterator* iter);
+ private:
+  friend class SecureAuthContext;
+  const grpc_auth_property* property_;
+  // The following items form a grpc_auth_property_iterator.
+  const grpc_auth_context* ctx_;
+  size_t index_;
+  const char* name_;
+};
 
-  [super setUp];
-}
+}  // namespace grpc
 
-@end
+ #endif  // GRPCXX_AUTH_PROPERTY_ITERATOR_H
+

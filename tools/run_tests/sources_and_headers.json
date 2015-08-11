@@ -1671,6 +1671,23 @@
   }, 
   {
     "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc++", 
+      "grpc++_test_util", 
+      "grpc_test_util", 
+      "grpc_zookeeper"
+    ], 
+    "headers": [], 
+    "language": "c++", 
+    "name": "zookeeper_test", 
+    "src": [
+      "test/cpp/end2end/zookeeper_test.cc"
+    ]
+  }, 
+  {
+    "deps": [
       "end2end_certs", 
       "end2end_fixture_chttp2_fake_security", 
       "end2end_test_bad_hostname", 
@@ -13028,6 +13045,23 @@
   {
     "deps": [
       "gpr", 
+      "grpc"
+    ], 
+    "headers": [
+      "include/grpc/grpc_zookeeper.h", 
+      "src/core/client_config/resolvers/zookeeper_resolver.h"
+    ], 
+    "language": "c", 
+    "name": "grpc_zookeeper", 
+    "src": [
+      "include/grpc/grpc_zookeeper.h", 
+      "src/core/client_config/resolvers/zookeeper_resolver.c", 
+      "src/core/client_config/resolvers/zookeeper_resolver.h"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
       "gpr_test_util", 
       "grpc", 
       "grpc_test_util"
@@ -13051,6 +13085,7 @@
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
       "include/grpc++/auth_context.h", 
+      "include/grpc++/auth_property_iterator.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -13101,6 +13136,7 @@
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
       "include/grpc++/auth_context.h", 
+      "include/grpc++/auth_property_iterator.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -13225,6 +13261,7 @@
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
       "include/grpc++/auth_context.h", 
+      "include/grpc++/auth_property_iterator.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -13272,6 +13309,7 @@
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
       "include/grpc++/auth_context.h", 
+      "include/grpc++/auth_property_iterator.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
