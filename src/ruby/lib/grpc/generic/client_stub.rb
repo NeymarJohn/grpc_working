@@ -37,8 +37,8 @@ module GRPC
     include Core::StatusCodes
     include Core::TimeConsts
 
-    # Default timeout is infinity.
-    DEFAULT_TIMEOUT = INFINITE_FUTURE
+    # Default timeout is 5 seconds.
+    DEFAULT_TIMEOUT = 5
 
     # setup_channel is used by #initialize to constuct a channel from its
     # arguments.
@@ -410,7 +410,7 @@ module GRPC
     # @param timeout [TimeConst]
     def new_active_call(method, marshal, unmarshal, timeout = nil)
       deadline = from_relative_time(timeout.nil? ? @timeout : timeout)
-      call = @ch.create_call(@queue, method, @host, deadline)
+      call = @ch.create_call(@queue, method, nil, deadline)
       ActiveCall.new(call, @queue, marshal, unmarshal, deadline, started: false)
     end
   end
