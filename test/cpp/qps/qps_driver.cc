@@ -33,7 +33,6 @@
 
 #include <memory>
 #include <set>
-#include <signal.h>
 
 #include <gflags/gflags.h>
 #include <grpc/support/log.h>
