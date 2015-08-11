@@ -66,7 +66,6 @@ struct grpc_channel {
   /** mdstr for the grpc-status key */
   grpc_mdstr *grpc_status_string;
   grpc_mdstr *grpc_compression_algorithm_string;
-  grpc_mdstr *grpc_encodings_accepted_by_peer_string;
   grpc_mdstr *grpc_message_string;
   grpc_mdstr *path_string;
   grpc_mdstr *authority_string;
@@ -105,10 +104,7 @@ grpc_channel *grpc_channel_create_from_filters(
   channel->grpc_status_string = grpc_mdstr_from_string(mdctx, "grpc-status", 0);
   channel->grpc_compression_algorithm_string =
       grpc_mdstr_from_string(mdctx, "grpc-encoding", 0);
-  channel->grpc_encodings_accepted_by_peer_string =
-      grpc_mdstr_from_string(mdctx, "grpc-accept-encoding", 0);
-  channel->grpc_message_string =
-      grpc_mdstr_from_string(mdctx, "grpc-message", 0);
+  channel->grpc_message_string = grpc_mdstr_from_string(mdctx, "grpc-message", 0);
   for (i = 0; i < NUM_CACHED_STATUS_ELEMS; i++) {
     char buf[GPR_LTOA_MIN_BUFSIZE];
     gpr_ltoa(i, buf);
@@ -231,7 +227,6 @@ static void destroy_channel(void *p, int ok) {
   }
   GRPC_MDSTR_UNREF(channel->grpc_status_string);
   GRPC_MDSTR_UNREF(channel->grpc_compression_algorithm_string);
-  GRPC_MDSTR_UNREF(channel->grpc_encodings_accepted_by_peer_string);
   GRPC_MDSTR_UNREF(channel->grpc_message_string);
   GRPC_MDSTR_UNREF(channel->path_string);
   GRPC_MDSTR_UNREF(channel->authority_string);
@@ -290,11 +285,6 @@ grpc_mdstr *grpc_channel_get_status_string(grpc_channel *channel) {
 grpc_mdstr *grpc_channel_get_compression_algorithm_string(
     grpc_channel *channel) {
   return channel->grpc_compression_algorithm_string;
-}
-
-grpc_mdstr *grpc_channel_get_encodings_accepted_by_peer_string(
-    grpc_channel *channel) {
-  return channel->grpc_encodings_accepted_by_peer_string;
 }
 
 grpc_mdelem *grpc_channel_get_reffed_status_elem(grpc_channel *channel, int i) {

@@ -34,8 +34,6 @@
 #ifndef GRPC_COMPRESSION_H
 #define GRPC_COMPRESSION_H
 
-#include <stdlib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -60,10 +58,9 @@ typedef enum {
   GRPC_COMPRESS_LEVEL_COUNT
 } grpc_compression_level;
 
-/** Parses the first \a name_length bytes of \a name as a
- * grpc_compression_algorithm instance, updating \a algorithm. Returns 1 upon
- * success, 0 otherwise. */
-int grpc_compression_algorithm_parse(const char *name, size_t name_length,
+/** Parses \a name as a grpc_compression_algorithm instance, updating \a
+ * algorithm. Returns 1 upon success, 0 otherwise. */
+int grpc_compression_algorithm_parse(const char *name,
                                      grpc_compression_algorithm *algorithm);
 
 /** Updates \a name with the encoding name corresponding to a valid \a
