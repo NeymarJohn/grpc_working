@@ -215,7 +215,7 @@ namespace Grpc.IntegrationTesting
 
             using (var call = client.StreamingInputCall())
             {
-                await call.RequestStream.WriteAllAsync(bodySizes);
+                await call.RequestStream.WriteAll(bodySizes);
 
                 var response = await call.ResponseAsync;
                 Assert.AreEqual(74922, response.AggregatedPayloadSize);
@@ -237,7 +237,7 @@ namespace Grpc.IntegrationTesting
 
             using (var call = client.StreamingOutputCall(request))
             {
-                var responseList = await call.ResponseStream.ToListAsync();
+                var responseList = await call.ResponseStream.ToList();
                 foreach (var res in responseList)
                 {
                     Assert.AreEqual(PayloadType.COMPRESSABLE, res.Payload.Type);
@@ -303,7 +303,7 @@ namespace Grpc.IntegrationTesting
             {
                 await call.RequestStream.CompleteAsync();
 
-                var responseList = await call.ResponseStream.ToListAsync();
+                var responseList = await call.ResponseStream.ToList();
                 Assert.AreEqual(0, responseList.Count);
             }
             Console.WriteLine("Passed!");
@@ -404,8 +404,15 @@ namespace Grpc.IntegrationTesting
                 await Task.Delay(1000);
                 cts.Cancel();
 
-                var ex = Assert.Throws<RpcException>(async () => await call.ResponseAsync);
-                Assert.AreEqual(StatusCode.Cancelled, ex.Status.StatusCode);
+                try
+                {
+                    var response = await call.ResponseAsync;
+                    Assert.Fail();
+                }
+                catch (RpcException e)
+                {
+                    Assert.AreEqual(StatusCode.Cancelled, e.Status.StatusCode);
+                }
             }
             Console.WriteLine("Passed!");
         }
@@ -428,8 +435,15 @@ namespace Grpc.IntegrationTesting
 
                 cts.Cancel();
 
-                var ex = Assert.Throws<RpcException>(async () => await call.ResponseStream.MoveNext());
-                Assert.AreEqual(StatusCode.Cancelled, ex.Status.StatusCode);
+                try
+                {
+                    await call.ResponseStream.MoveNext();
+                    Assert.Fail();
+                }
+                catch (RpcException e)
+                {
+                    Assert.AreEqual(StatusCode.Cancelled, e.Status.StatusCode);
+                }
             }
             Console.WriteLine("Passed!");
         }

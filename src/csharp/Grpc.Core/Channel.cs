@@ -63,7 +63,7 @@ namespace Grpc.Core
         /// <param name="options">Channel options.</param>
         public Channel(string host, Credentials credentials, IEnumerable<ChannelOption> options = null)
         {
-            Preconditions.CheckNotNull(host, "host");
+            Preconditions.CheckNotNull(host);
             this.environment = GrpcEnvironment.GetInstance();
             this.options = options != null ? new List<ChannelOption>(options) : new List<ChannelOption>();
 
@@ -175,6 +175,22 @@ namespace Grpc.Core
             get
             {
                 return this.handle;
+            }
+        }
+
+        internal CompletionQueueSafeHandle CompletionQueue
+        {
+            get
+            {
+                return this.environment.CompletionQueue;
+            }
+        }
+
+        internal CompletionRegistry CompletionRegistry
+        {
+            get
+            {
+                return this.environment.CompletionRegistry;
             }
         }
 

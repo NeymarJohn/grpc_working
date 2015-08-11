@@ -53,9 +53,6 @@ namespace Grpc.Core
         [DllImport("grpc_csharp_ext.dll")]
         static extern void grpcsharp_shutdown();
 
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern IntPtr grpcsharp_version_string();  // returns not-owned const char*
-
         static object staticLock = new object();
         static GrpcEnvironment instance;
 
@@ -115,7 +112,7 @@ namespace Grpc.Core
         /// </summary>
         public static void SetLogger(ILogger customLogger)
         {
-            Preconditions.CheckNotNull(customLogger, "customLogger");
+            Preconditions.CheckNotNull(customLogger);
             logger = customLogger;
         }
 
@@ -167,15 +164,6 @@ namespace Grpc.Core
         }
 
         /// <summary>
-        /// Gets version of gRPC C core.
-        /// </summary>
-        internal static string GetCoreVersionString()
-        {
-            var ptr = grpcsharp_version_string();  // the pointer is not owned
-            return Marshal.PtrToStringAnsi(ptr);
-        }
-
-        /// <summary>
         /// Shuts down this environment.
         /// </summary>
         private void Close()
@@ -191,6 +179,24 @@ namespace Grpc.Core
             debugStats.CheckOK();
 
             Logger.Info("gRPC shutdown.");
+        }
+
+        /// <summary>
+        /// Shuts down this environment asynchronously.
+        /// </summary>
+        private Task CloseAsync()
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    Close();
+                }
+                catch (Exception e)
+                {
+                    Logger.Error(e, "Error occured while shutting down GrpcEnvironment.");
+                }
+            });
         }
     }
 }

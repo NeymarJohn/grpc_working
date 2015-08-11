@@ -4,20 +4,24 @@ import jobset
 
 argp = argparse.ArgumentParser(description='Run interop tests.')
 argp.add_argument('-l', '--language',
-                  default='c++')
+                  choices=['build_only', 'c++'],
+                  nargs='+',
+                  default=['build_only'])
 args = argp.parse_args()
 
 # build job
-build_job = jobset.JobSpec(cmdline=['tools/run_tests/run_interops_build.sh', '%s' % args.language], shortname='build')
+build_steps = 'tools/run_tests/run_interops_build.sh'
+build_job = jobset.JobSpec(cmdline=build_steps, shortname='build')
 
-# test jobs, each test is a separate job to run in parallel
+# test jobs
 _TESTS = ['large_unary', 'empty_unary', 'ping_pong', 'client_streaming', 'server_streaming']
 jobs = []
 jobNumber = 0
-for test in _TESTS:
-  test_job = jobset.JobSpec(cmdline=['tools/run_tests/run_interops_test.sh', '%s' % args.language, '%s' % test], shortname=test)
-  jobs.append(test_job)
-  jobNumber+=1
+for lang in args.language:
+  for test in _TESTS:
+    test_job = jobset.JobSpec(cmdline=['tools/run_tests/run_interops_test.sh', '%s' % lang, '%s' % test], shortname=test)
+    jobs.append(test_job)
+    jobNumber+=1
 
 root = ET.Element('testsuites')
 testsuite = ET.SubElement(root, 'testsuite', id='1', package='grpc', name='tests')

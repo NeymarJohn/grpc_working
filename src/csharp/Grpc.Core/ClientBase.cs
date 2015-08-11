@@ -63,18 +63,6 @@ namespace Grpc.Core
         }
 
         /// <summary>
-        /// gRPC supports multiple "hosts" being served by a single server. 
-        /// This property can be used to set the target host explicitly.
-        /// By default, this will be set to <c>null</c> with the meaning
-        /// "use default host".
-        /// </summary>
-        public string Host
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Channel associated with this client.
         /// </summary>
         public Channel Channel
@@ -88,21 +76,19 @@ namespace Grpc.Core
         /// <summary>
         /// Creates a new call to given method.
         /// </summary>
-        protected CallInvocationDetails<TRequest, TResponse> CreateCall<TRequest, TResponse>(Method<TRequest, TResponse> method, CallOptions options)
+        protected Call<TRequest, TResponse> CreateCall<TRequest, TResponse>(string serviceName, Method<TRequest, TResponse> method, Metadata metadata, DateTime? deadline)
             where TRequest : class
             where TResponse : class
         {
             var interceptor = HeaderInterceptor;
             if (interceptor != null)
             {
-                if (options.Headers == null)
-                {
-                    options = options.WithHeaders(new Metadata());
-                }
-                interceptor(options.Headers);
-                options.Headers.Freeze();
+                metadata = metadata ?? new Metadata();
+                interceptor(metadata);
+                metadata.Freeze();
             }
-            return new CallInvocationDetails<TRequest, TResponse>(channel, method, Host, options);
+            return new Call<TRequest, TResponse>(serviceName, method, channel,
+                    metadata ?? Metadata.Empty, deadline ?? DateTime.MaxValue);
         }
     }
 }
