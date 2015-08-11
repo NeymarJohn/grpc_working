@@ -121,6 +121,10 @@ class PropagationOptions {
   gpr_uint32 propagate_;
 };
 
+namespace testing {
+class InteropClientContextInspector;
+}  // namespace testing
+
 class ClientContext {
  public:
   ClientContext();
@@ -190,6 +194,7 @@ class ClientContext {
   ClientContext(const ClientContext&);
   ClientContext& operator=(const ClientContext&);
 
+  friend class ::grpc::testing::InteropClientContextInspector;
   friend class CallOpClientRecvStatus;
   friend class CallOpRecvInitialMetadata;
   friend class Channel;
@@ -218,11 +223,15 @@ class ClientContext {
   void set_call(grpc_call* call,
                 const std::shared_ptr<ChannelInterface>& channel);
 
+  grpc_completion_queue* cq() { return cq_; }
+  void set_cq(grpc_completion_queue* cq) { cq_ = cq; }
+
   grpc::string authority() { return authority_; }
 
   bool initial_metadata_received_;
   std::shared_ptr<ChannelInterface> channel_;
   grpc_call* call_;
+  grpc_completion_queue* cq_;
   gpr_timespec deadline_;
   grpc::string authority_;
   std::shared_ptr<Credentials> creds_;
