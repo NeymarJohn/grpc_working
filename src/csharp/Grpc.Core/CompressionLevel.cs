@@ -1,3 +1,5 @@
+#region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,23 +29,35 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-syntax = "proto3";
+#endregion
 
-package grpc.health.v1alpha;
+using System;
 
-message HealthCheckRequest {
-  string service = 1;
-}
+namespace Grpc.Core
+{
+    /// <summary>
+    /// Compression level based on grpc_compression_level from grpc/compression.h
+    /// </summary>
+    public enum CompressionLevel
+    {
+        /// <summary>
+        /// No compression.
+        /// </summary>
+        None = 0,
 
-message HealthCheckResponse {
-  enum ServingStatus {
-    UNKNOWN = 0;
-    SERVING = 1;
-    NOT_SERVING = 2;
-  }
-  ServingStatus status = 1;
-}
+        /// <summary>
+        /// Low compression.
+        /// </summary>
+        Low,
 
-service Health {
-  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+        /// <summary>
+        /// Medium compression.
+        /// </summary>
+        Medium,
+
+        /// <summary>
+        /// High compression.
+        /// </summary>
+        High,
+    }
 }

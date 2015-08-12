@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -27,54 +28,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Provides distutils command classes for the GRPC Python setup process."""
-
-import distutils
-import glob
-import os
-import os.path
-import subprocess
-import sys
-
-import setuptools
-from setuptools.command import build_py
-
-
-class BuildProtoModules(setuptools.Command):
-  """Command to generate project *_pb2.py modules from proto files."""
-
-  description = ''
-  user_options = []
-
-  def initialize_options(self):
-    pass
-
-  def finalize_options(self):
-    self.protoc_command = 'protoc'
-    self.grpc_python_plugin_command = distutils.spawn.find_executable(
-        'grpc_python_plugin')
-
-  def run(self):
-    paths = []
-    root_directory = os.getcwd()
-    for walk_root, directories, filenames in os.walk(root_directory):
-      for filename in filenames:
-        if filename.endswith('.proto'):
-          paths.append(os.path.join(walk_root, filename))
-    command = [
-        self.protoc_command,
-        '--plugin=protoc-gen-python-grpc={}'.format(
-            self.grpc_python_plugin_command),
-        '-I {}'.format(root_directory),
-        '--python_out={}'.format(root_directory),
-        '--python-grpc_out={}'.format(root_directory),
-    ] + paths
-    subprocess.check_call(' '.join(command), cwd=root_directory, shell=True)
-
-
-class BuildPy(build_py.build_py):
-  """Custom project build command."""
-
-  def run(self):
-    self.run_command('build_proto_modules')
-    build_py.build_py.run(self)
+cp -R /var/local/git-clone/grpc-go/. /go/
+go get golang.org/x/oauth2
+go get google.golang.org/cloud
+cd src/google.golang.org/grpc/interop/client && go install
