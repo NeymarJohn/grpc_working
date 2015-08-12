@@ -31,20 +31,47 @@
  *
  */
 
-#import "GRPCUnsecuredChannel.h"
+#ifndef GRPCXX_AUTH_PROPERTY_ITERATOR_H
+#define GRPCXX_AUTH_PROPERTY_ITERATOR_H
 
-#include <grpc/grpc.h>
+#include <iterator>
+#include <vector>
 
-@implementation GRPCUnsecuredChannel
+#include <grpc++/config.h>
 
-- (instancetype)initWithHost:(NSString *)host {
-  return (self = [super initWithChannel:grpc_insecure_channel_create(host.UTF8String, NULL)]);
-}
+struct grpc_auth_context;
+struct grpc_auth_property;
+struct grpc_auth_property_iterator;
 
-// TODO(jcanizales): GRPCSecureChannel and GRPCUnsecuredChannel are just convenience initializers
-// for GRPCChannel. Move them into GRPCChannel, which will make the following unnecessary.
-- (instancetype)initWithChannel:(grpc_channel *)unmanagedChannel {
-  [NSException raise:NSInternalInconsistencyException format:@"use the other initializer"];
-  return [self initWithHost:nil]; // silence warnings
-}
-@end
+namespace grpc {
+class SecureAuthContext;
+
+typedef std::pair<grpc::string, grpc::string> AuthProperty;
+
+class AuthPropertyIterator
+    : public std::iterator<std::input_iterator_tag, const AuthProperty> {
+ public:
+  ~AuthPropertyIterator();
+  AuthPropertyIterator& operator++();
+  AuthPropertyIterator operator++(int);
+  bool operator==(const AuthPropertyIterator& rhs) const;
+  bool operator!=(const AuthPropertyIterator& rhs) const;
+  const AuthProperty operator*();
+
+ protected:
+  AuthPropertyIterator();
+  AuthPropertyIterator(const grpc_auth_property* property,
+                       const grpc_auth_property_iterator* iter);
+ private:
+  friend class SecureAuthContext;
+  const grpc_auth_property* property_;
+  // The following items form a grpc_auth_property_iterator.
+  const grpc_auth_context* ctx_;
+  size_t index_;
+  const char* name_;
+};
+
+}  // namespace grpc
+
+ #endif  // GRPCXX_AUTH_PROPERTY_ITERATOR_H
+

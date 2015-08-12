@@ -241,7 +241,7 @@ PHP_METHOD(Call, __construct) {
           deadline_obj TSRMLS_CC);
   call->wrapped = grpc_channel_create_call(
       channel->wrapped, NULL, GRPC_PROPAGATE_DEFAULTS, completion_queue, method,
-      channel->target, deadline->wrapped, NULL);
+      channel->target, deadline->wrapped);
 }
 
 /**
@@ -400,8 +400,7 @@ PHP_METHOD(Call, startBatch) {
     ops[op_num].flags = 0;
     op_num++;
   }
-  error = grpc_call_start_batch(call->wrapped, ops, op_num, call->wrapped,
-                                NULL);
+  error = grpc_call_start_batch(call->wrapped, ops, op_num, call->wrapped);
   if (error != GRPC_CALL_OK) {
     zend_throw_exception(spl_ce_LogicException,
                          "start_batch was called incorrectly",
@@ -409,7 +408,7 @@ PHP_METHOD(Call, startBatch) {
     goto cleanup;
   }
   event = grpc_completion_queue_pluck(completion_queue, call->wrapped,
-                                      gpr_inf_future(GPR_CLOCK_REALTIME), NULL);
+                                      gpr_inf_future(GPR_CLOCK_REALTIME));
   if (!event.success) {
     zend_throw_exception(spl_ce_LogicException,
                          "The batch failed for some reason",
@@ -490,7 +489,7 @@ PHP_METHOD(Call, getPeer) {
 PHP_METHOD(Call, cancel) {
   wrapped_grpc_call *call =
       (wrapped_grpc_call *)zend_object_store_get_object(getThis() TSRMLS_CC);
-  grpc_call_cancel(call->wrapped, NULL);
+  grpc_call_cancel(call->wrapped);
 }
 
 static zend_function_entry call_methods[] = {

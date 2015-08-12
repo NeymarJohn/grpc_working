@@ -39,6 +39,7 @@
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/string_util.h>
+#include <grpc/support/useful.h>
 
 #include "src/core/channel/channel_stack.h"
 #include "src/core/iomgr/alarm.h"
@@ -241,6 +242,9 @@ struct grpc_call {
 
   /* Compression algorithm for the call */
   grpc_compression_algorithm compression_algorithm;
+
+  /* Supported encodings (compression algorithms), a bitset */
+  gpr_uint32 encodings_accepted_by_peer;
 
   /* Contexts for various subsystems (security, tracing, ...). */
   grpc_call_context_element context[GRPC_CONTEXT_COUNT];
@@ -530,6 +534,46 @@ static void set_compression_algorithm(grpc_call *call,
 grpc_compression_algorithm grpc_call_get_compression_algorithm(
     const grpc_call *call) {
   return call->compression_algorithm;
+}
+
+
+static void set_encodings_accepted_by_peer(grpc_call *call,
+                                const gpr_slice accept_encoding_slice) {
+  size_t i;
+  grpc_compression_algorithm algorithm;
+  gpr_slice_buffer accept_encoding_parts;
+
+  gpr_slice_buffer_init(&accept_encoding_parts);
+  gpr_slice_split(accept_encoding_slice, ", ", &accept_encoding_parts);
+
+  /* No need to zero call->encodings_accepted_by_peer: grpc_call_create already
+   * zeroes the whole grpc_call */
+  /* Always support no compression */
+  GPR_BITSET(&call->encodings_accepted_by_peer, GRPC_COMPRESS_NONE);
+  for (i = 0; i < accept_encoding_parts.count; i++) {
+    const gpr_slice *accept_encoding_entry_slice =
+        &accept_encoding_parts.slices[i];
+    if (grpc_compression_algorithm_parse(
+            (const char *)GPR_SLICE_START_PTR(*accept_encoding_entry_slice),
+            GPR_SLICE_LENGTH(*accept_encoding_entry_slice), &algorithm)) {
+      GPR_BITSET(&call->encodings_accepted_by_peer, algorithm);
+    } else {
+      char *accept_encoding_entry_str =
+          gpr_dump_slice(*accept_encoding_entry_slice, GPR_DUMP_ASCII);
+      gpr_log(GPR_ERROR,
+              "Invalid entry in accept encoding metadata: '%s'. Ignoring.",
+              accept_encoding_entry_str);
+      gpr_free(accept_encoding_entry_str);
+    }
+  }
+}
+
+gpr_uint32 grpc_call_get_encodings_accepted_by_peer(grpc_call *call) {
+  return call->encodings_accepted_by_peer;
+}
+
+gpr_uint32 grpc_call_get_message_flags(const grpc_call *call) {
+  return call->incoming_message_flags;
 }
 
 static void set_status_details(grpc_call *call, status_source source,
@@ -964,7 +1008,7 @@ static void call_on_done_recv(void *pc, int success) {
           next_child_call = child_call->sibling_next;
           if (child_call->cancellation_is_inherited) {
             GRPC_CALL_INTERNAL_REF(child_call, "propagate_cancel");
-            grpc_call_cancel(child_call, NULL);
+            grpc_call_cancel(child_call);
             GRPC_CALL_INTERNAL_UNREF(child_call, "propagate_cancel", 0);
           }
           child_call = next_child_call;
@@ -1265,22 +1309,18 @@ void grpc_call_destroy(grpc_call *c) {
   c->cancel_alarm |= c->have_alarm;
   cancel = c->read_state != READ_STATE_STREAM_CLOSED;
   unlock(c);
-  if (cancel) grpc_call_cancel(c, NULL);
+  if (cancel) grpc_call_cancel(c);
   GRPC_CALL_INTERNAL_UNREF(c, "destroy", 1);
 }
 
-grpc_call_error grpc_call_cancel(grpc_call *call, void *reserved) {
-  GPR_ASSERT(!reserved);
-  return grpc_call_cancel_with_status(call, GRPC_STATUS_CANCELLED, "Cancelled",
-                                      NULL);
+grpc_call_error grpc_call_cancel(grpc_call *call) {
+  return grpc_call_cancel_with_status(call, GRPC_STATUS_CANCELLED, "Cancelled");
 }
 
 grpc_call_error grpc_call_cancel_with_status(grpc_call *c,
                                              grpc_status_code status,
-                                             const char *description,
-                                             void *reserved) {
+                                             const char *description) {
   grpc_call_error r;
-  (void) reserved;
   lock(c);
   r = cancel_with_status(c, status, description);
   unlock(c);
@@ -1408,10 +1448,11 @@ static gpr_uint32 decode_compression(grpc_mdelem *md) {
   void *user_data = grpc_mdelem_get_user_data(md, destroy_compression);
   if (user_data) {
     algorithm =
-        ((grpc_compression_level)(gpr_intptr)user_data) - COMPRESS_OFFSET;
+        ((grpc_compression_algorithm)(gpr_intptr)user_data) - COMPRESS_OFFSET;
   } else {
     const char *md_c_str = grpc_mdstr_as_c_string(md->value);
-    if (!grpc_compression_algorithm_parse(md_c_str, &algorithm)) {
+    if (!grpc_compression_algorithm_parse(md_c_str, strlen(md_c_str),
+                                          &algorithm)) {
       gpr_log(GPR_ERROR, "Invalid compression algorithm: '%s'", md_c_str);
       assert(0);
     }
@@ -1440,6 +1481,9 @@ static void recv_metadata(grpc_call *call, grpc_metadata_batch *md) {
     } else if (key ==
                grpc_channel_get_compression_algorithm_string(call->channel)) {
       set_compression_algorithm(call, decode_compression(md));
+    } else if (key == grpc_channel_get_encodings_accepted_by_peer_string(
+                          call->channel)) {
+      set_encodings_accepted_by_peer(call, md->value->slice);
     } else {
       dest = &call->buffered_metadata[is_trailing];
       if (dest->count == dest->capacity) {
@@ -1517,14 +1561,13 @@ static int are_write_flags_valid(gpr_uint32 flags) {
 }
 
 grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
-                                      size_t nops, void *tag, void *reserved) {
+                                      size_t nops, void *tag) {
   grpc_ioreq reqs[GRPC_IOREQ_OP_COUNT];
   size_t in;
   size_t out;
   const grpc_op *op;
   grpc_ioreq *req;
   void (*finish_func)(grpc_call *, int, void *) = finish_batch;
-  GPR_ASSERT(!reserved);
 
   GRPC_CALL_LOG_BATCH(GPR_INFO, call, ops, nops, tag);
 
@@ -1544,7 +1587,6 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
         /* Flag validation: currently allow no flags */
         if (op->flags != 0) return GRPC_CALL_ERROR_INVALID_FLAGS;
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_SEND_INITIAL_METADATA;
         req->data.send_metadata.count = op->data.send_initial_metadata.count;
         req->data.send_metadata.metadata =
@@ -1559,7 +1601,6 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
           return GRPC_CALL_ERROR_INVALID_MESSAGE;
         }
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_SEND_MESSAGE;
         req->data.send_message = op->data.send_message;
         req->flags = op->flags;
@@ -1571,7 +1612,6 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
           return GRPC_CALL_ERROR_NOT_ON_SERVER;
         }
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_SEND_CLOSE;
         req->flags = op->flags;
         break;
@@ -1582,7 +1622,6 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
           return GRPC_CALL_ERROR_NOT_ON_CLIENT;
         }
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_SEND_TRAILING_METADATA;
         req->flags = op->flags;
         req->data.send_metadata.count =
@@ -1590,7 +1629,6 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
         req->data.send_metadata.metadata =
             op->data.send_status_from_server.trailing_metadata;
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_SEND_STATUS;
         req->data.send_status.code = op->data.send_status_from_server.status;
         req->data.send_status.details =
@@ -1600,7 +1638,6 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
                       op->data.send_status_from_server.status_details, 0)
                 : NULL;
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_SEND_CLOSE;
         break;
       case GRPC_OP_RECV_INITIAL_METADATA:
@@ -1610,7 +1647,6 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
           return GRPC_CALL_ERROR_NOT_ON_SERVER;
         }
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_RECV_INITIAL_METADATA;
         req->data.recv_metadata = op->data.recv_initial_metadata;
         req->data.recv_metadata->count = 0;
@@ -1620,7 +1656,6 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
         /* Flag validation: currently allow no flags */
         if (op->flags != 0) return GRPC_CALL_ERROR_INVALID_FLAGS;
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_RECV_MESSAGE;
         req->data.recv_message = op->data.recv_message;
         req->flags = op->flags;
@@ -1632,26 +1667,22 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
           return GRPC_CALL_ERROR_NOT_ON_SERVER;
         }
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_RECV_STATUS;
         req->flags = op->flags;
         req->data.recv_status.set_value = set_status_value_directly;
         req->data.recv_status.user_data = op->data.recv_status_on_client.status;
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_RECV_STATUS_DETAILS;
         req->data.recv_status_details.details =
             op->data.recv_status_on_client.status_details;
         req->data.recv_status_details.details_capacity =
             op->data.recv_status_on_client.status_details_capacity;
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_RECV_TRAILING_METADATA;
         req->data.recv_metadata =
             op->data.recv_status_on_client.trailing_metadata;
         req->data.recv_metadata->count = 0;
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_RECV_CLOSE;
         finish_func = finish_batch_with_close;
         break;
@@ -1659,14 +1690,12 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
         /* Flag validation: currently allow no flags */
         if (op->flags != 0) return GRPC_CALL_ERROR_INVALID_FLAGS;
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_RECV_STATUS;
         req->flags = op->flags;
         req->data.recv_status.set_value = set_cancelled_value;
         req->data.recv_status.user_data =
             op->data.recv_close_on_server.cancelled;
         req = &reqs[out++];
-	if (out > GRPC_IOREQ_OP_COUNT) return GRPC_CALL_ERROR_BATCH_TOO_BIG;
         req->op = GRPC_IOREQ_RECV_CLOSE;
         finish_func = finish_batch_with_close;
         break;

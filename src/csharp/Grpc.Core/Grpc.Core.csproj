@@ -77,6 +77,7 @@
     <Compile Include="ServerServiceDefinition.cs" />
     <Compile Include="Utils\AsyncStreamExtensions.cs" />
     <Compile Include="Utils\BenchmarkUtil.cs" />
+    <Compile Include="Utils\ExceptionHelper.cs" />
     <Compile Include="Internal\CredentialsSafeHandle.cs" />
     <Compile Include="Credentials.cs" />
     <Compile Include="Internal\ChannelArgsSafeHandle.cs" />
@@ -114,9 +115,6 @@
     <Compile Include="ChannelState.cs" />
     <Compile Include="CallInvocationDetails.cs" />
     <Compile Include="CallOptions.cs" />
-    <Compile Include="CompressionLevel.cs" />
-    <Compile Include="WriteOptions.cs" />
-    <Compile Include="ContextPropagationToken.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Grpc.Core.nuspec" />

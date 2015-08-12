@@ -761,10 +761,8 @@ static const grpc_channel_filter server_surface_filter = {
 };
 
 void grpc_server_register_completion_queue(grpc_server *server,
-                                           grpc_completion_queue *cq,
-                                           void *reserved) {
+                                           grpc_completion_queue *cq) {
   size_t i, n;
-  GPR_ASSERT(!reserved);
   for (i = 0; i < server->cq_count; i++) {
     if (server->cqs[i] == cq) return;
   }
