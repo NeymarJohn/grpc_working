@@ -195,27 +195,17 @@ static VALUE grpc_rb_channel_init_copy(VALUE copy, VALUE orig) {
 
 /* Create a call given a grpc_channel, in order to call method. The request
    is not sent until grpc_call_invoke is called. */
-static VALUE grpc_rb_channel_create_call(VALUE self, VALUE cqueue,
-                                         VALUE parent, VALUE mask,
-                                         VALUE method, VALUE host,
-                                         VALUE deadline) {
+static VALUE grpc_rb_channel_create_call(VALUE self, VALUE cqueue, VALUE method,
+                                         VALUE host, VALUE deadline) {
   VALUE res = Qnil;
   grpc_rb_channel *wrapper = NULL;
   grpc_call *call = NULL;
-  grpc_call *parent_call = NULL;
   grpc_channel *ch = NULL;
   grpc_completion_queue *cq = NULL;
-  int flags = GRPC_PROPAGATE_DEFAULTS;
   char *method_chars = StringValueCStr(method);
   char *host_chars = NULL;
   if (host != Qnil) {
     host_chars = StringValueCStr(host);
-  }
-  if (mask != Qnil) {
-    flags = NUM2UINT(mask);
-  }
-  if (parent != Qnil) {
-    parent_call = grpc_rb_get_wrapped_call(parent);
   }
 
   cq = grpc_rb_get_wrapped_completion_queue(cqueue);
@@ -226,10 +216,10 @@ static VALUE grpc_rb_channel_create_call(VALUE self, VALUE cqueue,
     return Qnil;
   }
 
-  call = grpc_channel_create_call(ch, parent_call, flags, cq, method_chars,
-                                  host_chars, grpc_rb_time_timeval(
-                                      deadline,
-                                      /* absolute time */ 0));
+  call = grpc_channel_create_call(ch, NULL, GRPC_PROPAGATE_DEFAULTS, cq,
+                                  method_chars, host_chars,
+                                  grpc_rb_time_timeval(deadline,
+                                                       /* absolute time */ 0));
   if (call == NULL) {
     rb_raise(rb_eRuntimeError, "cannot create call with method %s",
              method_chars);
@@ -246,7 +236,6 @@ static VALUE grpc_rb_channel_create_call(VALUE self, VALUE cqueue,
   rb_ivar_set(res, id_cqueue, cqueue);
   return res;
 }
-
 
 /* Closes the channel, calling it's destroy method */
 static VALUE grpc_rb_channel_destroy(VALUE self) {
@@ -279,22 +268,6 @@ static VALUE grpc_rb_channel_get_target(VALUE self) {
   return res;
 }
 
-static void Init_grpc_propagate_masks() {
-  /* Constants representing call propagation masks in grpc.h */
-  VALUE grpc_rb_mPropagateMasks = rb_define_module_under(
-      grpc_rb_mGrpcCore, "PropagateMasks");
-  rb_define_const(grpc_rb_mPropagateMasks, "DEADLINE",
-                  UINT2NUM(GRPC_PROPAGATE_DEADLINE));
-  rb_define_const(grpc_rb_mPropagateMasks, "CENSUS_STATS_CONTEXT",
-                  UINT2NUM(GRPC_PROPAGATE_CENSUS_STATS_CONTEXT));
-  rb_define_const(grpc_rb_mPropagateMasks, "CENSUS_TRACING_CONTEXT",
-                  UINT2NUM(GRPC_PROPAGATE_CENSUS_TRACING_CONTEXT));
-  rb_define_const(grpc_rb_mPropagateMasks, "CANCELLATION",
-                  UINT2NUM(GRPC_PROPAGATE_CANCELLATION));
-  rb_define_const(grpc_rb_mPropagateMasks, "DEFAULTS",
-                  UINT2NUM(GRPC_PROPAGATE_DEFAULTS));
-}
-
 void Init_grpc_channel() {
   grpc_rb_cChannelArgs = rb_define_class("TmpChannelArgs", rb_cObject);
   grpc_rb_cChannel =
@@ -310,7 +283,7 @@ void Init_grpc_channel() {
 
   /* Add ruby analogues of the Channel methods. */
   rb_define_method(grpc_rb_cChannel, "create_call",
-                   grpc_rb_channel_create_call, 6);
+                   grpc_rb_channel_create_call, 4);
   rb_define_method(grpc_rb_cChannel, "target", grpc_rb_channel_get_target, 0);
   rb_define_method(grpc_rb_cChannel, "destroy", grpc_rb_channel_destroy, 0);
   rb_define_alias(grpc_rb_cChannel, "close", "destroy");
@@ -326,7 +299,6 @@ void Init_grpc_channel() {
                   ID2SYM(rb_intern(GRPC_ARG_MAX_CONCURRENT_STREAMS)));
   rb_define_const(grpc_rb_cChannel, "MAX_MESSAGE_LENGTH",
                   ID2SYM(rb_intern(GRPC_ARG_MAX_MESSAGE_LENGTH)));
-  Init_grpc_propagate_masks();
 }
 
 /* Gets the wrapped channel from the ruby wrapper */
