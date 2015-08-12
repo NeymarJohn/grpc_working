@@ -69,6 +69,9 @@ function zeroBuffer(size) {
 function emptyUnary(client, done) {
   var call = client.emptyCall({}, function(err, resp) {
     assert.ifError(err);
+  });
+  call.on('status', function(status) {
+    assert.strictEqual(status.code, grpc.status.OK);
     if (done) {
       done();
     }
@@ -93,6 +96,9 @@ function largeUnary(client, done) {
     assert.ifError(err);
     assert.strictEqual(resp.payload.type, 'COMPRESSABLE');
     assert.strictEqual(resp.payload.body.length, 314159);
+  });
+  call.on('status', function(status) {
+    assert.strictEqual(status.code, grpc.status.OK);
     if (done) {
       done();
     }
@@ -109,6 +115,9 @@ function clientStreaming(client, done) {
   var call = client.streamingInputCall(function(err, resp) {
     assert.ifError(err);
     assert.strictEqual(resp.aggregated_payload_size, 74922);
+  });
+  call.on('status', function(status) {
+    assert.strictEqual(status.code, grpc.status.OK);
     if (done) {
       done();
     }
@@ -298,9 +307,10 @@ function authTest(expected_user, scope, client, done) {
       assert.strictEqual(resp.payload.type, 'COMPRESSABLE');
       assert.strictEqual(resp.payload.body.length, 314159);
       assert.strictEqual(resp.username, expected_user);
-      if (scope) {
-        assert.strictEqual(resp.oauth_scope, AUTH_SCOPE_RESPONSE);
-      }
+      assert.strictEqual(resp.oauth_scope, AUTH_SCOPE_RESPONSE);
+    });
+    call.on('status', function(status) {
+      assert.strictEqual(status.code, grpc.status.OK);
       if (done) {
         done();
       }
@@ -334,10 +344,13 @@ function oauth2Test(expected_user, scope, per_rpc, client, done) {
           assert.ifError(err);
           assert.strictEqual(resp.username, expected_user);
           assert.strictEqual(resp.oauth_scope, AUTH_SCOPE_RESPONSE);
+        });
+        call.on('status', function(status) {
+          assert.strictEqual(status.code, grpc.status.OK);
           if (done) {
             done();
           }
-        }, client_metadata);
+        });
       };
       if (per_rpc) {
         updateMetadata('', {}, makeTestCall);
@@ -345,6 +358,7 @@ function oauth2Test(expected_user, scope, per_rpc, client, done) {
         client.updateMetadata = updateMetadata;
         makeTestCall(null, {});
       }
+
     });
   });
 }

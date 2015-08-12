@@ -31,31 +31,18 @@
  *
  */
 
-#include <stdlib.h>
+#ifndef GRPC_GRPC_ZOOKEEPER_H
+#define GRPC_GRPC_ZOOKEEPER_H
 
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-#include <grpc/grpc.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "grpc/_adapter/_c/types.h"
+/** Register zookeeper name resolver in grpc */
+void grpc_zookeeper_register();
 
-static PyMethodDef c_methods[] = {
-    {NULL}
-};
-
-PyMODINIT_FUNC init_c(void) {
-  PyObject *module;
-
-  module = Py_InitModule3("_c", c_methods,
-                          "Wrappings of C structures and functions.");
-
-  if (pygrpc_module_add_types(module) < 0) {
-    return;
-  }
-
-  /* GRPC maintains an internal counter of how many times it has been
-     initialized and handles multiple pairs of grpc_init()/grpc_shutdown()
-     invocations accordingly. */
-  grpc_init();
-  atexit(&grpc_shutdown);
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* GRPC_GRPC_ZOOKEEPER_H */
