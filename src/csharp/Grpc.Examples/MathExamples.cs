@@ -54,7 +54,7 @@ namespace math
         {
             using (var call = client.Fib(new FibArgs.Builder { Limit = 5 }.Build()))
             {
-                List<Num> result = await call.ResponseStream.ToListAsync();
+                List<Num> result = await call.ResponseStream.ToList();
                 Console.WriteLine("Fib Result: " + string.Join("|", result));
             }
         }
@@ -70,7 +70,7 @@ namespace math
 
             using (var call = client.Sum())
             {
-                await call.RequestStream.WriteAllAsync(numbers);
+                await call.RequestStream.WriteAll(numbers);
                 Console.WriteLine("Sum Result: " + await call.ResponseAsync);
             }
         }
@@ -85,8 +85,8 @@ namespace math
             };
             using (var call = client.DivMany())
             { 
-                await call.RequestStream.WriteAllAsync(divArgsList);
-                Console.WriteLine("DivMany Result: " + string.Join("|", await call.ResponseStream.ToListAsync()));
+                await call.RequestStream.WriteAll(divArgsList);
+                Console.WriteLine("DivMany Result: " + string.Join("|", await call.ResponseStream.ToList()));
             }
         }
 
@@ -102,7 +102,7 @@ namespace math
             Num sum;
             using (var sumCall = client.Sum())
             {
-                await sumCall.RequestStream.WriteAllAsync(numbers);
+                await sumCall.RequestStream.WriteAll(numbers);
                 sum = await sumCall.ResponseAsync;
             }
 

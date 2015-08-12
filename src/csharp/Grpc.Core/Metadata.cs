@@ -186,15 +186,15 @@ namespace Grpc.Core
 
             public Entry(string key, byte[] valueBytes)
             {
-                this.key = Preconditions.CheckNotNull(key, "key");
+                this.key = Preconditions.CheckNotNull(key);
                 this.value = null;
-                this.valueBytes = Preconditions.CheckNotNull(valueBytes, "valueBytes");
+                this.valueBytes = Preconditions.CheckNotNull(valueBytes);
             }
 
             public Entry(string key, string value)
             {
-                this.key = Preconditions.CheckNotNull(key, "key");
-                this.value = Preconditions.CheckNotNull(value, "value");
+                this.key = Preconditions.CheckNotNull(key);
+                this.value = Preconditions.CheckNotNull(value);
                 this.valueBytes = null;
             }
 

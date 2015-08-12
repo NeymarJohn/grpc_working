@@ -90,7 +90,7 @@ namespace Grpc.Core.Tests
         {
             helper.DuplexStreamingHandler = new DuplexStreamingServerMethod<string, string>(async (requestStream, responseStream, context) =>
             {
-                await requestStream.ToListAsync();
+                await requestStream.ToList();
 
                 context.WriteOptions = new WriteOptions(WriteFlags.NoCompress);
 
@@ -122,7 +122,7 @@ namespace Grpc.Core.Tests
 
             await call.RequestStream.CompleteAsync();
 
-            await call.ResponseStream.ToListAsync();
+            await call.ResponseStream.ToList();
         }
     }
 }

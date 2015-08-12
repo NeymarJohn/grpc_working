@@ -32,26 +32,16 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 
-namespace Grpc.Core.Logging
+namespace Grpc.Core
 {
-    /// <summary>For logging messages.</summary>
-    public interface ILogger
+    /// <summary>
+    /// Thrown when gRPC operation fails.
+    /// </summary>
+    public class OperationFailedException : Exception
     {
-        /// <summary>Returns a logger associated with the specified type.</summary>
-        ILogger ForType<T>();
-
-        void Debug(string message, params object[] formatArgs);
-
-        void Info(string message, params object[] formatArgs);
-
-        void Warning(string message, params object[] formatArgs);
-
-        void Warning(Exception exception, string message, params object[] formatArgs);
-
-        void Error(string message, params object[] formatArgs);
-
-        void Error(Exception exception, string message, params object[] formatArgs);
+        public OperationFailedException(string message) : base(message)
+        {
+        }
     }
 }
