@@ -49,7 +49,6 @@ namespace Grpc.Core
     {
         static readonly ILogger Logger = GrpcEnvironment.Logger.ForType<Channel>();
 
-        readonly string target;
         readonly GrpcEnvironment environment;
         readonly ChannelSafeHandle handle;
         readonly List<ChannelOption> options;
@@ -59,12 +58,12 @@ namespace Grpc.Core
         /// Creates a channel that connects to a specific host.
         /// Port will default to 80 for an unsecure channel and to 443 for a secure channel.
         /// </summary>
-        /// <param name="target">Target of the channel.</param>
+        /// <param name="host">The name or IP address of the host.</param>
         /// <param name="credentials">Credentials to secure the channel.</param>
         /// <param name="options">Channel options.</param>
-        public Channel(string target, Credentials credentials, IEnumerable<ChannelOption> options = null)
+        public Channel(string host, Credentials credentials, IEnumerable<ChannelOption> options = null)
         {
-            this.target = Preconditions.CheckNotNull(target, "target");
+            Preconditions.CheckNotNull(host);
             this.environment = GrpcEnvironment.GetInstance();
             this.options = options != null ? new List<ChannelOption>(options) : new List<ChannelOption>();
 
@@ -74,11 +73,11 @@ namespace Grpc.Core
             {
                 if (nativeCredentials != null)
                 {
-                    this.handle = ChannelSafeHandle.CreateSecure(nativeCredentials, target, nativeChannelArgs);
+                    this.handle = ChannelSafeHandle.CreateSecure(nativeCredentials, host, nativeChannelArgs);
                 }
                 else
                 {
-                    this.handle = ChannelSafeHandle.CreateInsecure(target, nativeChannelArgs);
+                    this.handle = ChannelSafeHandle.CreateInsecure(host, nativeChannelArgs);
                 }
             }
         }
@@ -132,21 +131,12 @@ namespace Grpc.Core
             return tcs.Task;
         }
 
-        /// <summary>Resolved address of the remote endpoint in URI format.</summary>
-        public string ResolvedTarget
-        {
-            get
-            {
-                return handle.GetTarget();
-            }
-        }
-
-        /// <summary>The original target used to create the channel.</summary>
+        /// <summary> Address of the remote endpoint in URI format.</summary>
         public string Target
         {
             get
             {
-                return this.target;
+                return handle.GetTarget();
             }
         }
 

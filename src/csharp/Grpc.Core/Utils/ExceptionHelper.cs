@@ -32,26 +32,26 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 
-namespace Grpc.Core.Logging
+namespace Grpc.Core.Utils
 {
-    /// <summary>For logging messages.</summary>
-    public interface ILogger
+    public static class ExceptionHelper
     {
-        /// <summary>Returns a logger associated with the specified type.</summary>
-        ILogger ForType<T>();
-
-        void Debug(string message, params object[] formatArgs);
-
-        void Info(string message, params object[] formatArgs);
-
-        void Warning(string message, params object[] formatArgs);
-
-        void Warning(Exception exception, string message, params object[] formatArgs);
-
-        void Error(string message, params object[] formatArgs);
-
-        void Error(Exception exception, string message, params object[] formatArgs);
+        /// <summary>
+        /// If inner exceptions contain RpcException, rethrows it.
+        /// Otherwise, rethrows the original aggregate exception.
+        /// Always throws, the exception return type is here only to make the.
+        /// </summary>
+        public static Exception UnwrapRpcException(AggregateException ae)
+        {
+            foreach (var e in ae.InnerExceptions)
+            {
+                if (e is RpcException)
+                {
+                    throw e;
+                }
+            }
+            throw ae;
+        }
     }
 }
