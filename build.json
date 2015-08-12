@@ -7,7 +7,7 @@
     "version": {
       "major": 0,
       "minor": 10,
-      "micro": 0,
+      "micro": 1,
       "build": 0
     }
   },
@@ -33,7 +33,6 @@
         "include/grpc++/async_generic_service.h",
         "include/grpc++/async_unary_call.h",
         "include/grpc++/auth_context.h",
-        "include/grpc++/auth_property_iterator.h",
         "include/grpc++/byte_buffer.h",
         "include/grpc++/channel_arguments.h",
         "include/grpc++/channel_interface.h",
@@ -574,6 +573,29 @@
       "vs_project_guid": "{46CEDFFF-9692-456A-AA24-38B5D6BCF4C5}"
     },
     {
+      "name": "grpc_zookeeper",
+      "build": "all",
+      "language": "c",
+      "public_headers": [
+        "include/grpc/grpc_zookeeper.h"
+      ],
+      "headers": [
+        "src/core/client_config/resolvers/zookeeper_resolver.h"
+      ],
+      "src": [
+        "src/core/client_config/resolvers/zookeeper_resolver.c"
+      ],
+      "deps": [
+        "gpr",
+        "grpc"
+      ],
+      "external_deps": [
+        "zookeeper"
+      ],
+      "secure": "no",
+      "vs_project_guid": "{F14EBEC1-DC43-45D3-8A7D-1A47072EFE50}"
+    },
+    {
       "name": "reconnect_server",
       "build": "private",
       "language": "c",
@@ -711,7 +733,6 @@
         "test/cpp/interop/client_helper.h"
       ],
       "src": [
-        "test/proto/messages.proto",
         "test/cpp/interop/client_helper.cc"
       ],
       "deps": [
@@ -963,20 +984,6 @@
       "language": "c",
       "src": [
         "test/core/transport/chttp2/stream_map_test.c"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "compression_test",
-      "build": "test",
-      "language": "c",
-      "src": [
-        "test/core/compression/compression_test.c"
       ],
       "deps": [
         "grpc_test_util",
@@ -2657,6 +2664,26 @@
         "grpc",
         "gpr_test_util",
         "gpr"
+      ]
+    },
+    {
+      "name": "zookeeper_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "test/cpp/end2end/zookeeper_test.cc"
+      ],
+      "deps": [
+        "grpc++_test_util",
+        "grpc_test_util",
+        "grpc++",
+        "grpc_zookeeper",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ],
+      "external_deps": [
+        "zookeeper"
       ]
     }
   ]

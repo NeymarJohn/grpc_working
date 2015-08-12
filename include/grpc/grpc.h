@@ -181,7 +181,9 @@ typedef enum grpc_call_error {
   GRPC_CALL_ERROR_INVALID_MESSAGE,
   /** completion queue for notification has not been registered with the
       server */
-  GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE
+  GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE,
+  /** this batch of operations leads to more operations than allowed */
+  GRPC_CALL_ERROR_BATCH_TOO_BIG
 } grpc_call_error;
 
 /* Write Flags: */
@@ -352,6 +354,13 @@ typedef struct grpc_op {
     } recv_close_on_server;
   } data;
 } grpc_op;
+
+
+/** Registers a plugin to be initialized and deinitialized with the library.
+
+    It is safe to pass NULL to either argument. The initialization and
+    deinitialization order isn't guaranteed. */
+void grpc_register_plugin(void (*init)(void), void (*deinit)(void));
 
 /* Propagation bits: this can be bitwise or-ed to form propagation_mask for
  * grpc_call */
