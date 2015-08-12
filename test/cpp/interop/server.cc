@@ -105,13 +105,6 @@ class TestServiceImpl : public TestService::Service {
         return Status(grpc::StatusCode::INTERNAL, "Error creating payload.");
       }
     }
-
-    if (request->has_response_status()) {
-      return Status(static_cast<grpc::StatusCode>
-		    (request->response_status().code()),
-		    request->response_status().message()); 
-    }
-
     return Status::OK;
   }
 

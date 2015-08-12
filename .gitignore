@@ -36,6 +36,3 @@ cache.mk
 
 # Temporary test reports
 report.xml
-
-# port server log
-portlog.txt

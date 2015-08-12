@@ -36,16 +36,15 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Grpc.Core.Internal;
-
 namespace Grpc.Core
 {
     /// <summary>
     /// Context for a server-side call.
     /// </summary>
-    public class ServerCallContext
+    public sealed class ServerCallContext
     {
-        private readonly CallSafeHandle callHandle;
+        // TODO(jtattermusch): expose method to send initial metadata back to client
+
         private readonly string method;
         private readonly string host;
         private readonly string peer;
@@ -55,37 +54,18 @@ namespace Grpc.Core
         private readonly Metadata responseTrailers = new Metadata();
 
         private Status status = Status.DefaultSuccess;
-        private Func<Metadata, Task> writeHeadersFunc;
-        private IHasWriteOptions writeOptionsHolder;
 
-        internal ServerCallContext(CallSafeHandle callHandle, string method, string host, string peer, DateTime deadline, Metadata requestHeaders, CancellationToken cancellationToken,
-            Func<Metadata, Task> writeHeadersFunc, IHasWriteOptions writeOptionsHolder)
+        public ServerCallContext(string method, string host, string peer, DateTime deadline, Metadata requestHeaders, CancellationToken cancellationToken)
         {
-            this.callHandle = callHandle;
             this.method = method;
             this.host = host;
             this.peer = peer;
             this.deadline = deadline;
             this.requestHeaders = requestHeaders;
             this.cancellationToken = cancellationToken;
-            this.writeHeadersFunc = writeHeadersFunc;
-            this.writeOptionsHolder = writeOptionsHolder;
-        }
-
-        public Task WriteResponseHeadersAsync(Metadata responseHeaders)
-        {
-            return writeHeadersFunc(responseHeaders);
-        }
-
-        /// <summary>
-        /// Creates a propagation token to be used to propagate call context to a child call.
-        /// </summary>
-        public ContextPropagationToken CreatePropagationToken(ContextPropagationOptions options = null)
-        {
-            return new ContextPropagationToken(callHandle, deadline, cancellationToken, options);
         }
             
-        /// <summary>Name of method called in this RPC.</summary>
+        /// <summary> Name of method called in this RPC. </summary>
         public string Method
         {
             get
@@ -94,7 +74,7 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>Name of host called in this RPC.</summary>
+        /// <summary> Name of host called in this RPC. </summary>
         public string Host
         {
             get
@@ -103,7 +83,7 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>Address of the remote endpoint in URI format.</summary>
+        /// <summary> Address of the remote endpoint in URI format. </summary>
         public string Peer
         {
             get
@@ -112,7 +92,7 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>Deadline for this RPC.</summary>
+        /// <summary> Deadline for this RPC. </summary>
         public DateTime Deadline
         {
             get
@@ -121,7 +101,7 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>Initial metadata sent by client.</summary>
+        /// <summary> Initial metadata sent by client. </summary>
         public Metadata RequestHeaders
         {
             get
@@ -130,7 +110,8 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>Cancellation token signals when call is cancelled.</summary>
+        // TODO(jtattermusch): support signalling cancellation.
+        /// <summary> Cancellation token signals when call is cancelled. </summary>
         public CancellationToken CancellationToken
         {
             get
@@ -139,7 +120,7 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>Trailers to send back to client after RPC finishes.</summary>
+        /// <summary> Trailers to send back to client after RPC finishes.</summary>
         public Metadata ResponseTrailers
         {
             get
@@ -161,31 +142,5 @@ namespace Grpc.Core
                 status = value;
             }
         }
-
-        /// <summary>
-        /// Allows setting write options for the following write.
-        /// For streaming response calls, this property is also exposed as on IServerStreamWriter for convenience.
-        /// Both properties are backed by the same underlying value.
-        /// </summary>
-        public WriteOptions WriteOptions
-        {
-            get
-            {
-                return writeOptionsHolder.WriteOptions;
-            }
-
-            set
-            {
-                writeOptionsHolder.WriteOptions = value;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Allows sharing write options between ServerCallContext and other objects.
-    /// </summary>
-    public interface IHasWriteOptions
-    {
-        WriteOptions WriteOptions { get; set; }
     }
 }
