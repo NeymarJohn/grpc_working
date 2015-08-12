@@ -72,11 +72,11 @@ namespace Grpc.Core.Tests
         }
 
         [Test]
-        public void ResolvedTarget()
+        public void Target()
         {
             using (var channel = new Channel("127.0.0.1", Credentials.Insecure))
             {
-                Assert.IsTrue(channel.ResolvedTarget.Contains("127.0.0.1"));
+                Assert.IsTrue(channel.Target.Contains("127.0.0.1"));
             }
         }
 
