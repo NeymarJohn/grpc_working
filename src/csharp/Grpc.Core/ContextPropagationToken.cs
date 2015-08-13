@@ -52,7 +52,7 @@ namespace Grpc.Core
         /// <summary>
         /// Default propagation mask used by C core.
         /// </summary>
-        private const ContextPropagationFlags DefaultCoreMask = (ContextPropagationFlags)0xffff;
+        const ContextPropagationFlags DefaultCoreMask = (ContextPropagationFlags)0xffff;
 
         /// <summary>
         /// Default propagation mask used by C# - we want to propagate deadline 
@@ -74,9 +74,6 @@ namespace Grpc.Core
             this.options = options ?? ContextPropagationOptions.Default;
         }
 
-        /// <summary>
-        /// Gets the native handle of the parent call.
-        /// </summary>
         internal CallSafeHandle ParentCall
         {
             get
@@ -85,10 +82,7 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>
-        /// Gets the parent call's deadline.
-        /// </summary>
-        internal DateTime ParentDeadline
+        internal DateTime Deadline
         {
             get
             {
@@ -96,10 +90,7 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>
-        /// Gets the parent call's cancellation token.
-        /// </summary>
-        internal CancellationToken ParentCancellationToken
+        internal CancellationToken CancellationToken
         {
             get
             {
@@ -107,15 +98,22 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>
-        /// Get the context propagation options.
-        /// </summary>
         internal ContextPropagationOptions Options
         {
             get
             {
                 return this.options;
             }
+        }
+
+        internal bool IsPropagateDeadline
+        {
+            get { return false; }
+        }
+
+        internal bool IsPropagateCancellation
+        {
+            get { return false; }
         }
     }
 
@@ -124,37 +122,7 @@ namespace Grpc.Core
     /// </summary>
     public class ContextPropagationOptions
     {
-        /// <summary>
-        /// The context propagation options that will be used by default.
-        /// </summary>
         public static readonly ContextPropagationOptions Default = new ContextPropagationOptions();
-
-        bool propagateDeadline;
-        bool propagateCancellation;
-
-
-        /// <summary>
-        /// Creates new context propagation options.
-        /// </summary>
-        /// <param name="propagateDeadline">If set to <c>true</c> parent call's deadline will be propagated to the child call.</param>
-        /// <param name="propagateCancellation">If set to <c>true</c> parent call's cancellation token will be propagated to the child call.</param>
-        public ContextPropagationOptions(bool propagateDeadline = true, bool propagateCancellation = true)
-        {
-            this.propagateDeadline = propagateDeadline;
-            this.propagateCancellation = propagateCancellation;
-        }
-            
-        /// <value><c>true</c> if parent call's deadline should be propagated to the child call.</value>
-        public bool IsPropagateDeadline
-        {
-            get { return this.propagateDeadline; }
-        }
-
-        /// <value><c>true</c> if parent call's cancellation token should be propagated to the child call.</value>
-        public bool IsPropagateCancellation
-        {
-            get { return this.propagateCancellation; }
-        }
     }
 
     /// <summary>

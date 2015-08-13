@@ -153,23 +153,27 @@ namespace Grpc.Core.Tests
             return channel;
         }
 
-        public CallInvocationDetails<string, string> CreateUnaryCall(CallOptions options = default(CallOptions))
+        public CallInvocationDetails<string, string> CreateUnaryCall(CallOptions options = null)
         {
+            options = options ?? new CallOptions();
             return new CallInvocationDetails<string, string>(channel, UnaryMethod, options);
         }
 
-        public CallInvocationDetails<string, string> CreateClientStreamingCall(CallOptions options = default(CallOptions))
+        public CallInvocationDetails<string, string> CreateClientStreamingCall(CallOptions options = null)
         {
+            options = options ?? new CallOptions();
             return new CallInvocationDetails<string, string>(channel, ClientStreamingMethod, options);
         }
 
-        public CallInvocationDetails<string, string> CreateServerStreamingCall(CallOptions options = default(CallOptions))
+        public CallInvocationDetails<string, string> CreateServerStreamingCall(CallOptions options = null)
         {
+            options = options ?? new CallOptions();
             return new CallInvocationDetails<string, string>(channel, ServerStreamingMethod, options);
         }
 
-        public CallInvocationDetails<string, string> CreateDuplexStreamingCall(CallOptions options = default(CallOptions))
+        public CallInvocationDetails<string, string> CreateDuplexStreamingCall(CallOptions options = null)
         {
+            options = options ?? new CallOptions();
             return new CallInvocationDetails<string, string>(channel, DuplexStreamingMethod, options);
         }
 
