@@ -33,10 +33,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 using Grpc.Core.Internal;
-using Grpc.Core.Utils;
+using System.Text.RegularExpressions;
 
 namespace Grpc.Core
 {
@@ -47,16 +46,15 @@ namespace Grpc.Core
     /// </summary>
     public abstract class ClientBase
     {
-        // Regex for removal of the optional DNS scheme, trailing port, and trailing backslash
-        static readonly Regex ChannelTargetPattern = new Regex(@"^(dns:\/{3})?([^:\/]+)(:\d+)?\/?$");
-
+        static readonly Regex TrailingPortPattern = new Regex(":[0-9]+/?$");
         readonly Channel channel;
         readonly string authUriBase;
 
         public ClientBase(Channel channel)
         {
             this.channel = channel;
-            this.authUriBase = GetAuthUriBase(channel.Target);
+            // TODO(jtattermush): we shouldn't need to hand-curate the channel.Target contents.
+            this.authUriBase = "https://" + TrailingPortPattern.Replace(channel.Target, "") + "/";
         }
 
         /// <summary>
@@ -106,23 +104,10 @@ namespace Grpc.Core
                 {
                     options = options.WithHeaders(new Metadata());
                 }
-                var authUri = authUriBase != null ? authUriBase + method.ServiceName : null;
+                var authUri = authUriBase + method.ServiceName;
                 interceptor(authUri, options.Headers);
             }
             return new CallInvocationDetails<TRequest, TResponse>(channel, method, Host, options);
-        }
-
-        /// <summary>
-        /// Creates Auth URI base from channel's target (the one passed at channel creation).
-        /// Fully-qualified service name is to be appended to this.
-        /// </summary>
-        internal static string GetAuthUriBase(string target)
-        {
-            var match = ChannelTargetPattern.Match(target);
-            if (!match.Success) {
-                return null;
-            }
-            return "https://" + match.Groups[2].Value + "/";
         }
     }
 }
