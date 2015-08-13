@@ -1,3 +1,5 @@
+#region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,23 +29,29 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-syntax = "proto3";
+#endregion
 
-package grpc.health.v1alpha;
+using System;
 
-message HealthCheckRequest {
-  string service = 1;
-}
-
-message HealthCheckResponse {
-  enum ServingStatus {
-    UNKNOWN = 0;
-    SERVING = 1;
-    NOT_SERVING = 2;
-  }
-  ServingStatus status = 1;
-}
-
-service Health {
-  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+namespace Grpc.Core.Utils
+{
+    public static class ExceptionHelper
+    {
+        /// <summary>
+        /// If inner exceptions contain RpcException, rethrows it.
+        /// Otherwise, rethrows the original aggregate exception.
+        /// Always throws, the exception return type is here only to make the.
+        /// </summary>
+        public static Exception UnwrapRpcException(AggregateException ae)
+        {
+            foreach (var e in ae.InnerExceptions)
+            {
+                if (e is RpcException)
+                {
+                    throw e;
+                }
+            }
+            throw ae;
+        }
+    }
 }

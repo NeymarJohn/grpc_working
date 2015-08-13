@@ -31,11 +31,12 @@ import abc
 import collections
 import enum
 
+# TODO(atash): decide whether or not to move these enums to the _c module to
+# force build errors with upstream changes.
 
 class GrpcChannelArgumentKeys(enum.Enum):
   """Mirrors keys used in grpc_channel_args for GRPC-specific arguments."""
   SSL_TARGET_NAME_OVERRIDE = 'grpc.ssl_target_name_override'
-
 
 @enum.unique
 class CallError(enum.IntEnum):
@@ -51,7 +52,6 @@ class CallError(enum.IntEnum):
   ERROR_TOO_MANY_OPERATIONS = 8
   ERROR_INVALID_FLAGS       = 9
   ERROR_INVALID_METADATA    = 10
-
 
 @enum.unique
 class StatusCode(enum.IntEnum):
@@ -74,14 +74,6 @@ class StatusCode(enum.IntEnum):
   DATA_LOSS           = 15
   UNAUTHENTICATED     = 16
 
-
-@enum.unique
-class OpWriteFlags(enum.IntEnum):
-  """Mirrors defined write-flag constants in the C core."""
-  WRITE_BUFFER_HINT = 1
-  WRITE_NO_COMPRESS = 2
-
-
 @enum.unique
 class OpType(enum.IntEnum):
   """Mirrors grpc_op_type in the C core."""
@@ -94,24 +86,12 @@ class OpType(enum.IntEnum):
   RECV_STATUS_ON_CLIENT   = 6
   RECV_CLOSE_ON_SERVER    = 7
 
-
 @enum.unique
 class EventType(enum.IntEnum):
   """Mirrors grpc_completion_type in the C core."""
-  QUEUE_SHUTDOWN = 0
-  QUEUE_TIMEOUT  = 1  # if seen on the Python side, something went horridly wrong
-  OP_COMPLETE    = 2
-
-
-@enum.unique
-class ConnectivityState(enum.IntEnum):
-  """Mirrors grpc_connectivity_state in the C core."""
-  IDLE              = 0
-  CONNECTING        = 1
-  READY             = 2
-  TRANSIENT_FAILURE = 3
-  FATAL_FAILURE     = 4
-
+  QUEUE_SHUTDOWN  = 0
+  QUEUE_TIMEOUT   = 1  # if seen on the Python side, something went horridly wrong
+  OP_COMPLETE     = 2
 
 class Status(collections.namedtuple(
     'Status', [
@@ -124,7 +104,6 @@ class Status(collections.namedtuple(
     code (StatusCode): ...
     details (str): ...
   """
-
 
 class CallDetails(collections.namedtuple(
     'CallDetails', [
@@ -140,7 +119,6 @@ class CallDetails(collections.namedtuple(
     deadline (float): ...
   """
 
-
 class OpArgs(collections.namedtuple(
     'OpArgs', [
         'type',
@@ -148,7 +126,6 @@ class OpArgs(collections.namedtuple(
         'trailing_metadata',
         'message',
         'status',
-        'write_flags',
     ])):
   """Arguments passed into a GRPC operation.
 
@@ -161,40 +138,39 @@ class OpArgs(collections.namedtuple(
     message (bytes): Only valid if type == OpType.SEND_MESSAGE, else is None.
     status (Status): Only valid if type == OpType.SEND_STATUS_FROM_SERVER, else
       is None.
-    write_flags (int): a bit OR'ing of 0 or more OpWriteFlags values.
   """
 
   @staticmethod
   def send_initial_metadata(initial_metadata):
-    return OpArgs(OpType.SEND_INITIAL_METADATA, initial_metadata, None, None, None, 0)
+    return OpArgs(OpType.SEND_INITIAL_METADATA, initial_metadata, None, None, None)
 
   @staticmethod
-  def send_message(message, flags):
-    return OpArgs(OpType.SEND_MESSAGE, None, None, message, None, flags)
+  def send_message(message):
+    return OpArgs(OpType.SEND_MESSAGE, None, None, message, None)
 
   @staticmethod
   def send_close_from_client():
-    return OpArgs(OpType.SEND_CLOSE_FROM_CLIENT, None, None, None, None, 0)
+    return OpArgs(OpType.SEND_CLOSE_FROM_CLIENT, None, None, None, None)
 
   @staticmethod
   def send_status_from_server(trailing_metadata, status_code, status_details):
-    return OpArgs(OpType.SEND_STATUS_FROM_SERVER, None, trailing_metadata, None, Status(status_code, status_details), 0)
+    return OpArgs(OpType.SEND_STATUS_FROM_SERVER, None, trailing_metadata, None, Status(status_code, status_details))
 
   @staticmethod
   def recv_initial_metadata():
-    return OpArgs(OpType.RECV_INITIAL_METADATA, None, None, None, None, 0);
+    return OpArgs(OpType.RECV_INITIAL_METADATA, None, None, None, None);
 
   @staticmethod
   def recv_message():
-    return OpArgs(OpType.RECV_MESSAGE, None, None, None, None, 0)
+    return OpArgs(OpType.RECV_MESSAGE, None, None, None, None)
 
   @staticmethod
   def recv_status_on_client():
-    return OpArgs(OpType.RECV_STATUS_ON_CLIENT, None, None, None, None, 0)
+    return OpArgs(OpType.RECV_STATUS_ON_CLIENT, None, None, None, None)
 
   @staticmethod
   def recv_close_on_server():
-    return OpArgs(OpType.RECV_CLOSE_ON_SERVER, None, None, None, None, 0)
+    return OpArgs(OpType.RECV_CLOSE_ON_SERVER, None, None, None, None)
 
 
 class OpResult(collections.namedtuple(
@@ -314,15 +290,6 @@ class Call:
     """
     return CallError.ERROR
 
-  @abc.abstractmethod
-  def peer(self):
-    """Get the peer of this call.
-
-    Returns:
-      str: the peer of this call.
-    """
-    return None
-
 
 class Channel:
   __metaclass__ = abc.ABCMeta
@@ -351,40 +318,6 @@ class Channel:
 
     Returns:
       Call: call object associated with this Channel and passed parameters.
-    """
-    return None
-
-  @abc.abstractmethod
-  def check_connectivity_state(self, try_to_connect):
-    """Check and optionally repair the connectivity state of the channel.
-
-    Args:
-      try_to_connect (bool): whether or not to try to connect the channel if
-      disconnected.
-
-    Returns:
-      ConnectivityState: state of the channel at the time of this invocation.
-    """
-    return None
-
-  @abc.abstractmethod
-  def watch_connectivity_state(self, last_observed_state, deadline,
-                               completion_queue, tag):
-    """Watch for connectivity state changes from the last_observed_state.
-
-    Args:
-      last_observed_state (ConnectivityState): ...
-      deadline (float): ...
-      completion_queue (CompletionQueue): ...
-      tag (object) ...
-    """
-
-  @abc.abstractmethod
-  def target(self):
-    """Get the target of this channel.
-
-    Returns:
-      str: the target of this channel.
     """
     return None
 

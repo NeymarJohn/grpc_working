@@ -97,7 +97,7 @@
                                   queue.unmanagedQueue,
                                   path.UTF8String,
                                   self.hostName.UTF8String,
-                                  gpr_inf_future(GPR_CLOCK_REALTIME), NULL);
+                                  gpr_inf_future(GPR_CLOCK_REALTIME));
 }
 
 - (GRPCChannel *)channel {
