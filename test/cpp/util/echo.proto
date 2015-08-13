@@ -41,7 +41,3 @@ service TestService {
   rpc BidiStream(stream EchoRequest) returns (stream EchoResponse);
   rpc Unimplemented(EchoRequest) returns (EchoResponse);
 }
-
-service UnimplementedService {
-  rpc Unimplemented(EchoRequest) returns (EchoResponse);
-}
