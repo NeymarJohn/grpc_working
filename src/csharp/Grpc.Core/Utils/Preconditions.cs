@@ -32,16 +32,17 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Grpc.Core.Utils
 {
-    /// <summary>
-    /// Utility methods to simplify checking preconditions in the code.
-    /// </summary>
     public static class Preconditions
     {
         /// <summary>
-        /// Throws <see cref="ArgumentException"/> if condition is false.
+        /// Throws ArgumentException if condition is false.
         /// </summary>
         public static void CheckArgument(bool condition)
         {
@@ -52,7 +53,7 @@ namespace Grpc.Core.Utils
         }
 
         /// <summary>
-        /// Throws <see cref="ArgumentException"/> with given message if condition is false.
+        /// Throws ArgumentException with given message if condition is false.
         /// </summary>
         public static void CheckArgument(bool condition, string errorMessage)
         {
@@ -63,31 +64,31 @@ namespace Grpc.Core.Utils
         }
 
         /// <summary>
-        /// Throws <see cref="ArgumentNullException"/> if reference is null.
+        /// Throws NullReferenceException if reference is null.
         /// </summary>
         public static T CheckNotNull<T>(T reference)
         {
             if (reference == null)
             {
-                throw new ArgumentNullException();
+                throw new NullReferenceException();
             }
             return reference;
         }
 
         /// <summary>
-        /// Throws <see cref="ArgumentNullException"/> if reference is null.
+        /// Throws NullReferenceException with given message if reference is null.
         /// </summary>
-        public static T CheckNotNull<T>(T reference, string paramName)
+        public static T CheckNotNull<T>(T reference, string errorMessage)
         {
             if (reference == null)
             {
-                throw new ArgumentNullException(paramName);
+                throw new NullReferenceException(errorMessage);
             }
             return reference;
         }
 
         /// <summary>
-        /// Throws <see cref="InvalidOperationException"/> if condition is false.
+        /// Throws InvalidOperationException if condition is false.
         /// </summary>
         public static void CheckState(bool condition)
         {
@@ -98,7 +99,7 @@ namespace Grpc.Core.Utils
         }
 
         /// <summary>
-        /// Throws <see cref="InvalidOperationException"/> with given message if condition is false.
+        /// Throws InvalidOperationException with given message if condition is false.
         /// </summary>
         public static void CheckState(bool condition, string errorMessage)
         {
