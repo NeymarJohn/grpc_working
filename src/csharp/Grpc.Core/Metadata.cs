@@ -114,16 +114,6 @@ namespace Grpc.Core
             entries.Add(item);
         }
 
-        public void Add(string key, string value)
-        {
-            Add(new Entry(key, value));
-        }
-
-        public void Add(string key, byte[] valueBytes)
-        {
-            Add(new Entry(key, valueBytes));
-        }
-
         public void Clear()
         {
             CheckWriteable();
@@ -186,15 +176,15 @@ namespace Grpc.Core
 
             public Entry(string key, byte[] valueBytes)
             {
-                this.key = Preconditions.CheckNotNull(key, "key");
+                this.key = Preconditions.CheckNotNull(key);
                 this.value = null;
-                this.valueBytes = Preconditions.CheckNotNull(valueBytes, "valueBytes");
+                this.valueBytes = Preconditions.CheckNotNull(valueBytes);
             }
 
             public Entry(string key, string value)
             {
-                this.key = Preconditions.CheckNotNull(key, "key");
-                this.value = Preconditions.CheckNotNull(value, "value");
+                this.key = Preconditions.CheckNotNull(key);
+                this.value = Preconditions.CheckNotNull(value);
                 this.valueBytes = null;
             }
 

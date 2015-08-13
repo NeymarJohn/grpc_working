@@ -33,50 +33,25 @@
 
 using System;
 
-namespace Grpc.Core
+namespace Grpc.Core.Utils
 {
-    /// <summary>
-    /// Flags for write operations.
-    /// </summary>
-    [Flags]
-    public enum WriteFlags
+    public static class ExceptionHelper
     {
         /// <summary>
-        /// Hint that the write may be buffered and need not go out on the wire immediately.
-        /// gRPC is free to buffer the message until the next non-buffered
-        /// write, or until write stream completion, but it need not buffer completely or at all.
+        /// If inner exceptions contain RpcException, rethrows it.
+        /// Otherwise, rethrows the original aggregate exception.
+        /// Always throws, the exception return type is here only to make the.
         /// </summary>
-        BufferHint = 0x1,
-
-        /// <summary>
-        /// Force compression to be disabled for a particular write.
-        /// </summary>
-        NoCompress = 0x2
-    }
-
-    /// <summary>
-    /// Options for write operations.
-    /// </summary>
-    public class WriteOptions
-    {
-        /// <summary>
-        /// Default write options.
-        /// </summary>
-        public static readonly WriteOptions Default = new WriteOptions();
-            
-        private WriteFlags flags;
-
-        public WriteOptions(WriteFlags flags = default(WriteFlags))
+        public static Exception UnwrapRpcException(AggregateException ae)
         {
-            this.flags = flags;
-        }
-
-        public WriteFlags Flags
-        {
-            get
+            foreach (var e in ae.InnerExceptions)
             {
-                return this.flags;
+                if (e is RpcException)
+                {
+                    throw e;
+                }
             }
+            throw ae;
         }
     }
 }
