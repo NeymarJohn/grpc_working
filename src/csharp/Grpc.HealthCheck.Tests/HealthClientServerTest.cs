@@ -57,11 +57,13 @@ namespace Grpc.HealthCheck.Tests
         {
             serviceImpl = new HealthServiceImpl();
 
-            server = new Server();
-            server.AddServiceDefinition(Grpc.Health.V1Alpha.Health.BindService(serviceImpl));
-            int port = server.AddPort(Host, Server.PickUnusedPort, ServerCredentials.Insecure);
+            server = new Server
+            {
+                Services = { Grpc.Health.V1Alpha.Health.BindService(serviceImpl) },
+                Ports = { { Host, ServerPort.PickUnused, ServerCredentials.Insecure } }
+            };
             server.Start();
-            channel = new Channel(Host, port, Credentials.Insecure);
+            channel = new Channel(Host, server.Ports.Single().BoundPort, Credentials.Insecure);
 
             client = Grpc.Health.V1Alpha.Health.NewClient(channel);
         }
@@ -80,14 +82,14 @@ namespace Grpc.HealthCheck.Tests
         {
             serviceImpl.SetStatus("", "", HealthCheckResponse.Types.ServingStatus.SERVING);
 
-            var response = client.Check(HealthCheckRequest.CreateBuilder().SetHost("").SetService("").Build());
+            var response = client.Check(new HealthCheckRequest { Host = "", Service = "" });
             Assert.AreEqual(HealthCheckResponse.Types.ServingStatus.SERVING, response.Status);
         }
 
         [Test]
         public void ServiceDoesntExist()
         {
-            Assert.Throws(Is.TypeOf(typeof(RpcException)).And.Property("Status").Property("StatusCode").EqualTo(StatusCode.NotFound), () => client.Check(HealthCheckRequest.CreateBuilder().SetHost("").SetService("nonexistent.service").Build()));
+            Assert.Throws(Is.TypeOf(typeof(RpcException)).And.Property("Status").Property("StatusCode").EqualTo(StatusCode.NotFound), () => client.Check(new HealthCheckRequest{ Host = "", Service = "nonexistent.service" }));
         }
 
         // TODO(jtattermusch): add test with timeout once timeouts are supported
