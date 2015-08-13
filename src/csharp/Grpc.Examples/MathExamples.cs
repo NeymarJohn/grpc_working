@@ -34,25 +34,25 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Grpc.Core.Utils;
 
-namespace Math
+namespace math
 {
     public static class MathExamples
     {
         public static void DivExample(Math.IMathClient client)
         {
-            DivReply result = client.Div(new DivArgs { Dividend = 10, Divisor = 3 });
+            DivReply result = client.Div(new DivArgs.Builder { Dividend = 10, Divisor = 3 }.Build());
             Console.WriteLine("Div Result: " + result);
         }
 
         public static async Task DivAsyncExample(Math.IMathClient client)
         {
-            DivReply result = await client.DivAsync(new DivArgs { Dividend = 4, Divisor = 5 });
+            DivReply result = await client.DivAsync(new DivArgs.Builder { Dividend = 4, Divisor = 5 }.Build());
             Console.WriteLine("DivAsync Result: " + result);
         }
 
         public static async Task FibExample(Math.IMathClient client)
         {
-            using (var call = client.Fib(new FibArgs { Limit = 5 }))
+            using (var call = client.Fib(new FibArgs.Builder { Limit = 5 }.Build()))
             {
                 List<Num> result = await call.ResponseStream.ToList();
                 Console.WriteLine("Fib Result: " + string.Join("|", result));
@@ -63,9 +63,9 @@ namespace Math
         {
             var numbers = new List<Num>
             {
-                new Num { Num_ = 1 },
-                new Num { Num_ = 2 },
-                new Num { Num_ = 3 }
+                new Num.Builder { Num_ = 1 }.Build(),
+                new Num.Builder { Num_ = 2 }.Build(),
+                new Num.Builder { Num_ = 3 }.Build()
             };
 
             using (var call = client.Sum())
@@ -79,9 +79,9 @@ namespace Math
         {
             var divArgsList = new List<DivArgs>
             {
-                new DivArgs { Dividend = 10, Divisor = 3 },
-                new DivArgs { Dividend = 100, Divisor = 21 },
-                new DivArgs { Dividend = 7, Divisor = 2 }
+                new DivArgs.Builder { Dividend = 10, Divisor = 3 }.Build(),
+                new DivArgs.Builder { Dividend = 100, Divisor = 21 }.Build(),
+                new DivArgs.Builder { Dividend = 7, Divisor = 2 }.Build()
             };
             using (var call = client.DivMany())
             { 
@@ -94,9 +94,9 @@ namespace Math
         {
             var numbers = new List<Num>
             {
-                new Num { Num_ = 1 }, 
-                new Num { Num_ = 2 },
-                new Num { Num_ = 3 }
+                new Num.Builder { Num_ = 1 }.Build(), 
+                new Num.Builder { Num_ = 2 }.Build(),
+                new Num.Builder { Num_ = 3 }.Build()
             };
 
             Num sum;
@@ -106,7 +106,7 @@ namespace Math
                 sum = await sumCall.ResponseAsync;
             }
 
-            DivReply result = await client.DivAsync(new DivArgs { Dividend = sum.Num_, Divisor = numbers.Count });
+            DivReply result = await client.DivAsync(new DivArgs.Builder { Dividend = sum.Num_, Divisor = numbers.Count }.Build());
             Console.WriteLine("Avg Result: " + result);
         }
     }

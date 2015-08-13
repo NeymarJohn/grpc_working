@@ -38,7 +38,7 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Utils;
 
-namespace Math
+namespace math
 {
     /// <summary>
     /// Implementation of MathService server
@@ -79,7 +79,7 @@ namespace Math
             {
                 sum += num.Num_;
             });
-            return new Num { Num_ = sum };
+            return Num.CreateBuilder().SetNum_(sum).Build();
         }
 
         public async Task DivMany(IAsyncStreamReader<DivArgs> requestStream, IServerStreamWriter<DivReply> responseStream, ServerCallContext context)
@@ -94,13 +94,13 @@ namespace Math
         {
             long quotient = args.Dividend / args.Divisor;
             long remainder = args.Dividend % args.Divisor;
-            return new DivReply { Quotient = quotient, Remainder = remainder };
+            return new DivReply.Builder { Quotient = quotient, Remainder = remainder }.Build();
         }
 
         static IEnumerable<Num> FibInternal(long n)
         {
             long a = 1;
-            yield return new Num { Num_ = a };
+            yield return new Num.Builder { Num_ = a }.Build();
 
             long b = 1;
             for (long i = 0; i < n - 1; i++)
@@ -108,7 +108,7 @@ namespace Math
                 long temp = a;
                 a = b;
                 b = temp + b;
-                yield return new Num { Num_ = a };
+                yield return new Num.Builder { Num_ = a }.Build();
             }
         }        
     }
