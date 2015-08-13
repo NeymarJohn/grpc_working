@@ -31,44 +31,47 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_INTEROP_CLIENT_HELPER_H
-#define GRPC_TEST_CPP_INTEROP_CLIENT_HELPER_H
+#ifndef GRPCXX_AUTH_PROPERTY_ITERATOR_H
+#define GRPCXX_AUTH_PROPERTY_ITERATOR_H
 
-#include <memory>
+#include <iterator>
+#include <vector>
 
 #include <grpc++/config.h>
-#include <grpc++/channel_interface.h>
 
-#include "test/proto/messages.grpc.pb.h"
+struct grpc_auth_context;
+struct grpc_auth_property;
+struct grpc_auth_property_iterator;
 
 namespace grpc {
-namespace testing {
+class SecureAuthContext;
 
-grpc::string GetServiceAccountJsonKey();
+typedef std::pair<grpc::string, grpc::string> AuthProperty;
 
-grpc::string GetOauth2AccessToken();
-
-std::shared_ptr<ChannelInterface> CreateChannelForTestCase(
-    const grpc::string& test_case);
-
-grpc::testing::CompressionType
-GetInteropCompressionTypeFromCompressionAlgorithm(
-    grpc_compression_algorithm algorithm);
-
-class InteropClientContextInspector {
+class AuthPropertyIterator
+    : public std::iterator<std::input_iterator_tag, const AuthProperty> {
  public:
-  InteropClientContextInspector(const ::grpc::ClientContext& context);
+  ~AuthPropertyIterator();
+  AuthPropertyIterator& operator++();
+  AuthPropertyIterator operator++(int);
+  bool operator==(const AuthPropertyIterator& rhs) const;
+  bool operator!=(const AuthPropertyIterator& rhs) const;
+  const AuthProperty operator*();
 
-  // Inspector methods, able to peek inside ClientContext, follow.
-  grpc_compression_algorithm GetCallCompressionAlgorithm() const;
-  gpr_uint32 GetMessageFlags() const;
-
+ protected:
+  AuthPropertyIterator();
+  AuthPropertyIterator(const grpc_auth_property* property,
+                       const grpc_auth_property_iterator* iter);
  private:
-  const ::grpc::ClientContext& context_;
+  friend class SecureAuthContext;
+  const grpc_auth_property* property_;
+  // The following items form a grpc_auth_property_iterator.
+  const grpc_auth_context* ctx_;
+  size_t index_;
+  const char* name_;
 };
 
-
-}  // namespace testing
 }  // namespace grpc
 
-#endif  // GRPC_TEST_CPP_INTEROP_CLIENT_HELPER_H
+ #endif  // GRPCXX_AUTH_PROPERTY_ITERATOR_H
+
