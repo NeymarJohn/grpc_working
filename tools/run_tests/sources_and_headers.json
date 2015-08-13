@@ -122,20 +122,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "compression_test", 
-    "src": [
-      "test/core/compression/compression_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "dualstack_socket_test", 
     "src": [
       "test/core/end2end/dualstack_socket_test.c"
@@ -13065,7 +13051,6 @@
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
       "include/grpc++/auth_context.h", 
-      "include/grpc++/auth_property_iterator.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -13116,7 +13101,6 @@
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
       "include/grpc++/auth_context.h", 
-      "include/grpc++/auth_property_iterator.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -13241,7 +13225,6 @@
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
       "include/grpc++/auth_context.h", 
-      "include/grpc++/auth_property_iterator.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -13289,7 +13272,6 @@
       "include/grpc++/async_generic_service.h", 
       "include/grpc++/async_unary_call.h", 
       "include/grpc++/auth_context.h", 
-      "include/grpc++/auth_property_iterator.h", 
       "include/grpc++/byte_buffer.h", 
       "include/grpc++/channel_arguments.h", 
       "include/grpc++/channel_interface.h", 
@@ -13411,9 +13393,7 @@
       "grpc_test_util"
     ], 
     "headers": [
-      "test/cpp/interop/client_helper.h", 
-      "test/proto/messages.grpc.pb.h", 
-      "test/proto/messages.pb.h"
+      "test/cpp/interop/client_helper.h"
     ], 
     "language": "c++", 
     "name": "interop_client_helper", 
