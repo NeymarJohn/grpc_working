@@ -122,6 +122,20 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "compression_test", 
+    "src": [
+      "test/core/compression/compression_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "dualstack_socket_test", 
     "src": [
       "test/core/end2end/dualstack_socket_test.c"
@@ -969,20 +983,6 @@
     "name": "transport_security_test", 
     "src": [
       "test/core/tsi/transport_security_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "udp_server_test", 
-    "src": [
-      "test/core/iomgr/udp_server_test.c"
     ]
   }, 
   {
@@ -12295,7 +12295,6 @@
       "src/core/iomgr/tcp_server.h", 
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.h", 
-      "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.h", 
       "src/core/json/json.h", 
@@ -12484,8 +12483,6 @@
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.c", 
       "src/core/iomgr/time_averaged_stats.h", 
-      "src/core/iomgr/udp_server.c", 
-      "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_eventfd.c", 
       "src/core/iomgr/wakeup_fd_nospecial.c", 
       "src/core/iomgr/wakeup_fd_pipe.c", 
@@ -12769,7 +12766,6 @@
       "src/core/iomgr/tcp_server.h", 
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.h", 
-      "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.h", 
       "src/core/json/json.h", 
@@ -12943,8 +12939,6 @@
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.c", 
       "src/core/iomgr/time_averaged_stats.h", 
-      "src/core/iomgr/udp_server.c", 
-      "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_eventfd.c", 
       "src/core/iomgr/wakeup_fd_nospecial.c", 
       "src/core/iomgr/wakeup_fd_pipe.c", 
@@ -13413,7 +13407,9 @@
       "grpc_test_util"
     ], 
     "headers": [
-      "test/cpp/interop/client_helper.h"
+      "test/cpp/interop/client_helper.h", 
+      "test/proto/messages.grpc.pb.h", 
+      "test/proto/messages.pb.h"
     ], 
     "language": "c++", 
     "name": "interop_client_helper", 
