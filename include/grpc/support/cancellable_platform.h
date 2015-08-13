@@ -31,34 +31,26 @@
  *
  */
 
-#ifndef GRPCXX_AUTH_METADATA_PROCESSOR_H_
-#define GRPCXX_AUTH_METADATA_PROCESSOR_H_
+#ifndef GRPC_SUPPORT_CANCELLABLE_PLATFORM_H
+#define GRPC_SUPPORT_CANCELLABLE_PLATFORM_H
 
-#include <map>
-#include <string>
+#include <grpc/support/atm.h>
+#include <grpc/support/sync.h>
 
-#include <grpc++/auth_context.h>
-
-namespace grpc {
-
-class AuthMetadataProcessor {
- public:
-  virtual ~AuthMetadataProcessor() {}
-
-  // If this method returns true, the Process function will be scheduled in
-  // a different thread as the one processing the call.
-  virtual bool IsBlocking() const { return true; }
-
-  // context is read/write: it contains the properties of the channel peer and
-  // it is the job of the Process method to augment it with properties derived
-  // from the passed-in auth_metadata.
-  virtual bool Process(
-      std::multimap<grpc::string, grpc::string>& auth_metadata,
-      AuthContext* context,
-      std::multimap<grpc::string, grpc::string>* consumed_auth_metadata) = 0;
+struct gpr_cancellable_list_ {
+  /* a doubly-linked list on cancellable's waiters queue */
+  struct gpr_cancellable_list_ *next;
+  struct gpr_cancellable_list_ *prev;
+  /* The following two fields are arguments to gpr_cv_cancellable_wait() */
+  gpr_mu *mu;
+  gpr_cv *cv;
 };
 
-}  // namespace grpc
+/* Internal definition of gpr_cancellable. */
+typedef struct {
+  gpr_mu mu; /* protects waiters and modifications to cancelled */
+  gpr_atm cancelled;
+  struct gpr_cancellable_list_ waiters;
+} gpr_cancellable;
 
-#endif  // GRPCXX_AUTH_METADATA_PROCESSOR_H_
-
+#endif  /* GRPC_SUPPORT_CANCELLABLE_PLATFORM_H */
