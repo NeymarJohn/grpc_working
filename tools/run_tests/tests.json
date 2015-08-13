@@ -141,23 +141,6 @@
     "ci_platforms": [
       "linux", 
       "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "compression_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ], 
     "flaky": false, 
@@ -1052,6 +1035,17 @@
       "mac", 
       "posix", 
       "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "posix"
+    ], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "udp_server_test", 
+    "platforms": [
+      "posix"
     ]
   }, 
   {

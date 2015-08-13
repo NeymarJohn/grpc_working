@@ -171,6 +171,7 @@
         "src/core/iomgr/tcp_server.h",
         "src/core/iomgr/tcp_windows.h",
         "src/core/iomgr/time_averaged_stats.h",
+        "src/core/iomgr/udp_server.h",
         "src/core/iomgr/wakeup_fd_pipe.h",
         "src/core/iomgr/wakeup_fd_posix.h",
         "src/core/json/json.h",
@@ -274,6 +275,7 @@
         "src/core/iomgr/tcp_server_windows.c",
         "src/core/iomgr/tcp_windows.c",
         "src/core/iomgr/time_averaged_stats.c",
+        "src/core/iomgr/udp_server.c",
         "src/core/iomgr/wakeup_fd_eventfd.c",
         "src/core/iomgr/wakeup_fd_nospecial.c",
         "src/core/iomgr/wakeup_fd_pipe.c",
@@ -708,7 +710,6 @@
         "test/cpp/interop/client_helper.h"
       ],
       "src": [
-        "test/proto/messages.proto",
         "test/cpp/interop/client_helper.cc"
       ],
       "deps": [
@@ -960,20 +961,6 @@
       "language": "c",
       "src": [
         "test/core/transport/chttp2/stream_map_test.c"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "compression_test",
-      "build": "test",
-      "language": "c",
-      "src": [
-        "test/core/compression/compression_test.c"
       ],
       "deps": [
         "grpc_test_util",
@@ -1874,6 +1861,23 @@
         "grpc",
         "gpr_test_util",
         "gpr"
+      ]
+    },
+    {
+      "name": "udp_server_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/iomgr/udp_server_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ],
+      "platforms": [
+        "posix"
       ]
     },
     {
