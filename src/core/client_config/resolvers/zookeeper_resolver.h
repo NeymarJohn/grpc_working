@@ -31,31 +31,12 @@
  *
  */
 
-#include <stdlib.h>
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-#include <grpc/grpc.h>
+#include "src/core/client_config/resolver_factory.h"
 
-#include "grpc/_adapter/_c/types.h"
+/** Create a zookeeper resolver factory */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
 
-static PyMethodDef c_methods[] = {
-    {NULL}
-};
-
-PyMODINIT_FUNC init_c(void) {
-  PyObject *module;
-
-  module = Py_InitModule3("_c", c_methods,
-                          "Wrappings of C structures and functions.");
-
-  if (pygrpc_module_add_types(module) < 0) {
-    return;
-  }
-
-  /* GRPC maintains an internal counter of how many times it has been
-     initialized and handles multiple pairs of grpc_init()/grpc_shutdown()
-     invocations accordingly. */
-  grpc_init();
-  atexit(&grpc_shutdown);
-}
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */

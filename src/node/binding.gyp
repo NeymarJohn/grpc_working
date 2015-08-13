@@ -11,8 +11,7 @@
         '-pedantic',
         '-g',
         '-zdefs',
-        '-Werror',
-        '-Wno-error=deprecated-declarations'
+        '-Werror'
       ],
       'ldflags': [
         '-g'

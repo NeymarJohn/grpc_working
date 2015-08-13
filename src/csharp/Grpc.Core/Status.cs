@@ -29,12 +29,13 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
-using Grpc.Core.Utils;
+using System;
+using System.Runtime.InteropServices;
 
 namespace Grpc.Core
 {
     /// <summary>
-    /// Represents RPC result, which consists of <see cref="StatusCode"/> and an optional detail string. 
+    /// Represents RPC result.
     /// </summary>
     public struct Status
     {
@@ -51,11 +52,6 @@ namespace Grpc.Core
         readonly StatusCode statusCode;
         readonly string detail;
 
-        /// <summary>
-        /// Creates a new instance of <c>Status</c>.
-        /// </summary>
-        /// <param name="statusCode">Status code.</param>
-        /// <param name="detail">Detail.</param>
         public Status(StatusCode statusCode, string detail)
         {
             this.statusCode = statusCode;
@@ -84,9 +80,6 @@ namespace Grpc.Core
             }
         }
 
-        /// <summary>
-        /// Returns a <see cref="System.String"/> that represents the current <see cref="Grpc.Core.Status"/>.
-        /// </summary>
         public override string ToString()
         {
             return string.Format("Status(StatusCode={0}, Detail=\"{1}\")", statusCode, detail);
