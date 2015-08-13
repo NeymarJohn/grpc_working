@@ -31,19 +31,26 @@
  *
  */
 
-#include <grpc/census.h>
-#include <grpc/grpc.h>
-#include "src/core/surface/call.h"
+#ifndef GRPC_SUPPORT_CANCELLABLE_PLATFORM_H
+#define GRPC_SUPPORT_CANCELLABLE_PLATFORM_H
 
-void grpc_census_call_set_context(grpc_call *call, census_context *context) {
-  if (census_enabled() == CENSUS_FEATURE_NONE) {
-    return;
-  }
-  if (context != NULL) {
-    grpc_call_context_set(call, GRPC_CONTEXT_TRACING, context, NULL);
-  }
-}
+#include <grpc/support/atm.h>
+#include <grpc/support/sync.h>
 
-census_context *grpc_census_call_get_context(grpc_call *call) {
-  return (census_context *)grpc_call_context_get(call, GRPC_CONTEXT_TRACING);
-}
+struct gpr_cancellable_list_ {
+  /* a doubly-linked list on cancellable's waiters queue */
+  struct gpr_cancellable_list_ *next;
+  struct gpr_cancellable_list_ *prev;
+  /* The following two fields are arguments to gpr_cv_cancellable_wait() */
+  gpr_mu *mu;
+  gpr_cv *cv;
+};
+
+/* Internal definition of gpr_cancellable. */
+typedef struct {
+  gpr_mu mu; /* protects waiters and modifications to cancelled */
+  gpr_atm cancelled;
+  struct gpr_cancellable_list_ waiters;
+} gpr_cancellable;
+
+#endif  /* GRPC_SUPPORT_CANCELLABLE_PLATFORM_H */

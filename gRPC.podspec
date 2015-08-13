@@ -73,6 +73,7 @@ Pod::Spec.new do |s|
                       'grpc/support/atm_gcc_atomic.h',
                       'grpc/support/atm_gcc_sync.h',
                       'grpc/support/atm_win32.h',
+                      'grpc/support/cancellable_platform.h',
                       'grpc/support/cmdline.h',
                       'grpc/support/cpu.h',
                       'grpc/support/histogram.h',
@@ -96,6 +97,7 @@ Pod::Spec.new do |s|
                       'grpc/support/tls_pthread.h',
                       'grpc/support/useful.h',
                       'src/core/support/alloc.c',
+                      'src/core/support/cancellable.c',
                       'src/core/support/cmdline.c',
                       'src/core/support/cpu_iphone.c',
                       'src/core/support/cpu_linux.c',
@@ -390,7 +392,9 @@ Pod::Spec.new do |s|
                       'src/core/transport/transport_op_string.c',
                       'src/core/census/context.c',
                       'src/core/census/initialize.c',
-                      'src/core/census/record_stat.c'
+                      'src/core/census/operation.c',
+                      'src/core/census/record_stat.c',
+                      'src/core/census/tracing.c'
 
     ss.private_header_files = 'src/core/support/env.h',
                               'src/core/support/file.h',

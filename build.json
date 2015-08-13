@@ -24,7 +24,9 @@
       "src": [
         "src/core/census/context.c",
         "src/core/census/initialize.c",
-        "src/core/census/record_stat.c"
+        "src/core/census/operation.c",
+        "src/core/census/record_stat.c",
+        "src/core/census/tracing.c"
       ]
     },
     {
@@ -367,6 +369,7 @@
         "include/grpc/support/atm_gcc_atomic.h",
         "include/grpc/support/atm_gcc_sync.h",
         "include/grpc/support/atm_win32.h",
+        "include/grpc/support/cancellable_platform.h",
         "include/grpc/support/cmdline.h",
         "include/grpc/support/cpu.h",
         "include/grpc/support/histogram.h",
@@ -401,6 +404,7 @@
       ],
       "src": [
         "src/core/support/alloc.c",
+        "src/core/support/cancellable.c",
         "src/core/support/cmdline.c",
         "src/core/support/cpu_iphone.c",
         "src/core/support/cpu_linux.c",
@@ -1102,6 +1106,18 @@
       "deps": [
         "gpr",
         "grpc"
+      ]
+    },
+    {
+      "name": "gpr_cancellable_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/support/cancellable_test.c"
+      ],
+      "deps": [
+        "gpr_test_util",
+        "gpr"
       ]
     },
     {

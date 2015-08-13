@@ -52,6 +52,7 @@ cc_library(
     "src/core/support/string_win32.h",
     "src/core/support/thd_internal.h",
     "src/core/support/alloc.c",
+    "src/core/support/cancellable.c",
     "src/core/support/cmdline.c",
     "src/core/support/cpu_iphone.c",
     "src/core/support/cpu_linux.c",
@@ -95,6 +96,7 @@ cc_library(
     "include/grpc/support/atm_gcc_atomic.h",
     "include/grpc/support/atm_gcc_sync.h",
     "include/grpc/support/atm_win32.h",
+    "include/grpc/support/cancellable_platform.h",
     "include/grpc/support/cmdline.h",
     "include/grpc/support/cpu.h",
     "include/grpc/support/histogram.h",
@@ -381,7 +383,9 @@ cc_library(
     "src/core/transport/transport_op_string.c",
     "src/core/census/context.c",
     "src/core/census/initialize.c",
+    "src/core/census/operation.c",
     "src/core/census/record_stat.c",
+    "src/core/census/tracing.c",
   ],
   hdrs = [
     "include/grpc/grpc_security.h",
@@ -398,7 +402,6 @@ cc_library(
   ],
   deps = [
     "//external:libssl",
-    "//external:zlib",
     ":gpr",
   ],
 )
@@ -625,7 +628,9 @@ cc_library(
     "src/core/transport/transport_op_string.c",
     "src/core/census/context.c",
     "src/core/census/initialize.c",
+    "src/core/census/operation.c",
     "src/core/census/record_stat.c",
+    "src/core/census/tracing.c",
   ],
   hdrs = [
     "include/grpc/byte_buffer.h",
@@ -886,6 +891,7 @@ objc_library(
   name = "gpr_objc",
   srcs = [
     "src/core/support/alloc.c",
+    "src/core/support/cancellable.c",
     "src/core/support/cmdline.c",
     "src/core/support/cpu_iphone.c",
     "src/core/support/cpu_linux.c",
@@ -929,6 +935,7 @@ objc_library(
     "include/grpc/support/atm_gcc_atomic.h",
     "include/grpc/support/atm_gcc_sync.h",
     "include/grpc/support/atm_win32.h",
+    "include/grpc/support/cancellable_platform.h",
     "include/grpc/support/cmdline.h",
     "include/grpc/support/cpu.h",
     "include/grpc/support/histogram.h",
@@ -1108,7 +1115,9 @@ objc_library(
     "src/core/transport/transport_op_string.c",
     "src/core/census/context.c",
     "src/core/census/initialize.c",
+    "src/core/census/operation.c",
     "src/core/census/record_stat.c",
+    "src/core/census/tracing.c",
   ],
   hdrs = [
     "include/grpc/grpc_security.h",
