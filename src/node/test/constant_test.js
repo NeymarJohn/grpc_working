@@ -79,16 +79,16 @@ var callErrorNames = [
 ];
 
 /**
- * List of all propagate flag names
+ * List of all connectivity state names
  * @const
  * @type {Array.<string>}
  */
-var propagateFlagNames = [
-  'DEADLINE',
-  'CENSUS_STATS_CONTEXT',
-  'CENSUS_TRACING_CONTEXT',
-  'CANCELLATION',
-  'DEFAULTS'
+var connectivityStateNames = [
+  'IDLE',
+  'CONNECTING',
+  'READY',
+  'TRANSIENT_FAILURE',
+  'FATAL_FAILURE'
 ];
 
 describe('constants', function() {
@@ -104,10 +104,10 @@ describe('constants', function() {
              'call error missing: ' + callErrorNames[i]);
     }
   });
-  it('should have all of the propagate flags', function() {
-    for (var i = 0; i < propagateFlagNames.length; i++) {
-      assert(grpc.propagate.hasOwnProperty(propagateFlagNames[i]),
-             'call error missing: ' + propagateFlagNames[i]);
+  it('should have all of the connectivity states', function() {
+    for (var i = 0; i < connectivityStateNames.length; i++) {
+      assert(grpc.connectivityState.hasOwnProperty(connectivityStateNames[i]),
+             'connectivity status missing: ' + connectivityStateNames[i]);
     }
   });
 });
