@@ -77,7 +77,6 @@ typedef struct grpc_linked_mdelem {
   grpc_mdelem *md;
   struct grpc_linked_mdelem *next;
   struct grpc_linked_mdelem *prev;
-  void *reserved;
 } grpc_linked_mdelem;
 
 typedef struct grpc_mdelem_list {

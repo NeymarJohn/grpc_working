@@ -31,20 +31,30 @@
  *
  */
 
-#import "GRPCUnsecuredChannel.h"
+#ifndef GRPCXX_AUTH_METADATA_PROCESSOR_H_
+#define GRPCXX_AUTH_METADATA_PROCESSOR_H_
 
-#include <grpc/grpc.h>
+#include <map>
+#include <string>
 
-@implementation GRPCUnsecuredChannel
+#include <grpc++/auth_context.h>
 
-- (instancetype)initWithHost:(NSString *)host {
-  return (self = [super initWithChannel:grpc_insecure_channel_create(host.UTF8String, NULL)]);
-}
+namespace grpc {
 
-// TODO(jcanizales): GRPCSecureChannel and GRPCUnsecuredChannel are just convenience initializers
-// for GRPCChannel. Move them into GRPCChannel, which will make the following unnecessary.
-- (instancetype)initWithChannel:(grpc_channel *)unmanagedChannel {
-  [NSException raise:NSInternalInconsistencyException format:@"use the other initializer"];
-  return [self initWithHost:nil]; // silence warnings
-}
-@end
+class AuthMetadataProcessor {
+ public:
+  virtual ~AuthMetadataProcessor() {}
+
+  // context is read/write: it contains the properties of the channel peer and
+  // it is the job of the Process method to augment it with properties derived
+  // from the passed-in auth_metadata.
+  virtual bool Process(
+      std::multimap<grpc::string, grpc::string>& auth_metadata,
+      AuthContext* context,
+      std::multimap<grpc::string, grpc::string>* consumed_auth_metadata) = 0;
+};
+
+}  // namespace grpc
+
+#endif  // GRPCXX_AUTH_METADATA_PROCESSOR_H_
+
