@@ -31,57 +31,13 @@
  *
  */
 
-'use strict';
+/* This is just a compilation test, to see if we have Zookeeper C client
+   library installed. */
 
-var _ = require('lodash');
-var grpc = require('..');
-var examples = grpc.load(__dirname + '/stock.proto').examples;
+#include <stdlib.h>
+#include <zookeeper/zookeeper.h>
 
-function getLastTradePrice(call, callback) {
-  callback(null, {symbol: call.request.symbol, price: 88});
+int main() {
+  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
+  return 0;
 }
-
-function watchFutureTrades(call) {
-  for (var i = 0; i < call.request.num_trades_to_watch; i++) {
-    call.write({price: 88.00 + i * 10.00});
-  }
-  call.end();
-}
-
-function getHighestTradePrice(call, callback) {
-  var trades = [];
-  call.on('data', function(data) {
-    trades.push({symbol: data.symbol, price: _.random(0, 100)});
-  });
-  call.on('end', function() {
-    if(_.isEmpty(trades)) {
-      callback(null, {});
-    } else {
-      callback(null, _.max(trades, function(trade){return trade.price;}));
-    }
-  });
-}
-
-function getLastTradePriceMultiple(call) {
-  call.on('data', function(data) {
-    call.write({price: 88});
-  });
-  call.on('end', function() {
-    call.end();
-  });
-}
-
-var stockServer = new grpc.Server();
-stockServer.addProtoService(examples.Stock.service, {
-  getLastTradePrice: getLastTradePrice,
-  getLastTradePriceMultiple: getLastTradePriceMultiple,
-  watchFutureTrades: watchFutureTrades,
-  getHighestTradePrice: getHighestTradePrice
-});
-
-if (require.main === module) {
-  stockServer.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure());
-  stockServer.start();
-}
-
-module.exports = stockServer;

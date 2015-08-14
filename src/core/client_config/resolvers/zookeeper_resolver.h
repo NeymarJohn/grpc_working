@@ -31,57 +31,12 @@
  *
  */
 
-'use strict';
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-var _ = require('lodash');
-var grpc = require('..');
-var examples = grpc.load(__dirname + '/stock.proto').examples;
+#include "src/core/client_config/resolver_factory.h"
 
-function getLastTradePrice(call, callback) {
-  callback(null, {symbol: call.request.symbol, price: 88});
-}
+/** Create a zookeeper resolver factory */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
 
-function watchFutureTrades(call) {
-  for (var i = 0; i < call.request.num_trades_to_watch; i++) {
-    call.write({price: 88.00 + i * 10.00});
-  }
-  call.end();
-}
-
-function getHighestTradePrice(call, callback) {
-  var trades = [];
-  call.on('data', function(data) {
-    trades.push({symbol: data.symbol, price: _.random(0, 100)});
-  });
-  call.on('end', function() {
-    if(_.isEmpty(trades)) {
-      callback(null, {});
-    } else {
-      callback(null, _.max(trades, function(trade){return trade.price;}));
-    }
-  });
-}
-
-function getLastTradePriceMultiple(call) {
-  call.on('data', function(data) {
-    call.write({price: 88});
-  });
-  call.on('end', function() {
-    call.end();
-  });
-}
-
-var stockServer = new grpc.Server();
-stockServer.addProtoService(examples.Stock.service, {
-  getLastTradePrice: getLastTradePrice,
-  getLastTradePriceMultiple: getLastTradePriceMultiple,
-  watchFutureTrades: watchFutureTrades,
-  getHighestTradePrice: getHighestTradePrice
-});
-
-if (require.main === module) {
-  stockServer.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure());
-  stockServer.start();
-}
-
-module.exports = stockServer;
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */
