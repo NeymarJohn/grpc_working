@@ -31,20 +31,26 @@
  *
  */
 
-#import "GRPCUnsecuredChannel.h"
+#ifndef GRPC_SUPPORT_CANCELLABLE_PLATFORM_H
+#define GRPC_SUPPORT_CANCELLABLE_PLATFORM_H
 
-#include <grpc/grpc.h>
+#include <grpc/support/atm.h>
+#include <grpc/support/sync.h>
 
-@implementation GRPCUnsecuredChannel
+struct gpr_cancellable_list_ {
+  /* a doubly-linked list on cancellable's waiters queue */
+  struct gpr_cancellable_list_ *next;
+  struct gpr_cancellable_list_ *prev;
+  /* The following two fields are arguments to gpr_cv_cancellable_wait() */
+  gpr_mu *mu;
+  gpr_cv *cv;
+};
 
-- (instancetype)initWithHost:(NSString *)host {
-  return (self = [super initWithChannel:grpc_insecure_channel_create(host.UTF8String, NULL)]);
-}
+/* Internal definition of gpr_cancellable. */
+typedef struct {
+  gpr_mu mu; /* protects waiters and modifications to cancelled */
+  gpr_atm cancelled;
+  struct gpr_cancellable_list_ waiters;
+} gpr_cancellable;
 
-// TODO(jcanizales): GRPCSecureChannel and GRPCUnsecuredChannel are just convenience initializers
-// for GRPCChannel. Move them into GRPCChannel, which will make the following unnecessary.
-- (instancetype)initWithChannel:(grpc_channel *)unmanagedChannel {
-  [NSException raise:NSInternalInconsistencyException format:@"use the other initializer"];
-  return [self initWithHost:nil]; // silence warnings
-}
-@end
+#endif  /* GRPC_SUPPORT_CANCELLABLE_PLATFORM_H */
