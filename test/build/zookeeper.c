@@ -31,50 +31,13 @@
  *
  */
 
-#ifndef GRPCXX_SERVER_CREDENTIALS_H
-#define GRPCXX_SERVER_CREDENTIALS_H
+/* This is just a compilation test, to see if we have Zookeeper C client
+   library installed. */
 
-#include <memory>
-#include <vector>
+#include <stdlib.h>
+#include <zookeeper/zookeeper.h>
 
-#include <grpc++/config.h>
-
-struct grpc_server;
-
-namespace grpc {
-class Server;
-
-// grpc_server_credentials wrapper class.
-class ServerCredentials {
- public:
-  virtual ~ServerCredentials();
-
- private:
-  friend class ::grpc::Server;
-
-  virtual int AddPortToServer(const grpc::string& addr,
-                              grpc_server* server) = 0;
-};
-
-// Options to create ServerCredentials with SSL
-struct SslServerCredentialsOptions {
-  SslServerCredentialsOptions() : force_client_auth(false) {}
-
-  struct PemKeyCertPair {
-    grpc::string private_key;
-    grpc::string cert_chain;
-  };
-  grpc::string pem_root_certs;
-  std::vector<PemKeyCertPair> pem_key_cert_pairs;
-  bool force_client_auth;
-};
-
-// Builds SSL ServerCredentials given SSL specific options
-std::shared_ptr<ServerCredentials> SslServerCredentials(
-    const SslServerCredentialsOptions& options);
-
-std::shared_ptr<ServerCredentials> InsecureServerCredentials();
-
-}  // namespace grpc
-
-#endif  // GRPCXX_SERVER_CREDENTIALS_H
+int main() {
+  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
+  return 0;
+}
