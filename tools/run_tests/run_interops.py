@@ -15,10 +15,7 @@ _TESTS = ['large_unary', 'empty_unary', 'ping_pong', 'client_streaming', 'server
 jobs = []
 jobNumber = 0
 for test in _TESTS:
-  test_job = jobset.JobSpec(
-        cmdline=['tools/run_tests/run_interops_test.sh', '%s' % args.language, '%s' % test], 
-        shortname=test,
-        timeout_seconds=15*60)
+  test_job = jobset.JobSpec(cmdline=['tools/run_tests/run_interops_test.sh', '%s' % args.language, '%s' % test], shortname=test)
   jobs.append(test_job)
   jobNumber+=1
 
