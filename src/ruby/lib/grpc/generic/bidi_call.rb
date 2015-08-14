@@ -56,13 +56,15 @@ module GRPC
     #          the call
     # @param marshal [Function] f(obj)->string that marshal requests
     # @param unmarshal [Function] f(string)->obj that unmarshals responses
-    def initialize(call, q, marshal, unmarshal)
+    # @param deadline [Fixnum] the deadline for the call to complete
+    def initialize(call, q, marshal, unmarshal, deadline)
       fail(ArgumentError, 'not a call') unless call.is_a? Core::Call
       unless q.is_a? Core::CompletionQueue
         fail(ArgumentError, 'not a CompletionQueue')
       end
       @call = call
       @cq = q
+      @deadline = deadline
       @marshal = marshal
       @op_notifier = nil  # signals completion on clients
       @readq = Queue.new
@@ -97,7 +99,7 @@ module GRPC
     # @param gen_each_reply [Proc] generates the BiDi stream replies.
     def run_on_server(gen_each_reply)
       replys = gen_each_reply.call(each_queued_msg)
-      @loop_th = start_read_loop(is_client: false)
+      @loop_th = start_read_loop
       write_loop(replys, is_client: false)
     end
 
@@ -125,7 +127,7 @@ module GRPC
         count += 1
         req = @readq.pop
         GRPC.logger.debug("each_queued_msg: req = #{req}")
-        fail req if req.is_a? StandardError
+        throw req if req.is_a? StandardError
         break if req.equal?(END_OF_READS)
         yield req
       end
@@ -145,9 +147,12 @@ module GRPC
       GRPC.logger.debug("bidi-write-loop: #{count} writes done")
       if is_client
         GRPC.logger.debug("bidi-write-loop: client sent #{count}, waiting")
-        @call.run_batch(@cq, write_tag, INFINITE_FUTURE,
-                        SEND_CLOSE_FROM_CLIENT => nil)
-        GRPC.logger.debug('bidi-write-loop: done')
+        batch_result = @call.run_batch(@cq, write_tag, INFINITE_FUTURE,
+                                       SEND_CLOSE_FROM_CLIENT => nil,
+                                       RECV_STATUS_ON_CLIENT => nil)
+        @call.status = batch_result.status
+        batch_result.check_status
+        GRPC.logger.debug("bidi-write-loop: done status #{@call.status}")
         notify_done
       end
       GRPC.logger.debug('bidi-write-loop: finished')
@@ -159,7 +164,7 @@ module GRPC
     end
 
     # starts the read loop
-    def start_read_loop(is_client: true)
+    def start_read_loop
       Thread.new do
         GRPC.logger.debug('bidi-read-loop: starting')
         begin
@@ -172,19 +177,9 @@ module GRPC
             # TODO: ensure metadata is read if available, currently it's not
             batch_result = @call.run_batch(@cq, read_tag, INFINITE_FUTURE,
                                            RECV_MESSAGE => nil)
-
             # handle the next message
             if batch_result.message.nil?
               GRPC.logger.debug("bidi-read-loop: null batch #{batch_result}")
-
-              if is_client
-                batch_result = @call.run_batch(@cq, read_tag, INFINITE_FUTURE,
-                                               RECV_STATUS_ON_CLIENT => nil)
-                @call.status = batch_result.status
-                batch_result.check_status
-                GRPC.logger.debug("bidi-read-loop: done status #{@call.status}")
-              end
-
               @readq.push(END_OF_READS)
               GRPC.logger.debug('bidi-read-loop: done reading!')
               break
