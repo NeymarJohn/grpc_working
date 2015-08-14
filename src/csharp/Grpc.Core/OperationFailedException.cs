@@ -32,31 +32,16 @@
 #endregion
 
 using System;
-using Grpc.Core;
-using Grpc.Core.Internal;
-using Grpc.Core.Utils;
-using NUnit.Framework;
 
-namespace Grpc.Core.Tests
+namespace Grpc.Core
 {
-    public class ClientBaseTest
+    /// <summary>
+    /// Thrown when gRPC operation fails.
+    /// </summary>
+    public class OperationFailedException : Exception
     {
-        [Test]
-        public void GetAuthUriBase_Valid()
+        public OperationFailedException(string message) : base(message)
         {
-            Assert.AreEqual("https://some.googleapi.com/", ClientBase.GetAuthUriBase("some.googleapi.com"));
-            Assert.AreEqual("https://some.googleapi.com/", ClientBase.GetAuthUriBase("dns:///some.googleapi.com/"));
-            Assert.AreEqual("https://some.googleapi.com/", ClientBase.GetAuthUriBase("dns:///some.googleapi.com:443/"));
-            Assert.AreEqual("https://some.googleapi.com/", ClientBase.GetAuthUriBase("some.googleapi.com:443/"));
-        }
-
-        [Test]
-        public void GetAuthUriBase_Invalid()
-        {
-            Assert.IsNull(ClientBase.GetAuthUriBase("some.googleapi.com:"));
-            Assert.IsNull(ClientBase.GetAuthUriBase("https://some.googleapi.com/"));
-            Assert.IsNull(ClientBase.GetAuthUriBase("dns://some.googleapi.com:443"));  // just two slashes
-            Assert.IsNull(ClientBase.GetAuthUriBase(""));
         }
     }
 }

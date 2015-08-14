@@ -55,7 +55,7 @@
   return [[self alloc] init];
 }
 
-- (GRXSingleHandler)block {
+- (GRXSingleValueHandler)block {
   return ^(id value, NSError *errorOrNil) {
     ++_timesCalled;
     _value = value;
@@ -71,13 +71,13 @@
 
 #pragma mark Writeable
 
-- (void)testWriteableSingleHandlerIsCalledForValue {
+- (void)testWriteableSingleValueHandlerIsCalledForValue {
   // Given:
   CapturingSingleValueHandler *handler = [CapturingSingleValueHandler handler];
   id anyValue = @7;
 
   // If:
-  id<GRXWriteable> writeable = [GRXWriteable writeableWithSingleHandler:handler.block];
+  id<GRXWriteable> writeable = [GRXWriteable writeableWithSingleValueHandler:handler.block];
   [writeable writeValue:anyValue];
 
   // Then:
@@ -86,13 +86,13 @@
   XCTAssertEqualObjects(handler.errorOrNil, nil);
 }
 
-- (void)testWriteableSingleHandlerIsCalledForError {
+- (void)testWriteableSingleValueHandlerIsCalledForError {
   // Given:
   CapturingSingleValueHandler *handler = [CapturingSingleValueHandler handler];
   NSError *anyError = [NSError errorWithDomain:@"domain" code:7 userInfo:nil];
 
   // If:
-  id<GRXWriteable> writeable = [GRXWriteable writeableWithSingleHandler:handler.block];
+  id<GRXWriteable> writeable = [GRXWriteable writeableWithSingleValueHandler:handler.block];
   [writeable writesFinishedWithError:anyError];
 
   // Then:
@@ -106,7 +106,7 @@
 - (void)testBufferedPipePropagatesValue {
   // Given:
   CapturingSingleValueHandler *handler = [CapturingSingleValueHandler handler];
-  id<GRXWriteable> writeable = [GRXWriteable writeableWithSingleHandler:handler.block];
+  id<GRXWriteable> writeable = [GRXWriteable writeableWithSingleValueHandler:handler.block];
   id anyValue = @7;
 
   // If:
@@ -123,7 +123,7 @@
 - (void)testBufferedPipePropagatesError {
   // Given:
   CapturingSingleValueHandler *handler = [CapturingSingleValueHandler handler];
-  id<GRXWriteable> writeable = [GRXWriteable writeableWithSingleHandler:handler.block];
+  id<GRXWriteable> writeable = [GRXWriteable writeableWithSingleValueHandler:handler.block];
   NSError *anyError = [NSError errorWithDomain:@"domain" code:7 userInfo:nil];
 
   // If:

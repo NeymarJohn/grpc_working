@@ -52,6 +52,7 @@ cc_library(
     "src/core/support/string_win32.h",
     "src/core/support/thd_internal.h",
     "src/core/support/alloc.c",
+    "src/core/support/cancellable.c",
     "src/core/support/cmdline.c",
     "src/core/support/cpu_iphone.c",
     "src/core/support/cpu_linux.c",
@@ -95,6 +96,7 @@ cc_library(
     "include/grpc/support/atm_gcc_atomic.h",
     "include/grpc/support/atm_gcc_sync.h",
     "include/grpc/support/atm_win32.h",
+    "include/grpc/support/cancellable_platform.h",
     "include/grpc/support/cmdline.h",
     "include/grpc/support/cpu.h",
     "include/grpc/support/histogram.h",
@@ -398,7 +400,6 @@ cc_library(
   ],
   deps = [
     "//external:libssl",
-    "//external:zlib",
     ":gpr",
   ],
 )
@@ -646,6 +647,26 @@ cc_library(
 
 
 cc_library(
+  name = "grpc_zookeeper",
+  srcs = [
+    "src/core/client_config/resolvers/zookeeper_resolver.h",
+    "src/core/client_config/resolvers/zookeeper_resolver.c",
+  ],
+  hdrs = [
+    "include/grpc/grpc_zookeeper.h",
+  ],
+  includes = [
+    "include",
+    ".",
+  ],
+  deps = [
+    ":gpr",
+    ":grpc",
+  ],
+)
+
+
+cc_library(
   name = "grpc++",
   srcs = [
     "src/cpp/client/secure_credentials.h",
@@ -886,6 +907,7 @@ objc_library(
   name = "gpr_objc",
   srcs = [
     "src/core/support/alloc.c",
+    "src/core/support/cancellable.c",
     "src/core/support/cmdline.c",
     "src/core/support/cpu_iphone.c",
     "src/core/support/cpu_linux.c",
@@ -929,6 +951,7 @@ objc_library(
     "include/grpc/support/atm_gcc_atomic.h",
     "include/grpc/support/atm_gcc_sync.h",
     "include/grpc/support/atm_win32.h",
+    "include/grpc/support/cancellable_platform.h",
     "include/grpc/support/cmdline.h",
     "include/grpc/support/cpu.h",
     "include/grpc/support/histogram.h",

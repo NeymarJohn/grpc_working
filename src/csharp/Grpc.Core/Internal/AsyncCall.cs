@@ -63,7 +63,7 @@ namespace Grpc.Core.Internal
         public AsyncCall(CallInvocationDetails<TRequest, TResponse> callDetails)
             : base(callDetails.RequestMarshaller.Serializer, callDetails.ResponseMarshaller.Deserializer)
         {
-            this.details = callDetails.WithOptions(callDetails.Options.Normalize());
+            this.details = callDetails;
             this.initialMetadataSent = true;  // we always send metadata at the very beginning of the call.
         }
 
@@ -109,9 +109,15 @@ namespace Grpc.Core.Internal
                     }
                 }
 
-                // Once the blocking call returns, the result should be available synchronously.
-                // Note that GetAwaiter().GetResult() doesn't wrap exceptions in AggregateException.
-                return unaryResponseTcs.Task.GetAwaiter().GetResult();
+                try
+                {
+                    // Once the blocking call returns, the result should be available synchronously.
+                    return unaryResponseTcs.Task.Result;
+                }
+                catch (AggregateException ae)
+                {
+                    throw ExceptionHelper.UnwrapRpcException(ae);
+                }
             }
         }
 
@@ -318,11 +324,12 @@ namespace Grpc.Core.Internal
 
         private void Initialize(CompletionQueueSafeHandle cq)
         {
-            var parentCall = details.Options.PropagationToken != null ? details.Options.PropagationToken.ParentCall : CallSafeHandle.NullInstance;
+            var propagationToken = details.Options.PropagationToken;
+            var parentCall = propagationToken != null ? propagationToken.ParentCall : CallSafeHandle.NullInstance;
 
             var call = details.Channel.Handle.CreateCall(details.Channel.Environment.CompletionRegistry,
                 parentCall, ContextPropagationToken.DefaultMask, cq,
-                details.Method, details.Host, Timespec.FromDateTime(details.Options.Deadline.Value));
+                details.Method, details.Host, Timespec.FromDateTime(details.Options.Deadline));
             details.Channel.Environment.DebugStats.ActiveClientCalls.Increment();
             InitializeInternal(call);
             RegisterCancellationCallback();
