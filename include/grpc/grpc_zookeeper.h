@@ -31,20 +31,29 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_COMPILER_CSHARP_GENERATOR_HELPERS_H
-#define GRPC_INTERNAL_COMPILER_CSHARP_GENERATOR_HELPERS_H
+/** Support zookeeper as alternative name system in addition to DNS
+ *  Zookeeper name in gRPC is represented as a URI:
+ *  zookeeper://host:port/path/service/instance
+ *
+ *  Where zookeeper is the name system scheme
+ *  host:port is the address of a zookeeper server
+ *  /path/service/instance is the zookeeper name to be resolved
+ *
+ *  Refer doc/naming.md for more details
+ */
 
-#include "src/compiler/config.h"
-#include "src/compiler/generator_helpers.h"
+#ifndef GRPC_GRPC_ZOOKEEPER_H
+#define GRPC_GRPC_ZOOKEEPER_H
 
-namespace grpc_csharp_generator {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-inline bool ServicesFilename(const grpc::protobuf::FileDescriptor *file,
-                             grpc::string *file_name_or_error) {
-  *file_name_or_error = grpc_generator::FileNameInUpperCamel(file, false) + "Grpc.cs";
-  return true;
+/** Register zookeeper name resolver in grpc */
+void grpc_zookeeper_register();
+
+#ifdef __cplusplus
 }
+#endif
 
-}  // namespace grpc_csharp_generator
-
-#endif  // GRPC_INTERNAL_COMPILER_CSHARP_GENERATOR_HELPERS_H
+#endif /* GRPC_GRPC_ZOOKEEPER_H */

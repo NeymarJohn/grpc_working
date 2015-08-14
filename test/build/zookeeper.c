@@ -31,20 +31,13 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_COMPILER_CSHARP_GENERATOR_HELPERS_H
-#define GRPC_INTERNAL_COMPILER_CSHARP_GENERATOR_HELPERS_H
+/* This is just a compilation test, to see if we have Zookeeper C client
+   library installed. */
 
-#include "src/compiler/config.h"
-#include "src/compiler/generator_helpers.h"
+#include <stdlib.h>
+#include <zookeeper/zookeeper.h>
 
-namespace grpc_csharp_generator {
-
-inline bool ServicesFilename(const grpc::protobuf::FileDescriptor *file,
-                             grpc::string *file_name_or_error) {
-  *file_name_or_error = grpc_generator::FileNameInUpperCamel(file, false) + "Grpc.cs";
-  return true;
+int main() {
+  zookeeper_init(NULL, NULL, 0, 0, 0, 0);
+  return 0;
 }
-
-}  // namespace grpc_csharp_generator
-
-#endif  // GRPC_INTERNAL_COMPILER_CSHARP_GENERATOR_HELPERS_H

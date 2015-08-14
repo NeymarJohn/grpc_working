@@ -31,20 +31,12 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_COMPILER_CSHARP_GENERATOR_HELPERS_H
-#define GRPC_INTERNAL_COMPILER_CSHARP_GENERATOR_HELPERS_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H
 
-#include "src/compiler/config.h"
-#include "src/compiler/generator_helpers.h"
+#include "src/core/client_config/resolver_factory.h"
 
-namespace grpc_csharp_generator {
+/** Create a zookeeper resolver factory */
+grpc_resolver_factory *grpc_zookeeper_resolver_factory_create(void);
 
-inline bool ServicesFilename(const grpc::protobuf::FileDescriptor *file,
-                             grpc::string *file_name_or_error) {
-  *file_name_or_error = grpc_generator::FileNameInUpperCamel(file, false) + "Grpc.cs";
-  return true;
-}
-
-}  // namespace grpc_csharp_generator
-
-#endif  // GRPC_INTERNAL_COMPILER_CSHARP_GENERATOR_HELPERS_H
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_RESOLVERS_ZOOKEEPER_RESOLVER_H */
