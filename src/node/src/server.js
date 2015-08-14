@@ -432,7 +432,6 @@ function handleUnary(call, handler, metadata) {
   });
   emitter.metadata = metadata;
   waitForCancel(call, emitter);
-  emitter.call = call;
   var batch = {};
   batch[grpc.opType.RECV_MESSAGE] = true;
   call.startBatch(batch, function(err, result) {
