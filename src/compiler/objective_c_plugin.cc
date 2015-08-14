@@ -39,43 +39,44 @@
 #include "src/compiler/objective_c_generator.h"
 #include "src/compiler/objective_c_generator_helpers.h"
 
+using ::grpc::string;
+
 class ObjectiveCGrpcGenerator : public grpc::protobuf::compiler::CodeGenerator {
  public:
   ObjectiveCGrpcGenerator() {}
   virtual ~ObjectiveCGrpcGenerator() {}
 
   virtual bool Generate(const grpc::protobuf::FileDescriptor *file,
-                        const ::grpc::string &parameter,
+                        const string &parameter,
                         grpc::protobuf::compiler::GeneratorContext *context,
-                        ::grpc::string *error) const {
+                        string *error) const {
 
     if (file->service_count() == 0) {
       // No services.  Do nothing.
       return true;
     }
 
-    ::grpc::string file_name = grpc_generator::FileNameInUpperCamel(file);
-    ::grpc::string prefix = file->options().objc_class_prefix();
+    string file_name = grpc_generator::FileNameInUpperCamel(file);
+    string prefix = file->options().objc_class_prefix();
 
     {
       // Generate .pbrpc.h
 
-      ::grpc::string imports = ::grpc::string("#import \"") + file_name +
-        ".pbobjc.h\"\n\n"
+      string imports = string("#import \"") + file_name + ".pbobjc.h\"\n\n"
         "#import <ProtoRPC/ProtoService.h>\n"
         "#import <RxLibrary/GRXWriteable.h>\n"
         "#import <RxLibrary/GRXWriter.h>\n";
 
       // TODO(jcanizales): Instead forward-declare the input and output types
       // and import the files in the .pbrpc.m
-      ::grpc::string proto_imports;
+      string proto_imports;
       for (int i = 0; i < file->dependency_count(); i++) {
-        ::grpc::string header = grpc_objective_c_generator::MessageHeaderName(
+        string header = grpc_objective_c_generator::MessageHeaderName(
             file->dependency(i));
-        proto_imports += ::grpc::string("#import \"") + header + "\"\n";
+        proto_imports += string("#import \"") + header + "\"\n";
       }
 
-      ::grpc::string declarations;
+      string declarations;
       for (int i = 0; i < file->service_count(); i++) {
         const grpc::protobuf::ServiceDescriptor *service = file->service(i);
         declarations += grpc_objective_c_generator::GetHeader(service);
@@ -88,12 +89,11 @@ class ObjectiveCGrpcGenerator : public grpc::protobuf::compiler::CodeGenerator {
     {
       // Generate .pbrpc.m
 
-      ::grpc::string imports = ::grpc::string("#import \"") + file_name +
-        ".pbrpc.h\"\n\n"
+      string imports = string("#import \"") + file_name + ".pbrpc.h\"\n\n"
         "#import <ProtoRPC/ProtoRPC.h>\n"
         "#import <RxLibrary/GRXWriter+Immediate.h>\n";
 
-      ::grpc::string definitions;
+      string definitions;
       for (int i = 0; i < file->service_count(); i++) {
         const grpc::protobuf::ServiceDescriptor *service = file->service(i);
         definitions += grpc_objective_c_generator::GetSource(service);
@@ -108,7 +108,7 @@ class ObjectiveCGrpcGenerator : public grpc::protobuf::compiler::CodeGenerator {
  private:
   // Write the given code into the given file.
   void Write(grpc::protobuf::compiler::GeneratorContext *context,
-              const ::grpc::string &filename, const ::grpc::string &code) const {
+              const string &filename, const string &code) const {
     std::unique_ptr<grpc::protobuf::io::ZeroCopyOutputStream> output(
         context->Open(filename));
     grpc::protobuf::io::CodedOutputStream coded_out(output.get());
