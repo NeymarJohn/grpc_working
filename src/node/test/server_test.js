@@ -83,7 +83,7 @@ describe('server', function() {
       server = new grpc.Server();
     });
   });
-  describe('start', function() {
+  describe('listen', function() {
     var server;
     before(function() {
       server = new grpc.Server();
@@ -92,7 +92,7 @@ describe('server', function() {
     after(function() {
       server.shutdown();
     });
-    it('should start without error', function() {
+    it('should listen without error', function() {
       assert.doesNotThrow(function() {
         server.start();
       });
