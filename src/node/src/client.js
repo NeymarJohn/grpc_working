@@ -216,19 +216,14 @@ ClientDuplexStream.prototype.getPeer = getPeer;
 function getCall(channel, method, options) {
   var deadline;
   var host;
-  var parent;
-  var propagate_flags;
   if (options) {
     deadline = options.deadline;
     host = options.host;
-    parent = _.get(options, 'parent.call');
-    propagate_flags = options.propagate_flags;
   }
   if (deadline === undefined) {
     deadline = Infinity;
   }
-  return new grpc.Call(channel, method, deadline, host,
-                       parent, propagate_flags);
+  return new grpc.Call(channel, method, deadline, host);
 }
 
 /**
