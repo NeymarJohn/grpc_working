@@ -31,37 +31,29 @@
  *
  */
 
-#ifndef GRPCXX_AUTH_METADATA_PROCESSOR_H_
-#define GRPCXX_AUTH_METADATA_PROCESSOR_H_
+/** Support zookeeper as alternative name system in addition to DNS
+ *  Zookeeper name in gRPC is represented as a URI:
+ *  zookeeper://host:port/path/service/instance
+ *
+ *  Where zookeeper is the name system scheme
+ *  host:port is the address of a zookeeper server
+ *  /path/service/instance is the zookeeper name to be resolved
+ *
+ *  Refer doc/naming.md for more details
+ */
 
-#include <map>
-#include <string>
+#ifndef GRPC_GRPC_ZOOKEEPER_H
+#define GRPC_GRPC_ZOOKEEPER_H
 
-#include <grpc++/auth_context.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-namespace grpc {
+/** Register zookeeper name resolver in grpc */
+void grpc_zookeeper_register();
 
-class AuthMetadataProcessor {
- public:
-  virtual ~AuthMetadataProcessor() {}
+#ifdef __cplusplus
+}
+#endif
 
-  // If this method returns true, the Process function will be scheduled in
-  // a different thread from the one processing the call.
-  virtual bool IsBlocking() const { return true; }
-
-  // context is read/write: it contains the properties of the channel peer and
-  // it is the job of the Process method to augment it with properties derived
-  // from the passed-in auth_metadata.
-  // consumed_auth_metadata needs to be filled with metadata that has been
-  // consumed by the processor and will be removed from the call.
-  // Returns true if successful.
-  virtual bool Process(
-      const std::multimap<grpc::string, grpc::string>& auth_metadata,
-      AuthContext* context,
-      std::multimap<grpc::string, grpc::string>* consumed_auth_metadata) = 0;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_AUTH_METADATA_PROCESSOR_H_
-
+#endif /* GRPC_GRPC_ZOOKEEPER_H */
