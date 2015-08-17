@@ -200,6 +200,7 @@ cc_library(
     "src/core/iomgr/tcp_server.h",
     "src/core/iomgr/tcp_windows.h",
     "src/core/iomgr/time_averaged_stats.h",
+    "src/core/iomgr/udp_server.h",
     "src/core/iomgr/wakeup_fd_pipe.h",
     "src/core/iomgr/wakeup_fd_posix.h",
     "src/core/json/json.h",
@@ -324,6 +325,7 @@ cc_library(
     "src/core/iomgr/tcp_server_windows.c",
     "src/core/iomgr/tcp_windows.c",
     "src/core/iomgr/time_averaged_stats.c",
+    "src/core/iomgr/udp_server.c",
     "src/core/iomgr/wakeup_fd_eventfd.c",
     "src/core/iomgr/wakeup_fd_nospecial.c",
     "src/core/iomgr/wakeup_fd_pipe.c",
@@ -464,6 +466,7 @@ cc_library(
     "src/core/iomgr/tcp_server.h",
     "src/core/iomgr/tcp_windows.h",
     "src/core/iomgr/time_averaged_stats.h",
+    "src/core/iomgr/udp_server.h",
     "src/core/iomgr/wakeup_fd_pipe.h",
     "src/core/iomgr/wakeup_fd_posix.h",
     "src/core/json/json.h",
@@ -568,6 +571,7 @@ cc_library(
     "src/core/iomgr/tcp_server_windows.c",
     "src/core/iomgr/tcp_windows.c",
     "src/core/iomgr/time_averaged_stats.c",
+    "src/core/iomgr/udp_server.c",
     "src/core/iomgr/wakeup_fd_eventfd.c",
     "src/core/iomgr/wakeup_fd_nospecial.c",
     "src/core/iomgr/wakeup_fd_pipe.c",
@@ -646,6 +650,26 @@ cc_library(
 
 
 cc_library(
+  name = "grpc_zookeeper",
+  srcs = [
+    "src/core/client_config/resolvers/zookeeper_resolver.h",
+    "src/core/client_config/resolvers/zookeeper_resolver.c",
+  ],
+  hdrs = [
+    "include/grpc/grpc_zookeeper.h",
+  ],
+  includes = [
+    "include",
+    ".",
+  ],
+  deps = [
+    ":gpr",
+    ":grpc",
+  ],
+)
+
+
+cc_library(
   name = "grpc++",
   srcs = [
     "src/cpp/client/secure_credentials.h",
@@ -689,7 +713,6 @@ cc_library(
     "include/grpc++/async_generic_service.h",
     "include/grpc++/async_unary_call.h",
     "include/grpc++/auth_context.h",
-    "include/grpc++/auth_metadata_processor.h",
     "include/grpc++/byte_buffer.h",
     "include/grpc++/channel_arguments.h",
     "include/grpc++/channel_interface.h",
@@ -777,7 +800,6 @@ cc_library(
     "include/grpc++/async_generic_service.h",
     "include/grpc++/async_unary_call.h",
     "include/grpc++/auth_context.h",
-    "include/grpc++/auth_metadata_processor.h",
     "include/grpc++/byte_buffer.h",
     "include/grpc++/channel_arguments.h",
     "include/grpc++/channel_interface.h",
@@ -1053,6 +1075,7 @@ objc_library(
     "src/core/iomgr/tcp_server_windows.c",
     "src/core/iomgr/tcp_windows.c",
     "src/core/iomgr/time_averaged_stats.c",
+    "src/core/iomgr/udp_server.c",
     "src/core/iomgr/wakeup_fd_eventfd.c",
     "src/core/iomgr/wakeup_fd_nospecial.c",
     "src/core/iomgr/wakeup_fd_pipe.c",
@@ -1190,6 +1213,7 @@ objc_library(
     "src/core/iomgr/tcp_server.h",
     "src/core/iomgr/tcp_windows.h",
     "src/core/iomgr/time_averaged_stats.h",
+    "src/core/iomgr/udp_server.h",
     "src/core/iomgr/wakeup_fd_pipe.h",
     "src/core/iomgr/wakeup_fd_posix.h",
     "src/core/json/json.h",
