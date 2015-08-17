@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -29,5 +27,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Provides a gem binary entry point for the interop client.
-require 'test/client'
+require 'grpc/health/v1alpha/health_services'
+
+module Grpc
+  # Health contains classes and modules that support providing a health check
+  # service.
+  module Health
+    class Checker
+    end
+  end
+end
