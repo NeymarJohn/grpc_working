@@ -27,32 +27,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# GRPC contains the General RPC module.
-module GRPC
-  # DefaultLogger is a module included in GRPC if no other logging is set up for
-  # it.  See ../spec/spec_helpers an example of where other logging is added.
-  module DefaultLogger
-    def logger
-      LOGGER
-    end
+"""Part of the tests of the base interface of RPC Framework."""
 
-    private
 
-    # NoopLogger implements the methods of Ruby's conventional logging interface
-    # that are actually used internally within gRPC with a noop implementation.
-    class NoopLogger
-      def info(_ignored)
-      end
+class OperationState(object):
 
-      def debug(_ignored)
-      end
-
-      def warn(_ignored)
-      end
-    end
-
-    LOGGER = NoopLogger.new
-  end
-
-  include DefaultLogger unless method_defined?(:logger)
-end
+  def __init__(self):
+    self.invocation_initial_metadata_in_flight = None
+    self.invocation_initial_metadata_received = False
+    self.invocation_payloads_in_flight = []
+    self.invocation_payloads_received = 0
+    self.invocation_completion_in_flight = None
+    self.invocation_completion_received = False
+    self.service_initial_metadata_in_flight = None
+    self.service_initial_metadata_received = False
+    self.service_payloads_in_flight = []
+    self.service_payloads_received = 0
+    self.service_completion_in_flight = None
+    self.service_completion_received = False
+    self.invocation_side_invocation_allowance = 1
+    self.invocation_side_service_allowance = 1
+    self.service_side_invocation_allowance = 1
+    self.service_side_service_allowance = 1
+    self.invocation_allowance_in_flight = 0
+    self.service_allowance_in_flight = 0
+    self.invocation_side_outcome = None
+    self.service_side_outcome = None
