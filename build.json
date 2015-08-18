@@ -114,7 +114,7 @@
         "include/grpc/status.h"
       ],
       "headers": [
-        "src/core/census/grpc_filter.h",
+        "src/core/channel/census_filter.h",
         "src/core/channel/channel_args.h",
         "src/core/channel/channel_stack.h",
         "src/core/channel/client_channel.h",
@@ -217,7 +217,6 @@
       ],
       "src": [
         "src/core/census/grpc_context.c",
-        "src/core/census/grpc_filter.c",
         "src/core/channel/channel_args.c",
         "src/core/channel/channel_stack.c",
         "src/core/channel/client_channel.c",
@@ -593,7 +592,8 @@
       "external_deps": [
         "zookeeper"
       ],
-      "secure": "no"
+      "secure": "no",
+      "vs_project_guid": "{F14EBEC1-DC43-45D3-8A7D-1A47072EFE50}"
     },
     {
       "name": "reconnect_server",
@@ -733,7 +733,6 @@
         "test/cpp/interop/client_helper.h"
       ],
       "src": [
-        "test/proto/messages.proto",
         "test/cpp/interop/client_helper.cc"
       ],
       "deps": [
@@ -985,20 +984,6 @@
       "language": "c",
       "src": [
         "test/core/transport/chttp2/stream_map_test.c"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "compression_test",
-      "build": "test",
-      "language": "c",
-      "src": [
-        "test/core/compression/compression_test.c"
       ],
       "deps": [
         "grpc_test_util",
@@ -2489,9 +2474,6 @@
         "gpr",
         "grpc++_test_config"
       ],
-      "exclude_configs": [
-        "tsan"
-      ],
       "platforms": [
         "mac",
         "linux",
@@ -2612,26 +2594,6 @@
         "grpc",
         "gpr_test_util",
         "gpr"
-      ]
-    },
-    {
-      "name": "shutdown_test",
-      "build": "test",
-      "language": "c++",
-      "src": [
-        "test/cpp/end2end/shutdown_test.cc"
-      ],
-      "deps": [
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc_zookeeper",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ],
-      "external_deps": [
-        "zookeeper"
       ]
     },
     {

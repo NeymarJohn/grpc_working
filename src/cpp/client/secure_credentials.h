@@ -59,3 +59,4 @@ class SecureCredentials GRPC_FINAL : public Credentials {
 }  // namespace grpc
 
 #endif  // GRPC_INTERNAL_CPP_CLIENT_SECURE_CREDENTIALS_H
+

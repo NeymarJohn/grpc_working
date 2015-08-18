@@ -38,4 +38,6 @@ bool protobuf_test(const google::protobuf::MethodDescriptor *method) {
   return method->client_streaming() || method->server_streaming();
 }
 
-int main() { return 0; }
+int main() {
+  return 0;
+}

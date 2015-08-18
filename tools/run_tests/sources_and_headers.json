@@ -122,20 +122,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "compression_test", 
-    "src": [
-      "test/core/compression/compression_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "dualstack_socket_test", 
     "src": [
       "test/core/end2end/dualstack_socket_test.c"
@@ -1618,23 +1604,6 @@
     "name": "server_crash_test_client", 
     "src": [
       "test/cpp/end2end/server_crash_test_client.cc"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc++", 
-      "grpc++_test_util", 
-      "grpc_test_util", 
-      "grpc_zookeeper"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "shutdown_test", 
-    "src": [
-      "test/cpp/end2end/shutdown_test.cc"
     ]
   }, 
   {
@@ -12270,8 +12239,8 @@
       "include/grpc/grpc_security.h", 
       "include/grpc/status.h", 
       "src/core/census/context.h", 
-      "src/core/census/grpc_filter.h", 
       "src/core/census/rpc_stat_id.h", 
+      "src/core/channel/census_filter.h", 
       "src/core/channel/channel_args.h", 
       "src/core/channel/channel_stack.h", 
       "src/core/channel/client_channel.h", 
@@ -12398,11 +12367,10 @@
       "src/core/census/context.c", 
       "src/core/census/context.h", 
       "src/core/census/grpc_context.c", 
-      "src/core/census/grpc_filter.c", 
-      "src/core/census/grpc_filter.h", 
       "src/core/census/initialize.c", 
       "src/core/census/record_stat.c", 
       "src/core/census/rpc_stat_id.h", 
+      "src/core/channel/census_filter.h", 
       "src/core/channel/channel_args.c", 
       "src/core/channel/channel_args.h", 
       "src/core/channel/channel_stack.c", 
@@ -12745,8 +12713,8 @@
       "include/grpc/grpc.h", 
       "include/grpc/status.h", 
       "src/core/census/context.h", 
-      "src/core/census/grpc_filter.h", 
       "src/core/census/rpc_stat_id.h", 
+      "src/core/channel/census_filter.h", 
       "src/core/channel/channel_args.h", 
       "src/core/channel/channel_stack.h", 
       "src/core/channel/client_channel.h", 
@@ -12859,11 +12827,10 @@
       "src/core/census/context.c", 
       "src/core/census/context.h", 
       "src/core/census/grpc_context.c", 
-      "src/core/census/grpc_filter.c", 
-      "src/core/census/grpc_filter.h", 
       "src/core/census/initialize.c", 
       "src/core/census/record_stat.c", 
       "src/core/census/rpc_stat_id.h", 
+      "src/core/channel/census_filter.h", 
       "src/core/channel/channel_args.c", 
       "src/core/channel/channel_args.h", 
       "src/core/channel/channel_stack.c", 
@@ -13465,9 +13432,7 @@
       "grpc_test_util"
     ], 
     "headers": [
-      "test/cpp/interop/client_helper.h", 
-      "test/proto/messages.grpc.pb.h", 
-      "test/proto/messages.pb.h"
+      "test/cpp/interop/client_helper.h"
     ], 
     "language": "c++", 
     "name": "interop_client_helper", 
