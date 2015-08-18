@@ -315,6 +315,5 @@ gpr_timespec gpr_convert_clock_type(gpr_timespec t, gpr_clock_type clock_type) {
     return gpr_time_add(gpr_now(clock_type), t);
   }
 
-  return gpr_time_add(gpr_now(clock_type),
-                      gpr_time_sub(t, gpr_now(t.clock_type)));
+  return gpr_time_add(gpr_now(clock_type), gpr_time_sub(t, gpr_now(t.clock_type)));
 }
