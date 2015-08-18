@@ -63,13 +63,7 @@ class Server GRPC_FINAL : public GrpcLibrary, private CallHook {
   ~Server();
 
   // Shutdown the server, block until all rpc processing finishes.
-  // Forcefully terminate pending calls after deadline expires.
-  template <class T>
-  void Shutdown(const T& deadline) {
-    ShutdownInternal(TimePoint<T>(deadline).raw_time());
-  }
-
-  void Shutdown() { ShutdownInternal(gpr_inf_future(GPR_CLOCK_MONOTONIC)); }
+  void Shutdown();
 
   // Block waiting for all work to complete (the server must either
   // be shutting down or some other thread must call Shutdown for this
@@ -104,8 +98,6 @@ class Server GRPC_FINAL : public GrpcLibrary, private CallHook {
   void ScheduleCallback();
 
   void PerformOpsOnCall(CallOpSetInterface* ops, Call* call) GRPC_OVERRIDE;
-
-  void ShutdownInternal(gpr_timespec deadline);
 
   class BaseAsyncRequest : public CompletionQueueTag {
    public:
