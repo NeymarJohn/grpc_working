@@ -168,8 +168,7 @@ class BaseStub {
   public function _simpleRequest($method,
                                  $argument,
                                  callable $deserialize,
-                                 $metadata = array(),
-                                 $options = array()) {
+                                 $metadata = array()) {
     list($actual_metadata, $timeout)  = $this->_extract_timeout_from_metadata($metadata);
     $call = new UnaryCall($this->channel, $method, $deserialize, $timeout);
     $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
@@ -178,7 +177,7 @@ class BaseStub {
                                         $actual_metadata,
                                         $jwt_aud_uri);
     }
-    $call->start($argument, $actual_metadata, $options);
+    $call->start($argument, $actual_metadata);
     return $call;
   }
 
@@ -194,6 +193,7 @@ class BaseStub {
    * @return ClientStreamingSurfaceActiveCall The active call object
    */
   public function _clientStreamRequest($method,
+                                       $arguments,
                                        callable $deserialize,
                                        $metadata = array()) {
     list($actual_metadata, $timeout)  = $this->_extract_timeout_from_metadata($metadata);
@@ -204,7 +204,7 @@ class BaseStub {
                                         $actual_metadata,
                                         $jwt_aud_uri);
     }
-    $call->start($actual_metadata);
+    $call->start($arguments, $actual_metadata);
     return $call;
   }
 
@@ -221,8 +221,7 @@ class BaseStub {
   public function _serverStreamRequest($method,
                                        $argument,
                                        callable $deserialize,
-                                       $metadata = array(),
-                                       $options = array()) {
+                                       $metadata = array()) {
     list($actual_metadata, $timeout)  = $this->_extract_timeout_from_metadata($metadata);
     $call = new ServerStreamingCall($this->channel, $method, $deserialize, $timeout);
     $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
@@ -231,7 +230,7 @@ class BaseStub {
                                         $actual_metadata,
                                         $jwt_aud_uri);
     }
-    $call->start($argument, $actual_metadata, $options);
+    $call->start($argument, $actual_metadata);
     return $call;
   }
 

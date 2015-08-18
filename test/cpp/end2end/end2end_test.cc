@@ -136,9 +136,9 @@ class TestAuthMetadataProcessor : public AuthMetadataProcessor {
     if (auth_md_value.ends_with(kGoodGuy)) {
       context->AddProperty(kIdentityPropName, kGoodGuy);
       context->SetPeerIdentityPropertyName(kIdentityPropName);
-      consumed_auth_metadata->insert(std::make_pair(
-          string(auth_md->first.data(), auth_md->first.length()),
-          string(auth_md->second.data(), auth_md->second.length())));
+      consumed_auth_metadata->insert(
+          std::make_pair(string(auth_md->first.data(), auth_md->first.length()),
+                         auth_md->second));
       return Status::OK;
     } else {
       return Status(StatusCode::UNAUTHENTICATED,

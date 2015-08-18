@@ -45,12 +45,11 @@ class _Subscription(
     base.Subscription,
     collections.namedtuple(
         '_Subscription',
-        ('kind', 'termination_callback', 'allowance', 'operator',
-         'protocol_receiver',))):
+        ('kind', 'termination_callback', 'allowance', 'operator',))):
   """A trivial implementation of base.Subscription."""
 
 _NONE_SUBSCRIPTION = _Subscription(
-    base.Subscription.Kind.NONE, None, None, None, None)
+    base.Subscription.Kind.NONE, None, None, None)
 
 
 def completion(terminal_metadata, code, message):
@@ -67,16 +66,14 @@ def completion(terminal_metadata, code, message):
   return _Completion(terminal_metadata, code, message)
 
 
-def full_subscription(operator, protocol_receiver):
+def full_subscription(operator):
   """Creates a "full" base.Subscription for the given base.Operator.
 
   Args:
     operator: A base.Operator to be used in an operation.
-    protocol_receiver: A base.ProtocolReceiver to be used in an operation.
 
   Returns:
     A base.Subscription of kind base.Subscription.Kind.FULL wrapping the given
-      base.Operator and base.ProtocolReceiver.
+      base.Operator.
   """
-  return _Subscription(
-      base.Subscription.Kind.FULL, None, None, operator, protocol_receiver)
+  return _Subscription(base.Subscription.Kind.FULL, None, None, operator)

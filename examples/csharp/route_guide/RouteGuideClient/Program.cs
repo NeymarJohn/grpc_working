@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Routeguide
+namespace examples
 {
     class Program
     {
@@ -30,24 +30,27 @@ namespace Routeguide
                 {
                     Log("*** GetFeature: lat={0} lon={1}", lat, lon);
 
-                    Point request = new Point { Latitude = lat, Longitude = lon };
+                    Point request = Point.CreateBuilder().SetLatitude(lat).SetLongitude(lon).Build();
                     
                     Feature feature = client.GetFeature(request);
-                    if (feature.Exists())
+                    if (RouteGuideUtil.Exists(feature))
                     {
                         Log("Found feature called \"{0}\" at {1}, {2}",
-                            feature.Name, feature.Location.GetLatitude(), feature.Location.GetLongitude());
+                            feature.Name,
+                            RouteGuideUtil.GetLatitude(feature.Location),
+                            RouteGuideUtil.GetLongitude(feature.Location));
                     }
                     else
                     {
                         Log("Found no feature at {0}, {1}",
-                            feature.Location.GetLatitude(), feature.Location.GetLongitude());
+                            RouteGuideUtil.GetLatitude(feature.Location),
+                            RouteGuideUtil.GetLongitude(feature.Location));
                     }
                 }
                 catch (RpcException e)
                 {
                     Log("RPC failed " + e);
-                    throw;
+                    throw e;
                 }
             }
 
@@ -62,20 +65,18 @@ namespace Routeguide
                     Log("*** ListFeatures: lowLat={0} lowLon={1} hiLat={2} hiLon={3}", lowLat, lowLon, hiLat,
                         hiLon);
 
-                    Rectangle request = new Rectangle
-                    {
-                        Lo = new Point { Latitude = lowLat, Longitude = lowLon },
-                        Hi = new Point { Latitude = hiLat, Longitude = hiLon }
-                    };
+                    Rectangle request =
+                        Rectangle.CreateBuilder()
+                            .SetLo(Point.CreateBuilder().SetLatitude(lowLat).SetLongitude(lowLon).Build())
+                            .SetHi(Point.CreateBuilder().SetLatitude(hiLat).SetLongitude(hiLon).Build()).Build();
                     
                     using (var call = client.ListFeatures(request))
                     {
-                        var responseStream = call.ResponseStream;
                         StringBuilder responseLog = new StringBuilder("Result: ");
 
-                        while (await responseStream.MoveNext())
+                        while (await call.ResponseStream.MoveNext())
                         {
-                            Feature feature = responseStream.Current;
+                            Feature feature = call.ResponseStream.Current;
                             responseLog.Append(feature.ToString());
                         }
                         Log(responseLog.ToString());
@@ -84,7 +85,7 @@ namespace Routeguide
                 catch (RpcException e)
                 {
                     Log("RPC failed " + e); 
-                    throw;
+                    throw e;
                 }
             }
 
@@ -106,7 +107,8 @@ namespace Routeguide
                         {
                             int index = rand.Next(features.Count);
                             Point point = features[index].Location;
-                            Log("Visiting point {0}, {1}", point.GetLatitude(), point.GetLongitude());
+                            Log("Visiting point {0}, {1}", RouteGuideUtil.GetLatitude(point),
+                                RouteGuideUtil.GetLongitude(point));
 
                             await call.RequestStream.WriteAsync(point);
 
@@ -115,7 +117,7 @@ namespace Routeguide
                         }
                         await call.RequestStream.CompleteAsync();
 
-                        RouteSummary summary = await call.ResponseAsync;
+                        RouteSummary summary = await call.Result;
                         Log("Finished trip with {0} points. Passed {1} features. "
                             + "Travelled {2} meters. It took {3} seconds.", summary.PointCount,
                             summary.FeatureCount, summary.Distance, summary.ElapsedTime);
@@ -126,7 +128,7 @@ namespace Routeguide
                 catch (RpcException e)
                 {
                     Log("RPC failed", e);
-                    throw;
+                    throw e;
                 }
             }
 
@@ -139,13 +141,8 @@ namespace Routeguide
                 try
                 {
                     Log("*** RouteChat");
-                    var requests = new List<RouteNote>
-                    {
-                        NewNote("First message", 0, 0),
-                        NewNote("Second message", 0, 1),
-                        NewNote("Third message", 1, 0),
-                        NewNote("Fourth message", 0, 0)
-                    };
+                    var requests =
+                        new List<RouteNote> { NewNote("First message", 0, 0), NewNote("Second message", 0, 1), NewNote("Third message", 1, 0), NewNote("Fourth message", 1, 1) };
 
                     using (var call = client.RouteChat())
                     {
@@ -175,7 +172,7 @@ namespace Routeguide
                 catch (RpcException e)
                 {
                     Log("RPC failed", e);
-                    throw;
+                    throw e;
                 }
             }
 
@@ -191,37 +188,36 @@ namespace Routeguide
 
             private RouteNote NewNote(string message, int lat, int lon)
             {
-                return new RouteNote
-                {
-                    Message = message,
-                    Location = new Point { Latitude = lat, Longitude = lon }
-                };
+                return RouteNote.CreateBuilder().SetMessage(message).SetLocation(
+                    Point.CreateBuilder().SetLatitude(lat).SetLongitude(lat).Build()).Build();
             }
         }
 
         static void Main(string[] args)
         {
-            var channel = new Channel("127.0.0.1:50052", Credentials.Insecure);
-            var client = new RouteGuideClient(RouteGuide.NewClient(channel));
+            GrpcEnvironment.Initialize();
 
-            // Looking for a valid feature
-            client.GetFeature(409146138, -746188906);
+            using (Channel channel = new Channel("127.0.0.1:50052"))
+            {
+                var client = new RouteGuideClient(RouteGuide.NewStub(channel));
 
-            // Feature missing.
-            client.GetFeature(0, 0);
+                // Looking for a valid feature
+                client.GetFeature(409146138, -746188906);
 
-            // Looking for features between 40, -75 and 42, -73.
-            client.ListFeatures(400000000, -750000000, 420000000, -730000000).Wait();
+                // Feature missing.
+                client.GetFeature(0, 0);
 
-            // Record a few randomly selected points from the features file.
-            client.RecordRoute(RouteGuideUtil.ParseFeatures(RouteGuideUtil.DefaultFeaturesFile), 10).Wait();
+                // Looking for features between 40, -75 and 42, -73.
+                client.ListFeatures(400000000, -750000000, 420000000, -730000000).Wait();
 
-            // Send and receive some notes.
-            client.RouteChat().Wait();
+                // Record a few randomly selected points from the features file.
+                client.RecordRoute(RouteGuideUtil.ParseFeatures(RouteGuideUtil.DefaultFeaturesFile), 10).Wait();
 
-            channel.ShutdownAsync().Wait();
-            Console.WriteLine("Press any key to exit...");
-            Console.ReadKey();
+                // Send and receive some notes.
+                client.RouteChat().Wait();
+            }
+
+            GrpcEnvironment.Shutdown();
         }
     }
 }

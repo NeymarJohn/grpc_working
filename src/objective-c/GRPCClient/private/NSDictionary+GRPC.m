@@ -40,8 +40,8 @@
 @interface NSData (GRPCMetadata)
 + (instancetype)grpc_dataFromMetadataValue:(grpc_metadata *)metadata;
 
-// Fill a metadata object with the binary value in this NSData.
-- (void)grpc_initMetadata:(grpc_metadata *)metadata;
+// Fill a metadata object with the binary value in this NSData and the given key.
+- (void)grpc_initMetadata:(grpc_metadata *)metadata withKey:(NSString *)key;
 @end
 
 @implementation NSData (GRPCMetadata)
@@ -50,7 +50,9 @@
   return [self dataWithBytes:metadata->value length:metadata->value_length];
 }
 
-- (void)grpc_initMetadata:(grpc_metadata *)metadata {
+- (void)grpc_initMetadata:(grpc_metadata *)metadata withKey:(NSString *)key {
+  // TODO(jcanizales): Encode Unicode chars as ASCII.
+  metadata->key = [key stringByAppendingString:@"-bin"].UTF8String;
   metadata->value = self.bytes;
   metadata->value_length = self.length;
 }
@@ -61,8 +63,8 @@
 @interface NSString (GRPCMetadata)
 + (instancetype)grpc_stringFromMetadataValue:(grpc_metadata *)metadata;
 
-// Fill a metadata object with the textual value in this NSString.
-- (void)grpc_initMetadata:(grpc_metadata *)metadata;
+// Fill a metadata object with the textual value in this NSString and the given key.
+- (void)grpc_initMetadata:(grpc_metadata *)metadata withKey:(NSString *)key;
 @end
 
 @implementation NSString (GRPCMetadata)
@@ -72,8 +74,22 @@
                             encoding:NSASCIIStringEncoding];
 }
 
-// Precondition: This object contains only ASCII characters.
-- (void)grpc_initMetadata:(grpc_metadata *)metadata {
+- (void)grpc_initMetadata:(grpc_metadata *)metadata withKey:(NSString *)key {
+  if ([key hasSuffix:@"-bin"]) {
+    // Disallow this, as at best it will confuse the server. If the app really needs to send a
+    // textual header with a name ending in "-bin", it can be done by removing the suffix and
+    // encoding the NSString as a NSData object.
+    //
+    // Why raise an exception: In the most common case, the developer knows this won't happen in
+    // their code, so the exception isn't triggered. In the rare cases when the developer can't
+    // tell, it's easy enough to add a sanitizing filter before the header is set. There, the
+    // developer can choose whether to drop such a header, or trim its name. Doing either ourselves,
+    // silently, would be very unintuitive for the user.
+    [NSException raise:NSInvalidArgumentException
+                format:@"Metadata keys ending in '-bin' are reserved for NSData values."];
+  }
+  // TODO(jcanizales): Encode Unicode chars as ASCII.
+  metadata->key = key.UTF8String;
   metadata->value = self.UTF8String;
   metadata->value_length = self.length;
 }
@@ -89,6 +105,8 @@
 + (instancetype)grpc_dictionaryFromMetadata:(grpc_metadata *)entries count:(size_t)count {
   NSMutableDictionary *metadata = [NSMutableDictionary dictionaryWithCapacity:count];
   for (grpc_metadata *entry = entries; entry < entries + count; entry++) {
+    // TODO(jcanizales): Verify in a C library test that it's converting header names to lower case
+    // automatically.
     NSString *name = [NSString stringWithCString:entry->key encoding:NSASCIIStringEncoding];
     if (!name || metadata[name]) {
       // Log if name is nil?
@@ -96,6 +114,7 @@
     }
     id value;
     if ([name hasSuffix:@"-bin"]) {
+      name = [name substringToIndex:name.length - 4];
       value = [NSData grpc_dataFromMetadataValue:entry];
     } else {
       value = [NSString grpc_stringFromMetadataValue:entry];
@@ -105,21 +124,19 @@
   return metadata;
 }
 
-// Preconditions: All keys are ASCII strings. Keys ending in -bin have NSData values; the others
-// have NSString values.
 - (grpc_metadata *)grpc_metadataArray {
   grpc_metadata *metadata = gpr_malloc([self count] * sizeof(grpc_metadata));
-  grpc_metadata *current = metadata;
-  for (NSString* key in self) {
+  int i = 0;
+  for (id key in self) {
     id value = self[key];
-    current->key = key.UTF8String;
-    if ([value respondsToSelector:@selector(grpc_initMetadata:)]) {
-      [value grpc_initMetadata:current];
+    grpc_metadata *current = &metadata[i];
+    if ([value respondsToSelector:@selector(grpc_initMetadata:withKey:)]) {
+      [value grpc_initMetadata:current withKey:key];
     } else {
       [NSException raise:NSInvalidArgumentException
                   format:@"Metadata values must be NSString or NSData."];
     }
-    ++current;
+    i += 1;
   }
   return metadata;
 }

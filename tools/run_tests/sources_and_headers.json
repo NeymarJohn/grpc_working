@@ -150,20 +150,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "endpoint_pair_test", 
-    "src": [
-      "test/core/iomgr/endpoint_pair_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "fd_conservation_posix_test", 
     "src": [
       "test/core/iomgr/fd_conservation_posix_test.c"
@@ -1622,22 +1608,6 @@
     "name": "status_test", 
     "src": [
       "test/cpp/util/status_test.cc"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc++", 
-      "grpc++_test_util", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "streaming_throughput_test", 
-    "src": [
-      "test/cpp/end2end/streaming_throughput_test.cc"
     ]
   }, 
   {
@@ -13126,7 +13096,6 @@
       "include/grpc++/create_channel.h", 
       "include/grpc++/generic/async_generic_service.h", 
       "include/grpc++/generic/generic_stub.h", 
-      "include/grpc++/grpc++.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
       "include/grpc++/impl/grpc_library.h", 
@@ -13179,7 +13148,6 @@
       "include/grpc++/create_channel.h", 
       "include/grpc++/generic/async_generic_service.h", 
       "include/grpc++/generic/generic_stub.h", 
-      "include/grpc++/grpc++.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
       "include/grpc++/impl/grpc_library.h", 
@@ -13310,7 +13278,6 @@
       "include/grpc++/create_channel.h", 
       "include/grpc++/generic/async_generic_service.h", 
       "include/grpc++/generic/generic_stub.h", 
-      "include/grpc++/grpc++.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
       "include/grpc++/impl/grpc_library.h", 
@@ -13360,7 +13327,6 @@
       "include/grpc++/create_channel.h", 
       "include/grpc++/generic/async_generic_service.h", 
       "include/grpc++/generic/generic_stub.h", 
-      "include/grpc++/grpc++.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
       "include/grpc++/impl/grpc_library.h", 

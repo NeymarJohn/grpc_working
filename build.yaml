@@ -13,9 +13,9 @@ filegroups:
 - name: grpc++_base
   public_headers: [include/grpc++/channel.h, include/grpc++/client_context.h, include/grpc++/completion_queue.h,
     include/grpc++/create_channel.h, include/grpc++/generic/async_generic_service.h,
-    include/grpc++/generic/generic_stub.h, include/grpc++/grpc++.h, include/grpc++/impl/call.h,
-    include/grpc++/impl/client_unary_call.h, include/grpc++/impl/grpc_library.h, include/grpc++/impl/proto_utils.h,
-    include/grpc++/impl/rpc_method.h, include/grpc++/impl/rpc_service_method.h, include/grpc++/impl/serialization_traits.h,
+    include/grpc++/generic/generic_stub.h, include/grpc++/impl/call.h, include/grpc++/impl/client_unary_call.h,
+    include/grpc++/impl/grpc_library.h, include/grpc++/impl/proto_utils.h, include/grpc++/impl/rpc_method.h,
+    include/grpc++/impl/rpc_service_method.h, include/grpc++/impl/serialization_traits.h,
     include/grpc++/impl/service_type.h, include/grpc++/impl/sync.h, include/grpc++/impl/sync_cxx11.h,
     include/grpc++/impl/sync_no_cxx11.h, include/grpc++/impl/thd.h, include/grpc++/impl/thd_cxx11.h,
     include/grpc++/impl/thd_no_cxx11.h, include/grpc++/security/auth_context.h, include/grpc++/security/auth_metadata_processor.h,
@@ -391,11 +391,6 @@ targets:
   src: [test/core/end2end/dualstack_socket_test.c]
   deps: [grpc_test_util, grpc, gpr_test_util, gpr]
   platforms: [mac, linux, posix]
-- name: endpoint_pair_test
-  build: test
-  language: c
-  src: [test/core/iomgr/endpoint_pair_test.c]
-  deps: [grpc_test_util, grpc, gpr_test_util, gpr]
 - name: fd_conservation_posix_test
   build: test
   language: c
@@ -567,7 +562,6 @@ targets:
   language: c
   src: [test/core/security/json_token_test.c]
   deps: [grpc_test_util, grpc, gpr_test_util, gpr]
-  platforms: [linux, posix, mac]
 - name: grpc_jwt_verifier_test
   build: test
   language: c
@@ -729,7 +723,6 @@ targets:
   language: c
   src: [test/core/tsi/transport_security_test.c]
   deps: [grpc_test_util, grpc, gpr_test_util, gpr]
-  platforms: [linux, posix, mac]
 - name: udp_server_test
   build: test
   language: c
@@ -970,12 +963,6 @@ targets:
   language: c++
   src: [test/cpp/util/status_test.cc]
   deps: [grpc_test_util, grpc++, grpc, gpr_test_util, gpr]
-- name: streaming_throughput_test
-  build: test
-  language: c++
-  src: [test/cpp/end2end/streaming_throughput_test.cc]
-  deps: [grpc++_test_util, grpc_test_util, grpc++, grpc, gpr_test_util, gpr]
-  platforms: [mac, linux, posix]
 - name: sync_streaming_ping_pong_test
   build: test
   language: c++
