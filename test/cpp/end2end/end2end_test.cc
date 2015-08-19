@@ -193,7 +193,6 @@ class TestAuthMetadataProcessor : public AuthMetadataProcessor {
 const char TestAuthMetadataProcessor::kGoodGuy[] = "Dr Jekyll";
 const char TestAuthMetadataProcessor::kIdentityPropName[] = "novel identity";
 
-
 class Proxy : public ::grpc::cpp::test::util::TestService::Service {
  public:
   Proxy(std::shared_ptr<Channel> channel)
@@ -259,7 +258,8 @@ class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
     if (request->has_param() &&
         (request->param().expected_client_identity().length() > 0 ||
          request->param().check_auth_context())) {
-      CheckServerAuthContext(context, request->param().expected_client_identity());
+      CheckServerAuthContext(context,
+                             request->param().expected_client_identity());
     }
     if (request->has_param() &&
         request->param().response_message_length() > 0) {
@@ -683,12 +683,8 @@ TEST_P(End2endTest, RequestStreamServerEarlyCancelTest) {
   auto stream = stub_->RequestStream(&context, &response);
   request.set_message("hello");
   int send_messages = 20;
-  while (send_messages > 10) {
-    EXPECT_TRUE(stream->Write(request));
-    send_messages--;
-  }
   while (send_messages > 0) {
-    stream->Write(request);
+    EXPECT_TRUE(stream->Write(request));
     send_messages--;
   }
   stream->WritesDone();

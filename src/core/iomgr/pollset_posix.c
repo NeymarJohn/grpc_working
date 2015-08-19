@@ -139,9 +139,7 @@ void grpc_pollset_global_shutdown(void) {
   gpr_tls_destroy(&g_current_thread_worker);
 }
 
-void grpc_kick_poller(void) {
-  grpc_wakeup_fd_wakeup(&grpc_global_wakeup_fd);
-}
+void grpc_kick_poller(void) { grpc_wakeup_fd_wakeup(&grpc_global_wakeup_fd); }
 
 /* main interface */
 
@@ -354,7 +352,6 @@ static void basic_do_promote(grpc_exec_ctx *exec_ctx, void *args, int success) {
   if (pollset->shutting_down) {
     /* We don't care about this pollset anymore. */
     if (pollset->in_flight_cbs == 0 && !pollset->called_shutdown) {
-      pollset->called_shutdown = 1;
       finish_shutdown(exec_ctx, pollset);
     }
   } else if (grpc_fd_is_orphaned(fd)) {
