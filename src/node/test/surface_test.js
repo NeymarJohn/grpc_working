@@ -784,8 +784,7 @@ describe('Other conditions', function() {
           client.clientStream(function(err, value) {
             try {
               assert(err);
-              assert(err.code === grpc.status.DEADLINE_EXCEEDED ||
-                  err.code === grpc.status.INTERNAL);
+              assert.strictEqual(err.code, grpc.status.DEADLINE_EXCEEDED);
             } finally {
               callback(err, value);
               done();
@@ -810,8 +809,7 @@ describe('Other conditions', function() {
               null, {parent: parent, propagate_flags: deadline_flags});
           child.on('error', function(err) {
             assert(err);
-            assert(err.code === grpc.status.DEADLINE_EXCEEDED ||
-                err.code === grpc.status.INTERNAL);
+            assert.strictEqual(err.code, grpc.status.DEADLINE_EXCEEDED);
             done();
           });
         };
