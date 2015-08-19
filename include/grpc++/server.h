@@ -43,7 +43,6 @@
 #include <grpc++/impl/grpc_library.h>
 #include <grpc++/impl/sync.h>
 #include <grpc++/status.h>
-#include <grpc/compression.h>
 
 struct grpc_server;
 
@@ -64,7 +63,14 @@ class Server GRPC_FINAL : public GrpcLibrary, private CallHook {
   ~Server();
 
   // Shutdown the server, block until all rpc processing finishes.
-  void Shutdown();
+  // Forcefully terminate pending calls after deadline expires.
+  template <class T>
+  void Shutdown(const T& deadline) {
+    ShutdownInternal(TimePoint<T>(deadline).raw_time());
+  }
+
+  // Shutdown the server, waiting for all rpc processing to finish.
+  void Shutdown() { ShutdownInternal(gpr_inf_future(GPR_CLOCK_MONOTONIC)); }
 
   // Block waiting for all work to complete (the server must either
   // be shutting down or some other thread must call Shutdown for this
@@ -82,7 +88,7 @@ class Server GRPC_FINAL : public GrpcLibrary, private CallHook {
 
   // ServerBuilder use only
   Server(ThreadPoolInterface* thread_pool, bool thread_pool_owned,
-         int max_message_size, grpc_compression_options compression_options);
+         int max_message_size);
   // Register a service. This call does not take ownership of the service.
   // The service must exist for the lifetime of the Server instance.
   bool RegisterService(const grpc::string* host, RpcService* service);
@@ -99,6 +105,8 @@ class Server GRPC_FINAL : public GrpcLibrary, private CallHook {
   void ScheduleCallback();
 
   void PerformOpsOnCall(CallOpSetInterface* ops, Call* call) GRPC_OVERRIDE;
+
+  void ShutdownInternal(gpr_timespec deadline);
 
   class BaseAsyncRequest : public CompletionQueueTag {
    public:
