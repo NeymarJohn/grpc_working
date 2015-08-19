@@ -613,26 +613,11 @@ function Server(options) {
     }
     server.requestCall(handleNewCall);
   };
-
   /**
-   * Gracefully shuts down the server. The server will stop receiving new calls,
-   * and any pending calls will complete. The callback will be called when all
-   * pending calls have completed and the server is fully shut down. This method
-   * is idempotent with itself and forceShutdown.
-   * @param {function()} callback The shutdown complete callback
+   * Shuts down the server.
    */
-  this.tryShutdown = function(callback) {
-    server.tryShutdown(callback);
-  };
-
-  /**
-   * Forcibly shuts down the server. The server will stop receiving new calls
-   * and cancel all pending calls. When it returns, the server has shut down.
-   * This method is idempotent with itself and tryShutdown, and it will trigger
-   * any outstanding tryShutdown callbacks.
-   */
-  this.forceShutdown = function() {
-    server.forceShutdown();
+  this.shutdown = function() {
+    server.shutdown();
   };
 }
 
