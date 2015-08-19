@@ -264,9 +264,7 @@ function timeoutOnSleepingServer(client, done) {
     payload: {body: zeroBuffer(27182)}
   });
   call.on('error', function(error) {
-
-    assert(error.code === grpc.status.DEADLINE_EXCEEDED ||
-        error.code === grpc.status.INTERNAL);
+    assert.strictEqual(error.code, grpc.status.DEADLINE_EXCEEDED);
     done();
   });
 }
