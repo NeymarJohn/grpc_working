@@ -216,18 +216,13 @@ PHP_METHOD(Call, __construct) {
   char *method;
   int method_len;
   zval *deadline_obj;
-  char *host_override = NULL;
-  int host_override_len = 0;
-  /* "OsO|s" == 1 Object, 1 string, 1 Object, 1 optional string */
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OsO|s",
-                            &channel_obj, grpc_ce_channel,
-                            &method, &method_len,
-                            &deadline_obj, grpc_ce_timeval,
-                            &host_override, &host_override_len)
-      == FAILURE) {
+  /* "OsO" == 1 Object, 1 string, 1 Object */
+  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OsO", &channel_obj,
+                            grpc_ce_channel, &method, &method_len,
+                            &deadline_obj, grpc_ce_timeval) == FAILURE) {
     zend_throw_exception(
         spl_ce_InvalidArgumentException,
-        "Call expects a Channel, a String, a Timeval and an optional String",
+        "Call expects a Channel, a String, and a Timeval",
         1 TSRMLS_CC);
     return;
   }
@@ -246,7 +241,7 @@ PHP_METHOD(Call, __construct) {
           deadline_obj TSRMLS_CC);
   call->wrapped = grpc_channel_create_call(
       channel->wrapped, NULL, GRPC_PROPAGATE_DEFAULTS, completion_queue, method,
-      host_override, deadline->wrapped, NULL);
+      channel->target, deadline->wrapped, NULL);
 }
 
 /**
