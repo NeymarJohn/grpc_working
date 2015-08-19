@@ -58,8 +58,9 @@ class Channel GRPC_FINAL : public GrpcLibrary, public ChannelInterface {
 
   void* RegisterMethod(const char* method) GRPC_OVERRIDE;
   Call CreateCall(const RpcMethod& method, ClientContext* context,
-                  CompletionQueue* cq) GRPC_OVERRIDE;
-  void PerformOpsOnCall(CallOpSetInterface* ops, Call* call) GRPC_OVERRIDE;
+                          CompletionQueue* cq) GRPC_OVERRIDE;
+  void PerformOpsOnCall(CallOpSetInterface* ops,
+                                Call* call) GRPC_OVERRIDE;
 
   grpc_connectivity_state GetState(bool try_to_connect) GRPC_OVERRIDE;
 

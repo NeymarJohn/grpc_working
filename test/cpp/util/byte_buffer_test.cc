@@ -46,7 +46,8 @@ namespace {
 const char* kContent1 = "hello xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 const char* kContent2 = "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy world";
 
-class ByteBufferTest : public ::testing::Test {};
+class ByteBufferTest : public ::testing::Test {
+};
 
 TEST_F(ByteBufferTest, CreateFromSingleSlice) {
   gpr_slice hello = gpr_slice_from_copied_string(kContent1);
