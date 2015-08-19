@@ -37,13 +37,15 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Google.Apis.Auth.OAuth2;
 using Google.ProtocolBuffers;
+
 using grpc.testing;
 using Grpc.Auth;
 using Grpc.Core;
 using Grpc.Core.Utils;
+
 using NUnit.Framework;
-using Google.Apis.Auth.OAuth2;
 
 namespace Grpc.IntegrationTesting
 {
@@ -308,7 +310,7 @@ namespace Grpc.IntegrationTesting
             Console.WriteLine("running service_account_creds");
             var credential = await GoogleCredential.GetApplicationDefaultAsync();
             credential = credential.CreateScoped(new[] { AuthScope });
-            client.HeaderInterceptor = OAuth2Interceptors.FromCredential(credential);
+            client.HeaderInterceptor = AuthInterceptors.FromCredential(credential);
 
             var request = SimpleRequest.CreateBuilder()
                 .SetResponseType(PayloadType.COMPRESSABLE)
@@ -332,7 +334,7 @@ namespace Grpc.IntegrationTesting
             Console.WriteLine("running compute_engine_creds");
             var credential = await GoogleCredential.GetApplicationDefaultAsync();
             Assert.IsFalse(credential.IsCreateScopedRequired);
-            client.HeaderInterceptor = OAuth2Interceptors.FromCredential(credential);
+            client.HeaderInterceptor = AuthInterceptors.FromCredential(credential);
             
             var request = SimpleRequest.CreateBuilder()
                 .SetResponseType(PayloadType.COMPRESSABLE)
@@ -357,7 +359,7 @@ namespace Grpc.IntegrationTesting
             var credential = await GoogleCredential.GetApplicationDefaultAsync();
             // check this a credential with scope support, but don't add the scope.
             Assert.IsTrue(credential.IsCreateScopedRequired);
-            client.HeaderInterceptor = OAuth2Interceptors.FromCredential(credential);
+            client.HeaderInterceptor = AuthInterceptors.FromCredential(credential);
 
             var request = SimpleRequest.CreateBuilder()
                 .SetResponseType(PayloadType.COMPRESSABLE)
@@ -381,7 +383,7 @@ namespace Grpc.IntegrationTesting
             ITokenAccess credential = (await GoogleCredential.GetApplicationDefaultAsync()).CreateScoped(new[] { AuthScope });
             string oauth2Token = await credential.GetAccessTokenForRequestAsync();
 
-            client.HeaderInterceptor = OAuth2Interceptors.FromAccessToken(oauth2Token);
+            client.HeaderInterceptor = AuthInterceptors.FromAccessToken(oauth2Token);
 
             var request = SimpleRequest.CreateBuilder()
                 .SetFillUsername(true)
@@ -401,7 +403,7 @@ namespace Grpc.IntegrationTesting
 
             ITokenAccess credential = (await GoogleCredential.GetApplicationDefaultAsync()).CreateScoped(new[] { AuthScope });
             string oauth2Token = await credential.GetAccessTokenForRequestAsync();
-            var headerInterceptor = OAuth2Interceptors.FromAccessToken(oauth2Token);
+            var headerInterceptor = AuthInterceptors.FromAccessToken(oauth2Token);
 
             var request = SimpleRequest.CreateBuilder()
                 .SetFillUsername(true)
@@ -409,7 +411,7 @@ namespace Grpc.IntegrationTesting
                 .Build();
 
             var headers = new Metadata();
-            headerInterceptor("", headers);
+            headerInterceptor(null, "", headers);
             var response = client.UnaryCall(request, headers: headers);
 
             Assert.AreEqual(AuthScopeResponse, response.OauthScope);

@@ -101,8 +101,8 @@ class ServerBuilder {
   void SetThreadPool(ThreadPoolInterface* thread_pool);
 
   // Add a completion queue for handling asynchronous services
-  // Caller is required to keep this completion queue live until
-  // the server is destroyed.
+  // Caller is required to keep this completion queue live until calling
+  // BuildAndStart()
   std::unique_ptr<ServerCompletionQueue> AddCompletionQueue();
 
   // Return a running server which is ready for processing rpcs.
