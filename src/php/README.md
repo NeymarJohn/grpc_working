@@ -7,17 +7,17 @@ This directory contains source code for PHP implementation of gRPC layered on sh
 
 Alpha : Ready for early adopters
 
-## Environment
+## ENVIRONMENT
 
 Prerequisite: PHP 5.5 or later, `phpunit`, `pecl`
 
-**Linux:**
+Linux:
 
 ```sh
 $ sudo apt-get install php5 php5-dev phpunit php-pear
 ```
 
-**Mac OS X:**
+OS X:
 
 ```sh
 $ curl https://phar.phpunit.de/phpunit.phar -o phpunit.phar
@@ -28,46 +28,16 @@ $ curl -O http://pear.php.net/go-pear.phar
 $ sudo php -d detect_unicode=0 go-pear.phar
 ```
 
-## Quick Install
+## Build from Homebrew
 
-**Linux (Debian):**
-
-Add [Debian unstable][] to your `sources.list` file. Example:
-
-```sh
-echo "deb http://ftp.us.debian.org/debian unstable main contrib non-free" | \
-sudo tee -a /etc/apt/sources.list
-```
-
-Install the gRPC debian package
-
-```sh
-sudo apt-get update
-sudo apt-get install libgrpc-dev
-```
-
-Install the gRPC PHP extension
-
-```sh
-sudo pecl install grpc-alpha
-```
-
-**Mac OS X:**
-
-Install [homebrew][]. Example:
-
-```sh
-ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-```
-
-Install the gRPC core library and the PHP extension in one step
+On Mac OS X, install [homebrew][]. On Linux, install [linuxbrew][]. Run the following command to
+install gRPC.
 
 ```sh
 $ curl -fsSL https://goo.gl/getgrpc | bash -s php
 ```
 
 This will download and run the [gRPC install script][] and compile the gRPC PHP extension.
-
 
 ## Build from Source
 
@@ -101,7 +71,7 @@ $ sudo make install
 Install the gRPC PHP extension
 
 ```sh
-$ sudo pecl install grpc-alpha
+$ sudo pecl install grpc
 ```
 
 OR
@@ -170,6 +140,6 @@ $ ./bin/run_gen_code_test.sh
 ```
 
 [homebrew]:http://brew.sh
+[linuxbrew]:https://github.com/Homebrew/linuxbrew#installation
 [gRPC install script]:https://raw.githubusercontent.com/grpc/homebrew-grpc/master/scripts/install
 [Node]:https://github.com/grpc/grpc/tree/master/src/node/examples
-[Debian unstable]:https://www.debian.org/releases/sid/
