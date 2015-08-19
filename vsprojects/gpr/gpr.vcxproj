@@ -127,6 +127,7 @@
     <ClInclude Include="..\..\include\grpc\support\atm_gcc_atomic.h" />
     <ClInclude Include="..\..\include\grpc\support\atm_gcc_sync.h" />
     <ClInclude Include="..\..\include\grpc\support\atm_win32.h" />
+    <ClInclude Include="..\..\include\grpc\support\cancellable_platform.h" />
     <ClInclude Include="..\..\include\grpc\support\cmdline.h" />
     <ClInclude Include="..\..\include\grpc\support\cpu.h" />
     <ClInclude Include="..\..\include\grpc\support\histogram.h" />
@@ -161,6 +162,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\core\support\alloc.c">
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\support\cancellable.c">
     </ClCompile>
     <ClCompile Include="..\..\src\core\support\cmdline.c">
     </ClCompile>

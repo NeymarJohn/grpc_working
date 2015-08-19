@@ -38,7 +38,6 @@
 #include <grpc++/impl/service_type.h>
 #include <grpc++/server.h>
 #include <grpc++/thread_pool_interface.h>
-#include <grpc++/fixed_size_thread_pool.h>
 
 namespace grpc {
 
@@ -59,16 +58,14 @@ void ServerBuilder::RegisterAsyncService(AsynchronousService* service) {
   async_services_.emplace_back(new NamedService<AsynchronousService>(service));
 }
 
-void ServerBuilder::RegisterService(const grpc::string& addr,
-                                    SynchronousService* service) {
-  services_.emplace_back(
-      new NamedService<RpcService>(addr, service->service()));
+void ServerBuilder::RegisterService(
+    const grpc::string& addr, SynchronousService* service) {
+  services_.emplace_back(new NamedService<RpcService>(addr, service->service()));
 }
 
-void ServerBuilder::RegisterAsyncService(const grpc::string& addr,
-                                         AsynchronousService* service) {
-  async_services_.emplace_back(
-      new NamedService<AsynchronousService>(addr, service));
+void ServerBuilder::RegisterAsyncService(
+    const grpc::string& addr, AsynchronousService* service) {
+  async_services_.emplace_back(new NamedService<AsynchronousService>(addr, service));
 }
 
 void ServerBuilder::RegisterAsyncGenericService(AsyncGenericService* service) {
@@ -103,17 +100,10 @@ std::unique_ptr<Server> ServerBuilder::BuildAndStart() {
     thread_pool_ = CreateDefaultThreadPool();
     thread_pool_owned = true;
   }
-  // Async services only, create a thread pool to handle requests to unknown
-  // services.
-  if (!thread_pool_ && !generic_service_ && !async_services_.empty()) {
-    thread_pool_ = new FixedSizeThreadPool(1);
-    thread_pool_owned = true;
-  }
   std::unique_ptr<Server> server(
       new Server(thread_pool_, thread_pool_owned, max_message_size_));
   for (auto cq = cqs_.begin(); cq != cqs_.end(); ++cq) {
-    grpc_server_register_completion_queue(server->server_, (*cq)->cq(),
-                                          nullptr);
+    grpc_server_register_completion_queue(server->server_, (*cq)->cq());
   }
   for (auto service = services_.begin(); service != services_.end();
        service++) {
@@ -121,10 +111,9 @@ std::unique_ptr<Server> ServerBuilder::BuildAndStart() {
       return nullptr;
     }
   }
-  for (auto service = async_services_.begin(); service != async_services_.end();
-       service++) {
-    if (!server->RegisterAsyncService((*service)->host.get(),
-                                      (*service)->service)) {
+  for (auto service = async_services_.begin();
+       service != async_services_.end(); service++) {
+    if (!server->RegisterAsyncService((*service)->host.get(), (*service)->service)) {
       return nullptr;
     }
   }

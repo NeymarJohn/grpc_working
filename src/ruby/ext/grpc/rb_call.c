@@ -170,7 +170,7 @@ static VALUE grpc_rb_call_cancel(VALUE self) {
   grpc_call *call = NULL;
   grpc_call_error err;
   TypedData_Get_Struct(self, grpc_call, &grpc_call_data_type, call);
-  err = grpc_call_cancel(call, NULL);
+  err = grpc_call_cancel(call);
   if (err != GRPC_CALL_OK) {
     rb_raise(grpc_rb_eCallError, "cancel failed: %s (code=%d)",
              grpc_call_error_detail_of(err), err);
@@ -526,7 +526,6 @@ static void grpc_run_batch_stack_fill_ops(run_batch_stack *st, VALUE ops_hash) {
     };
     st->ops[st->op_num].op = (grpc_op_type)NUM2INT(this_op);
     st->ops[st->op_num].flags = 0;
-    st->ops[st->op_num].reserved = NULL;
     st->op_num++;
   }
 }
@@ -616,7 +615,7 @@ static VALUE grpc_rb_call_run_batch(VALUE self, VALUE cqueue, VALUE tag,
 
   /* call grpc_call_start_batch, then wait for it to complete using
    * pluck_event */
-  err = grpc_call_start_batch(call, st.ops, st.op_num, ROBJECT(tag), NULL);
+  err = grpc_call_start_batch(call, st.ops, st.op_num, ROBJECT(tag));
   if (err != GRPC_CALL_OK) {
     grpc_run_batch_stack_cleanup(&st);
     rb_raise(grpc_rb_eCallError,
@@ -630,9 +629,13 @@ static VALUE grpc_rb_call_run_batch(VALUE self, VALUE cqueue, VALUE tag,
     rb_raise(grpc_rb_eOutOfTime, "grpc_call_start_batch timed out");
     return Qnil;
   }
+  if (!ev.success) {
+    grpc_run_batch_stack_cleanup(&st);
+    rb_raise(grpc_rb_eCallError, "start_batch completion failed");
+    return Qnil;
+  }
 
-  /* Build and return the BatchResult struct result,
-     if there is an error, it's reflected in the status */
+  /* Build and return the BatchResult struct result */
   result = grpc_run_batch_stack_build_result(&st);
   grpc_run_batch_stack_cleanup(&st);
   return result;

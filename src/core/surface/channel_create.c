@@ -38,6 +38,7 @@
 
 #include <grpc/support/alloc.h>
 
+#include "src/core/census/census_filter.h"
 #include "src/core/channel/channel_args.h"
 #include "src/core/channel/client_channel.h"
 #include "src/core/channel/compress_filter.h"
@@ -155,8 +156,7 @@ static const grpc_subchannel_factory_vtable subchannel_factory_vtable = {
                    - connect to it (trying alternatives as presented)
                    - perform handshakes */
 grpc_channel *grpc_insecure_channel_create(const char *target,
-                                           const grpc_channel_args *args,
-                                           void *reserved) {
+                                           const grpc_channel_args *args) {
   grpc_channel *channel = NULL;
 #define MAX_FILTERS 3
   const grpc_channel_filter *filters[MAX_FILTERS];
@@ -164,11 +164,9 @@ grpc_channel *grpc_insecure_channel_create(const char *target,
   subchannel_factory *f;
   grpc_mdctx *mdctx = grpc_mdctx_create();
   int n = 0;
-  GPR_ASSERT(!reserved);
-  /* TODO(census)
   if (grpc_channel_args_is_census_enabled(args)) {
     filters[n++] = &grpc_client_census_filter;
-    } */
+  }
   filters[n++] = &grpc_compress_filter;
   filters[n++] = &grpc_client_channel_filter;
   GPR_ASSERT(n <= MAX_FILTERS);

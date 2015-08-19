@@ -41,7 +41,7 @@
 #include <grpc/support/string_util.h>
 #include <grpc/support/useful.h>
 
-#include "src/core/channel/census_filter.h"
+#include "src/core/census/census_filter.h"
 #include "src/core/channel/channel_args.h"
 #include "src/core/channel/connected_channel.h"
 #include "src/core/iomgr/iomgr.h"
@@ -712,8 +712,7 @@ static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
   chand->server = NULL;
   chand->channel = NULL;
   chand->path_key = grpc_mdstr_from_string(metadata_context, ":path", 0);
-  chand->authority_key =
-      grpc_mdstr_from_string(metadata_context, ":authority", 0);
+  chand->authority_key = grpc_mdstr_from_string(metadata_context, ":authority", 0);
   chand->next = chand->prev = chand;
   chand->registered_methods = NULL;
   chand->connectivity_state = GRPC_CHANNEL_IDLE;
@@ -762,10 +761,8 @@ static const grpc_channel_filter server_surface_filter = {
 };
 
 void grpc_server_register_completion_queue(grpc_server *server,
-                                           grpc_completion_queue *cq,
-                                           void *reserved) {
+                                           grpc_completion_queue *cq) {
   size_t i, n;
-  GPR_ASSERT(!reserved);
   for (i = 0; i < server->cq_count; i++) {
     if (server->cqs[i] == cq) return;
   }
@@ -821,10 +818,9 @@ grpc_server *grpc_server_create_from_filters(
   server->channel_filters =
       gpr_malloc(server->channel_filter_count * sizeof(grpc_channel_filter *));
   server->channel_filters[0] = &server_surface_filter;
-  /* TODO(census): restore this once we rework census filter
   if (census_enabled) {
     server->channel_filters[1] = &grpc_server_census_filter;
-    } */
+  }
   for (i = 0; i < filter_count; i++) {
     server->channel_filters[i + 1 + census_enabled] = filters[i];
   }
@@ -1135,7 +1131,6 @@ grpc_call_error grpc_server_request_call(
     return GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE;
   }
   grpc_cq_begin_op(cq_for_notification);
-  details->reserved = NULL;
   rc->type = BATCH_CALL;
   rc->server = server;
   rc->tag = tag;

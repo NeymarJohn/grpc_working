@@ -49,18 +49,6 @@ grpc::string GetOauth2AccessToken();
 std::shared_ptr<ChannelInterface> CreateChannelForTestCase(
     const grpc::string& test_case);
 
-class InteropClientContextInspector {
- public:
-  InteropClientContextInspector(const ::grpc::ClientContext& context);
-
-  // Inspector methods, able to peek inside ClientContext, follow.
-  grpc_compression_algorithm GetCallCompressionAlgorithm() const;
-  gpr_uint32 GetMessageFlags() const;
-
- private:
-  const ::grpc::ClientContext& context_;
-};
-
 }  // namespace testing
 }  // namespace grpc
 

@@ -77,19 +77,19 @@ void ClientContext::set_call(grpc_call* call,
   channel_ = channel;
   if (creds_ && !creds_->ApplyToCall(call_)) {
     grpc_call_cancel_with_status(call, GRPC_STATUS_CANCELLED,
-                                 "Failed to set credentials to rpc.", nullptr);
+                                 "Failed to set credentials to rpc.");
   }
 }
 
 void ClientContext::set_compression_algorithm(
     grpc_compression_algorithm algorithm) {
-  char* algorithm_name = nullptr;
+  char* algorithm_name = NULL;
   if (!grpc_compression_algorithm_name(algorithm, &algorithm_name)) {
     gpr_log(GPR_ERROR, "Name for compression algorithm '%d' unknown.",
             algorithm);
     abort();
   }
-  GPR_ASSERT(algorithm_name != nullptr);
+  GPR_ASSERT(algorithm_name != NULL);
   AddMetadata(GRPC_COMPRESS_REQUEST_ALGORITHM_KEY, algorithm_name);
 }
 
@@ -102,7 +102,7 @@ std::shared_ptr<const AuthContext> ClientContext::auth_context() const {
 
 void ClientContext::TryCancel() {
   if (call_) {
-    grpc_call_cancel(call_, nullptr);
+    grpc_call_cancel(call_);
   }
 }
 

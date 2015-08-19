@@ -73,7 +73,6 @@ template <class ServiceType, class RequestType, class ResponseType>
 class ServerStreamingHandler;
 template <class ServiceType, class RequestType, class ResponseType>
 class BidiStreamingHandler;
-class UnknownMethodHandler;
 
 class Call;
 class CallOpBuffer;
@@ -81,7 +80,7 @@ class CompletionQueue;
 class Server;
 
 namespace testing {
-class InteropServerContextInspector;
+class InteropContextInspector;
 }  // namespace testing
 
 // Interface of server side rpc context.
@@ -136,7 +135,7 @@ class ServerContext {
   }
 
  private:
-  friend class ::grpc::testing::InteropServerContextInspector;
+  friend class ::grpc::testing::InteropContextInspector;
   friend class ::grpc::Server;
   template <class W, class R>
   friend class ::grpc::ServerAsyncReader;
@@ -160,7 +159,6 @@ class ServerContext {
   friend class ServerStreamingHandler;
   template <class ServiceType, class RequestType, class ResponseType>
   friend class BidiStreamingHandler;
-  friend class UnknownMethodHandler;
   friend class ::grpc::ClientContext;
 
   // Prevent copying.
