@@ -79,19 +79,13 @@ function ClientWritableStream(call, serialize) {
  * implementation of a method needed for implementing stream.Writable.
  * @access private
  * @param {Buffer} chunk The chunk to write
- * @param {string} encoding Used to pass write flags
+ * @param {string} encoding Ignored
  * @param {function(Error=)} callback Called when the write is complete
  */
 function _write(chunk, encoding, callback) {
   /* jshint validthis: true */
   var batch = {};
-  var message = this.serialize(chunk);
-  if (_.isFinite(encoding)) {
-    /* Attach the encoding if it is a finite number. This is the closest we
-     * can get to checking that it is valid flags */
-    message.grpcWriteFlags = encoding;
-  }
-  batch[grpc.opType.SEND_MESSAGE] = message;
+  batch[grpc.opType.SEND_MESSAGE] = this.serialize(chunk);
   this.call.startBatch(batch, function(err, event) {
     if (err) {
       // Something has gone wrong. Stop writing by failing to call callback
@@ -279,10 +273,8 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
         return;
       }
       var client_batch = {};
-      var message = serialize(argument);
-      message.grpcWriteFlags = options.flags;
       client_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
-      client_batch[grpc.opType.SEND_MESSAGE] = message;
+      client_batch[grpc.opType.SEND_MESSAGE] = serialize(argument);
       client_batch[grpc.opType.SEND_CLOSE_FROM_CLIENT] = true;
       client_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
       client_batch[grpc.opType.RECV_MESSAGE] = true;
@@ -415,11 +407,9 @@ function makeServerStreamRequestFunction(method, serialize, deserialize) {
         return;
       }
       var start_batch = {};
-      var message = serialize(argument);
-      message.grpcWriteFlags = options.flags;
       start_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
       start_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
-      start_batch[grpc.opType.SEND_MESSAGE] = message;
+      start_batch[grpc.opType.SEND_MESSAGE] = serialize(argument);
       start_batch[grpc.opType.SEND_CLOSE_FROM_CLIENT] = true;
       call.startBatch(start_batch, function(err, response) {
         if (err) {
