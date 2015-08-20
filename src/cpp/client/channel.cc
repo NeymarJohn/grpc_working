@@ -31,7 +31,7 @@
  *
  */
 
-#include <grpc++/channel.h>
+#include "src/cpp/client/channel.h"
 
 #include <memory>
 
@@ -51,6 +51,8 @@
 #include <grpc++/time.h>
 
 namespace grpc {
+
+Channel::Channel(grpc_channel* channel) : c_channel_(channel) {}
 
 Channel::Channel(const grpc::string& host, grpc_channel* channel)
     : host_(host), c_channel_(channel) {}

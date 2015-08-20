@@ -31,37 +31,6 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_INTEROP_CLIENT_HELPER_H
-#define GRPC_TEST_CPP_INTEROP_CLIENT_HELPER_H
+#include <grpc++/impl/internal_stub.h>
 
-#include <memory>
-
-#include <grpc++/config.h>
-#include <grpc++/channel_interface.h>
-
-namespace grpc {
-namespace testing {
-
-grpc::string GetServiceAccountJsonKey();
-
-grpc::string GetOauth2AccessToken();
-
-std::shared_ptr<ChannelInterface> CreateChannelForTestCase(
-    const grpc::string& test_case);
-
-class InteropClientContextInspector {
- public:
-  InteropClientContextInspector(const ::grpc::ClientContext& context);
-
-  // Inspector methods, able to peek inside ClientContext, follow.
-  grpc_compression_algorithm GetCallCompressionAlgorithm() const;
-  gpr_uint32 GetMessageFlags() const;
-
- private:
-  const ::grpc::ClientContext& context_;
-};
-
-}  // namespace testing
-}  // namespace grpc
-
-#endif  // GRPC_TEST_CPP_INTEROP_CLIENT_HELPER_H
+namespace grpc {}  // namespace grpc
