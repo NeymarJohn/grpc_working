@@ -386,6 +386,13 @@ typedef struct grpc_op {
     the reverse order they were initialized. */
 void grpc_register_plugin(void (*init)(void), void (*destroy)(void));
 
+/** Frees the memory used by all the plugin information.
+
+    While grpc_init and grpc_shutdown can be called multiple times, the plugins
+    won't be unregistered and their memory cleaned up unless you call that
+    function. Using atexit(grpc_unregister_all_plugins) is a valid method. */
+void grpc_unregister_all_plugins();
+
 /* Propagation bits: this can be bitwise or-ed to form propagation_mask for
  * grpc_call */
 /** Propagate deadline */
@@ -589,12 +596,9 @@ grpc_call_error grpc_call_cancel_with_status(grpc_call *call,
     THREAD SAFETY: grpc_call_destroy is thread-compatible */
 void grpc_call_destroy(grpc_call *call);
 
-/** Request notification of a new call.
-    Once a call is received in \a cq_bound_to_call, a notification tagged with
-    \a tag_new is added to \a cq_for_notification. \a call, \a details and \a
-    request_metadata are updated with the appropriate call information.
-    Note that \a cq_for_notification must have been registered to the server via
-    \a grpc_server_register_completion_queue. */
+/** Request notification of a new call. 'cq_for_notification' must
+    have been registered to the server via
+    grpc_server_register_completion_queue. */
 grpc_call_error grpc_server_request_call(
     grpc_server *server, grpc_call **call, grpc_call_details *details,
     grpc_metadata_array *request_metadata,
