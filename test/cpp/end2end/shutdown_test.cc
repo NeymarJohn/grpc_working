@@ -32,23 +32,25 @@
  */
 
 #include "test/core/util/test_config.h"
-#include "test/cpp/util/cli_call.h"
+
+#include <thread>
+
+#include "test/core/util/port.h"
 #include "test/cpp/util/echo.grpc.pb.h"
+#include "src/core/support/env.h"
 #include <grpc++/channel_arguments.h>
 #include <grpc++/channel.h>
 #include <grpc++/client_context.h>
 #include <grpc++/create_channel.h>
 #include <grpc++/credentials.h>
-#include <grpc++/dynamic_thread_pool.h>
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
 #include <grpc++/server_credentials.h>
 #include <grpc++/status.h>
-#include "test/core/util/port.h"
 #include <gtest/gtest.h>
-
 #include <grpc/grpc.h>
+#include <grpc/support/sync.h>
 
 using grpc::cpp::test::util::EchoRequest;
 using grpc::cpp::test::util::EchoResponse;
@@ -58,82 +60,93 @@ namespace testing {
 
 class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
  public:
+  explicit TestServiceImpl(gpr_event* ev) : ev_(ev) {}
+
   Status Echo(ServerContext* context, const EchoRequest* request,
               EchoResponse* response) GRPC_OVERRIDE {
-    if (!context->client_metadata().empty()) {
-      for (std::multimap<grpc::string, grpc::string>::const_iterator iter =
-               context->client_metadata().begin();
-           iter != context->client_metadata().end(); ++iter) {
-        context->AddInitialMetadata(iter->first, iter->second);
-      }
+    gpr_event_set(ev_, (void*)1);
+    while (!context->IsCancelled()) {
     }
-    context->AddTrailingMetadata("trailing_key", "trailing_value");
-    response->set_message(request->message());
     return Status::OK;
   }
+
+ private:
+  gpr_event* ev_;
 };
 
-class CliCallTest : public ::testing::Test {
- protected:
-  CliCallTest() : thread_pool_(2) {}
+class ShutdownTest : public ::testing::Test {
+ public:
+  ShutdownTest() : shutdown_(false), service_(&ev_) { gpr_event_init(&ev_); }
 
   void SetUp() GRPC_OVERRIDE {
-    int port = grpc_pick_unused_port_or_die();
-    server_address_ << "localhost:" << port;
-    // Setup server
-    ServerBuilder builder;
-    builder.AddListeningPort(server_address_.str(),
-                             InsecureServerCredentials());
-    builder.RegisterService(&service_);
-    builder.SetThreadPool(&thread_pool_);
-    server_ = builder.BuildAndStart();
+    port_ = grpc_pick_unused_port_or_die();
+    server_ = SetUpServer(port_);
   }
 
-  void TearDown() GRPC_OVERRIDE { server_->Shutdown(); }
+  std::unique_ptr<Server> SetUpServer(const int port) {
+    grpc::string server_address = "localhost:" + to_string(port);
+
+    ServerBuilder builder;
+    builder.AddListeningPort(server_address, InsecureServerCredentials());
+    builder.RegisterService(&service_);
+    std::unique_ptr<Server> server = builder.BuildAndStart();
+    return server;
+  }
+
+  void TearDown() GRPC_OVERRIDE { GPR_ASSERT(shutdown_); }
 
   void ResetStub() {
-    channel_ = CreateChannel(server_address_.str(), InsecureCredentials(),
-                             ChannelArguments());
+    string target = "dns:localhost:" + to_string(port_);
+    channel_ = CreateChannel(target, InsecureCredentials(), ChannelArguments());
     stub_ = std::move(grpc::cpp::test::util::TestService::NewStub(channel_));
   }
 
+  string to_string(const int number) {
+    std::stringstream strs;
+    strs << number;
+    return strs.str();
+  }
+
+  void SendRequest() {
+    EchoRequest request;
+    EchoResponse response;
+    request.set_message("Hello");
+    ClientContext context;
+    GPR_ASSERT(!shutdown_);
+    Status s = stub_->Echo(&context, request, &response);
+    GPR_ASSERT(shutdown_);
+  }
+
+ protected:
   std::shared_ptr<Channel> channel_;
   std::unique_ptr<grpc::cpp::test::util::TestService::Stub> stub_;
   std::unique_ptr<Server> server_;
-  std::ostringstream server_address_;
+  bool shutdown_;
+  int port_;
+  gpr_event ev_;
   TestServiceImpl service_;
-  DynamicThreadPool thread_pool_;
 };
 
-// Send a rpc with a normal stub and then a CliCall. Verify they match.
-TEST_F(CliCallTest, SimpleRpc) {
+// Tests zookeeper state change between two RPCs
+// TODO(ctiller): leaked objects in this test
+TEST_F(ShutdownTest, ShutdownTest) {
   ResetStub();
-  // Normal stub.
-  EchoRequest request;
-  EchoResponse response;
-  request.set_message("Hello");
 
-  ClientContext context;
-  context.AddMetadata("key1", "val1");
-  Status s = stub_->Echo(&context, request, &response);
-  EXPECT_EQ(response.message(), request.message());
-  EXPECT_TRUE(s.ok());
+  // send the request in a background thread
+  std::thread thr(std::bind(&ShutdownTest::SendRequest, this));
 
-  const grpc::string kMethod("/grpc.cpp.test.util.TestService/Echo");
-  grpc::string request_bin, response_bin, expected_response_bin;
-  EXPECT_TRUE(request.SerializeToString(&request_bin));
-  EXPECT_TRUE(response.SerializeToString(&expected_response_bin));
-  std::multimap<grpc::string, grpc::string> client_metadata,
-      server_initial_metadata, server_trailing_metadata;
-  client_metadata.insert(std::pair<grpc::string, grpc::string>("key1", "val1"));
-  Status s2 = CliCall::Call(channel_, kMethod, request_bin, &response_bin,
-                            client_metadata, &server_initial_metadata,
-                            &server_trailing_metadata);
-  EXPECT_TRUE(s2.ok());
+  // wait for the server to get the event
+  gpr_event_wait(&ev_, gpr_inf_future(GPR_CLOCK_MONOTONIC));
 
-  EXPECT_EQ(expected_response_bin, response_bin);
-  EXPECT_EQ(context.GetServerInitialMetadata(), server_initial_metadata);
-  EXPECT_EQ(context.GetServerTrailingMetadata(), server_trailing_metadata);
+  shutdown_ = true;
+
+  // shutdown should trigger cancellation causing everything to shutdown
+  auto deadline =
+      std::chrono::system_clock::now() + std::chrono::microseconds(100);
+  server_->Shutdown(deadline);
+  EXPECT_GE(std::chrono::system_clock::now(), deadline);
+
+  thr.join();
 }
 
 }  // namespace testing
