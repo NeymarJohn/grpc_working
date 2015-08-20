@@ -34,14 +34,15 @@
 #include <memory>
 #include <sstream>
 
-#include <grpc++/channel.h>
+#include "src/cpp/client/channel.h"
+#include <grpc++/channel_interface.h>
 #include <grpc++/channel_arguments.h>
 #include <grpc++/create_channel.h>
 
 namespace grpc {
 class ChannelArguments;
 
-std::shared_ptr<Channel> CreateChannel(
+std::shared_ptr<ChannelInterface> CreateChannel(
     const grpc::string& target, const std::shared_ptr<Credentials>& creds,
     const ChannelArguments& args) {
   ChannelArguments cp_args = args;
@@ -50,7 +51,7 @@ std::shared_ptr<Channel> CreateChannel(
   cp_args.SetString(GRPC_ARG_PRIMARY_USER_AGENT_STRING,
                     user_agent_prefix.str());
   return creds ? creds->CreateChannel(target, cp_args)
-               : std::shared_ptr<Channel>(
+               : std::shared_ptr<ChannelInterface>(
                      new Channel(grpc_lame_client_channel_create(
                          NULL, GRPC_STATUS_INVALID_ARGUMENT,
                          "Invalid credentials.")));

@@ -31,7 +31,7 @@
  *
  */
 
-#include <grpc++/channel.h>
+#include "src/cpp/client/channel.h"
 
 #include <memory>
 

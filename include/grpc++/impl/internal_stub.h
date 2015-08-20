@@ -36,19 +36,20 @@
 
 #include <memory>
 
-#include <grpc++/channel.h>
+#include <grpc++/channel_interface.h>
 
 namespace grpc {
 
 class InternalStub {
  public:
-  InternalStub(const std::shared_ptr<Channel>& channel) : channel_(channel) {}
+  InternalStub(const std::shared_ptr<ChannelInterface>& channel)
+      : channel_(channel) {}
   virtual ~InternalStub() {}
 
-  Channel* channel() { return channel_.get(); }
+  ChannelInterface* channel() { return channel_.get(); }
 
  private:
-  const std::shared_ptr<Channel> channel_;
+  const std::shared_ptr<ChannelInterface> channel_;
 };
 
 }  // namespace grpc
