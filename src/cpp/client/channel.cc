@@ -31,7 +31,7 @@
  *
  */
 
-#include "src/cpp/client/channel.h"
+#include <grpc++/channel.h>
 
 #include <memory>
 
@@ -71,7 +71,7 @@ Call Channel::CreateCall(const RpcMethod& method, ClientContext* context,
   } else {
     const char* host_str = NULL;
     if (!context->authority().empty()) {
-      host_str = context->authority_.c_str();
+      host_str = context->authority().c_str();
     } else if (!host_.empty()) {
       host_str = host_.c_str();
     }
