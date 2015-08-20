@@ -37,13 +37,15 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Google.Apis.Auth.OAuth2;
 using Google.ProtocolBuffers;
+
 using grpc.testing;
 using Grpc.Auth;
 using Grpc.Core;
 using Grpc.Core.Utils;
+
 using NUnit.Framework;
-using Google.Apis.Auth.OAuth2;
 
 namespace Grpc.IntegrationTesting
 {
@@ -118,12 +120,10 @@ namespace Grpc.IntegrationTesting
                 };
             }
 
-            using (Channel channel = new Channel(options.serverHost, options.serverPort.Value, credentials, channelOptions))
-            {
-                TestService.TestServiceClient client = new TestService.TestServiceClient(channel);
-                await RunTestCaseAsync(options.testCase, client);
-            }
-            GrpcEnvironment.Shutdown();
+            var channel = new Channel(options.serverHost, options.serverPort.Value, credentials, channelOptions);
+            TestService.TestServiceClient client = new TestService.TestServiceClient(channel);
+            await RunTestCaseAsync(options.testCase, client);
+            channel.ShutdownAsync().Wait();
         }
 
         private async Task RunTestCaseAsync(string testCase, TestService.TestServiceClient client)
