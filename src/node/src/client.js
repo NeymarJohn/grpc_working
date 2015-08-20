@@ -42,9 +42,7 @@ var _ = require('lodash');
 
 var grpc = require('bindings')('grpc.node');
 
-var common = require('./common');
-
-var Metadata = require('./metadata');
+var common = require('./common.js');
 
 var EventEmitter = require('events').EventEmitter;
 
@@ -256,7 +254,8 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
    *     serialize
    * @param {function(?Error, value=)} callback The callback to for when the
    *     response is received
-   * @param {Metadata=} metadata Metadata to add to the call
+   * @param {array=} metadata Array of metadata key/value pairs to add to the
+   *     call
    * @param {Object=} options Options map
    * @return {EventEmitter} An event emitter for stream related events
    */
@@ -265,9 +264,7 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
     var emitter = new EventEmitter();
     var call = getCall(this.channel, method, options);
     if (metadata === null || metadata === undefined) {
-      metadata = new Metadata();
-    } else {
-      metadata = metadata.clone();
+      metadata = {};
     }
     emitter.cancel = function cancel() {
       call.cancel();
@@ -283,19 +280,14 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
       }
       var client_batch = {};
       var message = serialize(argument);
-      if (options) {
-        message.grpcWriteFlags = options.flags;
-      }
-      client_batch[grpc.opType.SEND_INITIAL_METADATA] =
-          metadata._getCoreRepresentation();
+      message.grpcWriteFlags = options.flags;
+      client_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
       client_batch[grpc.opType.SEND_MESSAGE] = message;
       client_batch[grpc.opType.SEND_CLOSE_FROM_CLIENT] = true;
       client_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
       client_batch[grpc.opType.RECV_MESSAGE] = true;
       client_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
       call.startBatch(client_batch, function(err, response) {
-        response.status.metadata = Metadata._fromCoreRepresentation(
-              response.status.metadata);
         emitter.emit('status', response.status);
         if (response.status.code !== grpc.status.OK) {
           var error = new Error(response.status.details);
@@ -310,8 +302,7 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
             return;
           }
         }
-        emitter.emit('metadata', Metadata._fromCoreRepresentation(
-            response.metadata));
+        emitter.emit('metadata', response.metadata);
         callback(null, deserialize(response.read));
       });
     });
@@ -335,7 +326,7 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
    * @this {Client} Client object. Must have a channel member.
    * @param {function(?Error, value=)} callback The callback to for when the
    *     response is received
-   * @param {Metadata=} metadata Array of metadata key/value pairs to add to the
+   * @param {array=} metadata Array of metadata key/value pairs to add to the
    *     call
    * @param {Object=} options Options map
    * @return {EventEmitter} An event emitter for stream related events
@@ -344,9 +335,7 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
     /* jshint validthis: true */
     var call = getCall(this.channel, method, options);
     if (metadata === null || metadata === undefined) {
-      metadata = new Metadata();
-    } else {
-      metadata = metadata.clone();
+      metadata = {};
     }
     var stream = new ClientWritableStream(call, serialize);
     this.updateMetadata(this.auth_uri, metadata, function(error, metadata) {
@@ -356,8 +345,7 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
         return;
       }
       var metadata_batch = {};
-      metadata_batch[grpc.opType.SEND_INITIAL_METADATA] =
-          metadata._getCoreRepresentation();
+      metadata_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
       metadata_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
       call.startBatch(metadata_batch, function(err, response) {
         if (err) {
@@ -365,15 +353,12 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
           // in the other batch.
           return;
         }
-        stream.emit('metadata', Metadata._fromCoreRepresentation(
-            response.metadata));
+        stream.emit('metadata', response.metadata);
       });
       var client_batch = {};
       client_batch[grpc.opType.RECV_MESSAGE] = true;
       client_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
       call.startBatch(client_batch, function(err, response) {
-        response.status.metadata = Metadata._fromCoreRepresentation(
-              response.status.metadata);
         stream.emit('status', response.status);
         if (response.status.code !== grpc.status.OK) {
           var error = new Error(response.status.details);
@@ -411,7 +396,7 @@ function makeServerStreamRequestFunction(method, serialize, deserialize) {
    * @this {SurfaceClient} Client object. Must have a channel member.
    * @param {*} argument The argument to the call. Should be serializable with
    *     serialize
-   * @param {Metadata=} metadata Array of metadata key/value pairs to add to the
+   * @param {array=} metadata Array of metadata key/value pairs to add to the
    *     call
    * @param {Object} options Options map
    * @return {EventEmitter} An event emitter for stream related events
@@ -420,9 +405,7 @@ function makeServerStreamRequestFunction(method, serialize, deserialize) {
     /* jshint validthis: true */
     var call = getCall(this.channel, method, options);
     if (metadata === null || metadata === undefined) {
-      metadata = new Metadata();
-    } else {
-      metadata = metadata.clone();
+      metadata = {};
     }
     var stream = new ClientReadableStream(call, deserialize);
     this.updateMetadata(this.auth_uri, metadata, function(error, metadata) {
@@ -433,11 +416,8 @@ function makeServerStreamRequestFunction(method, serialize, deserialize) {
       }
       var start_batch = {};
       var message = serialize(argument);
-      if (options) {
-        message.grpcWriteFlags = options.flags;
-      }
-      start_batch[grpc.opType.SEND_INITIAL_METADATA] =
-          metadata._getCoreRepresentation();
+      message.grpcWriteFlags = options.flags;
+      start_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
       start_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
       start_batch[grpc.opType.SEND_MESSAGE] = message;
       start_batch[grpc.opType.SEND_CLOSE_FROM_CLIENT] = true;
@@ -447,14 +427,11 @@ function makeServerStreamRequestFunction(method, serialize, deserialize) {
           // in the other batch.
           return;
         }
-        stream.emit('metadata', Metadata._fromCoreRepresentation(
-            response.metadata));
+        stream.emit('metadata', response.metadata);
       });
       var status_batch = {};
       status_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
       call.startBatch(status_batch, function(err, response) {
-        response.status.metadata = Metadata._fromCoreRepresentation(
-              response.status.metadata);
         stream.emit('status', response.status);
         if (response.status.code !== grpc.status.OK) {
           var error = new Error(response.status.details);
@@ -489,7 +466,7 @@ function makeBidiStreamRequestFunction(method, serialize, deserialize) {
   /**
    * Make a bidirectional stream request with this method on the given channel.
    * @this {SurfaceClient} Client object. Must have a channel member.
-   * @param {Metadata=} metadata Array of metadata key/value pairs to add to the
+   * @param {array=} metadata Array of metadata key/value pairs to add to the
    *     call
    * @param {Options} options Options map
    * @return {EventEmitter} An event emitter for stream related events
@@ -498,9 +475,7 @@ function makeBidiStreamRequestFunction(method, serialize, deserialize) {
     /* jshint validthis: true */
     var call = getCall(this.channel, method, options);
     if (metadata === null || metadata === undefined) {
-      metadata = new Metadata();
-    } else {
-      metadata = metadata.clone();
+      metadata = {};
     }
     var stream = new ClientDuplexStream(call, serialize, deserialize);
     this.updateMetadata(this.auth_uri, metadata, function(error, metadata) {
@@ -510,8 +485,7 @@ function makeBidiStreamRequestFunction(method, serialize, deserialize) {
         return;
       }
       var start_batch = {};
-      start_batch[grpc.opType.SEND_INITIAL_METADATA] =
-          metadata._getCoreRepresentation();
+      start_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
       start_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
       call.startBatch(start_batch, function(err, response) {
         if (err) {
@@ -519,14 +493,11 @@ function makeBidiStreamRequestFunction(method, serialize, deserialize) {
           // in the other batch.
           return;
         }
-        stream.emit('metadata', Metadata._fromCoreRepresentation(
-            response.metadata));
+        stream.emit('metadata', response.metadata);
       });
       var status_batch = {};
       status_batch[grpc.opType.RECV_STATUS_ON_CLIENT] = true;
       call.startBatch(status_batch, function(err, response) {
-        response.status.metadata = Metadata._fromCoreRepresentation(
-              response.status.metadata);
         stream.emit('status', response.status);
         if (response.status.code !== grpc.status.OK) {
           var error = new Error(response.status.details);

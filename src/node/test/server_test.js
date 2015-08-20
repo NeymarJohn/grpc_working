@@ -90,41 +90,12 @@ describe('server', function() {
       server.addHttp2Port('0.0.0.0:0', grpc.ServerCredentials.createInsecure());
     });
     after(function() {
-      server.forceShutdown();
+      server.shutdown();
     });
     it('should start without error', function() {
       assert.doesNotThrow(function() {
         server.start();
       });
-    });
-  });
-  describe('shutdown', function() {
-    var server;
-    beforeEach(function() {
-      server = new grpc.Server();
-      server.addHttp2Port('0.0.0.0:0', grpc.ServerCredentials.createInsecure());
-      server.start();
-    });
-    afterEach(function() {
-      server.forceShutdown();
-    });
-    it('tryShutdown should shutdown successfully', function(done) {
-      server.tryShutdown(done);
-    });
-    it('forceShutdown should shutdown successfully', function() {
-      server.forceShutdown();
-    });
-    it('tryShutdown should be idempotent', function(done) {
-      server.tryShutdown(done);
-      server.tryShutdown(function() {});
-    });
-    it('forceShutdown should be idempotent', function() {
-      server.forceShutdown();
-      server.forceShutdown();
-    });
-    it('forceShutdown should trigger tryShutdown', function(done) {
-      server.tryShutdown(done);
-      server.forceShutdown();
     });
   });
 });
