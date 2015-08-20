@@ -31,54 +31,24 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_DYNAMIC_THREAD_POOL_H
-#define GRPC_INTERNAL_CPP_DYNAMIC_THREAD_POOL_H
+#ifndef GRPCXX_THREAD_POOL_INTERFACE_H
+#define GRPCXX_THREAD_POOL_INTERFACE_H
 
-#include <grpc++/config.h>
-
-#include <grpc++/impl/sync.h>
-#include <grpc++/impl/thd.h>
-
-#include <list>
-#include <memory>
-#include <queue>
-
-#include "src/cpp/server/thread_pool_interface.h"
+#include <functional>
 
 namespace grpc {
 
-class DynamicThreadPool GRPC_FINAL : public ThreadPoolInterface {
+// A thread pool interface for running callbacks.
+class ThreadPoolInterface {
  public:
-  explicit DynamicThreadPool(int reserve_threads);
-  ~DynamicThreadPool();
+  virtual ~ThreadPoolInterface() {}
 
-  void Add(const std::function<void()>& callback) GRPC_OVERRIDE;
-
- private:
-  class DynamicThread {
-   public:
-    DynamicThread(DynamicThreadPool* pool);
-    ~DynamicThread();
-
-   private:
-    DynamicThreadPool* pool_;
-    std::unique_ptr<grpc::thread> thd_;
-    void ThreadFunc();
-  };
-  grpc::mutex mu_;
-  grpc::condition_variable cv_;
-  grpc::condition_variable shutdown_cv_;
-  bool shutdown_;
-  std::queue<std::function<void()>> callbacks_;
-  int reserve_threads_;
-  int nthreads_;
-  int threads_waiting_;
-  std::list<DynamicThread*> dead_threads_;
-
-  void ThreadFunc();
-  static void ReapThreads(std::list<DynamicThread*>* tlist);
+  // Schedule the given callback for execution.
+  virtual void Add(const std::function<void()>& callback) = 0;
 };
+
+ThreadPoolInterface* CreateDefaultThreadPool();
 
 }  // namespace grpc
 
-#endif  // GRPC_INTERNAL_CPP_DYNAMIC_THREAD_POOL_H
+#endif  // GRPCXX_THREAD_POOL_INTERFACE_H

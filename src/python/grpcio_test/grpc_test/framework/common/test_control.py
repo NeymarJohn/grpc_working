@@ -34,14 +34,6 @@ import contextlib
 import threading
 
 
-class Defect(Exception):
-  """Simulates a programming defect raised into in a system under test.
-
-  Use of a standard exception type is too easily misconstrued as an actual
-  defect in either the test infrastructure or the system under test.
-  """
-
-
 class Control(object):
   """An object that accepts program control from a system under test.
 
@@ -70,7 +62,7 @@ class PauseFailControl(Control):
   def control(self):
     with self._condition:
       if self._fail:
-        raise Defect()
+        raise ValueError()
 
       while self._paused:
         self._condition.wait()

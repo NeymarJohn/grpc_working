@@ -49,18 +49,17 @@ namespace Grpc.Core.Internal
     {
         readonly TaskCompletionSource<object> finishedServersideTcs = new TaskCompletionSource<object>();
         readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        readonly Server server;
+        readonly GrpcEnvironment environment;
 
-        public AsyncCallServer(Func<TResponse, byte[]> serializer, Func<byte[], TRequest> deserializer, GrpcEnvironment environment, Server server) : base(serializer, deserializer, environment)
+        public AsyncCallServer(Func<TResponse, byte[]> serializer, Func<byte[], TRequest> deserializer, GrpcEnvironment environment) : base(serializer, deserializer)
         {
-            this.server = Preconditions.CheckNotNull(server);
+            this.environment = Preconditions.CheckNotNull(environment);
         }
 
         public void Initialize(CallSafeHandle call)
         {
             call.SetCompletionRegistry(environment.CompletionRegistry);
-
-            server.AddCallReference(this);
+            environment.DebugStats.ActiveServerCalls.Increment();
             InitializeInternal(call);
         }
 
@@ -169,22 +168,18 @@ namespace Grpc.Core.Internal
             }
         }
 
-        protected override void CheckReadingAllowed()
+        protected override void OnReleaseResources()
         {
-            base.CheckReadingAllowed();
-            Preconditions.CheckArgument(!cancelRequested);
-        }
-
-        protected override void OnAfterReleaseResources()
-        {
-            server.RemoveCallReference(this);
+            environment.DebugStats.ActiveServerCalls.Decrement();
         }
 
         /// <summary>
         /// Handles the server side close completion.
         /// </summary>
-        private void HandleFinishedServerside(bool success, bool cancelled)
+        private void HandleFinishedServerside(bool success, BatchContextSafeHandle ctx)
         {
+            bool cancelled = ctx.GetReceivedCloseOnServerCancelled();
+
             lock (myLock)
             {
                 finished = true;

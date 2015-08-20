@@ -42,6 +42,8 @@
         "include/grpc++/config_protobuf.h",
         "include/grpc++/create_channel.h",
         "include/grpc++/credentials.h",
+        "include/grpc++/dynamic_thread_pool.h",
+        "include/grpc++/fixed_size_thread_pool.h",
         "include/grpc++/generic_stub.h",
         "include/grpc++/impl/call.h",
         "include/grpc++/impl/client_unary_call.h",
@@ -66,15 +68,14 @@
         "include/grpc++/status.h",
         "include/grpc++/status_code_enum.h",
         "include/grpc++/stream.h",
+        "include/grpc++/string_ref.h",
         "include/grpc++/stub_options.h",
+        "include/grpc++/thread_pool_interface.h",
         "include/grpc++/time.h"
       ],
       "headers": [
         "src/cpp/client/channel.h",
-        "src/cpp/common/create_auth_context.h",
-        "src/cpp/server/dynamic_thread_pool.h",
-        "src/cpp/server/fixed_size_thread_pool.h",
-        "src/cpp/server/thread_pool_interface.h"
+        "src/cpp/common/create_auth_context.h"
       ],
       "src": [
         "src/cpp/client/channel.cc",
@@ -101,6 +102,7 @@
         "src/cpp/util/byte_buffer.cc",
         "src/cpp/util/slice.cc",
         "src/cpp/util/status.cc",
+        "src/cpp/util/string_ref.cc",
         "src/cpp/util/time.cc"
       ]
     },
@@ -592,7 +594,8 @@
       "external_deps": [
         "zookeeper"
       ],
-      "secure": "no"
+      "secure": "no",
+      "vs_project_guid": "{F14EBEC1-DC43-45D3-8A7D-1A47072EFE50}"
     },
     {
       "name": "reconnect_server",
@@ -732,7 +735,6 @@
         "test/cpp/interop/client_helper.h"
       ],
       "src": [
-        "test/proto/messages.proto",
         "test/cpp/interop/client_helper.cc"
       ],
       "deps": [
@@ -984,20 +986,6 @@
       "language": "c",
       "src": [
         "test/core/transport/chttp2/stream_map_test.c"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "compression_test",
-      "build": "test",
-      "language": "c",
-      "src": [
-        "test/core/compression/compression_test.c"
       ],
       "deps": [
         "grpc_test_util",
@@ -1357,20 +1345,6 @@
       "language": "c",
       "src": [
         "test/core/surface/byte_buffer_reader_test.c"
-      ],
-      "deps": [
-        "grpc_test_util",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "grpc_channel_args_test",
-      "build": "test",
-      "language": "c",
-      "src": [
-        "test/core/channel/channel_args_test.c"
       ],
       "deps": [
         "grpc_test_util",
@@ -2129,11 +2103,37 @@
       ]
     },
     {
+      "name": "cxx_string_ref_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "test/cpp/util/string_ref_test.cc"
+      ],
+      "deps": [
+        "grpc++"
+      ]
+    },
+    {
       "name": "cxx_time_test",
       "build": "test",
       "language": "c++",
       "src": [
         "test/cpp/util/time_test.cc"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc++",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "dynamic_thread_pool_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "test/cpp/server/dynamic_thread_pool_test.cc"
       ],
       "deps": [
         "grpc_test_util",
@@ -2152,6 +2152,21 @@
       ],
       "deps": [
         "grpc++_test_util",
+        "grpc_test_util",
+        "grpc++",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "fixed_size_thread_pool_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "test/cpp/server/fixed_size_thread_pool_test.cc"
+      ],
+      "deps": [
         "grpc_test_util",
         "grpc++",
         "grpc",
@@ -2472,9 +2487,6 @@
         "gpr",
         "grpc++_test_config"
       ],
-      "exclude_configs": [
-        "tsan"
-      ],
       "platforms": [
         "mac",
         "linux",
@@ -2587,22 +2599,6 @@
       "language": "c++",
       "src": [
         "test/cpp/end2end/server_crash_test_client.cc"
-      ],
-      "deps": [
-        "grpc++_test_util",
-        "grpc_test_util",
-        "grpc++",
-        "grpc",
-        "gpr_test_util",
-        "gpr"
-      ]
-    },
-    {
-      "name": "shutdown_test",
-      "build": "test",
-      "language": "c++",
-      "src": [
-        "test/cpp/end2end/shutdown_test.cc"
       ],
       "deps": [
         "grpc++_test_util",
