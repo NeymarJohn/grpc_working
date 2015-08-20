@@ -31,7 +31,7 @@
  *
  */
 
-#include "src/cpp/client/channel.h"
+#include <grpc++/channel.h>
 
 #include <memory>
 
@@ -52,8 +52,6 @@
 
 namespace grpc {
 
-Channel::Channel(grpc_channel* channel) : c_channel_(channel) {}
-
 Channel::Channel(const grpc::string& host, grpc_channel* channel)
     : host_(host), c_channel_(channel) {}
 
@@ -71,7 +69,7 @@ Call Channel::CreateCall(const RpcMethod& method, ClientContext* context,
   } else {
     const char* host_str = NULL;
     if (!context->authority().empty()) {
-      host_str = context->authority_.c_str();
+      host_str = context->authority().c_str();
     } else if (!host_.empty()) {
       host_str = host_.c_str();
     }
