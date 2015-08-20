@@ -31,37 +31,50 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_INTEROP_CLIENT_HELPER_H
-#define GRPC_TEST_CPP_INTEROP_CLIENT_HELPER_H
+#ifndef GRPC_INTERNAL_CPP_CLIENT_CHANNEL_H
+#define GRPC_INTERNAL_CPP_CLIENT_CHANNEL_H
 
 #include <memory>
 
-#include <grpc++/config.h>
 #include <grpc++/channel_interface.h>
+#include <grpc++/config.h>
+#include <grpc++/impl/grpc_library.h>
+
+struct grpc_channel;
 
 namespace grpc {
-namespace testing {
+class Call;
+class CallOpSetInterface;
+class ChannelArguments;
+class CompletionQueue;
+class Credentials;
+class StreamContextInterface;
 
-grpc::string GetServiceAccountJsonKey();
-
-grpc::string GetOauth2AccessToken();
-
-std::shared_ptr<ChannelInterface> CreateChannelForTestCase(
-    const grpc::string& test_case);
-
-class InteropClientContextInspector {
+class Channel GRPC_FINAL : public GrpcLibrary, public ChannelInterface {
  public:
-  InteropClientContextInspector(const ::grpc::ClientContext& context);
+  explicit Channel(grpc_channel* c_channel);
+  Channel(const grpc::string& host, grpc_channel* c_channel);
+  ~Channel() GRPC_OVERRIDE;
 
-  // Inspector methods, able to peek inside ClientContext, follow.
-  grpc_compression_algorithm GetCallCompressionAlgorithm() const;
-  gpr_uint32 GetMessageFlags() const;
+  void* RegisterMethod(const char* method) GRPC_OVERRIDE;
+  Call CreateCall(const RpcMethod& method, ClientContext* context,
+                  CompletionQueue* cq) GRPC_OVERRIDE;
+  void PerformOpsOnCall(CallOpSetInterface* ops, Call* call) GRPC_OVERRIDE;
+
+  grpc_connectivity_state GetState(bool try_to_connect) GRPC_OVERRIDE;
 
  private:
-  const ::grpc::ClientContext& context_;
+  void NotifyOnStateChangeImpl(grpc_connectivity_state last_observed,
+                               gpr_timespec deadline, CompletionQueue* cq,
+                               void* tag) GRPC_OVERRIDE;
+
+  bool WaitForStateChangeImpl(grpc_connectivity_state last_observed,
+                              gpr_timespec deadline) GRPC_OVERRIDE;
+
+  const grpc::string host_;
+  grpc_channel* const c_channel_;  // owned
 };
 
-}  // namespace testing
 }  // namespace grpc
 
-#endif  // GRPC_TEST_CPP_INTEROP_CLIENT_HELPER_H
+#endif  // GRPC_INTERNAL_CPP_CLIENT_CHANNEL_H

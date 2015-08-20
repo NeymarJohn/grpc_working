@@ -44,7 +44,8 @@ std::unique_ptr<GenericClientAsyncReaderWriter> GenericStub::Call(
   return std::unique_ptr<GenericClientAsyncReaderWriter>(
       new GenericClientAsyncReaderWriter(
           channel_.get(), cq,
-          RpcMethod(method.c_str(), RpcMethod::BIDI_STREAMING), context, tag));
+          RpcMethod(method.c_str(), RpcMethod::BIDI_STREAMING, nullptr),
+          context, tag));
 }
 
 }  // namespace grpc
