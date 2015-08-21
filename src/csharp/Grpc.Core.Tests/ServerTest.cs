@@ -51,6 +51,7 @@ namespace Grpc.Core.Tests
             };
             server.Start();
             server.ShutdownAsync().Wait();
+            GrpcEnvironment.Shutdown();
         }
 
         [Test]
@@ -66,7 +67,8 @@ namespace Grpc.Core.Tests
             Assert.Greater(boundPort.BoundPort, 0);
 
             server.Start();
-            server.ShutdownAsync().Wait();
+            server.ShutdownAsync();
+            GrpcEnvironment.Shutdown();
         }
 
         [Test]
@@ -81,6 +83,7 @@ namespace Grpc.Core.Tests
             Assert.Throws(typeof(InvalidOperationException), () => server.Services.Add(ServerServiceDefinition.CreateBuilder("serviceName").Build()));
 
             server.ShutdownAsync().Wait();
+            GrpcEnvironment.Shutdown();
         }
     }
 }

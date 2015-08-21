@@ -71,7 +71,7 @@ Call Channel::CreateCall(const RpcMethod& method, ClientContext* context,
   } else {
     const char* host_str = NULL;
     if (!context->authority().empty()) {
-      host_str = context->authority_.c_str();
+      host_str = context->authority().c_str();
     } else if (!host_.empty()) {
       host_str = host_.c_str();
     }
@@ -98,8 +98,9 @@ void Channel::PerformOpsOnCall(CallOpSetInterface* ops, Call* call) {
 }
 
 void* Channel::RegisterMethod(const char* method) {
-  return grpc_channel_register_call(
-      c_channel_, method, host_.empty() ? NULL : host_.c_str(), nullptr);
+  return grpc_channel_register_call(c_channel_, method,
+                                    host_.empty() ? NULL : host_.c_str(),
+                                    nullptr);
 }
 
 grpc_connectivity_state Channel::GetState(bool try_to_connect) {
@@ -116,7 +117,6 @@ class TagSaver GRPC_FINAL : public CompletionQueueTag {
     delete this;
     return true;
   }
-
  private:
   void* tag_;
 };

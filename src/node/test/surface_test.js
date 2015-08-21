@@ -133,24 +133,6 @@ describe('Server.prototype.addProtoService', function() {
     });
   });
 });
-describe('Client constructor building', function() {
-  var illegal_service_attrs = {
-    $method : {
-      path: '/illegal/$method',
-      requestStream: false,
-      responseStream: false,
-      requestSerialize: _.identity,
-      requestDeserialize: _.identity,
-      responseSerialize: _.identity,
-      responseDeserialize: _.identity
-    }
-  };
-  it('Should reject method names starting with $', function() {
-    assert.throws(function() {
-      grpc.makeGenericClientConstructor(illegal_service_attrs);
-    }, /\$/);
-  });
-});
 describe('Client#$waitForReady', function() {
   var server;
   var port;
@@ -440,7 +422,7 @@ describe('Other conditions', function() {
     server.shutdown();
   });
   it('channel.getTarget should be available', function() {
-    assert.strictEqual(typeof client.$channel.getTarget(), 'string');
+    assert.strictEqual(typeof client.channel.getTarget(), 'string');
   });
   describe('Server recieving bad input', function() {
     var misbehavingClient;
@@ -802,8 +784,7 @@ describe('Other conditions', function() {
           client.clientStream(function(err, value) {
             try {
               assert(err);
-              assert(err.code === grpc.status.DEADLINE_EXCEEDED ||
-                  err.code === grpc.status.INTERNAL);
+              assert.strictEqual(err.code, grpc.status.DEADLINE_EXCEEDED);
             } finally {
               callback(err, value);
               done();
@@ -828,8 +809,7 @@ describe('Other conditions', function() {
               null, {parent: parent, propagate_flags: deadline_flags});
           child.on('error', function(err) {
             assert(err);
-            assert(err.code === grpc.status.DEADLINE_EXCEEDED ||
-                err.code === grpc.status.INTERNAL);
+            assert.strictEqual(err.code, grpc.status.DEADLINE_EXCEEDED);
             done();
           });
         };

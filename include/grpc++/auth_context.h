@@ -62,7 +62,6 @@ class AuthPropertyIterator
   AuthPropertyIterator();
   AuthPropertyIterator(const grpc_auth_property* property,
                        const grpc_auth_property_iterator* iter);
-
  private:
   friend class SecureAuthContext;
   const grpc_auth_property* property_;
@@ -93,3 +92,4 @@ class AuthContext {
 }  // namespace grpc
 
 #endif  // GRPCXX_AUTH_CONTEXT_H
+
