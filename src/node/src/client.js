@@ -32,7 +32,7 @@
  */
 
 /**
- * Server module
+ * Client module
  * @module
  */
 
@@ -79,13 +79,19 @@ function ClientWritableStream(call, serialize) {
  * implementation of a method needed for implementing stream.Writable.
  * @access private
  * @param {Buffer} chunk The chunk to write
- * @param {string} encoding Ignored
+ * @param {string} encoding Used to pass write flags
  * @param {function(Error=)} callback Called when the write is complete
  */
 function _write(chunk, encoding, callback) {
   /* jshint validthis: true */
   var batch = {};
-  batch[grpc.opType.SEND_MESSAGE] = this.serialize(chunk);
+  var message = this.serialize(chunk);
+  if (_.isFinite(encoding)) {
+    /* Attach the encoding if it is a finite number. This is the closest we
+     * can get to checking that it is valid flags */
+    message.grpcWriteFlags = encoding;
+  }
+  batch[grpc.opType.SEND_MESSAGE] = message;
   this.call.startBatch(batch, function(err, event) {
     if (err) {
       // Something has gone wrong. Stop writing by failing to call callback
@@ -256,7 +262,7 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
   function makeUnaryRequest(argument, callback, metadata, options) {
     /* jshint validthis: true */
     var emitter = new EventEmitter();
-    var call = getCall(this.channel, method, options);
+    var call = getCall(this.$channel, method, options);
     if (metadata === null || metadata === undefined) {
       metadata = {};
     }
@@ -266,15 +272,19 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
     emitter.getPeer = function getPeer() {
       return call.getPeer();
     };
-    this.updateMetadata(this.auth_uri, metadata, function(error, metadata) {
+    this.$_updateMetadata(this.$_auth_uri, metadata, function(error, metadata) {
       if (error) {
         call.cancel();
         callback(error);
         return;
       }
       var client_batch = {};
+      var message = serialize(argument);
+      if (options) {
+        message.grpcWriteFlags = options.flags;
+      }
       client_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
-      client_batch[grpc.opType.SEND_MESSAGE] = serialize(argument);
+      client_batch[grpc.opType.SEND_MESSAGE] = message;
       client_batch[grpc.opType.SEND_CLOSE_FROM_CLIENT] = true;
       client_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
       client_batch[grpc.opType.RECV_MESSAGE] = true;
@@ -325,12 +335,12 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
    */
   function makeClientStreamRequest(callback, metadata, options) {
     /* jshint validthis: true */
-    var call = getCall(this.channel, method, options);
+    var call = getCall(this.$channel, method, options);
     if (metadata === null || metadata === undefined) {
       metadata = {};
     }
     var stream = new ClientWritableStream(call, serialize);
-    this.updateMetadata(this.auth_uri, metadata, function(error, metadata) {
+    this.$_updateMetadata(this.$_auth_uri, metadata, function(error, metadata) {
       if (error) {
         call.cancel();
         callback(error);
@@ -395,21 +405,25 @@ function makeServerStreamRequestFunction(method, serialize, deserialize) {
    */
   function makeServerStreamRequest(argument, metadata, options) {
     /* jshint validthis: true */
-    var call = getCall(this.channel, method, options);
+    var call = getCall(this.$channel, method, options);
     if (metadata === null || metadata === undefined) {
       metadata = {};
     }
     var stream = new ClientReadableStream(call, deserialize);
-    this.updateMetadata(this.auth_uri, metadata, function(error, metadata) {
+    this.$_updateMetadata(this.$_auth_uri, metadata, function(error, metadata) {
       if (error) {
         call.cancel();
         stream.emit('error', error);
         return;
       }
       var start_batch = {};
+      var message = serialize(argument);
+      if (options) {
+        message.grpcWriteFlags = options.flags;
+      }
       start_batch[grpc.opType.SEND_INITIAL_METADATA] = metadata;
       start_batch[grpc.opType.RECV_INITIAL_METADATA] = true;
-      start_batch[grpc.opType.SEND_MESSAGE] = serialize(argument);
+      start_batch[grpc.opType.SEND_MESSAGE] = message;
       start_batch[grpc.opType.SEND_CLOSE_FROM_CLIENT] = true;
       call.startBatch(start_batch, function(err, response) {
         if (err) {
@@ -463,12 +477,12 @@ function makeBidiStreamRequestFunction(method, serialize, deserialize) {
    */
   function makeBidiStreamRequest(metadata, options) {
     /* jshint validthis: true */
-    var call = getCall(this.channel, method, options);
+    var call = getCall(this.$channel, method, options);
     if (metadata === null || metadata === undefined) {
       metadata = {};
     }
     var stream = new ClientDuplexStream(call, serialize, deserialize);
-    this.updateMetadata(this.auth_uri, metadata, function(error, metadata) {
+    this.$_updateMetadata(this.$_auth_uri, metadata, function(error, metadata) {
       if (error) {
         call.cancel();
         stream.emit('error', error);
@@ -555,12 +569,12 @@ exports.makeClientConstructor = function(methods, serviceName) {
       options = {};
     }
     options['grpc.primary_user_agent'] = 'grpc-node/' + version;
-    this.channel = new grpc.Channel(address, credentials, options);
+    this.$channel = new grpc.Channel(address, credentials, options);
     // Remove the optional DNS scheme, trailing port, and trailing backslash
     address = address.replace(/^(dns:\/{3})?([^:\/]+)(:\d+)?\/?$/, '$2');
-    this.server_address = address;
-    this.auth_uri = 'https://' + this.server_address + '/' + serviceName;
-    this.updateMetadata = updateMetadata;
+    this.$_server_address = address;
+    this.$_auth_uri = 'https://' + this.server_address + '/' + serviceName;
+    this.$_updateMetadata = updateMetadata;
   }
 
   /**
@@ -580,13 +594,13 @@ exports.makeClientConstructor = function(methods, serviceName) {
       if (err) {
         callback(new Error('Failed to connect before the deadline'));
       }
-      var new_state = self.channel.getConnectivityState(true);
+      var new_state = self.$channel.getConnectivityState(true);
       if (new_state === grpc.connectivityState.READY) {
         callback();
       } else if (new_state === grpc.connectivityState.FATAL_FAILURE) {
         callback(new Error('Failed to connect to server'));
       } else {
-        self.channel.watchConnectivityState(new_state, deadline, checkState);
+        self.$channel.watchConnectivityState(new_state, deadline, checkState);
       }
     };
     checkState();
@@ -594,6 +608,9 @@ exports.makeClientConstructor = function(methods, serviceName) {
 
   _.each(methods, function(attrs, name) {
     var method_type;
+    if (_.startsWith(name, '$')) {
+      throw new Error('Method names cannot start with $');
+    }
     if (attrs.requestStream) {
       if (attrs.responseStream) {
         method_type = 'bidi';

@@ -264,7 +264,9 @@ function timeoutOnSleepingServer(client, done) {
     payload: {body: zeroBuffer(27182)}
   });
   call.on('error', function(error) {
-    assert.strictEqual(error.code, grpc.status.DEADLINE_EXCEEDED);
+
+    assert(error.code === grpc.status.DEADLINE_EXCEEDED ||
+        error.code === grpc.status.INTERNAL);
     done();
   });
 }
@@ -283,7 +285,7 @@ function authTest(expected_user, scope, client, done) {
     if (credential.createScopedRequired() && scope) {
       credential = credential.createScoped(scope);
     }
-    client.updateMetadata = grpc.getGoogleAuthDelegate(credential);
+    client.$_updateMetadata = grpc.getGoogleAuthDelegate(credential);
     var arg = {
       response_type: 'COMPRESSABLE',
       response_size: 314159,
@@ -342,7 +344,7 @@ function oauth2Test(expected_user, scope, per_rpc, client, done) {
       if (per_rpc) {
         updateMetadata('', {}, makeTestCall);
       } else {
-        client.updateMetadata = updateMetadata;
+        client.$_updateMetadata = updateMetadata;
         makeTestCall(null, {});
       }
     });
