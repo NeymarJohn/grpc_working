@@ -31,13 +31,44 @@
  *
  */
 
-#ifndef GRPCXX_STUB_OPTIONS_H
-#define GRPCXX_STUB_OPTIONS_H
+#ifndef GRPCXX_SUPPORT_SLICE_H
+#define GRPCXX_SUPPORT_SLICE_H
+
+#include <grpc/support/slice.h>
+#include <grpc++/support/config.h>
 
 namespace grpc {
 
-class StubOptions {};
+class Slice GRPC_FINAL {
+ public:
+  // construct empty slice
+  Slice();
+  // destructor - drops one ref
+  ~Slice();
+  // construct slice from grpc slice, adding a ref
+  enum AddRef { ADD_REF };
+  Slice(gpr_slice slice, AddRef);
+  // construct slice from grpc slice, stealing a ref
+  enum StealRef { STEAL_REF };
+  Slice(gpr_slice slice, StealRef);
+  // copy constructor - adds a ref
+  Slice(const Slice& other);
+  // assignment - ref count is unchanged
+  Slice& operator=(Slice other) {
+    std::swap(slice_, other.slice_);
+    return *this;
+  }
+
+  size_t size() const { return GPR_SLICE_LENGTH(slice_); }
+  const gpr_uint8* begin() const { return GPR_SLICE_START_PTR(slice_); }
+  const gpr_uint8* end() const { return GPR_SLICE_END_PTR(slice_); }
+
+ private:
+  friend class ByteBuffer;
+
+  gpr_slice slice_;
+};
 
 }  // namespace grpc
 
-#endif  // GRPCXX_STUB_OPTIONS_H
+#endif  // GRPCXX_SUPPORT_SLICE_H

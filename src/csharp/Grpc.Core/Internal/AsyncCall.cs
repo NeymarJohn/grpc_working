@@ -311,9 +311,9 @@ namespace Grpc.Core.Internal
             }
         }
 
-        protected override void OnAfterReleaseResources()
+        protected override void OnReleaseResources()
         {
-            details.Channel.RemoveCallReference(this);
+            details.Channel.Environment.DebugStats.ActiveClientCalls.Decrement();
         }
 
         private void Initialize(CompletionQueueSafeHandle cq)
@@ -323,9 +323,7 @@ namespace Grpc.Core.Internal
             var call = details.Channel.Handle.CreateCall(details.Channel.Environment.CompletionRegistry,
                 parentCall, ContextPropagationToken.DefaultMask, cq,
                 details.Method, details.Host, Timespec.FromDateTime(details.Options.Deadline.Value));
-
-            details.Channel.AddCallReference(this);
-
+            details.Channel.Environment.DebugStats.ActiveClientCalls.Increment();
             InitializeInternal(call);
             RegisterCancellationCallback();
         }

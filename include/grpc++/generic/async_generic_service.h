@@ -31,27 +31,48 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_INTERNAL_STUB_H
-#define GRPCXX_IMPL_INTERNAL_STUB_H
+#ifndef GRPCXX_GENERIC_ASYNC_GENERIC_SERVICE_H
+#define GRPCXX_GENERIC_ASYNC_GENERIC_SERVICE_H
 
-#include <memory>
+#include <grpc++/support/byte_buffer.h>
+#include <grpc++/support/stream.h>
 
-#include <grpc++/channel_interface.h>
+struct grpc_server;
 
 namespace grpc {
 
-class InternalStub {
- public:
-  InternalStub(const std::shared_ptr<ChannelInterface>& channel)
-      : channel_(channel) {}
-  virtual ~InternalStub() {}
+typedef ServerAsyncReaderWriter<ByteBuffer, ByteBuffer>
+    GenericServerAsyncReaderWriter;
 
-  ChannelInterface* channel() { return channel_.get(); }
+class GenericServerContext GRPC_FINAL : public ServerContext {
+ public:
+  const grpc::string& method() const { return method_; }
+  const grpc::string& host() const { return host_; }
 
  private:
-  const std::shared_ptr<ChannelInterface> channel_;
+  friend class Server;
+
+  grpc::string method_;
+  grpc::string host_;
+};
+
+class AsyncGenericService GRPC_FINAL {
+ public:
+  // TODO(yangg) Once we can add multiple completion queues to the server
+  // in c core, add a CompletionQueue* argument to the ctor here.
+  // TODO(yangg) support methods list.
+  AsyncGenericService(const grpc::string& methods) : server_(nullptr) {}
+
+  void RequestCall(GenericServerContext* ctx,
+                   GenericServerAsyncReaderWriter* reader_writer,
+                   CompletionQueue* call_cq,
+                   ServerCompletionQueue* notification_cq, void* tag);
+
+ private:
+  friend class Server;
+  Server* server_;
 };
 
 }  // namespace grpc
 
-#endif  // GRPCXX_IMPL_INTERNAL_STUB_H
+#endif  // GRPCXX_GENERIC_ASYNC_GENERIC_SERVICE_H

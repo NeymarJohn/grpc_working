@@ -31,63 +31,36 @@
  *
  */
 
-#ifndef GRPCXX_CHANNEL_ARGUMENTS_H
-#define GRPCXX_CHANNEL_ARGUMENTS_H
+#ifndef GRPCXX_SUPPORT_FIXED_SIZE_THREAD_POOL_H
+#define GRPCXX_SUPPORT_FIXED_SIZE_THREAD_POOL_H
 
+#include <queue>
 #include <vector>
-#include <list>
 
-#include <grpc++/config.h>
-#include <grpc/compression.h>
-#include <grpc/grpc.h>
+#include <grpc++/impl/sync.h>
+#include <grpc++/impl/thd.h>
+#include <grpc++/support/config.h>
+#include <grpc++/support/thread_pool_interface.h>
 
 namespace grpc {
-namespace testing {
-class ChannelArgumentsTest;
-}  // namespace testing
 
-// Options for channel creation. The user can use generic setters to pass
-// key value pairs down to c channel creation code. For grpc related options,
-// concrete setters are provided.
-class ChannelArguments {
+class FixedSizeThreadPool GRPC_FINAL : public ThreadPoolInterface {
  public:
-  ChannelArguments() {}
-  ~ChannelArguments() {}
+  explicit FixedSizeThreadPool(int num_threads);
+  ~FixedSizeThreadPool();
 
-  ChannelArguments(const ChannelArguments& other);
-  ChannelArguments& operator=(ChannelArguments other) {
-    Swap(other);
-    return *this;
-  }
-
-  void Swap(ChannelArguments& other);
-
-  // grpc specific channel argument setters
-  // Set target name override for SSL host name checking.
-  void SetSslTargetNameOverride(const grpc::string& name);
-  // TODO(yangg) add flow control options
-
-  // Set the compression algorithm for the channel.
-  void SetCompressionAlgorithm(grpc_compression_algorithm algorithm);
-
-  // Generic channel argument setters. Only for advanced use cases.
-  void SetInt(const grpc::string& key, int value);
-  void SetString(const grpc::string& key, const grpc::string& value);
-
-  // Populates given channel_args with args_, does not take ownership.
-  void SetChannelArgs(grpc_channel_args* channel_args) const;
+  void Add(const std::function<void()>& callback) GRPC_OVERRIDE;
 
  private:
-  friend class SecureCredentials;
-  friend class testing::ChannelArgumentsTest;
+  grpc::mutex mu_;
+  grpc::condition_variable cv_;
+  bool shutdown_;
+  std::queue<std::function<void()>> callbacks_;
+  std::vector<grpc::thread*> threads_;
 
-  // Returns empty string when it is not set.
-  grpc::string GetSslTargetNameOverride() const;
-
-  std::vector<grpc_arg> args_;
-  std::list<grpc::string> strings_;
+  void ThreadFunc();
 };
 
 }  // namespace grpc
 
-#endif  // GRPCXX_CHANNEL_ARGUMENTS_H
+#endif  // GRPCXX_SUPPORT_FIXED_SIZE_THREAD_POOL_H

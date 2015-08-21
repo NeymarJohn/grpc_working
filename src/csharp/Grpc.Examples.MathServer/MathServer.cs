@@ -56,6 +56,7 @@ namespace math
             Console.ReadKey();
 
             server.ShutdownAsync().Wait();
+            GrpcEnvironment.Shutdown();
         }
     }
 }
