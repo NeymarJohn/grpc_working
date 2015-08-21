@@ -31,13 +31,6 @@
  *
  */
 
-#ifndef GRPCXX_SUPPORT_STUB_OPTIONS_H
-#define GRPCXX_SUPPORT_STUB_OPTIONS_H
+#include <grpc++/impl/internal_stub.h>
 
-namespace grpc {
-
-class StubOptions {};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_SUPPORT_STUB_OPTIONS_H
+namespace grpc {}  // namespace grpc

@@ -31,12 +31,12 @@
  *
  */
 
-#include <grpc++/support/config.h>
+#include <grpc++/config.h>
 
 #ifndef GRPC_CXX0X_NO_CHRONO
 
 #include <grpc/support/time.h>
-#include <grpc++/support/time.h>
+#include <grpc++/time.h>
 
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;

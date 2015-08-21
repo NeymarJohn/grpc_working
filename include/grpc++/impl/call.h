@@ -34,17 +34,18 @@
 #ifndef GRPCXX_IMPL_CALL_H
 #define GRPCXX_IMPL_CALL_H
 
-#include <functional>
-#include <memory>
-#include <map>
-#include <cstring>
-
 #include <grpc/support/alloc.h>
 #include <grpc++/client_context.h>
 #include <grpc++/completion_queue.h>
+#include <grpc++/config.h>
+#include <grpc++/status.h>
 #include <grpc++/impl/serialization_traits.h>
-#include <grpc++/support/config.h>
-#include <grpc++/support/status.h>
+
+#include <functional>
+#include <memory>
+#include <map>
+
+#include <string.h>
 
 struct grpc_call;
 struct grpc_op;
@@ -540,8 +541,7 @@ class CallOpSet : public CallOpSetInterface,
 template <class Op1 = CallNoOp<1>, class Op2 = CallNoOp<2>,
           class Op3 = CallNoOp<3>, class Op4 = CallNoOp<4>,
           class Op5 = CallNoOp<5>, class Op6 = CallNoOp<6>>
-class SneakyCallOpSet GRPC_FINAL
-    : public CallOpSet<Op1, Op2, Op3, Op4, Op5, Op6> {
+class SneakyCallOpSet : public CallOpSet<Op1, Op2, Op3, Op4, Op5, Op6> {
  public:
   bool FinalizeResult(void** tag, bool* status) GRPC_OVERRIDE {
     typedef CallOpSet<Op1, Op2, Op3, Op4, Op5, Op6> Base;

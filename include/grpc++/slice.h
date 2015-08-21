@@ -31,36 +31,44 @@
  *
  */
 
-#ifndef GRPCXX_SUPPORT_FIXED_SIZE_THREAD_POOL_H
-#define GRPCXX_SUPPORT_FIXED_SIZE_THREAD_POOL_H
+#ifndef GRPCXX_SLICE_H
+#define GRPCXX_SLICE_H
 
-#include <queue>
-#include <vector>
-
-#include <grpc++/impl/sync.h>
-#include <grpc++/impl/thd.h>
-#include <grpc++/support/config.h>
-#include <grpc++/support/thread_pool_interface.h>
+#include <grpc/support/slice.h>
+#include <grpc++/config.h>
 
 namespace grpc {
 
-class FixedSizeThreadPool GRPC_FINAL : public ThreadPoolInterface {
+class Slice GRPC_FINAL {
  public:
-  explicit FixedSizeThreadPool(int num_threads);
-  ~FixedSizeThreadPool();
+  // construct empty slice
+  Slice();
+  // destructor - drops one ref
+  ~Slice();
+  // construct slice from grpc slice, adding a ref
+  enum AddRef { ADD_REF };
+  Slice(gpr_slice slice, AddRef);
+  // construct slice from grpc slice, stealing a ref
+  enum StealRef { STEAL_REF };
+  Slice(gpr_slice slice, StealRef);
+  // copy constructor - adds a ref
+  Slice(const Slice& other);
+  // assignment - ref count is unchanged
+  Slice& operator=(Slice other) {
+    std::swap(slice_, other.slice_);
+    return *this;
+  }
 
-  void Add(const std::function<void()>& callback) GRPC_OVERRIDE;
+  size_t size() const { return GPR_SLICE_LENGTH(slice_); }
+  const gpr_uint8* begin() const { return GPR_SLICE_START_PTR(slice_); }
+  const gpr_uint8* end() const { return GPR_SLICE_END_PTR(slice_); }
 
  private:
-  grpc::mutex mu_;
-  grpc::condition_variable cv_;
-  bool shutdown_;
-  std::queue<std::function<void()>> callbacks_;
-  std::vector<grpc::thread*> threads_;
+  friend class ByteBuffer;
 
-  void ThreadFunc();
+  gpr_slice slice_;
 };
 
 }  // namespace grpc
 
-#endif  // GRPCXX_SUPPORT_FIXED_SIZE_THREAD_POOL_H
+#endif  // GRPCXX_SLICE_H

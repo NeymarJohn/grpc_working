@@ -31,24 +31,74 @@
  *
  */
 
-#ifndef GRPCXX_SUPPORT_THREAD_POOL_INTERFACE_H
-#define GRPCXX_SUPPORT_THREAD_POOL_INTERFACE_H
+#ifndef GRPCXX_BYTE_BUFFER_H
+#define GRPCXX_BYTE_BUFFER_H
 
-#include <functional>
+#include <grpc/grpc.h>
+#include <grpc/byte_buffer.h>
+#include <grpc/support/log.h>
+#include <grpc++/config.h>
+#include <grpc++/slice.h>
+#include <grpc++/status.h>
+#include <grpc++/impl/serialization_traits.h>
+
+#include <vector>
 
 namespace grpc {
 
-// A thread pool interface for running callbacks.
-class ThreadPoolInterface {
+class ByteBuffer GRPC_FINAL {
  public:
-  virtual ~ThreadPoolInterface() {}
+  ByteBuffer() : buffer_(nullptr) {}
 
-  // Schedule the given callback for execution.
-  virtual void Add(const std::function<void()>& callback) = 0;
+  ByteBuffer(const Slice* slices, size_t nslices);
+
+  ~ByteBuffer() {
+    if (buffer_) {
+      grpc_byte_buffer_destroy(buffer_);
+    }
+  }
+
+  void Dump(std::vector<Slice>* slices) const;
+
+  void Clear();
+  size_t Length() const;
+
+ private:
+  friend class SerializationTraits<ByteBuffer, void>;
+
+  ByteBuffer(const ByteBuffer&);
+  ByteBuffer& operator=(const ByteBuffer&);
+
+  // takes ownership
+  void set_buffer(grpc_byte_buffer* buf) {
+    if (buffer_) {
+      gpr_log(GPR_ERROR, "Overriding existing buffer");
+      Clear();
+    }
+    buffer_ = buf;
+  }
+
+  grpc_byte_buffer* buffer() const { return buffer_; }
+
+  grpc_byte_buffer* buffer_;
 };
 
-ThreadPoolInterface* CreateDefaultThreadPool();
+template <>
+class SerializationTraits<ByteBuffer, void> {
+ public:
+  static Status Deserialize(grpc_byte_buffer* byte_buffer, ByteBuffer* dest,
+                            int max_message_size) {
+    dest->set_buffer(byte_buffer);
+    return Status::OK;
+  }
+  static Status Serialize(const ByteBuffer& source, grpc_byte_buffer** buffer,
+                          bool* own_buffer) {
+    *buffer = source.buffer();
+    *own_buffer = false;
+    return Status::OK;
+  }
+};
 
 }  // namespace grpc
 
-#endif  // GRPCXX_SUPPORT_THREAD_POOL_INTERFACE_H
+#endif  // GRPCXX_BYTE_BUFFER_H

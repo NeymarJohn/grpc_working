@@ -31,74 +31,27 @@
  *
  */
 
-#ifndef GRPCXX_SUPPORT_BYTE_BUFFER_H
-#define GRPCXX_SUPPORT_BYTE_BUFFER_H
+#ifndef GRPCXX_IMPL_INTERNAL_STUB_H
+#define GRPCXX_IMPL_INTERNAL_STUB_H
 
-#include <grpc/grpc.h>
-#include <grpc/byte_buffer.h>
-#include <grpc/support/log.h>
-#include <grpc++/impl/serialization_traits.h>
-#include <grpc++/support/config.h>
-#include <grpc++/support/slice.h>
-#include <grpc++/support/status.h>
+#include <memory>
 
-#include <vector>
+#include <grpc++/channel_interface.h>
 
 namespace grpc {
 
-class ByteBuffer GRPC_FINAL {
+class InternalStub {
  public:
-  ByteBuffer() : buffer_(nullptr) {}
+  InternalStub(const std::shared_ptr<ChannelInterface>& channel)
+      : channel_(channel) {}
+  virtual ~InternalStub() {}
 
-  ByteBuffer(const Slice* slices, size_t nslices);
-
-  ~ByteBuffer() {
-    if (buffer_) {
-      grpc_byte_buffer_destroy(buffer_);
-    }
-  }
-
-  void Dump(std::vector<Slice>* slices) const;
-
-  void Clear();
-  size_t Length() const;
+  ChannelInterface* channel() { return channel_.get(); }
 
  private:
-  friend class SerializationTraits<ByteBuffer, void>;
-
-  ByteBuffer(const ByteBuffer&);
-  ByteBuffer& operator=(const ByteBuffer&);
-
-  // takes ownership
-  void set_buffer(grpc_byte_buffer* buf) {
-    if (buffer_) {
-      gpr_log(GPR_ERROR, "Overriding existing buffer");
-      Clear();
-    }
-    buffer_ = buf;
-  }
-
-  grpc_byte_buffer* buffer() const { return buffer_; }
-
-  grpc_byte_buffer* buffer_;
-};
-
-template <>
-class SerializationTraits<ByteBuffer, void> {
- public:
-  static Status Deserialize(grpc_byte_buffer* byte_buffer, ByteBuffer* dest,
-                            int max_message_size) {
-    dest->set_buffer(byte_buffer);
-    return Status::OK;
-  }
-  static Status Serialize(const ByteBuffer& source, grpc_byte_buffer** buffer,
-                          bool* own_buffer) {
-    *buffer = source.buffer();
-    *own_buffer = false;
-    return Status::OK;
-  }
+  const std::shared_ptr<ChannelInterface> channel_;
 };
 
 }  // namespace grpc
 
-#endif  // GRPCXX_SUPPORT_BYTE_BUFFER_H
+#endif  // GRPCXX_IMPL_INTERNAL_STUB_H

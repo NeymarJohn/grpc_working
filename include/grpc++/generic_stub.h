@@ -31,34 +31,34 @@
  *
  */
 
-#ifndef GRPCXX_SUPPORT_STATUS_H
-#define GRPCXX_SUPPORT_STATUS_H
+#ifndef GRPCXX_GENERIC_STUB_H
+#define GRPCXX_GENERIC_STUB_H
 
-#include <grpc++/support/config.h>
-#include <grpc++/support/status_code_enum.h>
+#include <grpc++/byte_buffer.h>
+#include <grpc++/stream.h>
 
 namespace grpc {
 
-class Status {
+class CompletionQueue;
+typedef ClientAsyncReaderWriter<ByteBuffer, ByteBuffer>
+    GenericClientAsyncReaderWriter;
+
+// Generic stubs provide a type-unsafe interface to call gRPC methods
+// by name.
+class GenericStub GRPC_FINAL {
  public:
-  Status() : code_(StatusCode::OK) {}
-  Status(StatusCode code, const grpc::string& details)
-      : code_(code), details_(details) {}
+  explicit GenericStub(std::shared_ptr<ChannelInterface> channel)
+      : channel_(channel) {}
 
-  // Pre-defined special status objects.
-  static const Status& OK;
-  static const Status& CANCELLED;
-
-  StatusCode error_code() const { return code_; }
-  grpc::string error_message() const { return details_; }
-
-  bool ok() const { return code_ == StatusCode::OK; }
+  // begin a call to a named method
+  std::unique_ptr<GenericClientAsyncReaderWriter> Call(
+      ClientContext* context, const grpc::string& method, CompletionQueue* cq,
+      void* tag);
 
  private:
-  StatusCode code_;
-  grpc::string details_;
+  std::shared_ptr<ChannelInterface> channel_;
 };
 
 }  // namespace grpc
 
-#endif  // GRPCXX_SUPPORT_STATUS_H
+#endif  // GRPCXX_GENERIC_STUB_H

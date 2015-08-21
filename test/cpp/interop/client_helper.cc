@@ -33,23 +33,27 @@
 
 #include "test/cpp/interop/client_helper.h"
 
-#include <unistd.h>
-
 #include <fstream>
 #include <memory>
 #include <sstream>
+
+#include <unistd.h>
 
 #include <grpc/grpc.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <gflags/gflags.h>
-#include <grpc++/channel.h>
+#include <grpc++/channel_arguments.h>
+#include <grpc++/channel_interface.h>
 #include <grpc++/create_channel.h>
 #include <grpc++/credentials.h>
+#include <grpc++/stream.h>
 
-#include "src/cpp/client/secure_credentials.h"
 #include "test/core/security/oauth2_utils.h"
 #include "test/cpp/util/create_test_channel.h"
+
+#include "src/core/surface/call.h"
+#include "src/cpp/client/secure_credentials.h"
 
 DECLARE_bool(enable_ssl);
 DECLARE_bool(use_prod_roots);
@@ -99,7 +103,7 @@ grpc::string GetOauth2AccessToken() {
   return access_token;
 }
 
-std::shared_ptr<Channel> CreateChannelForTestCase(
+std::shared_ptr<ChannelInterface> CreateChannelForTestCase(
     const grpc::string& test_case) {
   GPR_ASSERT(FLAGS_server_port);
   const int host_port_buf_size = 1024;
@@ -135,6 +139,19 @@ std::shared_ptr<Channel> CreateChannelForTestCase(
     return CreateTestChannel(host_port, FLAGS_server_host_override,
                              FLAGS_enable_ssl, FLAGS_use_prod_roots);
   }
+}
+
+InteropClientContextInspector::InteropClientContextInspector(
+    const ::grpc::ClientContext& context)
+    : context_(context) {}
+
+grpc_compression_algorithm
+InteropClientContextInspector::GetCallCompressionAlgorithm() const {
+  return grpc_call_get_compression_algorithm(context_.call_);
+}
+
+gpr_uint32 InteropClientContextInspector::GetMessageFlags() const {
+  return grpc_call_get_message_flags(context_.call_);
 }
 
 }  // namespace testing

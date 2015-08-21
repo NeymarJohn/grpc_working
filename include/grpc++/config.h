@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPCXX_SUPPORT_CONFIG_H
-#define GRPCXX_SUPPORT_CONFIG_H
+#ifndef GRPCXX_CONFIG_H
+#define GRPCXX_CONFIG_H
 
 #if !defined(GRPC_NO_AUTODETECT_PLATFORM)
 
@@ -113,4 +113,4 @@ typedef GRPC_CUSTOM_STRING string;
 
 }  // namespace grpc
 
-#endif  // GRPCXX_SUPPORT_CONFIG_H
+#endif  // GRPCXX_CONFIG_H

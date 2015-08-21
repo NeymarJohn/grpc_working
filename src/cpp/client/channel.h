@@ -31,42 +31,50 @@
  *
  */
 
-#ifndef GRPCXX_SUPPORT_CONFIG_PROTOBUF_H
-#define GRPCXX_SUPPORT_CONFIG_PROTOBUF_H
+#ifndef GRPC_INTERNAL_CPP_CLIENT_CHANNEL_H
+#define GRPC_INTERNAL_CPP_CLIENT_CHANNEL_H
 
-#ifndef GRPC_CUSTOM_PROTOBUF_INT64
-#include <google/protobuf/stubs/common.h>
-#define GRPC_CUSTOM_PROTOBUF_INT64 ::google::protobuf::int64
-#endif
+#include <memory>
 
-#ifndef GRPC_CUSTOM_MESSAGE
-#include <google/protobuf/message.h>
-#define GRPC_CUSTOM_MESSAGE ::google::protobuf::Message
-#endif
+#include <grpc++/channel_interface.h>
+#include <grpc++/config.h>
+#include <grpc++/impl/grpc_library.h>
 
-#ifndef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#define GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM \
-  ::google::protobuf::io::ZeroCopyOutputStream
-#define GRPC_CUSTOM_ZEROCOPYINPUTSTREAM \
-  ::google::protobuf::io::ZeroCopyInputStream
-#define GRPC_CUSTOM_CODEDINPUTSTREAM ::google::protobuf::io::CodedInputStream
-#endif
+struct grpc_channel;
 
 namespace grpc {
-namespace protobuf {
+class Call;
+class CallOpSetInterface;
+class ChannelArguments;
+class CompletionQueue;
+class Credentials;
+class StreamContextInterface;
 
-typedef GRPC_CUSTOM_MESSAGE Message;
-typedef GRPC_CUSTOM_PROTOBUF_INT64 int64;
+class Channel GRPC_FINAL : public GrpcLibrary, public ChannelInterface {
+ public:
+  explicit Channel(grpc_channel* c_channel);
+  Channel(const grpc::string& host, grpc_channel* c_channel);
+  ~Channel() GRPC_OVERRIDE;
 
-namespace io {
-typedef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM ZeroCopyOutputStream;
-typedef GRPC_CUSTOM_ZEROCOPYINPUTSTREAM ZeroCopyInputStream;
-typedef GRPC_CUSTOM_CODEDINPUTSTREAM CodedInputStream;
-}  // namespace io
+  void* RegisterMethod(const char* method) GRPC_OVERRIDE;
+  Call CreateCall(const RpcMethod& method, ClientContext* context,
+                  CompletionQueue* cq) GRPC_OVERRIDE;
+  void PerformOpsOnCall(CallOpSetInterface* ops, Call* call) GRPC_OVERRIDE;
 
-}  // namespace protobuf
+  grpc_connectivity_state GetState(bool try_to_connect) GRPC_OVERRIDE;
+
+ private:
+  void NotifyOnStateChangeImpl(grpc_connectivity_state last_observed,
+                               gpr_timespec deadline, CompletionQueue* cq,
+                               void* tag) GRPC_OVERRIDE;
+
+  bool WaitForStateChangeImpl(grpc_connectivity_state last_observed,
+                              gpr_timespec deadline) GRPC_OVERRIDE;
+
+  const grpc::string host_;
+  grpc_channel* const c_channel_;  // owned
+};
+
 }  // namespace grpc
 
-#endif  // GRPCXX_SUPPORT_CONFIG_PROTOBUF_H
+#endif  // GRPC_INTERNAL_CPP_CLIENT_CHANNEL_H
