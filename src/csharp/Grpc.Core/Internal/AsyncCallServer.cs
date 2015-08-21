@@ -50,19 +50,16 @@ namespace Grpc.Core.Internal
         readonly TaskCompletionSource<object> finishedServersideTcs = new TaskCompletionSource<object>();
         readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         readonly GrpcEnvironment environment;
-        readonly Server server;
 
-        public AsyncCallServer(Func<TResponse, byte[]> serializer, Func<byte[], TRequest> deserializer, GrpcEnvironment environment, Server server) : base(serializer, deserializer)
+        public AsyncCallServer(Func<TResponse, byte[]> serializer, Func<byte[], TRequest> deserializer, GrpcEnvironment environment) : base(serializer, deserializer)
         {
             this.environment = Preconditions.CheckNotNull(environment);
-            this.server = Preconditions.CheckNotNull(server);
         }
 
         public void Initialize(CallSafeHandle call)
         {
             call.SetCompletionRegistry(environment.CompletionRegistry);
-
-            server.AddCallReference(this);
+            environment.DebugStats.ActiveServerCalls.Increment();
             InitializeInternal(call);
         }
 
@@ -171,15 +168,9 @@ namespace Grpc.Core.Internal
             }
         }
 
-        protected override void CheckReadingAllowed()
+        protected override void OnReleaseResources()
         {
-            base.CheckReadingAllowed();
-            Preconditions.CheckArgument(!cancelRequested);
-        }
-
-        protected override void OnAfterReleaseResources()
-        {
-            server.RemoveCallReference(this);
+            environment.DebugStats.ActiveServerCalls.Decrement();
         }
 
         /// <summary>
