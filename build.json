@@ -470,10 +470,10 @@
         "src/core/security/auth_filters.h",
         "src/core/security/base64.h",
         "src/core/security/credentials.h",
+        "src/core/security/handshake.h",
         "src/core/security/json_token.h",
         "src/core/security/jwt_verifier.h",
         "src/core/security/secure_endpoint.h",
-        "src/core/security/secure_transport_setup.h",
         "src/core/security/security_connector.h",
         "src/core/security/security_context.h",
         "src/core/tsi/fake_transport_security.h",
@@ -490,10 +490,10 @@
         "src/core/security/credentials_posix.c",
         "src/core/security/credentials_win32.c",
         "src/core/security/google_default_credentials.c",
+        "src/core/security/handshake.c",
         "src/core/security/json_token.c",
         "src/core/security/jwt_verifier.c",
         "src/core/security/secure_endpoint.c",
-        "src/core/security/secure_transport_setup.c",
         "src/core/security/security_connector.c",
         "src/core/security/security_context.c",
         "src/core/security/server_auth_filter.c",
@@ -592,8 +592,7 @@
       "external_deps": [
         "zookeeper"
       ],
-      "secure": "no",
-      "vs_project_guid": "{F14EBEC1-DC43-45D3-8A7D-1A47072EFE50}"
+      "secure": "no"
     },
     {
       "name": "reconnect_server",
@@ -733,6 +732,7 @@
         "test/cpp/interop/client_helper.h"
       ],
       "src": [
+        "test/proto/messages.proto",
         "test/cpp/interop/client_helper.cc"
       ],
       "deps": [
@@ -984,6 +984,20 @@
       "language": "c",
       "src": [
         "test/core/transport/chttp2/stream_map_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
+      "name": "compression_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/compression/compression_test.c"
       ],
       "deps": [
         "grpc_test_util",
@@ -2474,6 +2488,9 @@
         "gpr",
         "grpc++_test_config"
       ],
+      "exclude_configs": [
+        "tsan"
+      ],
       "platforms": [
         "mac",
         "linux",
@@ -2594,6 +2611,26 @@
         "grpc",
         "gpr_test_util",
         "gpr"
+      ]
+    },
+    {
+      "name": "shutdown_test",
+      "build": "test",
+      "language": "c++",
+      "src": [
+        "test/cpp/end2end/shutdown_test.cc"
+      ],
+      "deps": [
+        "grpc++_test_util",
+        "grpc_test_util",
+        "grpc++",
+        "grpc_zookeeper",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ],
+      "external_deps": [
+        "zookeeper"
       ]
     },
     {
