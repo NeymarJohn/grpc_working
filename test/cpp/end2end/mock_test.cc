@@ -42,6 +42,7 @@
 #include <grpc++/client_context.h>
 #include <grpc++/create_channel.h>
 #include <grpc++/credentials.h>
+#include <grpc++/dynamic_thread_pool.h>
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
@@ -233,7 +234,7 @@ class TestServiceImpl : public TestService::Service {
 
 class MockTest : public ::testing::Test {
  protected:
-  MockTest() {}
+  MockTest() : thread_pool_(2) {}
 
   void SetUp() GRPC_OVERRIDE {
     int port = grpc_pick_unused_port_or_die();
@@ -243,6 +244,7 @@ class MockTest : public ::testing::Test {
     builder.AddListeningPort(server_address_.str(),
                              InsecureServerCredentials());
     builder.RegisterService(&service_);
+    builder.SetThreadPool(&thread_pool_);
     server_ = builder.BuildAndStart();
   }
 
@@ -258,6 +260,7 @@ class MockTest : public ::testing::Test {
   std::unique_ptr<Server> server_;
   std::ostringstream server_address_;
   TestServiceImpl service_;
+  DynamicThreadPool thread_pool_;
 };
 
 // Do one real rpc and one mocked one

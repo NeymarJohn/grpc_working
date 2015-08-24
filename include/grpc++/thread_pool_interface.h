@@ -31,19 +31,24 @@
  *
  */
 
-#include <grpc/support/cpu.h>
-#include <grpc++/dynamic_thread_pool.h>
+#ifndef GRPCXX_THREAD_POOL_INTERFACE_H
+#define GRPCXX_THREAD_POOL_INTERFACE_H
 
-#ifndef GRPC_CUSTOM_DEFAULT_THREAD_POOL
+#include <functional>
 
 namespace grpc {
 
-ThreadPoolInterface* CreateDefaultThreadPool() {
-  int cores = gpr_cpu_num_cores();
-  if (!cores) cores = 4;
-  return new DynamicThreadPool(cores);
-}
+// A thread pool interface for running callbacks.
+class ThreadPoolInterface {
+ public:
+  virtual ~ThreadPoolInterface() {}
+
+  // Schedule the given callback for execution.
+  virtual void Add(const std::function<void()>& callback) = 0;
+};
+
+ThreadPoolInterface* CreateDefaultThreadPool();
 
 }  // namespace grpc
 
-#endif  // !GRPC_CUSTOM_DEFAULT_THREAD_POOL
+#endif  // GRPCXX_THREAD_POOL_INTERFACE_H
