@@ -187,8 +187,7 @@ static void read_test(ssize_t num_bytes, ssize_t slice_size) {
   gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
   while (state.read_bytes < state.target_read_bytes) {
     grpc_pollset_worker worker;
-    grpc_pollset_work(&g_pollset, &worker, gpr_now(GPR_CLOCK_MONOTONIC),
-                      deadline);
+    grpc_pollset_work(&g_pollset, &worker, deadline);
   }
   GPR_ASSERT(state.read_bytes == state.target_read_bytes);
   gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
@@ -225,8 +224,7 @@ static void large_read_test(ssize_t slice_size) {
   gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
   while (state.read_bytes < state.target_read_bytes) {
     grpc_pollset_worker worker;
-    grpc_pollset_work(&g_pollset, &worker, gpr_now(GPR_CLOCK_MONOTONIC),
-                      deadline);
+    grpc_pollset_work(&g_pollset, &worker, deadline);
   }
   GPR_ASSERT(state.read_bytes == state.target_read_bytes);
   gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
@@ -287,8 +285,7 @@ void drain_socket_blocking(int fd, size_t num_bytes, size_t read_size) {
   for (;;) {
     grpc_pollset_worker worker;
     gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
-    grpc_pollset_work(&g_pollset, &worker, gpr_now(GPR_CLOCK_MONOTONIC),
-                      GRPC_TIMEOUT_MILLIS_TO_DEADLINE(10));
+    grpc_pollset_work(&g_pollset, &worker, GRPC_TIMEOUT_MILLIS_TO_DEADLINE(10));
     gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
     do {
       bytes_read =
@@ -368,8 +365,7 @@ static void write_test(ssize_t num_bytes, ssize_t slice_size) {
       if (state.write_done) {
         break;
       }
-      grpc_pollset_work(&g_pollset, &worker, gpr_now(GPR_CLOCK_MONOTONIC),
-                        deadline);
+      grpc_pollset_work(&g_pollset, &worker, deadline);
     }
     gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
   }
@@ -426,8 +422,7 @@ static void write_error_test(ssize_t num_bytes, ssize_t slice_size) {
         if (state.write_done) {
           break;
         }
-        grpc_pollset_work(&g_pollset, &worker, gpr_now(GPR_CLOCK_MONOTONIC),
-                          deadline);
+        grpc_pollset_work(&g_pollset, &worker, deadline);
       }
       gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
       break;
