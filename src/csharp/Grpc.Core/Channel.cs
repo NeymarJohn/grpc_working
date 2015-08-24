@@ -58,6 +58,7 @@ namespace Grpc.Core
         readonly List<ChannelOption> options;
 
         bool shutdownRequested;
+        bool disposed;
 
         /// <summary>
         /// Creates a channel that connects to a specific host.

@@ -49,10 +49,12 @@ namespace Grpc.Core.Internal
     {
         readonly TaskCompletionSource<object> finishedServersideTcs = new TaskCompletionSource<object>();
         readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        readonly GrpcEnvironment environment;
         readonly Server server;
 
-        public AsyncCallServer(Func<TResponse, byte[]> serializer, Func<byte[], TRequest> deserializer, GrpcEnvironment environment, Server server) : base(serializer, deserializer, environment)
+        public AsyncCallServer(Func<TResponse, byte[]> serializer, Func<byte[], TRequest> deserializer, GrpcEnvironment environment, Server server) : base(serializer, deserializer)
         {
+            this.environment = Preconditions.CheckNotNull(environment);
             this.server = Preconditions.CheckNotNull(server);
         }
 
@@ -183,8 +185,10 @@ namespace Grpc.Core.Internal
         /// <summary>
         /// Handles the server side close completion.
         /// </summary>
-        private void HandleFinishedServerside(bool success, bool cancelled)
+        private void HandleFinishedServerside(bool success, BatchContextSafeHandle ctx)
         {
+            bool cancelled = ctx.GetReceivedCloseOnServerCancelled();
+
             lock (myLock)
             {
                 finished = true;
