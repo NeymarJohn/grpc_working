@@ -2624,9 +2624,13 @@
         "grpc++_test_util",
         "grpc_test_util",
         "grpc++",
+        "grpc_zookeeper",
         "grpc",
         "gpr_test_util",
         "gpr"
+      ],
+      "external_deps": [
+        "zookeeper"
       ]
     },
     {
