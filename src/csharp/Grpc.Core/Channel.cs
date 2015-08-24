@@ -45,19 +45,15 @@ namespace Grpc.Core
     /// <summary>
     /// gRPC Channel
     /// </summary>
-    public class Channel
+    public class Channel : IDisposable
     {
         static readonly ILogger Logger = GrpcEnvironment.Logger.ForType<Channel>();
-
-        readonly object myLock = new object();
-        readonly AtomicCounter activeCallCounter = new AtomicCounter();
 
         readonly string target;
         readonly GrpcEnvironment environment;
         readonly ChannelSafeHandle handle;
         readonly List<ChannelOption> options;
-
-        bool shutdownRequested;
+        bool disposed;
 
         /// <summary>
         /// Creates a channel that connects to a specific host.
@@ -69,7 +65,7 @@ namespace Grpc.Core
         public Channel(string target, Credentials credentials, IEnumerable<ChannelOption> options = null)
         {
             this.target = Preconditions.CheckNotNull(target, "target");
-            this.environment = GrpcEnvironment.AddRef();
+            this.environment = GrpcEnvironment.GetInstance();
             this.options = options != null ? new List<ChannelOption>(options) : new List<ChannelOption>();
 
             EnsureUserAgentChannelOption(this.options);
@@ -176,26 +172,12 @@ namespace Grpc.Core
         }
 
         /// <summary>
-        /// Waits until there are no more active calls for this channel and then cleans up
-        /// resources used by this channel.
+        /// Destroys the underlying channel.
         /// </summary>
-        public async Task ShutdownAsync()
+        public void Dispose()
         {
-            lock (myLock)
-            {
-                Preconditions.CheckState(!shutdownRequested);
-                shutdownRequested = true;
-            }
-
-            var activeCallCount = activeCallCounter.Count;
-            if (activeCallCount > 0)
-            {
-                Logger.Warning("Channel shutdown was called but there are still {0} active calls for that channel.", activeCallCount);
-            }
-
-            handle.Dispose();
-
-            await Task.Run(() => GrpcEnvironment.Release());
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         internal ChannelSafeHandle Handle
@@ -214,20 +196,13 @@ namespace Grpc.Core
             }
         }
 
-        internal void AddCallReference(object call)
+        protected virtual void Dispose(bool disposing)
         {
-            activeCallCounter.Increment();
-
-            bool success = false;
-            handle.DangerousAddRef(ref success);
-            Preconditions.CheckState(success);
-        }
-
-        internal void RemoveCallReference(object call)
-        {
-            handle.DangerousRelease();
-
-            activeCallCounter.Decrement();
+            if (disposing && handle != null && !disposed)
+            {
+                disposed = true;
+                handle.Dispose();
+            }
         }
 
         private static void EnsureUserAgentChannelOption(List<ChannelOption> options)
