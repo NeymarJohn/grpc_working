@@ -1046,11 +1046,10 @@ static int prepare_application_metadata(grpc_call *call, size_t count,
                                                (const gpr_uint8 *)md->value,
                                                md->value_length, 1);
     if (!grpc_mdstr_is_legal_header(l->md->key)) {
-      gpr_log(GPR_ERROR, "attempt to send invalid metadata key: %s",
-              grpc_mdstr_as_c_string(l->md->key));
+      gpr_log(GPR_ERROR, "attempt to send invalid metadata key");
       return 0;
     } else if (!grpc_mdstr_is_bin_suffixed(l->md->key) &&
-               !grpc_mdstr_is_legal_nonbin_header(l->md->value)) {
+               !grpc_mdstr_is_legal_header(l->md->value)) {
       gpr_log(GPR_ERROR, "attempt to send invalid metadata value");
       return 0;
     }
