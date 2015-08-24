@@ -257,11 +257,11 @@ class _Kernel(object):
             termination = None
           else:
             termination = links.Ticket.Termination.COMPLETION
-          early_read_ticket = links.Ticket(
+          ticket = links.Ticket(
               call, rpc_state.sequence_number, None, None, None, None, None,
               None, payload, None, None, None, termination)
           rpc_state.sequence_number += 1
-          self._relay.add_value(early_read_ticket)
+          self._relay.add_value(ticket)
 
       if ticket.payload is not None:
         call.write(rpc_state.response_serializer(ticket.payload), call)
