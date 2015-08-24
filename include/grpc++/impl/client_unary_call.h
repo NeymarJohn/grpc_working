@@ -34,20 +34,21 @@
 #ifndef GRPCXX_IMPL_CLIENT_UNARY_CALL_H
 #define GRPCXX_IMPL_CLIENT_UNARY_CALL_H
 
+#include <grpc++/config.h>
+#include <grpc++/status.h>
+
 #include <grpc++/impl/call.h>
-#include <grpc++/support/config.h>
-#include <grpc++/support/status.h>
 
 namespace grpc {
 
-class Channel;
+class ChannelInterface;
 class ClientContext;
 class CompletionQueue;
 class RpcMethod;
 
 // Wrapper that performs a blocking unary call
 template <class InputMessage, class OutputMessage>
-Status BlockingUnaryCall(Channel* channel, const RpcMethod& method,
+Status BlockingUnaryCall(ChannelInterface* channel, const RpcMethod& method,
                          ClientContext* context, const InputMessage& request,
                          OutputMessage* result) {
   CompletionQueue cq;

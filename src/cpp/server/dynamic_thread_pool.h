@@ -34,13 +34,14 @@
 #ifndef GRPC_INTERNAL_CPP_DYNAMIC_THREAD_POOL_H
 #define GRPC_INTERNAL_CPP_DYNAMIC_THREAD_POOL_H
 
-#include <list>
-#include <memory>
-#include <queue>
+#include <grpc++/config.h>
 
 #include <grpc++/impl/sync.h>
 #include <grpc++/impl/thd.h>
-#include <grpc++/support/config.h>
+
+#include <list>
+#include <memory>
+#include <queue>
 
 #include "src/cpp/server/thread_pool_interface.h"
 

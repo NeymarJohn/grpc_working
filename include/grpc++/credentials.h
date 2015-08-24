@@ -36,12 +36,12 @@
 
 #include <memory>
 
+#include <grpc++/config.h>
 #include <grpc++/impl/grpc_library.h>
-#include <grpc++/support/config.h>
 
 namespace grpc {
 class ChannelArguments;
-class Channel;
+class ChannelInterface;
 class SecureCredentials;
 
 class Credentials : public GrpcLibrary {
@@ -57,11 +57,11 @@ class Credentials : public GrpcLibrary {
   virtual SecureCredentials* AsSecureCredentials() = 0;
 
  private:
-  friend std::shared_ptr<Channel> CreateChannel(
+  friend std::shared_ptr<ChannelInterface> CreateChannel(
       const grpc::string& target, const std::shared_ptr<Credentials>& creds,
       const ChannelArguments& args);
 
-  virtual std::shared_ptr<Channel> CreateChannel(
+  virtual std::shared_ptr<ChannelInterface> CreateChannel(
       const grpc::string& target, const ChannelArguments& args) = 0;
 };
 

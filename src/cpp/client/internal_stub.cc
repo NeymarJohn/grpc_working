@@ -31,16 +31,6 @@
  *
  */
 
-#include <memory>
+#include <grpc++/impl/internal_stub.h>
 
-#include <grpc++/channel.h>
-
-struct grpc_channel;
-
-namespace grpc {
-
-std::shared_ptr<Channel> CreateChannelInternal(const grpc::string& host,
-                                               grpc_channel* c_channel) {
-  return std::shared_ptr<Channel>(new Channel(host, c_channel));
-}
-}  // namespace grpc
+namespace grpc {}  // namespace grpc
