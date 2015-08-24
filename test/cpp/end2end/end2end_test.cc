@@ -45,6 +45,7 @@
 #include <grpc++/client_context.h>
 #include <grpc++/create_channel.h>
 #include <grpc++/credentials.h>
+#include <grpc++/dynamic_thread_pool.h>
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
@@ -261,7 +262,7 @@ class TestServiceImplDupPkg
 class End2endTest : public ::testing::TestWithParam<bool> {
  protected:
   End2endTest()
-      : kMaxMessageSize_(8192), special_service_("special") {}
+      : kMaxMessageSize_(8192), special_service_("special"), thread_pool_(2) {}
 
   void SetUp() GRPC_OVERRIDE {
     int port = grpc_pick_unused_port_or_die();
@@ -280,6 +281,7 @@ class End2endTest : public ::testing::TestWithParam<bool> {
     builder.SetMaxMessageSize(
         kMaxMessageSize_);  // For testing max message size.
     builder.RegisterService(&dup_pkg_service_);
+    builder.SetThreadPool(&thread_pool_);
     server_ = builder.BuildAndStart();
   }
 
@@ -307,6 +309,7 @@ class End2endTest : public ::testing::TestWithParam<bool> {
       ServerBuilder builder;
       builder.AddListeningPort(proxyaddr.str(), InsecureServerCredentials());
       builder.RegisterService(proxy_service_.get());
+      builder.SetThreadPool(&thread_pool_);
       proxy_server_ = builder.BuildAndStart();
 
       channel_ = CreateChannel(proxyaddr.str(), InsecureCredentials(),
@@ -326,6 +329,7 @@ class End2endTest : public ::testing::TestWithParam<bool> {
   TestServiceImpl service_;
   TestServiceImpl special_service_;
   TestServiceImplDupPkg dup_pkg_service_;
+  DynamicThreadPool thread_pool_;
 };
 
 static void SendRpc(grpc::cpp::test::util::TestService::Stub* stub,

@@ -56,10 +56,6 @@
 #include <grpc/support/thd.h>
 #include <grpc/support/time.h>
 
-#ifdef GPR_POSIX_SOCKET
-#include "src/core/iomgr/pollset_posix.h"
-#endif
-
 using grpc::cpp::test::util::EchoRequest;
 using grpc::cpp::test::util::EchoResponse;
 using std::chrono::system_clock;
@@ -71,41 +67,8 @@ namespace {
 
 void* tag(int i) { return (void*)(gpr_intptr)i; }
 
-#ifdef GPR_POSIX_SOCKET
-static int assert_non_blocking_poll(struct pollfd* pfds, nfds_t nfds,
-                                    int timeout) {
-  GPR_ASSERT(timeout == 0);
-  return poll(pfds, nfds, timeout);
-}
-
-class PollOverride {
+class Verifier {
  public:
-  PollOverride(grpc_poll_function_type f) {
-    prev_ = grpc_poll_function;
-    grpc_poll_function = f;
-  }
-
-  ~PollOverride() { grpc_poll_function = prev_; }
-
- private:
-  grpc_poll_function_type prev_;
-};
-
-class PollingCheckRegion : public PollOverride {
- public:
-  explicit PollingCheckRegion(bool allow_blocking)
-      : PollOverride(allow_blocking ? poll : assert_non_blocking_poll) {}
-};
-#else
-class PollingCheckRegion {
- public:
-  explicit PollingCheckRegion(bool allow_blocking) {}
-};
-#endif
-
-class Verifier : public PollingCheckRegion {
- public:
-  explicit Verifier(bool spin) : PollingCheckRegion(!spin), spin_(spin) {}
   Verifier& Expect(int i, bool expect_ok) {
     expectations_[tag(i)] = expect_ok;
     return *this;
@@ -115,17 +78,7 @@ class Verifier : public PollingCheckRegion {
     while (!expectations_.empty()) {
       bool ok;
       void* got_tag;
-      if (spin_) {
-        for (;;) {
-          auto r = cq->AsyncNext(&got_tag, &ok, gpr_time_0(GPR_CLOCK_REALTIME));
-          if (r == CompletionQueue::TIMEOUT) continue;
-          if (r == CompletionQueue::GOT_EVENT) break;
-          gpr_log(GPR_ERROR, "unexpected result from AsyncNext");
-          abort();
-        }
-      } else {
-        EXPECT_TRUE(cq->Next(&got_tag, &ok));
-      }
+      EXPECT_TRUE(cq->Next(&got_tag, &ok));
       auto it = expectations_.find(got_tag);
       EXPECT_TRUE(it != expectations_.end());
       EXPECT_EQ(it->second, ok);
@@ -137,34 +90,14 @@ class Verifier : public PollingCheckRegion {
     if (expectations_.empty()) {
       bool ok;
       void* got_tag;
-      if (spin_) {
-        while (std::chrono::system_clock::now() < deadline) {
-          EXPECT_EQ(
-              cq->AsyncNext(&got_tag, &ok, gpr_time_0(GPR_CLOCK_REALTIME)),
-              CompletionQueue::TIMEOUT);
-        }
-      } else {
-        EXPECT_EQ(cq->AsyncNext(&got_tag, &ok, deadline),
-                  CompletionQueue::TIMEOUT);
-      }
+      EXPECT_EQ(cq->AsyncNext(&got_tag, &ok, deadline),
+                CompletionQueue::TIMEOUT);
     } else {
       while (!expectations_.empty()) {
         bool ok;
         void* got_tag;
-        if (spin_) {
-          for (;;) {
-            GPR_ASSERT(std::chrono::system_clock::now() < deadline);
-            auto r =
-                cq->AsyncNext(&got_tag, &ok, gpr_time_0(GPR_CLOCK_REALTIME));
-            if (r == CompletionQueue::TIMEOUT) continue;
-            if (r == CompletionQueue::GOT_EVENT) break;
-            gpr_log(GPR_ERROR, "unexpected result from AsyncNext");
-            abort();
-          }
-        } else {
-          EXPECT_EQ(cq->AsyncNext(&got_tag, &ok, deadline),
-                    CompletionQueue::GOT_EVENT);
-        }
+        EXPECT_EQ(cq->AsyncNext(&got_tag, &ok, deadline),
+                  CompletionQueue::GOT_EVENT);
         auto it = expectations_.find(got_tag);
         EXPECT_TRUE(it != expectations_.end());
         EXPECT_EQ(it->second, ok);
@@ -175,10 +108,9 @@ class Verifier : public PollingCheckRegion {
 
  private:
   std::map<void*, bool> expectations_;
-  bool spin_;
 };
 
-class AsyncEnd2endTest : public ::testing::TestWithParam<bool> {
+class AsyncEnd2endTest : public ::testing::Test {
  protected:
   AsyncEnd2endTest() {}
 
@@ -228,15 +160,15 @@ class AsyncEnd2endTest : public ::testing::TestWithParam<bool> {
       service_.RequestEcho(&srv_ctx, &recv_request, &response_writer, cq_.get(),
                            cq_.get(), tag(2));
 
-      Verifier(GetParam()).Expect(2, true).Verify(cq_.get());
+      Verifier().Expect(2, true).Verify(cq_.get());
       EXPECT_EQ(send_request.message(), recv_request.message());
 
       send_response.set_message(recv_request.message());
       response_writer.Finish(send_response, Status::OK, tag(3));
-      Verifier(GetParam()).Expect(3, true).Verify(cq_.get());
+      Verifier().Expect(3, true).Verify(cq_.get());
 
       response_reader->Finish(&recv_response, &recv_status, tag(4));
-      Verifier(GetParam()).Expect(4, true).Verify(cq_.get());
+      Verifier().Expect(4, true).Verify(cq_.get());
 
       EXPECT_EQ(send_response.message(), recv_response.message());
       EXPECT_TRUE(recv_status.ok());
@@ -250,18 +182,18 @@ class AsyncEnd2endTest : public ::testing::TestWithParam<bool> {
   std::ostringstream server_address_;
 };
 
-TEST_P(AsyncEnd2endTest, SimpleRpc) {
+TEST_F(AsyncEnd2endTest, SimpleRpc) {
   ResetStub();
   SendRpc(1);
 }
 
-TEST_P(AsyncEnd2endTest, SequentialRpcs) {
+TEST_F(AsyncEnd2endTest, SequentialRpcs) {
   ResetStub();
   SendRpc(10);
 }
 
 // Test a simple RPC using the async version of Next
-TEST_P(AsyncEnd2endTest, AsyncNextRpc) {
+TEST_F(AsyncEnd2endTest, AsyncNextRpc) {
   ResetStub();
 
   EchoRequest send_request;
@@ -282,32 +214,30 @@ TEST_P(AsyncEnd2endTest, AsyncNextRpc) {
       std::chrono::system_clock::now());
   std::chrono::system_clock::time_point time_limit(
       std::chrono::system_clock::now() + std::chrono::seconds(10));
-  Verifier(GetParam()).Verify(cq_.get(), time_now);
-  Verifier(GetParam()).Verify(cq_.get(), time_now);
+  Verifier().Verify(cq_.get(), time_now);
+  Verifier().Verify(cq_.get(), time_now);
 
   service_.RequestEcho(&srv_ctx, &recv_request, &response_writer, cq_.get(),
                        cq_.get(), tag(2));
 
-  Verifier(GetParam()).Expect(2, true).Verify(cq_.get(), time_limit);
+  Verifier().Expect(2, true).Verify(cq_.get(), time_limit);
   EXPECT_EQ(send_request.message(), recv_request.message());
 
   send_response.set_message(recv_request.message());
   response_writer.Finish(send_response, Status::OK, tag(3));
-  Verifier(GetParam())
-      .Expect(3, true)
-      .Verify(cq_.get(), std::chrono::system_clock::time_point::max());
+  Verifier().Expect(3, true).Verify(
+      cq_.get(), std::chrono::system_clock::time_point::max());
 
   response_reader->Finish(&recv_response, &recv_status, tag(4));
-  Verifier(GetParam())
-      .Expect(4, true)
-      .Verify(cq_.get(), std::chrono::system_clock::time_point::max());
+  Verifier().Expect(4, true).Verify(
+      cq_.get(), std::chrono::system_clock::time_point::max());
 
   EXPECT_EQ(send_response.message(), recv_response.message());
   EXPECT_TRUE(recv_status.ok());
 }
 
 // Two pings and a final pong.
-TEST_P(AsyncEnd2endTest, SimpleClientStreaming) {
+TEST_F(AsyncEnd2endTest, SimpleClientStreaming) {
   ResetStub();
 
   EchoRequest send_request;
@@ -326,41 +256,41 @@ TEST_P(AsyncEnd2endTest, SimpleClientStreaming) {
   service_.RequestRequestStream(&srv_ctx, &srv_stream, cq_.get(), cq_.get(),
                                 tag(2));
 
-  Verifier(GetParam()).Expect(2, true).Expect(1, true).Verify(cq_.get());
+  Verifier().Expect(2, true).Expect(1, true).Verify(cq_.get());
 
   cli_stream->Write(send_request, tag(3));
-  Verifier(GetParam()).Expect(3, true).Verify(cq_.get());
+  Verifier().Expect(3, true).Verify(cq_.get());
 
   srv_stream.Read(&recv_request, tag(4));
-  Verifier(GetParam()).Expect(4, true).Verify(cq_.get());
+  Verifier().Expect(4, true).Verify(cq_.get());
   EXPECT_EQ(send_request.message(), recv_request.message());
 
   cli_stream->Write(send_request, tag(5));
-  Verifier(GetParam()).Expect(5, true).Verify(cq_.get());
+  Verifier().Expect(5, true).Verify(cq_.get());
 
   srv_stream.Read(&recv_request, tag(6));
-  Verifier(GetParam()).Expect(6, true).Verify(cq_.get());
+  Verifier().Expect(6, true).Verify(cq_.get());
 
   EXPECT_EQ(send_request.message(), recv_request.message());
   cli_stream->WritesDone(tag(7));
-  Verifier(GetParam()).Expect(7, true).Verify(cq_.get());
+  Verifier().Expect(7, true).Verify(cq_.get());
 
   srv_stream.Read(&recv_request, tag(8));
-  Verifier(GetParam()).Expect(8, false).Verify(cq_.get());
+  Verifier().Expect(8, false).Verify(cq_.get());
 
   send_response.set_message(recv_request.message());
   srv_stream.Finish(send_response, Status::OK, tag(9));
-  Verifier(GetParam()).Expect(9, true).Verify(cq_.get());
+  Verifier().Expect(9, true).Verify(cq_.get());
 
   cli_stream->Finish(&recv_status, tag(10));
-  Verifier(GetParam()).Expect(10, true).Verify(cq_.get());
+  Verifier().Expect(10, true).Verify(cq_.get());
 
   EXPECT_EQ(send_response.message(), recv_response.message());
   EXPECT_TRUE(recv_status.ok());
 }
 
 // One ping, two pongs.
-TEST_P(AsyncEnd2endTest, SimpleServerStreaming) {
+TEST_F(AsyncEnd2endTest, SimpleServerStreaming) {
   ResetStub();
 
   EchoRequest send_request;
@@ -379,38 +309,38 @@ TEST_P(AsyncEnd2endTest, SimpleServerStreaming) {
   service_.RequestResponseStream(&srv_ctx, &recv_request, &srv_stream,
                                  cq_.get(), cq_.get(), tag(2));
 
-  Verifier(GetParam()).Expect(1, true).Expect(2, true).Verify(cq_.get());
+  Verifier().Expect(1, true).Expect(2, true).Verify(cq_.get());
   EXPECT_EQ(send_request.message(), recv_request.message());
 
   send_response.set_message(recv_request.message());
   srv_stream.Write(send_response, tag(3));
-  Verifier(GetParam()).Expect(3, true).Verify(cq_.get());
+  Verifier().Expect(3, true).Verify(cq_.get());
 
   cli_stream->Read(&recv_response, tag(4));
-  Verifier(GetParam()).Expect(4, true).Verify(cq_.get());
+  Verifier().Expect(4, true).Verify(cq_.get());
   EXPECT_EQ(send_response.message(), recv_response.message());
 
   srv_stream.Write(send_response, tag(5));
-  Verifier(GetParam()).Expect(5, true).Verify(cq_.get());
+  Verifier().Expect(5, true).Verify(cq_.get());
 
   cli_stream->Read(&recv_response, tag(6));
-  Verifier(GetParam()).Expect(6, true).Verify(cq_.get());
+  Verifier().Expect(6, true).Verify(cq_.get());
   EXPECT_EQ(send_response.message(), recv_response.message());
 
   srv_stream.Finish(Status::OK, tag(7));
-  Verifier(GetParam()).Expect(7, true).Verify(cq_.get());
+  Verifier().Expect(7, true).Verify(cq_.get());
 
   cli_stream->Read(&recv_response, tag(8));
-  Verifier(GetParam()).Expect(8, false).Verify(cq_.get());
+  Verifier().Expect(8, false).Verify(cq_.get());
 
   cli_stream->Finish(&recv_status, tag(9));
-  Verifier(GetParam()).Expect(9, true).Verify(cq_.get());
+  Verifier().Expect(9, true).Verify(cq_.get());
 
   EXPECT_TRUE(recv_status.ok());
 }
 
 // One ping, one pong.
-TEST_P(AsyncEnd2endTest, SimpleBidiStreaming) {
+TEST_F(AsyncEnd2endTest, SimpleBidiStreaming) {
   ResetStub();
 
   EchoRequest send_request;
@@ -429,40 +359,40 @@ TEST_P(AsyncEnd2endTest, SimpleBidiStreaming) {
   service_.RequestBidiStream(&srv_ctx, &srv_stream, cq_.get(), cq_.get(),
                              tag(2));
 
-  Verifier(GetParam()).Expect(1, true).Expect(2, true).Verify(cq_.get());
+  Verifier().Expect(1, true).Expect(2, true).Verify(cq_.get());
 
   cli_stream->Write(send_request, tag(3));
-  Verifier(GetParam()).Expect(3, true).Verify(cq_.get());
+  Verifier().Expect(3, true).Verify(cq_.get());
 
   srv_stream.Read(&recv_request, tag(4));
-  Verifier(GetParam()).Expect(4, true).Verify(cq_.get());
+  Verifier().Expect(4, true).Verify(cq_.get());
   EXPECT_EQ(send_request.message(), recv_request.message());
 
   send_response.set_message(recv_request.message());
   srv_stream.Write(send_response, tag(5));
-  Verifier(GetParam()).Expect(5, true).Verify(cq_.get());
+  Verifier().Expect(5, true).Verify(cq_.get());
 
   cli_stream->Read(&recv_response, tag(6));
-  Verifier(GetParam()).Expect(6, true).Verify(cq_.get());
+  Verifier().Expect(6, true).Verify(cq_.get());
   EXPECT_EQ(send_response.message(), recv_response.message());
 
   cli_stream->WritesDone(tag(7));
-  Verifier(GetParam()).Expect(7, true).Verify(cq_.get());
+  Verifier().Expect(7, true).Verify(cq_.get());
 
   srv_stream.Read(&recv_request, tag(8));
-  Verifier(GetParam()).Expect(8, false).Verify(cq_.get());
+  Verifier().Expect(8, false).Verify(cq_.get());
 
   srv_stream.Finish(Status::OK, tag(9));
-  Verifier(GetParam()).Expect(9, true).Verify(cq_.get());
+  Verifier().Expect(9, true).Verify(cq_.get());
 
   cli_stream->Finish(&recv_status, tag(10));
-  Verifier(GetParam()).Expect(10, true).Verify(cq_.get());
+  Verifier().Expect(10, true).Verify(cq_.get());
 
   EXPECT_TRUE(recv_status.ok());
 }
 
 // Metadata tests
-TEST_P(AsyncEnd2endTest, ClientInitialMetadataRpc) {
+TEST_F(AsyncEnd2endTest, ClientInitialMetadataRpc) {
   ResetStub();
 
   EchoRequest send_request;
@@ -486,7 +416,7 @@ TEST_P(AsyncEnd2endTest, ClientInitialMetadataRpc) {
 
   service_.RequestEcho(&srv_ctx, &recv_request, &response_writer, cq_.get(),
                        cq_.get(), tag(2));
-  Verifier(GetParam()).Expect(2, true).Verify(cq_.get());
+  Verifier().Expect(2, true).Verify(cq_.get());
   EXPECT_EQ(send_request.message(), recv_request.message());
   auto client_initial_metadata = srv_ctx.client_metadata();
   EXPECT_EQ(meta1.second, client_initial_metadata.find(meta1.first)->second);
@@ -496,16 +426,16 @@ TEST_P(AsyncEnd2endTest, ClientInitialMetadataRpc) {
   send_response.set_message(recv_request.message());
   response_writer.Finish(send_response, Status::OK, tag(3));
 
-  Verifier(GetParam()).Expect(3, true).Verify(cq_.get());
+  Verifier().Expect(3, true).Verify(cq_.get());
 
   response_reader->Finish(&recv_response, &recv_status, tag(4));
-  Verifier(GetParam()).Expect(4, true).Verify(cq_.get());
+  Verifier().Expect(4, true).Verify(cq_.get());
 
   EXPECT_EQ(send_response.message(), recv_response.message());
   EXPECT_TRUE(recv_status.ok());
 }
 
-TEST_P(AsyncEnd2endTest, ServerInitialMetadataRpc) {
+TEST_F(AsyncEnd2endTest, ServerInitialMetadataRpc) {
   ResetStub();
 
   EchoRequest send_request;
@@ -527,15 +457,15 @@ TEST_P(AsyncEnd2endTest, ServerInitialMetadataRpc) {
 
   service_.RequestEcho(&srv_ctx, &recv_request, &response_writer, cq_.get(),
                        cq_.get(), tag(2));
-  Verifier(GetParam()).Expect(2, true).Verify(cq_.get());
+  Verifier().Expect(2, true).Verify(cq_.get());
   EXPECT_EQ(send_request.message(), recv_request.message());
   srv_ctx.AddInitialMetadata(meta1.first, meta1.second);
   srv_ctx.AddInitialMetadata(meta2.first, meta2.second);
   response_writer.SendInitialMetadata(tag(3));
-  Verifier(GetParam()).Expect(3, true).Verify(cq_.get());
+  Verifier().Expect(3, true).Verify(cq_.get());
 
   response_reader->ReadInitialMetadata(tag(4));
-  Verifier(GetParam()).Expect(4, true).Verify(cq_.get());
+  Verifier().Expect(4, true).Verify(cq_.get());
   auto server_initial_metadata = cli_ctx.GetServerInitialMetadata();
   EXPECT_EQ(meta1.second, server_initial_metadata.find(meta1.first)->second);
   EXPECT_EQ(meta2.second, server_initial_metadata.find(meta2.first)->second);
@@ -543,16 +473,16 @@ TEST_P(AsyncEnd2endTest, ServerInitialMetadataRpc) {
 
   send_response.set_message(recv_request.message());
   response_writer.Finish(send_response, Status::OK, tag(5));
-  Verifier(GetParam()).Expect(5, true).Verify(cq_.get());
+  Verifier().Expect(5, true).Verify(cq_.get());
 
   response_reader->Finish(&recv_response, &recv_status, tag(6));
-  Verifier(GetParam()).Expect(6, true).Verify(cq_.get());
+  Verifier().Expect(6, true).Verify(cq_.get());
 
   EXPECT_EQ(send_response.message(), recv_response.message());
   EXPECT_TRUE(recv_status.ok());
 }
 
-TEST_P(AsyncEnd2endTest, ServerTrailingMetadataRpc) {
+TEST_F(AsyncEnd2endTest, ServerTrailingMetadataRpc) {
   ResetStub();
 
   EchoRequest send_request;
@@ -574,20 +504,20 @@ TEST_P(AsyncEnd2endTest, ServerTrailingMetadataRpc) {
 
   service_.RequestEcho(&srv_ctx, &recv_request, &response_writer, cq_.get(),
                        cq_.get(), tag(2));
-  Verifier(GetParam()).Expect(2, true).Verify(cq_.get());
+  Verifier().Expect(2, true).Verify(cq_.get());
   EXPECT_EQ(send_request.message(), recv_request.message());
   response_writer.SendInitialMetadata(tag(3));
-  Verifier(GetParam()).Expect(3, true).Verify(cq_.get());
+  Verifier().Expect(3, true).Verify(cq_.get());
 
   send_response.set_message(recv_request.message());
   srv_ctx.AddTrailingMetadata(meta1.first, meta1.second);
   srv_ctx.AddTrailingMetadata(meta2.first, meta2.second);
   response_writer.Finish(send_response, Status::OK, tag(4));
 
-  Verifier(GetParam()).Expect(4, true).Verify(cq_.get());
+  Verifier().Expect(4, true).Verify(cq_.get());
 
   response_reader->Finish(&recv_response, &recv_status, tag(5));
-  Verifier(GetParam()).Expect(5, true).Verify(cq_.get());
+  Verifier().Expect(5, true).Verify(cq_.get());
   EXPECT_EQ(send_response.message(), recv_response.message());
   EXPECT_TRUE(recv_status.ok());
   auto server_trailing_metadata = cli_ctx.GetServerTrailingMetadata();
@@ -596,7 +526,7 @@ TEST_P(AsyncEnd2endTest, ServerTrailingMetadataRpc) {
   EXPECT_EQ(static_cast<size_t>(2), server_trailing_metadata.size());
 }
 
-TEST_P(AsyncEnd2endTest, MetadataRpc) {
+TEST_F(AsyncEnd2endTest, MetadataRpc) {
   ResetStub();
 
   EchoRequest send_request;
@@ -633,7 +563,7 @@ TEST_P(AsyncEnd2endTest, MetadataRpc) {
 
   service_.RequestEcho(&srv_ctx, &recv_request, &response_writer, cq_.get(),
                        cq_.get(), tag(2));
-  Verifier(GetParam()).Expect(2, true).Verify(cq_.get());
+  Verifier().Expect(2, true).Verify(cq_.get());
   EXPECT_EQ(send_request.message(), recv_request.message());
   auto client_initial_metadata = srv_ctx.client_metadata();
   EXPECT_EQ(meta1.second, client_initial_metadata.find(meta1.first)->second);
@@ -643,9 +573,9 @@ TEST_P(AsyncEnd2endTest, MetadataRpc) {
   srv_ctx.AddInitialMetadata(meta3.first, meta3.second);
   srv_ctx.AddInitialMetadata(meta4.first, meta4.second);
   response_writer.SendInitialMetadata(tag(3));
-  Verifier(GetParam()).Expect(3, true).Verify(cq_.get());
+  Verifier().Expect(3, true).Verify(cq_.get());
   response_reader->ReadInitialMetadata(tag(4));
-  Verifier(GetParam()).Expect(4, true).Verify(cq_.get());
+  Verifier().Expect(4, true).Verify(cq_.get());
   auto server_initial_metadata = cli_ctx.GetServerInitialMetadata();
   EXPECT_EQ(meta3.second, server_initial_metadata.find(meta3.first)->second);
   EXPECT_EQ(meta4.second, server_initial_metadata.find(meta4.first)->second);
@@ -656,10 +586,10 @@ TEST_P(AsyncEnd2endTest, MetadataRpc) {
   srv_ctx.AddTrailingMetadata(meta6.first, meta6.second);
   response_writer.Finish(send_response, Status::OK, tag(5));
 
-  Verifier(GetParam()).Expect(5, true).Verify(cq_.get());
+  Verifier().Expect(5, true).Verify(cq_.get());
 
   response_reader->Finish(&recv_response, &recv_status, tag(6));
-  Verifier(GetParam()).Expect(6, true).Verify(cq_.get());
+  Verifier().Expect(6, true).Verify(cq_.get());
   EXPECT_EQ(send_response.message(), recv_response.message());
   EXPECT_TRUE(recv_status.ok());
   auto server_trailing_metadata = cli_ctx.GetServerTrailingMetadata();
@@ -669,7 +599,7 @@ TEST_P(AsyncEnd2endTest, MetadataRpc) {
 }
 
 // Server uses AsyncNotifyWhenDone API to check for cancellation
-TEST_P(AsyncEnd2endTest, ServerCheckCancellation) {
+TEST_F(AsyncEnd2endTest, ServerCheckCancellation) {
   ResetStub();
 
   EchoRequest send_request;
@@ -690,21 +620,21 @@ TEST_P(AsyncEnd2endTest, ServerCheckCancellation) {
   service_.RequestEcho(&srv_ctx, &recv_request, &response_writer, cq_.get(),
                        cq_.get(), tag(2));
 
-  Verifier(GetParam()).Expect(2, true).Verify(cq_.get());
+  Verifier().Expect(2, true).Verify(cq_.get());
   EXPECT_EQ(send_request.message(), recv_request.message());
 
   cli_ctx.TryCancel();
-  Verifier(GetParam()).Expect(5, true).Verify(cq_.get());
+  Verifier().Expect(5, true).Verify(cq_.get());
   EXPECT_TRUE(srv_ctx.IsCancelled());
 
   response_reader->Finish(&recv_response, &recv_status, tag(4));
-  Verifier(GetParam()).Expect(4, false).Verify(cq_.get());
+  Verifier().Expect(4, false).Verify(cq_.get());
 
   EXPECT_EQ(StatusCode::CANCELLED, recv_status.error_code());
 }
 
 // Server uses AsyncNotifyWhenDone API to check for normal finish
-TEST_P(AsyncEnd2endTest, ServerCheckDone) {
+TEST_F(AsyncEnd2endTest, ServerCheckDone) {
   ResetStub();
 
   EchoRequest send_request;
@@ -725,23 +655,23 @@ TEST_P(AsyncEnd2endTest, ServerCheckDone) {
   service_.RequestEcho(&srv_ctx, &recv_request, &response_writer, cq_.get(),
                        cq_.get(), tag(2));
 
-  Verifier(GetParam()).Expect(2, true).Verify(cq_.get());
+  Verifier().Expect(2, true).Verify(cq_.get());
   EXPECT_EQ(send_request.message(), recv_request.message());
 
   send_response.set_message(recv_request.message());
   response_writer.Finish(send_response, Status::OK, tag(3));
-  Verifier(GetParam()).Expect(3, true).Verify(cq_.get());
-  Verifier(GetParam()).Expect(5, true).Verify(cq_.get());
+  Verifier().Expect(3, true).Verify(cq_.get());
+  Verifier().Expect(5, true).Verify(cq_.get());
   EXPECT_FALSE(srv_ctx.IsCancelled());
 
   response_reader->Finish(&recv_response, &recv_status, tag(4));
-  Verifier(GetParam()).Expect(4, true).Verify(cq_.get());
+  Verifier().Expect(4, true).Verify(cq_.get());
 
   EXPECT_EQ(send_response.message(), recv_response.message());
   EXPECT_TRUE(recv_status.ok());
 }
 
-TEST_P(AsyncEnd2endTest, UnimplementedRpc) {
+TEST_F(AsyncEnd2endTest, UnimplementedRpc) {
   std::shared_ptr<ChannelInterface> channel = CreateChannel(
       server_address_.str(), InsecureCredentials(), ChannelArguments());
   std::unique_ptr<grpc::cpp::test::util::UnimplementedService::Stub> stub;
@@ -757,14 +687,11 @@ TEST_P(AsyncEnd2endTest, UnimplementedRpc) {
       stub->AsyncUnimplemented(&cli_ctx, send_request, cq_.get()));
 
   response_reader->Finish(&recv_response, &recv_status, tag(4));
-  Verifier(GetParam()).Expect(4, false).Verify(cq_.get());
+  Verifier().Expect(4, false).Verify(cq_.get());
 
   EXPECT_EQ(StatusCode::UNIMPLEMENTED, recv_status.error_code());
   EXPECT_EQ("", recv_status.error_message());
 }
-
-INSTANTIATE_TEST_CASE_P(AsyncEnd2end, AsyncEnd2endTest,
-                        ::testing::Values(false, true));
 
 }  // namespace
 }  // namespace testing
