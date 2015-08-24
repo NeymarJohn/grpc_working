@@ -31,13 +31,13 @@
  *
  */
 
-#include <grpc++/support/byte_buffer.h>
+#include <grpc++/byte_buffer.h>
 
 #include <cstring>
 #include <vector>
 
 #include <grpc/support/slice.h>
-#include <grpc++/support/slice.h>
+#include <grpc++/slice.h>
 #include <gtest/gtest.h>
 
 namespace grpc {

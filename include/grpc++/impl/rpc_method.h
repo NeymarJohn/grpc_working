@@ -34,10 +34,6 @@
 #ifndef GRPCXX_IMPL_RPC_METHOD_H
 #define GRPCXX_IMPL_RPC_METHOD_H
 
-#include <memory>
-
-#include <grpc++/channel.h>
-
 namespace grpc {
 
 class RpcMethod {
@@ -49,14 +45,8 @@ class RpcMethod {
     BIDI_STREAMING
   };
 
-  RpcMethod(const char* name, RpcType type)
-      : name_(name), method_type_(type), channel_tag_(NULL) {}
-
-  RpcMethod(const char* name, RpcType type,
-            const std::shared_ptr<Channel>& channel)
-      : name_(name),
-        method_type_(type),
-        channel_tag_(channel->RegisterMethod(name)) {}
+  RpcMethod(const char* name, RpcType type, void* channel_tag)
+      : name_(name), method_type_(type), channel_tag_(channel_tag) {}
 
   const char* name() const { return name_; }
   RpcType method_type() const { return method_type_; }

@@ -38,9 +38,10 @@
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
 #include <gflags/gflags.h>
-#include <grpc++/channel.h>
+#include <grpc++/channel_interface.h>
 #include <grpc++/client_context.h>
-
+#include <grpc++/status.h>
+#include <grpc++/stream.h>
 #include "test/cpp/interop/client_helper.h"
 #include "test/cpp/interop/interop_client.h"
 #include "test/cpp/util/test_config.h"

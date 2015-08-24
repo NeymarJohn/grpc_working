@@ -30,16 +30,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include <memory>
 
-#include <grpc/grpc.h>
-#include <grpc++/auth_context.h>
+#ifndef GRPCXX_STATUS_H
+#define GRPCXX_STATUS_H
+
+#include <grpc++/status_code_enum.h>
+#include <grpc++/config.h>
 
 namespace grpc {
 
-std::shared_ptr<const AuthContext> CreateAuthContext(grpc_call* call) {
-  (void)call;
-  return std::shared_ptr<const AuthContext>();
-}
+class Status {
+ public:
+  Status() : code_(StatusCode::OK) {}
+  Status(StatusCode code, const grpc::string& details)
+      : code_(code), details_(details) {}
+
+  // Pre-defined special status objects.
+  static const Status& OK;
+  static const Status& CANCELLED;
+
+  StatusCode error_code() const { return code_; }
+  grpc::string error_message() const { return details_; }
+
+  bool ok() const { return code_ == StatusCode::OK; }
+
+ private:
+  StatusCode code_;
+  grpc::string details_;
+};
 
 }  // namespace grpc
+
+#endif  // GRPCXX_STATUS_H
