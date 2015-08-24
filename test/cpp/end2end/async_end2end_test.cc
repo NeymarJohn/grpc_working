@@ -33,13 +33,10 @@
 
 #include <memory>
 
-#include "test/core/util/port.h"
-#include "test/core/util/test_config.h"
-#include "test/cpp/util/echo_duplicate.grpc.pb.h"
-#include "test/cpp/util/echo.grpc.pb.h"
-#include <grpc++/async_unary_call.h>
-#include <grpc++/channel_arguments.h>
-#include <grpc++/channel_interface.h>
+#include <grpc/grpc.h>
+#include <grpc/support/thd.h>
+#include <grpc/support/time.h>
+#include <grpc++/channel.h>
 #include <grpc++/client_context.h>
 #include <grpc++/create_channel.h>
 #include <grpc++/credentials.h>
@@ -47,14 +44,12 @@
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
 #include <grpc++/server_credentials.h>
-#include <grpc++/status.h>
-#include <grpc++/stream.h>
-#include <grpc++/time.h>
 #include <gtest/gtest.h>
 
-#include <grpc/grpc.h>
-#include <grpc/support/thd.h>
-#include <grpc/support/time.h>
+#include "test/core/util/port.h"
+#include "test/core/util/test_config.h"
+#include "test/cpp/util/echo_duplicate.grpc.pb.h"
+#include "test/cpp/util/echo.grpc.pb.h"
 
 #ifdef GPR_POSIX_SOCKET
 #include "src/core/iomgr/pollset_posix.h"
@@ -204,7 +199,7 @@ class AsyncEnd2endTest : public ::testing::TestWithParam<bool> {
   }
 
   void ResetStub() {
-    std::shared_ptr<ChannelInterface> channel = CreateChannel(
+    std::shared_ptr<Channel> channel = CreateChannel(
         server_address_.str(), InsecureCredentials(), ChannelArguments());
     stub_ = std::move(grpc::cpp::test::util::TestService::NewStub(channel));
   }
@@ -742,7 +737,7 @@ TEST_P(AsyncEnd2endTest, ServerCheckDone) {
 }
 
 TEST_P(AsyncEnd2endTest, UnimplementedRpc) {
-  std::shared_ptr<ChannelInterface> channel = CreateChannel(
+  std::shared_ptr<Channel> channel = CreateChannel(
       server_address_.str(), InsecureCredentials(), ChannelArguments());
   std::unique_ptr<grpc::cpp::test::util::UnimplementedService::Stub> stub;
   stub =
