@@ -1046,10 +1046,11 @@ static int prepare_application_metadata(grpc_call *call, size_t count,
                                                (const gpr_uint8 *)md->value,
                                                md->value_length, 1);
     if (!grpc_mdstr_is_legal_header(l->md->key)) {
-      gpr_log(GPR_ERROR, "attempt to send invalid metadata key");
+      gpr_log(GPR_ERROR, "attempt to send invalid metadata key: %s",
+              grpc_mdstr_as_c_string(l->md->key));
       return 0;
     } else if (!grpc_mdstr_is_bin_suffixed(l->md->key) &&
-               !grpc_mdstr_is_legal_header(l->md->value)) {
+               !grpc_mdstr_is_legal_nonbin_header(l->md->value)) {
       gpr_log(GPR_ERROR, "attempt to send invalid metadata value");
       return 0;
     }
@@ -1573,7 +1574,8 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
   const grpc_op *op;
   grpc_ioreq *req;
   void (*finish_func)(grpc_call *, int, void *) = finish_batch;
-  GPR_ASSERT(!reserved);
+
+  if (reserved != NULL) return GRPC_CALL_ERROR;
 
   GRPC_CALL_LOG_BATCH(GPR_INFO, call, ops, nops, tag);
 
@@ -1588,6 +1590,7 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
   /* rewrite batch ops into ioreq ops */
   for (in = 0, out = 0; in < nops; in++) {
     op = &ops[in];
+    if (op->reserved != NULL) return GRPC_CALL_ERROR;
     switch (op->op) {
       case GRPC_OP_SEND_INITIAL_METADATA:
         /* Flag validation: currently allow no flags */
