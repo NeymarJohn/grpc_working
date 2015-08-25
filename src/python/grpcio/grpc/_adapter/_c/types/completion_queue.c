@@ -90,7 +90,7 @@ PyTypeObject pygrpc_CompletionQueue_type = {
 CompletionQueue *pygrpc_CompletionQueue_new(
     PyTypeObject *type, PyObject *args, PyObject *kwargs) {
   CompletionQueue *self = (CompletionQueue *)type->tp_alloc(type, 0);
-  self->c_cq = grpc_completion_queue_create(NULL);
+  self->c_cq = grpc_completion_queue_create();
   return self;
 }
 
@@ -111,7 +111,7 @@ PyObject *pygrpc_CompletionQueue_next(
   }
   Py_BEGIN_ALLOW_THREADS;
   event = grpc_completion_queue_next(
-      self->c_cq, pygrpc_cast_double_to_gpr_timespec(deadline), NULL);
+      self->c_cq, pygrpc_cast_double_to_gpr_timespec(deadline));
   Py_END_ALLOW_THREADS;
   transliterated_event = pygrpc_consume_event(event);
   return transliterated_event;

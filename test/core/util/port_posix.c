@@ -66,7 +66,9 @@ static int has_port_been_chosen(int port) {
   return 0;
 }
 
-static void free_chosen_ports() { gpr_free(chosen_ports); }
+static void free_chosen_ports() {
+  gpr_free(chosen_ports);
+}
 
 static void chose_port(int port) {
   if (chosen_ports == NULL) {
@@ -178,7 +180,7 @@ static int pick_port_using_server(char *server) {
   gpr_mu_lock(GRPC_POLLSET_MU(&pr.pollset));
   while (pr.port == -1) {
     grpc_pollset_worker worker;
-    grpc_pollset_work(&pr.pollset, &worker, gpr_now(GPR_CLOCK_MONOTONIC),
+    grpc_pollset_work(&pr.pollset, &worker,
                       GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1));
   }
   gpr_mu_unlock(GRPC_POLLSET_MU(&pr.pollset));
@@ -204,8 +206,7 @@ int grpc_pick_unused_port(void) {
 
   /* Type of port to first pick in next iteration */
   int is_tcp = 1;
-  int try
-    = 0;
+  int try = 0;
 
   char *env = gpr_getenv("GRPC_TEST_PORT_SERVER");
   if (env) {
@@ -218,8 +219,7 @@ int grpc_pick_unused_port(void) {
 
   for (;;) {
     int port;
-    try
-      ++;
+    try++;
     if (try == 1) {
       port = getpid() % (65536 - 30000) + 30000;
     } else if (try <= NUM_RANDOM_PORTS_TO_PICK) {

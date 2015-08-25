@@ -47,12 +47,8 @@ typedef enum {
 } grpc_byte_buffer_type;
 
 struct grpc_byte_buffer {
-  void *reserved;
   grpc_byte_buffer_type type;
   union {
-    struct {
-      void *reserved[8];
-    } reserved;
     struct {
       grpc_compression_algorithm compression;
       gpr_slice_buffer slice_buffer;

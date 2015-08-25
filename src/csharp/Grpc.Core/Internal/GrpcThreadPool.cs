@@ -83,6 +83,8 @@ namespace Grpc.Core.Internal
             lock (myLock)
             {
                 cq.Shutdown();
+
+                Logger.Info("Waiting for GRPC threads to finish.");
                 foreach (var thread in threads)
                 {
                     thread.Join();
@@ -134,6 +136,7 @@ namespace Grpc.Core.Internal
                 }
             }
             while (ev.type != GRPCCompletionType.Shutdown);
+            Logger.Info("Completion queue has shutdown successfully, thread {0} exiting.", Thread.CurrentThread.Name);
         }
     }
 }

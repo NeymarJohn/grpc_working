@@ -45,8 +45,6 @@ PyMethodDef pygrpc_Server_methods[] = {
      METH_KEYWORDS, ""},
     {"start", (PyCFunction)pygrpc_Server_start, METH_NOARGS, ""},
     {"shutdown", (PyCFunction)pygrpc_Server_shutdown, METH_KEYWORDS, ""},
-    {"cancel_all_calls", (PyCFunction)pygrpc_Server_cancel_all_calls,
-     METH_NOARGS, ""},
     {NULL}
 };
 const char pygrpc_Server_doc[] = "See grpc._adapter._types.Server.";
@@ -106,12 +104,11 @@ Server *pygrpc_Server_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) 
     return NULL;
   }
   self = (Server *)type->tp_alloc(type, 0);
-  self->c_serv = grpc_server_create(&c_args, NULL);
-  grpc_server_register_completion_queue(self->c_serv, cq->c_cq, NULL);
+  self->c_serv = grpc_server_create(&c_args);
+  grpc_server_register_completion_queue(self->c_serv, cq->c_cq);
   pygrpc_discard_channel_args(c_args);
   self->cq = cq;
   Py_INCREF(self->cq);
-  self->shutdown_called = 0;
   return self;
 }
 
@@ -166,7 +163,6 @@ PyObject *pygrpc_Server_add_http2_port(
 
 PyObject *pygrpc_Server_start(Server *self, PyObject *ignored) {
   grpc_server_start(self->c_serv);
-  self->shutdown_called = 0;
   Py_RETURN_NONE;
 }
 
@@ -180,17 +176,5 @@ PyObject *pygrpc_Server_shutdown(
   }
   tag = pygrpc_produce_server_shutdown_tag(user_tag);
   grpc_server_shutdown_and_notify(self->c_serv, self->cq->c_cq, tag);
-  self->shutdown_called = 1;
-  Py_RETURN_NONE;
-}
-
-PyObject *pygrpc_Server_cancel_all_calls(Server *self, PyObject *unused) {
-  if (!self->shutdown_called) {
-    PyErr_SetString(
-        PyExc_RuntimeError,
-        "shutdown must have been called prior to calling cancel_all_calls!");
-    return NULL;
-  }
-  grpc_server_cancel_all_calls(self->c_serv);
   Py_RETURN_NONE;
 }
