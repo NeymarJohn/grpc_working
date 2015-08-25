@@ -33,24 +33,26 @@
 
 #include "test/cpp/interop/interop_client.h"
 
-#include <unistd.h>
-
 #include <fstream>
 #include <memory>
+
+#include <unistd.h>
 
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/string_util.h>
 #include <grpc/support/useful.h>
-#include <grpc++/channel.h>
+#include <grpc++/channel_interface.h>
 #include <grpc++/client_context.h>
 #include <grpc++/credentials.h>
+#include <grpc++/status.h>
+#include <grpc++/stream.h>
 
-#include "src/core/transport/stream_op.h"
 #include "test/cpp/interop/client_helper.h"
 #include "test/proto/test.grpc.pb.h"
 #include "test/proto/empty.grpc.pb.h"
 #include "test/proto/messages.grpc.pb.h"
+#include "src/core/transport/stream_op.h"
 
 namespace grpc {
 namespace testing {
@@ -82,7 +84,7 @@ CompressionType GetInteropCompressionTypeFromCompressionAlgorithm(
 }
 }  // namespace
 
-InteropClient::InteropClient(std::shared_ptr<Channel> channel)
+InteropClient::InteropClient(std::shared_ptr<ChannelInterface> channel)
     : channel_(channel) {}
 
 void InteropClient::AssertOkOrPrintErrorStatus(const Status& s) {
