@@ -91,9 +91,6 @@
     <ClCompile Include="..\..\src\cpp\util\status.cc">
       <Filter>src\cpp\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\cpp\util\string_ref.cc">
-      <Filter>src\cpp\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\cpp\util\time.cc">
       <Filter>src\cpp\util</Filter>
     </ClCompile>
@@ -202,9 +199,6 @@
       <Filter>include\grpc++\support</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\grpc++\support\status_code_enum.h">
-      <Filter>include\grpc++\support</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\grpc++\support\string_ref.h">
       <Filter>include\grpc++\support</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\grpc++\support\stub_options.h">

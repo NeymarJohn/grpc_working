@@ -35,7 +35,7 @@ using System.Threading.Tasks;
 namespace Grpc.Core.Internal
 {
     /// <summary>
-    /// grpc_channel_args from <c>grpc/grpc.h</c>
+    /// grpc_channel_args from <grpc/grpc.h>
     /// </summary>
     internal class ChannelArgsSafeHandle : SafeHandleZeroIsInvalid
     {
