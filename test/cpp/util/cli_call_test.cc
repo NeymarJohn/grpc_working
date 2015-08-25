@@ -31,11 +31,10 @@
  *
  */
 
-#include "test/core/util/test_config.h"
 #include "test/cpp/util/cli_call.h"
-#include "test/cpp/util/echo.grpc.pb.h"
-#include <grpc++/channel_arguments.h>
-#include <grpc++/channel_interface.h>
+
+#include <grpc/grpc.h>
+#include <grpc++/channel.h>
 #include <grpc++/client_context.h>
 #include <grpc++/create_channel.h>
 #include <grpc++/credentials.h>
@@ -43,11 +42,11 @@
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
 #include <grpc++/server_credentials.h>
-#include <grpc++/status.h>
-#include "test/core/util/port.h"
 #include <gtest/gtest.h>
 
-#include <grpc/grpc.h>
+#include "test/core/util/port.h"
+#include "test/core/util/test_config.h"
+#include "test/cpp/util/echo.grpc.pb.h"
 
 using grpc::cpp::test::util::EchoRequest;
 using grpc::cpp::test::util::EchoResponse;
@@ -95,7 +94,7 @@ class CliCallTest : public ::testing::Test {
     stub_ = std::move(grpc::cpp::test::util::TestService::NewStub(channel_));
   }
 
-  std::shared_ptr<ChannelInterface> channel_;
+  std::shared_ptr<Channel> channel_;
   std::unique_ptr<grpc::cpp::test::util::TestService::Stub> stub_;
   std::unique_ptr<Server> server_;
   std::ostringstream server_address_;
