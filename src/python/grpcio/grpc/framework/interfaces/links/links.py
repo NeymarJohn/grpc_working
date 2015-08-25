@@ -98,7 +98,7 @@ class Ticket(
     COMPLETION = 'completion'
     CANCELLATION = 'cancellation'
     EXPIRATION = 'expiration'
-    SHUTDOWN = 'shutdown'
+    LOCAL_SHUTDOWN = 'local shutdown'
     RECEPTION_FAILURE = 'reception failure'
     TRANSMISSION_FAILURE = 'transmission failure'
     LOCAL_FAILURE = 'local failure'
