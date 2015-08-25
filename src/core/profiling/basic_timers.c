@@ -36,6 +36,7 @@
 #ifdef GRPC_BASIC_PROFILER
 
 #include "src/core/profiling/timers.h"
+#include "src/core/profiling/timers_preciseclock.h"
 
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
@@ -52,7 +53,7 @@ typedef enum {
 } marker_type;
 
 typedef struct grpc_timer_entry {
-  gpr_timespec tm;
+  grpc_precise_clock tm;
   int tag;
   const char* tagstr;
   marker_type type;
@@ -70,8 +71,9 @@ static void log_report() {
   int i;
   for (i = 0; i < count; i++) {
     grpc_timer_entry* entry = &(log[i]);
-    printf("GRPC_LAT_PROF %ld.%09d  %p %c %d(%s) %p %s %d\n",
-           entry->tm.tv_sec, entry->tm.tv_nsec,
+    printf("GRPC_LAT_PROF " GRPC_PRECISE_CLOCK_FORMAT
+           " %p %c %d(%s) %p %s %d\n",
+           GRPC_PRECISE_CLOCK_PRINTF_ARGS(&entry->tm),
            (void*)(gpr_intptr)gpr_thd_currentid(), entry->type, entry->tag,
            entry->tagstr, entry->id, entry->file, entry->line);
   }
@@ -91,7 +93,7 @@ static void grpc_timers_log_add(int tag, const char* tagstr, marker_type type,
 
   entry = &log[count++];
 
-  entry->tm = gpr_now(GPR_CLOCK_PRECISE);
+  grpc_precise_clock_now(&entry->tm);
   entry->tag = tag;
   entry->tagstr = tagstr;
   entry->type = type;
