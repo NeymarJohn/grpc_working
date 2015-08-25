@@ -36,8 +36,8 @@
 
 #include <grpc/support/time.h>
 #include <grpc++/impl/grpc_library.h>
-#include <grpc++/support/status.h>
-#include <grpc++/support/time.h>
+#include <grpc++/status.h>
+#include <grpc++/time.h>
 
 struct grpc_completion_queue;
 
@@ -65,7 +65,7 @@ template <class ServiceType, class RequestType, class ResponseType>
 class BidiStreamingHandler;
 class UnknownMethodHandler;
 
-class Channel;
+class ChannelInterface;
 class ClientContext;
 class CompletionQueue;
 class RpcMethod;
@@ -143,7 +143,8 @@ class CompletionQueue : public GrpcLibrary {
   friend class ::grpc::Server;
   friend class ::grpc::ServerContext;
   template <class InputMessage, class OutputMessage>
-  friend Status BlockingUnaryCall(Channel* channel, const RpcMethod& method,
+  friend Status BlockingUnaryCall(ChannelInterface* channel,
+                                  const RpcMethod& method,
                                   ClientContext* context,
                                   const InputMessage& request,
                                   OutputMessage* result);
