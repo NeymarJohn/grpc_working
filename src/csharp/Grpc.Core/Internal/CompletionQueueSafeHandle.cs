@@ -35,7 +35,7 @@ using System.Threading.Tasks;
 namespace Grpc.Core.Internal
 {
     /// <summary>
-    /// grpc_completion_queue from <c>grpc/grpc.h</c>
+    /// grpc_completion_queue from <grpc/grpc.h>
     /// </summary>
     internal class CompletionQueueSafeHandle : SafeHandleZeroIsInvalid
     {

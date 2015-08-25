@@ -37,7 +37,7 @@ using Grpc.Core.Utils;
 namespace Grpc.Core.Internal
 {
     /// <summary>
-    /// grpc_server_credentials from <c>grpc/grpc_security.h</c>
+    /// grpc_server_credentials from <grpc/grpc_security.h>
     /// </summary>
     internal class ServerCredentialsSafeHandle : SafeHandleZeroIsInvalid
     {
