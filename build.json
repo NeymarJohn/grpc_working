@@ -663,7 +663,6 @@
       "headers": [
         "test/cpp/util/cli_call.h",
         "test/cpp/util/create_test_channel.h",
-        "test/cpp/util/string_ref_helper.h",
         "test/cpp/util/subprocess.h"
       ],
       "src": [
@@ -672,7 +671,6 @@
         "test/cpp/util/echo_duplicate.proto",
         "test/cpp/util/cli_call.cc",
         "test/cpp/util/create_test_channel.cc",
-        "test/cpp/util/string_ref_helper.cc",
         "test/cpp/util/subprocess.cc"
       ],
       "deps": [
@@ -1149,6 +1147,15 @@
         "gpr",
         "grpc"
       ]
+    },
+    {
+      "name": "gen_legal_metadata_characters",
+      "build": "tool",
+      "language": "c",
+      "src": [
+        "tools/codegen/core/gen_legal_metadata_characters.c"
+      ],
+      "deps": []
     },
     {
       "name": "gpr_cmdline_test",
@@ -2020,11 +2027,8 @@
         "test/cpp/common/auth_property_iterator_test.cc"
       ],
       "deps": [
-        "grpc++_test_util",
-        "grpc_test_util",
         "grpc++",
         "grpc",
-        "gpr_test_util",
         "gpr"
       ]
     },
@@ -2575,11 +2579,8 @@
         "test/cpp/common/secure_auth_context_test.cc"
       ],
       "deps": [
-        "grpc++_test_util",
-        "grpc_test_util",
         "grpc++",
         "grpc",
-        "gpr_test_util",
         "gpr"
       ]
     },
