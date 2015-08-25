@@ -31,74 +31,48 @@
  *
  */
 
-#ifndef GRPCXX_BYTE_BUFFER_H
-#define GRPCXX_BYTE_BUFFER_H
+#ifndef GRPCXX_GENERIC_ASYNC_GENERIC_SERVICE_H
+#define GRPCXX_GENERIC_ASYNC_GENERIC_SERVICE_H
 
-#include <grpc/grpc.h>
-#include <grpc/byte_buffer.h>
-#include <grpc/support/log.h>
-#include <grpc++/config.h>
-#include <grpc++/slice.h>
-#include <grpc++/status.h>
-#include <grpc++/impl/serialization_traits.h>
+#include <grpc++/support/byte_buffer.h>
+#include <grpc++/support/async_stream.h>
 
-#include <vector>
+struct grpc_server;
 
 namespace grpc {
 
-class ByteBuffer GRPC_FINAL {
+typedef ServerAsyncReaderWriter<ByteBuffer, ByteBuffer>
+    GenericServerAsyncReaderWriter;
+
+class GenericServerContext GRPC_FINAL : public ServerContext {
  public:
-  ByteBuffer() : buffer_(nullptr) {}
-
-  ByteBuffer(const Slice* slices, size_t nslices);
-
-  ~ByteBuffer() {
-    if (buffer_) {
-      grpc_byte_buffer_destroy(buffer_);
-    }
-  }
-
-  void Dump(std::vector<Slice>* slices) const;
-
-  void Clear();
-  size_t Length() const;
+  const grpc::string& method() const { return method_; }
+  const grpc::string& host() const { return host_; }
 
  private:
-  friend class SerializationTraits<ByteBuffer, void>;
+  friend class Server;
 
-  ByteBuffer(const ByteBuffer&);
-  ByteBuffer& operator=(const ByteBuffer&);
-
-  // takes ownership
-  void set_buffer(grpc_byte_buffer* buf) {
-    if (buffer_) {
-      gpr_log(GPR_ERROR, "Overriding existing buffer");
-      Clear();
-    }
-    buffer_ = buf;
-  }
-
-  grpc_byte_buffer* buffer() const { return buffer_; }
-
-  grpc_byte_buffer* buffer_;
+  grpc::string method_;
+  grpc::string host_;
 };
 
-template <>
-class SerializationTraits<ByteBuffer, void> {
+class AsyncGenericService GRPC_FINAL {
  public:
-  static Status Deserialize(grpc_byte_buffer* byte_buffer, ByteBuffer* dest,
-                            int max_message_size) {
-    dest->set_buffer(byte_buffer);
-    return Status::OK;
-  }
-  static Status Serialize(const ByteBuffer& source, grpc_byte_buffer** buffer,
-                          bool* own_buffer) {
-    *buffer = source.buffer();
-    *own_buffer = false;
-    return Status::OK;
-  }
+  // TODO(yangg) Once we can add multiple completion queues to the server
+  // in c core, add a CompletionQueue* argument to the ctor here.
+  // TODO(yangg) support methods list.
+  AsyncGenericService(const grpc::string& methods) : server_(nullptr) {}
+
+  void RequestCall(GenericServerContext* ctx,
+                   GenericServerAsyncReaderWriter* reader_writer,
+                   CompletionQueue* call_cq,
+                   ServerCompletionQueue* notification_cq, void* tag);
+
+ private:
+  friend class Server;
+  Server* server_;
 };
 
 }  // namespace grpc
 
-#endif  // GRPCXX_BYTE_BUFFER_H
+#endif  // GRPCXX_GENERIC_ASYNC_GENERIC_SERVICE_H

@@ -31,42 +31,37 @@
  *
  */
 
-#ifndef GRPCXX_CONFIG_PROTOBUF_H
-#define GRPCXX_CONFIG_PROTOBUF_H
+#ifndef GRPC_INTERNAL_CPP_FIXED_SIZE_THREAD_POOL_H
+#define GRPC_INTERNAL_CPP_FIXED_SIZE_THREAD_POOL_H
 
-#ifndef GRPC_CUSTOM_PROTOBUF_INT64
-#include <google/protobuf/stubs/common.h>
-#define GRPC_CUSTOM_PROTOBUF_INT64 ::google::protobuf::int64
-#endif
+#include <queue>
+#include <vector>
 
-#ifndef GRPC_CUSTOM_MESSAGE
-#include <google/protobuf/message.h>
-#define GRPC_CUSTOM_MESSAGE ::google::protobuf::Message
-#endif
+#include <grpc++/impl/sync.h>
+#include <grpc++/impl/thd.h>
+#include <grpc++/support/config.h>
 
-#ifndef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#define GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM \
-  ::google::protobuf::io::ZeroCopyOutputStream
-#define GRPC_CUSTOM_ZEROCOPYINPUTSTREAM \
-  ::google::protobuf::io::ZeroCopyInputStream
-#define GRPC_CUSTOM_CODEDINPUTSTREAM ::google::protobuf::io::CodedInputStream
-#endif
+#include "src/cpp/server/thread_pool_interface.h"
 
 namespace grpc {
-namespace protobuf {
 
-typedef GRPC_CUSTOM_MESSAGE Message;
-typedef GRPC_CUSTOM_PROTOBUF_INT64 int64;
+class FixedSizeThreadPool GRPC_FINAL : public ThreadPoolInterface {
+ public:
+  explicit FixedSizeThreadPool(int num_threads);
+  ~FixedSizeThreadPool();
 
-namespace io {
-typedef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM ZeroCopyOutputStream;
-typedef GRPC_CUSTOM_ZEROCOPYINPUTSTREAM ZeroCopyInputStream;
-typedef GRPC_CUSTOM_CODEDINPUTSTREAM CodedInputStream;
-}  // namespace io
+  void Add(const std::function<void()>& callback) GRPC_OVERRIDE;
 
-}  // namespace protobuf
+ private:
+  grpc::mutex mu_;
+  grpc::condition_variable cv_;
+  bool shutdown_;
+  std::queue<std::function<void()>> callbacks_;
+  std::vector<grpc::thread*> threads_;
+
+  void ThreadFunc();
+};
+
 }  // namespace grpc
 
-#endif  // GRPCXX_CONFIG_PROTOBUF_H
+#endif  // GRPC_INTERNAL_CPP_FIXED_SIZE_THREAD_POOL_H

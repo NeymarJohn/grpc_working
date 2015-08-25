@@ -31,43 +31,53 @@
  *
  */
 
-/* generates constant table for metadata.c */
+#ifndef GRPC_INTERNAL_CPP_DYNAMIC_THREAD_POOL_H
+#define GRPC_INTERNAL_CPP_DYNAMIC_THREAD_POOL_H
 
-#include <stdio.h>
-#include <string.h>
+#include <list>
+#include <memory>
+#include <queue>
 
-static unsigned char legal_bits[256 / 8];
+#include <grpc++/impl/sync.h>
+#include <grpc++/impl/thd.h>
+#include <grpc++/support/config.h>
 
-static void legal(int x) {
-  int byte = x / 8;
-  int bit = x % 8;
-  legal_bits[byte] |= 1 << bit;
-}
+#include "src/cpp/server/thread_pool_interface.h"
 
-static void dump(void) {
-  int i;
+namespace grpc {
 
-  printf("static const gpr_uint8 legal_header_bits[256/8] = ");
-  for (i = 0; i < 256 / 8; i++)
-    printf("%c 0x%02x", i ? ',' : '{', legal_bits[i]);
-  printf(" };\n");
-}
+class DynamicThreadPool GRPC_FINAL : public ThreadPoolInterface {
+ public:
+  explicit DynamicThreadPool(int reserve_threads);
+  ~DynamicThreadPool();
 
-static void clear(void) { memset(legal_bits, 0, sizeof(legal_bits)); }
+  void Add(const std::function<void()>& callback) GRPC_OVERRIDE;
 
-int main(void) {
-  int i;
+ private:
+  class DynamicThread {
+   public:
+    DynamicThread(DynamicThreadPool* pool);
+    ~DynamicThread();
 
-  clear();
-  for (i = 'a'; i <= 'z'; i++) legal(i);
-  for (i = '0'; i <= '9'; i++) legal(i);
-  legal('-');
-  legal('_');
-  dump();
+   private:
+    DynamicThreadPool* pool_;
+    std::unique_ptr<grpc::thread> thd_;
+    void ThreadFunc();
+  };
+  grpc::mutex mu_;
+  grpc::condition_variable cv_;
+  grpc::condition_variable shutdown_cv_;
+  bool shutdown_;
+  std::queue<std::function<void()>> callbacks_;
+  int reserve_threads_;
+  int nthreads_;
+  int threads_waiting_;
+  std::list<DynamicThread*> dead_threads_;
 
-  clear();
-  for (i = 32; i <= 126; i++) legal(i);
-  dump();
+  void ThreadFunc();
+  static void ReapThreads(std::list<DynamicThread*>* tlist);
+};
 
-  return 0;
-}
+}  // namespace grpc
+
+#endif  // GRPC_INTERNAL_CPP_DYNAMIC_THREAD_POOL_H

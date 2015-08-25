@@ -31,44 +31,74 @@
  *
  */
 
-#ifndef GRPCXX_SLICE_H
-#define GRPCXX_SLICE_H
+#ifndef GRPCXX_SUPPORT_BYTE_BUFFER_H
+#define GRPCXX_SUPPORT_BYTE_BUFFER_H
 
-#include <grpc/support/slice.h>
-#include <grpc++/config.h>
+#include <grpc/grpc.h>
+#include <grpc/byte_buffer.h>
+#include <grpc/support/log.h>
+#include <grpc++/impl/serialization_traits.h>
+#include <grpc++/support/config.h>
+#include <grpc++/support/slice.h>
+#include <grpc++/support/status.h>
+
+#include <vector>
 
 namespace grpc {
 
-class Slice GRPC_FINAL {
+class ByteBuffer GRPC_FINAL {
  public:
-  // construct empty slice
-  Slice();
-  // destructor - drops one ref
-  ~Slice();
-  // construct slice from grpc slice, adding a ref
-  enum AddRef { ADD_REF };
-  Slice(gpr_slice slice, AddRef);
-  // construct slice from grpc slice, stealing a ref
-  enum StealRef { STEAL_REF };
-  Slice(gpr_slice slice, StealRef);
-  // copy constructor - adds a ref
-  Slice(const Slice& other);
-  // assignment - ref count is unchanged
-  Slice& operator=(Slice other) {
-    std::swap(slice_, other.slice_);
-    return *this;
+  ByteBuffer() : buffer_(nullptr) {}
+
+  ByteBuffer(const Slice* slices, size_t nslices);
+
+  ~ByteBuffer() {
+    if (buffer_) {
+      grpc_byte_buffer_destroy(buffer_);
+    }
   }
 
-  size_t size() const { return GPR_SLICE_LENGTH(slice_); }
-  const gpr_uint8* begin() const { return GPR_SLICE_START_PTR(slice_); }
-  const gpr_uint8* end() const { return GPR_SLICE_END_PTR(slice_); }
+  void Dump(std::vector<Slice>* slices) const;
+
+  void Clear();
+  size_t Length() const;
 
  private:
-  friend class ByteBuffer;
+  friend class SerializationTraits<ByteBuffer, void>;
 
-  gpr_slice slice_;
+  ByteBuffer(const ByteBuffer&);
+  ByteBuffer& operator=(const ByteBuffer&);
+
+  // takes ownership
+  void set_buffer(grpc_byte_buffer* buf) {
+    if (buffer_) {
+      gpr_log(GPR_ERROR, "Overriding existing buffer");
+      Clear();
+    }
+    buffer_ = buf;
+  }
+
+  grpc_byte_buffer* buffer() const { return buffer_; }
+
+  grpc_byte_buffer* buffer_;
+};
+
+template <>
+class SerializationTraits<ByteBuffer, void> {
+ public:
+  static Status Deserialize(grpc_byte_buffer* byte_buffer, ByteBuffer* dest,
+                            int max_message_size) {
+    dest->set_buffer(byte_buffer);
+    return Status::OK;
+  }
+  static Status Serialize(const ByteBuffer& source, grpc_byte_buffer** buffer,
+                          bool* own_buffer) {
+    *buffer = source.buffer();
+    *own_buffer = false;
+    return Status::OK;
+  }
 };
 
 }  // namespace grpc
 
-#endif  // GRPCXX_SLICE_H
+#endif  // GRPCXX_SUPPORT_BYTE_BUFFER_H

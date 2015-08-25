@@ -31,63 +31,86 @@
  *
  */
 
-#ifndef GRPCXX_CHANNEL_ARGUMENTS_H
-#define GRPCXX_CHANNEL_ARGUMENTS_H
+#ifndef GRPCXX_SUPPORT_CONFIG_H
+#define GRPCXX_SUPPORT_CONFIG_H
 
-#include <vector>
-#include <list>
+#if !defined(GRPC_NO_AUTODETECT_PLATFORM)
 
-#include <grpc++/config.h>
-#include <grpc/compression.h>
-#include <grpc/grpc.h>
+#ifdef _MSC_VER
+// Visual Studio 2010 is 1600.
+#if _MSC_VER < 1600
+#error "gRPC is only supported with Visual Studio starting at 2010"
+// Visual Studio 2013 is 1800.
+#elif _MSC_VER < 1800
+#define GRPC_CXX0X_NO_FINAL 1
+#define GRPC_CXX0X_NO_OVERRIDE 1
+#define GRPC_CXX0X_NO_CHRONO 1
+#define GRPC_CXX0X_NO_THREAD 1
+#endif
+#endif  // Visual Studio
 
+#ifndef __clang__
+#ifdef __GNUC__
+// nullptr was added in gcc 4.6
+#if (__GNUC__ * 100 + __GNUC_MINOR__ < 406)
+#define GRPC_CXX0X_NO_NULLPTR 1
+#endif
+// final and override were added in gcc 4.7
+#if (__GNUC__ * 100 + __GNUC_MINOR__ < 407)
+#define GRPC_CXX0X_NO_FINAL 1
+#define GRPC_CXX0X_NO_OVERRIDE 1
+#endif
+#endif
+#endif
+
+#endif
+
+#ifdef GRPC_CXX0X_NO_FINAL
+#define GRPC_FINAL
+#else
+#define GRPC_FINAL final
+#endif
+
+#ifdef GRPC_CXX0X_NO_OVERRIDE
+#define GRPC_OVERRIDE
+#else
+#define GRPC_OVERRIDE override
+#endif
+
+#ifdef GRPC_CXX0X_NO_NULLPTR
+#include <memory>
 namespace grpc {
-namespace testing {
-class ChannelArgumentsTest;
-}  // namespace testing
-
-// Options for channel creation. The user can use generic setters to pass
-// key value pairs down to c channel creation code. For grpc related options,
-// concrete setters are provided.
-class ChannelArguments {
+const class {
  public:
-  ChannelArguments() {}
-  ~ChannelArguments() {}
-
-  ChannelArguments(const ChannelArguments& other);
-  ChannelArguments& operator=(ChannelArguments other) {
-    Swap(other);
-    return *this;
+  template <class T>
+  operator T *() const {
+    return static_cast<T *>(0);
   }
-
-  void Swap(ChannelArguments& other);
-
-  // grpc specific channel argument setters
-  // Set target name override for SSL host name checking.
-  void SetSslTargetNameOverride(const grpc::string& name);
-  // TODO(yangg) add flow control options
-
-  // Set the compression algorithm for the channel.
-  void SetCompressionAlgorithm(grpc_compression_algorithm algorithm);
-
-  // Generic channel argument setters. Only for advanced use cases.
-  void SetInt(const grpc::string& key, int value);
-  void SetString(const grpc::string& key, const grpc::string& value);
-
-  // Populates given channel_args with args_, does not take ownership.
-  void SetChannelArgs(grpc_channel_args* channel_args) const;
+  template <class T>
+  operator std::unique_ptr<T>() const {
+    return std::unique_ptr<T>(static_cast<T *>(0));
+  }
+  template <class T>
+  operator std::shared_ptr<T>() const {
+    return std::shared_ptr<T>(static_cast<T *>(0));
+  }
+  operator bool() const { return false; }
 
  private:
-  friend class SecureCredentials;
-  friend class testing::ChannelArgumentsTest;
+  void operator&() const = delete;
+} nullptr = {};
+}
+#endif
 
-  // Returns empty string when it is not set.
-  grpc::string GetSslTargetNameOverride() const;
+#ifndef GRPC_CUSTOM_STRING
+#include <string>
+#define GRPC_CUSTOM_STRING std::string
+#endif
 
-  std::vector<grpc_arg> args_;
-  std::list<grpc::string> strings_;
-};
+namespace grpc {
+
+typedef GRPC_CUSTOM_STRING string;
 
 }  // namespace grpc
 
-#endif  // GRPCXX_CHANNEL_ARGUMENTS_H
+#endif  // GRPCXX_SUPPORT_CONFIG_H
