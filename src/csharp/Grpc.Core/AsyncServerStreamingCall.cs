@@ -39,7 +39,6 @@ namespace Grpc.Core
     /// <summary>
     /// Return type for server streaming calls.
     /// </summary>
-    /// <typeparam name="TResponse">Response message type for this call.</typeparam>
     public sealed class AsyncServerStreamingCall<TResponse> : IDisposable
     {
         readonly IAsyncStreamReader<TResponse> responseStream;
@@ -48,7 +47,7 @@ namespace Grpc.Core
         readonly Func<Metadata> getTrailersFunc;
         readonly Action disposeAction;
 
-        internal AsyncServerStreamingCall(IAsyncStreamReader<TResponse> responseStream, Task<Metadata> responseHeadersAsync, Func<Status> getStatusFunc, Func<Metadata> getTrailersFunc, Action disposeAction)
+        public AsyncServerStreamingCall(IAsyncStreamReader<TResponse> responseStream, Task<Metadata> responseHeadersAsync, Func<Status> getStatusFunc, Func<Metadata> getTrailersFunc, Action disposeAction)
         {
             this.responseStream = responseStream;
             this.responseHeadersAsync = responseHeadersAsync;

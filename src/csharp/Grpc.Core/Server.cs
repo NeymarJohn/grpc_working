@@ -44,7 +44,7 @@ using Grpc.Core.Utils;
 namespace Grpc.Core
 {
     /// <summary>
-    /// gRPC server. A single server can server arbitrary number of services and can listen on more than one ports.
+    /// A gRPC server.
     /// </summary>
     public class Server
     {
@@ -324,9 +324,6 @@ namespace Grpc.Core
                 server.AddServiceDefinitionInternal(serviceDefinition);
             }
 
-            /// <summary>
-            /// Gets enumerator for this collection.
-            /// </summary>
             public IEnumerator<ServerServiceDefinition> GetEnumerator()
             {
                 return server.serviceDefinitionsList.GetEnumerator();
@@ -372,9 +369,6 @@ namespace Grpc.Core
                 return Add(new ServerPort(host, port, credentials));
             }
 
-            /// <summary>
-            /// Gets enumerator for this collection.
-            /// </summary>
             public IEnumerator<ServerPort> GetEnumerator()
             {
                 return server.serverPortList.GetEnumerator();

@@ -710,7 +710,6 @@ cc_library(
     "src/cpp/util/byte_buffer.cc",
     "src/cpp/util/slice.cc",
     "src/cpp/util/status.cc",
-    "src/cpp/util/string_ref.cc",
     "src/cpp/util/time.cc",
   ],
   hdrs = [
@@ -749,7 +748,6 @@ cc_library(
     "include/grpc++/support/slice.h",
     "include/grpc++/support/status.h",
     "include/grpc++/support/status_code_enum.h",
-    "include/grpc++/support/string_ref.h",
     "include/grpc++/support/stub_options.h",
     "include/grpc++/support/sync_stream.h",
     "include/grpc++/support/time.h",
@@ -799,7 +797,6 @@ cc_library(
     "src/cpp/util/byte_buffer.cc",
     "src/cpp/util/slice.cc",
     "src/cpp/util/status.cc",
-    "src/cpp/util/string_ref.cc",
     "src/cpp/util/time.cc",
   ],
   hdrs = [
@@ -838,7 +835,6 @@ cc_library(
     "include/grpc++/support/slice.h",
     "include/grpc++/support/status.h",
     "include/grpc++/support/status_code_enum.h",
-    "include/grpc++/support/string_ref.h",
     "include/grpc++/support/stub_options.h",
     "include/grpc++/support/sync_stream.h",
     "include/grpc++/support/time.h",

@@ -141,8 +141,6 @@ class _Kernel(object):
       termination = links.Ticket.Termination.CANCELLATION
     elif event.status.code is _intermediary_low.Code.DEADLINE_EXCEEDED:
       termination = links.Ticket.Termination.EXPIRATION
-    elif event.status.code is _intermediary_low.Code.UNKNOWN:
-      termination = links.Ticket.Termination.LOCAL_FAILURE
     else:
       termination = links.Ticket.Termination.TRANSMISSION_FAILURE
     ticket = links.Ticket(
@@ -351,7 +349,7 @@ def invocation_link(channel, host, request_serializers, response_deserializers):
   """Creates an InvocationLink.
 
   Args:
-    channel: An _intermediary_low.Channel for use by the link.
+    channel: A channel for use by the link.
     host: The host to specify when invoking RPCs.
     request_serializers: A dict from group-method pair to request object
       serialization behavior.

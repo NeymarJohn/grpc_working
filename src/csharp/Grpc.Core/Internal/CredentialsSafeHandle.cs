@@ -36,7 +36,7 @@ using System.Threading.Tasks;
 namespace Grpc.Core.Internal
 {
     /// <summary>
-    /// grpc_credentials from <c>grpc/grpc_security.h</c>
+    /// grpc_credentials from <grpc/grpc_security.h>
     /// </summary>
     internal class CredentialsSafeHandle : SafeHandleZeroIsInvalid
     {
