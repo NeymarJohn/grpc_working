@@ -31,24 +31,27 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_THREAD_POOL_INTERFACE_H
-#define GRPC_INTERNAL_CPP_THREAD_POOL_INTERFACE_H
+#ifndef GRPCXX_IMPL_INTERNAL_STUB_H
+#define GRPCXX_IMPL_INTERNAL_STUB_H
 
-#include <functional>
+#include <memory>
+
+#include <grpc++/channel_interface.h>
 
 namespace grpc {
 
-// A thread pool interface for running callbacks.
-class ThreadPoolInterface {
+class InternalStub {
  public:
-  virtual ~ThreadPoolInterface() {}
+  InternalStub(const std::shared_ptr<ChannelInterface>& channel)
+      : channel_(channel) {}
+  virtual ~InternalStub() {}
 
-  // Schedule the given callback for execution.
-  virtual void Add(const std::function<void()>& callback) = 0;
+  ChannelInterface* channel() { return channel_.get(); }
+
+ private:
+  const std::shared_ptr<ChannelInterface> channel_;
 };
-
-ThreadPoolInterface* CreateDefaultThreadPool();
 
 }  // namespace grpc
 
-#endif  // GRPC_INTERNAL_CPP_THREAD_POOL_INTERFACE_H
+#endif  // GRPCXX_IMPL_INTERNAL_STUB_H

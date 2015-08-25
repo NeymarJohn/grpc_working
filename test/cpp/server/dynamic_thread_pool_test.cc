@@ -31,48 +31,47 @@
  *
  */
 
-#ifndef GRPCXX_GENERIC_ASYNC_GENERIC_SERVICE_H
-#define GRPCXX_GENERIC_ASYNC_GENERIC_SERVICE_H
+#include <condition_variable>
+#include <functional>
+#include <mutex>
 
-#include <grpc++/support/byte_buffer.h>
-#include <grpc++/support/async_stream.h>
-
-struct grpc_server;
+#include <grpc++/dynamic_thread_pool.h>
+#include <gtest/gtest.h>
 
 namespace grpc {
 
-typedef ServerAsyncReaderWriter<ByteBuffer, ByteBuffer>
-    GenericServerAsyncReaderWriter;
-
-class GenericServerContext GRPC_FINAL : public ServerContext {
+class DynamicThreadPoolTest : public ::testing::Test {
  public:
-  const grpc::string& method() const { return method_; }
-  const grpc::string& host() const { return host_; }
+  DynamicThreadPoolTest() : thread_pool_(0) {}
 
- private:
-  friend class Server;
-
-  grpc::string method_;
-  grpc::string host_;
+ protected:
+  DynamicThreadPool thread_pool_;
 };
 
-class AsyncGenericService GRPC_FINAL {
- public:
-  // TODO(yangg) Once we can add multiple completion queues to the server
-  // in c core, add a CompletionQueue* argument to the ctor here.
-  // TODO(yangg) support methods list.
-  AsyncGenericService(const grpc::string& methods) : server_(nullptr) {}
+void Callback(std::mutex* mu, std::condition_variable* cv, bool* done) {
+  std::unique_lock<std::mutex> lock(*mu);
+  *done = true;
+  cv->notify_all();
+}
 
-  void RequestCall(GenericServerContext* ctx,
-                   GenericServerAsyncReaderWriter* reader_writer,
-                   CompletionQueue* call_cq,
-                   ServerCompletionQueue* notification_cq, void* tag);
+TEST_F(DynamicThreadPoolTest, Add) {
+  std::mutex mu;
+  std::condition_variable cv;
+  bool done = false;
+  std::function<void()> callback = std::bind(Callback, &mu, &cv, &done);
+  thread_pool_.Add(callback);
 
- private:
-  friend class Server;
-  Server* server_;
-};
+  // Wait for the callback to finish.
+  std::unique_lock<std::mutex> lock(mu);
+  while (!done) {
+    cv.wait(lock);
+  }
+}
 
 }  // namespace grpc
 
-#endif  // GRPCXX_GENERIC_ASYNC_GENERIC_SERVICE_H
+int main(int argc, char** argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  int result = RUN_ALL_TESTS();
+  return result;
+}

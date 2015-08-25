@@ -31,13 +31,13 @@
  *
  */
 
-#ifndef GRPCXX_SUPPORT_AUTH_CONTEXT_H
-#define GRPCXX_SUPPORT_AUTH_CONTEXT_H
+#ifndef GRPCXX_AUTH_CONTEXT_H
+#define GRPCXX_AUTH_CONTEXT_H
 
 #include <iterator>
 #include <vector>
 
-#include <grpc++/support/config.h>
+#include <grpc++/config.h>
 
 struct grpc_auth_context;
 struct grpc_auth_property;
@@ -92,4 +92,4 @@ class AuthContext {
 
 }  // namespace grpc
 
-#endif  // GRPCXX_SUPPORT_AUTH_CONTEXT_H
+#endif  // GRPCXX_AUTH_CONTEXT_H

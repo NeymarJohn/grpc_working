@@ -37,7 +37,7 @@
 #include <memory>
 #include <vector>
 
-#include <grpc++/support/config.h>
+#include <grpc++/config.h>
 
 struct grpc_server;
 

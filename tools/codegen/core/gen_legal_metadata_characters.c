@@ -31,42 +31,43 @@
  *
  */
 
-#ifndef GRPCXX_SUPPORT_CONFIG_PROTOBUF_H
-#define GRPCXX_SUPPORT_CONFIG_PROTOBUF_H
+/* generates constant table for metadata.c */
 
-#ifndef GRPC_CUSTOM_PROTOBUF_INT64
-#include <google/protobuf/stubs/common.h>
-#define GRPC_CUSTOM_PROTOBUF_INT64 ::google::protobuf::int64
-#endif
+#include <stdio.h>
+#include <string.h>
 
-#ifndef GRPC_CUSTOM_MESSAGE
-#include <google/protobuf/message.h>
-#define GRPC_CUSTOM_MESSAGE ::google::protobuf::Message
-#endif
+static unsigned char legal_bits[256 / 8];
 
-#ifndef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#define GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM \
-  ::google::protobuf::io::ZeroCopyOutputStream
-#define GRPC_CUSTOM_ZEROCOPYINPUTSTREAM \
-  ::google::protobuf::io::ZeroCopyInputStream
-#define GRPC_CUSTOM_CODEDINPUTSTREAM ::google::protobuf::io::CodedInputStream
-#endif
+static void legal(int x) {
+  int byte = x / 8;
+  int bit = x % 8;
+  legal_bits[byte] |= 1 << bit;
+}
 
-namespace grpc {
-namespace protobuf {
+static void dump(void) {
+  int i;
 
-typedef GRPC_CUSTOM_MESSAGE Message;
-typedef GRPC_CUSTOM_PROTOBUF_INT64 int64;
+  printf("static const gpr_uint8 legal_header_bits[256/8] = ");
+  for (i = 0; i < 256 / 8; i++)
+    printf("%c 0x%02x", i ? ',' : '{', legal_bits[i]);
+  printf(" };\n");
+}
 
-namespace io {
-typedef GRPC_CUSTOM_ZEROCOPYOUTPUTSTREAM ZeroCopyOutputStream;
-typedef GRPC_CUSTOM_ZEROCOPYINPUTSTREAM ZeroCopyInputStream;
-typedef GRPC_CUSTOM_CODEDINPUTSTREAM CodedInputStream;
-}  // namespace io
+static void clear(void) { memset(legal_bits, 0, sizeof(legal_bits)); }
 
-}  // namespace protobuf
-}  // namespace grpc
+int main(void) {
+  int i;
 
-#endif  // GRPCXX_SUPPORT_CONFIG_PROTOBUF_H
+  clear();
+  for (i = 'a'; i <= 'z'; i++) legal(i);
+  for (i = '0'; i <= '9'; i++) legal(i);
+  legal('-');
+  legal('_');
+  dump();
+
+  clear();
+  for (i = 32; i <= 126; i++) legal(i);
+  dump();
+
+  return 0;
+}

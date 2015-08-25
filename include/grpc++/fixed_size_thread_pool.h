@@ -31,33 +31,37 @@
  *
  */
 
-#ifndef GRPCXX_GENERIC_GENERIC_STUB_H
-#define GRPCXX_GENERIC_GENERIC_STUB_H
+#ifndef GRPCXX_FIXED_SIZE_THREAD_POOL_H
+#define GRPCXX_FIXED_SIZE_THREAD_POOL_H
 
-#include <grpc++/support/async_stream.h>
-#include <grpc++/support/byte_buffer.h>
+#include <grpc++/config.h>
+
+#include <grpc++/impl/sync.h>
+#include <grpc++/impl/thd.h>
+#include <grpc++/thread_pool_interface.h>
+
+#include <queue>
+#include <vector>
 
 namespace grpc {
 
-class CompletionQueue;
-typedef ClientAsyncReaderWriter<ByteBuffer, ByteBuffer>
-    GenericClientAsyncReaderWriter;
-
-// Generic stubs provide a type-unsafe interface to call gRPC methods
-// by name.
-class GenericStub GRPC_FINAL {
+class FixedSizeThreadPool GRPC_FINAL : public ThreadPoolInterface {
  public:
-  explicit GenericStub(std::shared_ptr<Channel> channel) : channel_(channel) {}
+  explicit FixedSizeThreadPool(int num_threads);
+  ~FixedSizeThreadPool();
 
-  // begin a call to a named method
-  std::unique_ptr<GenericClientAsyncReaderWriter> Call(
-      ClientContext* context, const grpc::string& method, CompletionQueue* cq,
-      void* tag);
+  void Add(const std::function<void()>& callback) GRPC_OVERRIDE;
 
  private:
-  std::shared_ptr<Channel> channel_;
+  grpc::mutex mu_;
+  grpc::condition_variable cv_;
+  bool shutdown_;
+  std::queue<std::function<void()>> callbacks_;
+  std::vector<grpc::thread*> threads_;
+
+  void ThreadFunc();
 };
 
 }  // namespace grpc
 
-#endif  // GRPCXX_GENERIC_GENERIC_STUB_H
+#endif  // GRPCXX_FIXED_SIZE_THREAD_POOL_H

@@ -31,53 +31,63 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_DYNAMIC_THREAD_POOL_H
-#define GRPC_INTERNAL_CPP_DYNAMIC_THREAD_POOL_H
+#ifndef GRPCXX_CHANNEL_ARGUMENTS_H
+#define GRPCXX_CHANNEL_ARGUMENTS_H
 
+#include <vector>
 #include <list>
-#include <memory>
-#include <queue>
 
-#include <grpc++/impl/sync.h>
-#include <grpc++/impl/thd.h>
-#include <grpc++/support/config.h>
-
-#include "src/cpp/server/thread_pool_interface.h"
+#include <grpc++/config.h>
+#include <grpc/compression.h>
+#include <grpc/grpc.h>
 
 namespace grpc {
+namespace testing {
+class ChannelArgumentsTest;
+}  // namespace testing
 
-class DynamicThreadPool GRPC_FINAL : public ThreadPoolInterface {
+// Options for channel creation. The user can use generic setters to pass
+// key value pairs down to c channel creation code. For grpc related options,
+// concrete setters are provided.
+class ChannelArguments {
  public:
-  explicit DynamicThreadPool(int reserve_threads);
-  ~DynamicThreadPool();
+  ChannelArguments() {}
+  ~ChannelArguments() {}
 
-  void Add(const std::function<void()>& callback) GRPC_OVERRIDE;
+  ChannelArguments(const ChannelArguments& other);
+  ChannelArguments& operator=(ChannelArguments other) {
+    Swap(other);
+    return *this;
+  }
+
+  void Swap(ChannelArguments& other);
+
+  // grpc specific channel argument setters
+  // Set target name override for SSL host name checking.
+  void SetSslTargetNameOverride(const grpc::string& name);
+  // TODO(yangg) add flow control options
+
+  // Set the compression algorithm for the channel.
+  void SetCompressionAlgorithm(grpc_compression_algorithm algorithm);
+
+  // Generic channel argument setters. Only for advanced use cases.
+  void SetInt(const grpc::string& key, int value);
+  void SetString(const grpc::string& key, const grpc::string& value);
+
+  // Populates given channel_args with args_, does not take ownership.
+  void SetChannelArgs(grpc_channel_args* channel_args) const;
 
  private:
-  class DynamicThread {
-   public:
-    DynamicThread(DynamicThreadPool* pool);
-    ~DynamicThread();
+  friend class SecureCredentials;
+  friend class testing::ChannelArgumentsTest;
 
-   private:
-    DynamicThreadPool* pool_;
-    std::unique_ptr<grpc::thread> thd_;
-    void ThreadFunc();
-  };
-  grpc::mutex mu_;
-  grpc::condition_variable cv_;
-  grpc::condition_variable shutdown_cv_;
-  bool shutdown_;
-  std::queue<std::function<void()>> callbacks_;
-  int reserve_threads_;
-  int nthreads_;
-  int threads_waiting_;
-  std::list<DynamicThread*> dead_threads_;
+  // Returns empty string when it is not set.
+  grpc::string GetSslTargetNameOverride() const;
 
-  void ThreadFunc();
-  static void ReapThreads(std::list<DynamicThread*>* tlist);
+  std::vector<grpc_arg> args_;
+  std::list<grpc::string> strings_;
 };
 
 }  // namespace grpc
 
-#endif  // GRPC_INTERNAL_CPP_DYNAMIC_THREAD_POOL_H
+#endif  // GRPCXX_CHANNEL_ARGUMENTS_H

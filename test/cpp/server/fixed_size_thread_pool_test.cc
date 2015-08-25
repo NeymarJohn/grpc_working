@@ -31,21 +31,47 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CPP_CLIENT_CREATE_CHANNEL_INTERNAL_H
-#define GRPC_INTERNAL_CPP_CLIENT_CREATE_CHANNEL_INTERNAL_H
+#include <condition_variable>
+#include <functional>
+#include <mutex>
 
-#include <memory>
-
-#include <grpc++/support/config.h>
-
-struct grpc_channel;
+#include <grpc++/fixed_size_thread_pool.h>
+#include <gtest/gtest.h>
 
 namespace grpc {
-class Channel;
 
-std::shared_ptr<Channel> CreateChannelInternal(const grpc::string& host,
-                                               grpc_channel* c_channel);
+class FixedSizeThreadPoolTest : public ::testing::Test {
+ public:
+  FixedSizeThreadPoolTest() : thread_pool_(4) {}
+
+ protected:
+  FixedSizeThreadPool thread_pool_;
+};
+
+void Callback(std::mutex* mu, std::condition_variable* cv, bool* done) {
+  std::unique_lock<std::mutex> lock(*mu);
+  *done = true;
+  cv->notify_all();
+}
+
+TEST_F(FixedSizeThreadPoolTest, Add) {
+  std::mutex mu;
+  std::condition_variable cv;
+  bool done = false;
+  std::function<void()> callback = std::bind(Callback, &mu, &cv, &done);
+  thread_pool_.Add(callback);
+
+  // Wait for the callback to finish.
+  std::unique_lock<std::mutex> lock(mu);
+  while (!done) {
+    cv.wait(lock);
+  }
+}
 
 }  // namespace grpc
 
-#endif  // GRPC_INTERNAL_CPP_CLIENT_CREATE_CHANNEL_INTERNAL_H
+int main(int argc, char** argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  int result = RUN_ALL_TESTS();
+  return result;
+}
