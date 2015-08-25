@@ -34,9 +34,10 @@
 #include <grpc++/impl/call.h>
 
 #include <grpc/support/alloc.h>
-#include <grpc++/channel.h>
+#include <grpc++/byte_buffer.h>
 #include <grpc++/client_context.h>
-#include <grpc++/support/byte_buffer.h>
+#include <grpc++/channel_interface.h>
+
 #include "src/core/profiling/timers.h"
 
 namespace grpc {

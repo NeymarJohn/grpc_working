@@ -30,16 +30,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include <memory>
 
-#include <grpc/grpc.h>
-#include <grpc++/auth_context.h>
+#ifndef GRPCXX_STUB_OPTIONS_H
+#define GRPCXX_STUB_OPTIONS_H
 
 namespace grpc {
 
-std::shared_ptr<const AuthContext> CreateAuthContext(grpc_call* call) {
-  (void)call;
-  return std::shared_ptr<const AuthContext>();
-}
+class StubOptions {};
 
 }  // namespace grpc
+
+#endif  // GRPCXX_STUB_OPTIONS_H

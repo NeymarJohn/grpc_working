@@ -31,33 +31,27 @@
  *
  */
 
-#ifndef GRPCXX_GENERIC_GENERIC_STUB_H
-#define GRPCXX_GENERIC_GENERIC_STUB_H
+#ifndef GRPCXX_IMPL_INTERNAL_STUB_H
+#define GRPCXX_IMPL_INTERNAL_STUB_H
 
-#include <grpc++/support/async_stream.h>
-#include <grpc++/support/byte_buffer.h>
+#include <memory>
+
+#include <grpc++/channel_interface.h>
 
 namespace grpc {
 
-class CompletionQueue;
-typedef ClientAsyncReaderWriter<ByteBuffer, ByteBuffer>
-    GenericClientAsyncReaderWriter;
-
-// Generic stubs provide a type-unsafe interface to call gRPC methods
-// by name.
-class GenericStub GRPC_FINAL {
+class InternalStub {
  public:
-  explicit GenericStub(std::shared_ptr<Channel> channel) : channel_(channel) {}
+  InternalStub(const std::shared_ptr<ChannelInterface>& channel)
+      : channel_(channel) {}
+  virtual ~InternalStub() {}
 
-  // begin a call to a named method
-  std::unique_ptr<GenericClientAsyncReaderWriter> Call(
-      ClientContext* context, const grpc::string& method, CompletionQueue* cq,
-      void* tag);
+  ChannelInterface* channel() { return channel_.get(); }
 
  private:
-  std::shared_ptr<Channel> channel_;
+  const std::shared_ptr<ChannelInterface> channel_;
 };
 
 }  // namespace grpc
 
-#endif  // GRPCXX_GENERIC_GENERIC_STUB_H
+#endif  // GRPCXX_IMPL_INTERNAL_STUB_H

@@ -31,7 +31,7 @@
  *
  */
 
-#include <grpc++/support/auth_context.h>
+#include <grpc++/auth_context.h>
 
 #include <grpc/grpc_security.h>
 
