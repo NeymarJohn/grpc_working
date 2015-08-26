@@ -53,7 +53,7 @@ namespace Grpc.Core.Tests
         {
             var env1 = GrpcEnvironment.AddRef();
             var env2 = GrpcEnvironment.AddRef();
-            Assert.AreSame(env1, env2);
+            Assert.IsTrue(object.ReferenceEquals(env1, env2));
             GrpcEnvironment.Release();
             GrpcEnvironment.Release();
         }
@@ -61,21 +61,18 @@ namespace Grpc.Core.Tests
         [Test]
         public void InitializeAfterShutdown()
         {
-            Assert.AreEqual(0, GrpcEnvironment.GetRefCount());
-
             var env1 = GrpcEnvironment.AddRef();
             GrpcEnvironment.Release();
 
             var env2 = GrpcEnvironment.AddRef();
             GrpcEnvironment.Release();
 
-            Assert.AreNotSame(env1, env2);
+            Assert.IsFalse(object.ReferenceEquals(env1, env2));
         }
 
         [Test]
         public void ReleaseWithoutAddRef()
         {
-            Assert.AreEqual(0, GrpcEnvironment.GetRefCount());
             Assert.Throws(typeof(InvalidOperationException), () => GrpcEnvironment.Release());
         }
 

@@ -39,7 +39,7 @@
 #include <cstdlib>
 #include <vector>
 
-#include <grpc++/support/config.h>
+#include <grpc++/config.h>
 
 namespace grpc {
 namespace testing {

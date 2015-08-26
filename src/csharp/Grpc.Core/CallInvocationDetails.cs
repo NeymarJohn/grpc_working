@@ -40,8 +40,6 @@ namespace Grpc.Core
     /// <summary>
     /// Details about a client-side call to be invoked.
     /// </summary>
-    /// <typeparam name="TRequest">Request message type for the call.</typeparam>
-    /// <typeparam name="TResponse">Response message type for the call.</typeparam>
     public struct CallInvocationDetails<TRequest, TResponse>
     {
         readonly Channel channel;
@@ -52,7 +50,7 @@ namespace Grpc.Core
         CallOptions options;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Grpc.Core.CallInvocationDetails{TRequest,TResponse}"/> struct.
+        /// Initializes a new instance of the <see cref="Grpc.Core.CallInvocationDetails`2"/> struct.
         /// </summary>
         /// <param name="channel">Channel to use for this call.</param>
         /// <param name="method">Method to call.</param>
@@ -63,7 +61,7 @@ namespace Grpc.Core
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Grpc.Core.CallInvocationDetails{TRequest,TResponse}"/> struct.
+        /// Initializes a new instance of the <see cref="Grpc.Core.CallInvocationDetails`2"/> struct.
         /// </summary>
         /// <param name="channel">Channel to use for this call.</param>
         /// <param name="method">Method to call.</param>
@@ -75,7 +73,7 @@ namespace Grpc.Core
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Grpc.Core.CallInvocationDetails{TRequest,TResponse}"/> struct.
+        /// Initializes a new instance of the <see cref="Grpc.Core.CallInvocationDetails`2"/> struct.
         /// </summary>
         /// <param name="channel">Channel to use for this call.</param>
         /// <param name="method">Qualified method name.</param>
@@ -160,7 +158,7 @@ namespace Grpc.Core
         }
 
         /// <summary>
-        /// Returns new instance of <see cref="CallInvocationDetails{TRequest, TResponse}"/> with
+        /// Returns new instance of <see cref="CallInvocationDetails"/> with
         /// <c>Options</c> set to the value provided. Values of all other fields are preserved.
         /// </summary>
         public CallInvocationDetails<TRequest, TResponse> WithOptions(CallOptions options)

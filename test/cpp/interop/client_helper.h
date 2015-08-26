@@ -36,7 +36,8 @@
 
 #include <memory>
 
-#include <grpc++/channel.h>
+#include <grpc++/config.h>
+#include <grpc++/channel_interface.h>
 
 #include "src/core/surface/call.h"
 
@@ -47,7 +48,7 @@ grpc::string GetServiceAccountJsonKey();
 
 grpc::string GetOauth2AccessToken();
 
-std::shared_ptr<Channel> CreateChannelForTestCase(
+std::shared_ptr<ChannelInterface> CreateChannelForTestCase(
     const grpc::string& test_case);
 
 class InteropClientContextInspector {
