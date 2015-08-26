@@ -53,7 +53,6 @@
 #include "test/core/util/test_config.h"
 #include "test/cpp/util/echo_duplicate.grpc.pb.h"
 #include "test/cpp/util/echo.grpc.pb.h"
-#include "test/cpp/util/string_ref_helper.h"
 
 using grpc::cpp::test::util::EchoRequest;
 using grpc::cpp::test::util::EchoResponse;
@@ -153,13 +152,12 @@ class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
     }
 
     if (request->has_param() && request->param().echo_metadata()) {
-      const std::multimap<grpc::string_ref, grpc::string_ref>& client_metadata =
+      const std::multimap<grpc::string, grpc::string>& client_metadata =
           context->client_metadata();
-      for (std::multimap<grpc::string_ref, grpc::string_ref>::const_iterator
-               iter = client_metadata.begin();
+      for (std::multimap<grpc::string, grpc::string>::const_iterator iter =
+               client_metadata.begin();
            iter != client_metadata.end(); ++iter) {
-        context->AddTrailingMetadata(ToString(iter->first),
-                                     ToString(iter->second));
+        context->AddTrailingMetadata((*iter).first, (*iter).second);
       }
     }
     if (request->has_param() && request->param().check_auth_context()) {
@@ -184,12 +182,12 @@ class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
     EchoRequest request;
     response->set_message("");
     int cancel_after_reads = 0;
-    const std::multimap<grpc::string_ref, grpc::string_ref>&
-        client_initial_metadata = context->client_metadata();
+    const std::multimap<grpc::string, grpc::string> client_initial_metadata =
+        context->client_metadata();
     if (client_initial_metadata.find(kServerCancelAfterReads) !=
         client_initial_metadata.end()) {
-      std::istringstream iss(ToString(
-          client_initial_metadata.find(kServerCancelAfterReads)->second));
+      std::istringstream iss(
+          client_initial_metadata.find(kServerCancelAfterReads)->second);
       iss >> cancel_after_reads;
       gpr_log(GPR_INFO, "cancel_after_reads %d", cancel_after_reads);
     }
@@ -723,15 +721,14 @@ TEST_F(End2endTest, RpcMaxMessageSize) {
   EXPECT_FALSE(s.ok());
 }
 
-bool MetadataContains(
-    const std::multimap<grpc::string_ref, grpc::string_ref>& metadata,
-    const grpc::string& key, const grpc::string& value) {
+bool MetadataContains(const std::multimap<grpc::string, grpc::string>& metadata,
+                      const grpc::string& key, const grpc::string& value) {
   int count = 0;
 
-  for (std::multimap<grpc::string_ref, grpc::string_ref>::const_iterator iter =
+  for (std::multimap<grpc::string, grpc::string>::const_iterator iter =
            metadata.begin();
        iter != metadata.end(); ++iter) {
-    if (ToString(iter->first) == key && ToString(iter->second) == value) {
+    if ((*iter).first == key && (*iter).second == value) {
       count++;
     }
   }
