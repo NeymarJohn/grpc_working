@@ -148,7 +148,7 @@ PHP_METHOD(Channel, __construct) {
     return;
   }
   if (args_array == NULL) {
-    channel->wrapped = grpc_insecure_channel_create(target, NULL, NULL);
+    channel->wrapped = grpc_insecure_channel_create(target, NULL, NULL, NULL);
   } else {
     array_hash = Z_ARRVAL_P(args_array);
     if (zend_hash_find(array_hash, "credentials", sizeof("credentials"),
@@ -169,7 +169,7 @@ PHP_METHOD(Channel, __construct) {
     } else {
       gpr_log(GPR_DEBUG, "Initialized secure channel");
       channel->wrapped =
-          grpc_secure_channel_create(creds->wrapped, target, &args);
+          grpc_secure_channel_create(creds->wrapped, target, &args, NULL);
     }
     efree(args.args);
   }
