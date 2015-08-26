@@ -791,7 +791,6 @@ fling_server: $(BINDIR)/$(CONFIG)/fling_server
 fling_stream_test: $(BINDIR)/$(CONFIG)/fling_stream_test
 fling_test: $(BINDIR)/$(CONFIG)/fling_test
 gen_hpack_tables: $(BINDIR)/$(CONFIG)/gen_hpack_tables
-gen_legal_metadata_characters: $(BINDIR)/$(CONFIG)/gen_legal_metadata_characters
 gpr_cmdline_test: $(BINDIR)/$(CONFIG)/gpr_cmdline_test
 gpr_env_test: $(BINDIR)/$(CONFIG)/gpr_env_test
 gpr_file_test: $(BINDIR)/$(CONFIG)/gpr_file_test
@@ -1651,8 +1650,8 @@ else
 	$(Q)(cd third_party/openssl ; CC="$(CC) $(PIC_CPPFLAGS) -fvisibility=hidden $(CPPFLAGS_$(CONFIG)) $(OPENSSL_CFLAGS_$(CONFIG)) $(OPENSSL_CFLAGS_EXTRA)" ./config no-asm $(OPENSSL_CONFIG_$(CONFIG)))
 endif
 endif
-	$(Q)$(MAKE) -j 1 -C third_party/openssl clean
-	$(Q)(unset CPPFLAGS; $(MAKE) -j 1 -C third_party/openssl build_crypto build_ssl)
+	$(Q)$(MAKE) -C third_party/openssl clean
+	$(Q)(unset CPPFLAGS; $(MAKE) -C third_party/openssl build_crypto build_ssl)
 	$(Q)mkdir -p $(LIBDIR)/$(CONFIG)/openssl
 	$(Q)cp third_party/openssl/libssl.a third_party/openssl/libcrypto.a $(LIBDIR)/$(CONFIG)/openssl
 
@@ -3385,7 +3384,7 @@ test_python: static_c
 tools: tools_c tools_cxx
 
 
-tools_c: privatelibs_c $(BINDIR)/$(CONFIG)/gen_hpack_tables $(BINDIR)/$(CONFIG)/gen_legal_metadata_characters $(BINDIR)/$(CONFIG)/grpc_create_jwt $(BINDIR)/$(CONFIG)/grpc_fetch_oauth2 $(BINDIR)/$(CONFIG)/grpc_print_google_default_creds_token $(BINDIR)/$(CONFIG)/grpc_verify_jwt
+tools_c: privatelibs_c $(BINDIR)/$(CONFIG)/gen_hpack_tables $(BINDIR)/$(CONFIG)/grpc_create_jwt $(BINDIR)/$(CONFIG)/grpc_fetch_oauth2 $(BINDIR)/$(CONFIG)/grpc_print_google_default_creds_token $(BINDIR)/$(CONFIG)/grpc_verify_jwt
 
 tools_cxx: privatelibs_cxx
 
@@ -4080,7 +4079,6 @@ LIBGRPC_SRC = \
     src/core/tsi/ssl_transport_security.c \
     src/core/tsi/transport_security.c \
     src/core/census/grpc_context.c \
-    src/core/census/grpc_filter.c \
     src/core/channel/channel_args.c \
     src/core/channel/channel_stack.c \
     src/core/channel/client_channel.c \
@@ -4354,7 +4352,6 @@ endif
 LIBGRPC_UNSECURE_SRC = \
     src/core/surface/init_unsecure.c \
     src/core/census/grpc_context.c \
-    src/core/census/grpc_filter.c \
     src/core/channel/channel_args.c \
     src/core/channel/channel_stack.c \
     src/core/channel/client_channel.c \
@@ -4794,7 +4791,6 @@ LIBGRPC++_TEST_UTIL_SRC = \
     $(GENDIR)/test/cpp/util/echo_duplicate.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.grpc.pb.cc \
     test/cpp/util/cli_call.cc \
     test/cpp/util/create_test_channel.cc \
-    test/cpp/util/string_ref_helper.cc \
     test/cpp/util/subprocess.cc \
 
 
@@ -4841,7 +4837,6 @@ endif
 endif
 $(OBJDIR)/$(CONFIG)/test/cpp/util/cli_call.o: $(GENDIR)/test/cpp/util/messages.pb.cc $(GENDIR)/test/cpp/util/messages.grpc.pb.cc $(GENDIR)/test/cpp/util/echo.pb.cc $(GENDIR)/test/cpp/util/echo.grpc.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/create_test_channel.o: $(GENDIR)/test/cpp/util/messages.pb.cc $(GENDIR)/test/cpp/util/messages.grpc.pb.cc $(GENDIR)/test/cpp/util/echo.pb.cc $(GENDIR)/test/cpp/util/echo.grpc.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/util/string_ref_helper.o: $(GENDIR)/test/cpp/util/messages.pb.cc $(GENDIR)/test/cpp/util/messages.grpc.pb.cc $(GENDIR)/test/cpp/util/echo.pb.cc $(GENDIR)/test/cpp/util/echo.grpc.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/subprocess.o: $(GENDIR)/test/cpp/util/messages.pb.cc $(GENDIR)/test/cpp/util/messages.grpc.pb.cc $(GENDIR)/test/cpp/util/echo.pb.cc $(GENDIR)/test/cpp/util/echo.grpc.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.pb.cc $(GENDIR)/test/cpp/util/echo_duplicate.grpc.pb.cc
 
 
@@ -7119,35 +7114,6 @@ deps_gen_hpack_tables: $(GEN_HPACK_TABLES_OBJS:.o=.dep)
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(GEN_HPACK_TABLES_OBJS:.o=.dep)
-endif
-endif
-
-
-GEN_LEGAL_METADATA_CHARACTERS_SRC = \
-    tools/codegen/core/gen_legal_metadata_characters.c \
-
-GEN_LEGAL_METADATA_CHARACTERS_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(GEN_LEGAL_METADATA_CHARACTERS_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/gen_legal_metadata_characters: openssl_dep_error
-
-else
-
-$(BINDIR)/$(CONFIG)/gen_legal_metadata_characters: $(GEN_LEGAL_METADATA_CHARACTERS_OBJS)
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(GEN_LEGAL_METADATA_CHARACTERS_OBJS) $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/gen_legal_metadata_characters
-
-endif
-
-$(OBJDIR)/$(CONFIG)/tools/codegen/core/gen_legal_metadata_characters.o: 
-deps_gen_legal_metadata_characters: $(GEN_LEGAL_METADATA_CHARACTERS_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(GEN_LEGAL_METADATA_CHARACTERS_OBJS:.o=.dep)
 endif
 endif
 
@@ -20704,7 +20670,6 @@ test/cpp/qps/timer.cc: $(OPENSSL_DEP)
 test/cpp/util/benchmark_config.cc: $(OPENSSL_DEP)
 test/cpp/util/cli_call.cc: $(OPENSSL_DEP)
 test/cpp/util/create_test_channel.cc: $(OPENSSL_DEP)
-test/cpp/util/string_ref_helper.cc: $(OPENSSL_DEP)
 test/cpp/util/subprocess.cc: $(OPENSSL_DEP)
 test/cpp/util/test_config.cc: $(OPENSSL_DEP)
 endif
