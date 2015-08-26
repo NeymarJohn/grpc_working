@@ -31,32 +31,43 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_UTIL_CLI_CALL_H
-#define GRPC_TEST_CPP_UTIL_CLI_CALL_H
+/* generates constant table for metadata.c */
 
-#include <map>
+#include <stdio.h>
+#include <string.h>
 
-#include <grpc++/channel.h>
-#include <grpc++/support/status.h>
-#include <grpc++/support/string_ref.h>
+static unsigned char legal_bits[256 / 8];
 
-namespace grpc {
-namespace testing {
+static void legal(int x) {
+  int byte = x / 8;
+  int bit = x % 8;
+  legal_bits[byte] |= 1 << bit;
+}
 
-class CliCall GRPC_FINAL {
- public:
-  typedef std::multimap<grpc::string, grpc::string> OutgoingMetadataContainer;
-  typedef std::multimap<grpc::string_ref, grpc::string_ref>
-      IncomingMetadataContainer;
-  static Status Call(std::shared_ptr<grpc::Channel> channel,
-                     const grpc::string& method, const grpc::string& request,
-                     grpc::string* response,
-                     const OutgoingMetadataContainer& metadata,
-                     IncomingMetadataContainer* server_initial_metadata,
-                     IncomingMetadataContainer* server_trailing_metadata);
-};
+static void dump(void) {
+  int i;
 
-}  // namespace testing
-}  // namespace grpc
+  printf("static const gpr_uint8 legal_header_bits[256/8] = ");
+  for (i = 0; i < 256 / 8; i++)
+    printf("%c 0x%02x", i ? ',' : '{', legal_bits[i]);
+  printf(" };\n");
+}
 
-#endif  // GRPC_TEST_CPP_UTIL_CLI_CALL_H
+static void clear(void) { memset(legal_bits, 0, sizeof(legal_bits)); }
+
+int main(void) {
+  int i;
+
+  clear();
+  for (i = 'a'; i <= 'z'; i++) legal(i);
+  for (i = '0'; i <= '9'; i++) legal(i);
+  legal('-');
+  legal('_');
+  dump();
+
+  clear();
+  for (i = 32; i <= 126; i++) legal(i);
+  dump();
+
+  return 0;
+}
