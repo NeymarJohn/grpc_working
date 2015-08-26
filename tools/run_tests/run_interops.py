@@ -8,9 +8,7 @@ argp.add_argument('-l', '--language',
 args = argp.parse_args()
 
 # build job
-build_job = jobset.JobSpec(cmdline=['tools/run_tests/run_interops_build.sh', '%s' % args.language],
-                           shortname='build',
-                           timeout_seconds=30*60)
+build_job = jobset.JobSpec(cmdline=['tools/run_tests/run_interops_build.sh', '%s' % args.language], shortname='build')
 
 # test jobs, each test is a separate job to run in parallel
 _TESTS = ['large_unary', 'empty_unary', 'ping_pong', 'client_streaming', 'server_streaming']
