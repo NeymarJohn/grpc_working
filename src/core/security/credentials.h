@@ -277,12 +277,21 @@ typedef struct {
   grpc_fetch_oauth2_func fetch_func;
 } grpc_oauth2_token_fetcher_credentials;
 
-/* -- GoogleRefreshToken credentials. -- */
+/* -- ServiceAccount credentials. -- */
+
+typedef struct {
+  grpc_oauth2_token_fetcher_credentials base;
+  grpc_auth_json_key key;
+  char *scope;
+  gpr_timespec token_lifetime;
+} grpc_service_account_credentials;
+
+/* -- RefreshToken credentials. -- */
 
 typedef struct {
   grpc_oauth2_token_fetcher_credentials base;
   grpc_auth_refresh_token refresh_token;
-} grpc_google_refresh_token_credentials;
+} grpc_refresh_token_credentials;
 
 /* -- Oauth2 Access Token credentials. -- */
 
@@ -299,12 +308,12 @@ typedef struct {
   int is_async;
 } grpc_md_only_test_credentials;
 
-/* -- GoogleIAM credentials. -- */
+/* -- IAM credentials. -- */
 
 typedef struct {
   grpc_credentials base;
   grpc_credentials_md_store *iam_md;
-} grpc_google_iam_credentials;
+} grpc_iam_credentials;
 
 /* -- Composite credentials. -- */
 
