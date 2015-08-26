@@ -362,37 +362,20 @@ void InteropClient::DoResponseCompressedStreaming() {
       request.set_response_type(payload_types[i]);
       request.set_response_compression(compression_types[j]);
 
-      for (size_t k = 0; k < response_stream_sizes.size(); ++k) {
+      for (unsigned int i = 0; i < response_stream_sizes.size(); ++i) {
         ResponseParameters* response_parameter =
             request.add_response_parameters();
-        response_parameter->set_size(response_stream_sizes[k]);
+        response_parameter->set_size(response_stream_sizes[i]);
       }
       StreamingOutputCallResponse response;
 
       std::unique_ptr<ClientReader<StreamingOutputCallResponse>> stream(
           stub->StreamingOutputCall(&context, request));
 
-      size_t k = 0;
+      unsigned int i = 0;
       while (stream->Read(&response)) {
-        // Payload related checks.
-        if (request.response_type() != PayloadType::RANDOM) {
-          GPR_ASSERT(response.payload().type() == request.response_type());
-        }
-        switch (response.payload().type()) {
-          case PayloadType::COMPRESSABLE:
-            GPR_ASSERT(response.payload().body() ==
-                       grpc::string(response_stream_sizes[k], '\0'));
-            break;
-          case PayloadType::UNCOMPRESSABLE: {
-            std::ifstream rnd_file(kRandomFile);
-            GPR_ASSERT(rnd_file.good());
-            for (int n = 0; n < response_stream_sizes[k]; n++) {
-              GPR_ASSERT(response.payload().body()[n] == (char)rnd_file.get());
-            }
-          } break;
-          default:
-            GPR_ASSERT(false);
-        }
+        GPR_ASSERT(response.payload().body() ==
+                   grpc::string(response_stream_sizes[i], '\0'));
 
         // Compression related checks.
         GPR_ASSERT(request.response_compression() ==
@@ -408,10 +391,10 @@ void InteropClient::DoResponseCompressedStreaming() {
                      GRPC_WRITE_INTERNAL_COMPRESS);
         }
 
-        ++k;
+        ++i;
       }
 
-      GPR_ASSERT(response_stream_sizes.size() == k);
+      GPR_ASSERT(response_stream_sizes.size() == i);
       Status s = stream->Finish();
 
       AssertOkOrPrintErrorStatus(s);
