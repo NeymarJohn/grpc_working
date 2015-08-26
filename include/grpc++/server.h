@@ -38,11 +38,11 @@
 #include <memory>
 
 #include <grpc++/completion_queue.h>
-#include <grpc++/config.h>
 #include <grpc++/impl/call.h>
 #include <grpc++/impl/grpc_library.h>
 #include <grpc++/impl/sync.h>
-#include <grpc++/status.h>
+#include <grpc++/support/config.h>
+#include <grpc++/support/status.h>
 
 /// The \a Server class models a gRPC server.
 ///
@@ -130,9 +130,14 @@ class Server GRPC_FINAL : public GrpcLibrary, private CallHook {
   int AddListeningPort(const grpc::string& addr, ServerCredentials* creds);
 
   /// Start the server.
+  /// 
+  /// \param cqs Completion queues for handling asynchronous services. The
+  /// caller is required to keep all completion queues live until the server is
+  /// destroyed.
+  /// \param num_cqs How many completion queues does \a cqs hold.
   ///
   /// \return true on a successful shutdown.
-  bool Start();
+  bool Start(ServerCompletionQueue** cqs, size_t num_cqs);
 
   void HandleQueueClosed();
 
@@ -150,7 +155,8 @@ class Server GRPC_FINAL : public GrpcLibrary, private CallHook {
    public:
     BaseAsyncRequest(Server* server, ServerContext* context,
                      ServerAsyncStreamingInterface* stream,
-                     CompletionQueue* call_cq, void* tag);
+                     CompletionQueue* call_cq, void* tag,
+                     bool delete_on_finalize);
     virtual ~BaseAsyncRequest();
 
     bool FinalizeResult(void** tag, bool* status) GRPC_OVERRIDE;
@@ -161,6 +167,7 @@ class Server GRPC_FINAL : public GrpcLibrary, private CallHook {
     ServerAsyncStreamingInterface* const stream_;
     CompletionQueue* const call_cq_;
     void* const tag_;
+    const bool delete_on_finalize_;
     grpc_call* call_;
     grpc_metadata_array initial_metadata_array_;
   };
@@ -222,18 +229,23 @@ class Server GRPC_FINAL : public GrpcLibrary, private CallHook {
     Message* const request_;
   };
 
-  class GenericAsyncRequest GRPC_FINAL : public BaseAsyncRequest {
+  class GenericAsyncRequest : public BaseAsyncRequest {
    public:
     GenericAsyncRequest(Server* server, GenericServerContext* context,
                         ServerAsyncStreamingInterface* stream,
                         CompletionQueue* call_cq,
-                        ServerCompletionQueue* notification_cq, void* tag);
+                        ServerCompletionQueue* notification_cq, void* tag,
+                        bool delete_on_finalize);
 
     bool FinalizeResult(void** tag, bool* status) GRPC_OVERRIDE;
 
    private:
     grpc_call_details call_details_;
   };
+
+  class UnimplementedAsyncRequestContext;
+  class UnimplementedAsyncRequest;
+  class UnimplementedAsyncResponse;
 
   template <class Message>
   void RequestAsyncCall(void* registered_method, ServerContext* context,
@@ -259,7 +271,7 @@ class Server GRPC_FINAL : public GrpcLibrary, private CallHook {
                                ServerCompletionQueue* notification_cq,
                                void* tag) {
     new GenericAsyncRequest(this, context, stream, call_cq, notification_cq,
-                            tag);
+                            tag, true);
   }
 
   const int max_message_size_;
