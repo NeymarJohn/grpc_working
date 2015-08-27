@@ -133,7 +133,6 @@ class Call : public ::node::ObjectWrap {
   static NAN_METHOD(New);
   static NAN_METHOD(StartBatch);
   static NAN_METHOD(Cancel);
-  static NAN_METHOD(CancelWithStatus);
   static NAN_METHOD(GetPeer);
   static NanCallback *constructor;
   // Used for typechecking instances of this javascript class
