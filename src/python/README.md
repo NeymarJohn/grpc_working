@@ -52,19 +52,9 @@ BUILDING FROM SOURCE
 ---------------------
 - Clone this repository
 
-- Initialize the git submodules
-```
-$ git submodule update --init
-```
-
-- Make the libraries
-```
-$ make
-```
-
 - Use build_python.sh to build the Python code and install it into a virtual environment
 ```
-$ CONFIG=opt tools/run_tests/build_python.sh 2.7
+$ tools/run_tests/build_python.sh
 ```
 
 TESTING
@@ -72,7 +62,7 @@ TESTING
 
 - Use run_python.sh to run gRPC as it was installed into the virtual environment
 ```
-$ CONFIG=opt PYVER=2.7 tools/run_tests/run_python.sh
+$ tools/run_tests/run_python.sh
 ```
 
 PACKAGING
