@@ -31,50 +31,43 @@
  *
  */
 
-#ifndef GRPCXX_SERVER_CREDENTIALS_H
-#define GRPCXX_SERVER_CREDENTIALS_H
+/* generates constant table for metadata.c */
 
-#include <memory>
-#include <vector>
+#include <stdio.h>
+#include <string.h>
 
-#include <grpc++/support/config.h>
+static unsigned char legal_bits[256 / 8];
 
-struct grpc_server;
+static void legal(int x) {
+  int byte = x / 8;
+  int bit = x % 8;
+  legal_bits[byte] |= 1 << bit;
+}
 
-namespace grpc {
-class Server;
+static void dump(void) {
+  int i;
 
-// grpc_server_credentials wrapper class.
-class ServerCredentials {
- public:
-  virtual ~ServerCredentials();
+  printf("static const gpr_uint8 legal_header_bits[256/8] = ");
+  for (i = 0; i < 256 / 8; i++)
+    printf("%c 0x%02x", i ? ',' : '{', legal_bits[i]);
+  printf(" };\n");
+}
 
- private:
-  friend class ::grpc::Server;
+static void clear(void) { memset(legal_bits, 0, sizeof(legal_bits)); }
 
-  virtual int AddPortToServer(const grpc::string& addr,
-                              grpc_server* server) = 0;
-};
+int main(void) {
+  int i;
 
-// Options to create ServerCredentials with SSL
-struct SslServerCredentialsOptions {
-  SslServerCredentialsOptions() : force_client_auth(false) {}
+  clear();
+  for (i = 'a'; i <= 'z'; i++) legal(i);
+  for (i = '0'; i <= '9'; i++) legal(i);
+  legal('-');
+  legal('_');
+  dump();
 
-  struct PemKeyCertPair {
-    grpc::string private_key;
-    grpc::string cert_chain;
-  };
-  grpc::string pem_root_certs;
-  std::vector<PemKeyCertPair> pem_key_cert_pairs;
-  bool force_client_auth;
-};
+  clear();
+  for (i = 32; i <= 126; i++) legal(i);
+  dump();
 
-// Builds SSL ServerCredentials given SSL specific options
-std::shared_ptr<ServerCredentials> SslServerCredentials(
-    const SslServerCredentialsOptions& options);
-
-std::shared_ptr<ServerCredentials> InsecureServerCredentials();
-
-}  // namespace grpc
-
-#endif  // GRPCXX_SERVER_CREDENTIALS_H
+  return 0;
+}

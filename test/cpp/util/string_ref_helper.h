@@ -31,50 +31,17 @@
  *
  */
 
-#ifndef GRPCXX_SERVER_CREDENTIALS_H
-#define GRPCXX_SERVER_CREDENTIALS_H
+#ifndef GRPC_TEST_CPP_UTIL_STRING_REF_HELPER_H
+#define GRPC_TEST_CPP_UTIL_STRING_REF_HELPER_H
 
-#include <memory>
-#include <vector>
-
-#include <grpc++/support/config.h>
-
-struct grpc_server;
+#include <grpc++/support/string_ref.h>
 
 namespace grpc {
-class Server;
+namespace testing {
 
-// grpc_server_credentials wrapper class.
-class ServerCredentials {
- public:
-  virtual ~ServerCredentials();
+grpc::string ToString(const grpc::string_ref& r);
 
- private:
-  friend class ::grpc::Server;
-
-  virtual int AddPortToServer(const grpc::string& addr,
-                              grpc_server* server) = 0;
-};
-
-// Options to create ServerCredentials with SSL
-struct SslServerCredentialsOptions {
-  SslServerCredentialsOptions() : force_client_auth(false) {}
-
-  struct PemKeyCertPair {
-    grpc::string private_key;
-    grpc::string cert_chain;
-  };
-  grpc::string pem_root_certs;
-  std::vector<PemKeyCertPair> pem_key_cert_pairs;
-  bool force_client_auth;
-};
-
-// Builds SSL ServerCredentials given SSL specific options
-std::shared_ptr<ServerCredentials> SslServerCredentials(
-    const SslServerCredentialsOptions& options);
-
-std::shared_ptr<ServerCredentials> InsecureServerCredentials();
-
+}  // namespace testing
 }  // namespace grpc
 
-#endif  // GRPCXX_SERVER_CREDENTIALS_H
+#endif  // GRPC_TEST_CPP_UTIL_STRING_REF_HELPER_H

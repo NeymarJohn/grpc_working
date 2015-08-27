@@ -35,10 +35,13 @@
 #include <grpc++/support/auth_context.h>
 #include <gtest/gtest.h>
 #include "src/cpp/common/secure_auth_context.h"
+#include "test/cpp/util/string_ref_helper.h"
 
 extern "C" {
 #include "src/core/security/security_context.h"
 }
+
+using grpc::testing::ToString;
 
 namespace grpc {
 namespace {
@@ -57,30 +60,30 @@ TEST_F(SecureAuthContextTest, EmptyContext) {
 
 TEST_F(SecureAuthContextTest, Properties) {
   grpc_auth_context* ctx = grpc_auth_context_create(NULL);
-  SecureAuthContext context(ctx);
-  context.AddProperty("name", "chapi");
-  context.AddProperty("name", "chapo");
-  context.AddProperty("foo", "bar");
-  EXPECT_TRUE(context.SetPeerIdentityPropertyName("name"));
+  grpc_auth_context_add_cstring_property(ctx, "name", "chapi");
+  grpc_auth_context_add_cstring_property(ctx, "name", "chapo");
+  grpc_auth_context_add_cstring_property(ctx, "foo", "bar");
+  EXPECT_EQ(1, grpc_auth_context_set_peer_identity_property_name(ctx, "name"));
 
-  std::vector<grpc::string> peer_identity = context.GetPeerIdentity();
+  SecureAuthContext context(ctx);
+  std::vector<grpc::string_ref> peer_identity = context.GetPeerIdentity();
   EXPECT_EQ(2u, peer_identity.size());
-  EXPECT_EQ("chapi", peer_identity[0]);
-  EXPECT_EQ("chapo", peer_identity[1]);
+  EXPECT_EQ("chapi", ToString(peer_identity[0]));
+  EXPECT_EQ("chapo", ToString(peer_identity[1]));
   EXPECT_EQ("name", context.GetPeerIdentityPropertyName());
-  std::vector<grpc::string> bar = context.FindPropertyValues("foo");
+  std::vector<grpc::string_ref> bar = context.FindPropertyValues("foo");
   EXPECT_EQ(1u, bar.size());
-  EXPECT_EQ("bar", bar[0]);
+  EXPECT_EQ("bar", ToString(bar[0]));
 }
 
 TEST_F(SecureAuthContextTest, Iterators) {
   grpc_auth_context* ctx = grpc_auth_context_create(NULL);
-  SecureAuthContext context(ctx);
-  context.AddProperty("name", "chapi");
-  context.AddProperty("name", "chapo");
-  context.AddProperty("foo", "bar");
-  EXPECT_TRUE(context.SetPeerIdentityPropertyName("name"));
+  grpc_auth_context_add_cstring_property(ctx, "name", "chapi");
+  grpc_auth_context_add_cstring_property(ctx, "name", "chapo");
+  grpc_auth_context_add_cstring_property(ctx, "foo", "bar");
+  EXPECT_EQ(1, grpc_auth_context_set_peer_identity_property_name(ctx, "name"));
 
+  SecureAuthContext context(ctx);
   AuthPropertyIterator iter = context.begin();
   EXPECT_TRUE(context.end() != iter);
   AuthProperty p0 = *iter;
@@ -88,12 +91,12 @@ TEST_F(SecureAuthContextTest, Iterators) {
   AuthProperty p1 = *iter;
   iter++;
   AuthProperty p2 = *iter;
-  EXPECT_EQ("name", p0.first);
-  EXPECT_EQ("chapi", p0.second);
-  EXPECT_EQ("name", p1.first);
-  EXPECT_EQ("chapo", p1.second);
-  EXPECT_EQ("foo", p2.first);
-  EXPECT_EQ("bar", p2.second);
+  EXPECT_EQ("name", ToString(p0.first));
+  EXPECT_EQ("chapi", ToString(p0.second));
+  EXPECT_EQ("name", ToString(p1.first));
+  EXPECT_EQ("chapo", ToString(p1.second));
+  EXPECT_EQ("foo", ToString(p2.first));
+  EXPECT_EQ("bar", ToString(p2.second));
   ++iter;
   EXPECT_EQ(context.end(), iter);
 }
