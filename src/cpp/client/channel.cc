@@ -31,25 +31,28 @@
  *
  */
 
-#include <grpc++/channel.h>
+#include "src/cpp/client/channel.h"
 
 #include <memory>
 
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/slice.h>
+
+#include "src/core/profiling/timers.h"
+#include <grpc++/channel_arguments.h>
 #include <grpc++/client_context.h>
 #include <grpc++/completion_queue.h>
+#include <grpc++/config.h>
 #include <grpc++/credentials.h>
 #include <grpc++/impl/call.h>
 #include <grpc++/impl/rpc_method.h>
-#include <grpc++/support/channel_arguments.h>
-#include <grpc++/support/config.h>
-#include <grpc++/support/status.h>
-#include <grpc++/support/time.h>
-#include "src/core/profiling/timers.h"
+#include <grpc++/status.h>
+#include <grpc++/time.h>
 
 namespace grpc {
+
+Channel::Channel(grpc_channel* channel) : c_channel_(channel) {}
 
 Channel::Channel(const grpc::string& host, grpc_channel* channel)
     : host_(host), c_channel_(channel) {}
@@ -68,7 +71,7 @@ Call Channel::CreateCall(const RpcMethod& method, ClientContext* context,
   } else {
     const char* host_str = NULL;
     if (!context->authority().empty()) {
-      host_str = context->authority_.c_str();
+      host_str = context->authority().c_str();
     } else if (!host_.empty()) {
       host_str = host_.c_str();
     }

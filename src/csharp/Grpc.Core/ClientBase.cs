@@ -53,10 +53,6 @@ namespace Grpc.Core
         readonly Channel channel;
         readonly string authUriBase;
 
-        /// <summary>
-        /// Initializes a new instance of <c>ClientBase</c> class.
-        /// </summary>
-        /// <param name="channel">The channel to use for remote call invocation.</param>
         public ClientBase(Channel channel)
         {
             this.channel = channel;
@@ -99,11 +95,6 @@ namespace Grpc.Core
         /// <summary>
         /// Creates a new call to given method.
         /// </summary>
-        /// <param name="method">The method to invoke.</param>
-        /// <param name="options">The call options.</param>
-        /// <typeparam name="TRequest">Request message type.</typeparam>
-        /// <typeparam name="TResponse">Response message type.</typeparam>
-        /// <returns>The call invocation details.</returns>
         protected CallInvocationDetails<TRequest, TResponse> CreateCall<TRequest, TResponse>(Method<TRequest, TResponse> method, CallOptions options)
             where TRequest : class
             where TResponse : class
@@ -128,8 +119,7 @@ namespace Grpc.Core
         internal static string GetAuthUriBase(string target)
         {
             var match = ChannelTargetPattern.Match(target);
-            if (!match.Success)
-            {
+            if (!match.Success) {
                 return null;
             }
             return "https://" + match.Groups[2].Value + "/";

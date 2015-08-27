@@ -31,8 +31,6 @@
  *
  */
 
-#include <sys/signal.h>
-
 #include <cassert>
 #include <chrono>
 #include <memory>
@@ -42,18 +40,21 @@
 #include <vector>
 #include <sstream>
 
-#include <gflags/gflags.h>
+#include <sys/signal.h>
+
 #include <grpc/grpc.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/histogram.h>
 #include <grpc/support/host_port.h>
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
+#include <gflags/gflags.h>
 #include <grpc++/client_context.h>
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
+#include <grpc++/status.h>
+#include <grpc++/stream.h>
 #include <gtest/gtest.h>
-
 #include "test/cpp/util/create_test_channel.h"
 #include "test/cpp/qps/client.h"
 #include "test/cpp/qps/qpstest.grpc.pb.h"

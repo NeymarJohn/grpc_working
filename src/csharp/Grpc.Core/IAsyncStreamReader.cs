@@ -42,7 +42,7 @@ namespace Grpc.Core
     /// <summary>
     /// A stream of messages to be read.
     /// </summary>
-    /// <typeparam name="T">The message type.</typeparam>
+    /// <typeparam name="T"></typeparam>
     public interface IAsyncStreamReader<T> : IAsyncEnumerator<T>
     {
         // TODO(jtattermusch): consider just using IAsyncEnumerator instead of this interface.

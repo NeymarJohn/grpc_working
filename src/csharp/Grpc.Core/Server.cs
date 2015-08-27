@@ -44,13 +44,11 @@ using Grpc.Core.Utils;
 namespace Grpc.Core
 {
     /// <summary>
-    /// gRPC server. A single server can server arbitrary number of services and can listen on more than one ports.
+    /// A gRPC server.
     /// </summary>
     public class Server
     {
         static readonly ILogger Logger = GrpcEnvironment.Logger.ForType<Server>();
-
-        readonly AtomicCounter activeCallCounter = new AtomicCounter();
 
         readonly ServiceDefinitionCollection serviceDefinitions;
         readonly ServerPortCollection ports;
@@ -75,7 +73,7 @@ namespace Grpc.Core
         {
             this.serviceDefinitions = new ServiceDefinitionCollection(this);
             this.ports = new ServerPortCollection(this);
-            this.environment = GrpcEnvironment.AddRef();
+            this.environment = GrpcEnvironment.GetInstance();
             this.options = options != null ? new List<ChannelOption>(options) : new List<ChannelOption>();
             using (var channelArgs = ChannelOptions.CreateChannelArgs(this.options))
             {
@@ -104,17 +102,6 @@ namespace Grpc.Core
             get
             {
                 return ports;
-            }
-        }
-
-        /// <summary>
-        /// To allow awaiting termination of the server.
-        /// </summary>
-        public Task ShutdownTask
-        {
-            get
-            {
-                return shutdownTcs.Task;
             }
         }
 
@@ -149,9 +136,18 @@ namespace Grpc.Core
 
             handle.ShutdownAndNotify(HandleServerShutdown, environment);
             await shutdownTcs.Task;
-            DisposeHandle();
+            handle.Dispose();
+        }
 
-            await Task.Run(() => GrpcEnvironment.Release());
+        /// <summary>
+        /// To allow awaiting termination of the server.
+        /// </summary>
+        public Task ShutdownTask
+        {
+            get
+            {
+                return shutdownTcs.Task;
+            }
         }
 
         /// <summary>
@@ -170,22 +166,7 @@ namespace Grpc.Core
             handle.ShutdownAndNotify(HandleServerShutdown, environment);
             handle.CancelAllCalls();
             await shutdownTcs.Task;
-            DisposeHandle();
-        }
-
-        internal void AddCallReference(object call)
-        {
-            activeCallCounter.Increment();
-
-            bool success = false;
-            handle.DangerousAddRef(ref success);
-            Preconditions.CheckState(success);
-        }
-
-        internal void RemoveCallReference(object call)
-        {
-            handle.DangerousRelease();
-            activeCallCounter.Decrement();
+            handle.Dispose();
         }
 
         /// <summary>
@@ -246,16 +227,6 @@ namespace Grpc.Core
             }
         }
 
-        private void DisposeHandle()
-        {
-            var activeCallCount = activeCallCounter.Count;
-            if (activeCallCount > 0)
-            {
-                Logger.Warning("Server shutdown has finished but there are still {0} active calls for that server.", activeCallCount);
-            }
-            handle.Dispose();
-        }
-
         /// <summary>
         /// Selects corresponding handler for given call and handles the call.
         /// </summary>
@@ -283,7 +254,7 @@ namespace Grpc.Core
         {
             if (success)
             {
-                ServerRpcNew newRpc = ctx.GetServerRpcNew(this);
+                ServerRpcNew newRpc = ctx.GetServerRpcNew();
 
                 // after server shutdown, the callback returns with null call
                 if (!newRpc.Call.IsInvalid)
@@ -324,9 +295,6 @@ namespace Grpc.Core
                 server.AddServiceDefinitionInternal(serviceDefinition);
             }
 
-            /// <summary>
-            /// Gets enumerator for this collection.
-            /// </summary>
             public IEnumerator<ServerServiceDefinition> GetEnumerator()
             {
                 return server.serviceDefinitionsList.GetEnumerator();
@@ -372,9 +340,6 @@ namespace Grpc.Core
                 return Add(new ServerPort(host, port, credentials));
             }
 
-            /// <summary>
-            /// Gets enumerator for this collection.
-            /// </summary>
             public IEnumerator<ServerPort> GetEnumerator()
             {
                 return server.serverPortList.GetEnumerator();
