@@ -31,58 +31,36 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_INTEROP_INTEROP_CLIENT_H
-#define GRPC_TEST_CPP_INTEROP_INTEROP_CLIENT_H
+#ifndef GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
+#define GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
 
-#include <memory>
-
-#include <grpc/grpc.h>
 #include <grpc++/channel.h>
-#include "test/proto/messages.grpc.pb.h"
+
+#include "examples/pubsub/pubsub.grpc.pb.h"
 
 namespace grpc {
-namespace testing {
+namespace examples {
+namespace pubsub {
 
-class InteropClient {
+class Publisher {
  public:
-  explicit InteropClient(std::shared_ptr<Channel> channel);
-  ~InteropClient() {}
+  Publisher(std::shared_ptr<Channel> channel);
+  void Shutdown();
 
-  void Reset(std::shared_ptr<Channel> channel) { channel_ = channel; }
+  Status CreateTopic(const grpc::string& topic);
+  Status GetTopic(const grpc::string& topic);
+  Status DeleteTopic(const grpc::string& topic);
+  Status ListTopics(const grpc::string& project_id,
+                    std::vector<grpc::string>* topics);
 
-  void DoEmpty();
-  void DoLargeUnary();
-  void DoLargeCompressedUnary();
-  void DoPingPong();
-  void DoHalfDuplex();
-  void DoRequestStreaming();
-  void DoResponseStreaming();
-  void DoResponseCompressedStreaming();
-  void DoResponseStreamingWithSlowConsumer();
-  void DoCancelAfterBegin();
-  void DoCancelAfterFirstResponse();
-  void DoTimeoutOnSleepingServer();
-  void DoStatusWithMessage();
-  // Auth tests.
-  // username is a string containing the user email
-  void DoJwtTokenCreds(const grpc::string& username);
-  void DoComputeEngineCreds(const grpc::string& default_service_account,
-                            const grpc::string& oauth_scope);
-  // username is a string containing the user email
-  void DoOauth2AuthToken(const grpc::string& username,
-                         const grpc::string& oauth_scope);
-  // username is a string containing the user email
-  void DoPerRpcCreds(const grpc::string& username,
-                     const grpc::string& oauth_scope);
+  Status Publish(const grpc::string& topic, const grpc::string& data);
 
  private:
-  void PerformLargeUnary(SimpleRequest* request, SimpleResponse* response);
-  void AssertOkOrPrintErrorStatus(const Status& s);
-
-  std::shared_ptr<Channel> channel_;
+  std::unique_ptr<tech::pubsub::PublisherService::Stub> stub_;
 };
 
-}  // namespace testing
+}  // namespace pubsub
+}  // namespace examples
 }  // namespace grpc
 
-#endif  // GRPC_TEST_CPP_INTEROP_INTEROP_CLIENT_H
+#endif  // GRPC_EXAMPLES_PUBSUB_PUBLISHER_H
