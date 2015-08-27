@@ -26,3 +26,12 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+"""A test constant working around issue 3069."""
+
+# test_constants is referenced from specification in this module.
+from grpc_test.framework.common import test_constants  # pylint: disable=unused-import
+
+# TODO(issue 3069): Replace uses of this constant with
+# test_constants.SHORT_TIMEOUT.
+REALLY_SHORT_TIMEOUT = 0.1
