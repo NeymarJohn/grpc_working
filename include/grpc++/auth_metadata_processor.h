@@ -31,14 +31,41 @@
  *
  */
 
-#include "test/cpp/util/string_ref_helper.h"
+#ifndef GRPCXX_AUTH_METADATA_PROCESSOR_H_
+#define GRPCXX_AUTH_METADATA_PROCESSOR_H_
+
+#include <map>
+
+#include <grpc++/support/auth_context.h>
+#include <grpc++/support/status.h>
+#include <grpc++/support/string_ref.h>
 
 namespace grpc {
-namespace testing {
 
-grpc::string ToString(const grpc::string_ref& r) {
-  return grpc::string(r.data(), r.size());
-}
+class AuthMetadataProcessor {
+ public:
+  typedef std::multimap<grpc::string_ref, grpc::string_ref> InputMetadata;
+  typedef std::multimap<grpc::string, grpc::string_ref> OutputMetadata;
 
-}  // namespace testing
+  virtual ~AuthMetadataProcessor() {}
+
+  // If this method returns true, the Process function will be scheduled in
+  // a different thread from the one processing the call.
+  virtual bool IsBlocking() const { return true; }
+
+  // context is read/write: it contains the properties of the channel peer and
+  // it is the job of the Process method to augment it with properties derived
+  // from the passed-in auth_metadata.
+  // consumed_auth_metadata needs to be filled with metadata that has been
+  // consumed by the processor and will be removed from the call.
+  // TODO(jboeuf).
+  virtual Status Process(const InputMetadata& auth_metadata,
+                         AuthContext* context,
+                         OutputMetadata* consumed_auth_metadata,
+                         OutputMetadata* response_metadata) = 0;
+};
+
 }  // namespace grpc
+
+#endif  // GRPCXX_AUTH_METADATA_PROCESSOR_H_
+

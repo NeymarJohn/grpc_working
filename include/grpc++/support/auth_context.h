@@ -38,7 +38,6 @@
 #include <vector>
 
 #include <grpc++/support/config.h>
-#include <grpc++/support/string_ref.h>
 
 struct grpc_auth_context;
 struct grpc_auth_property;
@@ -47,7 +46,7 @@ struct grpc_auth_property_iterator;
 namespace grpc {
 class SecureAuthContext;
 
-typedef std::pair<grpc::string_ref, grpc::string_ref> AuthProperty;
+typedef std::pair<grpc::string, grpc::string> AuthProperty;
 
 class AuthPropertyIterator
     : public std::iterator<std::input_iterator_tag, const AuthProperty> {
@@ -79,16 +78,21 @@ class AuthContext {
 
   // A peer identity, in general is one or more properties (in which case they
   // have the same name).
-  virtual std::vector<grpc::string_ref> GetPeerIdentity() const = 0;
+  virtual std::vector<grpc::string> GetPeerIdentity() const = 0;
   virtual grpc::string GetPeerIdentityPropertyName() const = 0;
 
   // Returns all the property values with the given name.
-  virtual std::vector<grpc::string_ref> FindPropertyValues(
+  virtual std::vector<grpc::string> FindPropertyValues(
       const grpc::string& name) const = 0;
 
   // Iteration over all the properties.
   virtual AuthPropertyIterator begin() const = 0;
   virtual AuthPropertyIterator end() const = 0;
+
+  // Mutation functions: should only be used by an AuthMetadataProcessor.
+  virtual void AddProperty(const grpc::string& key,
+                           const grpc::string& value) = 0;
+  virtual bool SetPeerIdentityPropertyName(const grpc::string& name) = 0;
 };
 
 }  // namespace grpc

@@ -38,6 +38,7 @@
 #include <vector>
 
 #include <grpc++/support/config.h>
+#include <grpc++/auth_metadata_processor.h>
 
 struct grpc_server;
 
@@ -54,6 +55,11 @@ class ServerCredentials {
 
   virtual int AddPortToServer(const grpc::string& addr,
                               grpc_server* server) = 0;
+
+  // This method is not thread-safe and has to be called before the server is
+  // started. The last call to this function wins.
+  virtual void SetAuthMetadataProcessor(
+      const std::shared_ptr<AuthMetadataProcessor>& processor) = 0;
 };
 
 // Options to create ServerCredentials with SSL

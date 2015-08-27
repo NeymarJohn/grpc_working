@@ -40,7 +40,6 @@ from grpc.framework.interfaces.face import face
 from grpc_test.framework.common import test_constants
 from grpc_test.framework.common import test_control
 from grpc_test.framework.common import test_coverage
-from grpc_test.framework.interfaces.face import _3069_test_constant
 from grpc_test.framework.interfaces.face import _digest
 from grpc_test.framework.interfaces.face import _stock_service
 from grpc_test.framework.interfaces.face import test_interfaces  # pylint: disable=unused-import
@@ -266,7 +265,7 @@ class TestCase(test_coverage.Coverage, unittest.TestCase):
 
         with self._control.pause():
           response_future = self._invoker.future(
-              group, method)(request, _3069_test_constant.REALLY_SHORT_TIMEOUT)
+              group, method)(request, test_constants.SHORT_TIMEOUT)
           self.assertIsInstance(
               response_future.exception(), face.ExpirationError)
           with self.assertRaises(face.ExpirationError):
@@ -280,7 +279,7 @@ class TestCase(test_coverage.Coverage, unittest.TestCase):
 
         with self._control.pause():
           response_iterator = self._invoker.future(group, method)(
-              request, _3069_test_constant.REALLY_SHORT_TIMEOUT)
+              request, test_constants.SHORT_TIMEOUT)
           with self.assertRaises(face.ExpirationError):
             list(response_iterator)
 
@@ -292,7 +291,7 @@ class TestCase(test_coverage.Coverage, unittest.TestCase):
 
         with self._control.pause():
           response_future = self._invoker.future(group, method)(
-              iter(requests), _3069_test_constant.REALLY_SHORT_TIMEOUT)
+              iter(requests), test_constants.SHORT_TIMEOUT)
           self.assertIsInstance(
               response_future.exception(), face.ExpirationError)
           with self.assertRaises(face.ExpirationError):
@@ -306,7 +305,7 @@ class TestCase(test_coverage.Coverage, unittest.TestCase):
 
         with self._control.pause():
           response_iterator = self._invoker.future(group, method)(
-              iter(requests), _3069_test_constant.REALLY_SHORT_TIMEOUT)
+              iter(requests), test_constants.SHORT_TIMEOUT)
           with self.assertRaises(face.ExpirationError):
             list(response_iterator)
 
@@ -318,7 +317,7 @@ class TestCase(test_coverage.Coverage, unittest.TestCase):
 
         with self._control.fail():
           response_future = self._invoker.future(group, method)(
-              request, _3069_test_constant.REALLY_SHORT_TIMEOUT)
+              request, test_constants.SHORT_TIMEOUT)
 
           # Because the servicer fails outside of the thread from which the
           # servicer-side runtime called into it its failure is
@@ -341,7 +340,7 @@ class TestCase(test_coverage.Coverage, unittest.TestCase):
         # expiration of the RPC.
         with self._control.fail(), self.assertRaises(face.ExpirationError):
           response_iterator = self._invoker.future(group, method)(
-              request, _3069_test_constant.REALLY_SHORT_TIMEOUT)
+              request, test_constants.SHORT_TIMEOUT)
           list(response_iterator)
 
   def testFailedStreamRequestUnaryResponse(self):
@@ -352,7 +351,7 @@ class TestCase(test_coverage.Coverage, unittest.TestCase):
 
         with self._control.fail():
           response_future = self._invoker.future(group, method)(
-              iter(requests), _3069_test_constant.REALLY_SHORT_TIMEOUT)
+              iter(requests), test_constants.SHORT_TIMEOUT)
 
           # Because the servicer fails outside of the thread from which the
           # servicer-side runtime called into it its failure is
@@ -375,5 +374,5 @@ class TestCase(test_coverage.Coverage, unittest.TestCase):
         # expiration of the RPC.
         with self._control.fail(), self.assertRaises(face.ExpirationError):
           response_iterator = self._invoker.future(group, method)(
-              iter(requests), _3069_test_constant.REALLY_SHORT_TIMEOUT)
+              iter(requests), test_constants.SHORT_TIMEOUT)
           list(response_iterator)

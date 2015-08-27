@@ -37,7 +37,6 @@ from grpc.framework.interfaces.face import face
 from grpc_test.framework.common import test_constants
 from grpc_test.framework.common import test_control
 from grpc_test.framework.common import test_coverage
-from grpc_test.framework.interfaces.face import _3069_test_constant
 from grpc_test.framework.interfaces.face import _digest
 from grpc_test.framework.interfaces.face import _receiver
 from grpc_test.framework.interfaces.face import _stock_service
@@ -265,8 +264,7 @@ class TestCase(test_coverage.Coverage, unittest.TestCase):
 
         with self._control.pause():
           self._invoker.event(group, method)(
-              request, receiver, receiver.abort,
-              _3069_test_constant.REALLY_SHORT_TIMEOUT)
+              request, receiver, receiver.abort, test_constants.SHORT_TIMEOUT)
           receiver.block_until_terminated()
 
         self.assertIs(face.Abortion.Kind.EXPIRED, receiver.abortion().kind)
@@ -280,8 +278,7 @@ class TestCase(test_coverage.Coverage, unittest.TestCase):
 
         with self._control.pause():
           self._invoker.event(group, method)(
-              request, receiver, receiver.abort,
-              _3069_test_constant.REALLY_SHORT_TIMEOUT)
+              request, receiver, receiver.abort, test_constants.SHORT_TIMEOUT)
           receiver.block_until_terminated()
 
         self.assertIs(face.Abortion.Kind.EXPIRED, receiver.abortion().kind)
@@ -293,7 +290,7 @@ class TestCase(test_coverage.Coverage, unittest.TestCase):
         receiver = _receiver.Receiver()
 
         self._invoker.event(group, method)(
-            receiver, receiver.abort, _3069_test_constant.REALLY_SHORT_TIMEOUT)
+            receiver, receiver.abort, test_constants.SHORT_TIMEOUT)
         receiver.block_until_terminated()
 
         self.assertIs(face.Abortion.Kind.EXPIRED, receiver.abortion().kind)
@@ -306,7 +303,7 @@ class TestCase(test_coverage.Coverage, unittest.TestCase):
         receiver = _receiver.Receiver()
 
         call_consumer = self._invoker.event(group, method)(
-            receiver, receiver.abort, _3069_test_constant.REALLY_SHORT_TIMEOUT)
+            receiver, receiver.abort, test_constants.SHORT_TIMEOUT)
         for request in requests:
           call_consumer.consume(request)
         receiver.block_until_terminated()
