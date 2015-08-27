@@ -44,11 +44,6 @@ namespace grpc {
 class ChannelArguments;
 
 std::shared_ptr<Channel> CreateChannel(
-    const grpc::string& target, const std::shared_ptr<Credentials>& creds) {
-  return CreateCustomChannel(target, creds, ChannelArguments());
-}
-
-std::shared_ptr<Channel> CreateCustomChannel(
     const grpc::string& target, const std::shared_ptr<Credentials>& creds,
     const ChannelArguments& args) {
   ChannelArguments cp_args = args;
@@ -62,5 +57,4 @@ std::shared_ptr<Channel> CreateCustomChannel(
                                              NULL, GRPC_STATUS_INVALID_ARGUMENT,
                                              "Invalid credentials."));
 }
-
 }  // namespace grpc
