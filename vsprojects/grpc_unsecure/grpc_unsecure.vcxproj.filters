@@ -358,9 +358,6 @@
     <ClCompile Include="..\..\src\core\census\initialize.c">
       <Filter>src\core\census</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\census\record_stat.c">
-      <Filter>src\core\census</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\grpc\byte_buffer.h">
@@ -578,6 +575,9 @@
     <ClInclude Include="..\..\src\core\profiling\timers.h">
       <Filter>src\core\profiling</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\core\profiling\timers_preciseclock.h">
+      <Filter>src\core\profiling</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\core\statistics\census_interface.h">
       <Filter>src\core\statistics</Filter>
     </ClInclude>
@@ -689,7 +689,7 @@
     <ClInclude Include="..\..\src\core\census\context.h">
       <Filter>src\core\census</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\core\census\rpc_stat_id.h">
+    <ClInclude Include="..\..\src\core\census\rpc_metric_id.h">
       <Filter>src\core\census</Filter>
     </ClInclude>
   </ItemGroup>
