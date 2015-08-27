@@ -1033,6 +1033,20 @@
       ]
     },
     {
+      "name": "endpoint_pair_test",
+      "build": "test",
+      "language": "c",
+      "src": [
+        "test/core/iomgr/endpoint_pair_test.c"
+      ],
+      "deps": [
+        "grpc_test_util",
+        "grpc",
+        "gpr_test_util",
+        "gpr"
+      ]
+    },
+    {
       "name": "fd_conservation_posix_test",
       "build": "test",
       "language": "c",
@@ -2029,8 +2043,11 @@
         "test/cpp/common/auth_property_iterator_test.cc"
       ],
       "deps": [
+        "grpc++_test_util",
+        "grpc_test_util",
         "grpc++",
         "grpc",
+        "gpr_test_util",
         "gpr"
       ]
     },
@@ -2581,8 +2598,11 @@
         "test/cpp/common/secure_auth_context_test.cc"
       ],
       "deps": [
+        "grpc++_test_util",
+        "grpc_test_util",
         "grpc++",
         "grpc",
+        "gpr_test_util",
         "gpr"
       ]
     },
