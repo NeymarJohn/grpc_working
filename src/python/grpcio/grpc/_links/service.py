@@ -336,19 +336,21 @@ class _Kernel(object):
       self._server.start()
       self._server.service(None)
 
-  def begin_stop(self):
+  def graceful_stop(self):
     with self._lock:
       self._server.stop()
       self._server = None
-
-  def end_stop(self):
-    with self._lock:
       self._completion_queue.stop()
       self._completion_queue = None
       pool = self._pool
       self._pool = None
       self._rpc_states = None
     pool.shutdown(wait=True)
+
+  def immediate_stop(self):
+    # TODO(nathaniel): Implementation.
+    raise NotImplementedError(
+        'TODO(nathaniel): after merge of rewritten lower layers')
 
 
 class ServiceLink(links.Link):
@@ -386,20 +388,18 @@ class ServiceLink(links.Link):
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def begin_stop(self):
-    """Indicate imminent link stop and immediate rejection of new RPCs.
+  def stop_gracefully(self):
+    """Stops this link.
 
     New RPCs will be rejected as soon as this method is called, but ongoing RPCs
-    will be allowed to continue until they terminate. This method does not
-    block.
+    will be allowed to continue until they terminate. This method blocks until
+    all RPCs have terminated.
     """
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def end_stop(self):
-    """Finishes stopping this link.
-
-    begin_stop must have been called exactly once before calling this method.
+  def stop_immediately(self):
+    """Stops this link.
 
     All in-progress RPCs will be terminated immediately.
     """
@@ -426,11 +426,12 @@ class _ServiceLink(ServiceLink):
     self._relay.start()
     return self._kernel.start()
 
-  def begin_stop(self):
-    self._kernel.begin_stop()
+  def stop_gracefully(self):
+    self._kernel.graceful_stop()
+    self._relay.stop()
 
-  def end_stop(self):
-    self._kernel.end_stop()
+  def stop_immediately(self):
+    self._kernel.immediate_stop()
     self._relay.stop()
 
 

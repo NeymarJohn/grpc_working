@@ -31,33 +31,15 @@
  *
  */
 
-var PROTO_PATH = __dirname + '/helloworld.proto';
+#include <grpc/census.h>
 
-var grpc = require('grpc');
-var hello_proto = grpc.load(PROTO_PATH).helloworld;
+/* TODO(aveitch): These are all placeholder implementations. */
 
-var Server = grpc.buildServer([hello_proto.Greeter.service]);
-
-/**
- * Implements the SayHello RPC method.
- */
-function sayHello(call, callback) {
-  callback(null, {message: 'Hello ' + call.request.name});
+int census_trace_mask(const census_context *context) {
+  return CENSUS_TRACE_MASK_NONE;
 }
 
-/**
- * Starts an RPC server that receives requests for the Greeter service at the
- * sample server port
- */
-function main() {
-  var server = new Server({
-    "helloworld.Greeter": {
-      sayHello: sayHello
-    }
-  });
+void census_set_trace_mask(int trace_mask) {}
 
-  server.bind('0.0.0.0:50051');
-  server.listen();
-}
-
-main();
+void census_trace_print(census_context *context, gpr_uint32 type,
+                        const char *buffer, size_t n) {}
