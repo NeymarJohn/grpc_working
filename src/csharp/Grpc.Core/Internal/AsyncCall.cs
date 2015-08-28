@@ -322,11 +322,6 @@ namespace Grpc.Core.Internal
             details.Channel.RemoveCallReference(this);
         }
 
-        protected override bool IsClient
-        {
-            get { return true; }
-        }
-
         private void Initialize(CompletionQueueSafeHandle cq)
         {
             var call = CreateNativeCall(cq);
@@ -381,17 +376,9 @@ namespace Grpc.Core.Internal
         /// </summary>
         private void HandleUnaryResponse(bool success, ClientSideStatus receivedStatus, byte[] receivedMessage, Metadata responseHeaders)
         {
-            TResponse msg = default(TResponse);
-            var deserializeException = success ? TryDeserialize(receivedMessage, out msg) : null;
-
             lock (myLock)
             {
                 finished = true;
-
-                if (deserializeException != null && receivedStatus.Status.StatusCode == StatusCode.OK)
-                {
-                    receivedStatus = new ClientSideStatus(DeserializeResponseFailureStatus, receivedStatus.Trailers);
-                }
                 finishedStatus = receivedStatus;
 
                 ReleaseResourcesIfPossible();
@@ -406,6 +393,10 @@ namespace Grpc.Core.Internal
                 unaryResponseTcs.SetException(new RpcException(status));
                 return;
             }
+
+            // TODO: handle deserialization error
+            TResponse msg;
+            TryDeserialize(receivedMessage, out msg);
 
             unaryResponseTcs.SetResult(msg);
         }

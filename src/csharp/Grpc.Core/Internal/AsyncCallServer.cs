@@ -169,11 +169,6 @@ namespace Grpc.Core.Internal
             }
         }
 
-        protected override bool IsClient
-        {
-            get { return false; }
-        }
-
         protected override void CheckReadingAllowed()
         {
             base.CheckReadingAllowed();
