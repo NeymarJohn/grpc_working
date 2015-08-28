@@ -33,7 +33,6 @@
 
 #include <cctype>
 #include <map>
-#include <sstream>
 #include <vector>
 
 #include "src/compiler/csharp_generator.h"
@@ -45,6 +44,7 @@
 using google::protobuf::compiler::csharp::GetFileNamespace;
 using google::protobuf::compiler::csharp::GetClassName;
 using google::protobuf::compiler::csharp::GetUmbrellaClassName;
+using google::protobuf::SimpleItoa;
 using grpc::protobuf::FileDescriptor;
 using grpc::protobuf::Descriptor;
 using grpc::protobuf::ServiceDescriptor;
@@ -228,14 +228,11 @@ void GenerateStaticMethodField(Printer* out, const MethodDescriptor *method) {
 }
 
 void GenerateServiceDescriptorProperty(Printer* out, const ServiceDescriptor *service) {
-  std::ostringstream index;
-  index << service->index();
   out->Print("// service descriptor\n");
   out->Print("public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor\n");
   out->Print("{\n");
   out->Print("  get { return $umbrella$.Descriptor.Services[$index$]; }\n",
-             "umbrella", GetUmbrellaClassName(service->file()), "index",
-             index.str());
+             "umbrella", GetUmbrellaClassName(service->file()), "index", SimpleItoa(service->index()));
   out->Print("}\n");
   out->Print("\n");
 }
