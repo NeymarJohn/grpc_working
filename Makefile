@@ -4583,6 +4583,7 @@ LIBGRPC++_SRC = \
     src/cpp/util/time.cc \
 
 PUBLIC_HEADERS_CXX += \
+    include/grpc++/auth_metadata_processor.h \
     include/grpc++/channel.h \
     include/grpc++/client_context.h \
     include/grpc++/completion_queue.h \
@@ -4827,6 +4828,7 @@ LIBGRPC++_UNSECURE_SRC = \
     src/cpp/util/time.cc \
 
 PUBLIC_HEADERS_CXX += \
+    include/grpc++/auth_metadata_processor.h \
     include/grpc++/channel.h \
     include/grpc++/client_context.h \
     include/grpc++/completion_queue.h \
