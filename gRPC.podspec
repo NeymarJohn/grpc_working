@@ -68,7 +68,6 @@ Pod::Spec.new do |s|
                       'src/core/support/grpc_string.h',
                       'src/core/support/string_win32.h',
                       'src/core/support/thd_internal.h',
-                      'src/core/support/time_precise.h',
                       'grpc/support/alloc.h',
                       'grpc/support/atm.h',
                       'grpc/support/atm_gcc_atomic.h',
@@ -211,6 +210,7 @@ Pod::Spec.new do |s|
                       'src/core/json/json_reader.h',
                       'src/core/json/json_writer.h',
                       'src/core/profiling/timers.h',
+                      'src/core/profiling/timers_preciseclock.h',
                       'src/core/statistics/census_interface.h',
                       'src/core/statistics/census_rpc_stats.h',
                       'src/core/surface/byte_buffer_queue.h',
@@ -395,7 +395,9 @@ Pod::Spec.new do |s|
                       'src/core/transport/transport_op_string.c',
                       'src/core/census/context.c',
                       'src/core/census/initialize.c',
-                      'src/core/census/record_stat.c'
+                      'src/core/census/operation.c',
+                      'src/core/census/record_stat.c',
+                      'src/core/census/tracing.c'
 
     ss.private_header_files = 'src/core/support/env.h',
                               'src/core/support/file.h',
@@ -404,7 +406,6 @@ Pod::Spec.new do |s|
                               'src/core/support/string.h',
                               'src/core/support/string_win32.h',
                               'src/core/support/thd_internal.h',
-                              'src/core/support/time_precise.h',
                               'src/core/security/auth_filters.h',
                               'src/core/security/base64.h',
                               'src/core/security/credentials.h',
@@ -483,6 +484,7 @@ Pod::Spec.new do |s|
                               'src/core/json/json_reader.h',
                               'src/core/json/json_writer.h',
                               'src/core/profiling/timers.h',
+                              'src/core/profiling/timers_preciseclock.h',
                               'src/core/statistics/census_interface.h',
                               'src/core/statistics/census_rpc_stats.h',
                               'src/core/surface/byte_buffer_queue.h',

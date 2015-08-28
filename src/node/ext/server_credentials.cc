@@ -178,8 +178,11 @@ NAN_METHOD(ServerCredentials::CreateSsl) {
     key_cert_pairs[i].cert_chain = ::node::Buffer::Data(
         pair_obj->Get(cert_key));
   }
-  grpc_server_credentials *creds = grpc_ssl_server_credentials_create(
-      root_certs, key_cert_pairs, key_cert_pair_count, force_client_auth, NULL);
+  grpc_server_credentials *creds =
+      grpc_ssl_server_credentials_create(root_certs,
+                                         key_cert_pairs,
+                                         key_cert_pair_count,
+                                         force_client_auth);
   delete key_cert_pairs;
   if (creds == NULL) {
     NanReturnNull();
