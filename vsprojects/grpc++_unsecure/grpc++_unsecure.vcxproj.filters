@@ -84,9 +84,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\grpc++\auth_metadata_processor.h">
-      <Filter>include\grpc++</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\grpc++\channel.h">
       <Filter>include\grpc++</Filter>
     </ClInclude>
