@@ -255,6 +255,6 @@ class ClientCredentials(object):
 class ServerCredentials(object):
   """Adapter from old _low.ServerCredentials interface to new _low.ServerCredentials."""
 
-  def __init__(self, root_credentials, pair_sequence, force_client_auth):
+  def __init__(self, root_credentials, pair_sequence):
     self._internal = _low.ServerCredentials.ssl(
-        root_credentials, list(pair_sequence), force_client_auth)
+        root_credentials, list(pair_sequence), False)
