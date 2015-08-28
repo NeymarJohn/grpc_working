@@ -39,7 +39,7 @@ namespace Grpc.Core
     /// <summary>
     /// Encapsulates the logic for serializing and deserializing messages.
     /// </summary>
-    public class Marshaller<T>
+    public struct Marshaller<T>
     {
         readonly Func<T, byte[]> serializer;
         readonly Func<byte[], T> deserializer;

@@ -91,7 +91,8 @@ class CliCallTest : public ::testing::Test {
   void TearDown() GRPC_OVERRIDE { server_->Shutdown(); }
 
   void ResetStub() {
-    channel_ = CreateChannel(server_address_.str(), InsecureCredentials());
+    channel_ = CreateChannel(server_address_.str(), InsecureCredentials(),
+                             ChannelArguments());
     stub_ = std::move(grpc::cpp::test::util::TestService::NewStub(channel_));
   }
 

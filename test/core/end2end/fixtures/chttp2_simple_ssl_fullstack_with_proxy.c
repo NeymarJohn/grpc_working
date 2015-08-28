@@ -58,7 +58,7 @@ static grpc_server *create_proxy_server(const char *port) {
   grpc_ssl_pem_key_cert_pair pem_cert_key_pair = {test_server1_key,
                                                   test_server1_cert};
   grpc_server_credentials *ssl_creds =
-      grpc_ssl_server_credentials_create(NULL, &pem_cert_key_pair, 1, 0, NULL);
+      grpc_ssl_server_credentials_create(NULL, &pem_cert_key_pair, 1, 0);
   GPR_ASSERT(grpc_server_add_secure_http2_port(s, port, ssl_creds));
   grpc_server_credentials_release(ssl_creds);
   return s;
@@ -66,14 +66,14 @@ static grpc_server *create_proxy_server(const char *port) {
 
 static grpc_channel *create_proxy_client(const char *target) {
   grpc_channel *channel;
-  grpc_credentials *ssl_creds = grpc_ssl_credentials_create(NULL, NULL, NULL);
+  grpc_credentials *ssl_creds = grpc_ssl_credentials_create(NULL, NULL);
   grpc_arg ssl_name_override = {GRPC_ARG_STRING,
                                 GRPC_SSL_TARGET_NAME_OVERRIDE_ARG,
                                 {"foo.test.google.fr"}};
   grpc_channel_args client_args;
   client_args.num_args = 1;
   client_args.args = &ssl_name_override;
-  channel = grpc_secure_channel_create(ssl_creds, target, &client_args, NULL);
+  channel = grpc_secure_channel_create(ssl_creds, target, &client_args);
   grpc_credentials_release(ssl_creds);
   return channel;
 }
@@ -109,8 +109,7 @@ static void chttp2_init_client_secure_fullstack(grpc_end2end_test_fixture *f,
                                                 grpc_credentials *creds) {
   fullstack_secure_fixture_data *ffd = f->fixture_data;
   f->client = grpc_secure_channel_create(
-      creds, grpc_end2end_proxy_get_client_target(ffd->proxy), client_args,
-      NULL);
+      creds, grpc_end2end_proxy_get_client_target(ffd->proxy), client_args);
   GPR_ASSERT(f->client != NULL);
   grpc_credentials_release(creds);
 }
@@ -138,7 +137,7 @@ void chttp2_tear_down_secure_fullstack(grpc_end2end_test_fixture *f) {
 
 static void chttp2_init_client_simple_ssl_secure_fullstack(
     grpc_end2end_test_fixture *f, grpc_channel_args *client_args) {
-  grpc_credentials *ssl_creds = grpc_ssl_credentials_create(NULL, NULL, NULL);
+  grpc_credentials *ssl_creds = grpc_ssl_credentials_create(NULL, NULL);
   grpc_arg ssl_name_override = {GRPC_ARG_STRING,
                                 GRPC_SSL_TARGET_NAME_OVERRIDE_ARG,
                                 {"foo.test.google.fr"}};
@@ -165,7 +164,7 @@ static void chttp2_init_server_simple_ssl_secure_fullstack(
   grpc_ssl_pem_key_cert_pair pem_cert_key_pair = {test_server1_key,
                                                   test_server1_cert};
   grpc_server_credentials *ssl_creds =
-      grpc_ssl_server_credentials_create(NULL, &pem_cert_key_pair, 1, 0, NULL);
+      grpc_ssl_server_credentials_create(NULL, &pem_cert_key_pair, 1, 0);
   if (fail_server_auth_check(server_args)) {
     grpc_auth_metadata_processor processor = {process_auth_failure, NULL};
     grpc_server_credentials_set_auth_metadata_processor(ssl_creds, processor);
