@@ -77,6 +77,9 @@ class AuthContext {
  public:
   virtual ~AuthContext() {}
 
+  // Returns true if the peer is authenticated.
+  virtual bool IsPeerAuthenticated() const = 0;
+
   // A peer identity, in general is one or more properties (in which case they
   // have the same name).
   virtual std::vector<grpc::string_ref> GetPeerIdentity() const = 0;
@@ -89,6 +92,11 @@ class AuthContext {
   // Iteration over all the properties.
   virtual AuthPropertyIterator begin() const = 0;
   virtual AuthPropertyIterator end() const = 0;
+
+  // Mutation functions: should only be used by an AuthMetadataProcessor.
+  virtual void AddProperty(const grpc::string& key,
+                           const grpc::string_ref& value) = 0;
+  virtual bool SetPeerIdentityPropertyName(const grpc::string& name) = 0;
 };
 
 }  // namespace grpc

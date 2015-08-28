@@ -719,6 +719,7 @@ cc_library(
     "src/cpp/util/time.cc",
   ],
   hdrs = [
+    "include/grpc++/auth_metadata_processor.h",
     "include/grpc++/channel.h",
     "include/grpc++/client_context.h",
     "include/grpc++/completion_queue.h",
@@ -808,6 +809,7 @@ cc_library(
     "src/cpp/util/time.cc",
   ],
   hdrs = [
+    "include/grpc++/auth_metadata_processor.h",
     "include/grpc++/channel.h",
     "include/grpc++/client_context.h",
     "include/grpc++/completion_queue.h",

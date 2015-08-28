@@ -31,22 +31,44 @@
  *
  */
 
-#ifndef GRPCXX_CREATE_CHANNEL_H
-#define GRPCXX_CREATE_CHANNEL_H
+#ifndef GRPCXX_AUTH_METADATA_PROCESSOR_H_
+#define GRPCXX_AUTH_METADATA_PROCESSOR_H_
 
-#include <memory>
+#include <map>
 
-#include <grpc++/credentials.h>
-#include <grpc++/support/channel_arguments.h>
-#include <grpc++/support/config.h>
+#include <grpc++/support/auth_context.h>
+#include <grpc++/support/status.h>
+#include <grpc++/support/string_ref.h>
 
 namespace grpc {
 
-// If creds does not hold an object or is invalid, a lame channel is returned.
-std::shared_ptr<Channel> CreateChannel(
-    const grpc::string& target, const std::shared_ptr<Credentials>& creds,
-    const ChannelArguments& args);
+class AuthMetadataProcessor {
+ public:
+  typedef std::multimap<grpc::string_ref, grpc::string_ref> InputMetadata;
+  typedef std::multimap<grpc::string, grpc::string_ref> OutputMetadata;
+
+  virtual ~AuthMetadataProcessor() {}
+
+  // If this method returns true, the Process function will be scheduled in
+  // a different thread from the one processing the call.
+  virtual bool IsBlocking() const { return true; }
+
+  // context is read/write: it contains the properties of the channel peer and
+  // it is the job of the Process method to augment it with properties derived
+  // from the passed-in auth_metadata.
+  // consumed_auth_metadata needs to be filled with metadata that has been
+  // consumed by the processor and will be removed from the call.
+  // response_metadata is the metadata that will be sent as part of the
+  // response.
+  // If the return value is not Status::OK, the rpc call will be aborted with
+  // the error code and error message sent back to the client.
+  virtual Status Process(const InputMetadata& auth_metadata,
+                         AuthContext* context,
+                         OutputMetadata* consumed_auth_metadata,
+                         OutputMetadata* response_metadata) = 0;
+};
 
 }  // namespace grpc
 
-#endif  // GRPCXX_CREATE_CHANNEL_H
+#endif  // GRPCXX_AUTH_METADATA_PROCESSOR_H_
+

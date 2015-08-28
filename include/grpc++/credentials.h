@@ -57,7 +57,7 @@ class Credentials : public GrpcLibrary {
   virtual SecureCredentials* AsSecureCredentials() = 0;
 
  private:
-  friend std::shared_ptr<Channel> CreateCustomChannel(
+  friend std::shared_ptr<Channel> CreateChannel(
       const grpc::string& target, const std::shared_ptr<Credentials>& creds,
       const ChannelArguments& args);
 
