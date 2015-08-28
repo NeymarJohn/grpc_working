@@ -152,18 +152,7 @@ grpc_security_status grpc_server_credentials_create_security_connector(
 void grpc_server_credentials_set_auth_metadata_processor(
     grpc_server_credentials *creds, grpc_auth_metadata_processor processor) {
   if (creds == NULL) return;
-  if (creds->processor.destroy != NULL && creds->processor.state != NULL) {
-    creds->processor.destroy(creds->processor.state);
-  }
   creds->processor = processor;
-}
-
-void grpc_server_credentials_destroy(grpc_server_credentials *creds) {
-  if (creds == NULL) return;
-  if (creds->processor.destroy != NULL && creds->processor.state != NULL) {
-    creds->processor.destroy(creds->processor.state);
-  }
-  gpr_free(creds);
 }
 
 /* -- Ssl credentials. -- */
@@ -196,7 +185,7 @@ static void ssl_server_destroy(grpc_server_credentials *creds) {
     gpr_free(c->config.pem_cert_chains_sizes);
   }
   if (c->config.pem_root_certs != NULL) gpr_free(c->config.pem_root_certs);
-  grpc_server_credentials_destroy(creds);
+  gpr_free(creds);
 }
 
 static int ssl_has_request_metadata(const grpc_credentials *creds) { return 0; }
@@ -913,7 +902,7 @@ static void fake_transport_security_credentials_destroy(
 
 static void fake_transport_security_server_credentials_destroy(
     grpc_server_credentials *creds) {
-  grpc_server_credentials_destroy(creds);
+  gpr_free(creds);
 }
 
 static int fake_transport_security_has_request_metadata(
