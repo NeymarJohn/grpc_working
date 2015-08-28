@@ -38,6 +38,7 @@
 #include <vector>
 
 #include <grpc++/support/config.h>
+#include <grpc++/auth_metadata_processor.h>
 
 struct grpc_server;
 
@@ -48,6 +49,11 @@ class Server;
 class ServerCredentials {
  public:
   virtual ~ServerCredentials();
+
+  // This method is not thread-safe and has to be called before the server is
+  // started. The last call to this function wins.
+  virtual void SetAuthMetadataProcessor(
+      const std::shared_ptr<AuthMetadataProcessor>& processor) = 0;
 
  private:
   friend class ::grpc::Server;
