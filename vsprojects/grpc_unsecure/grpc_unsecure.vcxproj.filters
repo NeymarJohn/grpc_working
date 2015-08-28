@@ -358,13 +358,7 @@
     <ClCompile Include="..\..\src\core\census\initialize.c">
       <Filter>src\core\census</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\census\operation.c">
-      <Filter>src\core\census</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\core\census\record_stat.c">
-      <Filter>src\core\census</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\core\census\tracing.c">
       <Filter>src\core\census</Filter>
     </ClCompile>
   </ItemGroup>
@@ -582,9 +576,6 @@
       <Filter>src\core\json</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\profiling\timers.h">
-      <Filter>src\core\profiling</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\core\profiling\timers_preciseclock.h">
       <Filter>src\core\profiling</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\core\statistics\census_interface.h">

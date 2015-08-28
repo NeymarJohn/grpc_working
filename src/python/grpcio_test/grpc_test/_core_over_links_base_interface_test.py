@@ -27,7 +27,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Tests the RPC Framework Core's implementation of the Base interface."""
+"""Tests Base interface compliance of the core-over-gRPC-links stack."""
 
 import collections
 import logging
@@ -114,7 +114,8 @@ class _Implementation(test_interfaces.Implementation):
   def destantiate(self, memo):
     invocation_grpc_link, service_grpc_link = memo
     invocation_grpc_link.stop()
-    service_grpc_link.stop_gracefully()
+    service_grpc_link.begin_stop()
+    service_grpc_link.end_stop()
 
   def invocation_initial_metadata(self):
     return _INVOCATION_INITIAL_METADATA
