@@ -36,7 +36,6 @@ using System.Collections.Specialized;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
 
 using Grpc.Core.Utils;
 
@@ -190,7 +189,6 @@ namespace Grpc.Core
         public struct Entry
         {
             private static readonly Encoding Encoding = Encoding.ASCII;
-            private static readonly Regex ValidKeyRegex = new Regex("^[a-z0-9_-]+$");
 
             readonly string key;
             readonly string value;
@@ -323,10 +321,7 @@ namespace Grpc.Core
 
             private static string NormalizeKey(string key)
             {
-                var normalized = Preconditions.CheckNotNull(key, "key").ToLower(CultureInfo.InvariantCulture);
-                Preconditions.CheckArgument(ValidKeyRegex.IsMatch(normalized), 
-                    "Metadata entry key not valid. Keys can only contain lowercase alphanumeric characters, underscores and hyphens.");
-                return normalized;
+                return Preconditions.CheckNotNull(key, "key").ToLower(CultureInfo.InvariantCulture);
             }
         }
     }
