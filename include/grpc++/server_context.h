@@ -41,7 +41,6 @@
 #include <grpc/support/time.h>
 #include <grpc++/support/auth_context.h>
 #include <grpc++/support/config.h>
-#include <grpc++/support/string_ref.h>
 #include <grpc++/support/time.h>
 
 struct gpr_timespec;
@@ -104,7 +103,7 @@ class ServerContext {
 
   bool IsCancelled() const;
 
-  const std::multimap<grpc::string_ref, grpc::string_ref>& client_metadata() {
+  const std::multimap<grpc::string, grpc::string>& client_metadata() {
     return client_metadata_;
   }
 
@@ -186,7 +185,7 @@ class ServerContext {
   CompletionQueue* cq_;
   bool sent_initial_metadata_;
   mutable std::shared_ptr<const AuthContext> auth_context_;
-  std::multimap<grpc::string_ref, grpc::string_ref> client_metadata_;
+  std::multimap<grpc::string, grpc::string> client_metadata_;
   std::multimap<grpc::string, grpc::string> initial_metadata_;
   std::multimap<grpc::string, grpc::string> trailing_metadata_;
 

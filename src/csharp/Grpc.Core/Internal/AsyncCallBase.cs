@@ -33,12 +33,10 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Grpc.Core.Internal;
 using Grpc.Core.Logging;
 using Grpc.Core.Utils;
@@ -52,7 +50,6 @@ namespace Grpc.Core.Internal
     internal abstract class AsyncCallBase<TWrite, TRead>
     {
         static readonly ILogger Logger = GrpcEnvironment.Logger.ForType<AsyncCallBase<TWrite, TRead>>();
-        protected static readonly Status DeserializeResponseFailureStatus = new Status(StatusCode.Internal, "Failed to deserialize response message.");
 
         readonly Func<TWrite, byte[]> serializer;
         readonly Func<byte[], TRead> deserializer;
@@ -103,10 +100,11 @@ namespace Grpc.Core.Internal
         /// <summary>
         /// Requests cancelling the call with given status.
         /// </summary>
-        protected void CancelWithStatus(Status status)
+        public void CancelWithStatus(Status status)
         {
             lock (myLock)
             {
+                Preconditions.CheckState(started);
                 cancelRequested = true;
 
                 if (!disposed)
@@ -179,11 +177,6 @@ namespace Grpc.Core.Internal
             return false;
         }
 
-        protected abstract bool IsClient
-        {
-            get;
-        }
-
         private void ReleaseResources()
         {
             if (call != null)
@@ -231,31 +224,33 @@ namespace Grpc.Core.Internal
             return serializer(msg);
         }
 
-        protected Exception TrySerialize(TWrite msg, out byte[] payload)
+        protected bool TrySerialize(TWrite msg, out byte[] payload)
         {
             try
             {
                 payload = serializer(msg);
-                return null;
+                return true;
             }
             catch (Exception e)
             {
+                Logger.Error(e, "Exception occured while trying to serialize message");
                 payload = null;
-                return e;
+                return false;
             }
         }
 
-        protected Exception TryDeserialize(byte[] payload, out TRead msg)
+        protected bool TryDeserialize(byte[] payload, out TRead msg)
         {
             try
             {
                 msg = deserializer(payload);
-                return null;
+                return true;
             } 
             catch (Exception e)
             {
+                Logger.Error(e, "Exception occured while trying to deserialize message.");
                 msg = default(TRead);
-                return e;
+                return false;
             }
         }
 
@@ -324,9 +319,6 @@ namespace Grpc.Core.Internal
         /// </summary>
         protected void HandleReadFinished(bool success, byte[] receivedMessage)
         {
-            TRead msg = default(TRead);
-            var deserializeException = (success && receivedMessage != null) ? TryDeserialize(receivedMessage, out msg) : null;
-
             AsyncCompletionDelegate<TRead> origCompletionDelegate = null;
             lock (myLock)
             {
@@ -339,23 +331,23 @@ namespace Grpc.Core.Internal
                     readingDone = true;
                 }
 
-                if (deserializeException != null && IsClient)
-                {
-                    readingDone = true;
-                    CancelWithStatus(DeserializeResponseFailureStatus);
-                }
-
                 ReleaseResourcesIfPossible();
             }
 
-            // TODO: handle the case when success==false
+            // TODO: handle the case when error occured...
 
-            if (deserializeException != null && !IsClient)
+            if (receivedMessage != null)
             {
-                FireCompletion(origCompletionDelegate, default(TRead), new IOException("Failed to deserialize request message.", deserializeException));
-                return;
+                // TODO: handle deserialization error
+                TRead msg;
+                TryDeserialize(receivedMessage, out msg);
+
+                FireCompletion(origCompletionDelegate, msg, null);
             }
-            FireCompletion(origCompletionDelegate, msg, null);
+            else
+            {
+                FireCompletion(origCompletionDelegate, default(TRead), null);
+            }
         }
     }
 }

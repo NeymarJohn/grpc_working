@@ -31,7 +31,6 @@
 
 import abc
 import collections
-import enum
 
 from grpc.framework.core import _constants
 from grpc.framework.core import _interfaces
@@ -43,30 +42,20 @@ _CREATE_SUBSCRIPTION_EXCEPTION_LOG_MESSAGE = 'Exception initializing ingestion!'
 _INGESTION_EXCEPTION_LOG_MESSAGE = 'Exception during ingestion!'
 
 
-class _SubscriptionCreation(
-    collections.namedtuple(
-        '_SubscriptionCreation',
-        ('kind', 'subscription', 'code', 'message',))):
+class _SubscriptionCreation(collections.namedtuple(
+    '_SubscriptionCreation', ('subscription', 'remote_error', 'abandoned'))):
   """A sum type for the outcome of ingestion initialization.
 
-  Attributes:
-    kind: A Kind value coarsely indicating how subscription creation completed.
-    subscription: The created subscription. Only present if kind is
-      Kind.SUBSCRIPTION.
-    code: A code value to be sent to the other side of the operation along with
-      an indication that the operation is being aborted due to an error on the
-      remote side of the operation. Only present if kind is Kind.REMOTE_ERROR.
-    message: A message value to be sent to the other side of the operation
-      along with an indication that the operation is being aborted due to an
-      error on the remote side of the operation. Only present if kind is
-      Kind.REMOTE_ERROR.
-  """
+  Either subscription will be non-None, remote_error will be True, or abandoned
+  will be True.
 
-  @enum.unique
-  class Kind(enum.Enum):
-    SUBSCRIPTION = 'subscription'
-    REMOTE_ERROR = 'remote error'
-    ABANDONED = 'abandoned'
+  Attributes:
+    subscription: A base.Subscription describing the customer's interest in
+      operation values from the other side.
+    remote_error: A boolean indicating that the subscription could not be
+      created due to an error on the remote side of the operation.
+    abandoned: A boolean indicating that subscription creation was abandoned.
+  """
 
 
 class _SubscriptionCreator(object):
@@ -112,15 +101,12 @@ class _ServiceSubscriptionCreator(_SubscriptionCreator):
     try:
       subscription = self._servicer.service(
           group, method, self._operation_context, self._output_operator)
-    except base.NoSuchMethodError as e:
-      return _SubscriptionCreation(
-          _SubscriptionCreation.Kind.REMOTE_ERROR, None, e.code, e.message)
+    except base.NoSuchMethodError:
+      return _SubscriptionCreation(None, True, False)
     except abandonment.Abandoned:
-      return _SubscriptionCreation(
-          _SubscriptionCreation.Kind.ABANDONED, None, None, None)
+      return _SubscriptionCreation(None, False, True)
     else:
-      return _SubscriptionCreation(
-          _SubscriptionCreation.Kind.SUBSCRIPTION, subscription, None, None)
+      return _SubscriptionCreation(subscription, False, False)
 
 
 def _wrap(behavior):
@@ -190,10 +176,10 @@ class _IngestionManager(_interfaces.IngestionManager):
     self._pending_payloads = None
     self._pending_completion = None
 
-  def _abort_and_notify(self, outcome, code, message):
+  def _abort_and_notify(self, outcome):
     self._abort_internal_only()
     self._termination_manager.abort(outcome)
-    self._transmission_manager.abort(outcome, code, message)
+    self._transmission_manager.abort(outcome)
     self._expiration_manager.terminate()
 
   def _operator_next(self):
@@ -250,12 +236,12 @@ class _IngestionManager(_interfaces.IngestionManager):
         else:
           with self._lock:
             if self._termination_manager.outcome is None:
-              self._abort_and_notify(base.Outcome.LOCAL_FAILURE, None, None)
+              self._abort_and_notify(base.Outcome.LOCAL_FAILURE)
             return
       else:
         with self._lock:
           if self._termination_manager.outcome is None:
-            self._abort_and_notify(base.Outcome.LOCAL_FAILURE, None, None)
+            self._abort_and_notify(base.Outcome.LOCAL_FAILURE)
           return
 
   def _operator_post_create(self, subscription):
@@ -274,22 +260,20 @@ class _IngestionManager(_interfaces.IngestionManager):
 
   def _create(self, subscription_creator, group, name):
     outcome = callable_util.call_logging_exceptions(
-        subscription_creator.create,
-        _CREATE_SUBSCRIPTION_EXCEPTION_LOG_MESSAGE, group, name)
+        subscription_creator.create, _CREATE_SUBSCRIPTION_EXCEPTION_LOG_MESSAGE,
+        group, name)
     if outcome.return_value is None:
       with self._lock:
         if self._termination_manager.outcome is None:
-          self._abort_and_notify(base.Outcome.LOCAL_FAILURE, None, None)
-    elif outcome.return_value.kind is _SubscriptionCreation.Kind.ABANDONED:
+          self._abort_and_notify(base.Outcome.LOCAL_FAILURE)
+    elif outcome.return_value.abandoned:
       with self._lock:
         if self._termination_manager.outcome is None:
-          self._abort_and_notify(base.Outcome.LOCAL_FAILURE, None, None)
-    elif outcome.return_value.kind is _SubscriptionCreation.Kind.REMOTE_ERROR:
-      code = outcome.return_value.code
-      message = outcome.return_value.message
+          self._abort_and_notify(base.Outcome.LOCAL_FAILURE)
+    elif outcome.return_value.remote_error:
       with self._lock:
         if self._termination_manager.outcome is None:
-          self._abort_and_notify(base.Outcome.REMOTE_FAILURE, code, message)
+          self._abort_and_notify(base.Outcome.REMOTE_FAILURE)
     elif outcome.return_value.subscription.kind is base.Subscription.Kind.FULL:
       self._operator_post_create(outcome.return_value.subscription)
     else:
