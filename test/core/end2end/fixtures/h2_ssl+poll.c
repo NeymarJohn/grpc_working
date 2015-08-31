@@ -138,7 +138,7 @@ static void chttp2_init_server_simple_ssl_secure_fullstack(
   grpc_server_credentials *ssl_creds =
       grpc_ssl_server_credentials_create(NULL, &pem_cert_key_pair, 1, 0, NULL);
   if (fail_server_auth_check(server_args)) {
-    grpc_auth_metadata_processor processor = {process_auth_failure, NULL};
+    grpc_auth_metadata_processor processor = {process_auth_failure, NULL, NULL};
     grpc_server_credentials_set_auth_metadata_processor(ssl_creds, processor);
   }
   chttp2_init_server_secure_fullstack(f, server_args, ssl_creds);
@@ -163,10 +163,13 @@ int main(int argc, char **argv) {
   size_t roots_size = strlen(test_root_cert);
   char *roots_filename;
 
+  grpc_platform_become_multipoller = grpc_poll_become_multipoller;
+
   grpc_test_init(argc, argv);
 
   /* Set the SSL roots env var. */
-  roots_file = gpr_tmpfile("chttp2_simple_ssl_fullstack_test", &roots_filename);
+  roots_file = gpr_tmpfile("chttp2_simple_ssl_with_poll_fullstack_test",
+                           &roots_filename);
   GPR_ASSERT(roots_filename != NULL);
   GPR_ASSERT(roots_file != NULL);
   GPR_ASSERT(fwrite(test_root_cert, 1, roots_size, roots_file) == roots_size);

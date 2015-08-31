@@ -37,7 +37,6 @@
 #include <string.h>
 
 #include "src/core/channel/channel_args.h"
-#include "src/core/iomgr/iomgr.h"
 #include "src/core/security/credentials.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/host_port.h>
@@ -46,52 +45,9 @@
 #include "test/core/util/port.h"
 #include "test/core/end2end/data/ssl_test_data.h"
 
-static const char oauth2_md[] = "Bearer aaslkfjs424535asdf";
-static const char *client_identity_property_name = "smurf_name";
-static const char *client_identity = "Brainy Smurf";
-
 typedef struct fullstack_secure_fixture_data {
   char *localaddr;
 } fullstack_secure_fixture_data;
-
-static const grpc_metadata *find_metadata(const grpc_metadata *md,
-                                          size_t md_count, const char *key,
-                                          const char *value) {
-  size_t i;
-  for (i = 0; i < md_count; i++) {
-    if (strcmp(key, md[i].key) == 0 && strlen(value) == md[i].value_length &&
-        memcmp(md[i].value, value, md[i].value_length) == 0) {
-      return &md[i];
-    }
-  }
-  return NULL;
-}
-
-static void process_oauth2_success(void *state, grpc_auth_context *ctx,
-                                   const grpc_metadata *md, size_t md_count,
-                                   grpc_process_auth_metadata_done_cb cb,
-                                   void *user_data) {
-  const grpc_metadata *oauth2 =
-      find_metadata(md, md_count, "Authorization", oauth2_md);
-  GPR_ASSERT(state == NULL);
-  GPR_ASSERT(oauth2 != NULL);
-  grpc_auth_context_add_cstring_property(ctx, client_identity_property_name,
-                                         client_identity);
-  GPR_ASSERT(grpc_auth_context_set_peer_identity_property_name(
-                 ctx, client_identity_property_name) == 1);
-  cb(user_data, oauth2, 1, NULL, 0, GRPC_STATUS_OK, NULL);
-}
-
-static void process_oauth2_failure(void *state, grpc_auth_context *ctx,
-                                   const grpc_metadata *md, size_t md_count,
-                                   grpc_process_auth_metadata_done_cb cb,
-                                   void *user_data) {
-  const grpc_metadata *oauth2 =
-      find_metadata(md, md_count, "Authorization", oauth2_md);
-  GPR_ASSERT(state == NULL);
-  GPR_ASSERT(oauth2 != NULL);
-  cb(user_data, oauth2, 1, NULL, 0, GRPC_STATUS_UNAUTHENTICATED, NULL);
-}
 
 static grpc_end2end_test_fixture chttp2_create_fixture_secure_fullstack(
     grpc_channel_args *client_args, grpc_channel_args *server_args) {
@@ -99,14 +55,22 @@ static grpc_end2end_test_fixture chttp2_create_fixture_secure_fullstack(
   int port = grpc_pick_unused_port_or_die();
   fullstack_secure_fixture_data *ffd =
       gpr_malloc(sizeof(fullstack_secure_fixture_data));
-  memset(&f, 0, sizeof(f));
 
+  memset(&f, 0, sizeof(f));
   gpr_join_host_port(&ffd->localaddr, "localhost", port);
 
   f.fixture_data = ffd;
   f.cq = grpc_completion_queue_create(NULL);
 
   return f;
+}
+
+static void process_auth_failure(void *state, grpc_auth_context *ctx,
+                                 const grpc_metadata *md, size_t md_count,
+                                 grpc_process_auth_metadata_done_cb cb,
+                                 void *user_data) {
+  GPR_ASSERT(state == NULL);
+  cb(user_data, NULL, 0, NULL, 0, GRPC_STATUS_UNAUTHENTICATED, NULL);
 }
 
 static void chttp2_init_client_secure_fullstack(grpc_end2end_test_fixture *f,
@@ -140,23 +104,11 @@ void chttp2_tear_down_secure_fullstack(grpc_end2end_test_fixture *f) {
   gpr_free(ffd);
 }
 
-static void chttp2_init_client_simple_ssl_with_oauth2_secure_fullstack(
+static void chttp2_init_client_fake_secure_fullstack(
     grpc_end2end_test_fixture *f, grpc_channel_args *client_args) {
-  grpc_credentials *ssl_creds =
-      grpc_ssl_credentials_create(test_root_cert, NULL, NULL);
-  grpc_credentials *oauth2_creds =
-      grpc_md_only_test_credentials_create("Authorization", oauth2_md, 1);
-  grpc_credentials *ssl_oauth2_creds =
-      grpc_composite_credentials_create(ssl_creds, oauth2_creds, NULL);
-  grpc_arg ssl_name_override = {GRPC_ARG_STRING,
-                                GRPC_SSL_TARGET_NAME_OVERRIDE_ARG,
-                                {"foo.test.google.fr"}};
-  grpc_channel_args *new_client_args =
-      grpc_channel_args_copy_and_add(client_args, &ssl_name_override, 1);
-  chttp2_init_client_secure_fullstack(f, new_client_args, ssl_oauth2_creds);
-  grpc_channel_args_destroy(new_client_args);
-  grpc_credentials_release(ssl_creds);
-  grpc_credentials_release(oauth2_creds);
+  grpc_credentials *fake_ts_creds =
+      grpc_fake_transport_security_credentials_create();
+  chttp2_init_client_secure_fullstack(f, client_args, fake_ts_creds);
 }
 
 static int fail_server_auth_check(grpc_channel_args *server_args) {
@@ -171,33 +123,27 @@ static int fail_server_auth_check(grpc_channel_args *server_args) {
   return 0;
 }
 
-static void chttp2_init_server_simple_ssl_secure_fullstack(
+static void chttp2_init_server_fake_secure_fullstack(
     grpc_end2end_test_fixture *f, grpc_channel_args *server_args) {
-  grpc_ssl_pem_key_cert_pair pem_key_cert_pair = {test_server1_key,
-                                                  test_server1_cert};
-  grpc_server_credentials *ssl_creds =
-      grpc_ssl_server_credentials_create(NULL, &pem_key_cert_pair, 1, 0, NULL);
-  grpc_auth_metadata_processor processor;
-  processor.state = NULL;
+  grpc_server_credentials *fake_ts_creds =
+      grpc_fake_transport_security_server_credentials_create();
   if (fail_server_auth_check(server_args)) {
-    processor.process = process_oauth2_failure;
-  } else {
-    processor.process = process_oauth2_success;
+    grpc_auth_metadata_processor processor = {process_auth_failure, NULL, NULL};
+    grpc_server_credentials_set_auth_metadata_processor(fake_ts_creds,
+                                                        processor);
   }
-  grpc_server_credentials_set_auth_metadata_processor(ssl_creds, processor);
-  chttp2_init_server_secure_fullstack(f, server_args, ssl_creds);
+  chttp2_init_server_secure_fullstack(f, server_args, fake_ts_creds);
 }
 
 /* All test configurations */
 
 static grpc_end2end_test_config configs[] = {
-    {"chttp2/simple_ssl_with_oauth2_fullstack",
+    {"chttp2/fake_secure_fullstack",
      FEATURE_MASK_SUPPORTS_DELAYED_CONNECTION |
-         FEATURE_MASK_SUPPORTS_HOSTNAME_VERIFICATION |
          FEATURE_MASK_SUPPORTS_PER_CALL_CREDENTIALS,
      chttp2_create_fixture_secure_fullstack,
-     chttp2_init_client_simple_ssl_with_oauth2_secure_fullstack,
-     chttp2_init_server_simple_ssl_secure_fullstack,
+     chttp2_init_client_fake_secure_fullstack,
+     chttp2_init_server_fake_secure_fullstack,
      chttp2_tear_down_secure_fullstack},
 };
 
