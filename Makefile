@@ -4150,7 +4150,6 @@ LIBGRPC_SRC = \
     src/core/census/context.c \
     src/core/census/initialize.c \
     src/core/census/operation.c \
-    src/core/census/record_stat.c \
     src/core/census/tracing.c \
 
 PUBLIC_HEADERS_C += \
@@ -4426,7 +4425,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/census/context.c \
     src/core/census/initialize.c \
     src/core/census/operation.c \
-    src/core/census/record_stat.c \
     src/core/census/tracing.c \
 
 PUBLIC_HEADERS_C += \
@@ -4591,6 +4589,7 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/client_context.h \
     include/grpc++/completion_queue.h \
     include/grpc++/create_channel.h \
+    include/grpc++/credentials.h \
     include/grpc++/generic/async_generic_service.h \
     include/grpc++/generic/generic_stub.h \
     include/grpc++/impl/call.h \
@@ -4607,15 +4606,13 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/impl/thd.h \
     include/grpc++/impl/thd_cxx11.h \
     include/grpc++/impl/thd_no_cxx11.h \
-    include/grpc++/security/auth_context.h \
-    include/grpc++/security/auth_metadata_processor.h \
-    include/grpc++/security/credentials.h \
-    include/grpc++/security/server_credentials.h \
     include/grpc++/server.h \
     include/grpc++/server_builder.h \
     include/grpc++/server_context.h \
+    include/grpc++/server_credentials.h \
     include/grpc++/support/async_stream.h \
     include/grpc++/support/async_unary_call.h \
+    include/grpc++/support/auth_context.h \
     include/grpc++/support/byte_buffer.h \
     include/grpc++/support/channel_arguments.h \
     include/grpc++/support/config.h \
@@ -4836,6 +4833,7 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/client_context.h \
     include/grpc++/completion_queue.h \
     include/grpc++/create_channel.h \
+    include/grpc++/credentials.h \
     include/grpc++/generic/async_generic_service.h \
     include/grpc++/generic/generic_stub.h \
     include/grpc++/impl/call.h \
@@ -4852,15 +4850,13 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/impl/thd.h \
     include/grpc++/impl/thd_cxx11.h \
     include/grpc++/impl/thd_no_cxx11.h \
-    include/grpc++/security/auth_context.h \
-    include/grpc++/security/auth_metadata_processor.h \
-    include/grpc++/security/credentials.h \
-    include/grpc++/security/server_credentials.h \
     include/grpc++/server.h \
     include/grpc++/server_builder.h \
     include/grpc++/server_context.h \
+    include/grpc++/server_credentials.h \
     include/grpc++/support/async_stream.h \
     include/grpc++/support/async_unary_call.h \
+    include/grpc++/support/auth_context.h \
     include/grpc++/support/byte_buffer.h \
     include/grpc++/support/channel_arguments.h \
     include/grpc++/support/config.h \

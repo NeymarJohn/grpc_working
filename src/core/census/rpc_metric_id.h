@@ -31,56 +31,21 @@
  *
  */
 
-#ifndef GRPCXX_SERVER_CREDENTIALS_H
-#define GRPCXX_SERVER_CREDENTIALS_H
+#ifndef CENSUS_RPC_METRIC_ID_H
+#define CENSUS_RPC_METRIC_ID_H
 
-#include <memory>
-#include <vector>
+/* Metric ID's used for RPC measurements. */
+/* Count of client requests sent. */
+#define CENSUS_METRIC_RPC_CLIENT_REQUESTS ((gpr_uint32)0)
+/* Count of server requests sent. */
+#define CENSUS_METRIC_RPC_SERVER_REQUESTS ((gpr_uint32)1)
+/* Client error counts. */
+#define CENSUS_METRIC_RPC_CLIENT_ERRORS ((gpr_uint32)2)
+/* Server error counts. */
+#define CENSUS_METRIC_RPC_SERVER_ERRORS ((gpr_uint32)3)
+/* Client side request latency. */
+#define CENSUS_METRIC_RPC_CLIENT_LATENCY ((gpr_uint32)4)
+/* Server side request latency. */
+#define CENSUS_METRIC_RPC_SERVER_LATENCY ((gpr_uint32)5)
 
-#include <grpc++/security/auth_metadata_processor.h>
-#include <grpc++/support/config.h>
-
-struct grpc_server;
-
-namespace grpc {
-class Server;
-
-// grpc_server_credentials wrapper class.
-class ServerCredentials {
- public:
-  virtual ~ServerCredentials();
-
-  // This method is not thread-safe and has to be called before the server is
-  // started. The last call to this function wins.
-  virtual void SetAuthMetadataProcessor(
-      const std::shared_ptr<AuthMetadataProcessor>& processor) = 0;
-
- private:
-  friend class ::grpc::Server;
-
-  virtual int AddPortToServer(const grpc::string& addr,
-                              grpc_server* server) = 0;
-};
-
-// Options to create ServerCredentials with SSL
-struct SslServerCredentialsOptions {
-  SslServerCredentialsOptions() : force_client_auth(false) {}
-
-  struct PemKeyCertPair {
-    grpc::string private_key;
-    grpc::string cert_chain;
-  };
-  grpc::string pem_root_certs;
-  std::vector<PemKeyCertPair> pem_key_cert_pairs;
-  bool force_client_auth;
-};
-
-// Builds SSL ServerCredentials given SSL specific options
-std::shared_ptr<ServerCredentials> SslServerCredentials(
-    const SslServerCredentialsOptions& options);
-
-std::shared_ptr<ServerCredentials> InsecureServerCredentials();
-
-}  // namespace grpc
-
-#endif  // GRPCXX_SERVER_CREDENTIALS_H
+#endif /* CENSUS_RPC_METRIC_ID_H */
