@@ -40,7 +40,7 @@
 #include <vector>
 #include "route_guide.grpc.pb.h"
 
-namespace routeguide {
+namespace examples {
 
 std::string GetDbFileContent(int argc, char** argv) {
   std::string db_path;
@@ -174,5 +174,5 @@ void ParseDb(const std::string& db, std::vector<Feature>* feature_list) {
 }
 
 
-}  // namespace routeguide
+}  // namespace examples
 

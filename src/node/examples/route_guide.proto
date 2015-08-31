@@ -29,8 +29,7 @@
 
 syntax = "proto3";
 
-option java_package = "ex.grpc";
-option objc_class_prefix = "RTG";
+option java_package = "io.grpc.examples";
 
 package examples;
 
@@ -39,9 +38,6 @@ service RouteGuide {
   // A simple RPC.
   //
   // Obtains the feature at a given position.
-  //
-  // A feature with an empty name is returned if there's no feature at the given
-  // position.
   rpc GetFeature(Point) returns (Feature) {}
 
   // A server-to-client streaming RPC.

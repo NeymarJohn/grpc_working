@@ -42,7 +42,7 @@
 #include <grpc++/channel.h>
 #include <grpc++/client_context.h>
 #include <grpc++/create_channel.h>
-#include <grpc++/security/credentials.h>
+#include <grpc++/credentials.h>
 #include "helper.h"
 #include "route_guide.grpc.pb.h"
 
@@ -53,12 +53,12 @@ using grpc::ClientReader;
 using grpc::ClientReaderWriter;
 using grpc::ClientWriter;
 using grpc::Status;
-using routeguide::Point;
-using routeguide::Feature;
-using routeguide::Rectangle;
-using routeguide::RouteSummary;
-using routeguide::RouteNote;
-using routeguide::RouteGuide;
+using examples::Point;
+using examples::Feature;
+using examples::Rectangle;
+using examples::RouteSummary;
+using examples::RouteNote;
+using examples::RouteGuide;
 
 Point MakePoint(long latitude, long longitude) {
   Point p;
@@ -87,7 +87,7 @@ class RouteGuideClient {
  public:
   RouteGuideClient(std::shared_ptr<Channel> channel, const std::string& db)
       : stub_(RouteGuide::NewStub(channel)) {
-    routeguide::ParseDb(db, &feature_list_);
+    examples::ParseDb(db, &feature_list_);
   }
 
   void GetFeature() {
@@ -100,7 +100,7 @@ class RouteGuideClient {
   }
 
   void ListFeatures() {
-    routeguide::Rectangle rect;
+    examples::Rectangle rect;
     Feature feature;
     ClientContext context;
 
@@ -233,9 +233,10 @@ class RouteGuideClient {
 
 int main(int argc, char** argv) {
   // Expect only arg: --db_path=path/to/route_guide_db.json.
-  std::string db = routeguide::GetDbFileContent(argc, argv);
+  std::string db = examples::GetDbFileContent(argc, argv);
   RouteGuideClient guide(
-      grpc::CreateChannel("localhost:50051", grpc::InsecureCredentials()),
+      grpc::CreateChannel("localhost:50051", grpc::InsecureCredentials(),
+                          ChannelArguments()),
       db);
 
   std::cout << "-------------- GetFeature --------------" << std::endl;
