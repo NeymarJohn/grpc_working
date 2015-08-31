@@ -769,7 +769,6 @@ cc_library(
     ".",
   ],
   deps = [
-    "//external:libssl",
     "//external:protobuf_clib",
     ":gpr",
     ":grpc",
