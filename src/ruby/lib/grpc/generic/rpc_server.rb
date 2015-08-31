@@ -277,11 +277,10 @@ module GRPC
       @stop_mutex.synchronize do
         @stopped = true
       end
-      deadline = from_relative_time(@poll_period)
-      return if @server.close(@cq, deadline)
-      deadline = from_relative_time(@poll_period)
-      @server.close(@cq, deadline)
       @pool.stop
+      deadline = from_relative_time(@poll_period)
+
+      @server.close(@cq, deadline)
     end
 
     # determines if the server has been stopped
@@ -384,6 +383,7 @@ module GRPC
       @pool.start
       @server.start
       loop_handle_server_calls
+      @running = false
     end
 
     # Sends UNAVAILABLE if there are too many unprocessed jobs
@@ -414,13 +414,14 @@ module GRPC
       fail 'not running' unless @running
       loop_tag = Object.new
       until stopped?
+        deadline = from_relative_time(@poll_period)
         begin
-          an_rpc = @server.request_call(@cq, loop_tag, INFINITE_FUTURE)
+          an_rpc = @server.request_call(@cq, loop_tag, deadline)
           c = new_active_server_call(an_rpc)
         rescue Core::CallError, RuntimeError => e
           # these might happen for various reasonse.  The correct behaviour of
-          # the server is to log them and continue, if it's not shutting down.
-          GRPC.logger.warn("server call failed: #{e}") unless stopped?
+          # the server is to log them and continue.
+          GRPC.logger.warn("server call failed: #{e}")
           next
         end
         unless c.nil?
@@ -430,8 +431,6 @@ module GRPC
           end
         end
       end
-      @running = false
-      GRPC.logger.info("stopped: #{self}")
     end
 
     def new_active_server_call(an_rpc)

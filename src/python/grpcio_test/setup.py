@@ -55,11 +55,6 @@ _PACKAGE_DATA = {
     'grpc_protoc_plugin': [
         'test.proto',
     ],
-    'grpc_test': [
-        'credentials/ca.pem',
-        'credentials/server1.key',
-        'credentials/server1.pem',
-    ],
 }
 
 _SETUP_REQUIRES = (
