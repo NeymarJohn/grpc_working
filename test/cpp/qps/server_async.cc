@@ -35,6 +35,9 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <sys/signal.h>
 #include <thread>
 
 #include <gflags/gflags.h>
@@ -98,7 +101,9 @@ class AsyncQpsServerTest : public Server {
     }
   }
   ~AsyncQpsServerTest() {
-    server_->Shutdown();
+    auto deadline = std::chrono::high_resolution_clock::now() +
+      std::chrono::seconds(10);
+    server_->Shutdown(deadline);
     for (auto ss = shutdown_state_.begin(); ss != shutdown_state_.end(); ++ss) {
       (*ss)->set_shutdown();
     }
