@@ -31,58 +31,34 @@
  *
  */
 
-#ifndef GRPCXX_SUPPORT_SLICE_H
-#define GRPCXX_SUPPORT_SLICE_H
-
-#include <grpc/support/slice.h>
-#include <grpc++/support/config.h>
-
-namespace grpc {
-
-/// A wrapper around \a grpc_slice.
+/// \mainpage gRPC C++ API
 ///
-/// A slice represents a contiguous reference counted array of bytes.
-/// It is cheap to take references to a slice, and it is cheap to create a
-/// slice pointing to a subset of another slice.
-class Slice GRPC_FINAL {
- public:
-  /// Construct an empty slice.
-  Slice();
-  // Destructor - drops one reference.
-  ~Slice();
+/// The gRPC C++ API mainly consists of the following classes:
+/// - grpc::Channel, which represents the connection to an endpoint. See [the
+/// gRPC Concepts page](http://www.grpc.io/docs/guides/concepts.html) for more
+/// details. Channels are created by the factory function grpc::CreateChannel.
+/// - grpc::CompletionQueue, the producer-consumer queue used for all
+/// asynchronous communication with the gRPC runtime.
+/// - grpc::ClientContext and grpc::ServerContext, where optional configuration
+/// for an RPC can be set, such as setting custom metadata to be conveyed to the
+/// peer, compression settings, authentication, etc.
+/// - grpc::Server, representing a gRPC server, created by grpc::ServerBuilder.
+///
+/// Refer to the [examples](https://github.com/grpc/grpc/blob/master/examples/cpp)
+/// for code putting these pieces into play.
 
-  enum AddRef { ADD_REF };
-  /// Construct a slice from \a slice, adding a reference.
-  Slice(gpr_slice slice, AddRef);
+#ifndef GRPCXX_GRPCXX_H
+#define GRPCXX_GRPCXX_H
 
-  enum StealRef { STEAL_REF };
-  /// Construct a slice from \a slice, stealing a reference.
-  Slice(gpr_slice slice, StealRef);
+#include <grpc/grpc.h>
 
-  /// Copy constructor, adds a reference.
-  Slice(const Slice& other);
+#include <grpc++/channel.h>
+#include <grpc++/client_context.h>
+#include <grpc++/completion_queue.h>
+#include <grpc++/create_channel.h>
+#include <grpc++/server.h>
+#include <grpc++/server_builder.h>
+#include <grpc++/server_context.h>
 
-  /// Assignment, reference count is unchanged.
-  Slice& operator=(Slice other) {
-    std::swap(slice_, other.slice_);
-    return *this;
-  }
+#endif  // GRPCXX_GRPCXX_H
 
-  /// Byte size.
-  size_t size() const { return GPR_SLICE_LENGTH(slice_); }
-
-  /// Raw pointer to the beginning (first element) of the slice.
-  const gpr_uint8* begin() const { return GPR_SLICE_START_PTR(slice_); }
-
-  /// Raw pointer to the end (one byte \em past the last element) of the slice.
-  const gpr_uint8* end() const { return GPR_SLICE_END_PTR(slice_); }
-
- private:
-  friend class ByteBuffer;
-
-  gpr_slice slice_;
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_SUPPORT_SLICE_H
