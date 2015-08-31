@@ -358,7 +358,10 @@
     <ClCompile Include="..\..\src\core\census\initialize.c">
       <Filter>src\core\census</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\core\census\record_stat.c">
+    <ClCompile Include="..\..\src\core\census\operation.c">
+      <Filter>src\core\census</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\core\census\tracing.c">
       <Filter>src\core\census</Filter>
     </ClCompile>
   </ItemGroup>
@@ -689,7 +692,7 @@
     <ClInclude Include="..\..\src\core\census\context.h">
       <Filter>src\core\census</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\core\census\rpc_stat_id.h">
+    <ClInclude Include="..\..\src\core\census\rpc_metric_id.h">
       <Filter>src\core\census</Filter>
     </ClInclude>
   </ItemGroup>
