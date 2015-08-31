@@ -30,6 +30,7 @@
 """Implementation of base.End."""
 
 import abc
+import enum
 import threading
 import uuid
 
@@ -74,7 +75,7 @@ def _abort(operations):
 
 def _cancel_futures(futures):
   for future in futures:
-    future.cancel()
+    futures.cancel()
 
 
 def _future_shutdown(lock, cycle, event):
@@ -82,6 +83,8 @@ def _future_shutdown(lock, cycle, event):
     with lock:
       _abort(cycle.operations.values())
       _cancel_futures(cycle.futures)
+      pool = cycle.pool
+    cycle.pool.shutdown(wait=True)
   return in_future
 
 
@@ -110,7 +113,6 @@ def _termination_action(lock, stats, operation_id, cycle):
         cycle.idle_actions = []
         if cycle.grace:
           _cancel_futures(cycle.futures)
-          cycle.pool.shutdown(wait=False)
   return termination_action
 
 

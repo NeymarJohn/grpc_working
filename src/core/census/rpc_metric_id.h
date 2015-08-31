@@ -1,4 +1,5 @@
 /*
+ *
  * Copyright 2015, Google Inc.
  * All rights reserved.
  *
@@ -30,34 +31,21 @@
  *
  */
 
-#include <grpc/census.h>
+#ifndef CENSUS_RPC_METRIC_ID_H
+#define CENSUS_RPC_METRIC_ID_H
 
-/* TODO(aveitch): These are all placeholder implementations. */
+/* Metric ID's used for RPC measurements. */
+/* Count of client requests sent. */
+#define CENSUS_METRIC_RPC_CLIENT_REQUESTS ((gpr_uint32)0)
+/* Count of server requests sent. */
+#define CENSUS_METRIC_RPC_SERVER_REQUESTS ((gpr_uint32)1)
+/* Client error counts. */
+#define CENSUS_METRIC_RPC_CLIENT_ERRORS ((gpr_uint32)2)
+/* Server error counts. */
+#define CENSUS_METRIC_RPC_SERVER_ERRORS ((gpr_uint32)3)
+/* Client side request latency. */
+#define CENSUS_METRIC_RPC_CLIENT_LATENCY ((gpr_uint32)4)
+/* Server side request latency. */
+#define CENSUS_METRIC_RPC_SERVER_LATENCY ((gpr_uint32)5)
 
-census_timestamp census_start_rpc_op_timestamp(void) {
-  census_timestamp ct;
-  /* TODO(aveitch): assumes gpr_timespec implementation of census_timestamp. */
-  ct.ts = gpr_now(GPR_CLOCK_MONOTONIC);
-  return ct;
-}
-
-census_context *census_start_client_rpc_op(
-    const census_context *context, gpr_int64 rpc_name_id,
-    const census_rpc_name_info *rpc_name_info, const char *peer, int trace_mask,
-    const census_timestamp *start_time) {
-  return NULL;
-}
-
-census_context *census_start_server_rpc_op(
-    const char *buffer, gpr_int64 rpc_name_id,
-    const census_rpc_name_info *rpc_name_info, const char *peer, int trace_mask,
-    census_timestamp *start_time) {
-  return NULL;
-}
-
-census_context *census_start_op(census_context *context, const char *family,
-                                const char *name, int trace_mask) {
-  return NULL;
-}
-
-void census_end_op(census_context *context, int status) {}
+#endif /* CENSUS_RPC_METRIC_ID_H */

@@ -50,7 +50,7 @@ class TransmissionTest(test_cases.TransmissionTest, unittest.TestCase):
     service_link = service.service_link(
         {self.group_and_method(): self.deserialize_request},
         {self.group_and_method(): self.serialize_response})
-    port = service_link.add_port('[::]:0', None)
+    port = service_link.add_port(0, None)
     service_link.start()
     channel = _intermediary_low.Channel('localhost:%d' % port, None)
     invocation_link = invocation.invocation_link(
@@ -62,8 +62,7 @@ class TransmissionTest(test_cases.TransmissionTest, unittest.TestCase):
 
   def destroy_transmitting_links(self, invocation_side_link, service_side_link):
     invocation_side_link.stop()
-    service_side_link.begin_stop()
-    service_side_link.end_stop()
+    service_side_link.stop_gracefully()
 
   def create_invocation_initial_metadata(self):
     return (
@@ -117,7 +116,7 @@ class RoundTripTest(unittest.TestCase):
         identity_transformation, identity_transformation)
     service_mate = test_utilities.RecordingLink()
     service_link.join_link(service_mate)
-    port = service_link.add_port('[::]:0', None)
+    port = service_link.add_port(0, None)
     service_link.start()
     channel = _intermediary_low.Channel('localhost:%d' % port, None)
     invocation_link = invocation.invocation_link(
@@ -141,8 +140,7 @@ class RoundTripTest(unittest.TestCase):
     invocation_mate.block_until_tickets_satisfy(test_cases.terminated)
 
     invocation_link.stop()
-    service_link.begin_stop()
-    service_link.end_stop()
+    service_link.stop_gracefully()
 
     self.assertIs(
         service_mate.tickets()[-1].termination,
@@ -162,7 +160,7 @@ class RoundTripTest(unittest.TestCase):
         {(test_group, test_method): scenario.serialize_response})
     service_mate = test_utilities.RecordingLink()
     service_link.join_link(service_mate)
-    port = service_link.add_port('[::]:0', None)
+    port = service_link.add_port(0, None)
     service_link.start()
     channel = _intermediary_low.Channel('localhost:%d' % port, None)
     invocation_link = invocation.invocation_link(
@@ -208,8 +206,7 @@ class RoundTripTest(unittest.TestCase):
     invocation_mate.block_until_tickets_satisfy(test_cases.terminated)
 
     invocation_link.stop()
-    service_link.begin_stop()
-    service_link.end_stop()
+    service_link.stop_gracefully()
 
     observed_requests = tuple(
         ticket.payload for ticket in service_mate.tickets()
