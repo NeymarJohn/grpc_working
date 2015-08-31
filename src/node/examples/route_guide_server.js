@@ -1,40 +1,44 @@
-// Copyright 2015, Google Inc.
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+/*
+ *
+ * Copyright 2015, Google Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ * copyright notice, this list of conditions and the following disclaimer
+ * in the documentation and/or other materials provided with the
+ * distribution.
+ *     * Neither the name of Google Inc. nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+'use strict';
 
 var fs = require('fs');
 var parseArgs = require('minimist');
 var path = require('path');
-var _ = require('underscore');
-var grpc = require('grpc');
+var _ = require('lodash');
+var grpc = require('..');
 var examples = grpc.load(__dirname + '/route_guide.proto').examples;
-
-var Server = grpc.buildServer([examples.RouteGuide.service]);
 
 var COORD_FACTOR = 1e7;
 
@@ -51,7 +55,7 @@ var COORD_FACTOR = 1e7;
 var feature_list = [];
 
 /**
- * Get a feature object at the given point, or creates one if it does not exist.
+ * Get a feature object at the given point.
  * @param {point} point The point to check
  * @return {feature} The feature object at the point. Note that an empty name
  *     indicates no feature
@@ -163,7 +167,7 @@ function recordRoute(call, callback) {
     }
     /* For each point after the first, add the incremental distance from the
      * previous point to the total distance value */
-    if (previous != null) {
+    if (previous !== null) {
       distance += getDistance(previous, point);
     }
     previous = point;
@@ -173,7 +177,7 @@ function recordRoute(call, callback) {
       point_count: point_count,
       feature_count: feature_count,
       // Cast the distance to an integer
-      distance: distance|0,
+      distance: Math.floor(distance),
       // End the timer
       elapsed_time: process.hrtime(start_time)[0]
     });
@@ -222,27 +226,29 @@ function routeChat(call) {
  * @return {Server} The new server object
  */
 function getServer() {
-  return new Server({
-    'examples.RouteGuide' : {
-      getFeature: getFeature,
-      listFeatures: listFeatures,
-      recordRoute: recordRoute,
-      routeChat: routeChat
-    }
+  var server = new grpc.Server();
+  server.addProtoService(examples.RouteGuide.service, {
+    getFeature: getFeature,
+    listFeatures: listFeatures,
+    recordRoute: recordRoute,
+    routeChat: routeChat
   });
+  return server;
 }
 
 if (require.main === module) {
   // If this is run as a script, start a server on an unused port
   var routeServer = getServer();
-  routeServer.bind('0.0.0.0:50051');
+  routeServer.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure());
   var argv = parseArgs(process.argv, {
     string: 'db_path'
   });
   fs.readFile(path.resolve(argv.db_path), function(err, data) {
-    if (err) throw err;
+    if (err) {
+      throw err;
+    }
     feature_list = JSON.parse(data);
-    routeServer.listen();
+    routeServer.start();
   });
 }
 

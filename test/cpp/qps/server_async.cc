@@ -49,7 +49,7 @@
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
-#include <grpc++/security/server_credentials.h>
+#include <grpc++/server_credentials.h>
 #include <gtest/gtest.h>
 
 #include "test/cpp/qps/qpstest.grpc.pb.h"
@@ -101,9 +101,7 @@ class AsyncQpsServerTest : public Server {
     }
   }
   ~AsyncQpsServerTest() {
-    auto deadline = std::chrono::high_resolution_clock::now() +
-      std::chrono::seconds(10);
-    server_->Shutdown(deadline);
+    server_->Shutdown();
     for (auto ss = shutdown_state_.begin(); ss != shutdown_state_.end(); ++ss) {
       (*ss)->set_shutdown();
     }
