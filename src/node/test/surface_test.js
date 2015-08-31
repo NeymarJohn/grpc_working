@@ -133,25 +133,7 @@ describe('Server.prototype.addProtoService', function() {
     });
   });
 });
-describe('Client constructor building', function() {
-  var illegal_service_attrs = {
-    $method : {
-      path: '/illegal/$method',
-      requestStream: false,
-      responseStream: false,
-      requestSerialize: _.identity,
-      requestDeserialize: _.identity,
-      responseSerialize: _.identity,
-      responseDeserialize: _.identity
-    }
-  };
-  it('Should reject method names starting with $', function() {
-    assert.throws(function() {
-      grpc.makeGenericClientConstructor(illegal_service_attrs);
-    }, /\$/);
-  });
-});
-describe('waitForClientReady', function() {
+describe('Client#$waitForReady', function() {
   var server;
   var port;
   var Client;
@@ -169,13 +151,13 @@ describe('waitForClientReady', function() {
     server.forceShutdown();
   });
   it('should complete when called alone', function(done) {
-    grpc.waitForClientReady(client, Infinity, function(error) {
+    client.$waitForReady(Infinity, function(error) {
       assert.ifError(error);
       done();
     });
   });
   it('should complete when a call is initiated', function(done) {
-    grpc.waitForClientReady(client, Infinity, function(error) {
+    client.$waitForReady(Infinity, function(error) {
       assert.ifError(error);
       done();
     });
@@ -184,19 +166,19 @@ describe('waitForClientReady', function() {
   });
   it('should complete if called more than once', function(done) {
     done = multiDone(done, 2);
-    grpc.waitForClientReady(client, Infinity, function(error) {
+    client.$waitForReady(Infinity, function(error) {
       assert.ifError(error);
       done();
     });
-    grpc.waitForClientReady(client, Infinity, function(error) {
+    client.$waitForReady(Infinity, function(error) {
       assert.ifError(error);
       done();
     });
   });
   it('should complete if called when already ready', function(done) {
-    grpc.waitForClientReady(client, Infinity, function(error) {
+    client.$waitForReady(Infinity, function(error) {
       assert.ifError(error);
-      grpc.waitForClientReady(client, Infinity, function(error) {
+      client.$waitForReady(Infinity, function(error) {
         assert.ifError(error);
         done();
       });
@@ -444,8 +426,7 @@ describe('Other conditions', function() {
     server.forceShutdown();
   });
   it('channel.getTarget should be available', function() {
-    assert.strictEqual(typeof grpc.getClientChannel(client).getTarget(),
-                       'string');
+    assert.strictEqual(typeof client.channel.getTarget(), 'string');
   });
   describe('Server recieving bad input', function() {
     var misbehavingClient;

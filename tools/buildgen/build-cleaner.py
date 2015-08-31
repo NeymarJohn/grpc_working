@@ -28,16 +28,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# produces cleaner build.yaml files
+# produces cleaner build.json files
 
 import collections
+import json
 import os
 import sys
-import yaml
 
 TEST = (os.environ.get('TEST', 'false') == 'true')
 
-_TOP_LEVEL_KEYS = ['settings', 'filegroups', 'libs', 'targets', 'vspackages']
+_TOP_LEVEL_KEYS = ['settings', 'filegroups', 'libs', 'targets']
 _VERSION_KEYS = ['major', 'minor', 'micro', 'build']
 _ELEM_KEYS = [
     'name',
@@ -49,11 +49,6 @@ _ELEM_KEYS = [
     'headers',
     'src',
     'deps']
-
-def repr_ordered_dict(dumper, odict):
-  return dumper.represent_mapping(u'tag:yaml.org,2002:map', odict.items())
-
-yaml.add_representer(collections.OrderedDict, repr_ordered_dict)
 
 def rebuild_as_ordered_dict(indict, special_keys):
   outdict = collections.OrderedDict()
@@ -80,7 +75,7 @@ def clean_elem(indict):
 
 for filename in sys.argv[1:]:
   with open(filename) as f:
-    js = yaml.load(f)
+    js = json.load(f)
   js = rebuild_as_ordered_dict(js, _TOP_LEVEL_KEYS)
   js['settings']['version'] = rebuild_as_ordered_dict(
       js['settings']['version'], _VERSION_KEYS)
@@ -88,7 +83,7 @@ for filename in sys.argv[1:]:
     if grp not in js: continue
     js[grp] = sorted([clean_elem(x) for x in js[grp]],
                      key=lambda x: (x.get('language', '_'), x['name']))
-  output = yaml.dump(js, indent=2, width=80)
+  output = json.dumps(js, indent = 2)
   # massage out trailing whitespace
   lines = []
   for line in output.splitlines():
