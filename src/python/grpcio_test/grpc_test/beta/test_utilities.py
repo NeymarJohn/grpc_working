@@ -27,43 +27,28 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'grpc'
+"""Test-appropriate entry points into the gRPC Python Beta API."""
 
-def load_test_certs
-  test_root = File.join(File.dirname(__FILE__), 'testdata')
-  files = ['ca.pem', 'server1.pem', 'server1.key']
-  files.map { |f| File.open(File.join(test_root, f)).read }
-end
+from grpc._adapter import _intermediary_low
+from grpc.beta import beta
 
-describe GRPC::Core::ServerCredentials do
-  Creds = GRPC::Core::ServerCredentials
 
-  describe '#new' do
-    it 'can be constructed from a fake CA PEM, server PEM and a server key' do
-      expect { Creds.new('a', 'b', 'c') }.not_to raise_error
-    end
+def create_not_really_secure_channel(
+    host, port, client_credentials, server_host_override):
+  """Creates an insecure Channel to a remote host.
 
-    it 'can be constructed using the test certificates' do
-      certs = load_test_certs
-      expect { Creds.new(*certs) }.not_to raise_error
-    end
+  Args:
+    host: The name of the remote host to which to connect.
+    port: The port of the remote host to which to connect.
+    client_credentials: The beta.ClientCredentials with which to connect.
+    server_host_override: The target name used for SSL host name checking.
 
-    it 'cannot be constructed without a server cert chain' do
-      root_cert, server_key, _ = load_test_certs
-      blk = proc { Creds.new(root_cert, server_key, nil) }
-      expect(&blk).to raise_error
-    end
-
-    it 'cannot be constructed without a server key' do
-      root_cert, _, _ = load_test_certs
-      blk = proc { Creds.new(root_cert, nil, cert_chain) }
-      expect(&blk).to raise_error
-    end
-
-    it 'can be constructed without a root_cret' do
-      _, server_key, cert_chain = load_test_certs
-      blk = proc { Creds.new(nil, server_key, cert_chain) }
-      expect(&blk).to_not raise_error
-    end
-  end
-end
+  Returns:
+    A beta.Channel to the remote host through which RPCs may be conducted.
+  """
+  hostport = '%s:%d' % (host, port)
+  intermediary_low_channel = _intermediary_low.Channel(
+      hostport, client_credentials._intermediary_low_credentials,
+      server_host_override=server_host_override)
+  return beta.Channel(
+      intermediary_low_channel._internal, intermediary_low_channel)

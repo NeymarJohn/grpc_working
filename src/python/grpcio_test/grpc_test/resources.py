@@ -27,43 +27,30 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'grpc'
+"""Constants and functions for data used in interoperability testing."""
 
-def load_test_certs
-  test_root = File.join(File.dirname(__FILE__), 'testdata')
-  files = ['ca.pem', 'server1.pem', 'server1.key']
-  files.map { |f| File.open(File.join(test_root, f)).read }
-end
+import os
 
-describe GRPC::Core::ServerCredentials do
-  Creds = GRPC::Core::ServerCredentials
+import pkg_resources
 
-  describe '#new' do
-    it 'can be constructed from a fake CA PEM, server PEM and a server key' do
-      expect { Creds.new('a', 'b', 'c') }.not_to raise_error
-    end
+_ROOT_CERTIFICATES_RESOURCE_PATH = 'credentials/ca.pem'
+_PRIVATE_KEY_RESOURCE_PATH = 'credentials/server1.key'
+_CERTIFICATE_CHAIN_RESOURCE_PATH = 'credentials/server1.pem'
 
-    it 'can be constructed using the test certificates' do
-      certs = load_test_certs
-      expect { Creds.new(*certs) }.not_to raise_error
-    end
 
-    it 'cannot be constructed without a server cert chain' do
-      root_cert, server_key, _ = load_test_certs
-      blk = proc { Creds.new(root_cert, server_key, nil) }
-      expect(&blk).to raise_error
-    end
+def test_root_certificates():
+  return pkg_resources.resource_string(
+      __name__, _ROOT_CERTIFICATES_RESOURCE_PATH)
 
-    it 'cannot be constructed without a server key' do
-      root_cert, _, _ = load_test_certs
-      blk = proc { Creds.new(root_cert, nil, cert_chain) }
-      expect(&blk).to raise_error
-    end
 
-    it 'can be constructed without a root_cret' do
-      _, server_key, cert_chain = load_test_certs
-      blk = proc { Creds.new(nil, server_key, cert_chain) }
-      expect(&blk).to_not raise_error
-    end
-  end
-end
+def prod_root_certificates():
+  return open(os.environ['SSL_CERT_FILE'], mode='rb').read()
+
+
+def private_key():
+  return pkg_resources.resource_string(__name__, _PRIVATE_KEY_RESOURCE_PATH)
+
+
+def certificate_chain():
+  return pkg_resources.resource_string(
+      __name__, _CERTIFICATE_CHAIN_RESOURCE_PATH)
