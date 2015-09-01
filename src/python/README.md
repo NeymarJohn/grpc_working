@@ -4,7 +4,7 @@ The Python facility of gRPC.
 
 Status
 -------
-Beta : Core behavior well-used and proven; bugs lurk off the beaten path.
+Alpha : Ready for early adopters
 
 PREREQUISITES
 -------------
