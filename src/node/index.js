@@ -164,13 +164,3 @@ exports.ServerCredentials = grpc.ServerCredentials;
  * @see module:src/client.makeClientConstructor
  */
 exports.makeGenericClientConstructor = client.makeClientConstructor;
-
-/**
- * @see module:src/client.getClientChannel
- */
-exports.getClientChannel = client.getClientChannel;
-
-/**
- * @see module:src/client.waitForClientReady
- */
-exports.waitForClientReady = client.waitForClientReady;
