@@ -281,10 +281,7 @@ class CSharpLanguage(object):
   def make_targets(self):
     # For Windows, this target doesn't really build anything,
     # everything is build by buildall script later.
-    if self.platform == 'windows':
-      return []
-    else:
-      return ['grpc_csharp_ext']
+    return ['grpc_csharp_ext']
 
   def build_steps(self):
     if self.platform == 'windows':

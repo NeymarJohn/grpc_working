@@ -31,7 +31,6 @@
 
 import glob
 import os
-import shutil
 import sys
 import tempfile
 sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..', 'run_tests'))
@@ -77,9 +76,5 @@ jobset.run(jobs)
 
 if test is not None:
   for s, g in test.iteritems():
-    if os.path.isfile(g):
-      assert(0 == os.system('diff %s %s' % (s, g)))
-      os.unlink(g)
-    else:
-      assert(0 == os.system('diff -r %s %s' % (s, g)))
-      shutil.rmtree(g, ignore_errors=True)
+    assert(0 == os.system('diff %s %s' % (s, g)))
+    os.unlink(g)
