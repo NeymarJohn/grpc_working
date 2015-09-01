@@ -30,6 +30,7 @@
 """Implementation of base.End."""
 
 import abc
+import enum
 import threading
 import uuid
 
@@ -74,7 +75,7 @@ def _abort(operations):
 
 def _cancel_futures(futures):
   for future in futures:
-    future.cancel()
+    futures.cancel()
 
 
 def _future_shutdown(lock, cycle, event):
@@ -82,6 +83,8 @@ def _future_shutdown(lock, cycle, event):
     with lock:
       _abort(cycle.operations.values())
       _cancel_futures(cycle.futures)
+      pool = cycle.pool
+    cycle.pool.shutdown(wait=True)
   return in_future
 
 
@@ -110,7 +113,6 @@ def _termination_action(lock, stats, operation_id, cycle):
         cycle.idle_actions = []
         if cycle.grace:
           _cancel_futures(cycle.futures)
-          cycle.pool.shutdown(wait=False)
   return termination_action
 
 
@@ -203,11 +205,11 @@ class _End(End):
   def accept_ticket(self, ticket):
     """See links.Link.accept_ticket for specification."""
     with self._lock:
-      if self._cycle is not None:
+      if self._cycle is not None and not self._cycle.grace:
         operation = self._cycle.operations.get(ticket.operation_id)
         if operation is not None:
           operation.handle_ticket(ticket)
-        elif self._servicer_package is not None and not self._cycle.grace:
+        elif self._servicer_package is not None:
           termination_action = _termination_action(
               self._lock, self._stats, ticket.operation_id, self._cycle)
           operation = _operation.service_operate(

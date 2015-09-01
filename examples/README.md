@@ -10,16 +10,16 @@ Hello World example. You'll find more tutorials and reference docs in this repos
 <a name="quickstart"></a>
 ## Quick start
 You can find quick start guides for each language, including installation instructions, examples, and tutorials here:
-* [C++](cpp)
+* [C++](examples/cpp)
 * [Java](https://github.com/grpc/grpc-java/tree/master/examples)
 * [Go](https://github.com/grpc/grpc-go/tree/master/examples)
-* [Ruby](ruby)
-* [Node.js](node)
-* [Android Java](https://github.com/grpc/grpc-java/tree/master/examples/android)
-* [Python](python/helloworld)
-* [C#](csharp)
-* [Objective-C](objective-c/route_guide)
-* [PHP](php)
+* [Ruby](examples/ruby)
+* [Node.js](examples/node)
+* [Android Java](examples/java/android)
+* [Python](examples/python/helloworld)
+* [C#](examples/csharp)
+* [Objective-C](examples/objective-c/route_guide)
+* [PHP](examples/php)
 
 ## What's in this repository?
 

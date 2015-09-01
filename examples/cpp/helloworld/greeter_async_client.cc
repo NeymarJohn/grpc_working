@@ -41,10 +41,11 @@
 #include <grpc++/client_context.h>
 #include <grpc++/completion_queue.h>
 #include <grpc++/create_channel.h>
-#include <grpc++/security/credentials.h>
+#include <grpc++/credentials.h>
 #include "helloworld.grpc.pb.h"
 
 using grpc::Channel;
+using grpc::ChannelArguments;
 using grpc::ClientAsyncResponseReader;
 using grpc::ClientContext;
 using grpc::CompletionQueue;
@@ -88,7 +89,7 @@ class GreeterClient {
 
 int main(int argc, char** argv) {
   GreeterClient greeter(grpc::CreateChannel(
-      "localhost:50051", grpc::InsecureCredentials()));
+      "localhost:50051", grpc::InsecureCredentials(), ChannelArguments()));
   std::string user("world");
   std::string reply = greeter.SayHello(user);
   std::cout << "Greeter received: " << reply << std::endl;

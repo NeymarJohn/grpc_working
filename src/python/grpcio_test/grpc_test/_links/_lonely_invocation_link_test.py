@@ -45,8 +45,7 @@ class LonelyInvocationLinkTest(unittest.TestCase):
 
   def testUpAndDown(self):
     channel = _intermediary_low.Channel('nonexistent:54321', None)
-    invocation_link = invocation.invocation_link(
-        channel, 'nonexistent', None, {}, {})
+    invocation_link = invocation.invocation_link(channel, 'nonexistent', {}, {})
 
     invocation_link.start()
     invocation_link.stop()
@@ -59,7 +58,8 @@ class LonelyInvocationLinkTest(unittest.TestCase):
 
     channel = _intermediary_low.Channel('nonexistent:54321', None)
     invocation_link = invocation.invocation_link(
-        channel, 'nonexistent', None, {}, {})
+        channel, 'nonexistent', {(test_group, test_method): _NULL_BEHAVIOR},
+        {(test_group, test_method): _NULL_BEHAVIOR})
     invocation_link.join_link(invocation_link_mate)
     invocation_link.start()
 

@@ -37,14 +37,14 @@
 #include <string>
 #include <vector>
 
-namespace routeguide {
+namespace examples {
 class Feature;
 
 std::string GetDbFileContent(int argc, char** argv);
 
 void ParseDb(const std::string& db, std::vector<Feature>* feature_list);
 
-}  // namespace routeguide
+}  // namespace examples
 
 #endif  // GRPC_COMMON_CPP_ROUTE_GUIDE_HELPER_H_
 

@@ -41,7 +41,6 @@
 #include <grpc++/impl/call.h>
 #include <grpc++/impl/grpc_library.h>
 #include <grpc++/impl/sync.h>
-#include <grpc++/security/server_credentials.h>
 #include <grpc++/support/config.h>
 #include <grpc++/support/status.h>
 
@@ -55,6 +54,7 @@ class AsyncGenericService;
 class RpcService;
 class RpcServiceMethod;
 class ServerAsyncStreamingInterface;
+class ServerCredentials;
 class ThreadPoolInterface;
 
 // Currently it only supports handling rpcs in a single thread.

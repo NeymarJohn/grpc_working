@@ -32,8 +32,7 @@ require 'grpc'
 def load_test_certs
   test_root = File.join(File.dirname(__FILE__), 'testdata')
   files = ['ca.pem', 'server1.key', 'server1.pem']
-  contents = files.map { |f| File.open(File.join(test_root, f)).read }
-  [contents[0], [{ private_key: contents[1], cert_chain: contents[2] }], false]
+  files.map { |f| File.open(File.join(test_root, f)).read }
 end
 
 Server = GRPC::Core::Server
@@ -105,7 +104,7 @@ describe Server do
       it 'runs without failing' do
         blk = proc do
           s = Server.new(@cq, nil)
-          s.add_http2_port('localhost:0', :this_port_is_insecure)
+          s.add_http2_port('localhost:0')
           s.close(@cq)
         end
         expect(&blk).to_not raise_error
@@ -114,10 +113,7 @@ describe Server do
       it 'fails if the server is closed' do
         s = Server.new(@cq, nil)
         s.close(@cq)
-        blk = proc do
-          s.add_http2_port('localhost:0', :this_port_is_insecure)
-        end
-        expect(&blk).to raise_error(RuntimeError)
+        expect { s.add_http2_port('localhost:0') }.to raise_error(RuntimeError)
       end
     end
 
@@ -202,7 +198,7 @@ describe Server do
 
   def start_a_server
     s = Server.new(@cq, nil)
-    s.add_http2_port('0.0.0.0:0', :this_port_is_insecure)
+    s.add_http2_port('0.0.0.0:0')
     s.start
     s
   end
