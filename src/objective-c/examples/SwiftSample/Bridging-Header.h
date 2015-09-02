@@ -31,47 +31,14 @@
  *
  */
 
-#include "src/core/iomgr/tcp_posix.h"
+#ifndef SwiftSample_Bridging_Header_h
+#define SwiftSample_Bridging_Header_h
 
-#include <grpc/grpc.h>
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
-#include <grpc/support/time.h>
-#include <grpc/support/useful.h>
-#include "src/core/iomgr/endpoint_pair.h"
-#include "test/core/util/test_config.h"
-#include "test/core/iomgr/endpoint_tests.h"
+#import <RxLibrary/GRXWriteable.h>
+#import <RxLibrary/GRXWriter.h>
+#import <RxLibrary/GRXWriter+Immediate.h>
+#import <GRPCClient/GRPCCall.h>
+#import <ProtoRPC/ProtoMethod.h>
+#import <RemoteTest/Test.pbrpc.h>
 
-static grpc_pollset g_pollset;
-
-static void clean_up(void) {}
-
-static grpc_endpoint_test_fixture create_fixture_endpoint_pair(
-    size_t slice_size) {
-  grpc_endpoint_test_fixture f;
-  grpc_endpoint_pair p = grpc_iomgr_create_endpoint_pair("test", slice_size);
-
-  f.client_ep = p.client;
-  f.server_ep = p.server;
-  grpc_endpoint_add_to_pollset(f.client_ep, &g_pollset);
-  grpc_endpoint_add_to_pollset(f.server_ep, &g_pollset);
-
-  return f;
-}
-
-static grpc_endpoint_test_config configs[] = {
-    {"tcp/tcp_socketpair", create_fixture_endpoint_pair, clean_up},
-};
-
-static void destroy_pollset(void *p) { grpc_pollset_destroy(p); }
-
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  grpc_init();
-  grpc_pollset_init(&g_pollset);
-  grpc_endpoint_tests(configs[0], &g_pollset);
-  grpc_pollset_shutdown(&g_pollset, destroy_pollset, &g_pollset);
-  grpc_shutdown();
-
-  return 0;
-}
+#endif
