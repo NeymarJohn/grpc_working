@@ -49,12 +49,12 @@ class _BaseServicer(base.Servicer):
       return adapted_method(output_operator, context)
     elif self._adapted_multi_method is not None:
       try:
-        return self._adapted_multi_method(
+        return self._adapted_multi_method.service(
             group, method, output_operator, context)
       except face.NoSuchMethodError:
-        raise base.NoSuchMethodError(None, None)
+        raise base.NoSuchMethodError()
     else:
-      raise base.NoSuchMethodError(None, None)
+      raise base.NoSuchMethodError()
 
 
 class _UnaryUnaryMultiCallable(face.UnaryUnaryMultiCallable):
@@ -315,11 +315,8 @@ def servicer(method_implementations, multi_method_implementation, pool):
   """
   adapted_implementations = _adapt_method_implementations(
       method_implementations, pool)
-  if multi_method_implementation is None:
-    adapted_multi_method_implementation = None
-  else:
-    adapted_multi_method_implementation = _service.adapt_multi_method(
-        multi_method_implementation, pool)
+  adapted_multi_method_implementation = _service.adapt_multi_method(
+      multi_method_implementation, pool)
   return _BaseServicer(
       adapted_implementations, adapted_multi_method_implementation)
 

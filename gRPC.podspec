@@ -247,9 +247,8 @@ Pod::Spec.new do |s|
                       'src/core/transport/stream_op.h',
                       'src/core/transport/transport.h',
                       'src/core/transport/transport_impl.h',
-                      'src/core/census/aggregation.h',
                       'src/core/census/context.h',
-                      'src/core/census/rpc_metric_id.h',
+                      'src/core/census/rpc_stat_id.h',
                       'grpc/grpc_security.h',
                       'grpc/byte_buffer.h',
                       'grpc/byte_buffer_reader.h',
@@ -397,6 +396,7 @@ Pod::Spec.new do |s|
                       'src/core/census/context.c',
                       'src/core/census/initialize.c',
                       'src/core/census/operation.c',
+                      'src/core/census/record_stat.c',
                       'src/core/census/tracing.c'
 
     ss.private_header_files = 'src/core/support/env.h',
@@ -521,9 +521,8 @@ Pod::Spec.new do |s|
                               'src/core/transport/stream_op.h',
                               'src/core/transport/transport.h',
                               'src/core/transport/transport_impl.h',
-                              'src/core/census/aggregation.h',
                               'src/core/census/context.h',
-                              'src/core/census/rpc_metric_id.h'
+                              'src/core/census/rpc_stat_id.h'
 
     ss.header_mappings_dir = '.'
 

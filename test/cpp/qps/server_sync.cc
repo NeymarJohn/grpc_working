@@ -31,6 +31,8 @@
  *
  */
 
+#include <sys/signal.h>
+#include <unistd.h>
 #include <thread>
 
 #include <gflags/gflags.h>
