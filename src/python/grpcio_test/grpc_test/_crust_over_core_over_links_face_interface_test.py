@@ -35,7 +35,6 @@ import unittest
 from grpc._adapter import _intermediary_low
 from grpc._links import invocation
 from grpc._links import service
-from grpc.beta import interfaces as beta_interfaces
 from grpc.framework.core import implementations as core_implementations
 from grpc.framework.crust import implementations as crust_implementations
 from grpc.framework.foundation import logging_pool
@@ -140,7 +139,7 @@ class _Implementation(test_interfaces.Implementation):
     return grpc_test_common.SERVICE_TERMINAL_METADATA
 
   def code(self):
-    return beta_interfaces.StatusCode.OK
+    return _intermediary_low.Code.OK
 
   def details(self):
     return grpc_test_common.DETAILS
