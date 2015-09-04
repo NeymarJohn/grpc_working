@@ -119,6 +119,10 @@ typedef enum {
   GRPC_WRITE_STATE_SENT_CLOSE
 } grpc_chttp2_write_state;
 
+/* flags that can be or'd into stream_global::writing_now */
+#define GRPC_CHTTP2_WRITING_DATA 1
+#define GRPC_CHTTP2_WRITING_WINDOW 2
+
 typedef enum {
   GRPC_DONT_SEND_CLOSED = 0,
   GRPC_SEND_CLOSED,
@@ -210,6 +214,8 @@ typedef struct {
   grpc_chttp2_hpack_compressor hpack_compressor;
   /** is this a client? */
   gpr_uint8 is_client;
+  /** callback for when writing is done */
+  grpc_iomgr_closure done_cb;
 } grpc_chttp2_transport_writing;
 
 struct grpc_chttp2_transport_parsing {
@@ -287,6 +293,9 @@ struct grpc_chttp2_transport {
   gpr_refcount refs;
   char *peer_string;
 
+  /** when this drops to zero it's safe to shutdown the endpoint */
+  gpr_refcount shutdown_ep_refs;
+
   gpr_mu mu;
 
   /** is the transport destroying itself? */
@@ -325,8 +334,11 @@ struct grpc_chttp2_transport {
 
   /** closure to execute writing */
   grpc_iomgr_closure writing_action;
-  /** closure to start reading from the endpoint */
-  grpc_iomgr_closure reading_action;
+  /** closure to finish reading from the endpoint */
+  grpc_iomgr_closure recv_data;
+
+  /** incoming read bytes */
+  gpr_slice_buffer read_buffer;
 
   /** address to place a newly accepted stream - set and unset by
       grpc_chttp2_parsing_accept_stream; used by init_stream to
@@ -382,8 +394,10 @@ typedef struct {
   gpr_uint8 published_cancelled;
   /** is this stream in the stream map? (boolean) */
   gpr_uint8 in_stream_map;
-  /** is this stream actively being written? */
+  /** bitmask of GRPC_CHTTP2_WRITING_xxx above */
   gpr_uint8 writing_now;
+  /** has anything been written to this stream? */
+  gpr_uint8 written_anything;
 
   /** stream state already published to the upper layer */
   grpc_stream_state published_state;
@@ -457,8 +471,7 @@ int grpc_chttp2_unlocking_check_writes(grpc_chttp2_transport_global *global,
                                        grpc_chttp2_transport_writing *writing);
 void grpc_chttp2_perform_writes(
     grpc_chttp2_transport_writing *transport_writing, grpc_endpoint *endpoint);
-void grpc_chttp2_terminate_writing(
-    grpc_chttp2_transport_writing *transport_writing, int success);
+void grpc_chttp2_terminate_writing(void *transport_writing, int success);
 void grpc_chttp2_cleanup_writing(grpc_chttp2_transport_global *global,
                                  grpc_chttp2_transport_writing *writing);
 

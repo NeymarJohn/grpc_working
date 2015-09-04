@@ -34,7 +34,7 @@
 #ifndef GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H
 #define GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H
 
-/* Internal API for completion channels */
+/* Internal API for completion queues */
 
 #include "src/core/iomgr/pollset.h"
 #include <grpc/grpc.h>
@@ -76,8 +76,6 @@ void grpc_cq_end_op(grpc_completion_queue *cc, void *tag, int success,
                     void *done_arg, grpc_cq_completion *storage);
 
 grpc_pollset *grpc_cq_pollset(grpc_completion_queue *cc);
-
-void grpc_cq_hack_spin_pollset(grpc_completion_queue *cc);
 
 void grpc_cq_mark_server_cq(grpc_completion_queue *cc);
 int grpc_cq_is_server_cq(grpc_completion_queue *cc);

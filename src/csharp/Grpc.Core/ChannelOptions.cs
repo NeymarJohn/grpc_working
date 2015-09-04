@@ -30,7 +30,6 @@
 #endregion
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,9 +44,19 @@ namespace Grpc.Core
     /// </summary>
     public sealed class ChannelOption
     {
+        /// <summary>
+        /// Type of <c>ChannelOption</c>.
+        /// </summary>
         public enum OptionType
         {
+            /// <summary>
+            /// Channel option with integer value.
+            /// </summary>
             Integer,
+            
+            /// <summary>
+            /// Channel option with string value.
+            /// </summary>
             String
         }
 
@@ -64,22 +73,25 @@ namespace Grpc.Core
         public ChannelOption(string name, string stringValue)
         {
             this.type = OptionType.String;
-            this.name = Preconditions.CheckNotNull(name);
-            this.stringValue = Preconditions.CheckNotNull(stringValue);
+            this.name = Preconditions.CheckNotNull(name, "name");
+            this.stringValue = Preconditions.CheckNotNull(stringValue, "stringValue");
         }
 
         /// <summary>
         /// Creates a channel option with an integer value.
         /// </summary>
         /// <param name="name">Name.</param>
-        /// <param name="stringValue">String value.</param>
+        /// <param name="intValue">Integer value.</param>
         public ChannelOption(string name, int intValue)
         {
             this.type = OptionType.Integer;
-            this.name = Preconditions.CheckNotNull(name);
+            this.name = Preconditions.CheckNotNull(name, "name");
             this.intValue = intValue;
         }
 
+        /// <summary>
+        /// Gets the type of the <c>ChannelOption</c>.
+        /// </summary>
         public OptionType Type
         {
             get
@@ -88,6 +100,9 @@ namespace Grpc.Core
             }
         }
 
+        /// <summary>
+        /// Gets the name of the <c>ChannelOption</c>.
+        /// </summary>
         public string Name
         {
             get
@@ -96,6 +111,9 @@ namespace Grpc.Core
             }    
         }
 
+        /// <summary>
+        /// Gets the integer value the <c>ChannelOption</c>.
+        /// </summary>
         public int IntValue
         {
             get
@@ -105,6 +123,9 @@ namespace Grpc.Core
             }
         }
 
+        /// <summary>
+        /// Gets the string value the <c>ChannelOption</c>.
+        /// </summary>
         public string StringValue
         {
             get
@@ -135,10 +156,13 @@ namespace Grpc.Core
         /// <summary>Initial sequence number for http2 transports</summary>
         public const string Http2InitialSequenceNumber = "grpc.http2.initial_sequence_number";
 
+        /// <summary>Default authority for calls.</summary>
+        public const string DefaultAuthority = "grpc.default_authority";
+
         /// <summary>Primary user agent: goes at the start of the user-agent metadata</summary>
         public const string PrimaryUserAgentString = "grpc.primary_user_agent";
 
-        /// <summary> Secondary user agent: goes at the end of the user-agent metadata</summary>
+        /// <summary>Secondary user agent: goes at the end of the user-agent metadata</summary>
         public const string SecondaryUserAgentString = "grpc.secondary_user_agent";
 
         /// <summary>

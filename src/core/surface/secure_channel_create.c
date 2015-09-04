@@ -38,6 +38,7 @@
 
 #include <grpc/support/alloc.h>
 
+#include "src/core/census/grpc_filter.h"
 #include "src/core/channel/channel_args.h"
 #include "src/core/channel/client_channel.h"
 #include "src/core/channel/compress_filter.h"
@@ -88,8 +89,8 @@ static void on_secure_transport_setup_done(void *arg,
         c->args.channel_args, secure_endpoint, c->args.metadata_context, 1);
     grpc_chttp2_transport_start_reading(c->result->transport, NULL, 0);
     c->result->filters = gpr_malloc(sizeof(grpc_channel_filter *) * 2);
-    c->result->filters[0] = &grpc_client_auth_filter;
-    c->result->filters[1] = &grpc_http_client_filter;
+    c->result->filters[0] = &grpc_http_client_filter;
+    c->result->filters[1] = &grpc_client_auth_filter;
     c->result->num_filters = 2;
   }
   notify = c->notify;
@@ -184,7 +185,8 @@ static const grpc_subchannel_factory_vtable subchannel_factory_vtable = {
                    - perform handshakes */
 grpc_channel *grpc_secure_channel_create(grpc_credentials *creds,
                                          const char *target,
-                                         const grpc_channel_args *args) {
+                                         const grpc_channel_args *args,
+                                         void *reserved) {
   grpc_channel *channel;
   grpc_arg connector_arg;
   grpc_channel_args *args_copy;
@@ -197,15 +199,20 @@ grpc_channel *grpc_secure_channel_create(grpc_credentials *creds,
   const grpc_channel_filter *filters[MAX_FILTERS];
   int n = 0;
 
+  GPR_ASSERT(reserved == NULL);
   if (grpc_find_security_connector_in_args(args) != NULL) {
     gpr_log(GPR_ERROR, "Cannot set security context in channel args.");
-    return grpc_lame_client_channel_create(target);
+    return grpc_lame_client_channel_create(
+        target, GRPC_STATUS_INVALID_ARGUMENT,
+        "Security connector exists in channel args.");
   }
 
   if (grpc_credentials_create_security_connector(
           creds, target, args, NULL, &connector, &new_args_from_connector) !=
       GRPC_SECURITY_OK) {
-    return grpc_lame_client_channel_create(target);
+    return grpc_lame_client_channel_create(
+        target, GRPC_STATUS_INVALID_ARGUMENT,
+        "Failed to create security connector.");
   }
   mdctx = grpc_mdctx_create();
 
@@ -213,10 +220,9 @@ grpc_channel *grpc_secure_channel_create(grpc_credentials *creds,
   args_copy = grpc_channel_args_copy_and_add(
       new_args_from_connector != NULL ? new_args_from_connector : args,
       &connector_arg, 1);
-  /* TODO(census)
   if (grpc_channel_args_is_census_enabled(args)) {
     filters[n++] = &grpc_client_census_filter;
-    } */
+  }
   filters[n++] = &grpc_compress_filter;
   filters[n++] = &grpc_client_channel_filter;
   GPR_ASSERT(n <= MAX_FILTERS);

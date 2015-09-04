@@ -55,12 +55,13 @@ describe('call', function() {
   var server;
   before(function() {
     server = new grpc.Server();
-    var port = server.addHttp2Port('localhost:0');
+    var port = server.addHttp2Port('localhost:0',
+                                   grpc.ServerCredentials.createInsecure());
     server.start();
     channel = new grpc.Channel('localhost:' + port, insecureCreds);
   });
   after(function() {
-    server.shutdown();
+    server.forceShutdown();
   });
   describe('constructor', function() {
     it('should reject anything less than 3 arguments', function() {
@@ -83,6 +84,11 @@ describe('call', function() {
            new grpc.Call(channel, 'method', 0);
          });
        });
+    it('should accept an optional fourth string parameter', function() {
+      assert.doesNotThrow(function() {
+        new grpc.Call(channel, 'method', new Date(), 'host_override');
+      });
+    });
     it('should fail with a closed channel', function() {
       var local_channel = new grpc.Channel('hostname', insecureCreds);
       local_channel.close();

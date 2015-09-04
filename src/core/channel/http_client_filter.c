@@ -40,6 +40,7 @@
 typedef struct call_data {
   grpc_linked_mdelem method;
   grpc_linked_mdelem scheme;
+  grpc_linked_mdelem authority;
   grpc_linked_mdelem te_trailers;
   grpc_linked_mdelem content_type;
   grpc_linked_mdelem user_agent;
@@ -84,16 +85,14 @@ static grpc_mdelem *client_filter(void *user_data, grpc_mdelem *md) {
 static void hc_on_recv(void *user_data, int success) {
   grpc_call_element *elem = user_data;
   call_data *calld = elem->call_data;
-  if (success) {
-    size_t i;
-    size_t nops = calld->recv_ops->nops;
-    grpc_stream_op *ops = calld->recv_ops->ops;
-    for (i = 0; i < nops; i++) {
-      grpc_stream_op *op = &ops[i];
-      if (op->type != GRPC_OP_METADATA) continue;
-      calld->got_initial_metadata = 1;
-      grpc_metadata_batch_filter(&op->data.metadata, client_filter, elem);
-    }
+  size_t i;
+  size_t nops = calld->recv_ops->nops;
+  grpc_stream_op *ops = calld->recv_ops->ops;
+  for (i = 0; i < nops; i++) {
+    grpc_stream_op *op = &ops[i];
+    if (op->type != GRPC_OP_METADATA) continue;
+    calld->got_initial_metadata = 1;
+    grpc_metadata_batch_filter(&op->data.metadata, client_filter, elem);
   }
   calld->on_done_recv->cb(calld->on_done_recv->cb_arg, success);
 }
@@ -241,8 +240,8 @@ static grpc_mdstr *user_agent_from_args(grpc_mdctx *mdctx,
 
 /* Constructor for channel_data */
 static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
-                              const grpc_channel_args *args, grpc_mdctx *mdctx,
-                              int is_first, int is_last) {
+                              const grpc_channel_args *channel_args,
+                              grpc_mdctx *mdctx, int is_first, int is_last) {
   /* grab pointers to our data from the channel element */
   channel_data *channeld = elem->channel_data;
 
@@ -254,14 +253,14 @@ static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
   /* initialize members */
   channeld->te_trailers = grpc_mdelem_from_strings(mdctx, "te", "trailers");
   channeld->method = grpc_mdelem_from_strings(mdctx, ":method", "POST");
-  channeld->scheme =
-      grpc_mdelem_from_strings(mdctx, ":scheme", scheme_from_args(args));
+  channeld->scheme = grpc_mdelem_from_strings(mdctx, ":scheme",
+                                              scheme_from_args(channel_args));
   channeld->content_type =
       grpc_mdelem_from_strings(mdctx, "content-type", "application/grpc");
   channeld->status = grpc_mdelem_from_strings(mdctx, ":status", "200");
   channeld->user_agent = grpc_mdelem_from_metadata_strings(
       mdctx, grpc_mdstr_from_string(mdctx, "user-agent", 0),
-      user_agent_from_args(mdctx, args));
+      user_agent_from_args(mdctx, channel_args));
 }
 
 /* Destructor for channel data */
