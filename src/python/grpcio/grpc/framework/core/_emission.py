@@ -30,7 +30,6 @@
 """State and behavior for handling emitted values."""
 
 from grpc.framework.core import _interfaces
-from grpc.framework.core import _utilities
 from grpc.framework.interfaces.base import base
 
 
@@ -82,10 +81,9 @@ class EmissionManager(_interfaces.EmissionManager):
             payload_present and self._completion_seen or
             completion_present and self._completion_seen or
             allowance_present and allowance <= 0):
-          outcome = _utilities.Outcome(
-              base.Outcome.Kind.LOCAL_FAILURE, None, None)
-          self._termination_manager.abort(outcome)
-          self._transmission_manager.abort(outcome)
+          self._termination_manager.abort(base.Outcome.LOCAL_FAILURE)
+          self._transmission_manager.abort(
+              base.Outcome.LOCAL_FAILURE, None, None)
           self._expiration_manager.terminate()
         else:
           self._initial_metadata_seen |= initial_metadata_present
