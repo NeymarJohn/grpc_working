@@ -36,6 +36,7 @@ import threading
 import time
 
 from grpc._adapter import _intermediary_low
+from grpc._links import _constants
 from grpc.framework.foundation import logging_pool
 from grpc.framework.foundation import relay
 from grpc.framework.interfaces.links import links
@@ -122,13 +123,13 @@ def _metadatafy(call, metadata):
     call.add_metadata(metadata_key, metadata_value)
 
 
-def _status(termination_kind, code, details):
-  effective_details = b'' if details is None else details
-  if code is None:
-    effective_code = _TERMINATION_KIND_TO_CODE[termination_kind]
+def _status(termination_kind, high_code, details):
+  low_details = b'' if details is None else details
+  if high_code is None:
+    low_code = _TERMINATION_KIND_TO_CODE[termination_kind]
   else:
-    effective_code = code
-  return _intermediary_low.Status(effective_code, effective_details)
+    low_code = _constants.HIGH_STATUS_CODE_TO_LOW_STATUS_CODE[high_code]
+  return _intermediary_low.Status(low_code, low_details)
 
 
 class _Kernel(object):
@@ -166,10 +167,12 @@ class _Kernel(object):
         request_deserializer, response_serializer, 1, _Read.READING, None, 1,
         _HighWrite.OPEN, _LowWrite.OPEN, False, None, None, None,
         set((_READ, _FINISH,)))
+    protocol = links.Protocol(
+        links.Protocol.Kind.SERVICER_CONTEXT, 'TODO: Service Context Object!')
     ticket = links.Ticket(
         call, 0, group, method, links.Ticket.Subscription.FULL,
         service_acceptance.deadline - time.time(), None, event.metadata, None,
-        None, None, None, None, 'TODO: Service Context Object!')
+        None, None, None, None, protocol)
     self._relay.add_value(ticket)
 
   def _on_read_event(self, event):
