@@ -35,7 +35,6 @@
 #include <grpc/grpc.h>
 
 #import "GRPCChannel.h"
-#import "GRPCRequestHeaders.h"
 
 @interface GRPCOperation : NSObject
 @property(nonatomic, readonly) grpc_op op;
@@ -45,7 +44,7 @@
 
 @interface GRPCOpSendMetadata : GRPCOperation
 
-- (instancetype)initWithMetadata:(GRPCRequestHeaders *)metadata
+- (instancetype)initWithMetadata:(NSDictionary *)metadata
                          handler:(void(^)())handler NS_DESIGNATED_INITIALIZER;
 
 @end
@@ -82,12 +81,11 @@
 
 @end
 
-#pragma mark GRPCWrappedCall
-
 @interface GRPCWrappedCall : NSObject
 
-- (instancetype)initWithHost:(NSString *)host
-                        path:(NSString *)path NS_DESIGNATED_INITIALIZER;
+- (instancetype)initWithChannel:(GRPCChannel *)channel
+                           path:(NSString *)path
+                           host:(NSString *)host NS_DESIGNATED_INITIALIZER;
 
 - (void)startBatchWithOperations:(NSArray *)ops errorHandler:(void(^)())errorHandler;
 

@@ -43,48 +43,31 @@ namespace Grpc.Core.Tests
         [Test]
         public void InitializeAndShutdownGrpcEnvironment()
         {
-            var env = GrpcEnvironment.AddRef();
+            var env = GrpcEnvironment.GetInstance();
             Assert.IsNotNull(env.CompletionQueue);
-            GrpcEnvironment.Release();
+            GrpcEnvironment.Shutdown();
         }
 
         [Test]
         public void SubsequentInvocations()
         {
-            var env1 = GrpcEnvironment.AddRef();
-            var env2 = GrpcEnvironment.AddRef();
-            Assert.AreSame(env1, env2);
-            GrpcEnvironment.Release();
-            GrpcEnvironment.Release();
+            var env1 = GrpcEnvironment.GetInstance();
+            var env2 = GrpcEnvironment.GetInstance();
+            Assert.IsTrue(object.ReferenceEquals(env1, env2));
+            GrpcEnvironment.Shutdown();
+            GrpcEnvironment.Shutdown();
         }
 
         [Test]
         public void InitializeAfterShutdown()
         {
-            Assert.AreEqual(0, GrpcEnvironment.GetRefCount());
+            var env1 = GrpcEnvironment.GetInstance();
+            GrpcEnvironment.Shutdown();
 
-            var env1 = GrpcEnvironment.AddRef();
-            GrpcEnvironment.Release();
+            var env2 = GrpcEnvironment.GetInstance();
+            GrpcEnvironment.Shutdown();
 
-            var env2 = GrpcEnvironment.AddRef();
-            GrpcEnvironment.Release();
-
-            Assert.AreNotSame(env1, env2);
-        }
-
-        [Test]
-        public void ReleaseWithoutAddRef()
-        {
-            Assert.AreEqual(0, GrpcEnvironment.GetRefCount());
-            Assert.Throws(typeof(InvalidOperationException), () => GrpcEnvironment.Release());
-        }
-
-        [Test]
-        public void GetCoreVersionString()
-        {
-            var coreVersion = GrpcEnvironment.GetCoreVersionString();
-            var parts = coreVersion.Split('.');
-            Assert.AreEqual(4, parts.Length);
+            Assert.IsFalse(object.ReferenceEquals(env1, env2));
         }
     }
 }

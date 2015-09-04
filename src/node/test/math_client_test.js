@@ -51,15 +51,14 @@ var server = require('../examples/math_server.js');
 
 describe('Math client', function() {
   before(function(done) {
-    var port_num = server.bind('0.0.0.0:0',
-                               grpc.ServerCredentials.createInsecure());
+    var port_num = server.bind('0.0.0.0:0');
     server.start();
     math_client = new math.Math('localhost:' + port_num,
                                 grpc.Credentials.createInsecure());
     done();
   });
   after(function() {
-    server.forceShutdown();
+    server.shutdown();
   });
   it('should handle a single request', function(done) {
     var arg = {dividend: 7, divisor: 4};

@@ -41,23 +41,26 @@ var grpc = require('../');
 
 describe('Health Checking', function() {
   var statusMap = {
-    '': 'SERVING',
-    'grpc.test.TestServiceNotServing': 'NOT_SERVING',
-    'grpc.test.TestServiceServing': 'SERVING'
+    '': {
+      '': 'SERVING',
+      'grpc.test.TestService': 'NOT_SERVING',
+    },
+    virtual_host: {
+      'grpc.test.TestService': 'SERVING'
+    }
   };
   var healthServer = new grpc.Server();
   healthServer.addProtoService(health.service,
                                new health.Implementation(statusMap));
   var healthClient;
   before(function() {
-    var port_num = healthServer.bind('0.0.0.0:0',
-                                     grpc.ServerCredentials.createInsecure());
+    var port_num = healthServer.bind('0.0.0.0:0');
     healthServer.start();
     healthClient = new health.Client('localhost:' + port_num,
                                      grpc.Credentials.createInsecure());
   });
   after(function() {
-    healthServer.forceShutdown();
+    healthServer.shutdown();
   });
   it('should say an enabled service is SERVING', function(done) {
     healthClient.check({service: ''}, function(err, response) {
@@ -67,15 +70,15 @@ describe('Health Checking', function() {
     });
   });
   it('should say that a disabled service is NOT_SERVING', function(done) {
-    healthClient.check({service: 'grpc.test.TestServiceNotServing'},
+    healthClient.check({service: 'grpc.test.TestService'},
                        function(err, response) {
                          assert.ifError(err);
                          assert.strictEqual(response.status, 'NOT_SERVING');
                          done();
                        });
   });
-  it('should say that an enabled service is SERVING', function(done) {
-    healthClient.check({service: 'grpc.test.TestServiceServing'},
+  it('should say that a service on another host is SERVING', function(done) {
+    healthClient.check({host: 'virtual_host', service: 'grpc.test.TestService'},
                        function(err, response) {
                          assert.ifError(err);
                          assert.strictEqual(response.status, 'SERVING');
@@ -88,5 +91,13 @@ describe('Health Checking', function() {
       assert.strictEqual(err.code, grpc.status.NOT_FOUND);
       done();
     });
+  });
+  it('should get NOT_FOUND if the host is not registered', function(done) {
+    healthClient.check({host: 'wrong_host', service: 'grpc.test.TestService'},
+                       function(err, response) {
+                         assert(err);
+                         assert.strictEqual(err.code, grpc.status.NOT_FOUND);
+                         done();
+                       });
   });
 });

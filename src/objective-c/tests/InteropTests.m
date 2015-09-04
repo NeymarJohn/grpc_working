@@ -31,11 +31,11 @@
  *
  */
 
-#import "InteropTests.h"
-
 #include <grpc/status.h>
 
-#import <GRPCClient/GRPCCall+Tests.h>
+#import <UIKit/UIKit.h>
+#import <XCTest/XCTest.h>
+
 #import <ProtoRPC/ProtoRPC.h>
 #import <RemoteTest/Empty.pbobjc.h>
 #import <RemoteTest/Messages.pbobjc.h>
@@ -76,21 +76,18 @@
 }
 @end
 
-#pragma mark Tests
-
-static NSString * const kRemoteSSLHost = @"grpc-test.sandbox.google.com";
+@interface InteropTests : XCTestCase
+@end
 
 @implementation InteropTests {
   RMTTestService *_service;
 }
 
-+ (NSString *)host {
-  return kRemoteSSLHost;
+- (void)setUp {
+  _service = [[RMTTestService alloc] initWithHost:@"grpc-test.sandbox.google.com"];
 }
 
-- (void)setUp {
-  _service = [[RMTTestService alloc] initWithHost:self.class.host];
-}
+// Tests as described here: https://github.com/grpc/grpc/blob/master/doc/interop-test-descriptions.md
 
 - (void)testEmptyUnaryRPC {
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"EmptyUnary"];
@@ -128,7 +125,7 @@ static NSString * const kRemoteSSLHost = @"grpc-test.sandbox.google.com";
     [expectation fulfill];
   }];
 
-  [self waitForExpectationsWithTimeout:16 handler:nil];
+  [self waitForExpectationsWithTimeout:8 handler:nil];
 }
 
 - (void)testClientStreamingRPC {

@@ -67,7 +67,7 @@ typedef union lockfree_node {
 #define ENTRY_ALIGNMENT_BITS 3 /* make sure that entries aligned to 8-bytes */
 #define INVALID_ENTRY_INDEX                        \
   ((1 << 16) - 1) /* reserve this entry as invalid \
-                        */
+                       */
 
 struct gpr_stack_lockfree {
   lockfree_node *entries;
@@ -75,7 +75,7 @@ struct gpr_stack_lockfree {
 
 #ifndef NDEBUG
   /* Bitmap of pushed entries to check for double-push or pop */
-  gpr_atm pushed[(INVALID_ENTRY_INDEX + 1) / (8 * sizeof(gpr_atm))];
+  gpr_atm pushed[(INVALID_ENTRY_INDEX+1)/(8*sizeof(gpr_atm))];
 #endif
 };
 
@@ -95,8 +95,6 @@ gpr_stack_lockfree *gpr_stack_lockfree_create(int entries) {
   memset(&stack->pushed, 0, sizeof(stack->pushed));
 #endif
 
-  GPR_ASSERT(sizeof(stack->entries->atm) == sizeof(stack->entries->contents));
-
   /* Point the head at reserved dummy entry */
   stack->head.contents.index = INVALID_ENTRY_INDEX;
   return stack;
@@ -110,26 +108,22 @@ void gpr_stack_lockfree_destroy(gpr_stack_lockfree *stack) {
 int gpr_stack_lockfree_push(gpr_stack_lockfree *stack, int entry) {
   lockfree_node head;
   lockfree_node newhead;
-  lockfree_node curent;
-  lockfree_node newent;
 
   /* First fill in the entry's index and aba ctr for new head */
   newhead.contents.index = (gpr_uint16)entry;
   /* Also post-increment the aba_ctr */
-  curent.atm = gpr_atm_no_barrier_load(&stack->entries[entry].atm);
-  newhead.contents.aba_ctr = ++curent.contents.aba_ctr;
-  gpr_atm_no_barrier_store(&stack->entries[entry].atm, curent.atm);
+  newhead.contents.aba_ctr = stack->entries[entry].contents.aba_ctr++;
 
 #ifndef NDEBUG
   /* Check for double push */
   {
-    int pushed_index = entry / (8 * sizeof(gpr_atm));
-    int pushed_bit = entry % (8 * sizeof(gpr_atm));
+    int pushed_index = entry / (8*sizeof(gpr_atm));
+    int pushed_bit = entry % (8*sizeof(gpr_atm));
     gpr_atm old_val;
 
     old_val = gpr_atm_no_barrier_fetch_add(&stack->pushed[pushed_index],
-                                           (gpr_atm)(1UL << pushed_bit));
-    GPR_ASSERT((old_val & (1UL << pushed_bit)) == 0);
+					   (gpr_atm)(1UL << pushed_bit));
+    GPR_ASSERT((old_val & (1UL<<pushed_bit)) == 0);
   }
 #endif
 
@@ -137,9 +131,7 @@ int gpr_stack_lockfree_push(gpr_stack_lockfree *stack, int entry) {
     /* Atomically get the existing head value for use */
     head.atm = gpr_atm_no_barrier_load(&(stack->head.atm));
     /* Point to it */
-    newent.atm = gpr_atm_no_barrier_load(&stack->entries[entry].atm);
-    newent.contents.index = head.contents.index;
-    gpr_atm_no_barrier_store(&stack->entries[entry].atm, newent.atm);
+    stack->entries[entry].contents.index = head.contents.index;
   } while (!gpr_atm_rel_cas(&(stack->head.atm), head.atm, newhead.atm));
   /* Use rel_cas above to make sure that entry index is set properly */
   return head.contents.index == INVALID_ENTRY_INDEX;
@@ -161,13 +153,13 @@ int gpr_stack_lockfree_pop(gpr_stack_lockfree *stack) {
 #ifndef NDEBUG
   /* Check for valid pop */
   {
-    int pushed_index = head.contents.index / (8 * sizeof(gpr_atm));
-    int pushed_bit = head.contents.index % (8 * sizeof(gpr_atm));
+    int pushed_index = head.contents.index / (8*sizeof(gpr_atm));
+    int pushed_bit = head.contents.index % (8*sizeof(gpr_atm));
     gpr_atm old_val;
 
     old_val = gpr_atm_no_barrier_fetch_add(&stack->pushed[pushed_index],
-                                           -(gpr_atm)(1UL << pushed_bit));
-    GPR_ASSERT((old_val & (1UL << pushed_bit)) != 0);
+					   -(gpr_atm)(1UL << pushed_bit));
+    GPR_ASSERT((old_val & (1UL<<pushed_bit)) != 0);
   }
 #endif
 

@@ -129,7 +129,7 @@ typedef void (*grpc_credentials_metadata_cb)(void *user_data,
                                              grpc_credentials_status status);
 
 typedef struct {
-  void (*destruct)(grpc_credentials *c);
+  void (*destroy)(grpc_credentials *c);
   int (*has_request_metadata)(const grpc_credentials *c);
   int (*has_request_metadata_only)(const grpc_credentials *c);
   void (*get_request_metadata)(grpc_credentials *c, grpc_pollset *pollset,
@@ -190,11 +190,9 @@ grpc_oauth2_token_fetcher_credentials_parse_server_response(
     grpc_credentials_md_store **token_md, gpr_timespec *token_lifetime);
 void grpc_flush_cached_google_default_credentials(void);
 
-/* Metadata-only credentials with the specified key and value where
-   asynchronicity can be simulated for testing. */
-grpc_credentials *grpc_md_only_test_credentials_create(const char *md_key,
-                                                       const char *md_value,
-                                                       int is_async);
+/* Simulates an oauth2 token fetch with the specified value for testing. */
+grpc_credentials *grpc_fake_oauth2_credentials_create(
+    const char *token_md_value, int is_async);
 
 /* Private constructor for jwt credentials from an already parsed json key.
    Takes ownership of the key. */
@@ -210,27 +208,18 @@ grpc_credentials *grpc_refresh_token_credentials_create_from_auth_refresh_token(
 /* --- grpc_server_credentials. --- */
 
 typedef struct {
-  void (*destruct)(grpc_server_credentials *c);
+  void (*destroy)(grpc_server_credentials *c);
   grpc_security_status (*create_security_connector)(
       grpc_server_credentials *c, grpc_security_connector **sc);
 } grpc_server_credentials_vtable;
 
-
-/* TODO(jboeuf): Add a refcount. */
 struct grpc_server_credentials {
   const grpc_server_credentials_vtable *vtable;
   const char *type;
-  gpr_refcount refcount;
-  grpc_auth_metadata_processor processor;
 };
 
 grpc_security_status grpc_server_credentials_create_security_connector(
     grpc_server_credentials *creds, grpc_security_connector **sc);
-
-grpc_server_credentials *grpc_server_credentials_ref(
-    grpc_server_credentials *creds);
-
-void grpc_server_credentials_unref(grpc_server_credentials *creds);
 
 /* -- Ssl credentials. -- */
 
@@ -285,12 +274,21 @@ typedef struct {
   grpc_fetch_oauth2_func fetch_func;
 } grpc_oauth2_token_fetcher_credentials;
 
-/* -- GoogleRefreshToken credentials. -- */
+/* -- ServiceAccount credentials. -- */
+
+typedef struct {
+  grpc_oauth2_token_fetcher_credentials base;
+  grpc_auth_json_key key;
+  char *scope;
+  gpr_timespec token_lifetime;
+} grpc_service_account_credentials;
+
+/* -- RefreshToken credentials. -- */
 
 typedef struct {
   grpc_oauth2_token_fetcher_credentials base;
   grpc_auth_refresh_token refresh_token;
-} grpc_google_refresh_token_credentials;
+} grpc_refresh_token_credentials;
 
 /* -- Oauth2 Access Token credentials. -- */
 
@@ -299,20 +297,20 @@ typedef struct {
   grpc_credentials_md_store *access_token_md;
 } grpc_access_token_credentials;
 
-/* --  Metadata-only Test credentials. -- */
+/* -- Fake Oauth2 credentials. -- */
 
 typedef struct {
   grpc_credentials base;
-  grpc_credentials_md_store *md_store;
+  grpc_credentials_md_store *access_token_md;
   int is_async;
-} grpc_md_only_test_credentials;
+} grpc_fake_oauth2_credentials;
 
-/* -- GoogleIAM credentials. -- */
+/* -- IAM credentials. -- */
 
 typedef struct {
   grpc_credentials base;
   grpc_credentials_md_store *iam_md;
-} grpc_google_iam_credentials;
+} grpc_iam_credentials;
 
 /* -- Composite credentials. -- */
 

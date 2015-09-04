@@ -37,7 +37,6 @@ cd $(dirname $0)/../..
 
 root=`pwd`
 export GRPC_LIB_SUBDIR=libs/$CONFIG
-export CFLAGS="-Wno-parentheses-equality"
 
 # build php
 cd src/php
@@ -46,6 +45,3 @@ cd ext/grpc
 phpize
 ./configure --enable-grpc=$root
 make
-
-# in some jenkins macos machine, somehow the PHP build script can't find libgrpc.dylib
-export DYLD_LIBRARY_PATH=$(pwd)/libs/$config

@@ -34,11 +34,9 @@
 #include <grpc++/client_context.h>
 
 #include <grpc/grpc.h>
-#include <grpc/support/alloc.h>
 #include <grpc/support/string_util.h>
-#include <grpc++/security/credentials.h>
-#include <grpc++/server_context.h>
-#include <grpc++/support/time.h>
+#include <grpc++/credentials.h>
+#include <grpc++/time.h>
 
 #include "src/core/channel/compress_filter.h"
 #include "src/cpp/common/create_auth_context.h"
@@ -48,21 +46,21 @@ namespace grpc {
 ClientContext::ClientContext()
     : initial_metadata_received_(false),
       call_(nullptr),
-      deadline_(gpr_inf_future(GPR_CLOCK_REALTIME)),
-      propagate_from_call_(nullptr) {}
+      cq_(nullptr),
+      deadline_(gpr_inf_future(GPR_CLOCK_REALTIME)) {}
 
 ClientContext::~ClientContext() {
   if (call_) {
     grpc_call_destroy(call_);
   }
-}
-
-std::unique_ptr<ClientContext> ClientContext::FromServerContext(
-    const ServerContext& context, PropagationOptions options) {
-  std::unique_ptr<ClientContext> ctx(new ClientContext);
-  ctx->propagate_from_call_ = context.call_;
-  ctx->propagation_options_ = options;
-  return ctx;
+  if (cq_) {
+    // Drain cq_.
+    grpc_completion_queue_shutdown(cq_);
+    while (grpc_completion_queue_next(cq_, gpr_inf_future(GPR_CLOCK_REALTIME))
+               .type != GRPC_QUEUE_SHUTDOWN)
+      ;
+    grpc_completion_queue_destroy(cq_);
+  }
 }
 
 void ClientContext::AddMetadata(const grpc::string& meta_key,
@@ -71,25 +69,25 @@ void ClientContext::AddMetadata(const grpc::string& meta_key,
 }
 
 void ClientContext::set_call(grpc_call* call,
-                             const std::shared_ptr<Channel>& channel) {
+                             const std::shared_ptr<ChannelInterface>& channel) {
   GPR_ASSERT(call_ == nullptr);
   call_ = call;
   channel_ = channel;
   if (creds_ && !creds_->ApplyToCall(call_)) {
     grpc_call_cancel_with_status(call, GRPC_STATUS_CANCELLED,
-                                 "Failed to set credentials to rpc.", nullptr);
+                                 "Failed to set credentials to rpc.");
   }
 }
 
 void ClientContext::set_compression_algorithm(
     grpc_compression_algorithm algorithm) {
-  char* algorithm_name = nullptr;
+  char* algorithm_name = NULL;
   if (!grpc_compression_algorithm_name(algorithm, &algorithm_name)) {
     gpr_log(GPR_ERROR, "Name for compression algorithm '%d' unknown.",
             algorithm);
     abort();
   }
-  GPR_ASSERT(algorithm_name != nullptr);
+  GPR_ASSERT(algorithm_name != NULL);
   AddMetadata(GRPC_COMPRESS_REQUEST_ALGORITHM_KEY, algorithm_name);
 }
 
@@ -102,18 +100,8 @@ std::shared_ptr<const AuthContext> ClientContext::auth_context() const {
 
 void ClientContext::TryCancel() {
   if (call_) {
-    grpc_call_cancel(call_, nullptr);
+    grpc_call_cancel(call_);
   }
-}
-
-grpc::string ClientContext::peer() const {
-  grpc::string peer;
-  if (call_) {
-    char* c_peer = grpc_call_get_peer(call_);
-    peer = c_peer;
-    gpr_free(c_peer);
-  }
-  return peer;
 }
 
 }  // namespace grpc

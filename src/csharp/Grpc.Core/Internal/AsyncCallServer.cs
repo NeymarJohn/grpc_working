@@ -49,18 +49,17 @@ namespace Grpc.Core.Internal
     {
         readonly TaskCompletionSource<object> finishedServersideTcs = new TaskCompletionSource<object>();
         readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        readonly Server server;
+        readonly GrpcEnvironment environment;
 
-        public AsyncCallServer(Func<TResponse, byte[]> serializer, Func<byte[], TRequest> deserializer, GrpcEnvironment environment, Server server) : base(serializer, deserializer, environment)
+        public AsyncCallServer(Func<TResponse, byte[]> serializer, Func<byte[], TRequest> deserializer, GrpcEnvironment environment) : base(serializer, deserializer)
         {
-            this.server = Preconditions.CheckNotNull(server);
+            this.environment = Preconditions.CheckNotNull(environment);
         }
 
         public void Initialize(CallSafeHandle call)
         {
             call.SetCompletionRegistry(environment.CompletionRegistry);
-
-            server.AddCallReference(this);
+            environment.DebugStats.ActiveServerCalls.Increment();
             InitializeInternal(call);
         }
 
@@ -84,9 +83,9 @@ namespace Grpc.Core.Internal
         /// Sends a streaming response. Only one pending send action is allowed at any given time.
         /// completionDelegate is called when the operation finishes.
         /// </summary>
-        public void StartSendMessage(TResponse msg, WriteFlags writeFlags, AsyncCompletionDelegate<object> completionDelegate)
+        public void StartSendMessage(TResponse msg, AsyncCompletionDelegate<object> completionDelegate)
         {
-            StartSendMessageInternal(msg, writeFlags, completionDelegate);
+            StartSendMessageInternal(msg, completionDelegate);
         }
 
         /// <summary>
@@ -96,35 +95,6 @@ namespace Grpc.Core.Internal
         public void StartReadMessage(AsyncCompletionDelegate<TRequest> completionDelegate)
         {
             StartReadMessageInternal(completionDelegate);
-        }
-
-        /// <summary>
-        /// Initiates sending a initial metadata. 
-        /// Even though C-core allows sending metadata in parallel to sending messages, we will treat sending metadata as a send message operation
-        /// to make things simpler.
-        /// completionDelegate is invoked upon completion.
-        /// </summary>
-        public void StartSendInitialMetadata(Metadata headers, AsyncCompletionDelegate<object> completionDelegate)
-        {
-            lock (myLock)
-            {
-                Preconditions.CheckNotNull(headers, "metadata");
-                Preconditions.CheckNotNull(completionDelegate, "Completion delegate cannot be null");
-
-                Preconditions.CheckState(!initialMetadataSent, "Response headers can only be sent once per call.");
-                Preconditions.CheckState(streamingWritesCounter == 0, "Response headers can only be sent before the first write starts.");
-                CheckSendingAllowed();
-
-                Preconditions.CheckNotNull(completionDelegate, "Completion delegate cannot be null");
-
-                using (var metadataArray = MetadataArraySafeHandle.Create(headers))
-                {
-                    call.StartSendInitialMetadata(HandleSendFinished, metadataArray);
-                }
-
-                this.initialMetadataSent = true;
-                sendCompletionDelegate = completionDelegate;
-            }
         }
 
         /// <summary>
@@ -141,7 +111,7 @@ namespace Grpc.Core.Internal
 
                 using (var metadataArray = MetadataArraySafeHandle.Create(trailers))
                 {
-                    call.StartSendStatusFromServer(HandleHalfclosed, status, metadataArray, !initialMetadataSent);
+                    call.StartSendStatusFromServer(status, HandleHalfclosed, metadataArray);
                 }
                 halfcloseRequested = true;
                 readingDone = true;
@@ -169,27 +139,18 @@ namespace Grpc.Core.Internal
             }
         }
 
-        protected override bool IsClient
+        protected override void OnReleaseResources()
         {
-            get { return false; }
-        }
-
-        protected override void CheckReadingAllowed()
-        {
-            base.CheckReadingAllowed();
-            Preconditions.CheckArgument(!cancelRequested);
-        }
-
-        protected override void OnAfterReleaseResources()
-        {
-            server.RemoveCallReference(this);
+            environment.DebugStats.ActiveServerCalls.Decrement();
         }
 
         /// <summary>
         /// Handles the server side close completion.
         /// </summary>
-        private void HandleFinishedServerside(bool success, bool cancelled)
+        private void HandleFinishedServerside(bool success, BatchContextSafeHandle ctx)
         {
+            bool cancelled = ctx.GetReceivedCloseOnServerCancelled();
+
             lock (myLock)
             {
                 finished = true;

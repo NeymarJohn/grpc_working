@@ -37,9 +37,12 @@
 #include <string>
 #include <gflags/gflags.h>
 
-#include <grpc++/channel.h>
+#include <grpc++/channel_arguments.h>
+#include <grpc++/channel_interface.h>
 #include <grpc++/client_context.h>
 #include <grpc++/create_channel.h>
+#include <grpc++/credentials.h>
+#include <grpc++/status.h>
 #include "test/cpp/util/echo.grpc.pb.h"
 
 DEFINE_string(address, "", "Address to connect to");
@@ -58,7 +61,7 @@ using namespace gflags;
 int main(int argc, char** argv) {
   ParseCommandLineFlags(&argc, &argv, true);
   auto stub = grpc::cpp::test::util::TestService::NewStub(
-      grpc::CreateChannel(FLAGS_address, grpc::InsecureCredentials()));
+    grpc::CreateChannel(FLAGS_address, grpc::InsecureCredentials(), grpc::ChannelArguments()));
 
   EchoRequest request;
   EchoResponse response;

@@ -38,12 +38,14 @@
 @implementation GRPCCompletionQueue
 
 + (instancetype)completionQueue {
+  // TODO(jcanizales): Reuse completion queues to consume only one thread,
+  // instead of one per call.
   return [[self alloc] init];
 }
 
 - (instancetype)init {
   if ((self = [super init])) {
-    _unmanagedQueue = grpc_completion_queue_create(NULL);
+    _unmanagedQueue = grpc_completion_queue_create();
 
     // This is for the following block to capture the pointer by value (instead
     // of retaining self and doing self->_unmanagedQueue). This is essential
@@ -64,8 +66,7 @@
       while (YES) {
         // The following call blocks until an event is available.
         grpc_event event = grpc_completion_queue_next(unmanagedQueue,
-                                                      gpr_inf_future(GPR_CLOCK_REALTIME),
-                                                      NULL);
+                                                      gpr_inf_future(GPR_CLOCK_REALTIME));
         GRPCQueueCompletionHandler handler;
         switch (event.type) {
           case GRPC_OP_COMPLETE:

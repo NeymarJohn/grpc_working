@@ -33,27 +33,29 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Grpc.Core;
 
-namespace Math
+namespace math
 {
     class MathClient
     {
         public static void Main(string[] args)
         {
-            var channel = new Channel("127.0.0.1", 23456, Credentials.Insecure);
-            Math.IMathClient client = new Math.MathClient(channel);
-            MathExamples.DivExample(client);
+            using (Channel channel = new Channel("127.0.0.1", 23456, Credentials.Insecure))
+            {
+                Math.IMathClient client = new Math.MathClient(channel);
+                MathExamples.DivExample(client);
 
-            MathExamples.DivAsyncExample(client).Wait();
+                MathExamples.DivAsyncExample(client).Wait();
 
-            MathExamples.FibExample(client).Wait();
+                MathExamples.FibExample(client).Wait();
 
-            MathExamples.SumExample(client).Wait();
+                MathExamples.SumExample(client).Wait();
 
-            MathExamples.DivManyExample(client).Wait();
+                MathExamples.DivManyExample(client).Wait();
 
-            MathExamples.DependendRequestsExample(client).Wait();
+                MathExamples.DependendRequestsExample(client).Wait();
+            }
 
-            channel.ShutdownAsync().Wait();
+            GrpcEnvironment.Shutdown();
         }
     }
 }

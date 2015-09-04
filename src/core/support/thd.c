@@ -37,7 +37,9 @@
 
 #include <grpc/support/thd.h>
 
-enum { GPR_THD_JOINABLE = 1 };
+enum {
+  GPR_THD_JOINABLE = 1
+};
 
 gpr_thd_options gpr_thd_options_default(void) {
   gpr_thd_options options;

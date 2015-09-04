@@ -39,10 +39,9 @@
 
 #include <grpc/compression.h>
 #include <grpc/support/time.h>
-#include <grpc++/security/auth_context.h>
-#include <grpc++/support/config.h>
-#include <grpc++/support/string_ref.h>
-#include <grpc++/support/time.h>
+#include <grpc++/auth_context.h>
+#include <grpc++/config.h>
+#include <grpc++/time.h>
 
 struct gpr_timespec;
 struct grpc_metadata;
@@ -51,7 +50,6 @@ struct census_context;
 
 namespace grpc {
 
-class ClientContext;
 template <class W, class R>
 class ServerAsyncReader;
 template <class W>
@@ -74,7 +72,6 @@ template <class ServiceType, class RequestType, class ResponseType>
 class ServerStreamingHandler;
 template <class ServiceType, class RequestType, class ResponseType>
 class BidiStreamingHandler;
-class UnknownMethodHandler;
 
 class Call;
 class CallOpBuffer;
@@ -82,7 +79,7 @@ class CompletionQueue;
 class Server;
 
 namespace testing {
-class InteropServerContextInspector;
+class InteropContextInspector;
 }  // namespace testing
 
 // Interface of server side rpc context.
@@ -104,7 +101,7 @@ class ServerContext {
 
   bool IsCancelled() const;
 
-  const std::multimap<grpc::string_ref, grpc::string_ref>& client_metadata() {
+  const std::multimap<grpc::string, grpc::string>& client_metadata() {
     return client_metadata_;
   }
 
@@ -120,24 +117,10 @@ class ServerContext {
 
   std::shared_ptr<const AuthContext> auth_context() const;
 
-  // Return the peer uri in a string.
-  // WARNING: this value is never authenticated or subject to any security
-  // related code. It must not be used for any authentication related
-  // functionality. Instead, use auth_context.
-  grpc::string peer() const;
-
   const struct census_context* census_context() const;
 
-  // Async only. Has to be called before the rpc starts.
-  // Returns the tag in completion queue when the rpc finishes.
-  // IsCancelled() can then be called to check whether the rpc was cancelled.
-  void AsyncNotifyWhenDone(void* tag) {
-    has_notify_when_done_tag_ = true;
-    async_notify_when_done_tag_ = tag;
-  }
-
  private:
-  friend class ::grpc::testing::InteropServerContextInspector;
+  friend class ::grpc::testing::InteropContextInspector;
   friend class ::grpc::Server;
   template <class W, class R>
   friend class ::grpc::ServerAsyncReader;
@@ -161,8 +144,6 @@ class ServerContext {
   friend class ServerStreamingHandler;
   template <class ServiceType, class RequestType, class ResponseType>
   friend class BidiStreamingHandler;
-  friend class UnknownMethodHandler;
-  friend class ::grpc::ClientContext;
 
   // Prevent copying.
   ServerContext(const ServerContext&);
@@ -178,15 +159,13 @@ class ServerContext {
   void set_call(grpc_call* call);
 
   CompletionOp* completion_op_;
-  bool has_notify_when_done_tag_;
-  void* async_notify_when_done_tag_;
 
   gpr_timespec deadline_;
   grpc_call* call_;
   CompletionQueue* cq_;
   bool sent_initial_metadata_;
   mutable std::shared_ptr<const AuthContext> auth_context_;
-  std::multimap<grpc::string_ref, grpc::string_ref> client_metadata_;
+  std::multimap<grpc::string, grpc::string> client_metadata_;
   std::multimap<grpc::string, grpc::string> initial_metadata_;
   std::multimap<grpc::string, grpc::string> trailing_metadata_;
 

@@ -44,7 +44,7 @@ var assert = require('assert');
 
 var AUTH_SCOPE = 'https://www.googleapis.com/auth/xapi.zoo';
 var AUTH_SCOPE_RESPONSE = 'xapi.zoo';
-var AUTH_USER = ('155450119199-vefjjaekcc6cmsd5914v6lqufunmh9ue' +
+var AUTH_USER = ('155450119199-3psnrh1sdr3d8cpj1v46naggf81mhdnk' +
     '@developer.gserviceaccount.com');
 var COMPUTE_ENGINE_USER = ('155450119199-r5aaqa2vqoa9g5mv2m6s3m1l293rlmel' +
     '@developer.gserviceaccount.com');
@@ -67,8 +67,11 @@ function zeroBuffer(size) {
  *     primarily for use with mocha
  */
 function emptyUnary(client, done) {
-  client.emptyCall({}, function(err, resp) {
+  var call = client.emptyCall({}, function(err, resp) {
     assert.ifError(err);
+  });
+  call.on('status', function(status) {
+    assert.strictEqual(status.code, grpc.status.OK);
     if (done) {
       done();
     }
@@ -89,10 +92,13 @@ function largeUnary(client, done) {
       body: zeroBuffer(271828)
     }
   };
-  client.unaryCall(arg, function(err, resp) {
+  var call = client.unaryCall(arg, function(err, resp) {
     assert.ifError(err);
     assert.strictEqual(resp.payload.type, 'COMPRESSABLE');
     assert.strictEqual(resp.payload.body.length, 314159);
+  });
+  call.on('status', function(status) {
+    assert.strictEqual(status.code, grpc.status.OK);
     if (done) {
       done();
     }
@@ -109,6 +115,9 @@ function clientStreaming(client, done) {
   var call = client.streamingInputCall(function(err, resp) {
     assert.ifError(err);
     assert.strictEqual(resp.aggregated_payload_size, 74922);
+  });
+  call.on('status', function(status) {
+    assert.strictEqual(status.code, grpc.status.OK);
     if (done) {
       done();
     }
@@ -259,14 +268,12 @@ function cancelAfterFirstResponse(client, done) {
 function timeoutOnSleepingServer(client, done) {
   var deadline = new Date();
   deadline.setMilliseconds(deadline.getMilliseconds() + 1);
-  var call = client.fullDuplexCall(null, {deadline: deadline});
+  var call = client.fullDuplexCall(null, deadline);
   call.write({
     payload: {body: zeroBuffer(27182)}
   });
   call.on('error', function(error) {
-
-    assert(error.code === grpc.status.DEADLINE_EXCEEDED ||
-        error.code === grpc.status.INTERNAL);
+    assert.strictEqual(error.code, grpc.status.DEADLINE_EXCEEDED);
     done();
   });
 }
@@ -285,7 +292,7 @@ function authTest(expected_user, scope, client, done) {
     if (credential.createScopedRequired() && scope) {
       credential = credential.createScoped(scope);
     }
-    client.$updateMetadata = grpc.getGoogleAuthDelegate(credential);
+    client.updateMetadata = grpc.getGoogleAuthDelegate(credential);
     var arg = {
       response_type: 'COMPRESSABLE',
       response_size: 314159,
@@ -295,14 +302,15 @@ function authTest(expected_user, scope, client, done) {
       fill_username: true,
       fill_oauth_scope: true
     };
-    client.unaryCall(arg, function(err, resp) {
+    var call = client.unaryCall(arg, function(err, resp) {
       assert.ifError(err);
       assert.strictEqual(resp.payload.type, 'COMPRESSABLE');
       assert.strictEqual(resp.payload.body.length, 314159);
       assert.strictEqual(resp.username, expected_user);
-      if (scope) {
-        assert.strictEqual(resp.oauth_scope, AUTH_SCOPE_RESPONSE);
-      }
+      assert.strictEqual(resp.oauth_scope, AUTH_SCOPE_RESPONSE);
+    });
+    call.on('status', function(status) {
+      assert.strictEqual(status.code, grpc.status.OK);
       if (done) {
         done();
       }
@@ -321,26 +329,36 @@ function oauth2Test(expected_user, scope, per_rpc, client, done) {
     credential.getAccessToken(function(err, token) {
       assert.ifError(err);
       var updateMetadata = function(authURI, metadata, callback) {
-        metadata.add('authorization', 'Bearer ' + token);
+        metadata = _.clone(metadata);
+        if (metadata.Authorization) {
+          metadata.Authorization = _.clone(metadata.Authorization);
+        } else {
+          metadata.Authorization = [];
+        }
+        metadata.Authorization.push('Bearer ' + token);
         callback(null, metadata);
       };
       var makeTestCall = function(error, client_metadata) {
         assert.ifError(error);
-        client.unaryCall(arg, function(err, resp) {
+        var call = client.unaryCall(arg, function(err, resp) {
           assert.ifError(err);
           assert.strictEqual(resp.username, expected_user);
           assert.strictEqual(resp.oauth_scope, AUTH_SCOPE_RESPONSE);
+        });
+        call.on('status', function(status) {
+          assert.strictEqual(status.code, grpc.status.OK);
           if (done) {
             done();
           }
-        }, client_metadata);
+        });
       };
       if (per_rpc) {
-        updateMetadata('', new grpc.Metadata(), makeTestCall);
+        updateMetadata('', {}, makeTestCall);
       } else {
-        client.$updateMetadata = updateMetadata;
-        makeTestCall(null, new grpc.Metadata());
+        client.updateMetadata = updateMetadata;
+        makeTestCall(null, {});
       }
+
     });
   });
 }
@@ -391,7 +409,6 @@ function runTest(address, host_override, test_case, tls, test_ca, done) {
     creds = grpc.Credentials.createSsl(ca_data);
     if (host_override) {
       options['grpc.ssl_target_name_override'] = host_override;
-      options['grpc.default_authority'] = host_override;
     }
   } else {
     creds = grpc.Credentials.createInsecure();

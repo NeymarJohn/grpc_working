@@ -59,22 +59,7 @@ describe('server', function() {
     it('should bind to an unused port', function() {
       var port;
       assert.doesNotThrow(function() {
-        port = server.addHttp2Port('0.0.0.0:0',
-                                   grpc.ServerCredentials.createInsecure());
-      });
-      assert(port > 0);
-    });
-    it('should bind to an unused port with ssl credentials', function() {
-      var port;
-      var key_path = path.join(__dirname, '../test/data/server1.key');
-      var pem_path = path.join(__dirname, '../test/data/server1.pem');
-      var key_data = fs.readFileSync(key_path);
-      var pem_data = fs.readFileSync(pem_path);
-      var creds = grpc.ServerCredentials.createSsl(null,
-                                                   [{private_key: key_data,
-                                                     cert_chain: pem_data}]);
-      assert.doesNotThrow(function() {
-        port = server.addHttp2Port('0.0.0.0:0', creds);
+        port = server.addHttp2Port('0.0.0.0:0');
       });
       assert(port > 0);
     });
@@ -84,49 +69,32 @@ describe('server', function() {
     before(function() {
       server = new grpc.Server();
     });
+    it('should bind to an unused port with ssl credentials', function() {
+      var port;
+      var key_path = path.join(__dirname, '../test/data/server1.key');
+      var pem_path = path.join(__dirname, '../test/data/server1.pem');
+      var key_data = fs.readFileSync(key_path);
+      var pem_data = fs.readFileSync(pem_path);
+      var creds = grpc.ServerCredentials.createSsl(null, key_data, pem_data);
+      assert.doesNotThrow(function() {
+        port = server.addSecureHttp2Port('0.0.0.0:0', creds);
+      });
+      assert(port > 0);
+    });
   });
-  describe('start', function() {
+  describe('listen', function() {
     var server;
     before(function() {
       server = new grpc.Server();
-      server.addHttp2Port('0.0.0.0:0', grpc.ServerCredentials.createInsecure());
+      server.addHttp2Port('0.0.0.0:0');
     });
     after(function() {
-      server.forceShutdown();
+      server.shutdown();
     });
-    it('should start without error', function() {
+    it('should listen without error', function() {
       assert.doesNotThrow(function() {
         server.start();
       });
-    });
-  });
-  describe('shutdown', function() {
-    var server;
-    beforeEach(function() {
-      server = new grpc.Server();
-      server.addHttp2Port('0.0.0.0:0', grpc.ServerCredentials.createInsecure());
-      server.start();
-    });
-    afterEach(function() {
-      server.forceShutdown();
-    });
-    it('tryShutdown should shutdown successfully', function(done) {
-      server.tryShutdown(done);
-    });
-    it('forceShutdown should shutdown successfully', function() {
-      server.forceShutdown();
-    });
-    it('tryShutdown should be idempotent', function(done) {
-      server.tryShutdown(done);
-      server.tryShutdown(function() {});
-    });
-    it('forceShutdown should be idempotent', function() {
-      server.forceShutdown();
-      server.forceShutdown();
-    });
-    it('forceShutdown should trigger tryShutdown', function(done) {
-      server.tryShutdown(done);
-      server.forceShutdown();
     });
   });
 });

@@ -33,12 +33,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using grpc.testing;
 using Grpc.Core;
 using Grpc.Core.Utils;
-using Grpc.Testing;
 using NUnit.Framework;
 
 namespace Grpc.IntegrationTesting
@@ -48,7 +47,7 @@ namespace Grpc.IntegrationTesting
     /// </summary>
     public class InteropClientServerTest
     {
-        const string Host = "localhost";
+        string host = "localhost";
         Server server;
         Channel channel;
         TestService.ITestServiceClient client;
@@ -56,27 +55,25 @@ namespace Grpc.IntegrationTesting
         [TestFixtureSetUp]
         public void Init()
         {
-            server = new Server
-            {
-                Services = { TestService.BindService(new TestServiceImpl()) },
-                Ports = { { Host, ServerPort.PickUnused, TestCredentials.CreateTestServerCredentials() } }
-            };
+            server = new Server();
+            server.AddServiceDefinition(TestService.BindService(new TestServiceImpl()));
+            int port = server.AddPort(host, Server.PickUnusedPort, TestCredentials.CreateTestServerCredentials());
             server.Start();
 
             var options = new List<ChannelOption>
             {
                 new ChannelOption(ChannelOptions.SslTargetNameOverride, TestCredentials.DefaultHostOverride)
             };
-            int port = server.Ports.Single().BoundPort;
-            channel = new Channel(Host, port, TestCredentials.CreateTestClientCredentials(true), options);
+            channel = new Channel(host, port, TestCredentials.CreateTestClientCredentials(true), options);
             client = TestService.NewClient(channel);
         }
 
         [TestFixtureTearDown]
         public void Cleanup()
         {
-            channel.ShutdownAsync().Wait();
+            channel.Dispose();
             server.ShutdownAsync().Wait();
+            GrpcEnvironment.Shutdown();
         }
 
         [Test]
@@ -125,12 +122,6 @@ namespace Grpc.IntegrationTesting
         public async Task CancelAfterFirstResponse()
         {
             await InteropClient.RunCancelAfterFirstResponseAsync(client);
-        }
-
-        [Test]
-        public async Task TimeoutOnSleepingServerAsync()
-        {
-            await InteropClient.RunTimeoutOnSleepingServerAsync(client);
         }
     }
 }
