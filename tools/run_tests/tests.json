@@ -183,24 +183,6 @@
     "ci_platforms": [
       "linux", 
       "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "endpoint_pair_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ], 
     "exclude_configs": [], 
@@ -661,7 +643,8 @@
     "ci_platforms": [
       "linux", 
       "mac", 
-      "posix"
+      "posix", 
+      "windows"
     ], 
     "exclude_configs": [], 
     "flaky": false, 
@@ -670,7 +653,8 @@
     "platforms": [
       "linux", 
       "mac", 
-      "posix"
+      "posix", 
+      "windows"
     ]
   }, 
   {
@@ -862,6 +846,24 @@
     "flaky": false, 
     "language": "c", 
     "name": "lame_client_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "lb_policies_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -1137,7 +1139,8 @@
     "ci_platforms": [
       "linux", 
       "mac", 
-      "posix"
+      "posix", 
+      "windows"
     ], 
     "exclude_configs": [], 
     "flaky": false, 
@@ -1146,7 +1149,8 @@
     "platforms": [
       "linux", 
       "mac", 
-      "posix"
+      "posix", 
+      "windows"
     ]
   }, 
   {
@@ -1561,22 +1565,6 @@
       "mac", 
       "posix", 
       "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c++", 
-    "name": "streaming_throughput_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix"
     ]
   }, 
   {

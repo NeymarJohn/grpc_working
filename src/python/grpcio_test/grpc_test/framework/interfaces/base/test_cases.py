@@ -44,8 +44,7 @@ from grpc_test.framework.interfaces.base import test_interfaces
 
 _SYNCHRONICITY_VARIATION = (('Sync', False), ('Async', True))
 
-_EMPTY_OUTCOME_KIND_DICT = {
-    outcome_kind: 0 for outcome_kind in base.Outcome.Kind}
+_EMPTY_OUTCOME_DICT = {outcome: 0 for outcome in base.Outcome}
 
 
 class _Serialization(test_interfaces.Serialization):
@@ -120,7 +119,7 @@ class _Operator(base.Operator):
 
 
 class _Servicer(base.Servicer):
-  """A base.Servicer with instrumented for testing."""
+  """An base.Servicer with instrumented for testing."""
 
   def __init__(self, group, method, controllers, pool):
     self._condition = threading.Condition()
@@ -224,12 +223,11 @@ class _OperationTest(unittest.TestCase):
     self.assertTrue(
         instruction.conclude_success, msg=instruction.conclude_message)
 
-    expected_invocation_stats = dict(_EMPTY_OUTCOME_KIND_DICT)
-    expected_invocation_stats[
-        instruction.conclude_invocation_outcome_kind] += 1
+    expected_invocation_stats = dict(_EMPTY_OUTCOME_DICT)
+    expected_invocation_stats[instruction.conclude_invocation_outcome] += 1
     self.assertDictEqual(expected_invocation_stats, invocation_stats)
-    expected_service_stats = dict(_EMPTY_OUTCOME_KIND_DICT)
-    expected_service_stats[instruction.conclude_service_outcome_kind] += 1
+    expected_service_stats = dict(_EMPTY_OUTCOME_DICT)
+    expected_service_stats[instruction.conclude_service_outcome] += 1
     self.assertDictEqual(expected_service_stats, service_stats)
 
 

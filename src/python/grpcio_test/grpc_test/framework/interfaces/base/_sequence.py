@@ -103,14 +103,13 @@ class Element(collections.namedtuple('Element', ('kind', 'transmission',))):
     SERVICE_FAILURE = 'service failure'
 
 
-class OutcomeKinds(
-    collections.namedtuple('Outcome', ('invocation', 'service',))):
+class Outcome(collections.namedtuple('Outcome', ('invocation', 'service',))):
   """A description of the expected outcome of an operation test.
 
   Attributes:
-    invocation: The base.Outcome.Kind value expected on the invocation side of
-      the operation.
-    service: The base.Outcome.Kind value expected on the service side of the
+    invocation: The base.Outcome value expected on the invocation side of the
+      operation.
+    service: The base.Outcome value expected on the service side of the
       operation.
   """
 
@@ -118,8 +117,7 @@ class OutcomeKinds(
 class Sequence(
     collections.namedtuple(
         'Sequence',
-        ('name', 'maximum_duration', 'invocation', 'elements',
-         'outcome_kinds',))):
+        ('name', 'maximum_duration', 'invocation', 'elements', 'outcome',))):
   """Describes at a high level steps to perform in a test.
 
   Attributes:
@@ -130,8 +128,7 @@ class Sequence(
       under test.
     elements: A sequence of Element values describing at coarse granularity
       actions to take during the operation under test.
-    outcome_kinds: An OutcomeKinds value describing the expected outcome kinds
-      of the test.
+    outcome: An Outcome value describing the expected outcome of the test.
   """
 
 _EASY = Sequence(
@@ -142,7 +139,7 @@ _EASY = Sequence(
         Element(
             Element.Kind.SERVICE_TRANSMISSION, Transmission(True, True, True)),
     ),
-    OutcomeKinds(base.Outcome.Kind.COMPLETED, base.Outcome.Kind.COMPLETED))
+    Outcome(base.Outcome.COMPLETED, base.Outcome.COMPLETED))
 
 _PEASY = Sequence(
     'Peasy',
@@ -157,7 +154,7 @@ _PEASY = Sequence(
         Element(
             Element.Kind.SERVICE_TRANSMISSION, Transmission(False, True, True)),
     ),
-    OutcomeKinds(base.Outcome.Kind.COMPLETED, base.Outcome.Kind.COMPLETED))
+    Outcome(base.Outcome.COMPLETED, base.Outcome.COMPLETED))
 
 
 # TODO(issue 2959): Finish this test suite. This tuple of sequences should

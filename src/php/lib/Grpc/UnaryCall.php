@@ -40,20 +40,14 @@ namespace Grpc;
 class UnaryCall extends AbstractCall {
   /**
    * Start the call
-   * @param $data The data to send
+   * @param $arg The argument to send
    * @param array $metadata Metadata to send with the call, if applicable
-   * @param array $options an array of options, possible keys:
-   *              'flags' => a number
    */
-  public function start($data, $metadata = array(), $options = array()) {
-    $message_array = ['message' => $data->serialize()];
-    if (isset($options['flags'])) {
-      $message_array['flags'] = $options['flags'];
-    }
+  public function start($arg, $metadata = array()) {
     $event = $this->call->startBatch([
         OP_SEND_INITIAL_METADATA => $metadata,
         OP_RECV_INITIAL_METADATA => true,
-        OP_SEND_MESSAGE => $message_array,
+        OP_SEND_MESSAGE => $arg->serialize(),
         OP_SEND_CLOSE_FROM_CLIENT => true]);
     $this->metadata = $event->metadata;
   }
