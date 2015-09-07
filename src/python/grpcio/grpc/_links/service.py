@@ -167,12 +167,10 @@ class _Kernel(object):
         request_deserializer, response_serializer, 1, _Read.READING, None, 1,
         _HighWrite.OPEN, _LowWrite.OPEN, False, None, None, None,
         set((_READ, _FINISH,)))
-    protocol = links.Protocol(
-        links.Protocol.Kind.SERVICER_CONTEXT, 'TODO: Service Context Object!')
     ticket = links.Ticket(
         call, 0, group, method, links.Ticket.Subscription.FULL,
         service_acceptance.deadline - time.time(), None, event.metadata, None,
-        None, None, None, None, protocol)
+        None, None, None, None, 'TODO: Service Context Object!')
     self._relay.add_value(ticket)
 
   def _on_read_event(self, event):
