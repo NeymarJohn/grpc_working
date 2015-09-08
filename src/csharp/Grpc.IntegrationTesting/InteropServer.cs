@@ -37,9 +37,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
-using CommandLine;
-using CommandLine.Text;
 using Grpc.Core;
 using Grpc.Core.Utils;
 using Grpc.Testing;
@@ -51,24 +48,9 @@ namespace Grpc.IntegrationTesting
     {
         private class ServerOptions
         {
-            [Option("port", DefaultValue = 8070)]
-            public int Port { get; set; }
-
-            [Option("use_tls")]
-            public bool UseTls { get; set; }
-
-            [HelpOption]
-            public string GetUsage()
-            {
-                var help = new HelpText
-                {
-                    Heading = "gRPC C# interop testing server",
-                    AddDashesToOption = true
-                };
-                help.AddPreOptionsLine("Usage:");
-                help.AddOptions(this);
-                return help;
-            }
+            public bool help;
+            public int? port = 8070;
+            public bool useTls;
         }
 
         ServerOptions options;
@@ -80,9 +62,22 @@ namespace Grpc.IntegrationTesting
 
         public static void Run(string[] args)
         {
-            var options = new ServerOptions();
-            if (!Parser.Default.ParseArguments(args, options))
+            Console.WriteLine("gRPC C# interop testing server");
+            ServerOptions options = ParseArguments(args);
+
+            if (!options.port.HasValue)
             {
+                Console.WriteLine("Missing required argument.");
+                Console.WriteLine();
+                options.help = true;
+            }
+
+            if (options.help)
+            {
+                Console.WriteLine("Usage:");
+                Console.WriteLine("  --port=PORT");
+                Console.WriteLine("  --use_tls=BOOLEAN");
+                Console.WriteLine();
                 Environment.Exit(1);
             }
 
@@ -98,19 +93,54 @@ namespace Grpc.IntegrationTesting
             };
 
             string host = "0.0.0.0";
-            int port = options.Port;
-            if (options.UseTls)
+            int port = options.port.Value;
+            if (options.useTls)
             {
                 server.Ports.Add(host, port, TestCredentials.CreateTestServerCredentials());
             }
             else
             {
-                server.Ports.Add(host, options.Port, ServerCredentials.Insecure);
+                server.Ports.Add(host, options.port.Value, ServerCredentials.Insecure);
             }
             Console.WriteLine("Running server on " + string.Format("{0}:{1}", host, port));
             server.Start();
 
             server.ShutdownTask.Wait();
+        }
+
+        private static ServerOptions ParseArguments(string[] args)
+        {
+            var options = new ServerOptions();
+            foreach (string arg in args)
+            {
+                ParseArgument(arg, options);
+                if (options.help)
+                {
+                    break;
+                }
+            }
+            return options;
+        }
+
+        private static void ParseArgument(string arg, ServerOptions options)
+        {
+            Match match;
+            match = Regex.Match(arg, "--port=(.*)");
+            if (match.Success)
+            {
+                options.port = int.Parse(match.Groups[1].Value.Trim());
+                return;
+            }
+
+            match = Regex.Match(arg, "--use_tls=(.*)");
+            if (match.Success)
+            {
+                options.useTls = bool.Parse(match.Groups[1].Value.Trim());
+                return;
+            }
+
+            Console.WriteLine(string.Format("Unrecognized argument \"{0}\"", arg));
+            options.help = true;
         }
     }
 }
