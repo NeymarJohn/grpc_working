@@ -77,6 +77,7 @@ struct grpc_channel {
 
   gpr_mu registered_call_mu;
   registered_call *registered_calls;
+  grpc_iomgr_closure destroy_closure;
   char *target;
 };
 
@@ -90,8 +91,7 @@ struct grpc_channel {
 #define DEFAULT_MAX_MESSAGE_LENGTH (100 * 1024 * 1024)
 
 grpc_channel *grpc_channel_create_from_filters(
-    grpc_exec_ctx *exec_ctx, const char *target,
-    const grpc_channel_filter **filters, size_t num_filters,
+    const char *target, const grpc_channel_filter **filters, size_t num_filters,
     const grpc_channel_args *args, grpc_mdctx *mdctx, int is_client) {
   size_t i;
   size_t size =
@@ -113,7 +113,7 @@ grpc_channel *grpc_channel_create_from_filters(
       grpc_mdstr_from_string(mdctx, "grpc-message", 0);
   for (i = 0; i < NUM_CACHED_STATUS_ELEMS; i++) {
     char buf[GPR_LTOA_MIN_BUFSIZE];
-    gpr_ltoa((long)i, buf);
+    gpr_ltoa(i, buf);
     channel->grpc_status_elem[i] = grpc_mdelem_from_metadata_strings(
         mdctx, GRPC_MDSTR_REF(channel->grpc_status_string),
         grpc_mdstr_from_string(mdctx, buf, 0));
@@ -134,7 +134,7 @@ grpc_channel *grpc_channel_create_from_filters(
           gpr_log(GPR_ERROR, "%s ignored: it must be >= 0",
                   GRPC_ARG_MAX_MESSAGE_LENGTH);
         } else {
-          channel->max_message_length = (gpr_uint32)args->args[i].value.integer;
+          channel->max_message_length = args->args[i].value.integer;
         }
       } else if (0 == strcmp(args->args[i].key, GRPC_ARG_DEFAULT_AUTHORITY)) {
         if (args->args[i].type != GRPC_ARG_STRING) {
@@ -177,7 +177,7 @@ grpc_channel *grpc_channel_create_from_filters(
     gpr_free(default_authority);
   }
 
-  grpc_channel_stack_init(exec_ctx, filters, num_filters, channel, args,
+  grpc_channel_stack_init(filters, num_filters, channel, args,
                           channel->metadata_context,
                           CHANNEL_STACK_FROM_CHANNEL(channel));
 
@@ -193,7 +193,7 @@ static grpc_call *grpc_channel_create_call_internal(
     grpc_completion_queue *cq, grpc_mdelem *path_mdelem,
     grpc_mdelem *authority_mdelem, gpr_timespec deadline) {
   grpc_mdelem *send_metadata[2];
-  size_t num_metadata = 0;
+  int num_metadata = 0;
 
   GPR_ASSERT(channel->is_client);
 
@@ -270,9 +270,10 @@ void grpc_channel_internal_ref(grpc_channel *c) {
   gpr_ref(&c->refs);
 }
 
-static void destroy_channel(grpc_exec_ctx *exec_ctx, grpc_channel *channel) {
+static void destroy_channel(void *p, int ok) {
+  grpc_channel *channel = p;
   size_t i;
-  grpc_channel_stack_destroy(exec_ctx, CHANNEL_STACK_FROM_CHANNEL(channel));
+  grpc_channel_stack_destroy(CHANNEL_STACK_FROM_CHANNEL(channel));
   for (i = 0; i < NUM_CACHED_STATUS_ELEMS; i++) {
     GRPC_MDELEM_UNREF(channel->grpc_status_elem[i]);
   }
@@ -301,31 +302,28 @@ static void destroy_channel(grpc_exec_ctx *exec_ctx, grpc_channel *channel) {
 }
 
 #ifdef GRPC_CHANNEL_REF_COUNT_DEBUG
-void grpc_channel_internal_unref(grpc_exec_ctx *exec_ctx, grpc_channel *channel,
-                                 const char *reason) {
+void grpc_channel_internal_unref(grpc_channel *channel, const char *reason) {
   gpr_log(GPR_DEBUG, "CHANNEL: unref %p %d -> %d [%s]", channel,
           channel->refs.count, channel->refs.count - 1, reason);
 #else
-void grpc_channel_internal_unref(grpc_exec_ctx *exec_ctx,
-                                 grpc_channel *channel) {
+void grpc_channel_internal_unref(grpc_channel *channel) {
 #endif
   if (gpr_unref(&channel->refs)) {
-    destroy_channel(exec_ctx, channel);
+    channel->destroy_closure.cb = destroy_channel;
+    channel->destroy_closure.cb_arg = channel;
+    grpc_iomgr_add_callback(&channel->destroy_closure);
   }
 }
 
 void grpc_channel_destroy(grpc_channel *channel) {
   grpc_transport_op op;
   grpc_channel_element *elem;
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
   memset(&op, 0, sizeof(op));
   op.disconnect = 1;
   elem = grpc_channel_stack_element(CHANNEL_STACK_FROM_CHANNEL(channel), 0);
-  elem->filter->start_transport_op(&exec_ctx, elem, &op);
+  elem->filter->start_transport_op(elem, &op);
 
-  GRPC_CHANNEL_INTERNAL_UNREF(&exec_ctx, channel, "channel");
-
-  grpc_exec_ctx_finish(&exec_ctx);
+  GRPC_CHANNEL_INTERNAL_UNREF(channel, "channel");
 }
 
 grpc_channel_stack *grpc_channel_get_channel_stack(grpc_channel *channel) {
