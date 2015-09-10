@@ -173,11 +173,7 @@ function clientStreaming($stub) {
         return $request;
       }, $request_lengths);
 
-  $call = $stub->StreamingInputCall();
-  foreach ($requests as $request) {
-    $call->write($request);
-  }
-  list($result, $status) = $call->wait();
+  list($result, $status) = $stub->StreamingInputCall($requests)->wait();
   hardAssert($status->code === Grpc\STATUS_OK, 'Call did not complete successfully');
   hardAssert($result->getAggregatedPayloadSize() === 74922,
               'aggregated_payload_size was incorrect');
@@ -248,19 +244,6 @@ function pingPong($stub) {
   hardAssert($call->read() === null, 'Server returned too many responses');
   hardAssert($call->getStatus()->code === Grpc\STATUS_OK,
               'Call did not complete successfully');
-}
-
-/**
- * Run the cancel_after_begin test.
- * Passes when run against the Node server as of 2015-08-28
- * @param $stub Stub object that has service methods.
- */
-function cancelAfterBegin($stub) {
-  $call = $stub->StreamingInputCall();
-  $call->cancel();
-  list($result, $status) = $call->wait();
-  hardAssert($status->code === Grpc\STATUS_CANCELLED,
-             'Call status was not CANCELLED');
 }
 
 /**
@@ -349,7 +332,11 @@ if (in_array($args['test_case'], array(
   $opts['update_metadata'] = $auth->getUpdateMetadataFunc();
 }
 
-$stub = new grpc\testing\TestServiceClient($server_address, $opts);
+$internal_stub = new Grpc\BaseStub($server_address, $opts);
+hardAssert(is_string($internal_stub->getTarget()),
+           'Unexpected target URI value');
+
+$stub = new grpc\testing\TestServiceClient($internal_stub);
 
 echo "Connecting to $server_address\n";
 echo "Running test case $args[test_case]\n";
@@ -370,9 +357,6 @@ switch ($args['test_case']) {
   case 'ping_pong':
     pingPong($stub);
     break;
-  case 'cancel_after_begin':
-    cancelAfterBegin($stub);
-    break;
   case 'cancel_after_first_response':
     cancelAfterFirstResponse($stub);
     break;
@@ -389,6 +373,5 @@ switch ($args['test_case']) {
     jwtTokenCreds($stub, $args);
     break;
   default:
-    echo "Unsupported test case $args[test_case]\n";
     exit(1);
 }

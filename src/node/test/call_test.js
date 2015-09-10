@@ -61,7 +61,7 @@ describe('call', function() {
     channel = new grpc.Channel('localhost:' + port, insecureCreds);
   });
   after(function() {
-    server.forceShutdown();
+    server.shutdown();
   });
   describe('constructor', function() {
     it('should reject anything less than 3 arguments', function() {

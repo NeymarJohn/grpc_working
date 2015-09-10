@@ -33,6 +33,7 @@
 
 #include "test/core/util/reconnect_server.h"
 
+#include <arpa/inet.h>
 #include <grpc/grpc.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/host_port.h>
@@ -41,7 +42,6 @@
 #include <grpc/support/time.h>
 #include <string.h>
 #include "src/core/iomgr/endpoint.h"
-#include "src/core/iomgr/sockaddr.h"
 #include "src/core/iomgr/tcp_server.h"
 #include "test/core/util/port.h"
 
@@ -81,7 +81,8 @@ static void on_connect(void *arg, grpc_endpoint *tcp) {
     } else {
       if (last_colon == NULL) {
         gpr_log(GPR_ERROR, "peer does not contain a ':'");
-      } else if (strncmp(server->peer, peer, last_colon - peer) != 0) {
+      } else if (strncmp(server->peer, peer, (size_t)(last_colon - peer)) !=
+                 0) {
         gpr_log(GPR_ERROR, "mismatched peer! %s vs %s", server->peer, peer);
       }
       gpr_free(peer);
@@ -116,7 +117,7 @@ void reconnect_server_start(reconnect_server *server, int port) {
 
   addr.sin_family = AF_INET;
   addr.sin_port = htons(port);
-  memset(&addr.sin_addr, 0, sizeof(addr.sin_addr));
+  inet_pton(AF_INET, "0.0.0.0", &addr.sin_addr);
 
   server->tcp_server = grpc_tcp_server_create();
   port_added =

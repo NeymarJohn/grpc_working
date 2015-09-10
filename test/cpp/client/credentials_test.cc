@@ -31,7 +31,7 @@
  *
  */
 
-#include <grpc++/security/credentials.h>
+#include <grpc++/credentials.h>
 
 #include <memory>
 
@@ -45,8 +45,8 @@ class CredentialsTest : public ::testing::Test {
  protected:
 };
 
-TEST_F(CredentialsTest, InvalidGoogleRefreshToken) {
-  std::shared_ptr<Credentials> bad1 = GoogleRefreshTokenCredentials("");
+TEST_F(CredentialsTest, InvalidServiceAccountCreds) {
+  std::shared_ptr<Credentials> bad1 = ServiceAccountCredentials("", "", 1);
   EXPECT_EQ(static_cast<Credentials*>(nullptr), bad1.get());
 }
 

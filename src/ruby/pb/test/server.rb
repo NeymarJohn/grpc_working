@@ -64,8 +64,7 @@ end
 # creates a ServerCredentials from the test certificates.
 def test_server_creds
   certs = load_test_certs
-  GRPC::Core::ServerCredentials.new(
-      nil, [{private_key: certs[1], cert_chain: certs[2]}], false)
+  GRPC::Core::ServerCredentials.new(nil, certs[1], certs[2])
 end
 
 # produces a string of null chars (\0) of length l.

@@ -153,8 +153,7 @@ static void send_security_metadata(grpc_call_element *elem,
   }
 
   if (channel_creds_has_md && call_creds_has_md) {
-    calld->creds =
-        grpc_composite_credentials_create(channel_creds, ctx->creds, NULL);
+    calld->creds = grpc_composite_credentials_create(channel_creds, ctx->creds);
     if (calld->creds == NULL) {
       bubble_up_error(elem, GRPC_STATUS_INVALID_ARGUMENT,
                       "Incompatible credentials set on channel and call.");

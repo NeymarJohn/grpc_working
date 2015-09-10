@@ -31,7 +31,7 @@
  *
  */
 
-#include <grpc++/security/credentials.h>
+#include <grpc++/credentials.h>
 
 namespace grpc {
 

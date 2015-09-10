@@ -57,6 +57,8 @@ ClientCredentials *pygrpc_ClientCredentials_composite(
     PyTypeObject *type, PyObject *args, PyObject *kwargs);
 ClientCredentials *pygrpc_ClientCredentials_compute_engine(
     PyTypeObject *type, PyObject *ignored);
+ClientCredentials *pygrpc_ClientCredentials_service_account(
+    PyTypeObject *type, PyObject *args, PyObject *kwargs);
 ClientCredentials *pygrpc_ClientCredentials_jwt(
     PyTypeObject *type, PyObject *args, PyObject *kwargs);
 ClientCredentials *pygrpc_ClientCredentials_refresh_token(
@@ -112,8 +114,6 @@ void pygrpc_Call_dealloc(Call *self);
 PyObject *pygrpc_Call_start_batch(Call *self, PyObject *args, PyObject *kwargs);
 PyObject *pygrpc_Call_cancel(Call *self, PyObject *args, PyObject *kwargs);
 PyObject *pygrpc_Call_peer(Call *self);
-PyObject *pygrpc_Call_set_credentials(Call *self, PyObject *args,
-                                      PyObject *kwargs);
 extern PyTypeObject pygrpc_Call_type;
 
 

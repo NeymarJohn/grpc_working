@@ -67,8 +67,7 @@ class Server : public ::node::ObjectWrap {
   static NAN_METHOD(RequestCall);
   static NAN_METHOD(AddHttp2Port);
   static NAN_METHOD(Start);
-  static NAN_METHOD(TryShutdown);
-  static NAN_METHOD(ForceShutdown);
+  static NAN_METHOD(Shutdown);
   static NanCallback *constructor;
   static v8::Persistent<v8::FunctionTemplate> fun_tpl;
 

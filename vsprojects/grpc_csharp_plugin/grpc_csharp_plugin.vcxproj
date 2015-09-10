@@ -47,9 +47,8 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\vsprojects\global.props" />
-    <Import Project="..\..\..\vsprojects\protobuf.props" />
-    <Import Project="..\..\..\vsprojects\protoc.props" />
+    <Import Project="..\protoc.props" />
+    <Import Project="..\global.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -123,21 +122,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\compiler\csharp_plugin.cc">
+    <ClCompile Include="..\..\src\compiler\csharp_plugin.cc">
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\vsprojects\vcxproj\.\grpc_plugin_support\grpc_plugin_support.vcxproj">
+    <ProjectReference Include="..\grpc_plugin_support\grpc_plugin_support.vcxproj">
       <Project>{B6E81D84-2ACB-41B8-8781-493A944C7817}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-  </Target>
 </Project>
 

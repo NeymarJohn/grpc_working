@@ -35,7 +35,6 @@ import enum
 
 from grpc.framework.core import _constants
 from grpc.framework.core import _interfaces
-from grpc.framework.core import _utilities
 from grpc.framework.foundation import abandonment
 from grpc.framework.foundation import callable_util
 from grpc.framework.interfaces.base import base
@@ -47,7 +46,7 @@ _INGESTION_EXCEPTION_LOG_MESSAGE = 'Exception during ingestion!'
 class _SubscriptionCreation(
     collections.namedtuple(
         '_SubscriptionCreation',
-        ('kind', 'subscription', 'code', 'details',))):
+        ('kind', 'subscription', 'code', 'message',))):
   """A sum type for the outcome of ingestion initialization.
 
   Attributes:
@@ -57,7 +56,7 @@ class _SubscriptionCreation(
     code: A code value to be sent to the other side of the operation along with
       an indication that the operation is being aborted due to an error on the
       remote side of the operation. Only present if kind is Kind.REMOTE_ERROR.
-    details: A details value to be sent to the other side of the operation
+    message: A message value to be sent to the other side of the operation
       along with an indication that the operation is being aborted due to an
       error on the remote side of the operation. Only present if kind is
       Kind.REMOTE_ERROR.
@@ -115,7 +114,7 @@ class _ServiceSubscriptionCreator(_SubscriptionCreator):
           group, method, self._operation_context, self._output_operator)
     except base.NoSuchMethodError as e:
       return _SubscriptionCreation(
-          _SubscriptionCreation.Kind.REMOTE_ERROR, None, e.code, e.details)
+          _SubscriptionCreation.Kind.REMOTE_ERROR, None, e.code, e.message)
     except abandonment.Abandoned:
       return _SubscriptionCreation(
           _SubscriptionCreation.Kind.ABANDONED, None, None, None)
@@ -140,7 +139,7 @@ class _IngestionManager(_interfaces.IngestionManager):
 
   def __init__(
       self, lock, pool, subscription, subscription_creator, termination_manager,
-      transmission_manager, expiration_manager, protocol_manager):
+      transmission_manager, expiration_manager):
     """Constructor.
 
     Args:
@@ -157,14 +156,12 @@ class _IngestionManager(_interfaces.IngestionManager):
       transmission_manager: The _interfaces.TransmissionManager for the
         operation.
       expiration_manager: The _interfaces.ExpirationManager for the operation.
-      protocol_manager: The _interfaces.ProtocolManager for the operation.
     """
     self._lock = lock
     self._pool = pool
     self._termination_manager = termination_manager
     self._transmission_manager = transmission_manager
     self._expiration_manager = expiration_manager
-    self._protocol_manager = protocol_manager
 
     if subscription is None:
       self._subscription_creator = subscription_creator
@@ -193,13 +190,11 @@ class _IngestionManager(_interfaces.IngestionManager):
     self._pending_payloads = None
     self._pending_completion = None
 
-  def _abort_and_notify(self, outcome_kind, code, details):
+  def _abort_and_notify(self, outcome, code, message):
     self._abort_internal_only()
-    if self._termination_manager.outcome is None:
-      outcome = _utilities.Outcome(outcome_kind, code, details)
-      self._termination_manager.abort(outcome)
-      self._transmission_manager.abort(outcome)
-      self._expiration_manager.terminate()
+    self._termination_manager.abort(outcome)
+    self._transmission_manager.abort(outcome, code, message)
+    self._expiration_manager.terminate()
 
   def _operator_next(self):
     """Computes the next step for full-subscription ingestion.
@@ -255,13 +250,12 @@ class _IngestionManager(_interfaces.IngestionManager):
         else:
           with self._lock:
             if self._termination_manager.outcome is None:
-              self._abort_and_notify(
-                  base.Outcome.Kind.LOCAL_FAILURE, None, None)
+              self._abort_and_notify(base.Outcome.LOCAL_FAILURE, None, None)
             return
       else:
         with self._lock:
           if self._termination_manager.outcome is None:
-            self._abort_and_notify(base.Outcome.Kind.LOCAL_FAILURE, None, None)
+            self._abort_and_notify(base.Outcome.LOCAL_FAILURE, None, None)
           return
 
   def _operator_post_create(self, subscription):
@@ -285,21 +279,18 @@ class _IngestionManager(_interfaces.IngestionManager):
     if outcome.return_value is None:
       with self._lock:
         if self._termination_manager.outcome is None:
-          self._abort_and_notify(base.Outcome.Kind.LOCAL_FAILURE, None, None)
+          self._abort_and_notify(base.Outcome.LOCAL_FAILURE, None, None)
     elif outcome.return_value.kind is _SubscriptionCreation.Kind.ABANDONED:
       with self._lock:
         if self._termination_manager.outcome is None:
-          self._abort_and_notify(base.Outcome.Kind.LOCAL_FAILURE, None, None)
+          self._abort_and_notify(base.Outcome.LOCAL_FAILURE, None, None)
     elif outcome.return_value.kind is _SubscriptionCreation.Kind.REMOTE_ERROR:
       code = outcome.return_value.code
-      details = outcome.return_value.details
+      message = outcome.return_value.message
       with self._lock:
         if self._termination_manager.outcome is None:
-          self._abort_and_notify(
-              base.Outcome.Kind.REMOTE_FAILURE, code, details)
+          self._abort_and_notify(base.Outcome.REMOTE_FAILURE, code, message)
     elif outcome.return_value.subscription.kind is base.Subscription.Kind.FULL:
-      self._protocol_manager.set_protocol_receiver(
-          outcome.return_value.subscription.protocol_receiver)
       self._operator_post_create(outcome.return_value.subscription)
     else:
       # TODO(nathaniel): Support other subscriptions.
@@ -382,7 +373,7 @@ class _IngestionManager(_interfaces.IngestionManager):
 
 def invocation_ingestion_manager(
     subscription, lock, pool, termination_manager, transmission_manager,
-    expiration_manager, protocol_manager):
+    expiration_manager):
   """Creates an IngestionManager appropriate for invocation-side use.
 
   Args:
@@ -394,20 +385,18 @@ def invocation_ingestion_manager(
     transmission_manager: The _interfaces.TransmissionManager for the
       operation.
     expiration_manager: The _interfaces.ExpirationManager for the operation.
-    protocol_manager: The _interfaces.ProtocolManager for the operation.
 
   Returns:
     An IngestionManager appropriate for invocation-side use.
   """
   return _IngestionManager(
       lock, pool, subscription, None, termination_manager, transmission_manager,
-      expiration_manager, protocol_manager)
+      expiration_manager)
 
 
 def service_ingestion_manager(
     servicer, operation_context, output_operator, lock, pool,
-    termination_manager, transmission_manager, expiration_manager,
-    protocol_manager):
+    termination_manager, transmission_manager, expiration_manager):
   """Creates an IngestionManager appropriate for service-side use.
 
   The returned IngestionManager will require its set_group_and_name method to be
@@ -426,7 +415,6 @@ def service_ingestion_manager(
     transmission_manager: The _interfaces.TransmissionManager for the
       operation.
     expiration_manager: The _interfaces.ExpirationManager for the operation.
-    protocol_manager: The _interfaces.ProtocolManager for the operation.
 
   Returns:
     An IngestionManager appropriate for service-side use.
@@ -435,4 +423,4 @@ def service_ingestion_manager(
       servicer, operation_context, output_operator)
   return _IngestionManager(
       lock, pool, None, subscription_creator, termination_manager,
-      transmission_manager, expiration_manager, protocol_manager)
+      transmission_manager, expiration_manager)
