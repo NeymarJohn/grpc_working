@@ -48,8 +48,7 @@ typedef struct call_data {
   gpr_slice_buffer slices; /**< Buffers up input slices to be compressed */
   grpc_linked_mdelem compression_algorithm_storage;
   grpc_linked_mdelem accept_encoding_storage;
-  gpr_uint32
-      remaining_slice_bytes; /**< Input data to be read, as per BEGIN_MESSAGE */
+  int remaining_slice_bytes; /**< Input data to be read, as per BEGIN_MESSAGE */
   int written_initial_metadata; /**< Already processed initial md? */
   /** Compression algorithm we'll try to use. It may be given by incoming
    * metadata, or by the channel's default compression settings. */
@@ -142,9 +141,8 @@ static void finish_compressed_sopb(grpc_stream_op_buffer *send_ops,
     grpc_stream_op *sop = &send_ops->ops[i];
     switch (sop->type) {
       case GRPC_OP_BEGIN_MESSAGE:
-        GPR_ASSERT(calld->slices.length <= GPR_UINT32_MAX);
         grpc_sopb_add_begin_message(
-            &new_send_ops, (gpr_uint32)calld->slices.length,
+            &new_send_ops, calld->slices.length,
             sop->data.begin_message.flags | GRPC_WRITE_INTERNAL_COMPRESS);
         break;
       case GRPC_OP_SLICE:

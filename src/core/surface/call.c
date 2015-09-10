@@ -61,6 +61,18 @@
       - status/close recv (depending on client/server) */
 #define MAX_CONCURRENT_COMPLETIONS 6
 
+typedef enum { REQ_INITIAL = 0, REQ_READY, REQ_DONE } req_state;
+
+typedef enum {
+  SEND_NOTHING,
+  SEND_INITIAL_METADATA,
+  SEND_BUFFERED_INITIAL_METADATA,
+  SEND_MESSAGE,
+  SEND_BUFFERED_MESSAGE,
+  SEND_TRAILING_METADATA_AND_FINISH,
+  SEND_FINISH
+} send_action;
+
 typedef struct {
   grpc_ioreq_completion_func on_complete;
   void *user_data;
@@ -508,7 +520,7 @@ static void set_status_code(grpc_call *call, status_source source,
   if (call->status[source].is_set) return;
 
   call->status[source].is_set = 1;
-  call->status[source].code = (grpc_status_code)status;
+  call->status[source].code = status;
   call->error_status_set = status != GRPC_STATUS_OK;
 
   if (status != GRPC_STATUS_OK && !grpc_bbq_empty(&call->incoming_queue)) {
@@ -604,7 +616,7 @@ static void unlock(grpc_call *call) {
   int completing_requests = 0;
   int start_op = 0;
   int i;
-  const size_t MAX_RECV_PEEK_AHEAD = 65536;
+  const gpr_uint32 MAX_RECV_PEEK_AHEAD = 65536;
   size_t buffered_bytes;
   int cancel_alarm = 0;
 
@@ -1107,12 +1119,10 @@ static int fill_send_ops(grpc_call *call, grpc_transport_stream_op *op) {
     /* fall through intended */
     case WRITE_STATE_STARTED:
       if (is_op_live(call, GRPC_IOREQ_SEND_MESSAGE)) {
-        size_t length;
         data = call->request_data[GRPC_IOREQ_SEND_MESSAGE];
         flags = call->request_flags[GRPC_IOREQ_SEND_MESSAGE];
-        length = grpc_byte_buffer_length(data.send_message);
-        GPR_ASSERT(length <= GPR_UINT32_MAX);
-        grpc_sopb_add_begin_message(&call->send_ops, (gpr_uint32)length, flags);
+        grpc_sopb_add_begin_message(
+            &call->send_ops, grpc_byte_buffer_length(data.send_message), flags);
         copy_byte_buffer_to_stream_ops(data.send_message, &call->send_ops);
         op->send_ops = &call->send_ops;
         call->last_send_contains |= 1 << GRPC_IOREQ_SEND_MESSAGE;
@@ -1245,7 +1255,7 @@ static grpc_call_error start_ioreq(grpc_call *call, const grpc_ioreq *reqs,
     }
     if (op == GRPC_IOREQ_SEND_STATUS) {
       set_status_code(call, STATUS_FROM_SERVER_STATUS,
-                      (gpr_uint32)reqs[i].data.send_status.code);
+                      reqs[i].data.send_status.code);
       if (reqs[i].data.send_status.details) {
         set_status_details(call, STATUS_FROM_SERVER_STATUS,
                            GRPC_MDSTR_REF(reqs[i].data.send_status.details));
@@ -1335,7 +1345,7 @@ static grpc_call_error cancel_with_status(grpc_call *c, grpc_status_code status,
 
   GPR_ASSERT(status != GRPC_STATUS_OK);
 
-  set_status_code(c, STATUS_FROM_API_OVERRIDE, (gpr_uint32)status);
+  set_status_code(c, STATUS_FROM_API_OVERRIDE, status);
   set_status_details(c, STATUS_FROM_API_OVERRIDE, details);
 
   c->cancel_with_status = status;

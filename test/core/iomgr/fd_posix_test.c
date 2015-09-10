@@ -419,7 +419,7 @@ static void test_grpc_fd_change(void) {
   int flags;
   int sv[2];
   char data;
-  ssize_t result;
+  int result;
   grpc_iomgr_closure first_closure;
   grpc_iomgr_closure second_closure;
 

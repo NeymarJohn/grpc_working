@@ -1085,8 +1085,7 @@ static int parse_string_prefix(grpc_chttp2_hpack_parser *p,
 static void append_bytes(grpc_chttp2_hpack_parser_string *str,
                          const gpr_uint8 *data, size_t length) {
   if (length + str->length > str->capacity) {
-    GPR_ASSERT(str->length + length <= GPR_UINT32_MAX);
-    str->capacity = (gpr_uint32)(str->length + length);
+    str->capacity = str->length + length;
     str->str = gpr_realloc(str->str, str->capacity);
   }
   memcpy(str->str + str->length, data, length);
@@ -1100,7 +1099,7 @@ static int append_string(grpc_chttp2_hpack_parser *p, const gpr_uint8 *cur,
   gpr_uint8 decoded[3];
   switch ((binary_state)p->binary) {
     case NOT_BINARY:
-      append_bytes(str, cur, (size_t)(end - cur));
+      append_bytes(str, cur, end - cur);
       return 1;
     b64_byte0:
     case B64_BYTE0:
@@ -1250,7 +1249,7 @@ static int add_str_bytes(grpc_chttp2_hpack_parser *p, const gpr_uint8 *cur,
 static int parse_string(grpc_chttp2_hpack_parser *p, const gpr_uint8 *cur,
                         const gpr_uint8 *end) {
   size_t remaining = p->strlen - p->strgot;
-  size_t given = (size_t)(end - cur);
+  size_t given = end - cur;
   if (remaining <= given) {
     return add_str_bytes(p, cur, cur + remaining) && finish_str(p) &&
            parse_next(p, cur + remaining, end);

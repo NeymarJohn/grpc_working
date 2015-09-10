@@ -76,19 +76,19 @@ static gpr_uint8 *fill_header(gpr_uint8 *out, gpr_uint32 length,
 gpr_slice grpc_chttp2_settings_create(gpr_uint32 *old, const gpr_uint32 *new,
                                       gpr_uint32 force_mask, size_t count) {
   size_t i;
-  gpr_uint32 n = 0;
+  size_t n = 0;
   gpr_slice output;
   gpr_uint8 *p;
 
   for (i = 0; i < count; i++) {
-    n += (new[i] != old[i] || (force_mask & (1u << i)) != 0);
+    n += (new[i] != old[i] || (force_mask & (1 << i)) != 0);
   }
 
   output = gpr_slice_malloc(9 + 6 * n);
   p = fill_header(GPR_SLICE_START_PTR(output), 6 * n, 0);
 
   for (i = 0; i < count; i++) {
-    if (new[i] != old[i] || (force_mask & (1u << i)) != 0) {
+    if (new[i] != old[i] || (force_mask & (1 << i)) != 0) {
       GPR_ASSERT(i);
       *p++ = i >> 8;
       *p++ = i;

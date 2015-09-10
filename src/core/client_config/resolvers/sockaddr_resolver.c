@@ -63,7 +63,7 @@ typedef struct {
   /** the addresses that we've 'resolved' */
   struct sockaddr_storage *addrs;
   /** the corresponding length of the addresses */
-  size_t *addrs_len;
+  int *addrs_len;
   /** how many elements in \a addrs */
   size_t num_addrs;
 
@@ -157,8 +157,7 @@ static void sockaddr_destroy(grpc_resolver *gr) {
 }
 
 #ifdef GPR_POSIX_SOCKET
-static int parse_unix(grpc_uri *uri, struct sockaddr_storage *addr,
-                      size_t *len) {
+static int parse_unix(grpc_uri *uri, struct sockaddr_storage *addr, int *len) {
   struct sockaddr_un *un = (struct sockaddr_un *)addr;
 
   un->sun_family = AF_UNIX;
@@ -190,8 +189,7 @@ static char *ipv6_get_default_authority(grpc_resolver_factory *factory,
   return ip_get_default_authority(uri);
 }
 
-static int parse_ipv4(grpc_uri *uri, struct sockaddr_storage *addr,
-                      size_t *len) {
+static int parse_ipv4(grpc_uri *uri, struct sockaddr_storage *addr, int *len) {
   const char *host_port = uri->path;
   char *host;
   char *port;
@@ -231,8 +229,7 @@ done:
   return result;
 }
 
-static int parse_ipv6(grpc_uri *uri, struct sockaddr_storage *addr,
-                      size_t *len) {
+static int parse_ipv6(grpc_uri *uri, struct sockaddr_storage *addr, int *len) {
   const char *host_port = uri->path;
   char *host;
   char *port;
@@ -278,7 +275,7 @@ static grpc_resolver *sockaddr_create(
     grpc_lb_policy *(*lb_policy_factory)(grpc_subchannel **subchannels,
                                          size_t num_subchannels),
     grpc_subchannel_factory *subchannel_factory,
-    int parse(grpc_uri *uri, struct sockaddr_storage *dst, size_t *len)) {
+    int parse(grpc_uri *uri, struct sockaddr_storage *dst, int *len)) {
   size_t i;
   int errors_found = 0; /* GPR_FALSE */
   sockaddr_resolver *r;
@@ -299,7 +296,7 @@ static grpc_resolver *sockaddr_create(
   gpr_slice_split(path_slice, ",", &path_parts);
   r->num_addrs = path_parts.count;
   r->addrs = gpr_malloc(sizeof(struct sockaddr_storage) * r->num_addrs);
-  r->addrs_len = gpr_malloc(sizeof(*r->addrs_len) * r->num_addrs);
+  r->addrs_len = gpr_malloc(sizeof(int) * r->num_addrs);
 
   for(i = 0; i < r->num_addrs; i++) {
     grpc_uri ith_uri = *uri;
