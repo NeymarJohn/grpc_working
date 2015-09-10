@@ -35,7 +35,7 @@
 #include <grpc/support/log.h>
 
 gpr_slice parse_hexstring(const char *hexstring) {
-  size_t nibbles = 0;
+  int nibbles = 0;
   const char *p = 0;
   gpr_uint8 *out;
   gpr_uint8 temp;

@@ -185,7 +185,8 @@ static const grpc_subchannel_factory_vtable subchannel_factory_vtable = {
                    - perform handshakes */
 grpc_channel *grpc_secure_channel_create(grpc_credentials *creds,
                                          const char *target,
-                                         const grpc_channel_args *args) {
+                                         const grpc_channel_args *args,
+                                         void *reserved) {
   grpc_channel *channel;
   grpc_arg connector_arg;
   grpc_channel_args *args_copy;
@@ -196,8 +197,9 @@ grpc_channel *grpc_secure_channel_create(grpc_credentials *creds,
   subchannel_factory *f;
 #define MAX_FILTERS 3
   const grpc_channel_filter *filters[MAX_FILTERS];
-  size_t n = 0;
+  int n = 0;
 
+  GPR_ASSERT(reserved == NULL);
   if (grpc_find_security_connector_in_args(args) != NULL) {
     gpr_log(GPR_ERROR, "Cannot set security context in channel args.");
     return grpc_lame_client_channel_create(
