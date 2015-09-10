@@ -545,7 +545,7 @@ static void set_encodings_accepted_by_peer(
   gpr_slice_buffer accept_encoding_parts;
 
   gpr_slice_buffer_init(&accept_encoding_parts);
-  gpr_slice_split(accept_encoding_slice, ", ", &accept_encoding_parts);
+  gpr_slice_split(accept_encoding_slice, ",", &accept_encoding_parts);
 
   /* No need to zero call->encodings_accepted_by_peer: grpc_call_create already
    * zeroes the whole grpc_call */
@@ -630,9 +630,6 @@ static void unlock(grpc_call *call) {
   call->cancel_alarm = 0;
 
   if (!call->receiving && need_more_data(call)) {
-    op.recv_ops = &call->recv_ops;
-    op.recv_state = &call->recv_state;
-    op.on_done_recv = &call->on_done_recv;
     if (grpc_bbq_empty(&call->incoming_queue) && call->reading_message) {
       op.max_recv_bytes = call->incoming_message_length -
                           call->incoming_message.length + MAX_RECV_PEEK_AHEAD;
@@ -644,9 +641,16 @@ static void unlock(grpc_call *call) {
         op.max_recv_bytes = MAX_RECV_PEEK_AHEAD - buffered_bytes;
       }
     }
-    call->receiving = 1;
-    GRPC_CALL_INTERNAL_REF(call, "receiving");
-    start_op = 1;
+    /* TODO(ctiller): 1024 is basically to cover a bug
+       I don't understand yet */
+    if (op.max_recv_bytes > 1024) {
+      op.recv_ops = &call->recv_ops;
+      op.recv_state = &call->recv_state;
+      op.on_done_recv = &call->on_done_recv;
+      call->receiving = 1;
+      GRPC_CALL_INTERNAL_REF(call, "receiving");
+      start_op = 1;
+    }
   }
 
   if (!call->sending) {

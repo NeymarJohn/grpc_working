@@ -45,7 +45,7 @@
 #include <grpc/support/host_port.h>
 #include <grpc/support/string_util.h>
 
-#include "src/core/client_config/lb_policy_registry.h"
+#include "src/core/client_config/lb_policies/pick_first.h"
 #include "src/core/iomgr/resolve_address.h"
 #include "src/core/support/string.h"
 
@@ -56,8 +56,9 @@ typedef struct {
   gpr_refcount refs;
   /** subchannel factory */
   grpc_subchannel_factory *subchannel_factory;
-  /** load balancing policy name */
-  char *lb_policy_name;
+  /** load balancing policy factory */
+  grpc_lb_policy *(*lb_policy_factory)(grpc_subchannel **subchannels,
+                                       size_t num_subchannels);
 
   /** the addresses that we've 'resolved' */
   struct sockaddr_storage *addrs;
@@ -121,7 +122,6 @@ static void sockaddr_next(grpc_resolver *resolver,
 static void sockaddr_maybe_finish_next_locked(sockaddr_resolver *r) {
   grpc_client_config *cfg;
   grpc_lb_policy *lb_policy;
-  grpc_lb_policy_args lb_policy_args;
   grpc_subchannel **subchannels;
   grpc_subchannel_args args;
 
@@ -136,10 +136,7 @@ static void sockaddr_maybe_finish_next_locked(sockaddr_resolver *r) {
       subchannels[i] = grpc_subchannel_factory_create_subchannel(
           r->subchannel_factory, &args);
     }
-    lb_policy_args.subchannels = subchannels;
-    lb_policy_args.num_subchannels = r->num_addrs;
-    lb_policy =
-        grpc_lb_policy_create(r->lb_policy_name, &lb_policy_args);
+    lb_policy = r->lb_policy_factory(subchannels, r->num_addrs);
     gpr_free(subchannels);
     grpc_client_config_set_lb_policy(cfg, lb_policy);
     GRPC_LB_POLICY_UNREF(lb_policy, "unix");
@@ -156,7 +153,6 @@ static void sockaddr_destroy(grpc_resolver *gr) {
   grpc_subchannel_factory_unref(r->subchannel_factory);
   gpr_free(r->addrs);
   gpr_free(r->addrs_len);
-  gpr_free(r->lb_policy_name);
   gpr_free(r);
 }
 
@@ -275,7 +271,9 @@ done:
 
 static void do_nothing(void *ignored) {}
 static grpc_resolver *sockaddr_create(
-    grpc_uri *uri, const char *lb_policy_name,
+    grpc_uri *uri,
+    grpc_lb_policy *(*lb_policy_factory)(grpc_subchannel **subchannels,
+                                         size_t num_subchannels),
     grpc_subchannel_factory *subchannel_factory,
     int parse(grpc_uri *uri, struct sockaddr_storage *dst, int *len)) {
   size_t i;
@@ -322,7 +320,7 @@ static grpc_resolver *sockaddr_create(
   gpr_mu_init(&r->mu);
   grpc_resolver_init(&r->base, &sockaddr_resolver_vtable);
   r->subchannel_factory = subchannel_factory;
-  r->lb_policy_name = gpr_strdup(lb_policy_name);
+  r->lb_policy_factory = lb_policy_factory;
 
   grpc_subchannel_factory_ref(subchannel_factory);
   return &r->base;
@@ -340,7 +338,7 @@ static void sockaddr_factory_unref(grpc_resolver_factory *factory) {}
   static grpc_resolver *name##_factory_create_resolver(                     \
       grpc_resolver_factory *factory, grpc_uri *uri,                        \
       grpc_subchannel_factory *subchannel_factory) {                        \
-    return sockaddr_create(uri, "pick_first",                               \
+    return sockaddr_create(uri, grpc_create_pick_first_lb_policy,           \
                            subchannel_factory, parse_##name);               \
   }                                                                         \
   static const grpc_resolver_factory_vtable name##_factory_vtable = {       \
