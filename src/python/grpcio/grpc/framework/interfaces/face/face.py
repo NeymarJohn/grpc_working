@@ -184,16 +184,6 @@ class RpcContext(object):
     """
     raise NotImplementedError()
 
-  @abc.abstractmethod
-  def protocol_context(self):
-    """Accesses a custom object specified by an implementation provider.
-
-    Returns:
-      A value specified by the provider of a Face interface implementation
-        affording custom state and behavior.
-    """
-    raise NotImplementedError()
-
 
 class Call(RpcContext):
   """Invocation-side utility object for an RPC."""
@@ -364,8 +354,7 @@ class UnaryUnaryMultiCallable(object):
 
   @abc.abstractmethod
   def __call__(
-      self, request, timeout, metadata=None, with_call=False,
-      protocol_options=None):
+      self, request, timeout, metadata=None, with_call=False):
     """Synchronously invokes the underlying RPC.
 
     Args:
@@ -375,8 +364,6 @@ class UnaryUnaryMultiCallable(object):
         the RPC.
       with_call: Whether or not to include return a Call for the RPC in addition
         to the reponse.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       The response value for the RPC, and a Call for the RPC if with_call was
@@ -388,7 +375,7 @@ class UnaryUnaryMultiCallable(object):
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def future(self, request, timeout, metadata=None, protocol_options=None):
+  def future(self, request, timeout, metadata=None):
     """Asynchronously invokes the underlying RPC.
 
     Args:
@@ -396,8 +383,6 @@ class UnaryUnaryMultiCallable(object):
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of
         the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       An object that is both a Call for the RPC and a future.Future. In the
@@ -410,7 +395,7 @@ class UnaryUnaryMultiCallable(object):
   @abc.abstractmethod
   def event(
       self, request, receiver, abortion_callback, timeout,
-      metadata=None, protocol_options=None):
+      metadata=None):
     """Asynchronously invokes the underlying RPC.
 
     Args:
@@ -421,8 +406,6 @@ class UnaryUnaryMultiCallable(object):
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of
         the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       A Call for the RPC.
@@ -435,7 +418,7 @@ class UnaryStreamMultiCallable(object):
   __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
-  def __call__(self, request, timeout, metadata=None, protocol_options=None):
+  def __call__(self, request, timeout, metadata=None):
     """Invokes the underlying RPC.
 
     Args:
@@ -443,8 +426,6 @@ class UnaryStreamMultiCallable(object):
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of
         the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       An object that is both a Call for the RPC and an iterator of response
@@ -456,7 +437,7 @@ class UnaryStreamMultiCallable(object):
   @abc.abstractmethod
   def event(
       self, request, receiver, abortion_callback, timeout,
-      metadata=None, protocol_options=None):
+      metadata=None):
     """Asynchronously invokes the underlying RPC.
 
     Args:
@@ -467,8 +448,6 @@ class UnaryStreamMultiCallable(object):
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of
         the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       A Call object for the RPC.
@@ -483,7 +462,7 @@ class StreamUnaryMultiCallable(object):
   @abc.abstractmethod
   def __call__(
       self, request_iterator, timeout, metadata=None,
-      with_call=False, protocol_options=None):
+      with_call=False):
     """Synchronously invokes the underlying RPC.
 
     Args:
@@ -493,8 +472,6 @@ class StreamUnaryMultiCallable(object):
         the RPC.
       with_call: Whether or not to include return a Call for the RPC in addition
         to the reponse.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       The response value for the RPC, and a Call for the RPC if with_call was
@@ -506,8 +483,7 @@ class StreamUnaryMultiCallable(object):
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def future(
-      self, request_iterator, timeout, metadata=None, protocol_options=None):
+  def future(self, request_iterator, timeout, metadata=None):
     """Asynchronously invokes the underlying RPC.
 
     Args:
@@ -515,8 +491,6 @@ class StreamUnaryMultiCallable(object):
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of
         the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       An object that is both a Call for the RPC and a future.Future. In the
@@ -528,8 +502,7 @@ class StreamUnaryMultiCallable(object):
 
   @abc.abstractmethod
   def event(
-      self, receiver, abortion_callback, timeout, metadata=None,
-      protocol_options=None):
+      self, receiver, abortion_callback, timeout, metadata=None):
     """Asynchronously invokes the underlying RPC.
 
     Args:
@@ -539,8 +512,6 @@ class StreamUnaryMultiCallable(object):
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of
         the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       A single object that is both a Call object for the RPC and a
@@ -554,8 +525,7 @@ class StreamStreamMultiCallable(object):
   __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
-  def __call__(
-      self, request_iterator, timeout, metadata=None, protocol_options=None):
+  def __call__(self, request_iterator, timeout, metadata=None):
     """Invokes the underlying RPC.
 
     Args:
@@ -563,8 +533,6 @@ class StreamStreamMultiCallable(object):
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of
         the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       An object that is both a Call for the RPC and an iterator of response
@@ -575,8 +543,7 @@ class StreamStreamMultiCallable(object):
 
   @abc.abstractmethod
   def event(
-      self, receiver, abortion_callback, timeout, metadata=None,
-      protocol_options=None):
+      self, receiver, abortion_callback, timeout, metadata=None):
     """Asynchronously invokes the underlying RPC.
 
     Args:
@@ -586,8 +553,6 @@ class StreamStreamMultiCallable(object):
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of
         the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       A single object that is both a Call object for the RPC and a
@@ -681,7 +646,7 @@ class GenericStub(object):
   @abc.abstractmethod
   def blocking_unary_unary(
       self, group, method, request, timeout, metadata=None,
-      with_call=False, protocol_options=None):
+      with_call=False):
     """Invokes a unary-request-unary-response method.
 
     This method blocks until either returning the response value of the RPC
@@ -696,8 +661,6 @@ class GenericStub(object):
       metadata: A metadata value to be passed to the service-side of the RPC.
       with_call: Whether or not to include return a Call for the RPC in addition
         to the reponse.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       The response value for the RPC, and a Call for the RPC if with_call was
@@ -710,8 +673,7 @@ class GenericStub(object):
 
   @abc.abstractmethod
   def future_unary_unary(
-      self, group, method, request, timeout, metadata=None,
-      protocol_options=None):
+      self, group, method, request, timeout, metadata=None):
     """Invokes a unary-request-unary-response method.
 
     Args:
@@ -720,8 +682,6 @@ class GenericStub(object):
       request: The request value for the RPC.
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       An object that is both a Call for the RPC and a future.Future. In the
@@ -733,8 +693,7 @@ class GenericStub(object):
 
   @abc.abstractmethod
   def inline_unary_stream(
-      self, group, method, request, timeout, metadata=None,
-      protocol_options=None):
+      self, group, method, request, timeout, metadata=None):
     """Invokes a unary-request-stream-response method.
 
     Args:
@@ -743,8 +702,6 @@ class GenericStub(object):
       request: The request value for the RPC.
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       An object that is both a Call for the RPC and an iterator of response
@@ -756,7 +713,7 @@ class GenericStub(object):
   @abc.abstractmethod
   def blocking_stream_unary(
       self, group, method, request_iterator, timeout, metadata=None,
-      with_call=False, protocol_options=None):
+      with_call=False):
     """Invokes a stream-request-unary-response method.
 
     This method blocks until either returning the response value of the RPC
@@ -771,8 +728,6 @@ class GenericStub(object):
       metadata: A metadata value to be passed to the service-side of the RPC.
       with_call: Whether or not to include return a Call for the RPC in addition
         to the reponse.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       The response value for the RPC, and a Call for the RPC if with_call was
@@ -785,8 +740,7 @@ class GenericStub(object):
 
   @abc.abstractmethod
   def future_stream_unary(
-      self, group, method, request_iterator, timeout, metadata=None,
-      protocol_options=None):
+      self, group, method, request_iterator, timeout, metadata=None):
     """Invokes a stream-request-unary-response method.
 
     Args:
@@ -795,8 +749,6 @@ class GenericStub(object):
       request_iterator: An iterator that yields request values for the RPC.
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       An object that is both a Call for the RPC and a future.Future. In the
@@ -808,8 +760,7 @@ class GenericStub(object):
 
   @abc.abstractmethod
   def inline_stream_stream(
-      self, group, method, request_iterator, timeout, metadata=None,
-      protocol_options=None):
+      self, group, method, request_iterator, timeout, metadata=None):
     """Invokes a stream-request-stream-response method.
 
     Args:
@@ -818,8 +769,6 @@ class GenericStub(object):
       request_iterator: An iterator that yields request values for the RPC.
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       An object that is both a Call for the RPC and an iterator of response
@@ -831,7 +780,7 @@ class GenericStub(object):
   @abc.abstractmethod
   def event_unary_unary(
       self, group, method, request, receiver, abortion_callback, timeout,
-      metadata=None, protocol_options=None):
+      metadata=None):
     """Event-driven invocation of a unary-request-unary-response method.
 
     Args:
@@ -843,8 +792,6 @@ class GenericStub(object):
         in the event of RPC abortion.
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       A Call for the RPC.
@@ -854,7 +801,7 @@ class GenericStub(object):
   @abc.abstractmethod
   def event_unary_stream(
       self, group, method, request, receiver, abortion_callback, timeout,
-      metadata=None, protocol_options=None):
+      metadata=None):
     """Event-driven invocation of a unary-request-stream-response method.
 
     Args:
@@ -866,8 +813,6 @@ class GenericStub(object):
         in the event of RPC abortion.
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       A Call for the RPC.
@@ -877,7 +822,7 @@ class GenericStub(object):
   @abc.abstractmethod
   def event_stream_unary(
       self, group, method, receiver, abortion_callback, timeout,
-      metadata=None, protocol_options=None):
+      metadata=None):
     """Event-driven invocation of a unary-request-unary-response method.
 
     Args:
@@ -888,8 +833,6 @@ class GenericStub(object):
         in the event of RPC abortion.
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       A pair of a Call object for the RPC and a stream.Consumer to which the
@@ -900,7 +843,7 @@ class GenericStub(object):
   @abc.abstractmethod
   def event_stream_stream(
       self, group, method, receiver, abortion_callback, timeout,
-      metadata=None, protocol_options=None):
+      metadata=None):
     """Event-driven invocation of a unary-request-stream-response method.
 
     Args:
@@ -911,8 +854,6 @@ class GenericStub(object):
         in the event of RPC abortion.
       timeout: A duration of time in seconds to allow for the RPC.
       metadata: A metadata value to be passed to the service-side of the RPC.
-      protocol_options: A value specified by the provider of a Face interface
-        implementation affording custom state and behavior.
 
     Returns:
       A pair of a Call object for the RPC and a stream.Consumer to which the

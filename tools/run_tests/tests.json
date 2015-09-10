@@ -183,24 +183,6 @@
     "ci_platforms": [
       "linux", 
       "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "endpoint_pair_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ], 
     "exclude_configs": [], 
@@ -661,7 +643,8 @@
     "ci_platforms": [
       "linux", 
       "mac", 
-      "posix"
+      "posix", 
+      "windows"
     ], 
     "exclude_configs": [], 
     "flaky": false, 
@@ -670,7 +653,8 @@
     "platforms": [
       "linux", 
       "mac", 
-      "posix"
+      "posix", 
+      "windows"
     ]
   }, 
   {
@@ -1137,7 +1121,8 @@
     "ci_platforms": [
       "linux", 
       "mac", 
-      "posix"
+      "posix", 
+      "windows"
     ], 
     "exclude_configs": [], 
     "flaky": false, 
@@ -1146,7 +1131,8 @@
     "platforms": [
       "linux", 
       "mac", 
-      "posix"
+      "posix", 
+      "windows"
     ]
   }, 
   {
@@ -1172,24 +1158,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "uri_parser_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "workqueue_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -1579,22 +1547,6 @@
       "mac", 
       "posix", 
       "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c++", 
-    "name": "streaming_throughput_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix"
     ]
   }, 
   {

@@ -46,8 +46,38 @@
 
 static gpr_mu g_mu;
 static gpr_cv g_rcv;
+static grpc_iomgr_closure *g_cbs_head = NULL;
+static grpc_iomgr_closure *g_cbs_tail = NULL;
 static int g_shutdown;
+static gpr_event g_background_callback_executor_done;
 static grpc_iomgr_object g_root_object;
+
+/* Execute followup callbacks continuously.
+   Other threads may check in and help during pollset_work() */
+static void background_callback_executor(void *ignored) {
+  gpr_mu_lock(&g_mu);
+  while (!g_shutdown) {
+    gpr_timespec deadline = gpr_inf_future(GPR_CLOCK_MONOTONIC);
+    gpr_timespec short_deadline = gpr_time_add(
+        gpr_now(GPR_CLOCK_MONOTONIC), gpr_time_from_millis(100, GPR_TIMESPAN));
+    if (g_cbs_head) {
+      grpc_iomgr_closure *closure = g_cbs_head;
+      g_cbs_head = closure->next;
+      if (!g_cbs_head) g_cbs_tail = NULL;
+      gpr_mu_unlock(&g_mu);
+      closure->cb(closure->cb_arg, closure->success);
+      gpr_mu_lock(&g_mu);
+    } else if (grpc_alarm_check(&g_mu, gpr_now(GPR_CLOCK_MONOTONIC),
+                                &deadline)) {
+    } else {
+      gpr_mu_unlock(&g_mu);
+      gpr_sleep_until(gpr_time_min(short_deadline, deadline));
+      gpr_mu_lock(&g_mu);
+    }
+  }
+  gpr_mu_unlock(&g_mu);
+  gpr_event_set(&g_background_callback_executor_done, (void *)1);
+}
 
 void grpc_kick_poller(void) {
   /* Empty. The background callback executor polls periodically. The activity
@@ -78,14 +108,8 @@ static size_t count_objects(void) {
   return n;
 }
 
-static void dump_objects(const char *kind) {
-  grpc_iomgr_object *obj;
-  for (obj = g_root_object.next; obj != &g_root_object; obj = obj->next) {
-    gpr_log(GPR_DEBUG, "%s OBJECT: %s %p", kind, obj->name, obj);
-  }
-}
-
 void grpc_iomgr_shutdown(void) {
+  grpc_iomgr_object *obj;
   grpc_iomgr_closure *closure;
   gpr_timespec shutdown_deadline = gpr_time_add(
       gpr_now(GPR_CLOCK_REALTIME), gpr_time_from_seconds(10, GPR_TIMESPAN));
@@ -127,14 +151,12 @@ void grpc_iomgr_shutdown(void) {
     }
     if (g_root_object.next != &g_root_object) {
       int timeout = 0;
-      while (g_cbs_head == NULL) {
-        gpr_timespec short_deadline = gpr_time_add(
+      gpr_timespec short_deadline = gpr_time_add(
           gpr_now(GPR_CLOCK_REALTIME), gpr_time_from_millis(100, GPR_TIMESPAN));
-        if (gpr_cv_wait(&g_rcv, &g_mu, short_deadline) && g_cbs_head == NULL) {
-          if (gpr_time_cmp(gpr_now(GPR_CLOCK_REALTIME), shutdown_deadline) > 0) {
-            timeout = 1;
-            break;
-          }
+      while (gpr_cv_wait(&g_rcv, &g_mu, short_deadline) && g_cbs_head == NULL) {
+        if (gpr_time_cmp(gpr_now(GPR_CLOCK_REALTIME), shutdown_deadline) > 0) {
+          timeout = 1;
+          break;
         }
       }
       if (timeout) {
@@ -142,7 +164,9 @@ void grpc_iomgr_shutdown(void) {
                 "Failed to free %d iomgr objects before shutdown deadline: "
                 "memory leaks are likely",
                 count_objects());
-        dump_objects("LEAKED");
+        for (obj = g_root_object.next; obj != &g_root_object; obj = obj->next) {
+          gpr_log(GPR_DEBUG, "LEAKED OBJECT: %s %p", obj->name, obj);
+        }
         break;
       }
     }
@@ -164,7 +188,7 @@ void grpc_iomgr_register_object(grpc_iomgr_object *obj, const char *name) {
   obj->name = gpr_strdup(name);
   gpr_mu_lock(&g_mu);
   obj->next = &g_root_object;
-  obj->prev = g_root_object.prev;
+  obj->prev = obj->next->prev;
   obj->next->prev = obj->prev->next = obj;
   gpr_mu_unlock(&g_mu);
 }
