@@ -245,7 +245,7 @@ ifdef EXTRA_DEFINES
 DEFINES += $(EXTRA_DEFINES)
 endif
 
-CFLAGS += -std=c89 -pedantic -Wsign-conversion -Wconversion -Wshadow
+CFLAGS += -std=c89 -pedantic -Wsign-conversion -Wconversion
 ifeq ($(HAS_CXX11),true)
 CXXFLAGS += -std=c++11
 else
@@ -4051,6 +4051,8 @@ LIBGRPC_SRC = \
     src/core/client_config/connector.c \
     src/core/client_config/lb_policies/pick_first.c \
     src/core/client_config/lb_policy.c \
+    src/core/client_config/lb_policy_factory.c \
+    src/core/client_config/lb_policy_registry.c \
     src/core/client_config/resolver.c \
     src/core/client_config/resolver_factory.c \
     src/core/client_config/resolver_registry.c \
@@ -4326,6 +4328,8 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/client_config/connector.c \
     src/core/client_config/lb_policies/pick_first.c \
     src/core/client_config/lb_policy.c \
+    src/core/client_config/lb_policy_factory.c \
+    src/core/client_config/lb_policy_registry.c \
     src/core/client_config/resolver.c \
     src/core/client_config/resolver_factory.c \
     src/core/client_config/resolver_registry.c \
