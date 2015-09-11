@@ -27,30 +27,25 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""The Python implementation of the GRPC helloworld.Greeter server."""
+# Dockerfile to build Debian packages for gRPC C core.
+FROM grpc/base
 
-import time
+# Add the file containing the gRPC version
+ADD version.txt version.txt
 
-import helloworld_pb2
+# Add the update-to-date distpackages folder
+ADD distpackages distpackages
 
-_ONE_DAY_IN_SECONDS = 60 * 60 * 24
+# Install dependencies
+RUN echo 'deb http://http.debian.net/debian experimental main contrib non-free' >> /etc/apt/sources.list
+RUN apt-get update \
+  && apt-get -t experimental install -y openssl=1.0.2-1 \
+  && apt-get install -y lintian
 
+# Get the source from GitHub
+RUN git clone https://github.com/grpc/grpc.git /var/local/git/grpc
+RUN cd /var/local/git/grpc && \
+  git pull --recurse-submodules && \
+  git submodule update --init --recursive
 
-class Greeter(helloworld_pb2.BetaGreeterServicer):
-
-  def SayHello(self, request, context):
-    return helloworld_pb2.HelloReply(message='Hello, %s!' % request.name)
-
-
-def serve():
-  server = helloworld_pb2.beta_create_Greeter_server(Greeter())
-  server.add_insecure_port('[::]:50051')
-  server.start()
-  try:
-    while True:
-      time.sleep(_ONE_DAY_IN_SECONDS)
-  except KeyboardInterrupt:
-    server.stop()
-
-if __name__ == '__main__':
-  serve()
+RUN /bin/bash -l -c 'cd /distpackages && ./build_deb_packages.sh'

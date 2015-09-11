@@ -27,30 +27,34 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""The Python implementation of the GRPC helloworld.Greeter server."""
+# Dockerfile for gRPC Ruby, but using Debian packages for gRPC C core.
+FROM grpc/ruby_base
 
-import time
+# Pull the latest sources
+RUN cd /var/local/git/grpc \
+  && git pull --recurse-submodules \
+  && git submodule update --init --recursive
 
-import helloworld_pb2
+# Make sure we don't rely on things that shouldn't be there.
+RUN make clean -C /var/local/git/grpc
 
-_ONE_DAY_IN_SECONDS = 60 * 60 * 24
+# Debian packages need to be supplied externally
+ADD libgrpc_amd64.deb libgrpc_amd64.deb
+ADD libgrpc-dev_amd64.deb libgrpc-dev_amd64.deb
 
+# Install the C core .deb packages
+RUN /bin/bash -l -c 'dpkg -i libgrpc_amd64.deb libgrpc-dev_amd64.deb'
 
-class Greeter(helloworld_pb2.BetaGreeterServicer):
+# Build ruby gRPC and run its tests
+RUN /bin/bash -l -c 'cd /var/local/git/grpc/src/ruby && bundle && rake'
 
-  def SayHello(self, request, context):
-    return helloworld_pb2.HelloReply(message='Hello, %s!' % request.name)
+# Add a cacerts directory containing the Google root pem file, allowing the
+# ruby client to access the production test instance
+ADD cacerts cacerts
 
+# Add a service_account directory containing the auth creds file
+ADD service_account service_account
 
-def serve():
-  server = helloworld_pb2.beta_create_Greeter_server(Greeter())
-  server.add_insecure_port('[::]:50051')
-  server.start()
-  try:
-    while True:
-      time.sleep(_ONE_DAY_IN_SECONDS)
-  except KeyboardInterrupt:
-    server.stop()
-
-if __name__ == '__main__':
-  serve()
+# Specify the default command such that the interop server runs on its known
+# testing port
+CMD ["/bin/bash", "-l", "-c", "ruby /var/local/git/grpc/src/ruby/bin/interop/interop_server.rb --use_tls --port 8060"]
