@@ -267,7 +267,7 @@ void test_connect(const char *server_host, const char *client_host, int port,
 int external_dns_works(const char *host) {
   grpc_resolved_addresses *res = grpc_blocking_resolve_address(host, "80");
   if (res != NULL) {
-    grpc_resolved_addresses_destroy(res);
+    gpr_free(res);
     return 1;
   }
   return 0;
