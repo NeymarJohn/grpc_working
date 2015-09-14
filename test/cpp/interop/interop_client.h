@@ -68,11 +68,12 @@ class InteropClient {
   void DoJwtTokenCreds(const grpc::string& username);
   void DoComputeEngineCreds(const grpc::string& default_service_account,
                             const grpc::string& oauth_scope);
-  // username the GCE default service account email
+  // username is a string containing the user email
   void DoOauth2AuthToken(const grpc::string& username,
                          const grpc::string& oauth_scope);
   // username is a string containing the user email
-  void DoPerRpcCreds(const grpc::string& json_key);
+  void DoPerRpcCreds(const grpc::string& username,
+                     const grpc::string& oauth_scope);
 
  private:
   void PerformLargeUnary(SimpleRequest* request, SimpleResponse* response);
