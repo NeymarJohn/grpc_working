@@ -42,12 +42,12 @@ double g_fixture_slowdown_factor = 1.0;
 
 #if GPR_GETPID_IN_UNISTD_H
 #include <unistd.h>
-static unsigned seed(void) { return (unsigned)getpid(); }
+static int seed(void) { return getpid(); }
 #endif
 
 #if GPR_GETPID_IN_PROCESS_H
 #include <process.h>
-static unsigned seed(void) { return _getpid(); }
+static int seed(void) { return _getpid(); }
 #endif
 
 #if GPR_WINDOWS_CRASH_HANDLER
