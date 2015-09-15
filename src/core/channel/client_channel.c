@@ -600,8 +600,7 @@ static void cc_start_transport_op(grpc_channel_element *elem,
   }
 
   if (on_consumed) {
-    grpc_workqueue_push(grpc_channel_get_workqueue(chand->master), on_consumed,
-                        1);
+    grpc_iomgr_add_callback(on_consumed);
   }
 }
 

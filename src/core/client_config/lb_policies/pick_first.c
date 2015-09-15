@@ -52,8 +52,6 @@ typedef struct {
   /** all our subchannels */
   grpc_subchannel **subchannels;
   size_t num_subchannels;
-  /** workqueue for async work */
-  grpc_workqueue *workqueue;
 
   grpc_iomgr_closure connectivity_changed;
 
@@ -104,7 +102,6 @@ void pf_destroy(grpc_lb_policy *pol) {
   grpc_connectivity_state_destroy(&p->state_tracker);
   gpr_free(p->subchannels);
   gpr_mu_destroy(&p->mu);
-  grpc_workqueue_unref(p->workqueue);
   gpr_free(p);
 }
 
@@ -117,7 +114,7 @@ void pf_shutdown(grpc_lb_policy *pol) {
   while ((pp = p->pending_picks)) {
     p->pending_picks = pp->next;
     *pp->target = NULL;
-    grpc_workqueue_push(p->workqueue, pp->on_complete, 0);
+    grpc_iomgr_add_delayed_callback(pp->on_complete, 0);
     gpr_free(pp);
   }
   grpc_connectivity_state_set(&p->state_tracker, GRPC_CHANNEL_FATAL_FAILURE,
@@ -199,7 +196,7 @@ static void pf_connectivity_changed(void *arg, int iomgr_success) {
           p->pending_picks = pp->next;
           *pp->target = p->selected;
           grpc_subchannel_del_interested_party(p->selected, pp->pollset);
-          grpc_workqueue_push(p->workqueue, pp->on_complete, 1);
+          grpc_iomgr_add_delayed_callback(pp->on_complete, 1);
           gpr_free(pp);
         }
         grpc_subchannel_notify_on_state_change(
@@ -244,7 +241,7 @@ static void pf_connectivity_changed(void *arg, int iomgr_success) {
           while ((pp = p->pending_picks)) {
             p->pending_picks = pp->next;
             *pp->target = NULL;
-            grpc_workqueue_push(p->workqueue, pp->on_complete, 1);
+            grpc_iomgr_add_delayed_callback(pp->on_complete, 1);
             gpr_free(pp);
           }
           unref = 1;
@@ -330,8 +327,6 @@ static grpc_lb_policy *create_pick_first(grpc_lb_policy_factory *factory,
   grpc_lb_policy_init(&p->base, &pick_first_lb_policy_vtable);
   p->subchannels = gpr_malloc(sizeof(grpc_subchannel *) * args->num_subchannels);
   p->num_subchannels = args->num_subchannels;
-  p->workqueue = args->workqueue;
-  grpc_workqueue_ref(p->workqueue);
   grpc_connectivity_state_init(&p->state_tracker, GRPC_CHANNEL_IDLE,
                                "pick_first");
   memcpy(p->subchannels, args->subchannels,

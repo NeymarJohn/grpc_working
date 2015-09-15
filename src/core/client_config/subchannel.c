@@ -76,7 +76,6 @@ typedef struct waiting_for_connect {
 
 struct grpc_subchannel {
   grpc_connector *connector;
-  grpc_workqueue *workqueue;
 
   /** non-transport related channel filters */
   const grpc_channel_filter **filters;
@@ -576,7 +575,7 @@ static void publish_transport(grpc_subchannel *c) {
   connectivity_state_changed_locked(c, "connected");
   while ((w4c = c->waiting)) {
     c->waiting = w4c->next;
-    grpc_workqueue_push(c->workqueue, &w4c->continuation, 1);
+    grpc_iomgr_add_callback(&w4c->continuation);
   }
 
   gpr_mu_unlock(&c->mu);
