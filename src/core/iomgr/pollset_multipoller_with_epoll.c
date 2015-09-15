@@ -72,7 +72,7 @@ static void finally_add_fd(grpc_pollset *pollset, grpc_fd *fd) {
      to this pollset whilst adding, but that should be benign. */
   GPR_ASSERT(grpc_fd_begin_poll(fd, pollset, 0, 0, &watcher) == 0);
   if (watcher.fd != NULL) {
-    ev.events = (uint32_t)(EPOLLIN | EPOLLOUT | EPOLLET);
+    ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
     ev.data.ptr = fd;
     err = epoll_ctl(h->epoll_fd, EPOLL_CTL_ADD, fd->fd, &ev);
     if (err < 0) {
@@ -127,7 +127,7 @@ static void multipoll_with_epoll_pollset_add_fd(grpc_pollset *pollset,
     GRPC_FD_REF(fd, "delayed_add");
     grpc_iomgr_closure_init(&da->closure, perform_delayed_add, da);
     pollset->in_flight_cbs++;
-    grpc_iomgr_add_callback(&da->closure);
+    grpc_workqueue_push(fd->workqueue, &da->closure, 1);
   }
 }
 

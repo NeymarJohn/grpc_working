@@ -31,38 +31,36 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_SERVER_H
-#define GRPC_INTERNAL_CORE_SURFACE_SERVER_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_WORKQUEUE_H
+#define GRPC_INTERNAL_CORE_IOMGR_WORKQUEUE_H
 
-#include "src/core/channel/channel_stack.h"
-#include <grpc/grpc.h>
-#include "src/core/transport/transport.h"
+#include "src/core/iomgr/iomgr.h"
+#include "src/core/iomgr/pollset.h"
 
-/* Create a server */
-grpc_server *grpc_server_create_from_filters(
-    const grpc_channel_filter **filters, size_t filter_count,
-    const grpc_channel_args *args);
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/workqueue_posix.h"
+#endif
 
-/* Add a listener to the server: when the server starts, it will call start,
-   and when it shuts down, it will call destroy */
-void grpc_server_add_listener(grpc_server *server, void *listener,
-                              void (*start)(grpc_server *server, void *arg,
-                                            grpc_pollset **pollsets,
-                                            size_t npollsets),
-                              void (*destroy)(grpc_server *server, void *arg));
+#ifdef GPR_WIN32
+#include "src/core/iomgr/workqueue_windows.h"
+#endif
 
-void grpc_server_listener_destroy_done(void *server);
+/** A workqueue represents a list of work to be executed asynchronously. */
+struct grpc_workqueue;
+typedef struct grpc_workqueue grpc_workqueue;
 
-/* Setup a transport - creates a channel stack, binds the transport to the
-   server */
-void grpc_server_setup_transport(grpc_server *server, grpc_transport *transport,
-                                 grpc_channel_filter const **extra_filters,
-                                 size_t num_extra_filters, grpc_mdctx *mdctx,
-                                 grpc_workqueue *workqueue,
-                                 const grpc_channel_args *args);
+/** Create a work queue */
+grpc_workqueue *grpc_workqueue_create(void);
 
-const grpc_channel_args *grpc_server_get_channel_args(grpc_server *server);
+void grpc_workqueue_ref(grpc_workqueue *workqueue);
+void grpc_workqueue_unref(grpc_workqueue *workqueue);
 
-int grpc_server_has_open_connections(grpc_server *server);
+/** Bind this workqueue to a pollset */
+void grpc_workqueue_add_to_pollset(grpc_workqueue *workqueue,
+                                   grpc_pollset *pollset);
 
-#endif /* GRPC_INTERNAL_CORE_SURFACE_SERVER_H */
+/** Add a work item to a workqueue */
+void grpc_workqueue_push(grpc_workqueue *workqueue, grpc_iomgr_closure *closure,
+                         int success);
+
+#endif
