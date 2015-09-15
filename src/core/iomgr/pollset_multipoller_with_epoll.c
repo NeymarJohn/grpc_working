@@ -99,7 +99,6 @@ static void perform_delayed_add(void *arg, int iomgr_status) {
   if (da->pollset->shutting_down) {
     /* We don't care about this pollset anymore. */
     if (da->pollset->in_flight_cbs == 0 && !da->pollset->called_shutdown) {
-      GPR_ASSERT(!grpc_pollset_has_workers(da->pollset));
       da->pollset->called_shutdown = 1;
       do_shutdown_cb = 1;
     }
@@ -128,7 +127,7 @@ static void multipoll_with_epoll_pollset_add_fd(grpc_pollset *pollset,
     GRPC_FD_REF(fd, "delayed_add");
     grpc_iomgr_closure_init(&da->closure, perform_delayed_add, da);
     pollset->in_flight_cbs++;
-    grpc_iomgr_add_callback(&da->closure);
+    grpc_workqueue_push(fd->workqueue, &da->closure, 1);
   }
 }
 

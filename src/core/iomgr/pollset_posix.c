@@ -178,9 +178,6 @@ void grpc_pollset_work(grpc_pollset *pollset, grpc_pollset_worker *worker,
   worker->next = worker->prev = NULL;
   /* TODO(ctiller): pool these */
   grpc_wakeup_fd_init(&worker->wakeup_fd);
-  if (grpc_maybe_call_delayed_callbacks(&pollset->mu, 1)) {
-    goto done;
-  }
   if (grpc_alarm_check(&pollset->mu, now, &deadline)) {
     goto done;
   }
@@ -296,7 +293,7 @@ static void basic_do_promote(void *args, int success) {
   /* First we need to ensure that nobody is polling concurrently */
   if (grpc_pollset_has_workers(pollset)) {
     grpc_pollset_kick(pollset, GRPC_POLLSET_KICK_BROADCAST);
-    grpc_iomgr_add_callback(&up_args->promotion_closure);
+    grpc_workqueue_push(fd->workqueue, &up_args->promotion_closure, 1);
     gpr_mu_unlock(&pollset->mu);
     return;
   }
@@ -388,7 +385,7 @@ static void basic_pollset_add_fd(grpc_pollset *pollset, grpc_fd *fd,
   up_args->original_vtable = pollset->vtable;
   up_args->promotion_closure.cb = basic_do_promote;
   up_args->promotion_closure.cb_arg = up_args;
-  grpc_iomgr_add_callback(&up_args->promotion_closure);
+  grpc_workqueue_push(fd->workqueue, &up_args->promotion_closure, 1);
 
   grpc_pollset_kick(pollset, GRPC_POLLSET_KICK_BROADCAST);
 
@@ -420,7 +417,7 @@ static void basic_pollset_maybe_work(grpc_pollset *pollset,
   grpc_fd_watcher fd_watcher;
   int timeout;
   int r;
-  int nfds;
+  nfds_t nfds;
 
   if (pollset->in_flight_cbs) {
     /* Give do_promote priority so we don't starve it out */
@@ -443,7 +440,7 @@ static void basic_pollset_maybe_work(grpc_pollset *pollset,
     pfd[1].revents = 0;
     gpr_mu_unlock(&pollset->mu);
     pfd[1].events =
-        grpc_fd_begin_poll(fd, pollset, POLLIN, POLLOUT, &fd_watcher);
+        (short)grpc_fd_begin_poll(fd, pollset, POLLIN, POLLOUT, &fd_watcher);
     if (pfd[1].events != 0) {
       nfds++;
     }
