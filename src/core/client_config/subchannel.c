@@ -76,7 +76,6 @@ typedef struct waiting_for_connect {
 
 struct grpc_subchannel {
   grpc_connector *connector;
-  grpc_workqueue *workqueue;
 
   /** non-transport related channel filters */
   const grpc_channel_filter **filters;
@@ -260,7 +259,6 @@ static void subchannel_destroy(grpc_subchannel *c) {
   grpc_mdctx_unref(c->mdctx);
   grpc_connectivity_state_destroy(&c->state_tracker);
   grpc_connector_unref(c->connector);
-  grpc_workqueue_unref(c->workqueue);
   gpr_free(c);
 }
 
@@ -297,14 +295,12 @@ grpc_subchannel *grpc_subchannel_create(grpc_connector *connector,
   c->args = grpc_channel_args_copy(args->args);
   c->mdctx = args->mdctx;
   c->master = args->master;
-  c->workqueue = grpc_channel_get_workqueue(c->master);
-  grpc_workqueue_ref(c->workqueue);
   c->pollset_set = grpc_client_channel_get_connecting_pollset_set(parent_elem);
   c->random = random_seed();
   grpc_mdctx_ref(c->mdctx);
   grpc_iomgr_closure_init(&c->connected, subchannel_connected, c);
-  grpc_connectivity_state_init(&c->state_tracker, c->workqueue,
-                               GRPC_CHANNEL_IDLE, "subchannel");
+  grpc_connectivity_state_init(&c->state_tracker, GRPC_CHANNEL_IDLE,
+                               "subchannel");
   gpr_mu_init(&c->mu);
   return c;
 }
@@ -443,6 +439,10 @@ void grpc_subchannel_process_transport_op(grpc_subchannel *c,
   if (cancel_alarm) {
     grpc_alarm_cancel(&c->alarm);
   }
+
+  if (op->disconnect) {
+    grpc_connector_shutdown(c->connector);
+  }
 }
 
 static void on_state_changed(void *p, int iomgr_success) {
@@ -579,7 +579,7 @@ static void publish_transport(grpc_subchannel *c) {
   connectivity_state_changed_locked(c, "connected");
   while ((w4c = c->waiting)) {
     c->waiting = w4c->next;
-    grpc_workqueue_push(c->workqueue, &w4c->continuation, 1);
+    grpc_iomgr_add_callback(&w4c->continuation);
   }
 
   gpr_mu_unlock(&c->mu);

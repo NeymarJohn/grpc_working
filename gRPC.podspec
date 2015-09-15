@@ -36,17 +36,17 @@
 
 Pod::Spec.new do |s|
   s.name     = 'gRPC'
-  s.version  = '0.7.0'
+  s.version  = '0.11.0'
   s.summary  = 'gRPC client library for iOS/OSX'
   s.homepage = 'http://www.grpc.io'
   s.license  = 'New BSD'
   s.authors  = { 'The gRPC contributors' => 'grpc-packages@google.com' }
 
   # s.source = { :git => 'https://github.com/grpc/grpc.git',
-  #              :tag => 'release-0_10_0-objectivec-0.6.0' }
+  #              :tag => 'release-0_11_0-objectivec-0.11.0' }
 
-  s.ios.deployment_target = '6.0'
-  s.osx.deployment_target = '10.8'
+  s.ios.deployment_target = '7.1'
+  s.osx.deployment_target = '10.9'
   s.requires_arc = true
 
   objc_dir = 'src/objective-c'
@@ -208,9 +208,6 @@ Pod::Spec.new do |s|
                       'src/core/iomgr/udp_server.h',
                       'src/core/iomgr/wakeup_fd_pipe.h',
                       'src/core/iomgr/wakeup_fd_posix.h',
-                      'src/core/iomgr/workqueue.h',
-                      'src/core/iomgr/workqueue_posix.h',
-                      'src/core/iomgr/workqueue_windows.h',
                       'src/core/json/json.h',
                       'src/core/json/json_common.h',
                       'src/core/json/json_reader.h',
@@ -350,8 +347,6 @@ Pod::Spec.new do |s|
                       'src/core/iomgr/wakeup_fd_nospecial.c',
                       'src/core/iomgr/wakeup_fd_pipe.c',
                       'src/core/iomgr/wakeup_fd_posix.c',
-                      'src/core/iomgr/workqueue_posix.c',
-                      'src/core/iomgr/workqueue_windows.c',
                       'src/core/json/json.c',
                       'src/core/json/json_reader.c',
                       'src/core/json/json_string.c',
@@ -491,9 +486,6 @@ Pod::Spec.new do |s|
                               'src/core/iomgr/udp_server.h',
                               'src/core/iomgr/wakeup_fd_pipe.h',
                               'src/core/iomgr/wakeup_fd_posix.h',
-                              'src/core/iomgr/workqueue.h',
-                              'src/core/iomgr/workqueue_posix.h',
-                              'src/core/iomgr/workqueue_windows.h',
                               'src/core/json/json.h',
                               'src/core/json/json_common.h',
                               'src/core/json/json_reader.h',
@@ -599,6 +591,6 @@ Pod::Spec.new do |s|
 
     ss.dependency 'gRPC/GRPCClient'
     ss.dependency 'gRPC/RxLibrary'
-    ss.dependency 'Protobuf', '~> 3.0.0-alpha-3'
+    ss.dependency 'Protobuf', '~> 3.0.0-alpha-4'
   end
 end

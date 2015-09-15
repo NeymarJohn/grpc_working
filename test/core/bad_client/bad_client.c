@@ -65,13 +65,12 @@ static void done_write(void *arg, int success) {
 }
 
 static void server_setup_transport(void *ts, grpc_transport *transport,
-                                   grpc_mdctx *mdctx,
-                                   grpc_workqueue *workqueue) {
+                                   grpc_mdctx *mdctx) {
   thd_args *a = ts;
   static grpc_channel_filter const *extra_filters[] = {
       &grpc_http_server_filter};
   grpc_server_setup_transport(a->server, transport, extra_filters,
-                              GPR_ARRAY_SIZE(extra_filters), mdctx, workqueue,
+                              GPR_ARRAY_SIZE(extra_filters), mdctx,
                               grpc_server_get_channel_args(a->server));
 }
 
