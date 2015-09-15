@@ -37,7 +37,6 @@
 #include <grpc/support/time.h>
 #import <RxLibrary/GRXConcurrentWriteable.h>
 
-#import "private/GRPCRequestHeaders.h"
 #import "private/GRPCWrappedCall.h"
 #import "private/NSData+GRPC.h"
 #import "private/NSDictionary+GRPC.h"
@@ -94,7 +93,7 @@ NSString * const kGRPCTrailersKey = @"io.grpc.TrailersKey";
   // the response arrives.
   GRPCCall *_retainSelf;
 
-  GRPCRequestHeaders *_requestHeaders;
+  NSMutableDictionary *_requestHeaders;
 }
 
 @synthesize state = _state;
@@ -125,9 +124,19 @@ NSString * const kGRPCTrailersKey = @"io.grpc.TrailersKey";
 
     _requestWriter = requestWriter;
 
-    _requestHeaders = [[GRPCRequestHeaders alloc] initWithCall:self];
+    _requestHeaders = [NSMutableDictionary dictionary];
   }
   return self;
+}
+
+#pragma mark Metadata
+
+- (NSMutableDictionary *)requestHeaders {
+  return _requestHeaders;
+}
+
+- (void)setRequestHeaders:(NSDictionary *)requestHeaders {
+  _requestHeaders = [NSMutableDictionary dictionaryWithDictionary:requestHeaders];
 }
 
 #pragma mark Finish
@@ -221,10 +230,10 @@ NSString * const kGRPCTrailersKey = @"io.grpc.TrailersKey";
 
 #pragma mark Send headers
 
-- (void)sendHeaders:(id<GRPCRequestHeaders>)headers {
+- (void)sendHeaders:(NSDictionary *)headers {
   // TODO(jcanizales): Add error handlers for async failures
-  [_wrappedCall startBatchWithOperations:@[[[GRPCOpSendMetadata alloc] initWithMetadata:headers
-                                                                                handler:nil]]];
+  [_wrappedCall startBatchWithOperations:@[[[GRPCOpSendMetadata alloc]
+                                            initWithMetadata:headers ?: @{} handler:nil]]];
 }
 
 #pragma mark GRXWriteable implementation
