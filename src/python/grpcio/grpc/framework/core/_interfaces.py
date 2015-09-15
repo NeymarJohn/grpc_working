@@ -50,13 +50,13 @@ class TerminationManager(object):
     If the operation has already terminated the callback will not be called.
 
     Args:
-      callback: A callable that will be passed a base.Outcome value.
+      callback: A callable that will be passed an interfaces.Outcome value.
 
     Returns:
       None if the operation has not yet terminated and the passed callback will
-        be called when it does, or a base.Outcome value describing the
-        operation termination if the operation has terminated and the callback
-        will not be called as a result of this method call.
+        be called when it does, or a base.Outcome value describing the operation
+        termination if the operation has terminated and the callback will not be
+        called as a result of this method call.
     """
     raise NotImplementedError()
 
@@ -76,13 +76,8 @@ class TerminationManager(object):
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def reception_complete(self, code, details):
-    """Indicates that reception from the other side is complete.
-
-    Args:
-      code: An application-specific code value.
-      details: An application-specific details value.
-    """
+  def reception_complete(self):
+    """Indicates that reception from the other side is complete."""
     raise NotImplementedError()
 
   @abc.abstractmethod
@@ -100,7 +95,7 @@ class TerminationManager(object):
     """Indicates that the operation must abort for the indicated reason.
 
     Args:
-      outcome: A base.Outcome indicating operation abortion.
+      outcome: An interfaces.Outcome indicating operation abortion.
     """
     raise NotImplementedError()
 
@@ -111,8 +106,8 @@ class TransmissionManager(object):
 
   @abc.abstractmethod
   def kick_off(
-      self, group, method, timeout, protocol_options, initial_metadata,
-      payload, completion, allowance):
+      self, group, method, timeout, initial_metadata, payload, completion,
+      allowance):
     """Transmits the values associated with operation invocation."""
     raise NotImplementedError()
 
@@ -160,13 +155,19 @@ class TransmissionManager(object):
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def abort(self, outcome):
+  def abort(self, outcome, code, message):
     """Indicates that the operation has aborted.
 
     Args:
-      outcome: A base.Outcome for the operation. If None, indicates that the
-        operation abortion should not be communicated to the other side of the
-        operation.
+      outcome: An interfaces.Outcome for the operation. If None, indicates that
+        the operation abortion should not be communicated to the other side of
+        the operation.
+      code: A code value to communicate to the other side of the operation
+        along with indication of operation abortion. May be None, and has no
+        effect if outcome is None.
+      message: A message value to communicate to the other side of the
+        operation along with indication of operation abortion. May be None, and
+        has no effect if outcome is None.
     """
     raise NotImplementedError()
 
@@ -200,31 +201,6 @@ class ExpirationManager(object):
   @abc.abstractmethod
   def terminate(self):
     """Indicates to this manager that the operation has terminated."""
-    raise NotImplementedError()
-
-
-class ProtocolManager(object):
-  """A manager of protocol-specific values passing through an operation."""
-  __metaclass__ = abc.ABCMeta
-
-  @abc.abstractmethod
-  def set_protocol_receiver(self, protocol_receiver):
-    """Registers the customer object that will receive protocol objects.
-
-    Args:
-      protocol_receiver: A base.ProtocolReceiver to which protocol objects for
-        the operation should be passed.
-    """
-    raise NotImplementedError()
-
-  @abc.abstractmethod
-  def accept_protocol_context(self, protocol_context):
-    """Accepts the protocol context object for the operation.
-
-    Args:
-      protocol_context: An object designated for use as the protocol context
-        of the operation, with further semantics implementation-determined.
-    """
     raise NotImplementedError()
 
 
@@ -303,7 +279,8 @@ class ReceptionManager(object):
     """Handle a ticket from the other side of the operation.
 
     Args:
-      ticket: A links.Ticket for the operation.
+      ticket: An interfaces.BackToFrontTicket or interfaces.FrontToBackTicket
+        appropriate to this end of the operation and this object.
     """
     raise NotImplementedError()
 
@@ -328,10 +305,10 @@ class Operation(object):
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def abort(self, outcome_kind):
+  def abort(self, outcome):
     """Aborts the operation.
 
     Args:
-      outcome_kind: A base.Outcome.Kind value indicating operation abortion.
+      outcome: A base.Outcome value indicating operation abortion.
     """
     raise NotImplementedError()

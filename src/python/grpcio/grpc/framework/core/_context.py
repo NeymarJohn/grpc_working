@@ -33,7 +33,6 @@ import time
 
 # _interfaces is referenced from specification in this module.
 from grpc.framework.core import _interfaces  # pylint: disable=unused-import
-from grpc.framework.core import _utilities
 from grpc.framework.interfaces.base import base
 
 
@@ -57,12 +56,11 @@ class OperationContext(base.OperationContext):
     self._transmission_manager = transmission_manager
     self._expiration_manager = expiration_manager
 
-  def _abort(self, outcome_kind):
+  def _abort(self, outcome):
     with self._lock:
       if self._termination_manager.outcome is None:
-        outcome = _utilities.Outcome(outcome_kind, None, None)
         self._termination_manager.abort(outcome)
-        self._transmission_manager.abort(outcome)
+        self._transmission_manager.abort(outcome, None, None)
         self._expiration_manager.terminate()
 
   def outcome(self):
@@ -87,8 +85,8 @@ class OperationContext(base.OperationContext):
 
   def cancel(self):
     """See base.OperationContext.cancel for specification."""
-    self._abort(base.Outcome.Kind.CANCELLED)
+    self._abort(base.Outcome.CANCELLED)
 
   def fail(self, exception):
     """See base.OperationContext.fail for specification."""
-    self._abort(base.Outcome.Kind.LOCAL_FAILURE)
+    self._abort(base.Outcome.LOCAL_FAILURE)

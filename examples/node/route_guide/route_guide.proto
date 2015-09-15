@@ -29,9 +29,9 @@
 
 syntax = "proto3";
 
-option java_package = "io.grpc.routeguide";
+option java_package = "io.grpc.examples";
 
-package routeguide;
+package examples;
 
 // Interface exported by the server.
 service RouteGuide {

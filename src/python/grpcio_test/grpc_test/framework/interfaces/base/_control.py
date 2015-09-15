@@ -236,8 +236,8 @@ class Instruction(
     collections.namedtuple(
         'Instruction',
         ('kind', 'advance_args', 'advance_kwargs', 'conclude_success',
-         'conclude_message', 'conclude_invocation_outcome_kind',
-         'conclude_service_outcome_kind',))):
+         'conclude_message', 'conclude_invocation_outcome',
+         'conclude_service_outcome',))):
   """"""
 
   @enum.unique
@@ -532,24 +532,24 @@ class _SequenceController(Controller):
       self._state.service_side_outcome = outcome
       if self._todo is not None or self._remaining_elements:
         self._failed('Premature service-side outcome %s!' % (outcome,))
-      elif outcome.kind is not self._sequence.outcome_kinds.service:
+      elif outcome is not self._sequence.outcome.service:
         self._failed(
-            'Incorrect service-side outcome kind: %s should have been %s' % (
-                outcome.kind, self._sequence.outcome_kinds.service))
+            'Incorrect service-side outcome: %s should have been %s' % (
+                outcome, self._sequence.outcome.service))
       elif self._state.invocation_side_outcome is not None:
-        self._passed(self._state.invocation_side_outcome.kind, outcome.kind)
+        self._passed(self._state.invocation_side_outcome, outcome)
 
   def invocation_on_termination(self, outcome):
     with self._condition:
       self._state.invocation_side_outcome = outcome
       if self._todo is not None or self._remaining_elements:
         self._failed('Premature invocation-side outcome %s!' % (outcome,))
-      elif outcome.kind is not self._sequence.outcome_kinds.invocation:
+      elif outcome is not self._sequence.outcome.invocation:
         self._failed(
-            'Incorrect invocation-side outcome kind: %s should have been %s' % (
-                outcome.kind, self._sequence.outcome_kinds.invocation))
+            'Incorrect invocation-side outcome: %s should have been %s' % (
+                outcome, self._sequence.outcome.invocation))
       elif self._state.service_side_outcome is not None:
-        self._passed(outcome.kind, self._state.service_side_outcome.kind)
+        self._passed(outcome, self._state.service_side_outcome)
 
 
 class _SequenceControllerCreator(ControllerCreator):
