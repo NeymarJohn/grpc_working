@@ -31,38 +31,7 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_SERVER_H
-#define GRPC_INTERNAL_CORE_SURFACE_SERVER_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_WORKQUEUE_WINDOWS_H
+#define GRPC_INTERNAL_CORE_IOMGR_WORKQUEUE_WINDOWS_H
 
-#include "src/core/channel/channel_stack.h"
-#include <grpc/grpc.h>
-#include "src/core/transport/transport.h"
-
-/* Create a server */
-grpc_server *grpc_server_create_from_filters(
-    const grpc_channel_filter **filters, size_t filter_count,
-    const grpc_channel_args *args);
-
-/* Add a listener to the server: when the server starts, it will call start,
-   and when it shuts down, it will call destroy */
-void grpc_server_add_listener(grpc_server *server, void *listener,
-                              void (*start)(grpc_server *server, void *arg,
-                                            grpc_pollset **pollsets,
-                                            size_t npollsets),
-                              void (*destroy)(grpc_server *server, void *arg));
-
-void grpc_server_listener_destroy_done(void *server);
-
-/* Setup a transport - creates a channel stack, binds the transport to the
-   server */
-void grpc_server_setup_transport(grpc_server *server, grpc_transport *transport,
-                                 grpc_channel_filter const **extra_filters,
-                                 size_t num_extra_filters, grpc_mdctx *mdctx,
-                                 grpc_workqueue *workqueue,
-                                 const grpc_channel_args *args);
-
-const grpc_channel_args *grpc_server_get_channel_args(grpc_server *server);
-
-int grpc_server_has_open_connections(grpc_server *server);
-
-#endif /* GRPC_INTERNAL_CORE_SURFACE_SERVER_H */
+#endif /* GRPC_INTERNAL_CORE_IOMGR_WORKQUEUE_WINDOWS_H */

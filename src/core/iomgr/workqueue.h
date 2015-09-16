@@ -31,37 +31,51 @@
  *
  */
 
-#include <sys/resource.h>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_WORKQUEUE_H
+#define GRPC_INTERNAL_CORE_IOMGR_WORKQUEUE_H
 
-#include <grpc/support/log.h>
-
-#include "test/core/util/test_config.h"
-#include "src/core/iomgr/endpoint_pair.h"
 #include "src/core/iomgr/iomgr.h"
+#include "src/core/iomgr/pollset.h"
 
-int main(int argc, char **argv) {
-  int i;
-  struct rlimit rlim;
-  grpc_endpoint_pair p;
-  grpc_workqueue *workqueue;
+#ifdef GPR_POSIX_SOCKET
+#include "src/core/iomgr/workqueue_posix.h"
+#endif
 
-  grpc_test_init(argc, argv);
-  grpc_iomgr_init();
-  workqueue = grpc_workqueue_create();
+#ifdef GPR_WIN32
+#include "src/core/iomgr/workqueue_windows.h"
+#endif
 
-  /* set max # of file descriptors to a low value, and
-     verify we can create and destroy many more than this number
-     of descriptors */
-  rlim.rlim_cur = rlim.rlim_max = 10;
-  GPR_ASSERT(0 == setrlimit(RLIMIT_NOFILE, &rlim));
+/** A workqueue represents a list of work to be executed asynchronously. */
+struct grpc_workqueue;
+typedef struct grpc_workqueue grpc_workqueue;
 
-  for (i = 0; i < 100; i++) {
-    p = grpc_iomgr_create_endpoint_pair("test", 1, workqueue);
-    grpc_endpoint_destroy(p.client);
-    grpc_endpoint_destroy(p.server);
-  }
+/** Create a work queue */
+grpc_workqueue *grpc_workqueue_create(void);
 
-  GRPC_WORKQUEUE_UNREF(workqueue, "destroy");
-  grpc_iomgr_shutdown();
-  return 0;
-}
+void grpc_workqueue_flush(grpc_workqueue *workqueue, int asynchronously);
+
+#ifdef GRPC_WORKQUEUE_REFCOUNT_DEBUG
+#define GRPC_WORKQUEUE_REF(p, r) \
+  grpc_workqueue_ref((p), __FILE__, __LINE__, (r))
+#define GRPC_WORKQUEUE_UNREF(p, r) \
+  grpc_workqueue_unref((p), __FILE__, __LINE__, (r))
+void grpc_workqueue_ref(grpc_workqueue *workqueue, const char *file, int line,
+                        const char *reason);
+void grpc_workqueue_unref(grpc_workqueue *workqueue, const char *file, int line,
+                          const char *reason);
+#else
+#define GRPC_WORKQUEUE_REF(p, r) grpc_workqueue_ref((p))
+#define GRPC_WORKQUEUE_UNREF(p, r) grpc_workqueue_unref((p))
+void grpc_workqueue_ref(grpc_workqueue *workqueue);
+void grpc_workqueue_unref(grpc_workqueue *workqueue);
+#endif
+
+/** Bind this workqueue to a pollset */
+void grpc_workqueue_add_to_pollset(grpc_workqueue *workqueue,
+                                   grpc_pollset *pollset);
+
+/** Add a work item to a workqueue */
+void grpc_workqueue_push(grpc_workqueue *workqueue, grpc_iomgr_closure *closure,
+                         int success);
+
+#endif
