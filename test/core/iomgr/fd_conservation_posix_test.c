@@ -43,11 +43,8 @@ int main(int argc, char **argv) {
   int i;
   struct rlimit rlim;
   grpc_endpoint_pair p;
-  grpc_workqueue *workqueue;
-
   grpc_test_init(argc, argv);
   grpc_iomgr_init();
-  workqueue = grpc_workqueue_create();
 
   /* set max # of file descriptors to a low value, and
      verify we can create and destroy many more than this number
@@ -56,12 +53,11 @@ int main(int argc, char **argv) {
   GPR_ASSERT(0 == setrlimit(RLIMIT_NOFILE, &rlim));
 
   for (i = 0; i < 100; i++) {
-    p = grpc_iomgr_create_endpoint_pair("test", 1, workqueue);
+    p = grpc_iomgr_create_endpoint_pair("test", 1);
     grpc_endpoint_destroy(p.client);
     grpc_endpoint_destroy(p.server);
   }
 
-  grpc_workqueue_unref(workqueue);
   grpc_iomgr_shutdown();
   return 0;
 }

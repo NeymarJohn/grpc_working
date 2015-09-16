@@ -37,7 +37,6 @@
 #include "src/core/client_config/resolver.h"
 #include "src/core/client_config/subchannel_factory.h"
 #include "src/core/client_config/uri_parser.h"
-#include "src/core/iomgr/workqueue.h"
 
 typedef struct grpc_resolver_factory grpc_resolver_factory;
 typedef struct grpc_resolver_factory_vtable grpc_resolver_factory_vtable;
@@ -48,19 +47,14 @@ struct grpc_resolver_factory {
   const grpc_resolver_factory_vtable *vtable;
 };
 
-typedef struct grpc_resolver_args {
-  grpc_uri *uri;
-  grpc_subchannel_factory *subchannel_factory;
-  grpc_workqueue *workqueue;
-} grpc_resolver_args;
-
 struct grpc_resolver_factory_vtable {
   void (*ref)(grpc_resolver_factory *factory);
   void (*unref)(grpc_resolver_factory *factory);
 
   /** Implementation of grpc_resolver_factory_create_resolver */
-  grpc_resolver *(*create_resolver)(grpc_resolver_factory *factory,
-                                    grpc_resolver_args *args);
+  grpc_resolver *(*create_resolver)(
+      grpc_resolver_factory *factory, grpc_uri *uri,
+      grpc_subchannel_factory *subchannel_factory);
 
   /** Implementation of grpc_resolver_factory_get_default_authority */
   char *(*get_default_authority)(grpc_resolver_factory *factory, grpc_uri *uri);
@@ -74,7 +68,8 @@ void grpc_resolver_factory_unref(grpc_resolver_factory *resolver);
 
 /** Create a resolver instance for a name */
 grpc_resolver *grpc_resolver_factory_create_resolver(
-    grpc_resolver_factory *factory, grpc_resolver_args *args);
+    grpc_resolver_factory *factory, grpc_uri *uri,
+    grpc_subchannel_factory *subchannel_factory);
 
 /** Return a (freshly allocated with gpr_malloc) string representing
     the default authority to use for this scheme. */

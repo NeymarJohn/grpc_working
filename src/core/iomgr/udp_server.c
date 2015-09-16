@@ -118,8 +118,6 @@ struct grpc_udp_server {
   grpc_pollset **pollsets;
   /* number of pollsets in the pollsets array */
   size_t pollset_count;
-
-  grpc_workqueue *workqueue;
 };
 
 grpc_udp_server *grpc_udp_server_create(void) {
@@ -132,7 +130,6 @@ grpc_udp_server *grpc_udp_server_create(void) {
   s->ports = gpr_malloc(sizeof(server_port) * INIT_PORT_CAP);
   s->nports = 0;
   s->port_capacity = INIT_PORT_CAP;
-  s->workqueue = grpc_workqueue_create();
 
   return s;
 }
@@ -144,7 +141,6 @@ static void finish_shutdown(grpc_udp_server *s) {
   gpr_cv_destroy(&s->cv);
 
   gpr_free(s->ports);
-  grpc_workqueue_unref(s->workqueue);
   gpr_free(s);
 }
 
@@ -313,7 +309,7 @@ static int add_socket_to_server(grpc_udp_server *s, int fd,
     sp = &s->ports[s->nports++];
     sp->server = s;
     sp->fd = fd;
-    sp->emfd = grpc_fd_create(fd, s->workqueue, name);
+    sp->emfd = grpc_fd_create(fd, name);
     memcpy(sp->addr.untyped, addr, addr_len);
     sp->addr_len = addr_len;
     sp->read_cb = read_cb;
