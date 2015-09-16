@@ -83,7 +83,7 @@ typedef struct {
     struct sockaddr sockaddr;
     struct sockaddr_un un;
   } addr;
-  int addr_len;
+  size_t addr_len;
   grpc_iomgr_closure read_closure;
   grpc_iomgr_closure destroyed_closure;
 } server_port;
@@ -124,6 +124,9 @@ struct grpc_tcp_server {
   grpc_pollset **pollsets;
   /* number of pollsets in the pollsets array */
   size_t pollset_count;
+
+  /** workqueue for interally created async work */
+  grpc_workqueue *workqueue;
 };
 
 grpc_tcp_server *grpc_tcp_server_create(void) {
@@ -137,6 +140,7 @@ grpc_tcp_server *grpc_tcp_server_create(void) {
   s->ports = gpr_malloc(sizeof(server_port) * INIT_PORT_CAP);
   s->nports = 0;
   s->port_capacity = INIT_PORT_CAP;
+  s->workqueue = grpc_workqueue_create();
   return s;
 }
 
@@ -147,6 +151,7 @@ static void finish_shutdown(grpc_tcp_server *s) {
   gpr_mu_destroy(&s->mu);
 
   gpr_free(s->ports);
+  grpc_workqueue_unref(s->workqueue);
   gpr_free(s);
 }
 
@@ -236,7 +241,7 @@ static void init_max_accept_queue_size(void) {
     char *end;
     long i = strtol(buf, &end, 10);
     if (i > 0 && i <= INT_MAX && end && *end == 0) {
-      n = i;
+      n = (int)i;
     }
   }
   fclose(fp);
@@ -256,7 +261,8 @@ static int get_max_accept_queue_size(void) {
 }
 
 /* Prepare a recently-created socket for listening. */
-static int prepare_socket(int fd, const struct sockaddr *addr, int addr_len) {
+static int prepare_socket(int fd, const struct sockaddr *addr,
+                          size_t addr_len) {
   struct sockaddr_storage sockname_temp;
   socklen_t sockname_len;
 
@@ -273,7 +279,8 @@ static int prepare_socket(int fd, const struct sockaddr *addr, int addr_len) {
     goto error;
   }
 
-  if (bind(fd, addr, addr_len) < 0) {
+  GPR_ASSERT(addr_len < ~(socklen_t)0);
+  if (bind(fd, addr, (socklen_t)addr_len) < 0) {
     char *addr_str;
     grpc_sockaddr_to_string(&addr_str, addr, 0);
     gpr_log(GPR_ERROR, "bind addr=%s: %s", addr_str, strerror(errno));
@@ -337,7 +344,7 @@ static void on_read(void *arg, int success) {
     addr_str = grpc_sockaddr_to_uri((struct sockaddr *)&addr);
     gpr_asprintf(&name, "tcp-server-connection:%s", addr_str);
 
-    fdobj = grpc_fd_create(fd, name);
+    fdobj = grpc_fd_create(fd, sp->server->workqueue, name);
     /* TODO(ctiller): revise this when we have server-side sharding
        of channels -- we certainly should not be automatically adding every
        incoming channel to every pollset owned by the server */
@@ -365,7 +372,7 @@ error:
 }
 
 static int add_socket_to_server(grpc_tcp_server *s, int fd,
-                                const struct sockaddr *addr, int addr_len) {
+                                const struct sockaddr *addr, size_t addr_len) {
   server_port *sp;
   int port;
   char *addr_str;
@@ -385,7 +392,7 @@ static int add_socket_to_server(grpc_tcp_server *s, int fd,
     sp = &s->ports[s->nports++];
     sp->server = s;
     sp->fd = fd;
-    sp->emfd = grpc_fd_create(fd, name);
+    sp->emfd = grpc_fd_create(fd, s->workqueue, name);
     memcpy(sp->addr.untyped, addr, addr_len);
     sp->addr_len = addr_len;
     GPR_ASSERT(sp->emfd);
@@ -398,7 +405,7 @@ static int add_socket_to_server(grpc_tcp_server *s, int fd,
 }
 
 int grpc_tcp_server_add_port(grpc_tcp_server *s, const void *addr,
-                             int addr_len) {
+                             size_t addr_len) {
   int allocated_port1 = -1;
   int allocated_port2 = -1;
   unsigned i;

@@ -50,13 +50,15 @@ typedef struct {
   grpc_pollset_set *interested_parties;
   /** address to connect to */
   const struct sockaddr *addr;
-  int addr_len;
+  size_t addr_len;
   /** deadline for connection */
   gpr_timespec deadline;
   /** channel arguments (to be passed to transport) */
   const grpc_channel_args *channel_args;
   /** metadata context */
   grpc_mdctx *metadata_context;
+  /** workqueue */
+  grpc_workqueue *workqueue;
 } grpc_connect_in_args;
 
 typedef struct {
