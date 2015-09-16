@@ -145,7 +145,7 @@ CC_tsan = clang
 CXX_tsan = clang++
 LD_tsan = clang
 LDXX_tsan = clang++
-CPPFLAGS_tsan = -O0 -fsanitize=thread -fno-omit-frame-pointer -Wno-unused-command-line-argument
+CPPFLAGS_tsan = -O0 -fsanitize=thread -fno-omit-frame-pointer -Wno-error=unused-command-line-argument
 LDFLAGS_tsan = -fsanitize=thread
 DEFINES_tsan = NDEBUG GRPC_TEST_SLOWDOWN_BUILD_FACTOR=10
 
@@ -155,7 +155,7 @@ CC_asan = clang
 CXX_asan = clang++
 LD_asan = clang
 LDXX_asan = clang++
-CPPFLAGS_asan = -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
+CPPFLAGS_asan = -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-error=unused-command-line-argument
 LDFLAGS_asan = -fsanitize=address
 DEFINES_asan = GRPC_TEST_SLOWDOWN_BUILD_FACTOR=3
 
@@ -165,7 +165,7 @@ CC_msan = clang
 CXX_msan = clang++-libc++
 LD_msan = clang
 LDXX_msan = clang++-libc++
-CPPFLAGS_msan = -O0 -fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1 -Wno-unused-command-line-argument
+CPPFLAGS_msan = -O0 -fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1 -Wno-error=unused-command-line-argument
 OPENSSL_CFLAGS_msan = -DPURIFY
 LDFLAGS_msan = -fsanitize=memory -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1
 DEFINES_msan = NDEBUG GRPC_TEST_SLOWDOWN_BUILD_FACTOR=4
@@ -176,7 +176,7 @@ CC_ubsan = clang
 CXX_ubsan = clang++
 LD_ubsan = clang
 LDXX_ubsan = clang++
-CPPFLAGS_ubsan = -O1 -fsanitize=undefined -fno-omit-frame-pointer -Wno-unused-command-line-argument
+CPPFLAGS_ubsan = -O1 -fsanitize=undefined -fno-omit-frame-pointer -Wno-error=unused-command-line-argument
 OPENSSL_CFLAGS_ubsan = -DPURIFY
 LDFLAGS_ubsan = -fsanitize=undefined
 DEFINES_ubsan = NDEBUG GRPC_TEST_SLOWDOWN_BUILD_FACTOR=3
@@ -245,7 +245,7 @@ ifdef EXTRA_DEFINES
 DEFINES += $(EXTRA_DEFINES)
 endif
 
-CFLAGS += -std=c89 -pedantic -Wsign-conversion -Wconversion
+CFLAGS += -std=c89 -pedantic
 ifeq ($(HAS_CXX11),true)
 CXXFLAGS += -std=c++11
 else
@@ -4024,10 +4024,10 @@ LIBGRPC_SRC = \
     src/core/security/credentials_posix.c \
     src/core/security/credentials_win32.c \
     src/core/security/google_default_credentials.c \
-    src/core/security/handshake.c \
     src/core/security/json_token.c \
     src/core/security/jwt_verifier.c \
     src/core/security/secure_endpoint.c \
+    src/core/security/secure_transport_setup.c \
     src/core/security/security_connector.c \
     src/core/security/security_context.c \
     src/core/security/server_auth_filter.c \
@@ -4051,8 +4051,6 @@ LIBGRPC_SRC = \
     src/core/client_config/connector.c \
     src/core/client_config/lb_policies/pick_first.c \
     src/core/client_config/lb_policy.c \
-    src/core/client_config/lb_policy_factory.c \
-    src/core/client_config/lb_policy_registry.c \
     src/core/client_config/resolver.c \
     src/core/client_config/resolver_factory.c \
     src/core/client_config/resolver_registry.c \
@@ -4328,8 +4326,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/client_config/connector.c \
     src/core/client_config/lb_policies/pick_first.c \
     src/core/client_config/lb_policy.c \
-    src/core/client_config/lb_policy_factory.c \
-    src/core/client_config/lb_policy_registry.c \
     src/core/client_config/resolver.c \
     src/core/client_config/resolver_factory.c \
     src/core/client_config/resolver_registry.c \
@@ -20518,10 +20514,10 @@ src/core/security/credentials_metadata.c: $(OPENSSL_DEP)
 src/core/security/credentials_posix.c: $(OPENSSL_DEP)
 src/core/security/credentials_win32.c: $(OPENSSL_DEP)
 src/core/security/google_default_credentials.c: $(OPENSSL_DEP)
-src/core/security/handshake.c: $(OPENSSL_DEP)
 src/core/security/json_token.c: $(OPENSSL_DEP)
 src/core/security/jwt_verifier.c: $(OPENSSL_DEP)
 src/core/security/secure_endpoint.c: $(OPENSSL_DEP)
+src/core/security/secure_transport_setup.c: $(OPENSSL_DEP)
 src/core/security/security_connector.c: $(OPENSSL_DEP)
 src/core/security/security_context.c: $(OPENSSL_DEP)
 src/core/security/server_auth_filter.c: $(OPENSSL_DEP)
