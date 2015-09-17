@@ -31,7 +31,6 @@
  *
  */
 
-#include "src/core/client_config/lb_policy_factory.h"
 #include "src/core/client_config/lb_policies/pick_first.h"
 
 #include <string.h>
@@ -52,8 +51,6 @@ typedef struct {
   /** all our subchannels */
   grpc_subchannel **subchannels;
   size_t num_subchannels;
-  /** workqueue for async work */
-  grpc_workqueue *workqueue;
 
   grpc_iomgr_closure connectivity_changed;
 
@@ -104,7 +101,6 @@ void pf_destroy(grpc_lb_policy *pol) {
   grpc_connectivity_state_destroy(&p->state_tracker);
   gpr_free(p->subchannels);
   gpr_mu_destroy(&p->mu);
-  GRPC_WORKQUEUE_UNREF(p->workqueue, "pick_first");
   gpr_free(p);
 }
 
@@ -117,7 +113,7 @@ void pf_shutdown(grpc_lb_policy *pol) {
   while ((pp = p->pending_picks)) {
     p->pending_picks = pp->next;
     *pp->target = NULL;
-    grpc_workqueue_push(p->workqueue, pp->on_complete, 0);
+    grpc_iomgr_add_delayed_callback(pp->on_complete, 0);
     gpr_free(pp);
   }
   grpc_connectivity_state_set(&p->state_tracker, GRPC_CHANNEL_FATAL_FAILURE,
@@ -199,7 +195,7 @@ static void pf_connectivity_changed(void *arg, int iomgr_success) {
           p->pending_picks = pp->next;
           *pp->target = p->selected;
           grpc_subchannel_del_interested_party(p->selected, pp->pollset);
-          grpc_workqueue_push(p->workqueue, pp->on_complete, 1);
+          grpc_iomgr_add_delayed_callback(pp->on_complete, 1);
           gpr_free(pp);
         }
         grpc_subchannel_notify_on_state_change(
@@ -244,7 +240,7 @@ static void pf_connectivity_changed(void *arg, int iomgr_success) {
           while ((pp = p->pending_picks)) {
             p->pending_picks = pp->next;
             *pp->target = NULL;
-            grpc_workqueue_push(p->workqueue, pp->on_complete, 1);
+            grpc_iomgr_add_delayed_callback(pp->on_complete, 1);
             gpr_free(pp);
           }
           unref = 1;
@@ -318,36 +314,19 @@ static const grpc_lb_policy_vtable pick_first_lb_policy_vtable = {
     pf_check_connectivity,
     pf_notify_on_state_change};
 
-static void pick_first_factory_ref(grpc_lb_policy_factory *factory) {}
-
-static void pick_first_factory_unref(grpc_lb_policy_factory *factory) {}
-
-static grpc_lb_policy *create_pick_first(grpc_lb_policy_factory *factory,
-                                         grpc_lb_policy_args *args) {
+grpc_lb_policy *grpc_create_pick_first_lb_policy(grpc_subchannel **subchannels,
+                                                 size_t num_subchannels) {
   pick_first_lb_policy *p = gpr_malloc(sizeof(*p));
-  GPR_ASSERT(args->num_subchannels > 0);
+  GPR_ASSERT(num_subchannels);
   memset(p, 0, sizeof(*p));
   grpc_lb_policy_init(&p->base, &pick_first_lb_policy_vtable);
-  p->subchannels = gpr_malloc(sizeof(grpc_subchannel *) * args->num_subchannels);
-  p->num_subchannels = args->num_subchannels;
-  p->workqueue = args->workqueue;
-  GRPC_WORKQUEUE_REF(p->workqueue, "pick_first");
-  grpc_connectivity_state_init(&p->state_tracker, args->workqueue,
-                               GRPC_CHANNEL_IDLE, "pick_first");
-  memcpy(p->subchannels, args->subchannels,
-         sizeof(grpc_subchannel *) * args->num_subchannels);
+  p->subchannels = gpr_malloc(sizeof(grpc_subchannel *) * num_subchannels);
+  p->num_subchannels = num_subchannels;
+  grpc_connectivity_state_init(&p->state_tracker, GRPC_CHANNEL_IDLE,
+                               "pick_first");
+  memcpy(p->subchannels, subchannels,
+         sizeof(grpc_subchannel *) * num_subchannels);
   grpc_iomgr_closure_init(&p->connectivity_changed, pf_connectivity_changed, p);
   gpr_mu_init(&p->mu);
   return &p->base;
-}
-
-static const grpc_lb_policy_factory_vtable pick_first_factory_vtable = {
-    pick_first_factory_ref, pick_first_factory_unref, create_pick_first,
-    "pick_first"};
-
-static grpc_lb_policy_factory pick_first_lb_policy_factory = {
-    &pick_first_factory_vtable};
-
-grpc_lb_policy_factory *grpc_pick_first_lb_factory_create() {
-  return &pick_first_lb_policy_factory;
 }

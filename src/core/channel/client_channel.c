@@ -600,8 +600,7 @@ static void cc_start_transport_op(grpc_channel_element *elem,
   }
 
   if (on_consumed) {
-    grpc_workqueue_push(grpc_channel_get_workqueue(chand->master), on_consumed,
-                        1);
+    grpc_iomgr_add_callback(on_consumed);
   }
 }
 
@@ -670,9 +669,8 @@ static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
   grpc_iomgr_closure_init(&chand->on_config_changed, cc_on_config_changed,
                           chand);
 
-  grpc_connectivity_state_init(&chand->state_tracker,
-                               grpc_channel_get_workqueue(master),
-                               GRPC_CHANNEL_IDLE, "client_channel");
+  grpc_connectivity_state_init(&chand->state_tracker, GRPC_CHANNEL_IDLE,
+                               "client_channel");
 }
 
 /* Destructor for channel_data */

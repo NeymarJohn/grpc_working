@@ -33,7 +33,6 @@
 
 #include "src/core/surface/server.h"
 
-#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -204,7 +203,7 @@ struct grpc_server {
   gpr_stack_lockfree *request_freelist;
   /** requested call backing data */
   requested_call *requested_calls;
-  size_t max_requested_calls;
+  int max_requested_calls;
 
   gpr_atm shutdown_flag;
   gpr_uint8 shutdown_published;
@@ -219,8 +218,6 @@ struct grpc_server {
 
   /** when did we print the last shutdown progress message */
   gpr_timespec last_shutdown_message_time;
-
-  grpc_workqueue *workqueue;
 };
 
 #define SERVER_FROM_CALL_ELEM(elem) \
@@ -301,7 +298,7 @@ static void channel_broadcaster_shutdown(channel_broadcaster *cb,
  */
 
 static void request_matcher_init(request_matcher *request_matcher,
-                                 size_t entries) {
+                                 int entries) {
   memset(request_matcher, 0, sizeof(*request_matcher));
   request_matcher->requests = gpr_stack_lockfree_create(entries);
 }
@@ -316,7 +313,7 @@ static void kill_zombie(void *elem, int success) {
 }
 
 static void request_matcher_zombify_all_pending_calls(
-    request_matcher *request_matcher, grpc_workqueue *workqueue) {
+    request_matcher *request_matcher) {
   while (request_matcher->pending_head) {
     call_data *calld = request_matcher->pending_head;
     request_matcher->pending_head = calld->pending_next;
@@ -326,7 +323,7 @@ static void request_matcher_zombify_all_pending_calls(
     grpc_iomgr_closure_init(
         &calld->kill_zombie_closure, kill_zombie,
         grpc_call_stack_element(grpc_call_get_call_stack(calld->call), 0));
-    grpc_workqueue_push(workqueue, &calld->kill_zombie_closure, 1);
+    grpc_iomgr_add_callback(&calld->kill_zombie_closure);
   }
 }
 
@@ -365,7 +362,6 @@ static void server_delete(grpc_server *server) {
   }
   request_matcher_destroy(&server->unregistered_request_matcher);
   gpr_stack_lockfree_destroy(server->request_freelist);
-  GRPC_WORKQUEUE_UNREF(server->workqueue, "destroy");
   gpr_free(server->cqs);
   gpr_free(server->pollsets);
   gpr_free(server->shutdown_tags);
@@ -392,7 +388,6 @@ static void orphan_channel(channel_data *chand) {
 static void finish_destroy_channel(void *cd, int success) {
   channel_data *chand = cd;
   grpc_server *server = chand->server;
-  gpr_log(GPR_DEBUG, "finish_destroy_channel: %p", chand->channel);
   GRPC_CHANNEL_INTERNAL_UNREF(chand->channel, "server");
   server_unref(server);
 }
@@ -405,10 +400,7 @@ static void destroy_channel(channel_data *chand) {
   maybe_finish_shutdown(chand->server);
   chand->finish_destroy_channel_closure.cb = finish_destroy_channel;
   chand->finish_destroy_channel_closure.cb_arg = chand;
-  gpr_log(GPR_DEBUG, "queue finish_destroy_channel: %p on %p", chand->channel,
-          chand->server->workqueue);
-  grpc_workqueue_push(chand->server->workqueue,
-                      &chand->finish_destroy_channel_closure, 1);
+  grpc_iomgr_add_callback(&chand->finish_destroy_channel_closure);
 }
 
 static void finish_start_new_rpc(grpc_server *server, grpc_call_element *elem,
@@ -421,7 +413,7 @@ static void finish_start_new_rpc(grpc_server *server, grpc_call_element *elem,
     calld->state = ZOMBIED;
     gpr_mu_unlock(&calld->mu_state);
     grpc_iomgr_closure_init(&calld->kill_zombie_closure, kill_zombie, elem);
-    grpc_workqueue_push(server->workqueue, &calld->kill_zombie_closure, 1);
+    grpc_iomgr_add_callback(&calld->kill_zombie_closure);
     return;
   }
 
@@ -512,11 +504,10 @@ static void kill_pending_work_locked(grpc_server *server) {
   registered_method *rm;
   request_matcher_kill_requests(server, &server->unregistered_request_matcher);
   request_matcher_zombify_all_pending_calls(
-      &server->unregistered_request_matcher, server->workqueue);
+      &server->unregistered_request_matcher);
   for (rm = server->registered_methods; rm; rm = rm->next) {
     request_matcher_kill_requests(server, &rm->request_matcher);
-    request_matcher_zombify_all_pending_calls(&rm->request_matcher,
-                                              server->workqueue);
+    request_matcher_zombify_all_pending_calls(&rm->request_matcher);
   }
 }
 
@@ -569,7 +560,6 @@ static grpc_mdelem *server_filter(void *user_data, grpc_mdelem *md) {
 static void server_on_recv(void *ptr, int success) {
   grpc_call_element *elem = ptr;
   call_data *calld = elem->call_data;
-  channel_data *chand = elem->channel_data;
   gpr_timespec op_deadline;
 
   if (success && !calld->got_initial_metadata) {
@@ -604,8 +594,7 @@ static void server_on_recv(void *ptr, int success) {
         calld->state = ZOMBIED;
         gpr_mu_unlock(&calld->mu_state);
         grpc_iomgr_closure_init(&calld->kill_zombie_closure, kill_zombie, elem);
-        grpc_workqueue_push(chand->server->workqueue,
-                            &calld->kill_zombie_closure, 1);
+        grpc_iomgr_add_callback(&calld->kill_zombie_closure);
       } else {
         gpr_mu_unlock(&calld->mu_state);
       }
@@ -616,8 +605,7 @@ static void server_on_recv(void *ptr, int success) {
         calld->state = ZOMBIED;
         gpr_mu_unlock(&calld->mu_state);
         grpc_iomgr_closure_init(&calld->kill_zombie_closure, kill_zombie, elem);
-        grpc_workqueue_push(chand->server->workqueue,
-                            &calld->kill_zombie_closure, 1);
+        grpc_iomgr_add_callback(&calld->kill_zombie_closure);
       } else if (calld->state == PENDING) {
         calld->state = ZOMBIED;
         gpr_mu_unlock(&calld->mu_state);
@@ -810,14 +798,13 @@ grpc_server *grpc_server_create_from_filters(
   gpr_ref_init(&server->internal_refcount, 1);
   server->root_channel_data.next = server->root_channel_data.prev =
       &server->root_channel_data;
-  server->workqueue = grpc_workqueue_create();
 
   /* TODO(ctiller): expose a channel_arg for this */
   server->max_requested_calls = 32768;
   server->request_freelist =
       gpr_stack_lockfree_create(server->max_requested_calls);
   for (i = 0; i < (size_t)server->max_requested_calls; i++) {
-    gpr_stack_lockfree_push(server->request_freelist, (int)i);
+    gpr_stack_lockfree_push(server->request_freelist, i);
   }
   request_matcher_init(&server->unregistered_request_matcher,
                        server->max_requested_calls);
@@ -830,7 +817,7 @@ grpc_server *grpc_server_create_from_filters(
      grpc_server_census_filter (optional) - for stats collection and tracing
      {passed in filter stack}
      grpc_connected_channel_filter - for interfacing with transports */
-  server->channel_filter_count = filter_count + 1u + (census_enabled ? 1u : 0u);
+  server->channel_filter_count = filter_count + 1 + census_enabled;
   server->channel_filters =
       gpr_malloc(server->channel_filter_count * sizeof(grpc_channel_filter *));
   server->channel_filters[0] = &server_surface_filter;
@@ -838,7 +825,7 @@ grpc_server *grpc_server_create_from_filters(
     server->channel_filters[1] = &grpc_server_census_filter;
   }
   for (i = 0; i < filter_count; i++) {
-    server->channel_filters[i + 1u + (census_enabled ? 1u : 0u)] = filters[i];
+    server->channel_filters[i + 1 + census_enabled] = filters[i];
   }
 
   server->channel_args = grpc_channel_args_copy(args);
@@ -885,7 +872,6 @@ void grpc_server_start(grpc_server *server) {
   server->pollsets = gpr_malloc(sizeof(grpc_pollset *) * server->cq_count);
   for (i = 0; i < server->cq_count; i++) {
     server->pollsets[i] = grpc_cq_pollset(server->cqs[i]);
-    grpc_workqueue_add_to_pollset(server->workqueue, server->pollsets[i]);
   }
 
   for (l = server->listeners; l; l = l->next) {
@@ -896,7 +882,6 @@ void grpc_server_start(grpc_server *server) {
 void grpc_server_setup_transport(grpc_server *s, grpc_transport *transport,
                                  grpc_channel_filter const **extra_filters,
                                  size_t num_extra_filters, grpc_mdctx *mdctx,
-                                 grpc_workqueue *workqueue,
                                  const grpc_channel_args *args) {
   size_t num_filters = s->channel_filter_count + num_extra_filters + 1;
   grpc_channel_filter const **filters =
@@ -911,7 +896,7 @@ void grpc_server_setup_transport(grpc_server *s, grpc_transport *transport,
   grpc_mdstr *host;
   grpc_mdstr *method;
   gpr_uint32 hash;
-  size_t slots;
+  gpr_uint32 slots;
   gpr_uint32 probes;
   gpr_uint32 max_probes = 0;
   grpc_transport_op op;
@@ -931,7 +916,7 @@ void grpc_server_setup_transport(grpc_server *s, grpc_transport *transport,
   }
 
   channel = grpc_channel_create_from_filters(NULL, filters, num_filters, args,
-                                             mdctx, workqueue, 0);
+                                             mdctx, 0);
   chand = (channel_data *)grpc_channel_stack_element(
               grpc_channel_get_channel_stack(channel), 0)
               ->channel_data;
@@ -964,8 +949,7 @@ void grpc_server_setup_transport(grpc_server *s, grpc_transport *transport,
       crm->host = host;
       crm->method = method;
     }
-    GPR_ASSERT(slots <= GPR_UINT32_MAX);
-    chand->registered_method_slots = (gpr_uint32)slots;
+    chand->registered_method_slots = slots;
     chand->registered_method_max_probes = max_probes;
   }
 
@@ -986,7 +970,7 @@ void grpc_server_setup_transport(grpc_server *s, grpc_transport *transport,
   op.set_accept_stream_user_data = chand;
   op.on_connectivity_state_change = &chand->channel_connectivity_changed;
   op.connectivity_state = &chand->connectivity_state;
-  op.disconnect = gpr_atm_acq_load(&s->shutdown_flag) != 0;
+  op.disconnect = gpr_atm_acq_load(&s->shutdown_flag);
   grpc_transport_perform_op(transport, &op);
 }
 
@@ -1077,8 +1061,6 @@ void grpc_server_destroy(grpc_server *server) {
 
   gpr_mu_unlock(&server->mu_global);
 
-  grpc_workqueue_flush(server->workqueue, 0);
-
   server_unref(server);
 }
 
@@ -1135,7 +1117,7 @@ static grpc_call_error queue_call_request(grpc_server *server,
         grpc_iomgr_closure_init(
             &calld->kill_zombie_closure, kill_zombie,
             grpc_call_stack_element(grpc_call_get_call_stack(calld->call), 0));
-        grpc_workqueue_push(server->workqueue, &calld->kill_zombie_closure, 1);
+        grpc_iomgr_add_callback(&calld->kill_zombie_closure);
       } else {
         GPR_ASSERT(calld->state == PENDING);
         calld->state = ACTIVATED;
@@ -1264,8 +1246,7 @@ static void begin_call(grpc_server *server, call_data *calld,
   }
 
   GRPC_CALL_INTERNAL_REF(calld->call, "server");
-  grpc_call_start_ioreq_and_call_back(calld->call, req, (size_t)(r - req),
-                                      publish, rc);
+  grpc_call_start_ioreq_and_call_back(calld->call, req, r - req, publish, rc);
 }
 
 static void done_request_event(void *req, grpc_cq_completion *c) {
@@ -1274,9 +1255,8 @@ static void done_request_event(void *req, grpc_cq_completion *c) {
 
   if (rc >= server->requested_calls &&
       rc < server->requested_calls + server->max_requested_calls) {
-    GPR_ASSERT(rc - server->requested_calls <= INT_MAX);
     gpr_stack_lockfree_push(server->request_freelist,
-                            (int)(rc - server->requested_calls));
+                            rc - server->requested_calls);
   } else {
     gpr_free(req);
   }

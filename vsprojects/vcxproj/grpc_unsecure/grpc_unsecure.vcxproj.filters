@@ -46,12 +46,6 @@
     <ClCompile Include="..\..\..\src\core\client_config\lb_policy.c">
       <Filter>src\core\client_config</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\core\client_config\lb_policy_factory.c">
-      <Filter>src\core\client_config</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\client_config\lb_policy_registry.c">
-      <Filter>src\core\client_config</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\core\client_config\resolver.c">
       <Filter>src\core\client_config</Filter>
     </ClCompile>
@@ -203,12 +197,6 @@
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\wakeup_fd_posix.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\workqueue_posix.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\workqueue_windows.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\json\json.c">
@@ -440,12 +428,6 @@
     <ClInclude Include="..\..\..\src\core\client_config\lb_policy.h">
       <Filter>src\core\client_config</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\core\client_config\lb_policy_factory.h">
-      <Filter>src\core\client_config</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\client_config\lb_policy_registry.h">
-      <Filter>src\core\client_config</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\core\client_config\resolver.h">
       <Filter>src\core\client_config</Filter>
     </ClInclude>
@@ -582,15 +564,6 @@
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\iomgr\wakeup_fd_posix.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\iomgr\workqueue.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\iomgr\workqueue_posix.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\iomgr\workqueue_windows.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\json\json.h">
