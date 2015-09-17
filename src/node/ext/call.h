@@ -51,8 +51,6 @@ namespace node {
 using std::unique_ptr;
 using std::shared_ptr;
 
-typedef Nan::Persistent<v8::Value, Nan::CopyablePersistentTraits<v8::Value>> PersistentValue;
-
 /**
  * Helper function for throwing errors with a grpc_call_error value.
  * Modified from the answer by Gus Goose to
@@ -60,25 +58,40 @@ typedef Nan::Persistent<v8::Value, Nan::CopyablePersistentTraits<v8::Value>> Per
  */
 inline v8::Local<v8::Value> nanErrorWithCode(const char *msg,
                                              grpc_call_error code) {
-  Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> err = Nan::Error(msg).As<v8::Object>();
-    Nan::Set(err, Nan::New("code").ToLocalChecked(), Nan::New<v8::Uint32>(code));
-    return scope.Escape(err);
+    NanEscapableScope();
+    v8::Local<v8::Object> err = NanError(msg).As<v8::Object>();
+    err->Set(NanNew("code"), NanNew<v8::Uint32>(code));
+    return NanEscapeScope(err);
 }
 
-v8::Local<v8::Value> ParseMetadata(const grpc_metadata_array *metadata_array);
+v8::Handle<v8::Value> ParseMetadata(const grpc_metadata_array *metadata_array);
+
+class PersistentHolder {
+ public:
+  explicit PersistentHolder(v8::Persistent<v8::Value> *persist) :
+      persist(persist) {
+  }
+
+  ~PersistentHolder() {
+    NanDisposePersistent(*persist);
+    delete persist;
+  }
+
+ private:
+  v8::Persistent<v8::Value> *persist;
+};
 
 struct Resources {
-  std::vector<unique_ptr<Nan::Utf8String> > strings;
-  std::vector<unique_ptr<PersistentValue> > handles;
+  std::vector<unique_ptr<NanUtf8String> > strings;
+  std::vector<unique_ptr<PersistentHolder> > handles;
 };
 
 class Op {
  public:
-  virtual v8::Local<v8::Value> GetNodeValue() const = 0;
-  virtual bool ParseOp(v8::Local<v8::Value> value, grpc_op *out,
+  virtual v8::Handle<v8::Value> GetNodeValue() const = 0;
+  virtual bool ParseOp(v8::Handle<v8::Value> value, grpc_op *out,
                        shared_ptr<Resources> resources) = 0;
-  v8::Local<v8::Value> GetOpType() const;
+  v8::Handle<v8::Value> GetOpType() const;
 
  protected:
   virtual std::string GetTypeString() const = 0;
@@ -87,27 +100,27 @@ class Op {
 typedef std::vector<unique_ptr<Op>> OpVec;
 
 struct tag {
-  tag(Nan::Callback *callback, OpVec *ops,
+  tag(NanCallback *callback, OpVec *ops,
       shared_ptr<Resources> resources);
   ~tag();
-  Nan::Callback *callback;
+  NanCallback *callback;
   OpVec *ops;
   shared_ptr<Resources> resources;
 };
 
-v8::Local<v8::Value> GetTagNodeValue(void *tag);
+v8::Handle<v8::Value> GetTagNodeValue(void *tag);
 
-Nan::Callback *GetTagCallback(void *tag);
+NanCallback *GetTagCallback(void *tag);
 
 void DestroyTag(void *tag);
 
 /* Wrapper class for grpc_call structs. */
-class Call : public Nan::ObjectWrap {
+class Call : public ::node::ObjectWrap {
  public:
-  static void Init(v8::Local<v8::Object> exports);
-  static bool HasInstance(v8::Local<v8::Value> val);
+  static void Init(v8::Handle<v8::Object> exports);
+  static bool HasInstance(v8::Handle<v8::Value> val);
   /* Wrap a grpc_call struct in a javascript object */
-  static v8::Local<v8::Value> WrapStruct(grpc_call *call);
+  static v8::Handle<v8::Value> WrapStruct(grpc_call *call);
 
  private:
   explicit Call(grpc_call *call);
@@ -122,9 +135,9 @@ class Call : public Nan::ObjectWrap {
   static NAN_METHOD(Cancel);
   static NAN_METHOD(CancelWithStatus);
   static NAN_METHOD(GetPeer);
-  static Nan::Callback *constructor;
+  static NanCallback *constructor;
   // Used for typechecking instances of this javascript class
-  static Nan::Persistent<v8::FunctionTemplate> fun_tpl;
+  static v8::Persistent<v8::FunctionTemplate> fun_tpl;
 
   grpc_call *wrapped_call;
 };

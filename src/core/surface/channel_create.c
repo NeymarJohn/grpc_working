@@ -74,7 +74,8 @@ static void connected(void *arg, grpc_endpoint *tcp) {
   grpc_iomgr_closure *notify;
   if (tcp != NULL) {
     c->result->transport = grpc_create_chttp2_transport(
-        c->args.channel_args, tcp, c->args.metadata_context, 1);
+        c->args.channel_args, tcp, c->args.metadata_context, c->args.workqueue,
+        1);
     grpc_chttp2_transport_start_reading(c->result->transport, NULL, 0);
     GPR_ASSERT(c->result->transport);
     c->result->filters = gpr_malloc(sizeof(grpc_channel_filter *));
@@ -85,8 +86,10 @@ static void connected(void *arg, grpc_endpoint *tcp) {
   }
   notify = c->notify;
   c->notify = NULL;
-  grpc_iomgr_add_callback(notify);
+  notify->cb(notify->cb_arg, 1);
 }
+
+static void connector_shutdown(grpc_connector *con) {}
 
 static void connector_connect(grpc_connector *con,
                               const grpc_connect_in_args *args,
@@ -98,12 +101,13 @@ static void connector_connect(grpc_connector *con,
   c->notify = notify;
   c->args = *args;
   c->result = result;
-  grpc_tcp_client_connect(connected, c, args->interested_parties, args->addr,
-                          args->addr_len, args->deadline);
+  grpc_tcp_client_connect(connected, c, args->interested_parties,
+                          args->workqueue, args->addr, args->addr_len,
+                          args->deadline);
 }
 
 static const grpc_connector_vtable connector_vtable = {
-    connector_ref, connector_unref, connector_connect};
+    connector_ref, connector_unref, connector_shutdown, connector_connect};
 
 typedef struct {
   grpc_subchannel_factory base;
@@ -164,7 +168,8 @@ grpc_channel *grpc_insecure_channel_create(const char *target,
   grpc_resolver *resolver;
   subchannel_factory *f;
   grpc_mdctx *mdctx = grpc_mdctx_create();
-  int n = 0;
+  grpc_workqueue *workqueue = grpc_workqueue_create();
+  size_t n = 0;
   GPR_ASSERT(!reserved);
   if (grpc_channel_args_is_census_enabled(args)) {
     filters[n++] = &grpc_client_census_filter;
@@ -173,8 +178,8 @@ grpc_channel *grpc_insecure_channel_create(const char *target,
   filters[n++] = &grpc_client_channel_filter;
   GPR_ASSERT(n <= MAX_FILTERS);
 
-  channel =
-      grpc_channel_create_from_filters(target, filters, n, args, mdctx, 1);
+  channel = grpc_channel_create_from_filters(target, filters, n, args, mdctx,
+                                             workqueue, 1);
 
   f = gpr_malloc(sizeof(*f));
   f->base.vtable = &subchannel_factory_vtable;
@@ -184,7 +189,7 @@ grpc_channel *grpc_insecure_channel_create(const char *target,
   f->merge_args = grpc_channel_args_copy(args);
   f->master = channel;
   GRPC_CHANNEL_INTERNAL_REF(f->master, "subchannel_factory");
-  resolver = grpc_resolver_create(target, &f->base);
+  resolver = grpc_resolver_create(target, &f->base, workqueue);
   if (!resolver) {
     return NULL;
   }
