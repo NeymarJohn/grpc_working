@@ -31,22 +31,17 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_WORKQUEUE_POSIX_H
-#define GRPC_INTERNAL_CORE_IOMGR_WORKQUEUE_POSIX_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_ROUND_ROBIN_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_ROUND_ROBIN_H
 
-struct grpc_fd;
+#include "src/core/client_config/lb_policy.h"
 
-struct grpc_workqueue {
-  gpr_refcount refs;
+extern int grpc_lb_round_robin_trace;
 
-  gpr_mu mu;
-  grpc_iomgr_closure head;
-  grpc_iomgr_closure *tail;
+#include "src/core/client_config/lb_policy_factory.h"
 
-  grpc_wakeup_fd wakeup_fd;
-  struct grpc_fd *wakeup_read_fd;
+/** Returns a load balancing factory for the round robin policy */
+grpc_lb_policy_factory *grpc_round_robin_lb_factory_create();
 
-  grpc_iomgr_closure read_closure;
-};
 
-#endif /* GRPC_INTERNAL_CORE_IOMGR_WORKQUEUE_POSIX_H */
+#endif

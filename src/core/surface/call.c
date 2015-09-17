@@ -499,8 +499,7 @@ void grpc_call_internal_unref(grpc_call *c, int allow_immediate_deletion) {
     } else {
       c->destroy_closure.cb = destroy_call;
       c->destroy_closure.cb_arg = c;
-      grpc_workqueue_push(grpc_channel_get_workqueue(c->channel),
-                          &c->destroy_closure, 1);
+      grpc_iomgr_add_callback(&c->destroy_closure);
     }
   }
 }
@@ -654,8 +653,6 @@ static void unlock(grpc_call *call) {
   if (!call->bound_pollset && call->cq && (!call->is_client || start_op)) {
     call->bound_pollset = 1;
     op.bind_pollset = grpc_cq_pollset(call->cq);
-    grpc_workqueue_add_to_pollset(grpc_channel_get_workqueue(call->channel),
-                                  op.bind_pollset);
     start_op = 1;
   }
 
@@ -1488,6 +1485,8 @@ static void recv_metadata(grpc_call *call, grpc_metadata_batch *md) {
     } else if (key == grpc_channel_get_encodings_accepted_by_peer_string(
                           call->channel)) {
       set_encodings_accepted_by_peer(call, md->value->slice);
+    } else if (key == grpc_channel_get_content_type_string(call->channel)) {
+      continue; /* swallow "content-type" header */
     } else {
       dest = &call->buffered_metadata[is_trailing];
       if (dest->count == dest->capacity) {

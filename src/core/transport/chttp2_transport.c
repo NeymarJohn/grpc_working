@@ -166,7 +166,7 @@ static void destruct_transport(grpc_chttp2_transport *t) {
      and maybe they hold resources that need to be freed */
   while (t->global.pings.next != &t->global.pings) {
     grpc_chttp2_outstanding_ping *ping = t->global.pings.next;
-    ping->on_recv->cb(ping->on_recv->cb_arg, 0);
+    grpc_iomgr_add_delayed_callback(ping->on_recv, 0);
     ping->next->prev = ping->prev;
     ping->prev->next = ping->next;
     gpr_free(ping);
@@ -209,7 +209,7 @@ static void ref_transport(grpc_chttp2_transport *t) { gpr_ref(&t->refs); }
 static void init_transport(grpc_chttp2_transport *t,
                            const grpc_channel_args *channel_args,
                            grpc_endpoint *ep, grpc_mdctx *mdctx,
-                           grpc_workqueue *workqueue, gpr_uint8 is_client) {
+                           gpr_uint8 is_client) {
   size_t i;
   int j;
 
@@ -242,9 +242,8 @@ static void init_transport(grpc_chttp2_transport *t,
   t->parsing.deframe_state =
       is_client ? GRPC_DTS_FH_0 : GRPC_DTS_CLIENT_PREFIX_0;
   t->writing.is_client = is_client;
-  grpc_connectivity_state_init(
-      &t->channel_callback.state_tracker, GRPC_CHANNEL_READY,
-      is_client ? "client_transport" : "server_transport");
+  grpc_connectivity_state_init(&t->channel_callback.state_tracker,
+                               GRPC_CHANNEL_READY, "transport");
 
   gpr_slice_buffer_init(&t->global.qbuf);
 
@@ -500,7 +499,6 @@ static void lock(grpc_chttp2_transport *t) { gpr_mu_lock(&t->mu); }
 
 static void unlock(grpc_chttp2_transport *t) {
   grpc_iomgr_closure *run_closures;
-  grpc_connectivity_state_flusher f;
 
   unlock_check_read_write_state(t);
   if (!t->writing_active && !t->closed &&
@@ -515,10 +513,7 @@ static void unlock(grpc_chttp2_transport *t) {
   t->global.pending_closures_head = NULL;
   t->global.pending_closures_tail = NULL;
 
-  grpc_connectivity_state_begin_flush(&t->channel_callback.state_tracker, &f);
   gpr_mu_unlock(&t->mu);
-
-  grpc_connectivity_state_end_flush(&f);
 
   while (run_closures) {
     grpc_iomgr_closure *next = run_closures->next;
@@ -759,13 +754,9 @@ static void perform_transport_op(grpc_transport *gt, grpc_transport_op *op) {
   }
 
   if (op->on_connectivity_state_change) {
-    if (grpc_connectivity_state_notify_on_state_change(
-            &t->channel_callback.state_tracker, op->connectivity_state,
-            op->on_connectivity_state_change)
-            .state_already_changed) {
-      grpc_chttp2_schedule_closure(&t->global, op->on_connectivity_state_change,
-                                   1);
-    }
+    grpc_connectivity_state_notify_on_state_change(
+        &t->channel_callback.state_tracker, op->connectivity_state,
+        op->on_connectivity_state_change);
   }
 
   if (op->send_goaway) {
@@ -1193,14 +1184,19 @@ static void recv_data(void *tp, int success) {
  * CALLBACK LOOP
  */
 
+static void schedule_closure_for_connectivity(void *a,
+                                              grpc_iomgr_closure *closure) {
+  grpc_chttp2_schedule_closure(a, closure, 1);
+}
+
 static void connectivity_state_set(
     grpc_chttp2_transport_global *transport_global,
     grpc_connectivity_state state, const char *reason) {
   GRPC_CHTTP2_IF_TRACING(
       gpr_log(GPR_DEBUG, "set connectivity_state=%d", state));
-  grpc_connectivity_state_set(
+  grpc_connectivity_state_set_with_scheduler(
       &TRANSPORT_FROM_GLOBAL(transport_global)->channel_callback.state_tracker,
-      state, reason);
+      state, schedule_closure_for_connectivity, transport_global, reason);
 }
 
 void grpc_chttp2_schedule_closure(
@@ -1284,9 +1280,9 @@ static const grpc_transport_vtable vtable = {sizeof(grpc_chttp2_stream),
 
 grpc_transport *grpc_create_chttp2_transport(
     const grpc_channel_args *channel_args, grpc_endpoint *ep, grpc_mdctx *mdctx,
-    grpc_workqueue *workqueue, int is_client) {
+    int is_client) {
   grpc_chttp2_transport *t = gpr_malloc(sizeof(grpc_chttp2_transport));
-  init_transport(t, channel_args, ep, mdctx, workqueue, is_client != 0);
+  init_transport(t, channel_args, ep, mdctx, is_client != 0);
   return &t->base;
 }
 
