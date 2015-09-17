@@ -65,13 +65,12 @@ static void done_write(void *arg, int success) {
 }
 
 static void server_setup_transport(void *ts, grpc_transport *transport,
-                                   grpc_mdctx *mdctx,
-                                   grpc_workqueue *workqueue) {
+                                   grpc_mdctx *mdctx) {
   thd_args *a = ts;
   static grpc_channel_filter const *extra_filters[] = {
       &grpc_http_server_filter};
   grpc_server_setup_transport(a->server, transport, extra_filters,
-                              GPR_ARRAY_SIZE(extra_filters), mdctx, workqueue,
+                              GPR_ARRAY_SIZE(extra_filters), mdctx,
                               grpc_server_get_channel_args(a->server));
 }
 
@@ -88,7 +87,6 @@ void grpc_run_bad_client_test(grpc_bad_client_server_side_validator validator,
       gpr_slice_from_copied_buffer(client_payload, client_payload_length);
   gpr_slice_buffer outgoing;
   grpc_iomgr_closure done_write_closure;
-  grpc_workqueue *workqueue = grpc_workqueue_create();
 
   hex = gpr_dump(client_payload, client_payload_length,
                  GPR_DUMP_HEX | GPR_DUMP_ASCII);
@@ -102,7 +100,7 @@ void grpc_run_bad_client_test(grpc_bad_client_server_side_validator validator,
   grpc_init();
 
   /* Create endpoints */
-  sfd = grpc_iomgr_create_endpoint_pair("fixture", 65536, workqueue);
+  sfd = grpc_iomgr_create_endpoint_pair("fixture", 65536);
 
   /* Create server, completion events */
   a.server = grpc_server_create_from_filters(NULL, 0, NULL);
@@ -112,9 +110,8 @@ void grpc_run_bad_client_test(grpc_bad_client_server_side_validator validator,
   a.validator = validator;
   grpc_server_register_completion_queue(a.server, a.cq, NULL);
   grpc_server_start(a.server);
-  transport =
-      grpc_create_chttp2_transport(NULL, sfd.server, mdctx, workqueue, 0);
-  server_setup_transport(&a, transport, mdctx, workqueue);
+  transport = grpc_create_chttp2_transport(NULL, sfd.server, mdctx, 0);
+  server_setup_transport(&a, transport, mdctx);
   grpc_chttp2_transport_start_reading(transport, NULL, 0);
 
   /* Bind everything into the same pollset */
@@ -168,6 +165,5 @@ void grpc_run_bad_client_test(grpc_bad_client_server_side_validator validator,
   grpc_completion_queue_destroy(a.cq);
   gpr_slice_buffer_destroy(&outgoing);
 
-  GRPC_WORKQUEUE_UNREF(workqueue, "destroy");
   grpc_shutdown();
 }
