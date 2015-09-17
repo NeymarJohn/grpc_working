@@ -37,6 +37,7 @@ import os
 import socket
 import sys
 import time
+import yaml
 
 argp = argparse.ArgumentParser(description='Server for httpcli_test')
 argp.add_argument('-p', '--port', default=12345, type=int)
@@ -117,9 +118,6 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
       self.end_headers()
       self.wfile.write(_MY_VERSION)
     elif self.path == '/dump':
-      # yaml module is not installed on Macs and Windows machines by default
-      # so we import it lazily (/dump action is only used for debugging)
-      import yaml
       self.send_response(200)
       self.send_header('Content-Type', 'text/plain')
       self.end_headers()
