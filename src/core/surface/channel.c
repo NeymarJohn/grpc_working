@@ -69,7 +69,6 @@ struct grpc_channel {
   grpc_mdstr *grpc_compression_algorithm_string;
   grpc_mdstr *grpc_encodings_accepted_by_peer_string;
   grpc_mdstr *grpc_message_string;
-  grpc_mdstr *content_type_string;
   grpc_mdstr *path_string;
   grpc_mdstr *authority_string;
   grpc_mdelem *default_authority;
@@ -112,11 +111,9 @@ grpc_channel *grpc_channel_create_from_filters(
       grpc_mdstr_from_string(mdctx, "grpc-accept-encoding", 0);
   channel->grpc_message_string =
       grpc_mdstr_from_string(mdctx, "grpc-message", 0);
-  channel->content_type_string =
-      grpc_mdstr_from_string(mdctx, "content-type", 0);
   for (i = 0; i < NUM_CACHED_STATUS_ELEMS; i++) {
     char buf[GPR_LTOA_MIN_BUFSIZE];
-    gpr_ltoa((long)i, buf);
+    gpr_ltoa(i, buf);
     channel->grpc_status_elem[i] = grpc_mdelem_from_metadata_strings(
         mdctx, GRPC_MDSTR_REF(channel->grpc_status_string),
         grpc_mdstr_from_string(mdctx, buf, 0));
@@ -137,7 +134,7 @@ grpc_channel *grpc_channel_create_from_filters(
           gpr_log(GPR_ERROR, "%s ignored: it must be >= 0",
                   GRPC_ARG_MAX_MESSAGE_LENGTH);
         } else {
-          channel->max_message_length = (gpr_uint32)args->args[i].value.integer;
+          channel->max_message_length = args->args[i].value.integer;
         }
       } else if (0 == strcmp(args->args[i].key, GRPC_ARG_DEFAULT_AUTHORITY)) {
         if (args->args[i].type != GRPC_ARG_STRING) {
@@ -196,7 +193,7 @@ static grpc_call *grpc_channel_create_call_internal(
     grpc_completion_queue *cq, grpc_mdelem *path_mdelem,
     grpc_mdelem *authority_mdelem, gpr_timespec deadline) {
   grpc_mdelem *send_metadata[2];
-  size_t num_metadata = 0;
+  int num_metadata = 0;
 
   GPR_ASSERT(channel->is_client);
 
@@ -284,7 +281,6 @@ static void destroy_channel(void *p, int ok) {
   GRPC_MDSTR_UNREF(channel->grpc_compression_algorithm_string);
   GRPC_MDSTR_UNREF(channel->grpc_encodings_accepted_by_peer_string);
   GRPC_MDSTR_UNREF(channel->grpc_message_string);
-  GRPC_MDSTR_UNREF(channel->content_type_string);
   GRPC_MDSTR_UNREF(channel->path_string);
   GRPC_MDSTR_UNREF(channel->authority_string);
   while (channel->registered_calls) {
@@ -366,10 +362,6 @@ grpc_mdelem *grpc_channel_get_reffed_status_elem(grpc_channel *channel, int i) {
 
 grpc_mdstr *grpc_channel_get_message_string(grpc_channel *channel) {
   return channel->grpc_message_string;
-}
-
-grpc_mdstr *grpc_channel_get_content_type_string(grpc_channel *channel) {
-  return channel->content_type_string;
 }
 
 gpr_uint32 grpc_channel_get_max_message_length(grpc_channel *channel) {

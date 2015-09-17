@@ -46,7 +46,6 @@ typedef struct call_data {
   gpr_uint8 seen_te_trailers;
   gpr_uint8 seen_authority;
   grpc_linked_mdelem status;
-  grpc_linked_mdelem content_type;
 
   grpc_stream_op_buffer *recv_ops;
   /** Closure to call when finished with the hs_on_recv hook */
@@ -203,8 +202,6 @@ static void hs_mutate_op(grpc_call_element *elem,
       calld->sent_status = 1;
       grpc_metadata_batch_add_head(&op->data.metadata, &calld->status,
                                    GRPC_MDELEM_REF(channeld->status_ok));
-      grpc_metadata_batch_add_tail(&op->data.metadata, &calld->content_type,
-                                   GRPC_MDELEM_REF(channeld->content_type));
       break;
     }
   }
