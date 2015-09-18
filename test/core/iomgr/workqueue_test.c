@@ -31,38 +31,54 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_SERVER_H
-#define GRPC_INTERNAL_CORE_SURFACE_SERVER_H
+#include "src/core/iomgr/workqueue.h"
 
-#include "src/core/channel/channel_stack.h"
 #include <grpc/grpc.h>
-#include "src/core/transport/transport.h"
+#include <grpc/support/log.h>
 
-/* Create a server */
-grpc_server *grpc_server_create_from_filters(
-    const grpc_channel_filter **filters, size_t filter_count,
-    const grpc_channel_args *args);
+#include "test/core/util/test_config.h"
 
-/* Add a listener to the server: when the server starts, it will call start,
-   and when it shuts down, it will call destroy */
-void grpc_server_add_listener(grpc_server *server, void *listener,
-                              void (*start)(grpc_server *server, void *arg,
-                                            grpc_pollset **pollsets,
-                                            size_t npollsets),
-                              void (*destroy)(grpc_server *server, void *arg));
+static grpc_pollset g_pollset;
 
-void grpc_server_listener_destroy_done(void *server);
+static void must_succeed(void *p, int success) {
+  GPR_ASSERT(success == 1);
+  gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
+  *(int *)p = 1;
+  grpc_pollset_kick(&g_pollset, NULL);
+  gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
+}
 
-/* Setup a transport - creates a channel stack, binds the transport to the
-   server */
-void grpc_server_setup_transport(grpc_server *server, grpc_transport *transport,
-                                 grpc_channel_filter const **extra_filters,
-                                 size_t num_extra_filters, grpc_mdctx *mdctx,
-                                 grpc_workqueue *workqueue,
-                                 const grpc_channel_args *args);
+static void test_add_closure(void) {
+  grpc_iomgr_closure c;
+  int done = 0;
+  grpc_workqueue *wq = grpc_workqueue_create();
+  gpr_timespec deadline = GRPC_TIMEOUT_SECONDS_TO_DEADLINE(5);
+  grpc_pollset_worker worker;
+  grpc_iomgr_closure_init(&c, must_succeed, &done);
 
-const grpc_channel_args *grpc_server_get_channel_args(grpc_server *server);
+  grpc_workqueue_push(wq, &c, 1);
+  grpc_workqueue_add_to_pollset(wq, &g_pollset);
 
-int grpc_server_has_open_connections(grpc_server *server);
+  gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
+  GPR_ASSERT(!done);
+  grpc_pollset_work(&g_pollset, &worker, gpr_now(deadline.clock_type),
+                    deadline);
+  GPR_ASSERT(done);
+  gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
 
-#endif /* GRPC_INTERNAL_CORE_SURFACE_SERVER_H */
+  GRPC_WORKQUEUE_UNREF(wq, "destroy");
+}
+
+static void done_shutdown(void *arg) { grpc_pollset_destroy(arg); }
+
+int main(int argc, char **argv) {
+  grpc_test_init(argc, argv);
+  grpc_init();
+  grpc_pollset_init(&g_pollset);
+
+  test_add_closure();
+
+  grpc_pollset_shutdown(&g_pollset, done_shutdown, &g_pollset);
+  grpc_shutdown();
+  return 0;
+}

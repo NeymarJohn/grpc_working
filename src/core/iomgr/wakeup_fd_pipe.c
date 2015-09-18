@@ -81,8 +81,8 @@ static void pipe_wakeup(grpc_wakeup_fd *fd_info) {
 }
 
 static void pipe_destroy(grpc_wakeup_fd *fd_info) {
-  close(fd_info->read_fd);
-  close(fd_info->write_fd);
+  if (fd_info->read_fd != 0) close(fd_info->read_fd);
+  if (fd_info->write_fd != 0) close(fd_info->write_fd);
 }
 
 static int pipe_check_availability(void) {
