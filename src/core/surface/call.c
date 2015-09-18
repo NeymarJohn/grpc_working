@@ -256,10 +256,10 @@ struct grpc_call {
   gpr_slice_buffer incoming_message;
   gpr_uint32 incoming_message_length;
   gpr_uint32 incoming_message_flags;
-  grpc_closure destroy_closure;
-  grpc_closure on_done_recv;
-  grpc_closure on_done_send;
-  grpc_closure on_done_bind;
+  grpc_iomgr_closure destroy_closure;
+  grpc_iomgr_closure on_done_recv;
+  grpc_iomgr_closure on_done_send;
+  grpc_iomgr_closure on_done_bind;
 
   /** completion events - for completion queue use */
   grpc_cq_completion completions[MAX_CONCURRENT_COMPLETIONS];
@@ -333,9 +333,9 @@ grpc_call *grpc_call_create(grpc_channel *channel, grpc_call *parent_call,
   grpc_sopb_init(&call->send_ops);
   grpc_sopb_init(&call->recv_ops);
   gpr_slice_buffer_init(&call->incoming_message);
-  grpc_closure_init(&call->on_done_recv, call_on_done_recv, call);
-  grpc_closure_init(&call->on_done_send, call_on_done_send, call);
-  grpc_closure_init(&call->on_done_bind, finished_loose_op, call);
+  grpc_iomgr_closure_init(&call->on_done_recv, call_on_done_recv, call);
+  grpc_iomgr_closure_init(&call->on_done_send, call_on_done_send, call);
+  grpc_iomgr_closure_init(&call->on_done_bind, finished_loose_op, call);
   /* dropped in destroy and when READ_STATE_STREAM_CLOSED received */
   gpr_ref_init(&call->internal_refcount, 2);
   /* server hack: start reads immediately so we can get initial metadata.
@@ -499,8 +499,7 @@ void grpc_call_internal_unref(grpc_call *c, int allow_immediate_deletion) {
     } else {
       c->destroy_closure.cb = destroy_call;
       c->destroy_closure.cb_arg = c;
-      grpc_workqueue_push(grpc_channel_get_workqueue(c->channel),
-                          &c->destroy_closure, 1);
+      grpc_iomgr_add_callback(&c->destroy_closure);
     }
   }
 }
@@ -654,8 +653,6 @@ static void unlock(grpc_call *call) {
   if (!call->bound_pollset && call->cq && (!call->is_client || start_op)) {
     call->bound_pollset = 1;
     op.bind_pollset = grpc_cq_pollset(call->cq);
-    grpc_workqueue_add_to_pollset(grpc_channel_get_workqueue(call->channel),
-                                  op.bind_pollset);
     start_op = 1;
   }
 
@@ -1353,7 +1350,7 @@ static void finished_loose_op(void *call, int success_ignored) {
 
 typedef struct {
   grpc_call *call;
-  grpc_closure closure;
+  grpc_iomgr_closure closure;
 } finished_loose_op_allocated_args;
 
 static void finished_loose_op_allocated(void *alloc, int success) {
@@ -1373,7 +1370,8 @@ static void execute_op(grpc_call *call, grpc_transport_stream_op *op) {
     } else {
       finished_loose_op_allocated_args *args = gpr_malloc(sizeof(*args));
       args->call = call;
-      grpc_closure_init(&args->closure, finished_loose_op_allocated, args);
+      grpc_iomgr_closure_init(&args->closure, finished_loose_op_allocated,
+                              args);
       op->on_consumed = &args->closure;
     }
   }

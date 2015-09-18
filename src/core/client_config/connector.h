@@ -57,8 +57,6 @@ typedef struct {
   const grpc_channel_args *channel_args;
   /** metadata context */
   grpc_mdctx *metadata_context;
-  /** workqueue */
-  grpc_workqueue *workqueue;
 } grpc_connect_in_args;
 
 typedef struct {
@@ -77,7 +75,7 @@ struct grpc_connector_vtable {
   /** Implementation of grpc_connector_connect */
   void (*connect)(grpc_connector *connector,
                   const grpc_connect_in_args *in_args,
-                  grpc_connect_out_args *out_args, grpc_closure *notify);
+                  grpc_connect_out_args *out_args, grpc_iomgr_closure *notify);
 };
 
 void grpc_connector_ref(grpc_connector *connector);
@@ -86,7 +84,7 @@ void grpc_connector_unref(grpc_connector *connector);
 void grpc_connector_connect(grpc_connector *connector,
                             const grpc_connect_in_args *in_args,
                             grpc_connect_out_args *out_args,
-                            grpc_closure *notify);
+                            grpc_iomgr_closure *notify);
 /** Cancel any pending connection */
 void grpc_connector_shutdown(grpc_connector *connector);
 

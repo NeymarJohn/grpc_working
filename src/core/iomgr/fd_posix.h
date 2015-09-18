@@ -36,7 +36,6 @@
 
 #include "src/core/iomgr/iomgr_internal.h"
 #include "src/core/iomgr/pollset.h"
-#include "src/core/iomgr/workqueue.h"
 #include <grpc/support/atm.h>
 #include <grpc/support/sync.h>
 #include <grpc/support/time.h>
@@ -58,7 +57,6 @@ struct grpc_fd {
      meaning that mostly we ref by two to avoid altering the orphaned bit,
      and just unref by 1 when we're ready to flag the object as orphaned */
   gpr_atm refst;
-  grpc_workqueue *workqueue;
 
   gpr_mu set_state_mu;
   gpr_atm shutdown;
@@ -96,8 +94,8 @@ struct grpc_fd {
 
   struct grpc_fd *freelist_next;
 
-  grpc_closure *on_done_closure;
-  grpc_closure *shutdown_closures[2];
+  grpc_iomgr_closure *on_done_closure;
+  grpc_iomgr_closure *shutdown_closures[2];
 
   grpc_iomgr_object iomgr_object;
 };
@@ -105,7 +103,7 @@ struct grpc_fd {
 /* Create a wrapped file descriptor.
    Requires fd is a non-blocking file descriptor.
    This takes ownership of closing fd. */
-grpc_fd *grpc_fd_create(int fd, grpc_workqueue *workqueue, const char *name);
+grpc_fd *grpc_fd_create(int fd, const char *name);
 
 /* Releases fd to be asynchronously destroyed.
    on_done is called when the underlying file descriptor is definitely close()d.
@@ -113,7 +111,8 @@ grpc_fd *grpc_fd_create(int fd, grpc_workqueue *workqueue, const char *name);
    Requires: *fd initialized; no outstanding notify_on_read or
    notify_on_write.
    MUST NOT be called with a pollset lock taken */
-void grpc_fd_orphan(grpc_fd *fd, grpc_closure *on_done, const char *reason);
+void grpc_fd_orphan(grpc_fd *fd, grpc_iomgr_closure *on_done,
+                    const char *reason);
 
 /* Begin polling on an fd.
    Registers that the given pollset is interested in this fd - so that if read
@@ -152,10 +151,10 @@ void grpc_fd_shutdown(grpc_fd *fd);
    underlying platform. This means that users must drain fd in read_cb before
    calling notify_on_read again. Users are also expected to handle spurious
    events, i.e read_cb is called while nothing can be readable from fd  */
-void grpc_fd_notify_on_read(grpc_fd *fd, grpc_closure *closure);
+void grpc_fd_notify_on_read(grpc_fd *fd, grpc_iomgr_closure *closure);
 
 /* Exactly the same semantics as above, except based on writable events.  */
-void grpc_fd_notify_on_write(grpc_fd *fd, grpc_closure *closure);
+void grpc_fd_notify_on_write(grpc_fd *fd, grpc_iomgr_closure *closure);
 
 /* Notification from the poller to an fd that it has become readable or
    writable.
