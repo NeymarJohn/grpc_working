@@ -31,43 +31,54 @@
  *
  */
 
-#include "src/core/client_config/client_config.h"
+#include "src/core/iomgr/workqueue.h"
 
-#include <string.h>
+#include <grpc/grpc.h>
+#include <grpc/support/log.h>
 
-#include <grpc/support/alloc.h>
+#include "test/core/util/test_config.h"
 
-struct grpc_client_config {
-  gpr_refcount refs;
-  grpc_lb_policy *lb_policy;
-};
+static grpc_pollset g_pollset;
 
-grpc_client_config *grpc_client_config_create() {
-  grpc_client_config *c = gpr_malloc(sizeof(*c));
-  memset(c, 0, sizeof(*c));
-  gpr_ref_init(&c->refs, 1);
-  return c;
+static void must_succeed(void *p, int success) {
+  GPR_ASSERT(success == 1);
+  gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
+  *(int *)p = 1;
+  grpc_pollset_kick(&g_pollset, NULL);
+  gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
 }
 
-void grpc_client_config_ref(grpc_client_config *c) { gpr_ref(&c->refs); }
+static void test_add_closure(void) {
+  grpc_closure c;
+  int done = 0;
+  grpc_workqueue *wq = grpc_workqueue_create();
+  gpr_timespec deadline = GRPC_TIMEOUT_SECONDS_TO_DEADLINE(5);
+  grpc_pollset_worker worker;
+  grpc_closure_init(&c, must_succeed, &done);
 
-void grpc_client_config_unref(grpc_client_config *c,
-                              grpc_call_list *call_list) {
-  if (gpr_unref(&c->refs)) {
-    GRPC_LB_POLICY_UNREF(c->lb_policy, "client_config", call_list);
-    gpr_free(c);
-  }
+  grpc_workqueue_push(wq, &c, 1);
+  grpc_workqueue_add_to_pollset(wq, &g_pollset);
+
+  gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
+  GPR_ASSERT(!done);
+  grpc_pollset_work(&g_pollset, &worker, gpr_now(deadline.clock_type),
+                    deadline);
+  GPR_ASSERT(done);
+  gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
+
+  GRPC_WORKQUEUE_UNREF(wq, "destroy");
 }
 
-void grpc_client_config_set_lb_policy(grpc_client_config *c,
-                                      grpc_lb_policy *lb_policy) {
-  GPR_ASSERT(c->lb_policy == NULL);
-  if (lb_policy) {
-    GRPC_LB_POLICY_REF(lb_policy, "client_config");
-  }
-  c->lb_policy = lb_policy;
-}
+static void done_shutdown(void *arg) { grpc_pollset_destroy(arg); }
 
-grpc_lb_policy *grpc_client_config_get_lb_policy(grpc_client_config *c) {
-  return c->lb_policy;
+int main(int argc, char **argv) {
+  grpc_test_init(argc, argv);
+  grpc_init();
+  grpc_pollset_init(&g_pollset);
+
+  test_add_closure();
+
+  grpc_pollset_shutdown(&g_pollset, done_shutdown, &g_pollset);
+  grpc_shutdown();
+  return 0;
 }

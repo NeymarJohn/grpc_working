@@ -45,11 +45,11 @@ grpc_server *grpc_server_create_from_filters(
 
 /* Add a listener to the server: when the server starts, it will call start,
    and when it shuts down, it will call destroy */
-void grpc_server_add_listener(grpc_server *server, void *listener,
-                              void (*start)(grpc_server *server, void *arg,
-                                            grpc_pollset **pollsets,
-                                            size_t npollsets),
-                              void (*destroy)(grpc_server *server, void *arg));
+void grpc_server_add_listener(
+    grpc_server *server, void *listener,
+    void (*start)(grpc_server *server, void *arg, grpc_pollset **pollsets,
+                  size_t npollsets, grpc_call_list *call_list),
+    void (*destroy)(grpc_server *server, void *arg, grpc_call_list *call_list));
 
 void grpc_server_listener_destroy_done(void *server);
 
@@ -58,6 +58,7 @@ void grpc_server_listener_destroy_done(void *server);
 void grpc_server_setup_transport(grpc_server *server, grpc_transport *transport,
                                  grpc_channel_filter const **extra_filters,
                                  size_t num_extra_filters, grpc_mdctx *mdctx,
+                                 grpc_workqueue *workqueue,
                                  const grpc_channel_args *args);
 
 const grpc_channel_args *grpc_server_get_channel_args(grpc_server *server);

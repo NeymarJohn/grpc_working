@@ -53,6 +53,8 @@
 #include "test/core/util/port.h"
 #include "test/core/util/test_config.h"
 
+grpc_workqueue *g_workqueue;
+
 /* chttp2 transport that is immediately available (used for testing
    connected_channel without a client_channel */
 
@@ -62,7 +64,7 @@ static void server_setup_transport(void *ts, grpc_transport *transport,
   static grpc_channel_filter const *extra_filters[] = {
       &grpc_http_server_filter};
   grpc_server_setup_transport(f->server, transport, extra_filters,
-                              GPR_ARRAY_SIZE(extra_filters), mdctx,
+                              GPR_ARRAY_SIZE(extra_filters), mdctx, g_workqueue,
                               grpc_server_get_channel_args(f->server));
 }
 
@@ -79,8 +81,9 @@ static void client_setup_transport(void *ts, grpc_transport *transport,
                                           &grpc_compress_filter,
                                           &grpc_connected_channel_filter};
   size_t nfilters = sizeof(filters) / sizeof(*filters);
-  grpc_channel *channel = grpc_channel_create_from_filters(
-      "socketpair-target", filters, nfilters, cs->client_args, mdctx, 1);
+  grpc_channel *channel =
+      grpc_channel_create_from_filters("socketpair-target", filters, nfilters,
+                                       cs->client_args, mdctx, g_workqueue, 1);
 
   cs->f->client = channel;
 
@@ -143,14 +146,20 @@ static grpc_end2end_test_config configs[] = {
 
 int main(int argc, char **argv) {
   size_t i;
+  grpc_call_list call_list = GRPC_CALL_LIST_INIT;
 
   grpc_test_init(argc, argv);
   grpc_init();
+  g_workqueue = grpc_workqueue_create(&call_list);
+  grpc_call_list_run(&call_list);
 
   for (i = 0; i < sizeof(configs) / sizeof(*configs); i++) {
     grpc_end2end_tests(configs[i]);
   }
 
+  grpc_workqueue_flush(g_workqueue, &call_list);
+  GRPC_WORKQUEUE_UNREF(g_workqueue, "destroy", &call_list);
+  grpc_call_list_run(&call_list);
   grpc_shutdown();
 
   return 0;

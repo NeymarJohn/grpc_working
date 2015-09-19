@@ -52,6 +52,7 @@
 #include "test/core/util/test_config.h"
 
 static grpc_pollset g_pollset;
+static grpc_workqueue *g_workqueue;
 
 /* buffer size used to send and receive data.
    1024 is the minimal value to set TCP send and receive buffer. */
@@ -98,7 +99,7 @@ typedef struct {
   grpc_fd *em_fd;           /* listening fd */
   ssize_t read_bytes_total; /* total number of received bytes */
   int done;                 /* set to 1 when a server finishes serving */
-  grpc_iomgr_closure listen_closure;
+  grpc_closure listen_closure;
 } server;
 
 static void server_init(server *sv) {
@@ -112,7 +113,7 @@ typedef struct {
   server *sv;              /* not owned by a single session */
   grpc_fd *em_fd;          /* fd to read upload bytes */
   char read_buf[BUF_SIZE]; /* buffer to store upload bytes */
-  grpc_iomgr_closure session_read_closure;
+  grpc_closure session_read_closure;
 } session;
 
 /* Called when an upload session can be safely shutdown.
@@ -207,7 +208,7 @@ static void listen_cb(void *arg, /*=sv_arg*/
   fcntl(fd, F_SETFL, flags | O_NONBLOCK);
   se = gpr_malloc(sizeof(*se));
   se->sv = sv;
-  se->em_fd = grpc_fd_create(fd, "listener");
+  se->em_fd = grpc_fd_create(fd, g_workqueue, "listener");
   grpc_pollset_add_fd(&g_pollset, se->em_fd);
   se->session_read_closure.cb = session_read_cb;
   se->session_read_closure.cb_arg = se;
@@ -236,7 +237,7 @@ static int server_start(server *sv) {
   port = ntohs(sin.sin_port);
   GPR_ASSERT(listen(fd, MAX_NUM_FD) == 0);
 
-  sv->em_fd = grpc_fd_create(fd, "server");
+  sv->em_fd = grpc_fd_create(fd, g_workqueue, "server");
   grpc_pollset_add_fd(&g_pollset, sv->em_fd);
   /* Register to be interested in reading from listen_fd. */
   sv->listen_closure.cb = listen_cb;
@@ -274,7 +275,7 @@ typedef struct {
   int client_write_cnt;
 
   int done; /* set to 1 when a client finishes sending */
-  grpc_iomgr_closure write_closure;
+  grpc_closure write_closure;
 } client;
 
 static void client_init(client *cl) {
@@ -349,7 +350,7 @@ static void client_start(client *cl, int port) {
     }
   }
 
-  cl->em_fd = grpc_fd_create(fd, "client");
+  cl->em_fd = grpc_fd_create(fd, g_workqueue, "client");
   grpc_pollset_add_fd(&g_pollset, cl->em_fd);
 
   client_session_write(cl, 1);
@@ -421,8 +422,8 @@ static void test_grpc_fd_change(void) {
   int sv[2];
   char data;
   ssize_t result;
-  grpc_iomgr_closure first_closure;
-  grpc_iomgr_closure second_closure;
+  grpc_closure first_closure;
+  grpc_closure second_closure;
 
   first_closure.cb = first_read_callback;
   first_closure.cb_arg = &a;
@@ -438,7 +439,7 @@ static void test_grpc_fd_change(void) {
   flags = fcntl(sv[1], F_GETFL, 0);
   GPR_ASSERT(fcntl(sv[1], F_SETFL, flags | O_NONBLOCK) == 0);
 
-  em_fd = grpc_fd_create(sv[0], "test_grpc_fd_change");
+  em_fd = grpc_fd_create(sv[0], g_workqueue, "test_grpc_fd_change");
   grpc_pollset_add_fd(&g_pollset, em_fd);
 
   /* Register the first callback, then make its FD readable */
@@ -490,9 +491,11 @@ int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
   grpc_iomgr_init();
   grpc_pollset_init(&g_pollset);
+  g_workqueue = grpc_workqueue_create();
   test_grpc_fd();
   test_grpc_fd_change();
   grpc_pollset_shutdown(&g_pollset, destroy_pollset, &g_pollset);
+  GRPC_WORKQUEUE_UNREF(g_workqueue, "destroy");
   grpc_iomgr_shutdown();
   return 0;
 }
