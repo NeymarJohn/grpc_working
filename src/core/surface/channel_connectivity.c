@@ -45,8 +45,6 @@ grpc_connectivity_state grpc_channel_check_connectivity_state(
   /* forward through to the underlying client channel */
   grpc_channel_element *client_channel_elem =
       grpc_channel_stack_last_element(grpc_channel_get_channel_stack(channel));
-  grpc_call_list call_list = GRPC_CALL_LIST_INIT;
-  grpc_connectivity_state state;
   if (client_channel_elem->filter != &grpc_client_channel_filter) {
     gpr_log(GPR_ERROR,
             "grpc_channel_check_connectivity_state called on something that is "
@@ -54,10 +52,8 @@ grpc_connectivity_state grpc_channel_check_connectivity_state(
             client_channel_elem->filter->name);
     return GRPC_CHANNEL_FATAL_FAILURE;
   }
-  state = grpc_client_channel_check_connectivity_state(
-      client_channel_elem, try_to_connect, &call_list);
-  grpc_call_list_run(call_list);
-  return state;
+  return grpc_client_channel_check_connectivity_state(client_channel_elem,
+                                                      try_to_connect);
 }
 
 typedef enum {
@@ -71,7 +67,7 @@ typedef struct {
   gpr_mu mu;
   callback_phase phase;
   int success;
-  grpc_closure on_complete;
+  grpc_iomgr_closure on_complete;
   grpc_alarm alarm;
   grpc_connectivity_state state;
   grpc_completion_queue *cq;
@@ -158,13 +154,12 @@ void grpc_channel_watch_connectivity_state(
     gpr_timespec deadline, grpc_completion_queue *cq, void *tag) {
   grpc_channel_element *client_channel_elem =
       grpc_channel_stack_last_element(grpc_channel_get_channel_stack(channel));
-  grpc_call_list call_list = GRPC_CALL_LIST_INIT;
   state_watcher *w = gpr_malloc(sizeof(*w));
 
   grpc_cq_begin_op(cq);
 
   gpr_mu_init(&w->mu);
-  grpc_closure_init(&w->on_complete, watch_complete, w);
+  grpc_iomgr_closure_init(&w->on_complete, watch_complete, w);
   w->phase = WAITING;
   w->state = last_observed_state;
   w->success = 0;
@@ -181,14 +176,12 @@ void grpc_channel_watch_connectivity_state(
             "grpc_channel_watch_connectivity_state called on something that is "
             "not a client channel, but '%s'",
             client_channel_elem->filter->name);
-    grpc_call_list_add(&call_list, &w->on_complete, 1);
+    grpc_iomgr_add_delayed_callback(&w->on_complete, 1);
   } else {
     GRPC_CHANNEL_INTERNAL_REF(channel, "watch_connectivity");
     grpc_client_channel_add_interested_party(client_channel_elem,
                                              grpc_cq_pollset(cq));
     grpc_client_channel_watch_connectivity_state(client_channel_elem, &w->state,
-                                                 &w->on_complete, &call_list);
+                                                 &w->on_complete);
   }
-
-  grpc_call_list_run(call_list);
 }

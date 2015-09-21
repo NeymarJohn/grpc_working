@@ -47,7 +47,7 @@ grpc_udp_server *grpc_udp_server_create(void);
 
 /* Start listening to bound ports */
 void grpc_udp_server_start(grpc_udp_server *udp_server, grpc_pollset **pollsets,
-                           size_t pollset_count, grpc_call_list *call_list);
+                           size_t pollset_count);
 
 int grpc_udp_server_get_fd(grpc_udp_server *s, unsigned index);
 
@@ -64,8 +64,9 @@ int grpc_udp_server_get_fd(grpc_udp_server *s, unsigned index);
 int grpc_udp_server_add_port(grpc_udp_server *s, const void *addr,
                              size_t addr_len, grpc_udp_server_read_cb read_cb);
 
-void grpc_udp_server_destroy(grpc_udp_server *server, grpc_closure *on_done,
-                             grpc_call_list *call_list);
+void grpc_udp_server_destroy(grpc_udp_server *server,
+                             void (*shutdown_done)(void *shutdown_done_arg),
+                             void *shutdown_done_arg);
 
 /* Write the contents of buffer to the underlying UDP socket. */
 /*

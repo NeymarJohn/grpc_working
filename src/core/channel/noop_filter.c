@@ -63,12 +63,11 @@ static void noop_mutate_op(grpc_call_element *elem,
    op contains type and call direction information, in addition to the data
    that is being sent or received. */
 static void noop_start_transport_stream_op(grpc_call_element *elem,
-                                           grpc_transport_stream_op *op,
-                                           grpc_call_list *call_list) {
+                                           grpc_transport_stream_op *op) {
   noop_mutate_op(elem, op);
 
   /* pass control down the stack */
-  grpc_call_next_op(elem, op, call_list);
+  grpc_call_next_op(elem, op);
 }
 
 /* Constructor for call_data */
@@ -86,14 +85,19 @@ static void init_call_elem(grpc_call_element *elem,
 }
 
 /* Destructor for call_data */
-static void destroy_call_elem(grpc_call_element *elem,
-                              grpc_call_list *call_list) {}
+static void destroy_call_elem(grpc_call_element *elem) {
+  /* grab pointers to our data from the call element */
+  call_data *calld = elem->call_data;
+  channel_data *channeld = elem->channel_data;
+
+  ignore_unused(calld);
+  ignore_unused(channeld);
+}
 
 /* Constructor for channel_data */
 static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
                               const grpc_channel_args *args, grpc_mdctx *mdctx,
-                              int is_first, int is_last,
-                              grpc_call_list *call_list) {
+                              int is_first, int is_last) {
   /* grab pointers to our data from the channel element */
   channel_data *channeld = elem->channel_data;
 
@@ -108,8 +112,7 @@ static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
 }
 
 /* Destructor for channel data */
-static void destroy_channel_elem(grpc_channel_element *elem,
-                                 grpc_call_list *call_list) {
+static void destroy_channel_elem(grpc_channel_element *elem) {
   /* grab pointers to our data from the channel element */
   channel_data *channeld = elem->channel_data;
 

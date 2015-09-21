@@ -269,14 +269,13 @@ static void process_send_ops(grpc_call_element *elem,
    op contains type and call direction information, in addition to the data
    that is being sent or received. */
 static void compress_start_transport_stream_op(grpc_call_element *elem,
-                                               grpc_transport_stream_op *op,
-                                               grpc_call_list *call_list) {
+                                               grpc_transport_stream_op *op) {
   if (op->send_ops && op->send_ops->nops > 0) {
     process_send_ops(elem, op->send_ops);
   }
 
   /* pass control down the stack */
-  grpc_call_next_op(elem, op, call_list);
+  grpc_call_next_op(elem, op);
 }
 
 /* Constructor for call_data */
@@ -299,8 +298,7 @@ static void init_call_elem(grpc_call_element *elem,
 }
 
 /* Destructor for call_data */
-static void destroy_call_elem(grpc_call_element *elem,
-                              grpc_call_list *call_list) {
+static void destroy_call_elem(grpc_call_element *elem) {
   /* grab pointers to our data from the call element */
   call_data *calld = elem->call_data;
   gpr_slice_buffer_destroy(&calld->slices);
@@ -309,8 +307,7 @@ static void destroy_call_elem(grpc_call_element *elem,
 /* Constructor for channel_data */
 static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
                               const grpc_channel_args *args, grpc_mdctx *mdctx,
-                              int is_first, int is_last,
-                              grpc_call_list *call_list) {
+                              int is_first, int is_last) {
   channel_data *channeld = elem->channel_data;
   grpc_compression_algorithm algo_idx;
   const char *supported_algorithms_names[GRPC_COMPRESS_ALGORITHMS_COUNT - 1];
@@ -372,8 +369,7 @@ static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
 }
 
 /* Destructor for channel data */
-static void destroy_channel_elem(grpc_channel_element *elem,
-                                 grpc_call_list *call_list) {
+static void destroy_channel_elem(grpc_channel_element *elem) {
   channel_data *channeld = elem->channel_data;
   grpc_compression_algorithm algo_idx;
 

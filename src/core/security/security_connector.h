@@ -61,8 +61,7 @@ typedef struct grpc_security_connector grpc_security_connector;
 #define GRPC_SECURITY_CONNECTOR_ARG "grpc.security_connector"
 
 typedef void (*grpc_security_check_cb)(void *user_data,
-                                       grpc_security_status status,
-                                       grpc_call_list *call_list);
+                                       grpc_security_status status);
 
 typedef struct {
   void (*destroy)(grpc_security_connector *sc);
@@ -139,8 +138,7 @@ struct grpc_channel_security_connector {
   grpc_security_status (*check_call_host)(grpc_channel_security_connector *sc,
                                           const char *host,
                                           grpc_security_check_cb cb,
-                                          void *user_data,
-                                          grpc_call_list *call_list);
+                                          void *user_data);
 };
 
 /* Checks that the host that will be set for a call is acceptable.
@@ -150,7 +148,7 @@ struct grpc_channel_security_connector {
    GRPC_SECURITY_PENDING unless an error is detected early on. */
 grpc_security_status grpc_channel_security_connector_check_call_host(
     grpc_channel_security_connector *sc, const char *host,
-    grpc_security_check_cb cb, void *user_data, grpc_call_list *call_list);
+    grpc_security_check_cb cb, void *user_data);
 
 /* --- Creation security connectors. --- */
 

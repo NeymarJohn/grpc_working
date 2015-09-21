@@ -234,6 +234,7 @@
     <ClInclude Include="..\..\..\src\core\client_config\client_config.h" />
     <ClInclude Include="..\..\..\src\core\client_config\connector.h" />
     <ClInclude Include="..\..\..\src\core\client_config\lb_policies\pick_first.h" />
+    <ClInclude Include="..\..\..\src\core\client_config\lb_policies\round_robin.h" />
     <ClInclude Include="..\..\..\src\core\client_config\lb_policy.h" />
     <ClInclude Include="..\..\..\src\core\client_config\lb_policy_factory.h" />
     <ClInclude Include="..\..\..\src\core\client_config\lb_policy_registry.h" />
@@ -283,9 +284,6 @@
     <ClInclude Include="..\..\..\src\core\iomgr\udp_server.h" />
     <ClInclude Include="..\..\..\src\core\iomgr\wakeup_fd_pipe.h" />
     <ClInclude Include="..\..\..\src\core\iomgr\wakeup_fd_posix.h" />
-    <ClInclude Include="..\..\..\src\core\iomgr\workqueue.h" />
-    <ClInclude Include="..\..\..\src\core\iomgr\workqueue_posix.h" />
-    <ClInclude Include="..\..\..\src\core\iomgr\workqueue_windows.h" />
     <ClInclude Include="..\..\..\src\core\json\json.h" />
     <ClInclude Include="..\..\..\src\core\json\json_common.h" />
     <ClInclude Include="..\..\..\src\core\json\json_reader.h" />
@@ -359,6 +357,8 @@
     <ClCompile Include="..\..\..\src\core\client_config\connector.c">
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\client_config\lb_policies\pick_first.c">
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\core\client_config\lb_policies\round_robin.c">
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\client_config\lb_policy.c">
     </ClCompile>
@@ -467,10 +467,6 @@
     <ClCompile Include="..\..\..\src\core\iomgr\wakeup_fd_pipe.c">
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\wakeup_fd_posix.c">
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\workqueue_posix.c">
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\workqueue_windows.c">
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\json\json.c">
     </ClCompile>
