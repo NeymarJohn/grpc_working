@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 using Grpc.Core.Utils;
 
-namespace Routeguide
+namespace Examples
 {
     /// <summary>
     /// Example implementation of RouteGuide server.
