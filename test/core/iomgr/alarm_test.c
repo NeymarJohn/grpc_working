@@ -56,7 +56,6 @@ void no_op_cb(void *arg, int success) {}
 typedef struct {
   gpr_cv cv;
   gpr_mu mu;
-  grpc_iomgr_closure *followup_closure;
   int counter;
   int done_success_ctr;
   int done_cancel_ctr;
@@ -65,12 +64,9 @@ typedef struct {
   int success;
 } alarm_arg;
 
-static void followup_cb(void *arg, int success) {
-  gpr_event_set((gpr_event *)arg, arg);
-}
-
 /* Called when an alarm expires. */
-static void alarm_cb(void *arg /* alarm_arg */, int success) {
+static void alarm_cb(void *arg /* alarm_arg */, int success,
+                     grpc_call_list *call_list) {
   alarm_arg *a = arg;
   gpr_mu_lock(&a->mu);
   if (success) {
@@ -83,8 +79,7 @@ static void alarm_cb(void *arg /* alarm_arg */, int success) {
   a->success = success;
   gpr_cv_signal(&a->cv);
   gpr_mu_unlock(&a->mu);
-  grpc_iomgr_closure_init(a->followup_closure, followup_cb, &a->fcb_arg);
-  grpc_iomgr_add_callback(a->followup_closure);
+  gpr_event_set((gpr_event *)arg, arg);
 }
 
 /* Test grpc_alarm add and cancel. */
@@ -96,6 +91,7 @@ static void test_grpc_alarm(void) {
    */
   gpr_timespec alarm_deadline;
   gpr_timespec followup_deadline;
+  grpc_call_list call_list = GRPC_CALL_LIST_INIT;
 
   alarm_arg arg;
   alarm_arg arg2;
@@ -110,11 +106,10 @@ static void test_grpc_alarm(void) {
   arg.done = 0;
   gpr_mu_init(&arg.mu);
   gpr_cv_init(&arg.cv);
-  arg.followup_closure = gpr_malloc(sizeof(grpc_iomgr_closure));
   gpr_event_init(&arg.fcb_arg);
 
   grpc_alarm_init(&alarm, GRPC_TIMEOUT_MILLIS_TO_DEADLINE(100), alarm_cb, &arg,
-                  gpr_now(GPR_CLOCK_MONOTONIC));
+                  gpr_now(GPR_CLOCK_MONOTONIC), &call_list);
 
   alarm_deadline = GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1);
   gpr_mu_lock(&arg.mu);
@@ -152,7 +147,6 @@ static void test_grpc_alarm(void) {
   }
   gpr_cv_destroy(&arg.cv);
   gpr_mu_destroy(&arg.mu);
-  gpr_free(arg.followup_closure);
 
   arg2.counter = 0;
   arg2.success = SUCCESS_NOT_SET;
@@ -161,13 +155,12 @@ static void test_grpc_alarm(void) {
   arg2.done = 0;
   gpr_mu_init(&arg2.mu);
   gpr_cv_init(&arg2.cv);
-  arg2.followup_closure = gpr_malloc(sizeof(grpc_iomgr_closure));
 
   gpr_event_init(&arg2.fcb_arg);
 
   grpc_alarm_init(&alarm_to_cancel, GRPC_TIMEOUT_MILLIS_TO_DEADLINE(100),
-                  alarm_cb, &arg2, gpr_now(GPR_CLOCK_MONOTONIC));
-  grpc_alarm_cancel(&alarm_to_cancel);
+                  alarm_cb, &arg2, gpr_now(GPR_CLOCK_MONOTONIC), &call_list);
+  grpc_alarm_cancel(&alarm_to_cancel, &call_list);
 
   alarm_deadline = GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1);
   gpr_mu_lock(&arg2.mu);
@@ -213,7 +206,6 @@ static void test_grpc_alarm(void) {
   }
   gpr_cv_destroy(&arg2.cv);
   gpr_mu_destroy(&arg2.mu);
-  gpr_free(arg2.followup_closure);
 
   grpc_shutdown();
 }

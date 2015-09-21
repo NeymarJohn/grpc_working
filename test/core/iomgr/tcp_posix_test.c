@@ -49,6 +49,7 @@
 #include "test/core/iomgr/endpoint_tests.h"
 
 static grpc_pollset g_pollset;
+static grpc_workqueue *g_workqueue;
 
 /*
    General test notes:
@@ -119,7 +120,7 @@ struct read_socket_state {
   size_t read_bytes;
   size_t target_read_bytes;
   gpr_slice_buffer incoming;
-  grpc_iomgr_closure read_cb;
+  grpc_closure read_cb;
 };
 
 static size_t count_slices(gpr_slice *slices, size_t nslices,
@@ -184,7 +185,8 @@ static void read_test(size_t num_bytes, size_t slice_size) {
 
   create_sockets(sv);
 
-  ep = grpc_tcp_create(grpc_fd_create(sv[1], "read_test"), slice_size, "test");
+  ep = grpc_tcp_create(grpc_fd_create(sv[1], g_workqueue, "read_test"),
+                       slice_size, "test");
   grpc_endpoint_add_to_pollset(ep, &g_pollset);
 
   written_bytes = fill_socket_partial(sv[0], num_bytes);
@@ -194,7 +196,7 @@ static void read_test(size_t num_bytes, size_t slice_size) {
   state.read_bytes = 0;
   state.target_read_bytes = written_bytes;
   gpr_slice_buffer_init(&state.incoming);
-  grpc_iomgr_closure_init(&state.read_cb, read_cb, &state);
+  grpc_closure_init(&state.read_cb, read_cb, &state);
 
   switch (grpc_endpoint_read(ep, &state.incoming, &state.read_cb)) {
     case GRPC_ENDPOINT_DONE:
@@ -233,8 +235,8 @@ static void large_read_test(size_t slice_size) {
 
   create_sockets(sv);
 
-  ep = grpc_tcp_create(grpc_fd_create(sv[1], "large_read_test"), slice_size,
-                       "test");
+  ep = grpc_tcp_create(grpc_fd_create(sv[1], g_workqueue, "large_read_test"),
+                       slice_size, "test");
   grpc_endpoint_add_to_pollset(ep, &g_pollset);
 
   written_bytes = fill_socket(sv[0]);
@@ -244,7 +246,7 @@ static void large_read_test(size_t slice_size) {
   state.read_bytes = 0;
   state.target_read_bytes = (size_t)written_bytes;
   gpr_slice_buffer_init(&state.incoming);
-  grpc_iomgr_closure_init(&state.read_cb, read_cb, &state);
+  grpc_closure_init(&state.read_cb, read_cb, &state);
 
   switch (grpc_endpoint_read(ep, &state.incoming, &state.read_cb)) {
     case GRPC_ENDPOINT_DONE:
@@ -375,7 +377,7 @@ static void write_test(size_t num_bytes, size_t slice_size) {
   gpr_slice *slices;
   gpr_uint8 current_data = 0;
   gpr_slice_buffer outgoing;
-  grpc_iomgr_closure write_done_closure;
+  grpc_closure write_done_closure;
   gpr_timespec deadline = GRPC_TIMEOUT_SECONDS_TO_DEADLINE(20);
 
   gpr_log(GPR_INFO, "Start write test with %d bytes, slice size %d", num_bytes,
@@ -383,7 +385,7 @@ static void write_test(size_t num_bytes, size_t slice_size) {
 
   create_sockets(sv);
 
-  ep = grpc_tcp_create(grpc_fd_create(sv[1], "write_test"),
+  ep = grpc_tcp_create(grpc_fd_create(sv[1], g_workqueue, "write_test"),
                        GRPC_TCP_DEFAULT_READ_SLICE_SIZE, "test");
   grpc_endpoint_add_to_pollset(ep, &g_pollset);
 
@@ -394,7 +396,7 @@ static void write_test(size_t num_bytes, size_t slice_size) {
 
   gpr_slice_buffer_init(&outgoing);
   gpr_slice_buffer_addn(&outgoing, slices, num_blocks);
-  grpc_iomgr_closure_init(&write_done_closure, write_done, &state);
+  grpc_closure_init(&write_done_closure, write_done, &state);
 
   switch (grpc_endpoint_write(ep, &outgoing, &write_done_closure)) {
     case GRPC_ENDPOINT_DONE:
@@ -454,10 +456,10 @@ static grpc_endpoint_test_fixture create_fixture_tcp_socketpair(
   grpc_endpoint_test_fixture f;
 
   create_sockets(sv);
-  f.client_ep = grpc_tcp_create(grpc_fd_create(sv[0], "fixture:client"),
-                                slice_size, "test");
-  f.server_ep = grpc_tcp_create(grpc_fd_create(sv[1], "fixture:server"),
-                                slice_size, "test");
+  f.client_ep = grpc_tcp_create(
+      grpc_fd_create(sv[0], g_workqueue, "fixture:client"), slice_size, "test");
+  f.server_ep = grpc_tcp_create(
+      grpc_fd_create(sv[1], g_workqueue, "fixture:server"), slice_size, "test");
   grpc_endpoint_add_to_pollset(f.client_ep, &g_pollset);
   grpc_endpoint_add_to_pollset(f.server_ep, &g_pollset);
 
@@ -473,9 +475,11 @@ static void destroy_pollset(void *p) { grpc_pollset_destroy(p); }
 int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
   grpc_init();
+  g_workqueue = grpc_workqueue_create();
   grpc_pollset_init(&g_pollset);
   run_tests();
   grpc_endpoint_tests(configs[0], &g_pollset);
+  GRPC_WORKQUEUE_UNREF(g_workqueue, "destroy");
   grpc_pollset_shutdown(&g_pollset, destroy_pollset, &g_pollset);
   grpc_shutdown();
 

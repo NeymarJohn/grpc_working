@@ -62,26 +62,29 @@ typedef struct connected_channel_call_data { void *unused; } call_data;
 /* Intercept a call operation and either push it directly up or translate it
    into transport stream operations */
 static void con_start_transport_stream_op(grpc_call_element *elem,
-                                          grpc_transport_stream_op *op) {
+                                          grpc_transport_stream_op *op,
+                                          grpc_call_list *call_list) {
   call_data *calld = elem->call_data;
   channel_data *chand = elem->channel_data;
   GPR_ASSERT(elem->filter == &grpc_connected_channel_filter);
   GRPC_CALL_LOG_OP(GPR_INFO, elem, op);
 
-  grpc_transport_perform_stream_op(chand->transport,
-                                   TRANSPORT_STREAM_FROM_CALL_DATA(calld), op);
+  grpc_transport_perform_stream_op(
+      chand->transport, TRANSPORT_STREAM_FROM_CALL_DATA(calld), op, call_list);
 }
 
 static void con_start_transport_op(grpc_channel_element *elem,
-                                   grpc_transport_op *op) {
+                                   grpc_transport_op *op,
+                                   grpc_call_list *call_list) {
   channel_data *chand = elem->channel_data;
-  grpc_transport_perform_op(chand->transport, op);
+  grpc_transport_perform_op(chand->transport, op, call_list);
 }
 
 /* Constructor for call_data */
 static void init_call_elem(grpc_call_element *elem,
                            const void *server_transport_data,
-                           grpc_transport_stream_op *initial_op) {
+                           grpc_transport_stream_op *initial_op,
+                           grpc_call_list *call_list) {
   call_data *calld = elem->call_data;
   channel_data *chand = elem->channel_data;
   int r;
@@ -89,23 +92,25 @@ static void init_call_elem(grpc_call_element *elem,
   GPR_ASSERT(elem->filter == &grpc_connected_channel_filter);
   r = grpc_transport_init_stream(chand->transport,
                                  TRANSPORT_STREAM_FROM_CALL_DATA(calld),
-                                 server_transport_data, initial_op);
+                                 server_transport_data, initial_op, call_list);
   GPR_ASSERT(r == 0);
 }
 
 /* Destructor for call_data */
-static void destroy_call_elem(grpc_call_element *elem) {
+static void destroy_call_elem(grpc_call_element *elem,
+                              grpc_call_list *call_list) {
   call_data *calld = elem->call_data;
   channel_data *chand = elem->channel_data;
   GPR_ASSERT(elem->filter == &grpc_connected_channel_filter);
-  grpc_transport_destroy_stream(chand->transport,
-                                TRANSPORT_STREAM_FROM_CALL_DATA(calld));
+  grpc_transport_destroy_stream(
+      chand->transport, TRANSPORT_STREAM_FROM_CALL_DATA(calld), call_list);
 }
 
 /* Constructor for channel_data */
 static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
                               const grpc_channel_args *args, grpc_mdctx *mdctx,
-                              int is_first, int is_last) {
+                              int is_first, int is_last,
+                              grpc_call_list *call_list) {
   channel_data *cd = (channel_data *)elem->channel_data;
   GPR_ASSERT(is_last);
   GPR_ASSERT(elem->filter == &grpc_connected_channel_filter);
@@ -113,15 +118,16 @@ static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
 }
 
 /* Destructor for channel_data */
-static void destroy_channel_elem(grpc_channel_element *elem) {
+static void destroy_channel_elem(grpc_channel_element *elem,
+                                 grpc_call_list *call_list) {
   channel_data *cd = (channel_data *)elem->channel_data;
   GPR_ASSERT(elem->filter == &grpc_connected_channel_filter);
-  grpc_transport_destroy(cd->transport);
+  grpc_transport_destroy(cd->transport, call_list);
 }
 
-static char *con_get_peer(grpc_call_element *elem) {
+static char *con_get_peer(grpc_call_element *elem, grpc_call_list *call_list) {
   channel_data *chand = elem->channel_data;
-  return grpc_transport_get_peer(chand->transport);
+  return grpc_transport_get_peer(chand->transport, call_list);
 }
 
 const grpc_channel_filter grpc_connected_channel_filter = {

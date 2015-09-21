@@ -53,6 +53,8 @@
 #include "test/core/util/port.h"
 #include "test/core/util/test_config.h"
 
+grpc_workqueue *g_workqueue;
+
 /* chttp2 transport that is immediately available (used for testing
    connected_channel without a client_channel */
 
@@ -61,9 +63,11 @@ static void server_setup_transport(void *ts, grpc_transport *transport,
   grpc_end2end_test_fixture *f = ts;
   static grpc_channel_filter const *extra_filters[] = {
       &grpc_http_server_filter};
-  grpc_server_setup_transport(f->server, transport, extra_filters,
-                              GPR_ARRAY_SIZE(extra_filters), mdctx,
-                              grpc_server_get_channel_args(f->server));
+  grpc_call_list call_list = GRPC_CALL_LIST_INIT;
+  grpc_server_setup_transport(
+      f->server, transport, extra_filters, GPR_ARRAY_SIZE(extra_filters), mdctx,
+      g_workqueue, grpc_server_get_channel_args(f->server), &call_list);
+  grpc_call_list_run(&call_list);
 }
 
 typedef struct {
@@ -72,7 +76,8 @@ typedef struct {
 } sp_client_setup;
 
 static void client_setup_transport(void *ts, grpc_transport *transport,
-                                   grpc_mdctx *mdctx) {
+                                   grpc_mdctx *mdctx,
+                                   grpc_call_list *call_list) {
   sp_client_setup *cs = ts;
 
   const grpc_channel_filter *filters[] = {&grpc_http_client_filter,
@@ -80,7 +85,8 @@ static void client_setup_transport(void *ts, grpc_transport *transport,
                                           &grpc_connected_channel_filter};
   size_t nfilters = sizeof(filters) / sizeof(*filters);
   grpc_channel *channel = grpc_channel_create_from_filters(
-      "socketpair-target", filters, nfilters, cs->client_args, mdctx, 1);
+      "socketpair-target", filters, nfilters, cs->client_args, mdctx,
+      g_workqueue, 1, call_list);
 
   cs->f->client = channel;
 
@@ -104,20 +110,24 @@ static grpc_end2end_test_fixture chttp2_create_fixture_socketpair(
 
 static void chttp2_init_client_socketpair(grpc_end2end_test_fixture *f,
                                           grpc_channel_args *client_args) {
+  grpc_call_list call_list = GRPC_CALL_LIST_INIT;
   grpc_endpoint_pair *sfd = f->fixture_data;
   grpc_transport *transport;
   grpc_mdctx *mdctx = grpc_mdctx_create();
   sp_client_setup cs;
   cs.client_args = client_args;
   cs.f = f;
-  transport = grpc_create_chttp2_transport(client_args, sfd->client, mdctx, 1);
-  client_setup_transport(&cs, transport, mdctx);
+  transport = grpc_create_chttp2_transport(client_args, sfd->client, mdctx, 1,
+                                           &call_list);
+  client_setup_transport(&cs, transport, mdctx, &call_list);
   GPR_ASSERT(f->client);
-  grpc_chttp2_transport_start_reading(transport, NULL, 0);
+  grpc_chttp2_transport_start_reading(transport, NULL, 0, &call_list);
+  grpc_call_list_run(&call_list);
 }
 
 static void chttp2_init_server_socketpair(grpc_end2end_test_fixture *f,
                                           grpc_channel_args *server_args) {
+  grpc_call_list call_list = GRPC_CALL_LIST_INIT;
   grpc_endpoint_pair *sfd = f->fixture_data;
   grpc_mdctx *mdctx = grpc_mdctx_create();
   grpc_transport *transport;
@@ -125,9 +135,11 @@ static void chttp2_init_server_socketpair(grpc_end2end_test_fixture *f,
   f->server = grpc_server_create_from_filters(NULL, 0, server_args);
   grpc_server_register_completion_queue(f->server, f->cq, NULL);
   grpc_server_start(f->server);
-  transport = grpc_create_chttp2_transport(server_args, sfd->server, mdctx, 0);
+  transport = grpc_create_chttp2_transport(server_args, sfd->server, mdctx, 0,
+                                           &call_list);
   server_setup_transport(f, transport, mdctx);
-  grpc_chttp2_transport_start_reading(transport, NULL, 0);
+  grpc_chttp2_transport_start_reading(transport, NULL, 0, &call_list);
+  grpc_call_list_run(&call_list);
 }
 
 static void chttp2_tear_down_socketpair(grpc_end2end_test_fixture *f) {
@@ -143,14 +155,20 @@ static grpc_end2end_test_config configs[] = {
 
 int main(int argc, char **argv) {
   size_t i;
+  grpc_call_list call_list = GRPC_CALL_LIST_INIT;
 
   grpc_test_init(argc, argv);
   grpc_init();
+  g_workqueue = grpc_workqueue_create(&call_list);
+  grpc_call_list_run(&call_list);
 
   for (i = 0; i < sizeof(configs) / sizeof(*configs); i++) {
     grpc_end2end_tests(configs[i]);
   }
 
+  grpc_workqueue_flush(g_workqueue, &call_list);
+  GRPC_WORKQUEUE_UNREF(g_workqueue, "destroy", &call_list);
+  grpc_call_list_run(&call_list);
   grpc_shutdown();
 
   return 0;
