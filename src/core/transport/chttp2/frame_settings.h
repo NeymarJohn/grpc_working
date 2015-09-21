@@ -37,7 +37,6 @@
 #include <grpc/support/port_platform.h>
 #include <grpc/support/slice.h>
 #include "src/core/transport/chttp2/frame.h"
-#include "src/core/iomgr/exec_ctx.h"
 
 typedef enum {
   GRPC_CHTTP2_SPS_ID0,
@@ -96,7 +95,6 @@ grpc_chttp2_parse_error grpc_chttp2_settings_parser_begin_frame(
     gpr_uint32 *settings);
 grpc_chttp2_parse_error grpc_chttp2_settings_parser_parse(
     void *parser, grpc_chttp2_transport_parsing *transport_parsing,
-    grpc_chttp2_stream_parsing *stream_parsing, gpr_slice slice, int is_last,
-    grpc_closure_list *closure_list);
+    grpc_chttp2_stream_parsing *stream_parsing, gpr_slice slice, int is_last);
 
 #endif /* GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_SETTINGS_H */

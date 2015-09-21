@@ -49,44 +49,40 @@ struct grpc_resolver {
 };
 
 struct grpc_resolver_vtable {
-  void (*destroy)(grpc_resolver *resolver, grpc_closure_list *closure_list);
-  void (*shutdown)(grpc_resolver *resolver, grpc_closure_list *closure_list);
+  void (*destroy)(grpc_resolver *resolver);
+  void (*shutdown)(grpc_resolver *resolver);
   void (*channel_saw_error)(grpc_resolver *resolver,
                             struct sockaddr *failing_address,
-                            int failing_address_len,
-                            grpc_closure_list *closure_list);
+                            int failing_address_len);
   void (*next)(grpc_resolver *resolver, grpc_client_config **target_config,
-               grpc_closure *on_complete, grpc_closure_list *closure_list);
+               grpc_iomgr_closure *on_complete);
 };
 
 #ifdef GRPC_RESOLVER_REFCOUNT_DEBUG
 #define GRPC_RESOLVER_REF(p, r) grpc_resolver_ref((p), __FILE__, __LINE__, (r))
-#define GRPC_RESOLVER_UNREF(p, r, cl) \
-  grpc_resolver_unref((p), (cl), __FILE__, __LINE__, (r))
+#define GRPC_RESOLVER_UNREF(p, r) \
+  grpc_resolver_unref((p), __FILE__, __LINE__, (r))
 void grpc_resolver_ref(grpc_resolver *policy, const char *file, int line,
                        const char *reason);
-void grpc_resolver_unref(grpc_resolver *policy, grpc_closure_list *closure_list,
-                         const char *file, int line, const char *reason);
+void grpc_resolver_unref(grpc_resolver *policy, const char *file, int line,
+                         const char *reason);
 #else
 #define GRPC_RESOLVER_REF(p, r) grpc_resolver_ref((p))
-#define GRPC_RESOLVER_UNREF(p, r, cl) grpc_resolver_unref((p), (cl))
+#define GRPC_RESOLVER_UNREF(p, r) grpc_resolver_unref((p))
 void grpc_resolver_ref(grpc_resolver *policy);
-void grpc_resolver_unref(grpc_resolver *policy,
-                         grpc_closure_list *closure_list);
+void grpc_resolver_unref(grpc_resolver *policy);
 #endif
 
 void grpc_resolver_init(grpc_resolver *resolver,
                         const grpc_resolver_vtable *vtable);
 
-void grpc_resolver_shutdown(grpc_resolver *resolver,
-                            grpc_closure_list *closure_list);
+void grpc_resolver_shutdown(grpc_resolver *resolver);
 
 /** Notification that the channel has seen an error on some address.
     Can be used as a hint that re-resolution is desirable soon. */
 void grpc_resolver_channel_saw_error(grpc_resolver *resolver,
                                      struct sockaddr *failing_address,
-                                     int failing_address_len,
-                                     grpc_closure_list *closure_list);
+                                     int failing_address_len);
 
 /** Get the next client config. Called by the channel to fetch a new
     configuration. Expected to set *target_config with a new configuration,
@@ -96,7 +92,6 @@ void grpc_resolver_channel_saw_error(grpc_resolver *resolver,
     schedule on_complete. */
 void grpc_resolver_next(grpc_resolver *resolver,
                         grpc_client_config **target_config,
-                        grpc_closure *on_complete,
-                        grpc_closure_list *closure_list);
+                        grpc_iomgr_closure *on_complete);
 
 #endif /* GRPC_INTERNAL_CORE_CONFIG_RESOLVER_H */

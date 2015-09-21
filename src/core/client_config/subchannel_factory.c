@@ -36,14 +36,11 @@
 void grpc_subchannel_factory_ref(grpc_subchannel_factory *factory) {
   factory->vtable->ref(factory);
 }
-
-void grpc_subchannel_factory_unref(grpc_subchannel_factory *factory,
-                                   grpc_closure_list *closure_list) {
-  factory->vtable->unref(factory, closure_list);
+void grpc_subchannel_factory_unref(grpc_subchannel_factory *factory) {
+  factory->vtable->unref(factory);
 }
 
 grpc_subchannel *grpc_subchannel_factory_create_subchannel(
-    grpc_subchannel_factory *factory, grpc_subchannel_args *args,
-    grpc_closure_list *closure_list) {
-  return factory->vtable->create_subchannel(factory, args, closure_list);
+    grpc_subchannel_factory *factory, grpc_subchannel_args *args) {
+  return factory->vtable->create_subchannel(factory, args);
 }

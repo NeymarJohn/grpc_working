@@ -56,7 +56,6 @@ typedef enum {
 
 #define GRPC_CREDENTIALS_TYPE_SSL "Ssl"
 #define GRPC_CREDENTIALS_TYPE_OAUTH2 "Oauth2"
-#define GRPC_CREDENTIALS_TYPE_METADATA_PLUGIN "Plugin"
 #define GRPC_CREDENTIALS_TYPE_JWT "Jwt"
 #define GRPC_CREDENTIALS_TYPE_IAM "Iam"
 #define GRPC_CREDENTIALS_TYPE_COMPOSITE "Composite"
@@ -127,8 +126,7 @@ char *grpc_get_well_known_google_credentials_file_path(void);
 typedef void (*grpc_credentials_metadata_cb)(void *user_data,
                                              grpc_credentials_md *md_elems,
                                              size_t num_md,
-                                             grpc_credentials_status status,
-                                             grpc_closure_list *closure_list);
+                                             grpc_credentials_status status);
 
 typedef struct {
   void (*destruct)(grpc_credentials *c);
@@ -136,8 +134,8 @@ typedef struct {
   int (*has_request_metadata_only)(const grpc_credentials *c);
   void (*get_request_metadata)(grpc_credentials *c, grpc_pollset *pollset,
                                const char *service_url,
-                               grpc_credentials_metadata_cb cb, void *user_data,
-                               grpc_closure_list *closure_list);
+                               grpc_credentials_metadata_cb cb,
+                               void *user_data);
   grpc_security_status (*create_security_connector)(
       grpc_credentials *c, const char *target, const grpc_channel_args *args,
       grpc_credentials *request_metadata_creds,
@@ -158,8 +156,7 @@ void grpc_credentials_get_request_metadata(grpc_credentials *creds,
                                            grpc_pollset *pollset,
                                            const char *service_url,
                                            grpc_credentials_metadata_cb cb,
-                                           void *user_data,
-                                           grpc_closure_list *closure_list);
+                                           void *user_data);
 
 /* Creates a security connector for the channel. May also create new channel
    args for the channel to be used in place of the passed in const args if
@@ -217,6 +214,7 @@ typedef struct {
   grpc_security_status (*create_security_connector)(
       grpc_server_credentials *c, grpc_security_connector **sc);
 } grpc_server_credentials_vtable;
+
 
 /* TODO(jboeuf): Add a refcount. */
 struct grpc_server_credentials {
@@ -276,8 +274,7 @@ typedef void (*grpc_fetch_oauth2_func)(grpc_credentials_metadata_request *req,
                                        grpc_httpcli_context *http_context,
                                        grpc_pollset *pollset,
                                        grpc_httpcli_response_cb response_cb,
-                                       gpr_timespec deadline,
-                                       grpc_closure_list *closure_list);
+                                       gpr_timespec deadline);
 
 typedef struct {
   grpc_credentials base;
@@ -324,13 +321,5 @@ typedef struct {
   grpc_credentials_array inner;
   grpc_credentials *connector_creds;
 } grpc_composite_credentials;
-
-/* -- Plugin credentials. -- */
-
-typedef struct {
-  grpc_credentials base;
-  grpc_metadata_credentials_plugin plugin;
-  grpc_credentials_md_store *plugin_md;
-} grpc_plugin_credentials;
 
 #endif /* GRPC_INTERNAL_CORE_SECURITY_CREDENTIALS_H */
