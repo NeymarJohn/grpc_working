@@ -44,11 +44,11 @@
 
 static __thread char magic_thread_local;
 
-static long ncpus = 0;
+static int ncpus = 0;
 
 static void init_ncpus() {
   ncpus = sysconf(_SC_NPROCESSORS_ONLN);
-  if (ncpus < 1 || ncpus > GPR_UINT32_MAX) {
+  if (ncpus < 1) {
     gpr_log(GPR_ERROR, "Cannot determine number of CPUs: assuming 1");
     ncpus = 1;
   }
@@ -57,7 +57,7 @@ static void init_ncpus() {
 unsigned gpr_cpu_num_cores(void) {
   static gpr_once once = GPR_ONCE_INIT;
   gpr_once_init(&once, init_ncpus);
-  return (unsigned)ncpus;
+  return ncpus;
 }
 
 /* This is a cheap, but good enough, pointer hash for sharding things: */
@@ -71,7 +71,7 @@ unsigned gpr_cpu_current_cpu(void) {
      most code that's using this is using it to shard across work queues though,
      so here we use thread identity instead to achieve a similar though not
      identical effect */
-  return (unsigned)shard_ptr(&magic_thread_local);
+  return shard_ptr(&magic_thread_local);
 }
 
 #endif /* GPR_CPU_POSIX */
