@@ -37,6 +37,7 @@ import os
 import socket
 import sys
 import time
+import yaml
 
 argp = argparse.ArgumentParser(description='Server for httpcli_test')
 argp.add_argument('-p', '--port', default=12345, type=int)
@@ -51,7 +52,7 @@ with open(__file__) as f:
   _MY_VERSION = hashlib.sha1(f.read()).hexdigest()
 
 
-def refill_pool(max_timeout, req):
+def refill_pool(max_timeout):
   """Scan for ports not marked for being in use"""
   for i in range(1025, 32767):
     if len(pool) > 100: break
@@ -59,13 +60,11 @@ def refill_pool(max_timeout, req):
       age = time.time() - in_use[i]
       if age < max_timeout:
         continue
-      req.log_message("kill old request %d" % i)
       del in_use[i]
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
       s.bind(('localhost', i))
-      req.log_message("found available port %d" % i)
       pool.append(i)
     except:
       pass # we really don't care about failures
@@ -73,14 +72,13 @@ def refill_pool(max_timeout, req):
       s.close()
 
 
-def allocate_port(req):
+def allocate_port():
   global pool
   global in_use
   max_timeout = 600
   while not pool:
-    refill_pool(max_timeout, req)
+    refill_pool(max_timeout)
     if not pool:
-      req.log_message("failed to find ports: retrying soon")
       time.sleep(1)
       max_timeout /= 2
   port = pool[0]
@@ -102,7 +100,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
       self.send_response(200)
       self.send_header('Content-Type', 'text/plain')
       self.end_headers()
-      p = allocate_port(self)
+      p = allocate_port()
       self.log_message('allocated port %d' % p)
       self.wfile.write('%d' % p)
     elif self.path[0:6] == '/drop/':
@@ -120,9 +118,6 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
       self.end_headers()
       self.wfile.write(_MY_VERSION)
     elif self.path == '/dump':
-      # yaml module is not installed on Macs and Windows machines by default
-      # so we import it lazily (/dump action is only used for debugging)
-      import yaml
       self.send_response(200)
       self.send_header('Content-Type', 'text/plain')
       self.end_headers()
