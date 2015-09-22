@@ -42,16 +42,16 @@ double g_fixture_slowdown_factor = 1.0;
 
 #if GPR_GETPID_IN_UNISTD_H
 #include <unistd.h>
-static int seed(void) { return getpid(); }
+static unsigned seed(void) { return (unsigned)getpid(); }
 #endif
 
 #if GPR_GETPID_IN_PROCESS_H
 #include <process.h>
-static int seed(void) { return _getpid(); }
+static unsigned seed(void) { return _getpid(); }
 #endif
 
 #if GPR_WINDOWS_CRASH_HANDLER
-LONG crash_handler(struct _EXCEPTION_POINTERS* ex_info) {
+LONG crash_handler(struct _EXCEPTION_POINTERS *ex_info) {
   gpr_log(GPR_DEBUG, "Exception handler called, dumping information");
   while (ex_info->ExceptionRecord) {
     DWORD code = ex_info->ExceptionRecord->ExceptionCode;
@@ -87,7 +87,7 @@ static void install_crash_handler() {
 static void install_crash_handler() {}
 #endif
 
-void grpc_test_init(int argc, char** argv) {
+void grpc_test_init(int argc, char **argv) {
   install_crash_handler();
   gpr_log(GPR_DEBUG, "test slowdown: machine=%f build=%f total=%f",
           (double)GRPC_TEST_SLOWDOWN_MACHINE_FACTOR,
