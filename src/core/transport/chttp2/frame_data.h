@@ -36,7 +36,6 @@
 
 /* Parser for GRPC streams embedded in DATA frames */
 
-#include "src/core/iomgr/iomgr.h"
 #include <grpc/support/slice.h>
 #include <grpc/support/slice_buffer.h>
 #include "src/core/transport/stream_op.h"
@@ -75,8 +74,7 @@ grpc_chttp2_parse_error grpc_chttp2_data_parser_begin_frame(
    frame */
 grpc_chttp2_parse_error grpc_chttp2_data_parser_parse(
     void *parser, grpc_chttp2_transport_parsing *transport_parsing,
-    grpc_chttp2_stream_parsing *stream_parsing, gpr_slice slice, int is_last,
-    grpc_call_list *call_list);
+    grpc_chttp2_stream_parsing *stream_parsing, gpr_slice slice, int is_last);
 
 /* create a slice with an empty data frame and is_last set */
 gpr_slice grpc_chttp2_data_frame_create_empty_close(gpr_uint32 id);

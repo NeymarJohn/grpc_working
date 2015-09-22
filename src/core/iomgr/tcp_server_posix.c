@@ -83,9 +83,9 @@ typedef struct {
     struct sockaddr sockaddr;
     struct sockaddr_un un;
   } addr;
-  size_t addr_len;
-  grpc_closure read_closure;
-  grpc_closure destroyed_closure;
+  int addr_len;
+  grpc_iomgr_closure read_closure;
+  grpc_iomgr_closure destroyed_closure;
 } server_port;
 
 static void unlink_if_unix_domain_socket(const struct sockaddr_un *un) {
@@ -117,7 +117,8 @@ struct grpc_tcp_server {
   size_t port_capacity;
 
   /* shutdown callback */
-  grpc_closure *shutdown_complete;
+  void (*shutdown_complete)(void *);
+  void *shutdown_complete_arg;
 
   /* all pollsets interested in new connections */
   grpc_pollset **pollsets;
@@ -139,8 +140,9 @@ grpc_tcp_server *grpc_tcp_server_create(void) {
   return s;
 }
 
-static void finish_shutdown(grpc_tcp_server *s, grpc_call_list *call_list) {
-  grpc_call_list_add(call_list, s->shutdown_complete, 1);
+static void finish_shutdown(grpc_tcp_server *s) {
+  s->shutdown_complete(s->shutdown_complete_arg);
+  s->shutdown_complete = NULL;
 
   gpr_mu_destroy(&s->mu);
 
@@ -148,25 +150,25 @@ static void finish_shutdown(grpc_tcp_server *s, grpc_call_list *call_list) {
   gpr_free(s);
 }
 
-static void destroyed_port(void *server, int success,
-                           grpc_call_list *call_list) {
+static void destroyed_port(void *server, int success) {
   grpc_tcp_server *s = server;
   gpr_mu_lock(&s->mu);
   s->destroyed_ports++;
   if (s->destroyed_ports == s->nports) {
     gpr_mu_unlock(&s->mu);
-    finish_shutdown(s, call_list);
+    finish_shutdown(s);
   } else {
     GPR_ASSERT(s->destroyed_ports < s->nports);
     gpr_mu_unlock(&s->mu);
   }
 }
 
+static void dont_care_about_shutdown_completion(void *ignored) {}
+
 /* called when all listening endpoints have been shutdown, so no further
    events will be received on them - at this point it's safe to destroy
    things */
-static void deactivated_all_ports(grpc_tcp_server *s,
-                                  grpc_call_list *call_list) {
+static void deactivated_all_ports(grpc_tcp_server *s) {
   size_t i;
 
   /* delete ALL the things */
@@ -185,35 +187,38 @@ static void deactivated_all_ports(grpc_tcp_server *s,
       }
       sp->destroyed_closure.cb = destroyed_port;
       sp->destroyed_closure.cb_arg = s;
-      grpc_fd_orphan(sp->emfd, &sp->destroyed_closure, "tcp_listener_shutdown",
-                     call_list);
+      grpc_fd_orphan(sp->emfd, &sp->destroyed_closure, "tcp_listener_shutdown");
     }
     gpr_mu_unlock(&s->mu);
   } else {
     gpr_mu_unlock(&s->mu);
-    finish_shutdown(s, call_list);
+    finish_shutdown(s);
   }
 }
 
-void grpc_tcp_server_destroy(grpc_tcp_server *s, grpc_closure *closure,
-                             grpc_call_list *call_list) {
+void grpc_tcp_server_destroy(
+    grpc_tcp_server *s, void (*shutdown_complete)(void *shutdown_complete_arg),
+    void *shutdown_complete_arg) {
   size_t i;
   gpr_mu_lock(&s->mu);
 
   GPR_ASSERT(!s->shutdown);
   s->shutdown = 1;
 
-  s->shutdown_complete = closure;
+  s->shutdown_complete = shutdown_complete
+                             ? shutdown_complete
+                             : dont_care_about_shutdown_completion;
+  s->shutdown_complete_arg = shutdown_complete_arg;
 
   /* shutdown all fd's */
   if (s->active_ports) {
     for (i = 0; i < s->nports; i++) {
-      grpc_fd_shutdown(s->ports[i].emfd, call_list);
+      grpc_fd_shutdown(s->ports[i].emfd);
     }
     gpr_mu_unlock(&s->mu);
   } else {
     gpr_mu_unlock(&s->mu);
-    deactivated_all_ports(s, call_list);
+    deactivated_all_ports(s);
   }
 }
 
@@ -231,7 +236,7 @@ static void init_max_accept_queue_size(void) {
     char *end;
     long i = strtol(buf, &end, 10);
     if (i > 0 && i <= INT_MAX && end && *end == 0) {
-      n = (int)i;
+      n = i;
     }
   }
   fclose(fp);
@@ -251,8 +256,7 @@ static int get_max_accept_queue_size(void) {
 }
 
 /* Prepare a recently-created socket for listening. */
-static int prepare_socket(int fd, const struct sockaddr *addr,
-                          size_t addr_len) {
+static int prepare_socket(int fd, const struct sockaddr *addr, int addr_len) {
   struct sockaddr_storage sockname_temp;
   socklen_t sockname_len;
 
@@ -269,8 +273,7 @@ static int prepare_socket(int fd, const struct sockaddr *addr,
     goto error;
   }
 
-  GPR_ASSERT(addr_len < ~(socklen_t)0);
-  if (bind(fd, addr, (socklen_t)addr_len) < 0) {
+  if (bind(fd, addr, addr_len) < 0) {
     char *addr_str;
     grpc_sockaddr_to_string(&addr_str, addr, 0);
     gpr_log(GPR_ERROR, "bind addr=%s: %s", addr_str, strerror(errno));
@@ -298,7 +301,7 @@ error:
 }
 
 /* event manager callback when reads are ready */
-static void on_read(void *arg, int success, grpc_call_list *call_list) {
+static void on_read(void *arg, int success) {
   server_port *sp = arg;
   grpc_fd *fdobj;
   size_t i;
@@ -321,7 +324,7 @@ static void on_read(void *arg, int success, grpc_call_list *call_list) {
         case EINTR:
           continue;
         case EAGAIN:
-          grpc_fd_notify_on_read(sp->emfd, &sp->read_closure, call_list);
+          grpc_fd_notify_on_read(sp->emfd, &sp->read_closure);
           return;
         default:
           gpr_log(GPR_ERROR, "Failed accept4: %s", strerror(errno));
@@ -334,21 +337,16 @@ static void on_read(void *arg, int success, grpc_call_list *call_list) {
     addr_str = grpc_sockaddr_to_uri((struct sockaddr *)&addr);
     gpr_asprintf(&name, "tcp-server-connection:%s", addr_str);
 
-    if (grpc_tcp_trace) {
-      gpr_log(GPR_DEBUG, "SERVER_CONNECT: incoming connection: %s", addr_str);
-    }
-
     fdobj = grpc_fd_create(fd, name);
     /* TODO(ctiller): revise this when we have server-side sharding
        of channels -- we certainly should not be automatically adding every
        incoming channel to every pollset owned by the server */
     for (i = 0; i < sp->server->pollset_count; i++) {
-      grpc_pollset_add_fd(sp->server->pollsets[i], fdobj, call_list);
+      grpc_pollset_add_fd(sp->server->pollsets[i], fdobj);
     }
     sp->server->cb(
         sp->server->cb_arg,
-        grpc_tcp_create(fdobj, GRPC_TCP_DEFAULT_READ_SLICE_SIZE, addr_str),
-        call_list);
+        grpc_tcp_create(fdobj, GRPC_TCP_DEFAULT_READ_SLICE_SIZE, addr_str));
 
     gpr_free(name);
     gpr_free(addr_str);
@@ -360,14 +358,14 @@ error:
   gpr_mu_lock(&sp->server->mu);
   if (0 == --sp->server->active_ports) {
     gpr_mu_unlock(&sp->server->mu);
-    deactivated_all_ports(sp->server, call_list);
+    deactivated_all_ports(sp->server);
   } else {
     gpr_mu_unlock(&sp->server->mu);
   }
 }
 
 static int add_socket_to_server(grpc_tcp_server *s, int fd,
-                                const struct sockaddr *addr, size_t addr_len) {
+                                const struct sockaddr *addr, int addr_len) {
   server_port *sp;
   int port;
   char *addr_str;
@@ -400,7 +398,7 @@ static int add_socket_to_server(grpc_tcp_server *s, int fd,
 }
 
 int grpc_tcp_server_add_port(grpc_tcp_server *s, const void *addr,
-                             size_t addr_len) {
+                             int addr_len) {
   int allocated_port1 = -1;
   int allocated_port2 = -1;
   unsigned i;
@@ -486,7 +484,7 @@ int grpc_tcp_server_get_fd(grpc_tcp_server *s, unsigned index) {
 
 void grpc_tcp_server_start(grpc_tcp_server *s, grpc_pollset **pollsets,
                            size_t pollset_count, grpc_tcp_server_cb cb,
-                           void *cb_arg, grpc_call_list *call_list) {
+                           void *cb_arg) {
   size_t i, j;
   GPR_ASSERT(cb);
   gpr_mu_lock(&s->mu);
@@ -498,12 +496,11 @@ void grpc_tcp_server_start(grpc_tcp_server *s, grpc_pollset **pollsets,
   s->pollset_count = pollset_count;
   for (i = 0; i < s->nports; i++) {
     for (j = 0; j < pollset_count; j++) {
-      grpc_pollset_add_fd(pollsets[j], s->ports[i].emfd, call_list);
+      grpc_pollset_add_fd(pollsets[j], s->ports[i].emfd);
     }
     s->ports[i].read_closure.cb = on_read;
     s->ports[i].read_closure.cb_arg = &s->ports[i];
-    grpc_fd_notify_on_read(s->ports[i].emfd, &s->ports[i].read_closure,
-                           call_list);
+    grpc_fd_notify_on_read(s->ports[i].emfd, &s->ports[i].read_closure);
     s->active_ports++;
   }
   gpr_mu_unlock(&s->mu);

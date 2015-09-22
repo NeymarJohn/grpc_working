@@ -38,6 +38,20 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "alarm_test", 
+    "src": [
+      "test/core/iomgr/alarm_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "alpn_test", 
     "src": [
       "test/core/transport/chttp2/alpn_test.c"
@@ -1022,20 +1036,6 @@
     "name": "uri_parser_test", 
     "src": [
       "test/core/client_config/uri_parser_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "workqueue_test", 
-    "src": [
-      "test/core/iomgr/workqueue_test.c"
     ]
   }, 
   {
@@ -12276,8 +12276,6 @@
       "src/core/client_config/connector.h", 
       "src/core/client_config/lb_policies/pick_first.h", 
       "src/core/client_config/lb_policy.h", 
-      "src/core/client_config/lb_policy_factory.h", 
-      "src/core/client_config/lb_policy_registry.h", 
       "src/core/client_config/resolver.h", 
       "src/core/client_config/resolver_factory.h", 
       "src/core/client_config/resolver_registry.h", 
@@ -12324,9 +12322,6 @@
       "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.h", 
-      "src/core/iomgr/workqueue.h", 
-      "src/core/iomgr/workqueue_posix.h", 
-      "src/core/iomgr/workqueue_windows.h", 
       "src/core/json/json.h", 
       "src/core/json/json_common.h", 
       "src/core/json/json_reader.h", 
@@ -12427,10 +12422,6 @@
       "src/core/client_config/lb_policies/pick_first.h", 
       "src/core/client_config/lb_policy.c", 
       "src/core/client_config/lb_policy.h", 
-      "src/core/client_config/lb_policy_factory.c", 
-      "src/core/client_config/lb_policy_factory.h", 
-      "src/core/client_config/lb_policy_registry.c", 
-      "src/core/client_config/lb_policy_registry.h", 
       "src/core/client_config/resolver.c", 
       "src/core/client_config/resolver.h", 
       "src/core/client_config/resolver_factory.c", 
@@ -12529,11 +12520,6 @@
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.c", 
       "src/core/iomgr/wakeup_fd_posix.h", 
-      "src/core/iomgr/workqueue.h", 
-      "src/core/iomgr/workqueue_posix.c", 
-      "src/core/iomgr/workqueue_posix.h", 
-      "src/core/iomgr/workqueue_windows.c", 
-      "src/core/iomgr/workqueue_windows.h", 
       "src/core/json/json.c", 
       "src/core/json/json.h", 
       "src/core/json/json_common.h", 
@@ -12770,8 +12756,6 @@
       "src/core/client_config/connector.h", 
       "src/core/client_config/lb_policies/pick_first.h", 
       "src/core/client_config/lb_policy.h", 
-      "src/core/client_config/lb_policy_factory.h", 
-      "src/core/client_config/lb_policy_registry.h", 
       "src/core/client_config/resolver.h", 
       "src/core/client_config/resolver_factory.h", 
       "src/core/client_config/resolver_registry.h", 
@@ -12818,9 +12802,6 @@
       "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.h", 
-      "src/core/iomgr/workqueue.h", 
-      "src/core/iomgr/workqueue_posix.h", 
-      "src/core/iomgr/workqueue_windows.h", 
       "src/core/json/json.h", 
       "src/core/json/json_common.h", 
       "src/core/json/json_reader.h", 
@@ -12907,10 +12888,6 @@
       "src/core/client_config/lb_policies/pick_first.h", 
       "src/core/client_config/lb_policy.c", 
       "src/core/client_config/lb_policy.h", 
-      "src/core/client_config/lb_policy_factory.c", 
-      "src/core/client_config/lb_policy_factory.h", 
-      "src/core/client_config/lb_policy_registry.c", 
-      "src/core/client_config/lb_policy_registry.h", 
       "src/core/client_config/resolver.c", 
       "src/core/client_config/resolver.h", 
       "src/core/client_config/resolver_factory.c", 
@@ -13008,11 +12985,6 @@
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.c", 
       "src/core/iomgr/wakeup_fd_posix.h", 
-      "src/core/iomgr/workqueue.h", 
-      "src/core/iomgr/workqueue_posix.c", 
-      "src/core/iomgr/workqueue_posix.h", 
-      "src/core/iomgr/workqueue_windows.c", 
-      "src/core/iomgr/workqueue_windows.h", 
       "src/core/json/json.c", 
       "src/core/json/json.h", 
       "src/core/json/json_common.h", 
