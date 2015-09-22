@@ -155,7 +155,7 @@ typedef enum {
 /* Outstanding ping request data */
 typedef struct grpc_chttp2_outstanding_ping {
   gpr_uint8 id[8];
-  grpc_iomgr_closure *on_recv;
+  grpc_closure *on_recv;
   struct grpc_chttp2_outstanding_ping *next;
   struct grpc_chttp2_outstanding_ping *prev;
 } grpc_chttp2_outstanding_ping;
@@ -163,9 +163,6 @@ typedef struct grpc_chttp2_outstanding_ping {
 typedef struct {
   /** data to write next write */
   gpr_slice_buffer qbuf;
-  /** queued callbacks */
-  grpc_iomgr_closure *pending_closures_head;
-  grpc_iomgr_closure *pending_closures_tail;
 
   /** window available for us to send to peer */
   gpr_int64 outgoing_window;
@@ -215,7 +212,7 @@ typedef struct {
   /** is this a client? */
   gpr_uint8 is_client;
   /** callback for when writing is done */
-  grpc_iomgr_closure done_cb;
+  grpc_closure done_cb;
 } grpc_chttp2_transport_writing;
 
 struct grpc_chttp2_transport_parsing {
@@ -270,7 +267,8 @@ struct grpc_chttp2_transport_parsing {
   grpc_chttp2_stream_parsing *incoming_stream;
   grpc_chttp2_parse_error (*parser)(
       void *parser_user_data, grpc_chttp2_transport_parsing *transport_parsing,
-      grpc_chttp2_stream_parsing *stream_parsing, gpr_slice slice, int is_last);
+      grpc_chttp2_stream_parsing *stream_parsing, gpr_slice slice, int is_last,
+      grpc_closure_list *closure_list);
 
   /* received settings */
   gpr_uint32 settings[GRPC_CHTTP2_NUM_SETTINGS];
@@ -333,9 +331,9 @@ struct grpc_chttp2_transport {
   grpc_chttp2_stream_map new_stream_map;
 
   /** closure to execute writing */
-  grpc_iomgr_closure writing_action;
+  grpc_closure writing_action;
   /** closure to finish reading from the endpoint */
-  grpc_iomgr_closure recv_data;
+  grpc_closure recv_data;
 
   /** incoming read bytes */
   gpr_slice_buffer read_buffer;
@@ -360,8 +358,8 @@ typedef struct {
   /** HTTP2 stream id for this stream, or zero if one has not been assigned */
   gpr_uint32 id;
 
-  grpc_iomgr_closure *send_done_closure;
-  grpc_iomgr_closure *recv_done_closure;
+  grpc_closure *send_done_closure;
+  grpc_closure *recv_done_closure;
 
   /** window available for us to send to peer */
   gpr_int64 outgoing_window;
@@ -470,19 +468,23 @@ struct grpc_chttp2_stream {
 int grpc_chttp2_unlocking_check_writes(grpc_chttp2_transport_global *global,
                                        grpc_chttp2_transport_writing *writing);
 void grpc_chttp2_perform_writes(
-    grpc_chttp2_transport_writing *transport_writing, grpc_endpoint *endpoint);
-void grpc_chttp2_terminate_writing(void *transport_writing, int success);
+    grpc_chttp2_transport_writing *transport_writing, grpc_endpoint *endpoint,
+    grpc_closure_list *closure_list);
+void grpc_chttp2_terminate_writing(void *transport_writing, int success,
+                                   grpc_closure_list *closure_list);
 void grpc_chttp2_cleanup_writing(grpc_chttp2_transport_global *global,
-                                 grpc_chttp2_transport_writing *writing);
+                                 grpc_chttp2_transport_writing *writing,
+                                 grpc_closure_list *closure_list);
 
 void grpc_chttp2_prepare_to_read(grpc_chttp2_transport_global *global,
                                  grpc_chttp2_transport_parsing *parsing);
 /** Process one slice of incoming data; return 1 if the connection is still
     viable after reading, or 0 if the connection should be torn down */
 int grpc_chttp2_perform_read(grpc_chttp2_transport_parsing *transport_parsing,
-                             gpr_slice slice);
+                             gpr_slice slice, grpc_closure_list *closure_list);
 void grpc_chttp2_publish_reads(grpc_chttp2_transport_global *global,
-                               grpc_chttp2_transport_parsing *parsing);
+                               grpc_chttp2_transport_parsing *parsing,
+                               grpc_closure_list *closure_list);
 
 /** Get a writable stream
     returns non-zero if there was a stream available */
@@ -568,11 +570,6 @@ int grpc_chttp2_list_pop_read_write_state_changed(
     grpc_chttp2_transport_global *transport_global,
     grpc_chttp2_stream_global **stream_global);
 
-/** schedule a closure to run without the transport lock taken */
-void grpc_chttp2_schedule_closure(
-    grpc_chttp2_transport_global *transport_global, grpc_iomgr_closure *closure,
-    int success);
-
 grpc_chttp2_stream_parsing *grpc_chttp2_parsing_lookup_stream(
     grpc_chttp2_transport_parsing *transport_parsing, gpr_uint32 id);
 grpc_chttp2_stream_parsing *grpc_chttp2_parsing_accept_stream(
@@ -580,7 +577,7 @@ grpc_chttp2_stream_parsing *grpc_chttp2_parsing_accept_stream(
 
 void grpc_chttp2_add_incoming_goaway(
     grpc_chttp2_transport_global *transport_global, gpr_uint32 goaway_error,
-    gpr_slice goaway_text);
+    gpr_slice goaway_text, grpc_closure_list *closure_list);
 
 void grpc_chttp2_register_stream(grpc_chttp2_transport *t,
                                  grpc_chttp2_stream *s);

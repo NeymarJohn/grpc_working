@@ -770,10 +770,10 @@ include/grpc/census.h \
 src/core/security/auth_filters.h \
 src/core/security/base64.h \
 src/core/security/credentials.h \
+src/core/security/handshake.h \
 src/core/security/json_token.h \
 src/core/security/jwt_verifier.h \
 src/core/security/secure_endpoint.h \
-src/core/security/secure_transport_setup.h \
 src/core/security/security_connector.h \
 src/core/security/security_context.h \
 src/core/tsi/fake_transport_security.h \
@@ -843,6 +843,9 @@ src/core/iomgr/time_averaged_stats.h \
 src/core/iomgr/udp_server.h \
 src/core/iomgr/wakeup_fd_pipe.h \
 src/core/iomgr/wakeup_fd_posix.h \
+src/core/iomgr/workqueue.h \
+src/core/iomgr/workqueue_posix.h \
+src/core/iomgr/workqueue_windows.h \
 src/core/json/json.h \
 src/core/json/json_common.h \
 src/core/json/json_reader.h \
@@ -895,10 +898,10 @@ src/core/security/credentials_metadata.c \
 src/core/security/credentials_posix.c \
 src/core/security/credentials_win32.c \
 src/core/security/google_default_credentials.c \
+src/core/security/handshake.c \
 src/core/security/json_token.c \
 src/core/security/jwt_verifier.c \
 src/core/security/secure_endpoint.c \
-src/core/security/secure_transport_setup.c \
 src/core/security/security_connector.c \
 src/core/security/security_context.c \
 src/core/security/server_auth_filter.c \
@@ -976,6 +979,8 @@ src/core/iomgr/wakeup_fd_eventfd.c \
 src/core/iomgr/wakeup_fd_nospecial.c \
 src/core/iomgr/wakeup_fd_pipe.c \
 src/core/iomgr/wakeup_fd_posix.c \
+src/core/iomgr/workqueue_posix.c \
+src/core/iomgr/workqueue_windows.c \
 src/core/json/json.c \
 src/core/json/json_reader.c \
 src/core/json/json_string.c \

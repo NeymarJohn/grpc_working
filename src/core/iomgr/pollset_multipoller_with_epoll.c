@@ -53,7 +53,7 @@ typedef struct wakeup_fd_hdl {
 typedef struct {
   grpc_pollset *pollset;
   grpc_fd *fd;
-  grpc_iomgr_closure closure;
+  grpc_closure closure;
 } delayed_add;
 
 typedef struct {
@@ -61,7 +61,8 @@ typedef struct {
   wakeup_fd_hdl *free_wakeup_fds;
 } pollset_hdr;
 
-static void finally_add_fd(grpc_pollset *pollset, grpc_fd *fd) {
+static void finally_add_fd(grpc_pollset *pollset, grpc_fd *fd,
+                           grpc_closure_list *closure_list) {
   pollset_hdr *h = pollset->data.ptr;
   struct epoll_event ev;
   int err;
@@ -83,15 +84,15 @@ static void finally_add_fd(grpc_pollset *pollset, grpc_fd *fd) {
       }
     }
   }
-  grpc_fd_end_poll(&watcher, 0, 0);
+  grpc_fd_end_poll(&watcher, 0, 0, closure_list);
 }
 
-static void perform_delayed_add(void *arg, int iomgr_status) {
+static void perform_delayed_add(void *arg, int iomgr_status,
+                                grpc_closure_list *closure_list) {
   delayed_add *da = arg;
-  int do_shutdown_cb = 0;
 
   if (!grpc_fd_is_orphaned(da->fd)) {
-    finally_add_fd(da->pollset, da->fd);
+    finally_add_fd(da->pollset, da->fd, closure_list);
   }
 
   gpr_mu_lock(&da->pollset->mu);
@@ -100,40 +101,36 @@ static void perform_delayed_add(void *arg, int iomgr_status) {
     /* We don't care about this pollset anymore. */
     if (da->pollset->in_flight_cbs == 0 && !da->pollset->called_shutdown) {
       da->pollset->called_shutdown = 1;
-      do_shutdown_cb = 1;
+      grpc_closure_list_add(closure_list, da->pollset->shutdown_done, 1);
     }
   }
   gpr_mu_unlock(&da->pollset->mu);
 
   GRPC_FD_UNREF(da->fd, "delayed_add");
 
-  if (do_shutdown_cb) {
-    da->pollset->shutdown_done_cb(da->pollset->shutdown_done_arg);
-  }
-
   gpr_free(da);
 }
 
-static void multipoll_with_epoll_pollset_add_fd(grpc_pollset *pollset,
-                                                grpc_fd *fd,
-                                                int and_unlock_pollset) {
+static void multipoll_with_epoll_pollset_add_fd(
+    grpc_pollset *pollset, grpc_fd *fd, int and_unlock_pollset,
+    grpc_closure_list *closure_list) {
   if (and_unlock_pollset) {
     gpr_mu_unlock(&pollset->mu);
-    finally_add_fd(pollset, fd);
+    finally_add_fd(pollset, fd, closure_list);
   } else {
     delayed_add *da = gpr_malloc(sizeof(*da));
     da->pollset = pollset;
     da->fd = fd;
     GRPC_FD_REF(fd, "delayed_add");
-    grpc_iomgr_closure_init(&da->closure, perform_delayed_add, da);
+    grpc_closure_init(&da->closure, perform_delayed_add, da);
     pollset->in_flight_cbs++;
-    grpc_iomgr_add_callback(&da->closure);
+    grpc_closure_list_add(closure_list, &da->closure, 1);
   }
 }
 
-static void multipoll_with_epoll_pollset_del_fd(grpc_pollset *pollset,
-                                                grpc_fd *fd,
-                                                int and_unlock_pollset) {
+static void multipoll_with_epoll_pollset_del_fd(
+    grpc_pollset *pollset, grpc_fd *fd, int and_unlock_pollset,
+    grpc_closure_list *closure_list) {
   pollset_hdr *h = pollset->data.ptr;
   int err;
 
@@ -153,9 +150,9 @@ static void multipoll_with_epoll_pollset_del_fd(grpc_pollset *pollset,
 /* TODO(klempner): We probably want to turn this down a bit */
 #define GRPC_EPOLL_MAX_EVENTS 1000
 
-static void multipoll_with_epoll_pollset_maybe_work(
+static void multipoll_with_epoll_pollset_maybe_work_and_unlock(
     grpc_pollset *pollset, grpc_pollset_worker *worker, gpr_timespec deadline,
-    gpr_timespec now, int allow_synchronous_callback) {
+    gpr_timespec now, grpc_closure_list *closure_list) {
   struct epoll_event ep_ev[GRPC_EPOLL_MAX_EVENTS];
   int ep_rv;
   int poll_rv;
@@ -209,18 +206,16 @@ static void multipoll_with_epoll_pollset_maybe_work(
             int read = ep_ev[i].events & (EPOLLIN | EPOLLPRI);
             int write = ep_ev[i].events & EPOLLOUT;
             if (read || cancel) {
-              grpc_fd_become_readable(fd, allow_synchronous_callback);
+              grpc_fd_become_readable(fd, closure_list);
             }
             if (write || cancel) {
-              grpc_fd_become_writable(fd, allow_synchronous_callback);
+              grpc_fd_become_writable(fd, closure_list);
             }
           }
         }
       } while (ep_rv == GRPC_EPOLL_MAX_EVENTS);
     }
   }
-
-  gpr_mu_lock(&pollset->mu);
 }
 
 static void multipoll_with_epoll_pollset_finish_shutdown(
@@ -234,12 +229,13 @@ static void multipoll_with_epoll_pollset_destroy(grpc_pollset *pollset) {
 
 static const grpc_pollset_vtable multipoll_with_epoll_pollset = {
     multipoll_with_epoll_pollset_add_fd, multipoll_with_epoll_pollset_del_fd,
-    multipoll_with_epoll_pollset_maybe_work,
+    multipoll_with_epoll_pollset_maybe_work_and_unlock,
     multipoll_with_epoll_pollset_finish_shutdown,
     multipoll_with_epoll_pollset_destroy};
 
 static void epoll_become_multipoller(grpc_pollset *pollset, grpc_fd **fds,
-                                     size_t nfds) {
+                                     size_t nfds,
+                                     grpc_closure_list *closure_list) {
   size_t i;
   pollset_hdr *h = gpr_malloc(sizeof(pollset_hdr));
 
@@ -252,7 +248,7 @@ static void epoll_become_multipoller(grpc_pollset *pollset, grpc_fd **fds,
     abort();
   }
   for (i = 0; i < nfds; i++) {
-    multipoll_with_epoll_pollset_add_fd(pollset, fds[i], 0);
+    multipoll_with_epoll_pollset_add_fd(pollset, fds[i], 0, closure_list);
   }
 }
 
