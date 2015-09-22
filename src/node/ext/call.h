@@ -88,7 +88,6 @@ struct Resources {
 
 class Op {
  public:
-  virtual ~Op();
   virtual v8::Handle<v8::Value> GetNodeValue() const = 0;
   virtual bool ParseOp(v8::Handle<v8::Value> value, grpc_op *out,
                        shared_ptr<Resources> resources) = 0;
@@ -99,6 +98,7 @@ class Op {
 };
 
 typedef std::vector<unique_ptr<Op>> OpVec;
+
 struct tag {
   tag(NanCallback *callback, OpVec *ops,
       shared_ptr<Resources> resources);
