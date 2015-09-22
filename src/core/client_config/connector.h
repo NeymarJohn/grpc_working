@@ -50,13 +50,11 @@ typedef struct {
   grpc_pollset_set *interested_parties;
   /** address to connect to */
   const struct sockaddr *addr;
-  int addr_len;
+  size_t addr_len;
   /** deadline for connection */
   gpr_timespec deadline;
   /** channel arguments (to be passed to transport) */
   const grpc_channel_args *channel_args;
-  /** metadata context */
-  grpc_mdctx *metadata_context;
 } grpc_connect_in_args;
 
 typedef struct {
@@ -69,17 +67,25 @@ typedef struct {
 
 struct grpc_connector_vtable {
   void (*ref)(grpc_connector *connector);
-  void (*unref)(grpc_connector *connector);
+  void (*unref)(grpc_connector *connector, grpc_call_list *call_list);
+  /** Implementation of grpc_connector_shutdown */
+  void (*shutdown)(grpc_connector *connector, grpc_call_list *call_list);
+  /** Implementation of grpc_connector_connect */
   void (*connect)(grpc_connector *connector,
                   const grpc_connect_in_args *in_args,
-                  grpc_connect_out_args *out_args, grpc_iomgr_closure *notify);
+                  grpc_connect_out_args *out_args, grpc_closure *notify,
+                  grpc_call_list *call_list);
 };
 
 void grpc_connector_ref(grpc_connector *connector);
-void grpc_connector_unref(grpc_connector *connector);
+void grpc_connector_unref(grpc_connector *connector, grpc_call_list *call_list);
+/** Connect using the connector: max one outstanding call at a time */
 void grpc_connector_connect(grpc_connector *connector,
                             const grpc_connect_in_args *in_args,
                             grpc_connect_out_args *out_args,
-                            grpc_iomgr_closure *notify);
+                            grpc_closure *notify, grpc_call_list *call_list);
+/** Cancel any pending connection */
+void grpc_connector_shutdown(grpc_connector *connector,
+                             grpc_call_list *call_list);
 
 #endif

@@ -47,6 +47,7 @@
 #include <grpc/grpc.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
+#include <grpc/support/string_util.h>
 
 #include "src/core/httpcli/httpcli.h"
 #include "src/core/support/env.h"
@@ -66,7 +67,78 @@ static int has_port_been_chosen(int port) {
   return 0;
 }
 
-static void free_chosen_ports() { gpr_free(chosen_ports); }
+typedef struct freereq {
+  grpc_pollset pollset;
+  int done;
+} freereq;
+
+static void destroy_pollset_and_shutdown(void *p, int success,
+                                         grpc_call_list *call_list) {
+  grpc_pollset_destroy(p);
+  grpc_shutdown();
+}
+
+static void freed_port_from_server(void *arg,
+                                   const grpc_httpcli_response *response,
+                                   grpc_call_list *call_list) {
+  freereq *pr = arg;
+  gpr_mu_lock(GRPC_POLLSET_MU(&pr->pollset));
+  pr->done = 1;
+  grpc_pollset_kick(&pr->pollset, NULL);
+  gpr_mu_unlock(GRPC_POLLSET_MU(&pr->pollset));
+}
+
+static void free_port_using_server(char *server, int port) {
+  grpc_httpcli_context context;
+  grpc_httpcli_request req;
+  freereq pr;
+  char *path;
+  grpc_call_list call_list = GRPC_CALL_LIST_INIT;
+  grpc_closure shutdown_closure;
+
+  grpc_init();
+
+  memset(&pr, 0, sizeof(pr));
+  memset(&req, 0, sizeof(req));
+  grpc_pollset_init(&pr.pollset);
+  grpc_closure_init(&shutdown_closure, destroy_pollset_and_shutdown,
+                    &pr.pollset);
+
+  req.host = server;
+  gpr_asprintf(&path, "/drop/%d", port);
+  req.path = path;
+
+  grpc_httpcli_context_init(&context);
+  grpc_httpcli_get(&context, &pr.pollset, &req,
+                   GRPC_TIMEOUT_SECONDS_TO_DEADLINE(10), freed_port_from_server,
+                   &pr, &call_list);
+  gpr_mu_lock(GRPC_POLLSET_MU(&pr.pollset));
+  while (!pr.done) {
+    grpc_pollset_worker worker;
+    grpc_pollset_work(&pr.pollset, &worker, gpr_now(GPR_CLOCK_MONOTONIC),
+                      GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1), &call_list);
+  }
+  gpr_mu_unlock(GRPC_POLLSET_MU(&pr.pollset));
+
+  grpc_httpcli_context_destroy(&context);
+  grpc_call_list_run(&call_list);
+  grpc_pollset_shutdown(&pr.pollset, &shutdown_closure, &call_list);
+  grpc_call_list_run(&call_list);
+  gpr_free(path);
+}
+
+static void free_chosen_ports() { 
+  char *env = gpr_getenv("GRPC_TEST_PORT_SERVER");
+  if (env != NULL) {
+    size_t i;
+    for (i = 0; i < num_chosen_ports; i++) {
+      free_port_using_server(env, chosen_ports[i]);
+    }
+    gpr_free(env);
+  }
+
+  gpr_free(chosen_ports); 
+}
 
 static void chose_port(int port) {
   if (chosen_ports == NULL) {
@@ -102,7 +174,7 @@ static int is_port_available(int *port, int is_tcp) {
   /* Try binding to port */
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = INADDR_ANY;
-  addr.sin_port = htons(*port);
+  addr.sin_port = htons((gpr_uint16)*port);
   if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
     gpr_log(GPR_DEBUG, "bind(port=%d) failed: %s", *port, strerror(errno));
     close(fd);
@@ -131,13 +203,32 @@ static int is_port_available(int *port, int is_tcp) {
 typedef struct portreq {
   grpc_pollset pollset;
   int port;
+  int retries;
+  char *server;
+  grpc_httpcli_context *ctx;
 } portreq;
 
 static void got_port_from_server(void *arg,
-                                 const grpc_httpcli_response *response) {
+                                 const grpc_httpcli_response *response,
+                                 grpc_call_list *call_list) {
   size_t i;
   int port = 0;
   portreq *pr = arg;
+
+  if (!response || response->status != 200) {
+    grpc_httpcli_request req;
+    memset(&req, 0, sizeof(req));
+    GPR_ASSERT(pr->retries < 10);
+    pr->retries++;
+    req.host = pr->server;
+    req.path = "/get";
+    gpr_log(GPR_DEBUG, "failed port pick from server: retrying");
+    sleep(1);
+    grpc_httpcli_get(pr->ctx, &pr->pollset, &req,
+                     GRPC_TIMEOUT_SECONDS_TO_DEADLINE(10), got_port_from_server,
+                     pr, call_list);
+    return;
+  }
   GPR_ASSERT(response);
   GPR_ASSERT(response->status == 200);
   for (i = 0; i < response->body_length; i++) {
@@ -151,22 +242,23 @@ static void got_port_from_server(void *arg,
   gpr_mu_unlock(GRPC_POLLSET_MU(&pr->pollset));
 }
 
-static void destroy_pollset_and_shutdown(void *p) {
-  grpc_pollset_destroy(p);
-  grpc_shutdown();
-}
-
 static int pick_port_using_server(char *server) {
   grpc_httpcli_context context;
   grpc_httpcli_request req;
   portreq pr;
+  grpc_call_list call_list = GRPC_CALL_LIST_INIT;
+  grpc_closure shutdown_closure;
 
   grpc_init();
 
   memset(&pr, 0, sizeof(pr));
   memset(&req, 0, sizeof(req));
   grpc_pollset_init(&pr.pollset);
+  grpc_closure_init(&shutdown_closure, destroy_pollset_and_shutdown,
+                    &pr.pollset);
   pr.port = -1;
+  pr.server = server;
+  pr.ctx = &context;
 
   req.host = server;
   req.path = "/get";
@@ -174,17 +266,19 @@ static int pick_port_using_server(char *server) {
   grpc_httpcli_context_init(&context);
   grpc_httpcli_get(&context, &pr.pollset, &req,
                    GRPC_TIMEOUT_SECONDS_TO_DEADLINE(10), got_port_from_server,
-                   &pr);
+                   &pr, &call_list);
+  grpc_call_list_run(&call_list);
   gpr_mu_lock(GRPC_POLLSET_MU(&pr.pollset));
   while (pr.port == -1) {
     grpc_pollset_worker worker;
     grpc_pollset_work(&pr.pollset, &worker, gpr_now(GPR_CLOCK_MONOTONIC),
-                      GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1));
+                      GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1), &call_list);
   }
   gpr_mu_unlock(GRPC_POLLSET_MU(&pr.pollset));
 
   grpc_httpcli_context_destroy(&context);
-  grpc_pollset_shutdown(&pr.pollset, destroy_pollset_and_shutdown, &pr.pollset);
+  grpc_pollset_shutdown(&pr.pollset, &shutdown_closure, &call_list);
+  grpc_call_list_run(&call_list);
 
   return pr.port;
 }
@@ -211,8 +305,9 @@ int grpc_pick_unused_port(void) {
     int port = pick_port_using_server(env);
     gpr_free(env);
     if (port != 0) {
-      return port;
+      chose_port(port);
     }
+    return port;
   }
 
   for (;;) {
