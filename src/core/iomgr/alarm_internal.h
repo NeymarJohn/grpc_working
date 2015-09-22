@@ -34,6 +34,7 @@
 #ifndef GRPC_INTERNAL_CORE_IOMGR_ALARM_INTERNAL_H
 #define GRPC_INTERNAL_CORE_IOMGR_ALARM_INTERNAL_H
 
+#include "src/core/iomgr/exec_ctx.h"
 #include <grpc/support/sync.h>
 #include <grpc/support/time.h>
 
@@ -48,15 +49,14 @@
    with high probability at least one thread in the system will see an update
    at any time slice. */
 
-int grpc_alarm_check(gpr_mu *drop_mu, gpr_timespec now, gpr_timespec *next);
+int grpc_alarm_check (gpr_timespec now, gpr_timespec * next, grpc_closure_list * closure_list);
+void grpc_alarm_list_init (gpr_timespec now);
+void grpc_alarm_list_shutdown (grpc_closure_list * closure_list);
 
-void grpc_alarm_list_init(gpr_timespec now);
-void grpc_alarm_list_shutdown(void);
-
-gpr_timespec grpc_alarm_list_next_timeout(void);
+gpr_timespec grpc_alarm_list_next_timeout (void);
 
 /* the following must be implemented by each iomgr implementation */
 
-void grpc_kick_poller(void);
+void grpc_kick_poller (void);
 
 #endif /* GRPC_INTERNAL_CORE_IOMGR_ALARM_INTERNAL_H */
