@@ -50,7 +50,8 @@ typedef struct grpc_transport grpc_transport;
 typedef struct grpc_stream grpc_stream;
 
 /* Represents the send/recv closed state of a stream. */
-typedef enum grpc_stream_state {
+typedef enum grpc_stream_state
+{
   /* the stream is open for sends and receives */
   GRPC_STREAM_OPEN,
   /* the stream is closed for sends, but may still receive data */
@@ -63,12 +64,13 @@ typedef enum grpc_stream_state {
 
 /* Transport stream op: a set of operations to perform on a transport
    against a single stream */
-typedef struct grpc_transport_stream_op {
-  grpc_iomgr_closure *on_consumed;
+typedef struct grpc_transport_stream_op
+{
+  grpc_closure *on_consumed;
 
   grpc_stream_op_buffer *send_ops;
   int is_last_send;
-  grpc_iomgr_closure *on_done_send;
+  grpc_closure *on_done_send;
 
   grpc_stream_op_buffer *recv_ops;
   grpc_stream_state *recv_state;
@@ -76,7 +78,7 @@ typedef struct grpc_transport_stream_op {
       These bytes will be eventually used to replenish per-stream flow control
       windows. */
   size_t max_recv_bytes;
-  grpc_iomgr_closure *on_done_recv;
+  grpc_closure *on_done_recv;
 
   grpc_pollset *bind_pollset;
 
@@ -93,11 +95,12 @@ typedef struct grpc_transport_stream_op {
 } grpc_transport_stream_op;
 
 /** Transport op: a set of operations to perform on a transport as a whole */
-typedef struct grpc_transport_op {
+typedef struct grpc_transport_op
+{
   /** called when processing of this op is done */
-  grpc_iomgr_closure *on_consumed;
+  grpc_closure *on_consumed;
   /** connectivity monitoring */
-  grpc_iomgr_closure *on_connectivity_state_change;
+  grpc_closure *on_connectivity_state_change;
   grpc_connectivity_state *connectivity_state;
   /** should the transport be disconnected */
   int disconnect;
@@ -110,20 +113,19 @@ typedef struct grpc_transport_op {
   gpr_slice *goaway_message;
   /** set the callback for accepting new streams;
       this is a permanent callback, unlike the other one-shot closures */
-  void (*set_accept_stream)(void *user_data, grpc_transport *transport,
-                            const void *server_data);
+  void (*set_accept_stream) (void *user_data, grpc_transport * transport, const void *server_data);
   void *set_accept_stream_user_data;
   /** add this transport to a pollset */
   grpc_pollset *bind_pollset;
   /** add this transport to a pollset_set */
   grpc_pollset_set *bind_pollset_set;
   /** send a ping, call this back if not NULL */
-  grpc_iomgr_closure *send_ping;
+  grpc_closure *send_ping;
 } grpc_transport_op;
 
 /* Returns the amount of memory required to store a grpc_stream for this
    transport */
-size_t grpc_transport_stream_size(grpc_transport *transport);
+size_t grpc_transport_stream_size (grpc_transport * transport);
 
 /* Initialize transport data for a stream.
 
@@ -134,9 +136,7 @@ size_t grpc_transport_stream_size(grpc_transport *transport);
      stream      - a pointer to uninitialized memory to initialize
      server_data - either NULL for a client initiated stream, or a pointer
                    supplied from the accept_stream callback function */
-int grpc_transport_init_stream(grpc_transport *transport, grpc_stream *stream,
-                               const void *server_data,
-                               grpc_transport_stream_op *initial_op);
+int grpc_transport_init_stream (grpc_exec_ctx * exec_ctx, grpc_transport * transport, grpc_stream * stream, const void *server_data, grpc_transport_stream_op * initial_op);
 
 /* Destroy transport data for a stream.
 
@@ -148,19 +148,15 @@ int grpc_transport_init_stream(grpc_transport *transport, grpc_stream *stream,
      transport - the transport on which to create this stream
      stream    - the grpc_stream to destroy (memory is still owned by the
                  caller, but any child memory must be cleaned up) */
-void grpc_transport_destroy_stream(grpc_transport *transport,
-                                   grpc_stream *stream);
+void grpc_transport_destroy_stream (grpc_exec_ctx * exec_ctx, grpc_transport * transport, grpc_stream * stream);
 
-void grpc_transport_stream_op_finish_with_failure(grpc_transport_stream_op *op);
+void grpc_transport_stream_op_finish_with_failure (grpc_exec_ctx * exec_ctx, grpc_transport_stream_op * op);
 
-void grpc_transport_stream_op_add_cancellation(grpc_transport_stream_op *op,
-                                               grpc_status_code status);
+void grpc_transport_stream_op_add_cancellation (grpc_transport_stream_op * op, grpc_status_code status);
 
-void grpc_transport_stream_op_add_close(grpc_transport_stream_op *op,
-                                        grpc_status_code status,
-                                        gpr_slice *optional_message);
+void grpc_transport_stream_op_add_close (grpc_transport_stream_op * op, grpc_status_code status, gpr_slice * optional_message);
 
-char *grpc_transport_stream_op_string(grpc_transport_stream_op *op);
+char *grpc_transport_stream_op_string (grpc_transport_stream_op * op);
 
 /* Send a batch of operations on a transport
 
@@ -171,29 +167,25 @@ char *grpc_transport_stream_op_string(grpc_transport_stream_op *op);
      stream    - the stream on which to send the operations. This must be
                  non-NULL and previously initialized by the same transport.
      op        - a grpc_transport_stream_op specifying the op to perform */
-void grpc_transport_perform_stream_op(grpc_transport *transport,
-                                      grpc_stream *stream,
-                                      grpc_transport_stream_op *op);
+void grpc_transport_perform_stream_op (grpc_exec_ctx * exec_ctx, grpc_transport * transport, grpc_stream * stream, grpc_transport_stream_op * op);
 
-void grpc_transport_perform_op(grpc_transport *transport,
-                               grpc_transport_op *op);
+void grpc_transport_perform_op (grpc_exec_ctx * exec_ctx, grpc_transport * transport, grpc_transport_op * op);
 
 /* Send a ping on a transport
 
    Calls cb with user data when a response is received. */
-void grpc_transport_ping(grpc_transport *transport, grpc_iomgr_closure *cb);
+void grpc_transport_ping (grpc_transport * transport, grpc_closure * cb);
 
 /* Advise peer of pending connection termination. */
-void grpc_transport_goaway(grpc_transport *transport, grpc_status_code status,
-                           gpr_slice debug_data);
+void grpc_transport_goaway (grpc_transport * transport, grpc_status_code status, gpr_slice debug_data);
 
 /* Close a transport. Aborts all open streams. */
-void grpc_transport_close(grpc_transport *transport);
+void grpc_transport_close (grpc_transport * transport);
 
 /* Destroy the transport */
-void grpc_transport_destroy(grpc_transport *transport);
+void grpc_transport_destroy (grpc_exec_ctx * exec_ctx, grpc_transport * transport);
 
 /* Get the transports peer */
-char *grpc_transport_get_peer(grpc_transport *transport);
+char *grpc_transport_get_peer (grpc_exec_ctx * exec_ctx, grpc_transport * transport);
 
 #endif /* GRPC_INTERNAL_CORE_TRANSPORT_TRANSPORT_H */

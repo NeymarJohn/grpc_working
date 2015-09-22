@@ -31,23 +31,22 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_SECURE_TRANSPORT_SETUP_H
-#define GRPC_INTERNAL_CORE_SECURITY_SECURE_TRANSPORT_SETUP_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_WORKQUEUE_POSIX_H
+#define GRPC_INTERNAL_CORE_IOMGR_WORKQUEUE_POSIX_H
 
-#include "src/core/iomgr/endpoint.h"
-#include "src/core/security/security_connector.h"
+struct grpc_fd;
 
-/* --- Secure transport setup --- */
+struct grpc_workqueue
+{
+  gpr_refcount refs;
 
-/* Ownership of the secure_endpoint is transfered. */
-typedef void (*grpc_secure_transport_setup_done_cb)(
-    void *user_data, grpc_security_status status,
-    grpc_endpoint *wrapped_endpoint, grpc_endpoint *secure_endpoint);
+  gpr_mu mu;
+  grpc_closure_list closure_list;
 
-/* Calls the callback upon completion. */
-void grpc_setup_secure_transport(grpc_security_connector *connector,
-                                 grpc_endpoint *nonsecure_endpoint,
-                                 grpc_secure_transport_setup_done_cb cb,
-                                 void *user_data);
+  grpc_wakeup_fd wakeup_fd;
+  struct grpc_fd *wakeup_read_fd;
 
-#endif /* GRPC_INTERNAL_CORE_SECURITY_SECURE_TRANSPORT_SETUP_H */
+  grpc_closure read_closure;
+};
+
+#endif /* GRPC_INTERNAL_CORE_IOMGR_WORKQUEUE_POSIX_H */
