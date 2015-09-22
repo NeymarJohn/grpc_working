@@ -37,6 +37,7 @@
 #include "src/core/client_config/resolver.h"
 #include "src/core/client_config/subchannel_factory.h"
 #include "src/core/client_config/uri_parser.h"
+#include "src/core/iomgr/workqueue.h"
 
 typedef struct grpc_resolver_factory grpc_resolver_factory;
 typedef struct grpc_resolver_factory_vtable grpc_resolver_factory_vtable;
@@ -50,6 +51,7 @@ struct grpc_resolver_factory {
 typedef struct grpc_resolver_args {
   grpc_uri *uri;
   grpc_subchannel_factory *subchannel_factory;
+  grpc_workqueue *workqueue;
 } grpc_resolver_args;
 
 struct grpc_resolver_factory_vtable {
