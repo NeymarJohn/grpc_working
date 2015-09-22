@@ -31,54 +31,18 @@
  *
  */
 
-#include "src/core/iomgr/workqueue.h"
+#ifndef GRPC_INTERNAL_CORE_SECURITY_HANDSHAKE_H
+#define GRPC_INTERNAL_CORE_SECURITY_HANDSHAKE_H
 
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
+#include "src/core/iomgr/endpoint.h"
+#include "src/core/security/security_connector.h"
 
-#include "test/core/util/test_config.h"
 
-static grpc_pollset g_pollset;
+/* Calls the callback upon completion. Takes owership of handshaker. */
+void grpc_do_security_handshake(tsi_handshaker *handshaker,
+                                grpc_security_connector *connector,
+                                grpc_endpoint *nonsecure_endpoint,
+                                grpc_security_handshake_done_cb cb,
+                                void *user_data);
 
-static void must_succeed(void *p, int success) {
-  GPR_ASSERT(success == 1);
-  gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
-  *(int *)p = 1;
-  grpc_pollset_kick(&g_pollset, NULL);
-  gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
-}
-
-static void test_add_closure(void) {
-  grpc_iomgr_closure c;
-  int done = 0;
-  grpc_workqueue *wq = grpc_workqueue_create();
-  gpr_timespec deadline = GRPC_TIMEOUT_SECONDS_TO_DEADLINE(5);
-  grpc_pollset_worker worker;
-  grpc_iomgr_closure_init(&c, must_succeed, &done);
-
-  grpc_workqueue_push(wq, &c, 1);
-  grpc_workqueue_add_to_pollset(wq, &g_pollset);
-
-  gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
-  GPR_ASSERT(!done);
-  grpc_pollset_work(&g_pollset, &worker, gpr_now(deadline.clock_type),
-                    deadline);
-  GPR_ASSERT(done);
-  gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
-
-  GRPC_WORKQUEUE_UNREF(wq, "destroy");
-}
-
-static void done_shutdown(void *arg) { grpc_pollset_destroy(arg); }
-
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  grpc_init();
-  grpc_pollset_init(&g_pollset);
-
-  test_add_closure();
-
-  grpc_pollset_shutdown(&g_pollset, done_shutdown, &g_pollset);
-  grpc_shutdown();
-  return 0;
-}
+#endif /* GRPC_INTERNAL_CORE_SECURITY_HANDSHAKE_H */

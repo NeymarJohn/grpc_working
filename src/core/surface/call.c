@@ -499,8 +499,7 @@ void grpc_call_internal_unref(grpc_call *c, int allow_immediate_deletion) {
     } else {
       c->destroy_closure.cb = destroy_call;
       c->destroy_closure.cb_arg = c;
-      grpc_workqueue_push(grpc_channel_get_workqueue(c->channel),
-                          &c->destroy_closure, 1);
+      grpc_iomgr_add_callback(&c->destroy_closure);
     }
   }
 }

@@ -56,8 +56,6 @@ typedef struct {
   gpr_refcount refs;
   /** subchannel factory */
   grpc_subchannel_factory *subchannel_factory;
-  /** workqueue */
-  grpc_workqueue *workqueue;
   /** load balancing policy name */
   char *lb_policy_name;
 
@@ -98,7 +96,8 @@ static void sockaddr_shutdown(grpc_resolver *resolver) {
   gpr_mu_lock(&r->mu);
   if (r->next_completion != NULL) {
     *r->target_config = NULL;
-    grpc_workqueue_push(r->workqueue, r->next_completion, 1);
+    /* TODO(ctiller): add delayed callback */
+    grpc_iomgr_add_callback(r->next_completion);
     r->next_completion = NULL;
   }
   gpr_mu_unlock(&r->mu);
@@ -137,10 +136,8 @@ static void sockaddr_maybe_finish_next_locked(sockaddr_resolver *r) {
       subchannels[i] = grpc_subchannel_factory_create_subchannel(
           r->subchannel_factory, &args);
     }
-    memset(&lb_policy_args, 0, sizeof(lb_policy_args));
     lb_policy_args.subchannels = subchannels;
     lb_policy_args.num_subchannels = r->num_addrs;
-    lb_policy_args.workqueue = r->workqueue;
     lb_policy =
         grpc_lb_policy_create(r->lb_policy_name, &lb_policy_args);
     gpr_free(subchannels);
@@ -148,7 +145,7 @@ static void sockaddr_maybe_finish_next_locked(sockaddr_resolver *r) {
     GRPC_LB_POLICY_UNREF(lb_policy, "unix");
     r->published = 1;
     *r->target_config = cfg;
-    grpc_workqueue_push(r->workqueue, r->next_completion, 1);
+    grpc_iomgr_add_callback(r->next_completion);
     r->next_completion = NULL;
   }
 }
@@ -157,7 +154,6 @@ static void sockaddr_destroy(grpc_resolver *gr) {
   sockaddr_resolver *r = (sockaddr_resolver *)gr;
   gpr_mu_destroy(&r->mu);
   grpc_subchannel_factory_unref(r->subchannel_factory);
-  GRPC_WORKQUEUE_UNREF(r->workqueue, "sockaddr");
   gpr_free(r->addrs);
   gpr_free(r->addrs_len);
   gpr_free(r->lb_policy_name);
@@ -282,7 +278,8 @@ done:
 
 static void do_nothing(void *ignored) {}
 static grpc_resolver *sockaddr_create(
-    grpc_resolver_args *args, const char *lb_policy_name,
+    grpc_uri *uri, const char *default_lb_policy_name,
+    grpc_subchannel_factory *subchannel_factory,
     int parse(grpc_uri *uri, struct sockaddr_storage *dst, size_t *len)) {
   size_t i;
   int errors_found = 0; /* GPR_FALSE */
@@ -290,7 +287,7 @@ static grpc_resolver *sockaddr_create(
   gpr_slice path_slice;
   gpr_slice_buffer path_parts;
 
-  if (0 != strcmp(args->uri->authority, "")) {
+  if (0 != strcmp(uri->authority, "")) {
     gpr_log(GPR_ERROR, "authority based uri's not supported");
     return NULL;
   }
@@ -298,8 +295,26 @@ static grpc_resolver *sockaddr_create(
   r = gpr_malloc(sizeof(sockaddr_resolver));
   memset(r, 0, sizeof(*r));
 
-  path_slice =
-      gpr_slice_new(args->uri->path, strlen(args->uri->path), do_nothing);
+  r->lb_policy_name = NULL;
+  if (0 != strcmp(uri->query, "")) {
+    gpr_slice query_slice;
+    gpr_slice_buffer query_parts;
+
+    query_slice = gpr_slice_new(uri->query, strlen(uri->query), do_nothing);
+    gpr_slice_buffer_init(&query_parts);
+    gpr_slice_split(query_slice, "=", &query_parts);
+    GPR_ASSERT(query_parts.count == 2);
+    if (0 == gpr_slice_str_cmp(query_parts.slices[0], "lb_policy")) {
+      r->lb_policy_name = gpr_dump_slice(query_parts.slices[1], GPR_DUMP_ASCII);
+    }
+    gpr_slice_buffer_destroy(&query_parts);
+    gpr_slice_unref(query_slice);
+  }
+  if (r->lb_policy_name == NULL) {
+    r->lb_policy_name = gpr_strdup(default_lb_policy_name);
+  }
+
+  path_slice = gpr_slice_new(uri->path, strlen(uri->path), do_nothing);
   gpr_slice_buffer_init(&path_parts);
 
   gpr_slice_split(path_slice, ",", &path_parts);
@@ -308,7 +323,7 @@ static grpc_resolver *sockaddr_create(
   r->addrs_len = gpr_malloc(sizeof(*r->addrs_len) * r->num_addrs);
 
   for(i = 0; i < r->num_addrs; i++) {
-    grpc_uri ith_uri = *args->uri;
+    grpc_uri ith_uri = *uri;
     char* part_str = gpr_dump_slice(path_parts.slices[i], GPR_DUMP_ASCII);
     ith_uri.path = part_str;
     if (!parse(&ith_uri, &r->addrs[i], &r->addrs_len[i])) {
@@ -328,12 +343,9 @@ static grpc_resolver *sockaddr_create(
   gpr_ref_init(&r->refs, 1);
   gpr_mu_init(&r->mu);
   grpc_resolver_init(&r->base, &sockaddr_resolver_vtable);
-  r->subchannel_factory = args->subchannel_factory;
-  grpc_subchannel_factory_ref(r->subchannel_factory);
-  r->workqueue = args->workqueue;
-  GRPC_WORKQUEUE_REF(r->workqueue, "sockaddr");
-  r->lb_policy_name = gpr_strdup(lb_policy_name);
+  r->subchannel_factory = subchannel_factory;
 
+  grpc_subchannel_factory_ref(subchannel_factory);
   return &r->base;
 }
 
@@ -347,8 +359,10 @@ static void sockaddr_factory_unref(grpc_resolver_factory *factory) {}
 
 #define DECL_FACTORY(name)                                                  \
   static grpc_resolver *name##_factory_create_resolver(                     \
-      grpc_resolver_factory *factory, grpc_resolver_args *args) {           \
-    return sockaddr_create(args, "pick_first", parse_##name);               \
+      grpc_resolver_factory *factory, grpc_uri *uri,                        \
+      grpc_subchannel_factory *subchannel_factory) {                        \
+    return sockaddr_create(uri, "pick_first",                               \
+                           subchannel_factory, parse_##name);               \
   }                                                                         \
   static const grpc_resolver_factory_vtable name##_factory_vtable = {       \
       sockaddr_factory_ref, sockaddr_factory_unref,                         \

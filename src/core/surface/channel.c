@@ -79,7 +79,6 @@ struct grpc_channel {
   registered_call *registered_calls;
   grpc_iomgr_closure destroy_closure;
   char *target;
-  grpc_workqueue *workqueue;
 };
 
 #define CHANNEL_STACK_FROM_CHANNEL(c) ((grpc_channel_stack *)((c) + 1))
@@ -93,8 +92,7 @@ struct grpc_channel {
 
 grpc_channel *grpc_channel_create_from_filters(
     const char *target, const grpc_channel_filter **filters, size_t num_filters,
-    const grpc_channel_args *args, grpc_mdctx *mdctx, grpc_workqueue *workqueue,
-    int is_client) {
+    const grpc_channel_args *args, grpc_mdctx *mdctx, int is_client) {
   size_t i;
   size_t size =
       sizeof(grpc_channel) + grpc_channel_stack_size(filters, num_filters);
@@ -106,7 +104,6 @@ grpc_channel *grpc_channel_create_from_filters(
   /* decremented by grpc_channel_destroy */
   gpr_ref_init(&channel->refs, 1);
   channel->metadata_context = mdctx;
-  channel->workqueue = workqueue;
   channel->grpc_status_string = grpc_mdstr_from_string(mdctx, "grpc-status", 0);
   channel->grpc_compression_algorithm_string =
       grpc_mdstr_from_string(mdctx, "grpc-encoding", 0);
@@ -314,7 +311,7 @@ void grpc_channel_internal_unref(grpc_channel *channel) {
   if (gpr_unref(&channel->refs)) {
     channel->destroy_closure.cb = destroy_channel;
     channel->destroy_closure.cb_arg = channel;
-    grpc_workqueue_push(channel->workqueue, &channel->destroy_closure, 1);
+    grpc_iomgr_add_callback(&channel->destroy_closure);
   }
 }
 
@@ -369,8 +366,4 @@ grpc_mdstr *grpc_channel_get_message_string(grpc_channel *channel) {
 
 gpr_uint32 grpc_channel_get_max_message_length(grpc_channel *channel) {
   return channel->max_message_length;
-}
-
-grpc_workqueue *grpc_channel_get_workqueue(grpc_channel *channel) {
-  return channel->workqueue;
 }
