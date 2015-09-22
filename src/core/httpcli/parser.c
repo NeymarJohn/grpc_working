@@ -96,15 +96,13 @@ static int add_header(grpc_httpcli_parser *parser) {
     gpr_log(GPR_ERROR, "Didn't find ':' in header string");
     goto error;
   }
-  GPR_ASSERT(cur >= beg);
-  hdr.key = buf2str(beg, (size_t)(cur - beg));
+  hdr.key = buf2str(beg, cur - beg);
   cur++; /* skip : */
 
   while (cur != end && (*cur == ' ' || *cur == '\t')) {
     cur++;
   }
-  GPR_ASSERT(end - cur >= 2);
-  hdr.value = buf2str(cur, (size_t)(end - cur) - 2);
+  hdr.value = buf2str(cur, end - cur - 2);
 
   if (parser->r.hdr_count == parser->hdr_capacity) {
     parser->hdr_capacity =
@@ -173,7 +171,7 @@ static int addbyte(grpc_httpcli_parser *parser, gpr_uint8 byte) {
         parser->r.body =
             gpr_realloc((void *)parser->r.body, parser->body_capacity);
       }
-      parser->r.body[parser->r.body_length] = (char)byte;
+      ((char *)parser->r.body)[parser->r.body_length] = byte;
       parser->r.body_length++;
       return 1;
   }
