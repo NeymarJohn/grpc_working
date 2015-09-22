@@ -31,39 +31,46 @@
  *
  */
 
-#include "src/core/iomgr/tcp_posix.h"
+#include "src/core/iomgr/workqueue.h"
 
 #include <grpc/grpc.h>
-#include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
-#include <grpc/support/time.h>
-#include <grpc/support/useful.h>
-#include "src/core/iomgr/endpoint_pair.h"
+
 #include "test/core/util/test_config.h"
-#include "test/core/iomgr/endpoint_tests.h"
 
 static grpc_pollset g_pollset;
 
-static void clean_up(void) {}
-
-static grpc_endpoint_test_fixture create_fixture_endpoint_pair(
-    size_t slice_size) {
-  grpc_call_list call_list = GRPC_CALL_LIST_INIT;
-  grpc_endpoint_test_fixture f;
-  grpc_endpoint_pair p = grpc_iomgr_create_endpoint_pair("test", slice_size);
-
-  f.client_ep = p.client;
-  f.server_ep = p.server;
-  grpc_endpoint_add_to_pollset(f.client_ep, &g_pollset, &call_list);
-  grpc_endpoint_add_to_pollset(f.server_ep, &g_pollset, &call_list);
-  grpc_call_list_run(&call_list);
-
-  return f;
+static void must_succeed(void *p, int success, grpc_call_list *call_list) {
+  GPR_ASSERT(success == 1);
+  gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
+  *(int *)p = 1;
+  grpc_pollset_kick(&g_pollset, NULL);
+  gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
 }
 
-static grpc_endpoint_test_config configs[] = {
-    {"tcp/tcp_socketpair", create_fixture_endpoint_pair, clean_up},
-};
+static void test_add_closure(void) {
+  grpc_closure c;
+  int done = 0;
+  grpc_call_list call_list = GRPC_CALL_LIST_INIT;
+  grpc_workqueue *wq = grpc_workqueue_create(&call_list);
+  gpr_timespec deadline = GRPC_TIMEOUT_SECONDS_TO_DEADLINE(5);
+  grpc_pollset_worker worker;
+  grpc_closure_init(&c, must_succeed, &done);
+
+  grpc_workqueue_push(wq, &c, 1);
+  grpc_workqueue_add_to_pollset(wq, &g_pollset, &call_list);
+
+  gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
+  GPR_ASSERT(!done);
+  grpc_pollset_work(&g_pollset, &worker, gpr_now(deadline.clock_type), deadline,
+                    &call_list);
+  gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
+  grpc_call_list_run(&call_list);
+  GPR_ASSERT(done);
+
+  GRPC_WORKQUEUE_UNREF(wq, "destroy", &call_list);
+  grpc_call_list_run(&call_list);
+}
 
 static void destroy_pollset(void *p, int success, grpc_call_list *call_list) {
   grpc_pollset_destroy(p);
@@ -75,11 +82,12 @@ int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
   grpc_init();
   grpc_pollset_init(&g_pollset);
-  grpc_endpoint_tests(configs[0], &g_pollset);
+
+  test_add_closure();
+
   grpc_closure_init(&destroyed, destroy_pollset, &g_pollset);
   grpc_pollset_shutdown(&g_pollset, &destroyed, &call_list);
   grpc_call_list_run(&call_list);
   grpc_shutdown();
-
   return 0;
 }

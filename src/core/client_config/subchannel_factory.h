@@ -48,16 +48,19 @@ struct grpc_subchannel_factory {
 
 struct grpc_subchannel_factory_vtable {
   void (*ref)(grpc_subchannel_factory *factory);
-  void (*unref)(grpc_subchannel_factory *factory);
+  void (*unref)(grpc_subchannel_factory *factory, grpc_call_list *call_list);
   grpc_subchannel *(*create_subchannel)(grpc_subchannel_factory *factory,
-                                        grpc_subchannel_args *args);
+                                        grpc_subchannel_args *args,
+                                        grpc_call_list *call_list);
 };
 
 void grpc_subchannel_factory_ref(grpc_subchannel_factory *factory);
-void grpc_subchannel_factory_unref(grpc_subchannel_factory *factory);
+void grpc_subchannel_factory_unref(grpc_subchannel_factory *factory,
+                                   grpc_call_list *call_list);
 
 /** Create a new grpc_subchannel */
 grpc_subchannel *grpc_subchannel_factory_create_subchannel(
-    grpc_subchannel_factory *factory, grpc_subchannel_args *args);
+    grpc_subchannel_factory *factory, grpc_subchannel_args *args,
+    grpc_call_list *call_list);
 
 #endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_H */

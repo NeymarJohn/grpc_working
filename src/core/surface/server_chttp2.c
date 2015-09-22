@@ -43,15 +43,16 @@
 #include <grpc/support/useful.h>
 
 static void setup_transport(void *server, grpc_transport *transport,
-                            grpc_mdctx *mdctx) {
+                            grpc_mdctx *mdctx, grpc_call_list *call_list) {
   static grpc_channel_filter const *extra_filters[] = {
       &grpc_http_server_filter};
   grpc_server_setup_transport(server, transport, extra_filters,
                               GPR_ARRAY_SIZE(extra_filters), mdctx,
-                              grpc_server_get_channel_args(server));
+                              grpc_server_get_channel_args(server), call_list);
 }
 
-static void new_transport(void *server, grpc_endpoint *tcp) {
+static void new_transport(void *server, grpc_endpoint *tcp,
+                          grpc_call_list *call_list) {
   /*
    * Beware that the call to grpc_create_chttp2_transport() has to happen before
    * grpc_tcp_server_destroy(). This is fine here, but similar code
@@ -61,23 +62,25 @@ static void new_transport(void *server, grpc_endpoint *tcp) {
    */
   grpc_mdctx *mdctx = grpc_mdctx_create();
   grpc_transport *transport = grpc_create_chttp2_transport(
-      grpc_server_get_channel_args(server), tcp, mdctx, 0);
-  setup_transport(server, transport, mdctx);
-  grpc_chttp2_transport_start_reading(transport, NULL, 0);
+      grpc_server_get_channel_args(server), tcp, mdctx, 0, call_list);
+  setup_transport(server, transport, mdctx, call_list);
+  grpc_chttp2_transport_start_reading(transport, NULL, 0, call_list);
 }
 
 /* Server callback: start listening on our ports */
 static void start(grpc_server *server, void *tcpp, grpc_pollset **pollsets,
-                  size_t pollset_count) {
+                  size_t pollset_count, grpc_call_list *call_list) {
   grpc_tcp_server *tcp = tcpp;
-  grpc_tcp_server_start(tcp, pollsets, pollset_count, new_transport, server);
+  grpc_tcp_server_start(tcp, pollsets, pollset_count, new_transport, server,
+                        call_list);
 }
 
 /* Server callback: destroy the tcp listener (so we don't generate further
    callbacks) */
-static void destroy(grpc_server *server, void *tcpp) {
+static void destroy(grpc_server *server, void *tcpp, grpc_closure *destroy_done,
+                    grpc_call_list *call_list) {
   grpc_tcp_server *tcp = tcpp;
-  grpc_tcp_server_destroy(tcp, grpc_server_listener_destroy_done, server);
+  grpc_tcp_server_destroy(tcp, destroy_done, call_list);
 }
 
 int grpc_server_add_insecure_http2_port(grpc_server *server, const char *addr) {
@@ -87,6 +90,7 @@ int grpc_server_add_insecure_http2_port(grpc_server *server, const char *addr) {
   unsigned count = 0;
   int port_num = -1;
   int port_temp;
+  grpc_call_list call_list = GRPC_CALL_LIST_INIT;
 
   resolved = grpc_blocking_resolve_address(addr, "http");
   if (!resolved) {
@@ -123,9 +127,8 @@ int grpc_server_add_insecure_http2_port(grpc_server *server, const char *addr) {
   grpc_resolved_addresses_destroy(resolved);
 
   /* Register with the server only upon success */
-  grpc_server_add_listener(server, tcp, start, destroy);
-
-  return port_num;
+  grpc_server_add_listener(server, tcp, start, destroy, &call_list);
+  goto done;
 
 /* Error path: cleanup and return */
 error:
@@ -135,5 +138,9 @@ error:
   if (tcp) {
     grpc_tcp_server_destroy(tcp, NULL, NULL);
   }
-  return 0;
+  port_num = 0;
+
+done:
+  grpc_call_list_run(&call_list);
+  return port_num;
 }
