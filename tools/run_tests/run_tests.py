@@ -120,6 +120,19 @@ class ValgrindConfig(object):
                           hash_targets=None)
 
 
+def get_c_tests(travis, test_lang) :
+  out = []
+  platforms_str = 'ci_platforms' if travis else 'platforms'
+  with open('tools/run_tests/tests.json') as f:
+    js = json.load(f);
+    binaries = [tgt
+                for tgt in js
+                if tgt['language'] == test_lang and
+                    platform_string() in tgt[platforms_str] and
+                    not (travis and tgt['flaky'])]
+  return binaries
+
+
 class CLanguage(object):
 
   def __init__(self, make_target, test_lang):
@@ -129,16 +142,9 @@ class CLanguage(object):
 
   def test_specs(self, config, travis):
     out = []
-    with open('tools/run_tests/tests.json') as f:
-      js = json.load(f)
-      platforms_str = 'ci_platforms' if travis else 'platforms'
-      binaries = [tgt
-                  for tgt in js
-                  if tgt['language'] == self.test_lang and
-                      config.build_config not in tgt['exclude_configs'] and
-                      platform_string() in tgt[platforms_str]]
+    binaries = get_c_tests(travis, self.test_lang)
     for target in binaries:
-      if travis and target['flaky']:
+      if config.build_config in tgt['exclude_configs']:
         continue
       if self.platform == 'windows':
         binary = 'vsprojects/%s/%s.exe' % (
@@ -157,6 +163,9 @@ class CLanguage(object):
       return ['buildtests_%s' % self.make_target]
     return ['buildtests_%s' % self.make_target, 'tools_%s' % self.make_target]
 
+  def pre_build_steps(self):
+    return []
+
   def build_steps(self):
     return []
 
@@ -167,11 +176,48 @@ class CLanguage(object):
     return self.make_target
 
 
+def gyp_test_paths(travis, config=None):
+  binaries = get_c_tests(travis, 'c')
+  out = []
+  for target in binaries:
+    if config is not None:
+      if config.build_config in target['exclude_configs']:
+        continue
+    binary = 'out/Debug/%s' % target['name']
+    out.append(binary)
+  return sorted(out)
+
+
+class GYPCLanguage(object):
+
+  def test_specs(self, config, travis):
+    return [config.job_spec([binary], [binary])
+            for binary in gyp_test_paths(travis, config)]
+
+  def pre_build_steps(self):
+    return [['gyp', '--depth=.', 'grpc.gyp']]
+
+  def make_targets(self):
+    return gyp_test_paths(False)
+
+  def build_steps(self):
+    return []
+
+  def supports_multi_config(self):
+    return False
+
+  def __str__(self):
+    return 'gyp'
+
+
 class NodeLanguage(object):
 
   def test_specs(self, config, travis):
     return [config.job_spec(['tools/run_tests/run_node.sh'], None,
                             environ=_FORCE_ENVIRON_FOR_WRAPPERS)]
+
+  def pre_build_steps(self):
+    return []
 
   def make_targets(self):
     return ['static_c', 'shared_c']
@@ -191,6 +237,9 @@ class PhpLanguage(object):
   def test_specs(self, config, travis):
     return [config.job_spec(['src/php/bin/run_tests.sh'], None,
                             environ=_FORCE_ENVIRON_FOR_WRAPPERS)]
+
+  def pre_build_steps(self):
+    return []
 
   def make_targets(self):
     return ['static_c', 'shared_c']
@@ -221,6 +270,9 @@ class PythonLanguage(object):
         shortname='py.test',
     )]
 
+  def pre_build_steps(self):
+    return []
+
   def make_targets(self):
     return ['static_c', 'grpc_python_plugin', 'shared_c']
 
@@ -250,6 +302,9 @@ class RubyLanguage(object):
   def test_specs(self, config, travis):
     return [config.job_spec(['tools/run_tests/run_ruby.sh'], None,
                             environ=_FORCE_ENVIRON_FOR_WRAPPERS)]
+
+  def pre_build_steps(self):
+    return []
 
   def make_targets(self):
     return ['static_c']
@@ -282,6 +337,9 @@ class CSharpLanguage(object):
             environ=_FORCE_ENVIRON_FOR_WRAPPERS)
             for assembly in assemblies]
 
+  def pre_build_steps(self):
+    return []
+
   def make_targets(self):
     # For Windows, this target doesn't really build anything,
     # everything is build by buildall script later.
@@ -309,6 +367,9 @@ class ObjCLanguage(object):
     return [config.job_spec(['src/objective-c/tests/run_tests.sh'], None,
                             environ=_FORCE_ENVIRON_FOR_WRAPPERS)]
 
+  def pre_build_steps(self):
+    return []
+
   def make_targets(self):
     return ['grpc_objective_c_plugin', 'interop_server']
 
@@ -328,6 +389,9 @@ class Sanity(object):
     return [config.job_spec('tools/run_tests/run_sanity.sh', None),
             config.job_spec('tools/run_tests/check_sources_and_headers.py', None)]
 
+  def pre_build_steps(self):
+    return []
+
   def make_targets(self):
     return ['run_dep_checks']
 
@@ -344,6 +408,9 @@ class Sanity(object):
 class Build(object):
 
   def test_specs(self, config, travis):
+    return []
+
+  def pre_build_steps(self):
     return []
 
   def make_targets(self):
@@ -382,6 +449,7 @@ _DEFAULT = ['opt']
 _LANGUAGES = {
     'c++': CLanguage('cxx', 'c++'),
     'c': CLanguage('c', 'c'),
+    'gyp': GYPCLanguage(),
     'node': NodeLanguage(),
     'php': PhpLanguage(),
     'python': PythonLanguage(),
@@ -483,8 +551,8 @@ if platform.system() == 'Windows':
     # disable PDB generation: it's broken, and we don't need it during CI
     extra_args.extend(["/p:GenerateDebugInformation=false", "/p:DebugInformationFormat=None"])
     return [
-      jobset.JobSpec(['vsprojects\\build.bat', 
-                      'vsprojects\\%s.sln' % target, 
+      jobset.JobSpec(['vsprojects\\build.bat',
+                      'vsprojects\\%s.sln' % target,
                       '/p:Configuration=%s' % _WINDOWS_CONFIG[cfg]] +
                       extra_args,
                       shell=True, timeout_seconds=90*60)
@@ -501,6 +569,11 @@ else:
 make_targets = list(set(itertools.chain.from_iterable(
                                          l.make_targets() for l in languages)))
 build_steps = []
+build_steps.extend(set(
+                   jobset.JobSpec(cmdline, environ={'CONFIG': cfg})
+                   for cfg in build_configs
+                   for l in languages
+                   for cmdline in l.pre_build_steps()))
 if make_targets:
   make_commands = itertools.chain.from_iterable(make_jobspec(cfg, make_targets) for cfg in build_configs)
   build_steps.extend(set(make_commands))
