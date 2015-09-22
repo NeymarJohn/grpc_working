@@ -42,30 +42,26 @@
 
 #define OUTPUT_BLOCK_SIZE 1024
 
-static int zlib_body(z_stream* zs, gpr_slice_buffer* input,
-                     gpr_slice_buffer* output,
-                     int (*flate)(z_stream* zs, int flush)) {
+static int zlib_body(z_stream *zs, gpr_slice_buffer *input,
+                     gpr_slice_buffer *output,
+                     int (*flate)(z_stream *zs, int flush)) {
   int r;
   int flush;
   size_t i;
   gpr_slice outbuf = gpr_slice_malloc(OUTPUT_BLOCK_SIZE);
-  const uInt uint_max = ~(uInt)0;
 
-  GPR_ASSERT(GPR_SLICE_LENGTH(outbuf) <= uint_max);
-  zs->avail_out = (uInt)GPR_SLICE_LENGTH(outbuf);
+  zs->avail_out = GPR_SLICE_LENGTH(outbuf);
   zs->next_out = GPR_SLICE_START_PTR(outbuf);
   flush = Z_NO_FLUSH;
   for (i = 0; i < input->count; i++) {
     if (i == input->count - 1) flush = Z_FINISH;
-    GPR_ASSERT(GPR_SLICE_LENGTH(input->slices[i]) <= uint_max);
-    zs->avail_in = (uInt)GPR_SLICE_LENGTH(input->slices[i]);
+    zs->avail_in = GPR_SLICE_LENGTH(input->slices[i]);
     zs->next_in = GPR_SLICE_START_PTR(input->slices[i]);
     do {
       if (zs->avail_out == 0) {
         gpr_slice_buffer_add_indexed(output, outbuf);
         outbuf = gpr_slice_malloc(OUTPUT_BLOCK_SIZE);
-        GPR_ASSERT(GPR_SLICE_LENGTH(outbuf) <= uint_max);
-        zs->avail_out = (uInt)GPR_SLICE_LENGTH(outbuf);
+        zs->avail_out = GPR_SLICE_LENGTH(outbuf);
         zs->next_out = GPR_SLICE_START_PTR(outbuf);
       }
       r = flate(zs, flush);
@@ -91,7 +87,7 @@ error:
   return 0;
 }
 
-static int zlib_compress(gpr_slice_buffer* input, gpr_slice_buffer* output,
+static int zlib_compress(gpr_slice_buffer *input, gpr_slice_buffer *output,
                          int gzip) {
   z_stream zs;
   int r;
@@ -117,7 +113,7 @@ static int zlib_compress(gpr_slice_buffer* input, gpr_slice_buffer* output,
   return r;
 }
 
-static int zlib_decompress(gpr_slice_buffer* input, gpr_slice_buffer* output,
+static int zlib_decompress(gpr_slice_buffer *input, gpr_slice_buffer *output,
                            int gzip) {
   z_stream zs;
   int r;
@@ -142,7 +138,7 @@ static int zlib_decompress(gpr_slice_buffer* input, gpr_slice_buffer* output,
   return r;
 }
 
-static int copy(gpr_slice_buffer* input, gpr_slice_buffer* output) {
+static int copy(gpr_slice_buffer *input, gpr_slice_buffer *output) {
   size_t i;
   for (i = 0; i < input->count; i++) {
     gpr_slice_buffer_add(output, gpr_slice_ref(input->slices[i]));
@@ -151,7 +147,7 @@ static int copy(gpr_slice_buffer* input, gpr_slice_buffer* output) {
 }
 
 int compress_inner(grpc_compression_algorithm algorithm,
-                   gpr_slice_buffer* input, gpr_slice_buffer* output) {
+                   gpr_slice_buffer *input, gpr_slice_buffer *output) {
   switch (algorithm) {
     case GRPC_COMPRESS_NONE:
       /* the fallback path always needs to be send uncompressed: we simply
@@ -169,7 +165,7 @@ int compress_inner(grpc_compression_algorithm algorithm,
 }
 
 int grpc_msg_compress(grpc_compression_algorithm algorithm,
-                      gpr_slice_buffer* input, gpr_slice_buffer* output) {
+                      gpr_slice_buffer *input, gpr_slice_buffer *output) {
   if (!compress_inner(algorithm, input, output)) {
     copy(input, output);
     return 0;
@@ -178,7 +174,7 @@ int grpc_msg_compress(grpc_compression_algorithm algorithm,
 }
 
 int grpc_msg_decompress(grpc_compression_algorithm algorithm,
-                        gpr_slice_buffer* input, gpr_slice_buffer* output) {
+                        gpr_slice_buffer *input, gpr_slice_buffer *output) {
   switch (algorithm) {
     case GRPC_COMPRESS_NONE:
       return copy(input, output);
