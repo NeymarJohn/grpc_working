@@ -8,6 +8,7 @@
         '-std=c++0x',
         '-Wall',
         '-pthread',
+        '-pedantic',
         '-g',
         '-zdefs',
         '-Werror',
