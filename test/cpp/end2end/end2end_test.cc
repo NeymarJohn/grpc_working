@@ -121,7 +121,7 @@ class TestMetadataCredentialsPlugin : public MetadataCredentialsPlugin {
   bool IsBlocking() const GRPC_OVERRIDE { return is_blocking_; }
 
   Status GetMetadata(grpc::string_ref service_url,
-                     std::multimap<grpc::string, grpc::string>* metadata)
+                     std::multimap<grpc::string, grpc::string_ref>* metadata)
       GRPC_OVERRIDE {
     EXPECT_GT(service_url.length(), 0UL);
     EXPECT_TRUE(metadata != nullptr);
@@ -175,9 +175,9 @@ class TestAuthMetadataProcessor : public AuthMetadataProcessor {
     if (auth_md_value == kGoodGuy) {
       context->AddProperty(kIdentityPropName, kGoodGuy);
       context->SetPeerIdentityPropertyName(kIdentityPropName);
-      consumed_auth_metadata->insert(std::make_pair(
-          string(auth_md->first.data(), auth_md->first.length()),
-          string(auth_md->second.data(), auth_md->second.length())));
+      consumed_auth_metadata->insert(
+          std::make_pair(string(auth_md->first.data(), auth_md->first.length()),
+                         auth_md->second));
       return Status::OK;
     } else {
       return Status(StatusCode::UNAUTHENTICATED,
@@ -1161,8 +1161,8 @@ TEST_F(End2endTest, ChannelStateTimeout) {
 
   auto state = GRPC_CHANNEL_IDLE;
   for (int i = 0; i < 10; i++) {
-    channel->WaitForStateChange(state, std::chrono::system_clock::now() +
-                                           std::chrono::seconds(1));
+    channel->WaitForStateChange(
+        state, std::chrono::system_clock::now() + std::chrono::seconds(1));
     state = channel->GetState(false);
   }
 }

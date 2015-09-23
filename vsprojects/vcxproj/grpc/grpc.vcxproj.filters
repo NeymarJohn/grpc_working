@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\..\..\src\core\httpcli\httpcli_security_connector.c">
@@ -169,6 +169,9 @@
     <ClCompile Include="..\..\..\src\core\iomgr\alarm_heap.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\core\iomgr\closure.c">
+      <Filter>src\core\iomgr</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\endpoint.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
@@ -176,6 +179,9 @@
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\endpoint_pair_windows.c">
+      <Filter>src\core\iomgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\core\iomgr\exec_ctx.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\fd_posix.c">
@@ -266,6 +272,12 @@
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\wakeup_fd_posix.c">
+      <Filter>src\core\iomgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\core\iomgr\workqueue_posix.c">
+      <Filter>src\core\iomgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\core\iomgr\workqueue_windows.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\json\json.c">
@@ -602,10 +614,16 @@
     <ClInclude Include="..\..\..\src\core\iomgr\alarm_internal.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\core\iomgr\closure.h">
+      <Filter>src\core\iomgr</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\src\core\iomgr\endpoint.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\iomgr\endpoint_pair.h">
+      <Filter>src\core\iomgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\iomgr\exec_ctx.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\iomgr\fd_posix.h">
@@ -684,6 +702,15 @@
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\iomgr\wakeup_fd_posix.h">
+      <Filter>src\core\iomgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\iomgr\workqueue.h">
+      <Filter>src\core\iomgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\iomgr\workqueue_posix.h">
+      <Filter>src\core\iomgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\iomgr\workqueue_windows.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\json\json.h">
@@ -819,7 +846,6 @@
       <Filter>src\core\census</Filter>
     </ClInclude>
   </ItemGroup>
-
   <ItemGroup>
     <Filter Include="include">
       <UniqueIdentifier>{968de0a1-346d-b75a-6f19-6a55119b8235}</UniqueIdentifier>
@@ -888,5 +914,7 @@
       <UniqueIdentifier>{0b0f9ab1-efa4-7f03-e446-6fb9b5227e84}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
 </Project>
-
