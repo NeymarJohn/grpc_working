@@ -31,11 +31,7 @@
 # Loads the local shared library, and runs all of the test cases in tests/
 # against it
 set -e
-cd $(dirname $0)/../../..
-root=$(pwd)
-cd src/php/bin
+cd $(dirname $0)
 source ./determine_extension_dir.sh
-# in some jenkins macos machine, somehow the PHP build script can't find libgrpc.dylib
-export DYLD_LIBRARY_PATH=$root/libs/$config
 php $extension_dir $(which phpunit) -v --debug --strict \
   ../tests/unit_tests
