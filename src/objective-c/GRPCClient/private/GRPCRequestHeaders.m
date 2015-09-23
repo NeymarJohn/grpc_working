@@ -35,6 +35,7 @@
 
 #import <Foundation/Foundation.h>
 
+#import "../GRPCCall.h"
 #import "NSDictionary+GRPC.h"
 
 // Used by the setter.
