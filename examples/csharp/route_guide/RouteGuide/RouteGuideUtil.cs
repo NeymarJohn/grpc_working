@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Routeguide
+namespace Examples
 {
     /// <summary>
     /// Utility methods for the route guide example.
