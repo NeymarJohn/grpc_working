@@ -28,17 +28,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# This script is invoked by build_docker_and_run_tests.py inside a docker
-# container. You should never need to call this script on your own.
+# This script is invoked by run_jekins.sh when piggy-backing into docker.
 set -e
 
 export CONFIG=$config
 export ASAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer-3.5
+export CPPFLAGS=-I/tmp/prebuilt/include
 
 mkdir -p /var/local/git
 git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
 
+cd /var/local/git/grpc
 nvm use 0.12
 rvm use ruby-2.1
 
-$RUN_TESTS_COMMAND
+setarch $arch tools/run_tests/run_tests.py -t -c $config -l $language -x report.xml
