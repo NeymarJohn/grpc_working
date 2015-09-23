@@ -46,8 +46,9 @@ namespace node {
 const int max_queue_threads = 2;
 
 using v8::Function;
-using v8::Local;
+using v8::Handle;
 using v8::Object;
+using v8::Persistent;
 using v8::Value;
 
 grpc_completion_queue *CompletionQueueAsyncWorker::queue;
@@ -56,7 +57,7 @@ int CompletionQueueAsyncWorker::current_threads;
 int CompletionQueueAsyncWorker::waiting_next_calls;
 
 CompletionQueueAsyncWorker::CompletionQueueAsyncWorker()
-    : Nan::AsyncWorker(NULL) {}
+    : NanAsyncWorker(NULL) {}
 
 CompletionQueueAsyncWorker::~CompletionQueueAsyncWorker() {}
 
@@ -71,42 +72,42 @@ void CompletionQueueAsyncWorker::Execute() {
 grpc_completion_queue *CompletionQueueAsyncWorker::GetQueue() { return queue; }
 
 void CompletionQueueAsyncWorker::Next() {
-  Nan::HandleScope scope;
+  NanScope();
   if (current_threads < max_queue_threads) {
     CompletionQueueAsyncWorker *worker = new CompletionQueueAsyncWorker();
-    Nan::AsyncQueueWorker(worker);
+    NanAsyncQueueWorker(worker);
   } else {
     waiting_next_calls += 1;
   }
 }
 
-void CompletionQueueAsyncWorker::Init(Local<Object> exports) {
-  Nan::HandleScope scope;
+void CompletionQueueAsyncWorker::Init(Handle<Object> exports) {
+  NanScope();
   current_threads = 0;
   waiting_next_calls = 0;
   queue = grpc_completion_queue_create(NULL);
 }
 
 void CompletionQueueAsyncWorker::HandleOKCallback() {
-  Nan::HandleScope scope;
+  NanScope();
   if (waiting_next_calls > 0) {
     waiting_next_calls -= 1;
     CompletionQueueAsyncWorker *worker = new CompletionQueueAsyncWorker();
-    Nan::AsyncQueueWorker(worker);
+    NanAsyncQueueWorker(worker);
   } else {
     current_threads -= 1;
   }
-  Nan::Callback *callback = GetTagCallback(result.tag);
-  Local<Value> argv[] = {Nan::Null(), GetTagNodeValue(result.tag)};
+  NanCallback *callback = GetTagCallback(result.tag);
+  Handle<Value> argv[] = {NanNull(), GetTagNodeValue(result.tag)};
   callback->Call(2, argv);
 
   DestroyTag(result.tag);
 }
 
 void CompletionQueueAsyncWorker::HandleErrorCallback() {
-  Nan::HandleScope scope;
-  Nan::Callback *callback = GetTagCallback(result.tag);
-  Local<Value> argv[] = {Nan::Error(ErrorMessage())};
+  NanScope();
+  NanCallback *callback = GetTagCallback(result.tag);
+  Handle<Value> argv[] = {NanError(ErrorMessage())};
 
   callback->Call(1, argv);
 
