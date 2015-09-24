@@ -83,15 +83,15 @@ static void reset_service_url(call_data *calld) {
   }
 }
 
-static void bubble_up_error(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
-                            grpc_status_code status, const char *error_msg) {
+static void bubble_up_error(grpc_call_element *elem, grpc_status_code status,
+                            const char *error_msg) {
   call_data *calld = elem->call_data;
   gpr_log(GPR_ERROR, "Client side authentication failure: %s", error_msg);
   grpc_transport_stream_op_add_cancellation(&calld->op, status);
-  grpc_call_next_op(exec_ctx, elem, &calld->op);
+  grpc_call_next_op(elem, &calld->op);
 }
 
-static void on_credentials_metadata(grpc_exec_ctx *exec_ctx, void *user_data,
+static void on_credentials_metadata(void *user_data,
                                     grpc_credentials_md *md_elems,
                                     size_t num_md,
                                     grpc_credentials_status status) {
@@ -103,7 +103,7 @@ static void on_credentials_metadata(grpc_exec_ctx *exec_ctx, void *user_data,
   size_t i;
   reset_service_url(calld);
   if (status != GRPC_CREDENTIALS_OK) {
-    bubble_up_error(exec_ctx, elem, GRPC_STATUS_UNAUTHENTICATED,
+    bubble_up_error(elem, GRPC_STATUS_UNAUTHENTICATED,
                     "Credentials failed to get metadata.");
     return;
   }
@@ -117,7 +117,7 @@ static void on_credentials_metadata(grpc_exec_ctx *exec_ctx, void *user_data,
         grpc_mdelem_from_slices(chand->md_ctx, gpr_slice_ref(md_elems[i].key),
                                 gpr_slice_ref(md_elems[i].value)));
   }
-  grpc_call_next_op(exec_ctx, elem, op);
+  grpc_call_next_op(elem, op);
 }
 
 void build_service_url(const char *url_scheme, call_data *calld) {
@@ -139,8 +139,7 @@ void build_service_url(const char *url_scheme, call_data *calld) {
   gpr_free(service);
 }
 
-static void send_security_metadata(grpc_exec_ctx *exec_ctx,
-                                   grpc_call_element *elem,
+static void send_security_metadata(grpc_call_element *elem,
                                    grpc_transport_stream_op *op) {
   call_data *calld = elem->call_data;
   channel_data *chand = elem->channel_data;
@@ -156,7 +155,7 @@ static void send_security_metadata(grpc_exec_ctx *exec_ctx,
 
   if (!channel_creds_has_md && !call_creds_has_md) {
     /* Skip sending metadata altogether. */
-    grpc_call_next_op(exec_ctx, elem, op);
+    grpc_call_next_op(elem, op);
     return;
   }
 
@@ -164,7 +163,7 @@ static void send_security_metadata(grpc_exec_ctx *exec_ctx,
     calld->creds =
         grpc_composite_credentials_create(channel_creds, ctx->creds, NULL);
     if (calld->creds == NULL) {
-      bubble_up_error(exec_ctx, elem, GRPC_STATUS_INVALID_ARGUMENT,
+      bubble_up_error(elem, GRPC_STATUS_INVALID_ARGUMENT,
                       "Incompatible credentials set on channel and call.");
       return;
     }
@@ -176,23 +175,22 @@ static void send_security_metadata(grpc_exec_ctx *exec_ctx,
   build_service_url(chand->security_connector->base.url_scheme, calld);
   calld->op = *op; /* Copy op (originates from the caller's stack). */
   GPR_ASSERT(calld->pollset);
-  grpc_credentials_get_request_metadata(exec_ctx, calld->creds, calld->pollset,
+  grpc_credentials_get_request_metadata(calld->creds, calld->pollset,
                                         calld->service_url,
                                         on_credentials_metadata, elem);
 }
 
-static void on_host_checked(grpc_exec_ctx *exec_ctx, void *user_data,
-                            grpc_security_status status) {
+static void on_host_checked(void *user_data, grpc_security_status status) {
   grpc_call_element *elem = (grpc_call_element *)user_data;
   call_data *calld = elem->call_data;
 
   if (status == GRPC_SECURITY_OK) {
-    send_security_metadata(exec_ctx, elem, &calld->op);
+    send_security_metadata(elem, &calld->op);
   } else {
     char *error_msg;
     gpr_asprintf(&error_msg, "Invalid host %s set in :authority metadata.",
                  grpc_mdstr_as_c_string(calld->host));
-    bubble_up_error(exec_ctx, elem, GRPC_STATUS_INVALID_ARGUMENT, error_msg);
+    bubble_up_error(elem, GRPC_STATUS_INVALID_ARGUMENT, error_msg);
     gpr_free(error_msg);
   }
 }
@@ -202,8 +200,7 @@ static void on_host_checked(grpc_exec_ctx *exec_ctx, void *user_data,
      - a network event (or similar) from below, to receive something
    op contains type and call direction information, in addition to the data
    that is being sent or received. */
-static void auth_start_transport_op(grpc_exec_ctx *exec_ctx,
-                                    grpc_call_element *elem,
+static void auth_start_transport_op(grpc_call_element *elem,
                                     grpc_transport_stream_op *op) {
   /* grab pointers to our data from the call element */
   call_data *calld = elem->call_data;
@@ -212,7 +209,8 @@ static void auth_start_transport_op(grpc_exec_ctx *exec_ctx,
   size_t i;
   grpc_client_security_context *sec_ctx = NULL;
 
-  if (calld->security_context_set == 0) {
+  if (calld->security_context_set == 0 &&
+      op->cancel_with_status == GRPC_STATUS_OK) {
     calld->security_context_set = 1;
     GPR_ASSERT(op->context);
     if (op->context[GRPC_CONTEXT_SECURITY].value == NULL) {
@@ -227,11 +225,11 @@ static void auth_start_transport_op(grpc_exec_ctx *exec_ctx,
         chand->security_connector->base.auth_context, "client_auth_filter");
   }
 
-  if (op->bind_pollset) {
+  if (op->bind_pollset != NULL) {
     calld->pollset = op->bind_pollset;
   }
 
-  if (op->send_ops && !calld->sent_initial_metadata) {
+  if (op->send_ops != NULL && !calld->sent_initial_metadata) {
     size_t nops = op->send_ops->nops;
     grpc_stream_op *ops = op->send_ops->ops;
     for (i = 0; i < nops; i++) {
@@ -256,32 +254,30 @@ static void auth_start_transport_op(grpc_exec_ctx *exec_ctx,
         const char *call_host = grpc_mdstr_as_c_string(calld->host);
         calld->op = *op; /* Copy op (originates from the caller's stack). */
         status = grpc_channel_security_connector_check_call_host(
-            exec_ctx, chand->security_connector, call_host, on_host_checked,
-            elem);
+            chand->security_connector, call_host, on_host_checked, elem);
         if (status != GRPC_SECURITY_OK) {
           if (status == GRPC_SECURITY_ERROR) {
             char *error_msg;
             gpr_asprintf(&error_msg,
                          "Invalid host %s set in :authority metadata.",
                          call_host);
-            bubble_up_error(exec_ctx, elem, GRPC_STATUS_INVALID_ARGUMENT,
-                            error_msg);
+            bubble_up_error(elem, GRPC_STATUS_INVALID_ARGUMENT, error_msg);
             gpr_free(error_msg);
           }
           return; /* early exit */
         }
       }
-      send_security_metadata(exec_ctx, elem, op);
+      send_security_metadata(elem, op);
       return; /* early exit */
     }
   }
 
-  /* pass control down the stack */
-  grpc_call_next_op(exec_ctx, elem, op);
+  /* pass control up or down the stack */
+  grpc_call_next_op(elem, op);
 }
 
 /* Constructor for call_data */
-static void init_call_elem(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
+static void init_call_elem(grpc_call_element *elem,
                            const void *server_transport_data,
                            grpc_transport_stream_op *initial_op) {
   call_data *calld = elem->call_data;
@@ -290,8 +286,7 @@ static void init_call_elem(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
 }
 
 /* Destructor for call_data */
-static void destroy_call_elem(grpc_exec_ctx *exec_ctx,
-                              grpc_call_element *elem) {
+static void destroy_call_elem(grpc_call_element *elem) {
   call_data *calld = elem->call_data;
   grpc_credentials_unref(calld->creds);
   if (calld->host != NULL) {
@@ -304,8 +299,7 @@ static void destroy_call_elem(grpc_exec_ctx *exec_ctx,
 }
 
 /* Constructor for channel_data */
-static void init_channel_elem(grpc_exec_ctx *exec_ctx,
-                              grpc_channel_element *elem, grpc_channel *master,
+static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
                               const grpc_channel_args *args,
                               grpc_mdctx *metadata_context, int is_first,
                               int is_last) {
@@ -334,8 +328,7 @@ static void init_channel_elem(grpc_exec_ctx *exec_ctx,
 }
 
 /* Destructor for channel data */
-static void destroy_channel_elem(grpc_exec_ctx *exec_ctx,
-                                 grpc_channel_element *elem) {
+static void destroy_channel_elem(grpc_channel_element *elem) {
   /* grab pointers to our data from the channel element */
   channel_data *chand = elem->channel_data;
   grpc_channel_security_connector *ctx = chand->security_connector;
