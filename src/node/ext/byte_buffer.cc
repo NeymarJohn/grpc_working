@@ -44,16 +44,15 @@
 namespace grpc {
 namespace node {
 
-
 using v8::Context;
 using v8::Function;
-using v8::Local;
+using v8::Handle;
 using v8::Object;
 using v8::Number;
 using v8::Value;
 
-grpc_byte_buffer *BufferToByteBuffer(Local<Value> buffer) {
-  Nan::HandleScope scope;
+grpc_byte_buffer *BufferToByteBuffer(Handle<Value> buffer) {
+  NanScope();
   int length = ::node::Buffer::Length(buffer);
   char *data = ::node::Buffer::Data(buffer);
   gpr_slice slice = gpr_slice_malloc(length);
@@ -63,10 +62,10 @@ grpc_byte_buffer *BufferToByteBuffer(Local<Value> buffer) {
   return byte_buffer;
 }
 
-Local<Value> ByteBufferToBuffer(grpc_byte_buffer *buffer) {
-  Nan::EscapableHandleScope scope;
+Handle<Value> ByteBufferToBuffer(grpc_byte_buffer *buffer) {
+  NanEscapableScope();
   if (buffer == NULL) {
-    return scope.Escape(Nan::Null());
+    return NanEscapeScope(NanNull());
   }
   size_t length = grpc_byte_buffer_length(buffer);
   char *result = reinterpret_cast<char *>(calloc(length, sizeof(char)));
@@ -78,22 +77,21 @@ Local<Value> ByteBufferToBuffer(grpc_byte_buffer *buffer) {
     memcpy(result + offset, GPR_SLICE_START_PTR(next), GPR_SLICE_LENGTH(next));
     offset += GPR_SLICE_LENGTH(next);
   }
-  return scope.Escape(MakeFastBuffer(
-      Nan::NewBuffer(result, length).ToLocalChecked()));
+  return NanEscapeScope(MakeFastBuffer(NanNewBufferHandle(result, length)));
 }
 
-Local<Value> MakeFastBuffer(Local<Value> slowBuffer) {
-  Nan::EscapableHandleScope scope;
-  Local<Object> globalObj = Nan::GetCurrentContext()->Global();
-  Local<Function> bufferConstructor = Local<Function>::Cast(
-      globalObj->Get(Nan::New("Buffer").ToLocalChecked()));
-  Local<Value> consArgs[3] = {
+Handle<Value> MakeFastBuffer(Handle<Value> slowBuffer) {
+  NanEscapableScope();
+  Handle<Object> globalObj = NanGetCurrentContext()->Global();
+  Handle<Function> bufferConstructor = Handle<Function>::Cast(
+      globalObj->Get(NanNew("Buffer")));
+  Handle<Value> consArgs[3] = {
     slowBuffer,
-    Nan::New<Number>(::node::Buffer::Length(slowBuffer)),
-    Nan::New<Number>(0)
+    NanNew<Number>(::node::Buffer::Length(slowBuffer)),
+    NanNew<Number>(0)
   };
-  Local<Object> fastBuffer = bufferConstructor->NewInstance(3, consArgs);
-  return scope.Escape(fastBuffer);
+  Handle<Object> fastBuffer = bufferConstructor->NewInstance(3, consArgs);
+  return NanEscapeScope(fastBuffer);
 }
 }  // namespace node
 }  // namespace grpc
