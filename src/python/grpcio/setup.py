@@ -87,8 +87,9 @@ _PACKAGE_DIRECTORIES = {
 }
 
 _INSTALL_REQUIRES = (
-    'enum34>=1.0.4',
-    'futures>=2.2.0',
+    'enum34==1.0.4',
+    'futures==2.2.0',
+    'protobuf==3.0.0a3',
 )
 
 _SETUP_REQUIRES = (
@@ -103,7 +104,7 @@ _COMMAND_CLASS = {
 
 setuptools.setup(
     name='grpcio',
-    version='0.11.0b1',
+    version='0.11.0b0',
     ext_modules=_EXTENSION_MODULES,
     packages=list(_PACKAGES),
     package_dir=_PACKAGE_DIRECTORIES,
