@@ -199,9 +199,7 @@ class GYPCLanguage(object):
     return [['gyp', '--depth=.', '--suffix=-gyp', 'grpc.gyp']]
 
   def make_targets(self):
-    # HACK(ctiller): force fling_client and fling_server to be built, as fling_test
-    # needs these
-    return gyp_test_paths(False) + ['fling_client', 'fling_server']
+    return gyp_test_paths(False)
 
   def build_steps(self):
     return []
