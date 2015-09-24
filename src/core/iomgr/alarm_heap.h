@@ -38,8 +38,8 @@
 
 typedef struct {
   grpc_alarm **alarms;
-  gpr_uint32 alarm_count;
-  gpr_uint32 alarm_capacity;
+  int alarm_count;
+  int alarm_capacity;
 } grpc_alarm_heap;
 
 /* return 1 if the new alarm is the first alarm in the heap */
