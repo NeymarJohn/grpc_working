@@ -31,48 +31,14 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_CHANNEL_H_
-#define NET_GRPC_NODE_CHANNEL_H_
+#ifndef GRPC_INTERNAL_CORE_IOMGR_BLOCK_ANNOTATE_H
+#define GRPC_INTERNAL_CORE_IOMGR_BLOCK_ANNOTATE_H
 
-#include <node.h>
-#include <nan.h>
-#include "grpc/grpc.h"
+/* These annotations identify the beginning and end of regions where
+   the code may block for reasons other than synchronization functions.
+   These include poll, epoll, and getaddrinfo. */
 
-namespace grpc {
-namespace node {
+#define GRPC_IOMGR_START_BLOCKING_REGION do {} while (0)
+#define GRPC_IOMGR_END_BLOCKING_REGION do {} while (0)
 
-/* Wrapper class for grpc_channel structs */
-class Channel : public Nan::ObjectWrap {
- public:
-  static void Init(v8::Local<v8::Object> exports);
-  static bool HasInstance(v8::Local<v8::Value> val);
-  /* This is used to typecheck javascript objects before converting them to
-     this type */
-  static v8::Persistent<v8::Value> prototype;
-
-  /* Returns the grpc_channel struct that this object wraps */
-  grpc_channel *GetWrappedChannel();
-
- private:
-  explicit Channel(grpc_channel *channel);
-  ~Channel();
-
-  // Prevent copying
-  Channel(const Channel &);
-  Channel &operator=(const Channel &);
-
-  static NAN_METHOD(New);
-  static NAN_METHOD(Close);
-  static NAN_METHOD(GetTarget);
-  static NAN_METHOD(GetConnectivityState);
-  static NAN_METHOD(WatchConnectivityState);
-  static Nan::Callback *constructor;
-  static Nan::Persistent<v8::FunctionTemplate> fun_tpl;
-
-  grpc_channel *wrapped_channel;
-};
-
-}  // namespace node
-}  // namespace grpc
-
-#endif  // NET_GRPC_NODE_CHANNEL_H_
+#endif /* GRPC_INTERNAL_CORE_IOMGR_BLOCK_ANNOTATE_H */
