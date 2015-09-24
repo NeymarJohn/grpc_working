@@ -43,7 +43,6 @@
 #include <unistd.h>
 
 #include "src/core/iomgr/alarm_internal.h"
-#include "src/core/iomgr/block_annotate.h"
 #include "src/core/iomgr/fd_posix.h"
 #include "src/core/iomgr/iomgr_internal.h"
 #include "src/core/iomgr/socket_utils_posix.h"
@@ -427,7 +426,7 @@ static void basic_pollset_maybe_work(grpc_pollset *pollset,
   grpc_fd_watcher fd_watcher;
   int timeout;
   int r;
-  nfds_t nfds;
+  int nfds;
 
   fd = pollset->data.ptr;
   if (fd && grpc_fd_is_orphaned(fd)) {
@@ -444,7 +443,7 @@ static void basic_pollset_maybe_work(grpc_pollset *pollset,
     pfd[1].revents = 0;
     gpr_mu_unlock(&pollset->mu);
     pfd[1].events =
-        (short)grpc_fd_begin_poll(fd, pollset, POLLIN, POLLOUT, &fd_watcher);
+        grpc_fd_begin_poll(fd, pollset, POLLIN, POLLOUT, &fd_watcher);
     if (pfd[1].events != 0) {
       nfds++;
     }
@@ -454,9 +453,7 @@ static void basic_pollset_maybe_work(grpc_pollset *pollset,
 
   /* poll fd count (argument 2) is shortened by one if we have no events
      to poll on - such that it only includes the kicker */
-  GRPC_IOMGR_START_BLOCKING_REGION;
   r = grpc_poll_function(pfd, nfds, timeout);
-  GRPC_IOMGR_END_BLOCKING_REGION;
   GRPC_TIMER_MARK(GRPC_PTAG_POLL_FINISHED, r);
 
   if (fd) {

@@ -42,7 +42,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "src/core/iomgr/block_annotate.h"
 #include "src/core/iomgr/fd_posix.h"
 #include "src/core/iomgr/iomgr_internal.h"
 #include <grpc/support/alloc.h>
@@ -102,8 +101,7 @@ static void multipoll_with_poll_pollset_maybe_work(
     gpr_timespec now, int allow_synchronous_callback) {
   int timeout;
   int r;
-  size_t i, j, fd_count;
-  nfds_t pfd_count;
+  size_t i, j, pfd_count, fd_count;
   pollset_hdr *h;
   /* TODO(ctiller): inline some elements to avoid an allocation */
   grpc_fd_watcher *watchers;
@@ -142,13 +140,11 @@ static void multipoll_with_poll_pollset_maybe_work(
   gpr_mu_unlock(&pollset->mu);
 
   for (i = 1; i < pfd_count; i++) {
-    pfds[i].events = (short)grpc_fd_begin_poll(watchers[i].fd, pollset, POLLIN,
-                                               POLLOUT, &watchers[i]);
+    pfds[i].events = grpc_fd_begin_poll(watchers[i].fd, pollset, POLLIN,
+                                        POLLOUT, &watchers[i]);
   }
 
-  GRPC_IOMGR_START_BLOCKING_REGION;
   r = grpc_poll_function(pfds, pfd_count, timeout);
-  GRPC_IOMGR_END_BLOCKING_REGION;
 
   for (i = 1; i < pfd_count; i++) {
     grpc_fd_end_poll(&watchers[i], pfds[i].revents & POLLIN,

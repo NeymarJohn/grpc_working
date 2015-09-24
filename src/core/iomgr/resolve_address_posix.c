@@ -41,7 +41,6 @@
 #include <sys/un.h>
 #include <string.h>
 
-#include "src/core/iomgr/block_annotate.h"
 #include "src/core/iomgr/iomgr_internal.h"
 #include "src/core/iomgr/sockaddr_utils.h"
 #include "src/core/support/string.h"
@@ -51,7 +50,6 @@
 #include <grpc/support/string_util.h>
 #include <grpc/support/thd.h>
 #include <grpc/support/time.h>
-#include <grpc/support/useful.h>
 
 typedef struct {
   char *name;
@@ -104,19 +102,14 @@ grpc_resolved_addresses *grpc_blocking_resolve_address(
   hints.ai_socktype = SOCK_STREAM; /* stream socket */
   hints.ai_flags = AI_PASSIVE;     /* for wildcard IP address */
 
-  GRPC_IOMGR_START_BLOCKING_REGION;
   s = getaddrinfo(host, port, &hints, &result);
-  GRPC_IOMGR_END_BLOCKING_REGION;
-
   if (s != 0) {
     /* Retry if well-known service name is recognized */
     char *svc[][2] = {{"http", "80"}, {"https", "443"}};
-    size_t i;
-    for (i = 0; i < GPR_ARRAY_SIZE(svc); i++) {
+    int i;
+    for (i = 0; i < (int)(sizeof(svc) / sizeof(svc[0])); i++) {
       if (strcmp(port, svc[i][0]) == 0) {
-        GRPC_IOMGR_START_BLOCKING_REGION;
         s = getaddrinfo(host, svc[i][1], &hints, &result);
-        GRPC_IOMGR_END_BLOCKING_REGION;
         break;
       }
     }
