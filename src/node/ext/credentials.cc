@@ -37,6 +37,7 @@
 #include "grpc/grpc_security.h"
 #include "grpc/support/log.h"
 #include "credentials.h"
+#include "call.h"
 
 namespace grpc {
 namespace node {
@@ -240,6 +241,68 @@ NAN_METHOD(Credentials::CreateIam) {
 
 NAN_METHOD(Credentials::CreateInsecure) {
   info.GetReturnValue().Set(WrapStruct(NULL));
+}
+
+NAN_METHOD(Credentials::CreateFromPlugin) {
+  if (!info[0]->IsFunction()) {
+    return Nan::ThrowTypeError(
+        "createFromPlugin's argument must be a function");
+  }
+  grpc_metadata_credentials_plugin plugin;
+  plugin_state *state = new plugin_state;
+  state->callback = new Nan::Callback(info[0].As<Function>());
+  plugin.get_metadata = plugin_get_metadata;
+  plugin.destroy = plugin_destroy_state;
+  plugin.state = reinterpret_cast<void*>(state);
+  grpc_credentials *creds = grpc_metadata_credentials_create_from_plugin(plugin,
+                                                                         NULL);
+  if (creds == NULL) {
+    info.GetReturnValue().SetNull();
+  } else {
+    info.GetReturnValue().Set(WrapStruct(creds()));
+  }
+}
+
+NAN_METHOD(PluginCallback) {
+  // Arguments: status code, error details, metadata
+  if (!info[0]->IsUint32()) {
+    return Nan::ThrowTypeError(
+        "The callback's first argument must be a status code");
+  }
+  if (!info[1]->IsString()) {
+    return Nan::ThrowTypeError(
+        "The callback's second argument must be a string");
+  }
+  if (!info[2]->IsObject()) {
+    return Nan::ThrowTypeError(
+        "The callback's third argument must be an object");
+  }
+  grpc_status_code code = static_cast<grpc_status_code>(
+      Nan::To<uint32_t>(info[0]).FromJust());
+  char *details = *Nan::Utf8String(info[1]);
+  grpc_metadata_array array;
+  if (!CreateMetadataArray(Nan::To<Object>(info[2]).ToLocalChecked(),
+                           &array, shared_ptr<Resources>(new Resources))){
+    return Nan::ThrowError("Failed to parse metadata");
+  }
+  grpc_credentials_plugin_metadata_cb cb =
+      reinterpret_cast<grpc_credentials_plugin_metadata_cb>(
+          Nan::To<External>(
+              Nan::Get(info.Callee, "cb").ToLocalChecked()
+                            ).ToLocalChecked()->Value());
+  void *user_data = Nan::To<External>(
+      Nan::Get(info.Callee, "user_data").ToLocalChecked()
+                                      ).ToLocalChecked()->Value();
+  cb(user_data, array.metadata, array.count, code, details);
+}
+
+void plugin_get_metadata(void *state, const char *service_url,
+                         grpc_credentials_plugin_metadata_cb cb,
+                         void *user_data) {
+  uv_async_t *async = new uv_async_t;
+  uv_async_init(uv_default_loop(),
+                async,
+                PluginCallback);
 }
 
 }  // namespace node
