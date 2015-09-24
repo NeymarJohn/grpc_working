@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -26,35 +27,57 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# This script is invoked by run_tests.py to accommodate "test under docker"
+# scenario. You should never need to call this script on your own.
 
-# Dockerfile for gRPC Ruby, but using Debian packages for gRPC C core.
-FROM grpc/ruby_base
+set -ex
 
-# Pull the latest sources
-RUN cd /var/local/git/grpc \
-  && git pull --recurse-submodules \
-  && git submodule update --init --recursive
+cd `dirname $0`/../..
+git_root=`pwd`
+cd -
 
-# Make sure we don't rely on things that shouldn't be there.
-RUN make clean -C /var/local/git/grpc
+mkdir -p /tmp/ccache
 
-# Debian packages need to be supplied externally
-ADD libgrpc_amd64.deb libgrpc_amd64.deb
-ADD libgrpc-dev_amd64.deb libgrpc-dev_amd64.deb
+# Create a local branch so the child Docker script won't complain
+git branch -f jenkins-docker
 
-# Install the C core .deb packages
-RUN /bin/bash -l -c 'dpkg -i libgrpc_amd64.deb libgrpc-dev_amd64.deb'
+# Use image name based on Dockerfile checksum
+DOCKER_IMAGE_NAME=grpc_jenkins_slave${docker_suffix}_`sha1sum tools/jenkins/grpc_jenkins_slave/Dockerfile | cut -f1 -d\ `
 
-# Build ruby gRPC and run its tests
-RUN /bin/bash -l -c 'cd /var/local/git/grpc/src/ruby && bundle && rake'
+# Make sure docker image has been built. Should be instantaneous if so.
+docker build -t $DOCKER_IMAGE_NAME tools/jenkins/grpc_jenkins_slave$docker_suffix
 
-# Add a cacerts directory containing the Google root pem file, allowing the
-# ruby client to access the production test instance
-ADD cacerts cacerts
+# Make sure the CID file is gone.
+rm -f docker.cid
 
-# Add a service_account directory containing the auth creds file
-ADD service_account service_account
+# Run tests inside docker
+docker run \
+  -e "RUN_TESTS_COMMAND=$RUN_TESTS_COMMAND" \
+  -e "config=$config" \
+  -e "arch=$arch" \
+  -e CCACHE_DIR=/tmp/ccache \
+  -i $TTY_FLAG \
+  -v "$git_root:/var/local/jenkins/grpc" \
+  -v /tmp/ccache:/tmp/ccache \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v $(which docker):/bin/docker \
+  -w /var/local/git/grpc \
+  --cidfile=docker.cid \
+  $DOCKER_IMAGE_NAME \
+  bash -l /var/local/jenkins/grpc/tools/jenkins/docker_run_tests.sh || DOCKER_FAILED="true"
 
-# Specify the default command such that the interop server runs on its known
-# testing port
-CMD ["/bin/bash", "-l", "-c", "ruby /var/local/git/grpc/src/ruby/bin/interop/interop_server.rb --use_tls --port 8060"]
+DOCKER_CID=`cat docker.cid`
+
+if [ "$XML_REPORT" != "" ]
+then
+  docker cp "$DOCKER_CID:/var/local/git/grpc/$XML_REPORT" $git_root
+fi
+
+# remove the container, possibly killing it first
+docker rm -f $DOCKER_CID || true
+
+if [ "$DOCKER_FAILED" != "" ] && [ "$XML_REPORT" == "" ]
+then
+  exit 1
+fi

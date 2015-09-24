@@ -111,8 +111,7 @@ static grpc_mdelem *server_filter(void *user_data, grpc_mdelem *md) {
     return NULL;
   } else if (md->key == channeld->te_trailers->key ||
              md->key == channeld->method_post->key ||
-             md->key == channeld->http_scheme->key ||
-             md->key == channeld->content_type->key) {
+             md->key == channeld->http_scheme->key) {
     gpr_log(GPR_ERROR, "Invalid %s: header: '%s'",
             grpc_mdstr_as_c_string(md->key), grpc_mdstr_as_c_string(md->value));
     /* swallow it and error everything out. */
@@ -198,12 +197,12 @@ static void hs_mutate_op(grpc_call_element *elem,
     size_t nops = op->send_ops->nops;
     grpc_stream_op *ops = op->send_ops->ops;
     for (i = 0; i < nops; i++) {
-      grpc_stream_op *op = &ops[i];
-      if (op->type != GRPC_OP_METADATA) continue;
+      grpc_stream_op *stream_op = &ops[i];
+      if (stream_op->type != GRPC_OP_METADATA) continue;
       calld->sent_status = 1;
-      grpc_metadata_batch_add_head(&op->data.metadata, &calld->status,
+      grpc_metadata_batch_add_head(&stream_op->data.metadata, &calld->status,
                                    GRPC_MDELEM_REF(channeld->status_ok));
-      grpc_metadata_batch_add_tail(&op->data.metadata, &calld->content_type,
+      grpc_metadata_batch_add_tail(&stream_op->data.metadata, &calld->content_type,
                                    GRPC_MDELEM_REF(channeld->content_type));
       break;
     }

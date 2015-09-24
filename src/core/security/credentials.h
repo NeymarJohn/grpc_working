@@ -56,6 +56,7 @@ typedef enum {
 
 #define GRPC_CREDENTIALS_TYPE_SSL "Ssl"
 #define GRPC_CREDENTIALS_TYPE_OAUTH2 "Oauth2"
+#define GRPC_CREDENTIALS_TYPE_METADATA_PLUGIN "Plugin"
 #define GRPC_CREDENTIALS_TYPE_JWT "Jwt"
 #define GRPC_CREDENTIALS_TYPE_IAM "Iam"
 #define GRPC_CREDENTIALS_TYPE_COMPOSITE "Composite"
@@ -215,7 +216,6 @@ typedef struct {
       grpc_server_credentials *c, grpc_security_connector **sc);
 } grpc_server_credentials_vtable;
 
-
 /* TODO(jboeuf): Add a refcount. */
 struct grpc_server_credentials {
   const grpc_server_credentials_vtable *vtable;
@@ -321,5 +321,13 @@ typedef struct {
   grpc_credentials_array inner;
   grpc_credentials *connector_creds;
 } grpc_composite_credentials;
+
+/* -- Plugin credentials. -- */
+
+typedef struct {
+  grpc_credentials base;
+  grpc_metadata_credentials_plugin plugin;
+  grpc_credentials_md_store *plugin_md;
+} grpc_plugin_credentials;
 
 #endif /* GRPC_INTERNAL_CORE_SECURITY_CREDENTIALS_H */
