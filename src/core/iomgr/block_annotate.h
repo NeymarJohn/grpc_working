@@ -31,17 +31,14 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_ROUND_ROBIN_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_ROUND_ROBIN_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_BLOCK_ANNOTATE_H
+#define GRPC_INTERNAL_CORE_IOMGR_BLOCK_ANNOTATE_H
 
-#include "src/core/client_config/lb_policy.h"
+/* These annotations identify the beginning and end of regions where
+   the code may block for reasons other than synchronization functions.
+   These include poll, epoll, and getaddrinfo. */
 
-extern int grpc_lb_round_robin_trace;
+#define GRPC_IOMGR_START_BLOCKING_REGION do {} while (0)
+#define GRPC_IOMGR_END_BLOCKING_REGION do {} while (0)
 
-#include "src/core/client_config/lb_policy_factory.h"
-
-/** Returns a load balancing factory for the round robin policy */
-grpc_lb_policy_factory *grpc_round_robin_lb_factory_create();
-
-
-#endif
+#endif /* GRPC_INTERNAL_CORE_IOMGR_BLOCK_ANNOTATE_H */

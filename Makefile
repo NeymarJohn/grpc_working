@@ -248,7 +248,7 @@ ifdef EXTRA_DEFINES
 DEFINES += $(EXTRA_DEFINES)
 endif
 
-CFLAGS += -std=c89 -pedantic -Wsign-conversion -Wconversion -Wshadow
+CFLAGS += -std=c89 -pedantic -Wsign-conversion -Wconversion
 ifeq ($(HAS_CXX11),true)
 CXXFLAGS += -std=c++11
 else
