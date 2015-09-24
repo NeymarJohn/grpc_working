@@ -426,7 +426,7 @@ static void basic_pollset_maybe_work(grpc_pollset *pollset,
   grpc_fd_watcher fd_watcher;
   int timeout;
   int r;
-  nfds_t nfds;
+  int nfds;
 
   fd = pollset->data.ptr;
   if (fd && grpc_fd_is_orphaned(fd)) {
@@ -443,7 +443,7 @@ static void basic_pollset_maybe_work(grpc_pollset *pollset,
     pfd[1].revents = 0;
     gpr_mu_unlock(&pollset->mu);
     pfd[1].events =
-        (short)grpc_fd_begin_poll(fd, pollset, POLLIN, POLLOUT, &fd_watcher);
+        grpc_fd_begin_poll(fd, pollset, POLLIN, POLLOUT, &fd_watcher);
     if (pfd[1].events != 0) {
       nfds++;
     }

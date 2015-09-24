@@ -38,8 +38,6 @@ typedef struct {
   char *scheme;
   char *authority;
   char *path;
-  char *query;
-  char *fragment;
 } grpc_uri;
 
 /** parse a uri, return NULL on failure */
