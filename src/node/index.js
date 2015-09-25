@@ -153,7 +153,7 @@ exports.writeFlags = grpc.writeFlags;
 /**
  * Credentials factories
  */
-exports.credentials = require('./src/credentials.js');
+exports.Credentials = grpc.Credentials;
 
 /**
  * ServerCredentials factories
