@@ -48,8 +48,8 @@ typedef struct call_data {
   gpr_slice_buffer slices; /**< Buffers up input slices to be compressed */
   grpc_linked_mdelem compression_algorithm_storage;
   grpc_linked_mdelem accept_encoding_storage;
-  gpr_uint32
-      remaining_slice_bytes; /**< Input data to be read, as per BEGIN_MESSAGE */
+  gpr_uint32 remaining_slice_bytes;
+  /**< Input data to be read, as per BEGIN_MESSAGE */
   int written_initial_metadata; /**< Already processed initial md? */
   /** Compression algorithm we'll try to use. It may be given by incoming
    * metadata, or by the channel's default compression settings. */
@@ -268,18 +268,19 @@ static void process_send_ops(grpc_call_element *elem,
      - a network event (or similar) from below, to receive something
    op contains type and call direction information, in addition to the data
    that is being sent or received. */
-static void compress_start_transport_stream_op(grpc_call_element *elem,
+static void compress_start_transport_stream_op(grpc_exec_ctx *exec_ctx,
+                                               grpc_call_element *elem,
                                                grpc_transport_stream_op *op) {
   if (op->send_ops && op->send_ops->nops > 0) {
     process_send_ops(elem, op->send_ops);
   }
 
   /* pass control down the stack */
-  grpc_call_next_op(elem, op);
+  grpc_call_next_op(exec_ctx, elem, op);
 }
 
 /* Constructor for call_data */
-static void init_call_elem(grpc_call_element *elem,
+static void init_call_elem(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
                            const void *server_transport_data,
                            grpc_transport_stream_op *initial_op) {
   /* grab pointers to our data from the call element */
@@ -298,14 +299,16 @@ static void init_call_elem(grpc_call_element *elem,
 }
 
 /* Destructor for call_data */
-static void destroy_call_elem(grpc_call_element *elem) {
+static void destroy_call_elem(grpc_exec_ctx *exec_ctx,
+                              grpc_call_element *elem) {
   /* grab pointers to our data from the call element */
   call_data *calld = elem->call_data;
   gpr_slice_buffer_destroy(&calld->slices);
 }
 
 /* Constructor for channel_data */
-static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
+static void init_channel_elem(grpc_exec_ctx *exec_ctx,
+                              grpc_channel_element *elem, grpc_channel *master,
                               const grpc_channel_args *args, grpc_mdctx *mdctx,
                               int is_first, int is_last) {
   channel_data *channeld = elem->channel_data;
@@ -328,13 +331,13 @@ static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
       channeld->default_compression_algorithm;
 
   channeld->mdstr_request_compression_algorithm_key =
-      grpc_mdstr_from_string(mdctx, GRPC_COMPRESS_REQUEST_ALGORITHM_KEY, 0);
+      grpc_mdstr_from_string(mdctx, GRPC_COMPRESS_REQUEST_ALGORITHM_KEY);
 
   channeld->mdstr_outgoing_compression_algorithm_key =
-      grpc_mdstr_from_string(mdctx, "grpc-encoding", 0);
+      grpc_mdstr_from_string(mdctx, "grpc-encoding");
 
   channeld->mdstr_compression_capabilities_key =
-      grpc_mdstr_from_string(mdctx, "grpc-accept-encoding", 0);
+      grpc_mdstr_from_string(mdctx, "grpc-accept-encoding");
 
   for (algo_idx = 0; algo_idx < GRPC_COMPRESS_ALGORITHMS_COUNT; ++algo_idx) {
     char *algorithm_name;
@@ -348,7 +351,7 @@ static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
         grpc_mdelem_from_metadata_strings(
             mdctx,
             GRPC_MDSTR_REF(channeld->mdstr_outgoing_compression_algorithm_key),
-            grpc_mdstr_from_string(mdctx, algorithm_name, 0));
+            grpc_mdstr_from_string(mdctx, algorithm_name));
     if (algo_idx > 0) {
       supported_algorithms_names[supported_algorithms_idx++] = algorithm_name;
     }
@@ -362,14 +365,15 @@ static void init_channel_elem(grpc_channel_element *elem, grpc_channel *master,
 
   channeld->mdelem_accept_encoding = grpc_mdelem_from_metadata_strings(
       mdctx, GRPC_MDSTR_REF(channeld->mdstr_compression_capabilities_key),
-      grpc_mdstr_from_string(mdctx, accept_encoding_str, 0));
+      grpc_mdstr_from_string(mdctx, accept_encoding_str));
   gpr_free(accept_encoding_str);
 
   GPR_ASSERT(!is_last);
 }
 
 /* Destructor for channel data */
-static void destroy_channel_elem(grpc_channel_element *elem) {
+static void destroy_channel_elem(grpc_exec_ctx *exec_ctx,
+                                 grpc_channel_element *elem) {
   channel_data *channeld = elem->channel_data;
   grpc_compression_algorithm algo_idx;
 

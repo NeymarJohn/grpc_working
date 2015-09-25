@@ -40,7 +40,6 @@ import os
 import platform
 import random
 import re
-import socket
 import subprocess
 import sys
 import time
@@ -618,7 +617,7 @@ if platform.system() == 'Windows':
     # better do parallel compilation
     extra_args.extend(["/m"])
     # disable PDB generation: it's broken, and we don't need it during CI
-    extra_args.extend(["/p:GenerateDebugInformation=false", "/p:DebugInformationFormat=None"])
+    extra_args.extend(["/p:Jenkins=true"])
     return [
       jobset.JobSpec(['vsprojects\\build.bat',
                       'vsprojects\\%s.sln' % target,
@@ -737,10 +736,6 @@ def _start_port_server(port_server_port):
         urllib2.urlopen('http://localhost:%d/get' % port_server_port,
                         timeout=1).read()
         break
-      except socket.timeout:
-        print "waiting for port_server"
-        time.sleep(0.5)
-        waits += 1
       except urllib2.URLError:
         print "waiting for port_server"
         time.sleep(0.5)

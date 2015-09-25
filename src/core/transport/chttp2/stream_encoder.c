@@ -377,7 +377,7 @@ static grpc_mdelem *hpack_enc(grpc_chttp2_hpack_compressor *c,
   gpr_uint32 indices_key;
   int should_add_elem;
 
-  GPR_ASSERT (GPR_SLICE_LENGTH(elem->key->slice) > 0);
+  GPR_ASSERT(GPR_SLICE_LENGTH(elem->key->slice) > 0);
   if (GPR_SLICE_START_PTR(elem->key->slice)[0] != ':') { /* regular header */
     st->seen_regular_header = 1;
   } else if (st->seen_regular_header != 0) { /* reserved header */
@@ -466,7 +466,7 @@ static void deadline_enc(grpc_chttp2_hpack_compressor *c, gpr_timespec deadline,
       gpr_time_sub(deadline, gpr_now(deadline.clock_type)), timeout_str);
   mdelem = grpc_mdelem_from_metadata_strings(
       c->mdctx, GRPC_MDSTR_REF(c->timeout_key_str),
-      grpc_mdstr_from_string(c->mdctx, timeout_str, 0));
+      grpc_mdstr_from_string(c->mdctx, timeout_str));
   mdelem = hpack_enc(c, mdelem, st);
   if (mdelem) GRPC_MDELEM_UNREF(mdelem);
 }
@@ -481,7 +481,7 @@ void grpc_chttp2_hpack_compressor_init(grpc_chttp2_hpack_compressor *c,
                                        grpc_mdctx *ctx) {
   memset(c, 0, sizeof(*c));
   c->mdctx = ctx;
-  c->timeout_key_str = grpc_mdstr_from_string(ctx, "grpc-timeout", 0);
+  c->timeout_key_str = grpc_mdstr_from_string(ctx, "grpc-timeout");
 }
 
 void grpc_chttp2_hpack_compressor_destroy(grpc_chttp2_hpack_compressor *c) {
