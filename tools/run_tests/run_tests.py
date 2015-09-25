@@ -199,9 +199,7 @@ class GYPCLanguage(object):
     return [['gyp', '--depth=.', '--suffix=-gyp', 'grpc.gyp']]
 
   def make_targets(self):
-    # HACK(ctiller): force fling_client and fling_server to be built, as fling_test
-    # needs these
-    return gyp_test_paths(False) + ['fling_client', 'fling_server']
+    return gyp_test_paths(False)
 
   def build_steps(self):
     return []
@@ -617,7 +615,7 @@ if platform.system() == 'Windows':
     # better do parallel compilation
     extra_args.extend(["/m"])
     # disable PDB generation: it's broken, and we don't need it during CI
-    extra_args.extend(["/p:Jenkins=true"])
+    extra_args.extend(["/p:GenerateDebugInformation=false", "/p:DebugInformationFormat=None"])
     return [
       jobset.JobSpec(['vsprojects\\build.bat',
                       'vsprojects\\%s.sln' % target,
@@ -727,10 +725,7 @@ def _start_port_server(port_server_port):
     while True:
       if waits > 10:
         port_server.kill()
-      if port_server.poll() is not None:
         print "port_server failed to start"
-        port_log = open('portlog.txt', 'r').read()
-        print port_log
         sys.exit(1)
       try:
         urllib2.urlopen('http://localhost:%d/get' % port_server_port,
