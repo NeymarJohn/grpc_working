@@ -36,7 +36,6 @@
 #include <grpc/grpc.h>
 #include <grpc/byte_buffer.h>
 #include <grpc/byte_buffer_reader.h>
-#include <grpc/support/log.h>
 #include <grpc/support/slice.h>
 #include <grpc/support/slice_buffer.h>
 #include <grpc/support/port_platform.h>
@@ -112,8 +111,7 @@ class GrpcBufferReader GRPC_FINAL
     if (backup_count_ > 0) {
       *data = GPR_SLICE_START_PTR(slice_) + GPR_SLICE_LENGTH(slice_) -
               backup_count_;
-      GPR_ASSERT(backup_count_ <= INT_MAX);
-      *size = (int)backup_count_;
+      *size = backup_count_;
       backup_count_ = 0;
       return true;
     }

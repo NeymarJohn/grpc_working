@@ -56,7 +56,7 @@ static gpr_atm g_custom_events = 0;
 
 static HANDLE g_iocp;
 
-static void do_iocp_work(grpc_exec_ctx *exec_ctx) {
+static void do_iocp_work() {
   BOOL success;
   DWORD bytes = 0;
   DWORD flags = 0;
@@ -64,7 +64,8 @@ static void do_iocp_work(grpc_exec_ctx *exec_ctx) {
   LPOVERLAPPED overlapped;
   grpc_winsocket *socket;
   grpc_winsocket_callback_info *info;
-  grpc_closure *closure = NULL;
+  void (*f)(void *, int) = NULL;
+  void *opaque = NULL;
   success = GetQueuedCompletionStatus(g_iocp, &bytes, &completion_key,
                                       &overlapped, INFINITE);
   /* success = 0 and overlapped = NULL means the deadline got attained.
@@ -97,27 +98,22 @@ static void do_iocp_work(grpc_exec_ctx *exec_ctx) {
   GPR_ASSERT(overlapped == &info->overlapped);
   GPR_ASSERT(!info->has_pending_iocp);
   gpr_mu_lock(&socket->state_mu);
-  if (info->closure) {
-    closure = info->closure;
-    info->closure = NULL;
+  if (info->cb) {
+    f = info->cb;
+    opaque = info->opaque;
+    info->cb = NULL;
   } else {
     info->has_pending_iocp = 1;
   }
   gpr_mu_unlock(&socket->state_mu);
-  if (closure) {
-    closure->cb(exec_ctx, closure->cb_arg, 1);
-  }
+  if (f) f(opaque, 1);
 }
 
 static void iocp_loop(void *p) {
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-
-  while (gpr_atm_acq_load(&g_custom_events) ||
+  while (gpr_atm_acq_load(&g_custom_events) || 
          !gpr_event_get(&g_shutdown_iocp)) {
-    do_iocp_work(&exec_ctx);
-    grpc_exec_ctx_flush(&exec_ctx);
+    do_iocp_work();
   }
-  grpc_exec_ctx_finish(&exec_ctx);
 
   gpr_event_set(&g_iocp_done, (void *)1);
 }
@@ -172,31 +168,31 @@ void grpc_iocp_add_socket(grpc_winsocket *socket) {
    -) The IOCP already completed in the background, and we need to call
    the callback now.
    -) The IOCP hasn't completed yet, and we're queuing it for later. */
-static void socket_notify_on_iocp(grpc_exec_ctx *exec_ctx,
-                                  grpc_winsocket *socket, grpc_closure *closure,
+static void socket_notify_on_iocp(grpc_winsocket *socket,
+                                  void (*cb)(void *, int), void *opaque,
                                   grpc_winsocket_callback_info *info) {
   int run_now = 0;
-  GPR_ASSERT(info->closure == NULL);
+  GPR_ASSERT(!info->cb);
   gpr_mu_lock(&socket->state_mu);
   if (info->has_pending_iocp) {
     run_now = 1;
     info->has_pending_iocp = 0;
-    grpc_exec_ctx_enqueue(exec_ctx, closure, 1);
   } else {
-    info->closure = closure;
+    info->cb = cb;
+    info->opaque = opaque;
   }
   gpr_mu_unlock(&socket->state_mu);
+  if (run_now) cb(opaque, 1);
 }
 
-void grpc_socket_notify_on_write(grpc_exec_ctx *exec_ctx,
-                                 grpc_winsocket *socket,
-                                 grpc_closure *closure) {
-  socket_notify_on_iocp(exec_ctx, socket, closure, &socket->write_info);
+void grpc_socket_notify_on_write(grpc_winsocket *socket,
+                                 void (*cb)(void *, int), void *opaque) {
+  socket_notify_on_iocp(socket, cb, opaque, &socket->write_info);
 }
 
-void grpc_socket_notify_on_read(grpc_exec_ctx *exec_ctx, grpc_winsocket *socket,
-                                grpc_closure *closure) {
-  socket_notify_on_iocp(exec_ctx, socket, closure, &socket->read_info);
+void grpc_socket_notify_on_read(grpc_winsocket *socket, void (*cb)(void *, int),
+                                void *opaque) {
+  socket_notify_on_iocp(socket, cb, opaque, &socket->read_info);
 }
 
 #endif /* GPR_WINSOCK_SOCKET */

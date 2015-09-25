@@ -315,7 +315,7 @@ static void check_metadata(expected_md *expected, grpc_credentials_md *md_elems,
   }
 }
 
-static void check_google_iam_metadata(grpc_exec_ctx *exec_ctx, void *user_data,
+static void check_google_iam_metadata(void *user_data,
                                       grpc_credentials_md *md_elems,
                                       size_t num_md,
                                       grpc_credentials_status status) {
@@ -331,20 +331,16 @@ static void check_google_iam_metadata(grpc_exec_ctx *exec_ctx, void *user_data,
 }
 
 static void test_google_iam_creds(void) {
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
   grpc_credentials *creds = grpc_google_iam_credentials_create(
       test_google_iam_authorization_token, test_google_iam_authority_selector,
       NULL);
   GPR_ASSERT(grpc_credentials_has_request_metadata(creds));
   GPR_ASSERT(grpc_credentials_has_request_metadata_only(creds));
-  grpc_credentials_get_request_metadata(&exec_ctx, creds, NULL,
-                                        test_service_url,
+  grpc_credentials_get_request_metadata(creds, NULL, test_service_url,
                                         check_google_iam_metadata, creds);
-  grpc_exec_ctx_finish(&exec_ctx);
 }
 
-static void check_access_token_metadata(grpc_exec_ctx *exec_ctx,
-                                        void *user_data,
+static void check_access_token_metadata(void *user_data,
                                         grpc_credentials_md *md_elems,
                                         size_t num_md,
                                         grpc_credentials_status status) {
@@ -357,20 +353,17 @@ static void check_access_token_metadata(grpc_exec_ctx *exec_ctx,
 }
 
 static void test_access_token_creds(void) {
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
   grpc_credentials *creds = grpc_access_token_credentials_create("blah", NULL);
   GPR_ASSERT(grpc_credentials_has_request_metadata(creds));
   GPR_ASSERT(grpc_credentials_has_request_metadata_only(creds));
   GPR_ASSERT(strcmp(creds->type, GRPC_CREDENTIALS_TYPE_OAUTH2) == 0);
-  grpc_credentials_get_request_metadata(&exec_ctx, creds, NULL,
-                                        test_service_url,
+  grpc_credentials_get_request_metadata(creds, NULL, test_service_url,
                                         check_access_token_metadata, creds);
-  grpc_exec_ctx_finish(&exec_ctx);
 }
 
 static void check_ssl_oauth2_composite_metadata(
-    grpc_exec_ctx *exec_ctx, void *user_data, grpc_credentials_md *md_elems,
-    size_t num_md, grpc_credentials_status status) {
+    void *user_data, grpc_credentials_md *md_elems, size_t num_md,
+    grpc_credentials_status status) {
   grpc_credentials *c = (grpc_credentials *)user_data;
   expected_md emd[] = {
       {GRPC_AUTHORIZATION_METADATA_KEY, test_oauth2_bearer_token}};
@@ -381,7 +374,6 @@ static void check_ssl_oauth2_composite_metadata(
 }
 
 static void test_ssl_oauth2_composite_creds(void) {
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
   grpc_credentials *ssl_creds =
       grpc_ssl_credentials_create(test_root_cert, NULL, NULL);
   const grpc_credentials_array *creds_array;
@@ -401,10 +393,9 @@ static void test_ssl_oauth2_composite_creds(void) {
                     GRPC_CREDENTIALS_TYPE_SSL) == 0);
   GPR_ASSERT(strcmp(creds_array->creds_array[1]->type,
                     GRPC_CREDENTIALS_TYPE_OAUTH2) == 0);
-  grpc_credentials_get_request_metadata(
-      &exec_ctx, composite_creds, NULL, test_service_url,
-      check_ssl_oauth2_composite_metadata, composite_creds);
-  grpc_exec_ctx_finish(&exec_ctx);
+  grpc_credentials_get_request_metadata(composite_creds, NULL, test_service_url,
+                                        check_ssl_oauth2_composite_metadata,
+                                        composite_creds);
 }
 
 void test_ssl_fake_transport_security_composite_creds_failure(void) {
@@ -420,8 +411,8 @@ void test_ssl_fake_transport_security_composite_creds_failure(void) {
 }
 
 static void check_ssl_oauth2_google_iam_composite_metadata(
-    grpc_exec_ctx *exec_ctx, void *user_data, grpc_credentials_md *md_elems,
-    size_t num_md, grpc_credentials_status status) {
+    void *user_data, grpc_credentials_md *md_elems, size_t num_md,
+    grpc_credentials_status status) {
   grpc_credentials *c = (grpc_credentials *)user_data;
   expected_md emd[] = {
       {GRPC_AUTHORIZATION_METADATA_KEY, test_oauth2_bearer_token},
@@ -436,7 +427,6 @@ static void check_ssl_oauth2_google_iam_composite_metadata(
 }
 
 static void test_ssl_oauth2_google_iam_composite_creds(void) {
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
   grpc_credentials *ssl_creds =
       grpc_ssl_credentials_create(test_root_cert, NULL, NULL);
   const grpc_credentials_array *creds_array;
@@ -466,14 +456,13 @@ static void test_ssl_oauth2_google_iam_composite_creds(void) {
   GPR_ASSERT(strcmp(creds_array->creds_array[2]->type,
                     GRPC_CREDENTIALS_TYPE_IAM) == 0);
   grpc_credentials_get_request_metadata(
-      &exec_ctx, composite_creds, NULL, test_service_url,
+      composite_creds, NULL, test_service_url,
       check_ssl_oauth2_google_iam_composite_metadata, composite_creds);
-  grpc_exec_ctx_finish(&exec_ctx);
 }
 
 static void on_oauth2_creds_get_metadata_success(
-    grpc_exec_ctx *exec_ctx, void *user_data, grpc_credentials_md *md_elems,
-    size_t num_md, grpc_credentials_status status) {
+    void *user_data, grpc_credentials_md *md_elems, size_t num_md,
+    grpc_credentials_status status) {
   GPR_ASSERT(status == GRPC_CREDENTIALS_OK);
   GPR_ASSERT(num_md == 1);
   GPR_ASSERT(gpr_slice_str_cmp(md_elems[0].key, "Authorization") == 0);
@@ -485,8 +474,8 @@ static void on_oauth2_creds_get_metadata_success(
 }
 
 static void on_oauth2_creds_get_metadata_failure(
-    grpc_exec_ctx *exec_ctx, void *user_data, grpc_credentials_md *md_elems,
-    size_t num_md, grpc_credentials_status status) {
+    void *user_data, grpc_credentials_md *md_elems, size_t num_md,
+    grpc_credentials_status status) {
   GPR_ASSERT(status == GRPC_CREDENTIALS_ERROR);
   GPR_ASSERT(num_md == 0);
   GPR_ASSERT(user_data != NULL);
@@ -507,44 +496,40 @@ static void validate_compute_engine_http_request(
 }
 
 static int compute_engine_httpcli_get_success_override(
-    grpc_exec_ctx *exec_ctx, const grpc_httpcli_request *request,
-    gpr_timespec deadline, grpc_httpcli_response_cb on_response,
-    void *user_data) {
+    const grpc_httpcli_request *request, gpr_timespec deadline,
+    grpc_httpcli_response_cb on_response, void *user_data) {
   grpc_httpcli_response response =
       http_response(200, valid_oauth2_json_response);
   validate_compute_engine_http_request(request);
-  on_response(exec_ctx, user_data, &response);
+  on_response(user_data, &response);
   return 1;
 }
 
 static int compute_engine_httpcli_get_failure_override(
-    grpc_exec_ctx *exec_ctx, const grpc_httpcli_request *request,
-    gpr_timespec deadline, grpc_httpcli_response_cb on_response,
-    void *user_data) {
+    const grpc_httpcli_request *request, gpr_timespec deadline,
+    grpc_httpcli_response_cb on_response, void *user_data) {
   grpc_httpcli_response response = http_response(403, "Not Authorized.");
   validate_compute_engine_http_request(request);
-  on_response(exec_ctx, user_data, &response);
+  on_response(user_data, &response);
   return 1;
 }
 
 static int httpcli_post_should_not_be_called(
-    grpc_exec_ctx *exec_ctx, const grpc_httpcli_request *request,
-    const char *body_bytes, size_t body_size, gpr_timespec deadline,
+    const grpc_httpcli_request *request, const char *body_bytes,
+    size_t body_size, gpr_timespec deadline,
     grpc_httpcli_response_cb on_response, void *user_data) {
   GPR_ASSERT("HTTP POST should not be called" == NULL);
   return 1;
 }
 
 static int httpcli_get_should_not_be_called(
-    grpc_exec_ctx *exec_ctx, const grpc_httpcli_request *request,
-    gpr_timespec deadline, grpc_httpcli_response_cb on_response,
-    void *user_data) {
+    const grpc_httpcli_request *request, gpr_timespec deadline,
+    grpc_httpcli_response_cb on_response, void *user_data) {
   GPR_ASSERT("HTTP GET should not be called" == NULL);
   return 1;
 }
 
 static void test_compute_engine_creds_success(void) {
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
   grpc_credentials *compute_engine_creds =
       grpc_google_compute_engine_credentials_create(NULL);
   GPR_ASSERT(grpc_credentials_has_request_metadata(compute_engine_creds));
@@ -554,24 +539,21 @@ static void test_compute_engine_creds_success(void) {
   grpc_httpcli_set_override(compute_engine_httpcli_get_success_override,
                             httpcli_post_should_not_be_called);
   grpc_credentials_get_request_metadata(
-      &exec_ctx, compute_engine_creds, NULL, test_service_url,
+      compute_engine_creds, NULL, test_service_url,
       on_oauth2_creds_get_metadata_success, (void *)test_user_data);
-  grpc_exec_ctx_flush(&exec_ctx);
 
   /* Second request: the cached token should be served directly. */
   grpc_httpcli_set_override(httpcli_get_should_not_be_called,
                             httpcli_post_should_not_be_called);
   grpc_credentials_get_request_metadata(
-      &exec_ctx, compute_engine_creds, NULL, test_service_url,
+      compute_engine_creds, NULL, test_service_url,
       on_oauth2_creds_get_metadata_success, (void *)test_user_data);
-  grpc_exec_ctx_finish(&exec_ctx);
 
   grpc_credentials_unref(compute_engine_creds);
   grpc_httpcli_set_override(NULL, NULL);
 }
 
 static void test_compute_engine_creds_failure(void) {
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
   grpc_credentials *compute_engine_creds =
       grpc_google_compute_engine_credentials_create(NULL);
   grpc_httpcli_set_override(compute_engine_httpcli_get_failure_override,
@@ -579,11 +561,10 @@ static void test_compute_engine_creds_failure(void) {
   GPR_ASSERT(grpc_credentials_has_request_metadata(compute_engine_creds));
   GPR_ASSERT(grpc_credentials_has_request_metadata_only(compute_engine_creds));
   grpc_credentials_get_request_metadata(
-      &exec_ctx, compute_engine_creds, NULL, test_service_url,
+      compute_engine_creds, NULL, test_service_url,
       on_oauth2_creds_get_metadata_failure, (void *)test_user_data);
   grpc_credentials_unref(compute_engine_creds);
   grpc_httpcli_set_override(NULL, NULL);
-  grpc_exec_ctx_finish(&exec_ctx);
 }
 
 static void validate_refresh_token_http_request(
@@ -609,28 +590,27 @@ static void validate_refresh_token_http_request(
 }
 
 static int refresh_token_httpcli_post_success(
-    grpc_exec_ctx *exec_ctx, const grpc_httpcli_request *request,
-    const char *body, size_t body_size, gpr_timespec deadline,
-    grpc_httpcli_response_cb on_response, void *user_data) {
+    const grpc_httpcli_request *request, const char *body, size_t body_size,
+    gpr_timespec deadline, grpc_httpcli_response_cb on_response,
+    void *user_data) {
   grpc_httpcli_response response =
       http_response(200, valid_oauth2_json_response);
   validate_refresh_token_http_request(request, body, body_size);
-  on_response(exec_ctx, user_data, &response);
+  on_response(user_data, &response);
   return 1;
 }
 
 static int refresh_token_httpcli_post_failure(
-    grpc_exec_ctx *exec_ctx, const grpc_httpcli_request *request,
-    const char *body, size_t body_size, gpr_timespec deadline,
-    grpc_httpcli_response_cb on_response, void *user_data) {
+    const grpc_httpcli_request *request, const char *body, size_t body_size,
+    gpr_timespec deadline, grpc_httpcli_response_cb on_response,
+    void *user_data) {
   grpc_httpcli_response response = http_response(403, "Not Authorized.");
   validate_refresh_token_http_request(request, body, body_size);
-  on_response(exec_ctx, user_data, &response);
+  on_response(user_data, &response);
   return 1;
 }
 
 static void test_refresh_token_creds_success(void) {
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
   grpc_credentials *refresh_token_creds =
       grpc_google_refresh_token_credentials_create(test_refresh_token_str,
                                                    NULL);
@@ -641,25 +621,21 @@ static void test_refresh_token_creds_success(void) {
   grpc_httpcli_set_override(httpcli_get_should_not_be_called,
                             refresh_token_httpcli_post_success);
   grpc_credentials_get_request_metadata(
-      &exec_ctx, refresh_token_creds, NULL, test_service_url,
+      refresh_token_creds, NULL, test_service_url,
       on_oauth2_creds_get_metadata_success, (void *)test_user_data);
-  grpc_exec_ctx_flush(&exec_ctx);
 
   /* Second request: the cached token should be served directly. */
   grpc_httpcli_set_override(httpcli_get_should_not_be_called,
                             httpcli_post_should_not_be_called);
   grpc_credentials_get_request_metadata(
-      &exec_ctx, refresh_token_creds, NULL, test_service_url,
+      refresh_token_creds, NULL, test_service_url,
       on_oauth2_creds_get_metadata_success, (void *)test_user_data);
-  grpc_exec_ctx_flush(&exec_ctx);
 
   grpc_credentials_unref(refresh_token_creds);
   grpc_httpcli_set_override(NULL, NULL);
-  grpc_exec_ctx_finish(&exec_ctx);
 }
 
 static void test_refresh_token_creds_failure(void) {
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
   grpc_credentials *refresh_token_creds =
       grpc_google_refresh_token_credentials_create(test_refresh_token_str,
                                                    NULL);
@@ -668,11 +644,10 @@ static void test_refresh_token_creds_failure(void) {
   GPR_ASSERT(grpc_credentials_has_request_metadata(refresh_token_creds));
   GPR_ASSERT(grpc_credentials_has_request_metadata_only(refresh_token_creds));
   grpc_credentials_get_request_metadata(
-      &exec_ctx, refresh_token_creds, NULL, test_service_url,
+      refresh_token_creds, NULL, test_service_url,
       on_oauth2_creds_get_metadata_failure, (void *)test_user_data);
   grpc_credentials_unref(refresh_token_creds);
   grpc_httpcli_set_override(NULL, NULL);
-  grpc_exec_ctx_finish(&exec_ctx);
 }
 
 static void validate_jwt_encode_and_sign_params(
@@ -718,11 +693,9 @@ static char *encode_and_sign_jwt_should_not_be_called(
     const grpc_auth_json_key *json_key, const char *audience,
     gpr_timespec token_lifetime, const char *scope) {
   GPR_ASSERT("grpc_jwt_encode_and_sign should not be called" == NULL);
-  return NULL;
 }
 
-static void on_jwt_creds_get_metadata_success(grpc_exec_ctx *exec_ctx,
-                                              void *user_data,
+static void on_jwt_creds_get_metadata_success(void *user_data,
                                               grpc_credentials_md *md_elems,
                                               size_t num_md,
                                               grpc_credentials_status status) {
@@ -737,8 +710,7 @@ static void on_jwt_creds_get_metadata_success(grpc_exec_ctx *exec_ctx,
   gpr_free(expected_md_value);
 }
 
-static void on_jwt_creds_get_metadata_failure(grpc_exec_ctx *exec_ctx,
-                                              void *user_data,
+static void on_jwt_creds_get_metadata_failure(void *user_data,
                                               grpc_credentials_md *md_elems,
                                               size_t num_md,
                                               grpc_credentials_status status) {
@@ -750,7 +722,6 @@ static void on_jwt_creds_get_metadata_failure(grpc_exec_ctx *exec_ctx,
 
 static void test_jwt_creds_success(void) {
   char *json_key_string = test_json_key_str();
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
   grpc_credentials *jwt_creds =
       grpc_service_account_jwt_access_credentials_create(
           json_key_string, grpc_max_auth_token_lifetime, NULL);
@@ -759,26 +730,23 @@ static void test_jwt_creds_success(void) {
 
   /* First request: jwt_encode_and_sign should be called. */
   grpc_jwt_encode_and_sign_set_override(encode_and_sign_jwt_success);
-  grpc_credentials_get_request_metadata(
-      &exec_ctx, jwt_creds, NULL, test_service_url,
-      on_jwt_creds_get_metadata_success, (void *)test_user_data);
-  grpc_exec_ctx_flush(&exec_ctx);
+  grpc_credentials_get_request_metadata(jwt_creds, NULL, test_service_url,
+                                        on_jwt_creds_get_metadata_success,
+                                        (void *)test_user_data);
 
   /* Second request: the cached token should be served directly. */
   grpc_jwt_encode_and_sign_set_override(
       encode_and_sign_jwt_should_not_be_called);
-  grpc_credentials_get_request_metadata(
-      &exec_ctx, jwt_creds, NULL, test_service_url,
-      on_jwt_creds_get_metadata_success, (void *)test_user_data);
-  grpc_exec_ctx_flush(&exec_ctx);
+  grpc_credentials_get_request_metadata(jwt_creds, NULL, test_service_url,
+                                        on_jwt_creds_get_metadata_success,
+                                        (void *)test_user_data);
 
   /* Third request: Different service url so jwt_encode_and_sign should be
      called again (no caching). */
   grpc_jwt_encode_and_sign_set_override(encode_and_sign_jwt_success);
-  grpc_credentials_get_request_metadata(
-      &exec_ctx, jwt_creds, NULL, other_test_service_url,
-      on_jwt_creds_get_metadata_success, (void *)test_user_data);
-  grpc_exec_ctx_flush(&exec_ctx);
+  grpc_credentials_get_request_metadata(jwt_creds, NULL, other_test_service_url,
+                                        on_jwt_creds_get_metadata_success,
+                                        (void *)test_user_data);
 
   gpr_free(json_key_string);
   grpc_credentials_unref(jwt_creds);
@@ -787,7 +755,6 @@ static void test_jwt_creds_success(void) {
 
 static void test_jwt_creds_signing_failure(void) {
   char *json_key_string = test_json_key_str();
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
   grpc_credentials *jwt_creds =
       grpc_service_account_jwt_access_credentials_create(
           json_key_string, grpc_max_auth_token_lifetime, NULL);
@@ -795,14 +762,13 @@ static void test_jwt_creds_signing_failure(void) {
   GPR_ASSERT(grpc_credentials_has_request_metadata_only(jwt_creds));
 
   grpc_jwt_encode_and_sign_set_override(encode_and_sign_jwt_failure);
-  grpc_credentials_get_request_metadata(
-      &exec_ctx, jwt_creds, NULL, test_service_url,
-      on_jwt_creds_get_metadata_failure, (void *)test_user_data);
+  grpc_credentials_get_request_metadata(jwt_creds, NULL, test_service_url,
+                                        on_jwt_creds_get_metadata_failure,
+                                        (void *)test_user_data);
 
   gpr_free(json_key_string);
   grpc_credentials_unref(jwt_creds);
   grpc_jwt_encode_and_sign_set_override(NULL);
-  grpc_exec_ctx_finish(&exec_ctx);
 }
 
 static void set_google_default_creds_env_var_with_file_contents(
@@ -908,8 +874,8 @@ static void plugin_get_metadata_failure(void *state, const char *service_url,
 }
 
 static void on_plugin_metadata_received_success(
-    grpc_exec_ctx *exec_ctx, void *user_data, grpc_credentials_md *md_elems,
-    size_t num_md, grpc_credentials_status status) {
+    void *user_data, grpc_credentials_md *md_elems, size_t num_md,
+    grpc_credentials_status status) {
   size_t i = 0;
   GPR_ASSERT(user_data == NULL);
   GPR_ASSERT(md_elems != NULL);
@@ -921,8 +887,8 @@ static void on_plugin_metadata_received_success(
 }
 
 static void on_plugin_metadata_received_failure(
-    grpc_exec_ctx *exec_ctx, void *user_data, grpc_credentials_md *md_elems,
-    size_t num_md, grpc_credentials_status status) {
+    void *user_data, grpc_credentials_md *md_elems, size_t num_md,
+    grpc_credentials_status status) {
   GPR_ASSERT(user_data == NULL);
   GPR_ASSERT(md_elems == NULL);
   GPR_ASSERT(num_md == 0);
@@ -938,7 +904,6 @@ static void test_metadata_plugin_success(void) {
   grpc_credentials *creds;
   plugin_state state = PLUGIN_INITIAL_STATE;
   grpc_metadata_credentials_plugin plugin;
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
 
   plugin.state = &state;
   plugin.get_metadata = plugin_get_metadata_success;
@@ -947,19 +912,16 @@ static void test_metadata_plugin_success(void) {
   creds = grpc_metadata_credentials_create_from_plugin(plugin, NULL);
   GPR_ASSERT(state == PLUGIN_INITIAL_STATE);
   grpc_credentials_get_request_metadata(
-      &exec_ctx, creds, NULL, test_service_url,
-      on_plugin_metadata_received_success, NULL);
+      creds, NULL, test_service_url, on_plugin_metadata_received_success, NULL);
   GPR_ASSERT(state == PLUGIN_GET_METADATA_CALLED_STATE);
   grpc_credentials_release(creds);
   GPR_ASSERT(state == PLUGIN_DESTROY_CALLED_STATE);
-  grpc_exec_ctx_finish(&exec_ctx);
 }
 
 static void test_metadata_plugin_failure(void) {
   grpc_credentials *creds;
   plugin_state state = PLUGIN_INITIAL_STATE;
   grpc_metadata_credentials_plugin plugin;
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
 
   plugin.state = &state;
   plugin.get_metadata = plugin_get_metadata_failure;
@@ -968,12 +930,10 @@ static void test_metadata_plugin_failure(void) {
   creds = grpc_metadata_credentials_create_from_plugin(plugin, NULL);
   GPR_ASSERT(state == PLUGIN_INITIAL_STATE);
   grpc_credentials_get_request_metadata(
-      &exec_ctx, creds, NULL, test_service_url,
-      on_plugin_metadata_received_failure, NULL);
+      creds, NULL, test_service_url, on_plugin_metadata_received_failure, NULL);
   GPR_ASSERT(state == PLUGIN_GET_METADATA_CALLED_STATE);
   grpc_credentials_release(creds);
   GPR_ASSERT(state == PLUGIN_DESTROY_CALLED_STATE);
-  grpc_exec_ctx_finish(&exec_ctx);
 }
 
 int main(int argc, char **argv) {
