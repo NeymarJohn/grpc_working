@@ -30,5 +30,7 @@
 
 set -e
 cd $(dirname $0)
-php $extension_dir -d extension=grpc.so -d max_execution_time=300 \
+command -v brew >/dev/null 2>&1 && \
+  extension_dir="-d extension_dir="`brew --prefix`/opt/grpc-php
+php $extension_dir -d extension=grpc.so \
   route_guide_client.php ../../node/route_guide/route_guide_db.json

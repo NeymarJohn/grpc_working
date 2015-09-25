@@ -6,73 +6,65 @@ A C# implementation of gRPC.
 Status
 ------
 
-Beta
+Alpha : Ready for early adopters.
 
-PREREQUISITES
+Usage: Windows
 --------------
 
-- Windows: .NET Framework 4.5+, Visual Studio 2013 or 2015.
-- Linux: Mono 3.2.8+, MonoDevelop 5.9 with NuGet add-in installed.
-- Mac OS X: [homebrew][], Xamarin Studio with NuGet add-in installed.
-
-HOW TO USE
---------------
-
-**Windows**
+- Prerequisites: .NET Framework 4.5+, Visual Studio 2013 with NuGet extension installed (VS2015 should work).
 
 - Open Visual Studio and start a new project/solution.
 
 - Add NuGet package `Grpc` as a dependency (Project options -> Manage NuGet Packages).
   That will also pull all the transitive dependencies (including the native libraries that
-  gRPC C# is using internally).
+  gRPC C# is internally using).
 
-**Linux (Debian)**
+- Helloworld project example can be found in https://github.com/grpc/grpc/tree/master/examples/csharp.
 
-- Add [Debian jessie-backports][] to your `sources.list` file. Example:
+Usage: Linux (Mono)
+--------------
 
-  ```sh
-  echo "deb http://http.debian.net/debian jessie-backports main" | \
-  sudo tee -a /etc/apt/sources.list
-  ```
+- Prerequisites: Mono 3.2.8+, MonoDevelop 5.9 with NuGet add-in installed.
 
-- Install the gRPC Debian package
+- Install Linuxbrew and gRPC C Core using instructions in https://github.com/grpc/homebrew-grpc
 
-  ```sh
-  sudo apt-get update
-  sudo apt-get install libgrpc0
-  ```
+- gRPC C# depends on native shared library libgrpc_csharp_ext.so (Unix flavor of grpc_csharp_ext.dll).
+  This library will be installed to `~/.linuxbrew/lib` by the previous step.
+  To make it visible to mono, you need to:
 
-- gRPC C# depends on native shared library `libgrpc_csharp_ext.so` (Unix flavor of grpc_csharp_ext.dll).
-  This library is not part of the base gRPC debian package and needs to be installed manually from
-  a `.deb` file. Download the debian package `libgrpc_csharp_ext` from corresponding gRPC release on GitHub
-  and install it using `dpkg`.
+  - (preferred approach) add `libgrpc_csharp_ext.so` to `/etc/ld.so.cache` by running:
 
-  ```sh
-  # choose version corresponding to the version of libgrpc you've installed.
-  wget https://github.com/grpc/grpc/releases/download/release-0_11_0/libgrpc-csharp-ext0_0.11.0.0-1_amd64.deb
-  dpkg -i libgrpc-csharp-ext0_0.11.0.0-1_amd64.deb
-  ```
+    ```sh
+    $ echo "$HOME/.linuxbrew/lib" | sudo tee /etc/ld.so.conf.d/zzz_brew_lib.conf
+    $ sudo ldconfig
+    ```
+
+  - (adhoc approach) set `LD_LIBRARY_PATH` environment variable to point to directory containing `libgrpc_csharp_ext.so`:
+
+    ```sh
+    $ export LD_LIBRARY_PATH=$HOME/.linuxbrew/lib:${LD_LIBRARY_PATH}
+    ```
+  - (if you are contributor) installing gRPC from sources using `sudo make install_grpc_csharp_ext` also works.
 
 - Open MonoDevelop and start a new project/solution.
 
 - Add NuGet package `Grpc` as a dependency (Project -> Add NuGet packages).
 
-**Mac OS X**
+- Helloworld project example can be found in https://github.com/grpc/grpc/tree/master/examples/csharp.
+
+Usage: MacOS (Mono)
+--------------
 
 - WARNING: As of now gRPC C# only works on 64bit version of Mono (because we don't compile
   the native extension for C# in 32bit mode yet). That means your development experience
   with Xamarin Studio on MacOS will not be great, as you won't be able to run your
   code directly from Xamarin Studio (which requires 32bit version of Mono).
 
-- Install [homebrew][]. Run the following command to install gRPC C# native dependencies.
+- Prerequisites: Xamarin Studio with NuGet add-in installed.
 
-  ```sh
-  $ curl -fsSL https://goo.gl/getgrpc | bash -
-  ```
-  This will download and run the [gRPC install script][], then install the latest version of gRPC C core and native C# extension.
-  It also installs Protocol Buffers compiler (_protoc_) and the gRPC _protoc_ plugin for ruby.
+- Install Homebrew and gRPC C Core using instructions in https://github.com/grpc/homebrew-grpc
 
-- Install 64-bit version of mono with command `brew install mono`.
+- Install 64-bit version of mono with command `brew install mono` (assumes you've already installed Homebrew).
 
 - Open Xamarin Studio and start a new project/solution.
 
@@ -81,27 +73,35 @@ HOW TO USE
 - *You will be able to build your project in Xamarin Studio, but to run or test it,
   you will need to run it under 64-bit version of Mono.*
 
-BUILD FROM SOURCE
+- Helloworld project example can be found in https://github.com/grpc/grpc/tree/master/examples/csharp.
+
+Building: Windows
 -----------------
 
 You only need to go through these steps if you are planning to develop gRPC C#.
 If you are a user of gRPC C#, go to Usage section above.
 
-**Windows**
+- Prerequisites for development: NET Framework 4.5+, Visual Studio 2013 (with NuGet and NUnit extensions installed).
 
-- The grpc_csharp_ext native library needs to be built so you can build the gRPC C# solution. You can 
+- The grpc_csharp_ext native library needs to be built so you can build the Grpc C# solution. You can 
   either build the native solution in `vsprojects/grpc.sln` from Visual Studio manually, or you can use
   a convenience batch script that builds everything for you.
 
   ```
-  > REM From src/csharp directory
   > buildall.bat
   ```
 
-- Open Grpc.sln using Visual Studio. NuGet dependencies will be restored
+- Open Grpc.sln using Visual Studio 2013. NuGet dependencies will be restored
   upon build (you need to have NuGet add-in installed).
 
-**Linux**
+
+Building: Linux (Mono)
+----------------------
+
+You only need to go through these steps if you are planning to develop gRPC C#.
+If you are a user of gRPC C#, go to Usage section above.
+
+- Prerequisites for development: Mono 3.2.8+, MonoDevelop 5.9 with NuGet and NUnit add-ins installed.
 
   ```sh
   $ sudo apt-get install mono-devel
@@ -123,8 +123,8 @@ don't support NuGet add-in.
 
 - Build the solution & run all the tests from test view.
 
-RUNNING TESTS
--------------
+Tests
+-----
 
 gRPC C# is using NUnit as the testing framework.
 
@@ -136,25 +136,12 @@ Then you should be able to run all the test from the Test View.
 
 After building the solution, you can also run the tests from command line 
 using nunit-console tool.
-
 ```sh
 # from Grpc.Core.Test/bin/Debug directory
 $ nunit-console Grpc.Core.Tests.dll
 ```
 
-gRPC team uses a Python script to simplify facilitate running tests for
-different languages.
-
-```
-tools/run_tests/run_tests.py -l csharp
-```
-
-DOCUMENTATION
--------------
-- the gRPC C# reference documentation is available online at [grpc.io][]
-- [Helloworld example][]
-
-CONTENTS
+Contents
 --------
 
 - ext:
@@ -172,7 +159,7 @@ CONTENTS
 - Grpc.IntegrationTesting:
   Cross-language gRPC implementation testing (interop testing).
 
-TROUBLESHOOTING
+Troubleshooting
 ---------------
 
 ### Problem: Unable to load DLL 'grpc_csharp_ext.dll'
@@ -183,17 +170,8 @@ Internally, gRPC C# uses a native library written in C (gRPC C core) and invokes
 
 - If you are running your application that is using gRPC on Windows machine that doesn't have Visual Studio installed, you might need to install [Visual C++ 2013 redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=40784) that contains some system .dll libraries that `grpc_csharp_ext.dll` depends on (see #905 for more details).
 
-- On Linux (or Docker), you need to first install gRPC C core and `libgrpc_csharp_ext.so` shared libraries.
-  See [How to Use](#how-to-use) section for details how to install it.
-  Installation on a machine where your application is going to be deployed is no different.
+- On Linux (or Docker), you need to first install gRPC C core and `libgrpc_csharp_ext.so` shared libraries. Currently, the libraries can be installed by `make install_grpc_csharp_ext` or using Linuxbrew (a Debian package is coming soon). Installation on a machine where your application is going to be deployed is no different. 
 
-- On Mac, you need to first install gRPC C core and `libgrpc_csharp_ext.dylib` shared libraries using Homebrew. See above for installation instruction.
-  Installation on a machine where your application is going to be deployed is no different.
+- On Mac, you need to first install gRPC C core and `libgrpc_csharp_ext.dylib` shared libraries using Homebrew. See above for installation instruction. Installation on a machine where your application is going to be deployed is no different. 
 
 - Possible cause for the problem is that the `grpc_csharp_ext` library is installed, but it has different bitness (32/64bit) than your C# runtime (in case you are using mono) or C# application.
-
-[homebrew]:http://brew.sh
-[gRPC install script]:https://raw.githubusercontent.com/grpc/homebrew-grpc/master/scripts/install
-[grpc.io]: http://www.grpc.io/docs/installation/csharp.html
-[Debian jessie-backports]:http://backports.debian.org/Instructions/
-[Helloworld example]:../../examples/csharp/helloworld
