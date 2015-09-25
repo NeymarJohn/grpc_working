@@ -31,14 +31,41 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SUPPORT_BLOCK_ANNOTATE_H
-#define GRPC_INTERNAL_CORE_SUPPORT_BLOCK_ANNOTATE_H
+#include "src/core/iomgr/closure.h"
 
-/* These annotations identify the beginning and end of regions where
-   the code may block for reasons other than synchronization functions.
-   These include poll, epoll, and getaddrinfo. */
+void grpc_closure_init(grpc_closure *closure, grpc_iomgr_cb_func cb,
+                       void *cb_arg) {
+  closure->cb = cb;
+  closure->cb_arg = cb_arg;
+  closure->next = NULL;
+}
 
-#define GRPC_SCHEDULING_START_BLOCKING_REGION do {} while (0)
-#define GRPC_SCHEDULING_END_BLOCKING_REGION do {} while (0)
+void grpc_closure_list_add(grpc_closure_list *closure_list,
+                           grpc_closure *closure, int success) {
+  if (closure == NULL) return;
+  closure->next = NULL;
+  closure->success = success;
+  if (closure_list->head == NULL) {
+    closure_list->head = closure;
+  } else {
+    closure_list->tail->next = closure;
+  }
+  closure_list->tail = closure;
+}
 
-#endif /* GRPC_INTERNAL_CORE_SUPPORT_BLOCK_ANNOTATE_H */
+int grpc_closure_list_empty(grpc_closure_list closure_list) {
+  return closure_list.head == NULL;
+}
+
+void grpc_closure_list_move(grpc_closure_list *src, grpc_closure_list *dst) {
+  if (src->head == NULL) {
+    return;
+  }
+  if (dst->head == NULL) {
+    *dst = *src;
+  } else {
+    dst->tail->next = src->head;
+    dst->tail = src->tail;
+  }
+  src->head = src->tail = NULL;
+}
