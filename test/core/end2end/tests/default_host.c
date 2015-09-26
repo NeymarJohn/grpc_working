@@ -154,7 +154,7 @@ static void simple_request_body(grpc_end2end_test_fixture f) {
   op->flags = 0;
   op->reserved = NULL;
   op++;
-  error = grpc_call_start_batch(c, ops, op - ops, tag(1), NULL);
+  error = grpc_call_start_batch(c, ops, (size_t)(op - ops), tag(1), NULL);
   GPR_ASSERT(error == GRPC_CALL_OK);
 
   error =
@@ -191,7 +191,7 @@ static void simple_request_body(grpc_end2end_test_fixture f) {
   op->flags = 0;
   op->reserved = NULL;
   op++;
-  error = grpc_call_start_batch(s, ops, op - ops, tag(102), NULL);
+  error = grpc_call_start_batch(s, ops, (size_t)(op - ops), tag(102), NULL);
   GPR_ASSERT(error == GRPC_CALL_OK);
 
   cq_expect_completion(cqv, tag(102), 1);
@@ -226,7 +226,7 @@ static void test_invoke_simple_request(grpc_end2end_test_config config) {
 }
 
 void grpc_end2end_tests(grpc_end2end_test_config config) {
-  if ((config.feature_mask & FEATURE_MASK_SUPPORTS_HOSTNAME_VERIFICATION) != 0)
+  if ((config.feature_mask & FEATURE_MASK_SUPPORTS_HOSTNAME_VERIFICATION) == 0)
     return;
   if ((config.feature_mask & FEATURE_MASK_SUPPORTS_DELAYED_CONNECTION) == 0)
     return;
