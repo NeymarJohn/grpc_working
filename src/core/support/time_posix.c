@@ -41,7 +41,6 @@
 #include <unistd.h>
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
-#include "src/core/support/block_annotate.h"
 
 static struct timespec timespec_from_gpr(gpr_timespec gts) {
   struct timespec rv;
@@ -109,8 +108,8 @@ gpr_timespec gpr_now(gpr_clock_type clock) {
       break;
     case GPR_CLOCK_MONOTONIC:
       now_dbl = (mach_absolute_time() - g_time_start) * g_time_scale;
-      now.tv_sec = (time_t)(now_dbl * 1e-9);
-      now.tv_nsec = (int)(now_dbl - ((double)now.tv_sec) * 1e9);
+      now.tv_sec = now_dbl * 1e-9;
+      now.tv_nsec = now_dbl - now.tv_sec * 1e9;
       break;
     case GPR_CLOCK_PRECISE:
       gpr_precise_clock_now(&now);
@@ -127,7 +126,6 @@ void gpr_sleep_until(gpr_timespec until) {
   gpr_timespec now;
   gpr_timespec delta;
   struct timespec delta_ts;
-  int ns_result;
 
   for (;;) {
     /* We could simplify by using clock_nanosleep instead, but it might be
@@ -139,10 +137,7 @@ void gpr_sleep_until(gpr_timespec until) {
 
     delta = gpr_time_sub(until, now);
     delta_ts = timespec_from_gpr(delta);
-    GRPC_SCHEDULING_START_BLOCKING_REGION;
-    ns_result = nanosleep(&delta_ts, NULL);
-    GRPC_SCHEDULING_END_BLOCKING_REGION;
-    if (ns_result == 0) {
+    if (nanosleep(&delta_ts, NULL) == 0) {
       break;
     }
   }
