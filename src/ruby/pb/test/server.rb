@@ -187,7 +187,7 @@ def main
     s.add_http2_port(host, test_server_creds)
     GRPC.logger.info("... running securely on #{host}")
   else
-    s.add_http2_port(host, :this_port_is_insecure)
+    s.add_http2_port(host)
     GRPC.logger.info("... running insecurely on #{host}")
   end
   s.handle(TestTarget)
