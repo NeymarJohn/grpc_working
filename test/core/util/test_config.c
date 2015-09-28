@@ -89,7 +89,7 @@ static void install_crash_handler() {
 #include <string.h>
 #include <grpc/support/useful.h>
 
-static char g_alt_stack[MINSIGSTKSZ];
+static char g_alt_stack[8192];
 
 #define MAX_FRAMES 32
 
