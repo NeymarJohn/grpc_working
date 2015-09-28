@@ -163,7 +163,6 @@
     <ClInclude Include="..\..\..\include\grpc\support\useful.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\core\support\block_annotate.h" />
     <ClInclude Include="..\..\..\src\core\support\env.h" />
     <ClInclude Include="..\..\..\src\core\support\file.h" />
     <ClInclude Include="..\..\..\src\core\support\murmur_hash.h" />
