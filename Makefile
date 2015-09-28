@@ -92,7 +92,7 @@ CXX_opt = $(DEFAULT_CXX)
 LD_opt = $(DEFAULT_CC)
 LDXX_opt = $(DEFAULT_CXX)
 CPPFLAGS_opt = -O2
-LDFLAGS_opt = -rdynamic
+LDFLAGS_opt =
 DEFINES_opt = NDEBUG
 
 VALID_CONFIG_basicprof = 1
@@ -119,7 +119,7 @@ CXX_dbg = $(DEFAULT_CXX)
 LD_dbg = $(DEFAULT_CC)
 LDXX_dbg = $(DEFAULT_CXX)
 CPPFLAGS_dbg = -O0
-LDFLAGS_dbg = -rdynamic
+LDFLAGS_dbg =
 DEFINES_dbg = _DEBUG DEBUG
 
 VALID_CONFIG_mutrace = 1
@@ -139,7 +139,7 @@ LD_valgrind = $(DEFAULT_CC)
 LDXX_valgrind = $(DEFAULT_CXX)
 CPPFLAGS_valgrind = -O0
 OPENSSL_CFLAGS_valgrind = -DPURIFY
-LDFLAGS_valgrind = -rdynamic
+LDFLAGS_valgrind =
 DEFINES_valgrind = _DEBUG DEBUG GRPC_TEST_SLOWDOWN_BUILD_FACTOR=20
 
 VALID_CONFIG_tsan = 1
@@ -190,7 +190,7 @@ CXX_gcov = g++
 LD_gcov = gcc
 LDXX_gcov = g++
 CPPFLAGS_gcov = -O0 -fprofile-arcs -ftest-coverage
-LDFLAGS_gcov = -fprofile-arcs -ftest-coverage -rdynamic
+LDFLAGS_gcov = -fprofile-arcs -ftest-coverage
 DEFINES_gcov = _DEBUG DEBUG
 
 
