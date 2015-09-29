@@ -62,39 +62,19 @@ class Credentials : public Nan::ObjectWrap {
   Credentials &operator=(const Credentials &);
 
   static NAN_METHOD(New);
+  static NAN_METHOD(CreateDefault);
   static NAN_METHOD(CreateSsl);
   static NAN_METHOD(CreateComposite);
+  static NAN_METHOD(CreateGce);
+  static NAN_METHOD(CreateFake);
+  static NAN_METHOD(CreateIam);
   static NAN_METHOD(CreateInsecure);
-  static NAN_METHOD(CreateFromPlugin);
   static Nan::Callback *constructor;
   // Used for typechecking instances of this javascript class
   static Nan::Persistent<v8::FunctionTemplate> fun_tpl;
 
   grpc_credentials *wrapped_credentials;
 };
-
-/* Auth metadata plugin functionality */
-
-typedef struct plugin_state {
-  Nan::Callback *callback;
-} plugin_state;
-
-typedef struct plugin_callback_data {
-  plugin_state *state;
-  const char *service_url;
-  grpc_credentials_plugin_metadata_cb cb;
-  void *user_data;
-} plugin_callback_data;
-
-void plugin_get_metadata(void *state, const char *service_url,
-                         grpc_credentials_plugin_metadata_cb cb,
-                         void *user_data);
-
-void plugin_destroy_state(void *state);
-
-NAN_METHOD(PluginCallback);
-
-NAUV_WORK_CB(SendPluginCallback);
 
 }  // namespace node
 }  // namespace grpc
