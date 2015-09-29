@@ -42,16 +42,16 @@ double g_fixture_slowdown_factor = 1.0;
 
 #if GPR_GETPID_IN_UNISTD_H
 #include <unistd.h>
-static unsigned seed(void) { return (unsigned)getpid(); }
+static int seed(void) { return getpid(); }
 #endif
 
 #if GPR_GETPID_IN_PROCESS_H
 #include <process.h>
-static unsigned seed(void) { return _getpid(); }
+static int seed(void) { return _getpid(); }
 #endif
 
 #if GPR_WINDOWS_CRASH_HANDLER
-LONG crash_handler(struct _EXCEPTION_POINTERS *ex_info) {
+LONG crash_handler(struct _EXCEPTION_POINTERS* ex_info) {
   gpr_log(GPR_DEBUG, "Exception handler called, dumping information");
   while (ex_info->ExceptionRecord) {
     DWORD code = ex_info->ExceptionRecord->ExceptionCode;
@@ -83,54 +83,11 @@ static void install_crash_handler() {
   _set_abort_behavior(0, _CALL_REPORTFAULT);
   signal(SIGABRT, abort_handler);
 }
-#elif GPR_POSIX_CRASH_HANDLER
-#include <execinfo.h>
-#include <stdio.h>
-#include <string.h>
-#include <grpc/support/useful.h>
-
-static char g_alt_stack[MINSIGSTKSZ];
-
-#define MAX_FRAMES 32
-
-static void crash_handler(int signum, siginfo_t *info, void *data) {
-  void *addrlist[MAX_FRAMES + 1];
-  int addrlen;
-  int i;
-  char **symlist;
-
-  fprintf(stderr, "Caught signal %d\n", signum);
-  addrlen = backtrace(addrlist, GPR_ARRAY_SIZE(addrlist));
-
-  symlist = backtrace_symbols(addrlist, addrlen);
-  for (i = 0; i < addrlen; i++) {
-    fprintf(stderr, "  %s\n", symlist[i]);
-  }
-  free(symlist);
-
-  raise(signum);
-}
-
-static void install_crash_handler() {
-  stack_t ss;
-  struct sigaction sa;
-  memset(&ss, 0, sizeof(ss));
-  memset(&sa, 0, sizeof(sa));
-  ss.ss_size = sizeof(g_alt_stack);
-  ss.ss_sp = g_alt_stack;
-  GPR_ASSERT(sigaltstack(&ss, NULL) == 0);
-  sa.sa_flags = (int)(SA_SIGINFO | SA_ONSTACK | SA_RESETHAND);
-  sa.sa_sigaction = crash_handler;
-  GPR_ASSERT(sigaction(SIGILL, &sa, NULL) == 0);
-  GPR_ASSERT(sigaction(SIGABRT, &sa, NULL) == 0);
-  GPR_ASSERT(sigaction(SIGBUS, &sa, NULL) == 0);
-  GPR_ASSERT(sigaction(SIGSEGV, &sa, NULL) == 0);
-}
 #else
 static void install_crash_handler() {}
 #endif
 
-void grpc_test_init(int argc, char **argv) {
+void grpc_test_init(int argc, char** argv) {
   install_crash_handler();
   gpr_log(GPR_DEBUG, "test slowdown: machine=%f build=%f total=%f",
           (double)GRPC_TEST_SLOWDOWN_MACHINE_FACTOR,
