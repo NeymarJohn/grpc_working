@@ -229,7 +229,7 @@ QpsWorker::QpsWorker(int driver_port, int server_port) {
 
   gpr_free(server_address);
 
-  server_ = builder.BuildAndStart();
+  server_ = std::move(builder.BuildAndStart());
 }
 
 QpsWorker::~QpsWorker() {}

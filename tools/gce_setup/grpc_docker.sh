@@ -530,20 +530,7 @@ grpc_cloud_prod_auth_test_args() {
 
   [[ -n $1 ]] && {  # client_type
     case $1 in
-      go|java|node|php|python|ruby|csharp_mono)
-        grpc_client_platform='Docker'
-        grpc_gen_test_cmd+="_gen_$1_cmd"
-        declare -F $grpc_gen_test_cmd >> /dev/null || {
-          echo "-f: test_func for $1 => $grpc_gen_test_cmd is not defined" 1>&2
-          return 2
-        }
-        shift
-        ;;
-      cxx)
-        if [ "$test_case" == "oauth2_auth_token" ]
-        then
-          grpc_gen_test_cmd="grpc_cloud_prod_auth_compute_engine_creds"
-        fi
+      cxx|go|java|node|php|python|ruby|csharp_mono)
         grpc_client_platform='Docker'
         grpc_gen_test_cmd+="_gen_$1_cmd"
         declare -F $grpc_gen_test_cmd >> /dev/null || {
@@ -1142,7 +1129,7 @@ grpc_cloud_prod_auth_service_account_creds_gen_python_cmd() {
   local gfe_flags=$(_grpc_prod_gfe_flags)
   local added_gfe_flags=$(_grpc_default_creds_test_flags)
   local env_prefix="SSL_CERT_FILE=/cacerts/roots.pem"
-  env_prefix+=" GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json"
+  env_prefix+=" GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-7dd63462c60c.json"
   local the_cmd="$cmd_prefix '$env_prefix python -B -m interop.client --use_tls $gfe_flags $added_gfe_flags $@'"
   echo $the_cmd
 }
@@ -1220,7 +1207,7 @@ grpc_cloud_prod_auth_service_account_creds_gen_ruby_cmd() {
   local gfe_flags=$(_grpc_prod_gfe_flags)
   local added_gfe_flags=$(_grpc_default_creds_test_flags)
   local env_prefix="SSL_CERT_FILE=/cacerts/roots.pem"
-  env_prefix+=" GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json"
+  env_prefix+=" GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-7dd63462c60c.json"
   local the_cmd="$cmd_prefix '$env_prefix ruby $test_script $gfe_flags $added_gfe_flags $@'"
   echo $the_cmd
 }
@@ -1252,7 +1239,7 @@ grpc_cloud_prod_auth_jwt_token_creds_gen_ruby_cmd() {
   local test_script+=" --use_tls"
   local gfe_flags=$(_grpc_prod_gfe_flags)
   local env_prefix="SSL_CERT_FILE=/cacerts/roots.pem"
-  env_prefix+=" GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json"
+  env_prefix+=" GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-7dd63462c60c.json"
   local the_cmd="$cmd_prefix '$env_prefix ruby $test_script $gfe_flags $added_gfe_flags $@'"
   echo $the_cmd
 }
@@ -1375,7 +1362,7 @@ grpc_cloud_prod_gen_php_cmd() {
 #   cmd=$($grpc_gen_test_cmd $flags)
 grpc_cloud_prod_auth_service_account_creds_gen_php_cmd() {
   local env_flag="-e SSL_CERT_FILE=/cacerts/roots.pem "
-  env_flag+="-e GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json "
+  env_flag+="-e GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-7dd63462c60c.json "
   local cmd_prefix="sudo docker run $env_flag grpc/php";
   local test_script="/var/local/git/grpc/src/php/bin/interop_client.sh";
   local gfe_flags=$(_grpc_prod_gfe_flags);
@@ -1406,7 +1393,7 @@ grpc_cloud_prod_auth_compute_engine_creds_gen_php_cmd() {
 #   cmd=$($grpc_gen_test_cmd $flags)
 grpc_cloud_prod_auth_jwt_token_creds_gen_php_cmd() {
   local env_flag="-e SSL_CERT_FILE=/cacerts/roots.pem "
-  env_flag+="-e GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json "
+  env_flag+="-e GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-7dd63462c60c.json "
   local cmd_prefix="sudo docker run $env_flag grpc/php";
   local test_script="/var/local/git/grpc/src/php/bin/interop_client.sh";
   local gfe_flags=$(_grpc_prod_gfe_flags);
@@ -1447,7 +1434,7 @@ grpc_cloud_prod_gen_node_cmd() {
 #   cmd=$($grpc_gen_test_cmd $flags)
 grpc_cloud_prod_auth_service_account_creds_gen_node_cmd() {
   local env_flag="-e SSL_CERT_FILE=/cacerts/roots.pem "
-  env_flag+="-e GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json "
+  env_flag+="-e GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-7dd63462c60c.json "
   local cmd_prefix="sudo docker run $env_flag grpc/node";
   local test_script="/usr/bin/nodejs /var/local/git/grpc/src/node/interop/interop_client.js --use_tls=true";
   local gfe_flags=$(_grpc_prod_gfe_flags);
@@ -1599,7 +1586,7 @@ grpc_cloud_prod_gen_csharp_dotnet_cmd() {
 grpc_cloud_prod_auth_service_account_creds_gen_csharp_mono_cmd() {
   local workdir_flag="-w /var/local/git/grpc/src/csharp/Grpc.IntegrationTesting.Client/bin/Debug"
   local env_flag="-e SSL_CERT_FILE=/cacerts/roots.pem "
-  env_flag+="-e GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json "
+  env_flag+="-e GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-7dd63462c60c.json "
   local cmd_prefix="sudo docker run $workdir_flag $env_flag grpc/csharp_mono";
   local test_script="mono Grpc.IntegrationTesting.Client.exe --use_tls=true";
   local gfe_flags=$(_grpc_prod_gfe_flags);
@@ -1616,7 +1603,7 @@ grpc_cloud_prod_auth_service_account_creds_gen_csharp_dotnet_cmd() {
   local set_workdir="cd /cygdrive/c/github/grpc/src/csharp/Grpc.IntegrationTesting.Client/bin/Debug &&"
   local test_script="./Grpc.IntegrationTesting.Client.exe --use_tls=true";
   local set_certfile="SSL_CERT_FILE=/cacerts/roots.pem "
-  local set_creds="GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json "
+  local set_creds="GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-7dd63462c60c.json "
   local gfe_flags=$(_grpc_prod_gfe_flags);
   local the_cmd="$set_workdir $set_certfile $set_creds $test_script $gfe_flags $@";
   echo $the_cmd
@@ -1659,7 +1646,7 @@ grpc_cloud_prod_auth_compute_engine_creds_gen_csharp_dotnet_cmd() {
 grpc_cloud_prod_auth_oauth2_auth_token_gen_csharp_mono_cmd() {
   local workdir_flag="-w /var/local/git/grpc/src/csharp/Grpc.IntegrationTesting.Client/bin/Debug"
   local env_flag="-e SSL_CERT_FILE=/cacerts/roots.pem "
-  env_flag+="-e GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json "
+  env_flag+="-e GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-7dd63462c60c.json "
   local cmd_prefix="sudo docker run $workdir_flag $env_flag grpc/csharp_mono";
   local test_script="mono Grpc.IntegrationTesting.Client.exe --use_tls=true";
   local gfe_flags=$(_grpc_prod_gfe_flags);
@@ -1676,7 +1663,7 @@ grpc_cloud_prod_auth_oauth2_auth_token_gen_csharp_dotnet_cmd() {
   local set_workdir="cd /cygdrive/c/github/grpc/src/csharp/Grpc.IntegrationTesting.Client/bin/Debug &&"
   local test_script="./Grpc.IntegrationTesting.Client.exe --use_tls=true";
   local set_certfile="SSL_CERT_FILE=/cacerts/roots.pem "
-  local set_creds="GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json "
+  local set_creds="GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-7dd63462c60c.json "
   local gfe_flags=$(_grpc_prod_gfe_flags);
   local the_cmd="$set_workdir $set_certfile $set_creds $test_script $gfe_flags $@";
   echo $the_cmd
@@ -1690,7 +1677,7 @@ grpc_cloud_prod_auth_oauth2_auth_token_gen_csharp_dotnet_cmd() {
 grpc_cloud_prod_auth_per_rpc_creds_gen_csharp_mono_cmd() {
   local workdir_flag="-w /var/local/git/grpc/src/csharp/Grpc.IntegrationTesting.Client/bin/Debug"
   local env_flag="-e SSL_CERT_FILE=/cacerts/roots.pem "
-  env_flag+="-e GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json "
+  env_flag+="-e GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-7dd63462c60c.json "
   local cmd_prefix="sudo docker run $workdir_flag $env_flag grpc/csharp_mono";
   local test_script="mono Grpc.IntegrationTesting.Client.exe --use_tls=true";
   local gfe_flags=$(_grpc_prod_gfe_flags);
@@ -1707,7 +1694,7 @@ grpc_cloud_prod_auth_per_rpc_creds_gen_csharp_dotnet_cmd() {
   local set_workdir="cd /cygdrive/c/github/grpc/src/csharp/Grpc.IntegrationTesting.Client/bin/Debug &&"
   local test_script="./Grpc.IntegrationTesting.Client.exe --use_tls=true";
   local set_certfile="SSL_CERT_FILE=/cacerts/roots.pem "
-  local set_creds="GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json "
+  local set_creds="GOOGLE_APPLICATION_CREDENTIALS=/service_account/stubbyCloudTestingTest-7dd63462c60c.json "
   local gfe_flags=$(_grpc_prod_gfe_flags);
   local the_cmd="$set_workdir $set_certfile $set_creds $test_script $gfe_flags $@";
   echo $the_cmd
@@ -1720,12 +1707,12 @@ _grpc_prod_gfe_flags() {
 
 # outputs the flags passed to the service account auth tests
 _grpc_svc_acc_test_flags() {
-  echo " --service_account_key_file=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json --oauth_scope=https://www.googleapis.com/auth/xapi.zoo"
+  echo " --service_account_key_file=/service_account/stubbyCloudTestingTest-7dd63462c60c.json --oauth_scope=https://www.googleapis.com/auth/xapi.zoo"
 }
 
 # outputs the flags passed to the service account auth tests
 _grpc_jwt_token_test_flags() {
-  echo " --service_account_key_file=/service_account/stubbyCloudTestingTest-ee3fce360ac5.json"
+  echo " --service_account_key_file=/service_account/stubbyCloudTestingTest-7dd63462c60c.json"
 }
 
 # default credentials test flag
