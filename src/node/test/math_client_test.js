@@ -46,9 +46,8 @@ var math_client;
 /**
  * Server to test against
  */
-var getServer = require('../examples/math_server.js');
+var server = require('../examples/math_server.js');
 
-var server = getServer();
 
 describe('Math client', function() {
   before(function(done) {
