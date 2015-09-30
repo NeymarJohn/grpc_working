@@ -28,9 +28,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# This script is invoked by build_docker_and_run_tests.sh inside a docker
+# This script is invoked by build_docker_and_run_tests.py inside a docker
 # container. You should never need to call this script on your own.
-
 set -e
 
 export CONFIG=$config
