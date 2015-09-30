@@ -274,11 +274,10 @@ static grpc_mdelem *add_elem(grpc_chttp2_hpack_compressor *c,
   return elem_to_unref;
 }
 
-static void emit_indexed(grpc_chttp2_hpack_compressor *c, gpr_uint32 elem_index,
+static void emit_indexed(grpc_chttp2_hpack_compressor *c, gpr_uint32 index,
                          framer_state *st) {
-  gpr_uint32 len = GRPC_CHTTP2_VARINT_LENGTH(elem_index, 1);
-  GRPC_CHTTP2_WRITE_VARINT(elem_index, 1, 0x80, add_tiny_header_data(st, len),
-			   len);
+  gpr_uint32 len = GRPC_CHTTP2_VARINT_LENGTH(index, 1);
+  GRPC_CHTTP2_WRITE_VARINT(index, 1, 0x80, add_tiny_header_data(st, len), len);
 }
 
 static gpr_slice get_wire_value(grpc_mdelem *elem, gpr_uint8 *huffman_prefix) {
@@ -364,10 +363,9 @@ static void emit_lithdr_noidx_v(grpc_chttp2_hpack_compressor *c,
   add_header_data(st, gpr_slice_ref(value_slice));
 }
 
-static gpr_uint32 dynidx(grpc_chttp2_hpack_compressor *c,
-			 gpr_uint32 elem_index) {
+static gpr_uint32 dynidx(grpc_chttp2_hpack_compressor *c, gpr_uint32 index) {
   return 1 + GRPC_CHTTP2_LAST_STATIC_ENTRY + c->tail_remote_index +
-         c->table_elems - elem_index;
+         c->table_elems - index;
 }
 
 /* encode an mdelem; returns metadata element to unref */
