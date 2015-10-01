@@ -67,10 +67,6 @@ RUN ln -s /usr/bin/ccache /usr/local/bin/c++
 RUN ln -s /usr/bin/ccache /usr/local/bin/clang
 RUN ln -s /usr/bin/ccache /usr/local/bin/clang++
 
-##################
-# C++ dependencies
-RUN apt-get update && apt-get -y install libgflags-dev libgtest-dev libc++-dev clang
-
 #################
 # C# dependencies
 
@@ -91,72 +87,6 @@ RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y \
 # Download NuGet
 RUN cd /var/local && wget www.nuget.org/NuGet.exe
 ENV NUGET mono /var/local/NuGet.exe
-
-# TODO(jtattermusch): add dependencies for other languages
-
-##################
-# Node dependencies
-
-# Install nvm
-RUN touch .profile
-RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.25.4/install.sh | bash
-RUN /bin/bash -l -c "nvm install 0.12"
-
-##################
-# Ruby dependencies
-
-# Install rvm
-RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
-RUN \curl -sSL https://get.rvm.io | bash -s stable
-
-# Install Ruby 2.1
-RUN /bin/bash -l -c "rvm install ruby-2.1"
-RUN /bin/bash -l -c "rvm use --default ruby-2.1"
-RUN /bin/bash -l -c "echo 'gem: --no-ri --no-rdoc' > ~/.gemrc"
-RUN /bin/bash -l -c "echo 'export PATH=/usr/local/rvm/bin:$PATH' >> ~/.bashrc"
-RUN /bin/bash -l -c "echo 'rvm --default use ruby-2.1' >> ~/.bashrc"
-RUN /bin/bash -l -c "gem install bundler --no-ri --no-rdoc"
-
-##################
-# Python dependencies
-
-# Install dependencies
-
-RUN apt-get update && apt-get install -y \
-    python-all-dev \
-    python3-all-dev \
-    python-pip \
-    python-virtualenv
-
-# Install Python packages from PyPI
-RUN pip install futures==2.2.0 enum34==1.0.4 protobuf==3.0.0a2
-
-# For sanity test
-RUN pip install simplejson mako
-
-##################
-# PHP dependencies
-
-# Install dependencies
-
-RUN /bin/bash -l -c "echo 'deb http://packages.dotdeb.org wheezy-php55 all' \
-    >> /etc/apt/sources.list.d/dotdeb.list"
-RUN /bin/bash -l -c "echo 'deb-src http://packages.dotdeb.org wheezy-php55 all' \
-    >> /etc/apt/sources.list.d/dotdeb.list"
-RUN wget http://www.dotdeb.org/dotdeb.gpg -O- | apt-key add -
-
-RUN apt-get update && apt-get install -y \
-    git php5 php5-dev phpunit unzip
-
-##################
-# Zookeeper dependencies
-
-# Install dependencies
-
-RUN apt-get install -y libzookeeper-mt-dev
-
-
-RUN mkdir /var/local/jenkins
 
 # Define the default command.
 CMD ["bash"]

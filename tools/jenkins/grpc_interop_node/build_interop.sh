@@ -27,27 +27,20 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Builds Node interop server and client in a base image.
+set -e
 
-set -ex
+mkdir -p /var/local/git
+git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
 
-# change to grpc repo root
-cd $(dirname $0)/../..
+cd /var/local/git/grpc
+nvm use 0.12
+nvm alias default 0.12  # prevent the need to run 'nvm use' in every shell
 
-ROOT=`pwd`
-GRPCIO_TEST=$ROOT/src/python/grpcio_test
-export LD_LIBRARY_PATH=$ROOT/libs/$CONFIG
-export DYLD_LIBRARY_PATH=$ROOT/libs/$CONFIG
-export PATH=$ROOT/bins/$CONFIG:$ROOT/bins/$CONFIG/protobuf:$PATH
-source "python"$PYVER"_virtual_environment"/bin/activate
+make install-certs
 
-# TODO(atash): These tests don't currently run under py.test and thus don't
-# appear under the coverage report. Find a way to get these tests to work with
-# py.test (or find another tool or *something*) that's acceptable to the rest of
-# the team...
-"python"$PYVER -m grpc_test._core_over_links_base_interface_test
-"python"$PYVER -m grpc_test._crust_over_core_over_links_face_interface_test
-"python"$PYVER -m grpc_test.beta._face_interface_test
-"python"$PYVER -m grpc_test.framework._crust_over_core_face_interface_test
-"python"$PYVER -m grpc_test.framework.core._base_interface_test
-
-"python"$PYVER $GRPCIO_TEST/setup.py test -a "-n8 --cov=grpc --junitxml=./report.xml --timeout=300"
+# build Node interop client & server
+npm install -g node-gyp
+make install_c -C /var/local/git/grpc
+(cd src/node && npm install && node-gyp rebuild)

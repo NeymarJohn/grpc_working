@@ -68,41 +68,6 @@ RUN ln -s /usr/bin/ccache /usr/local/bin/clang
 RUN ln -s /usr/bin/ccache /usr/local/bin/clang++
 
 ##################
-# C++ dependencies
-RUN apt-get update && apt-get -y install libgflags-dev libgtest-dev libc++-dev clang
-
-#################
-# C# dependencies
-
-# Update to a newer version of mono
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-RUN echo "deb http://download.mono-project.com/repo/debian wheezy main" | tee /etc/apt/sources.list.d/mono-xamarin.list
-RUN echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
-RUN echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
-RUN echo "deb http://download.mono-project.com/repo/debian wheezy-libtiff-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
-
-# Install dependencies
-RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y \
-    mono-devel \
-    nunit \
-    nunit-console \
-    monodevelop
-
-# Download NuGet
-RUN cd /var/local && wget www.nuget.org/NuGet.exe
-ENV NUGET mono /var/local/NuGet.exe
-
-# TODO(jtattermusch): add dependencies for other languages
-
-##################
-# Node dependencies
-
-# Install nvm
-RUN touch .profile
-RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.25.4/install.sh | bash
-RUN /bin/bash -l -c "nvm install 0.12"
-
-##################
 # Ruby dependencies
 
 # Install rvm
@@ -118,23 +83,6 @@ RUN /bin/bash -l -c "echo 'rvm --default use ruby-2.1' >> ~/.bashrc"
 RUN /bin/bash -l -c "gem install bundler --no-ri --no-rdoc"
 
 ##################
-# Python dependencies
-
-# Install dependencies
-
-RUN apt-get update && apt-get install -y \
-    python-all-dev \
-    python3-all-dev \
-    python-pip \
-    python-virtualenv
-
-# Install Python packages from PyPI
-RUN pip install futures==2.2.0 enum34==1.0.4 protobuf==3.0.0a2
-
-# For sanity test
-RUN pip install simplejson mako
-
-##################
 # PHP dependencies
 
 # Install dependencies
@@ -148,15 +96,17 @@ RUN wget http://www.dotdeb.org/dotdeb.gpg -O- | apt-key add -
 RUN apt-get update && apt-get install -y \
     git php5 php5-dev phpunit unzip
 
-##################
-# Zookeeper dependencies
+# ronn: a ruby tool used to convert markdown to man pages, used during the
+# install of Protobuf extensions
+#
+# rake: a ruby version of make used to build the PHP Protobuf extension
+RUN /bin/bash -l -c "rvm all do gem install ronn rake"
 
-# Install dependencies
+ENV DEBIAN_FRONTEND noniteractive
 
-RUN apt-get install -y libzookeeper-mt-dev
-
-
-RUN mkdir /var/local/jenkins
+# Install composer
+RUN curl -sS https://getcomposer.org/installer | php
+RUN mv composer.phar /usr/local/bin/composer
 
 # Define the default command.
 CMD ["bash"]
