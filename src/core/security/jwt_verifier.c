@@ -33,7 +33,6 @@
 
 #include "src/core/security/jwt_verifier.h"
 
-#include <limits.h>
 #include <string.h>
 
 #include "src/core/httpcli/httpcli.h"
@@ -145,7 +144,7 @@ static jose_header *jose_header_from_json(grpc_json *json, gpr_slice buffer) {
       /* We only support RSA-1.5 signatures for now.
          Beware of this if we add HMAC support:
          https://auth0.com/blog/2015/03/31/critical-vulnerabilities-in-json-web-token-libraries/
-       */
+      */
       if (cur->type != GRPC_JSON_STRING || strncmp(cur->value, "RS", 2) ||
           evp_md_from_alg(cur->value) == NULL) {
         gpr_log(GPR_ERROR, "Invalid alg field [%s]", cur->value);
@@ -413,9 +412,7 @@ static EVP_PKEY *extract_pkey_from_x509(const char *x509_str) {
   X509 *x509 = NULL;
   EVP_PKEY *result = NULL;
   BIO *bio = BIO_new(BIO_s_mem());
-  size_t len = strlen(x509_str);
-  GPR_ASSERT(len < INT_MAX);
-  BIO_write(bio, x509_str, (int)len);
+  BIO_write(bio, x509_str, strlen(x509_str));
   x509 = PEM_read_bio_X509(bio, NULL, NULL, NULL);
   if (x509 == NULL) {
     gpr_log(GPR_ERROR, "Unable to parse x509 cert.");
@@ -442,8 +439,7 @@ static BIGNUM *bignum_from_base64(const char *b64) {
     gpr_log(GPR_ERROR, "Invalid base64 for big num.");
     return NULL;
   }
-  result =
-      BN_bin2bn(GPR_SLICE_START_PTR(bin), (int)GPR_SLICE_LENGTH(bin), NULL);
+  result = BN_bin2bn(GPR_SLICE_START_PTR(bin), GPR_SLICE_LENGTH(bin), NULL);
   gpr_slice_unref(bin);
   return result;
 }
@@ -494,7 +490,7 @@ static EVP_PKEY *find_verification_key(const grpc_json *json,
   jwk_keys = find_property_by_name(json, "keys");
   if (jwk_keys == NULL) {
     /* Use the google proprietary format which is:
-       { <kid1>: <x5091>, <kid2>: <x5092>, ... } */
+      { <kid1>: <x5091>, <kid2>: <x5092>, ... } */
     const grpc_json *cur = find_property_by_name(json, header_kid);
     if (cur == NULL) return NULL;
     return extract_pkey_from_x509(cur->value);
@@ -569,7 +565,7 @@ end:
   return result;
 }
 
-static void on_keys_retrieved(grpc_exec_ctx *exec_ctx, void *user_data,
+static void on_keys_retrieved(void *user_data,
                               const grpc_httpcli_response *response) {
   grpc_json *json = json_from_http(response);
   verifier_cb_ctx *ctx = (verifier_cb_ctx *)user_data;
@@ -610,7 +606,7 @@ end:
   verifier_cb_ctx_destroy(ctx);
 }
 
-static void on_openid_config_retrieved(grpc_exec_ctx *exec_ctx, void *user_data,
+static void on_openid_config_retrieved(void *user_data,
                                        const grpc_httpcli_response *response) {
   const grpc_json *cur;
   grpc_json *json = json_from_http(response);
@@ -618,7 +614,7 @@ static void on_openid_config_retrieved(grpc_exec_ctx *exec_ctx, void *user_data,
   grpc_httpcli_request req;
   const char *jwks_uri;
 
-  /* TODO(jboeuf): Cache the jwks_uri in order to avoid this hop next time. */
+  /* TODO(jboeuf): Cache the jwks_uri in order to avoid this hop next time.*/
   if (json == NULL) goto error;
   cur = find_property_by_name(json, "jwks_uri");
   if (cur == NULL) {
@@ -641,7 +637,7 @@ static void on_openid_config_retrieved(grpc_exec_ctx *exec_ctx, void *user_data,
     *(req.host + (req.path - jwks_uri)) = '\0';
   }
   grpc_httpcli_get(
-      exec_ctx, &ctx->verifier->http_ctx, ctx->pollset, &req,
+      &ctx->verifier->http_ctx, ctx->pollset, &req,
       gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), grpc_jwt_verifier_max_delay),
       on_keys_retrieved, ctx);
   grpc_json_destroy(json);
@@ -682,8 +678,7 @@ static void verifier_put_mapping(grpc_jwt_verifier *v, const char *email_domain,
 }
 
 /* Takes ownership of ctx. */
-static void retrieve_key_and_verify(grpc_exec_ctx *exec_ctx,
-                                    verifier_cb_ctx *ctx) {
+static void retrieve_key_and_verify(verifier_cb_ctx *ctx) {
   const char *at_sign;
   grpc_httpcli_response_cb http_cb;
   char *path_prefix = NULL;
@@ -744,7 +739,7 @@ static void retrieve_key_and_verify(grpc_exec_ctx *exec_ctx,
   }
 
   grpc_httpcli_get(
-      exec_ctx, &ctx->verifier->http_ctx, ctx->pollset, &req,
+      &ctx->verifier->http_ctx, ctx->pollset, &req,
       gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), grpc_jwt_verifier_max_delay),
       http_cb, ctx);
   gpr_free(req.host);
@@ -756,8 +751,7 @@ error:
   verifier_cb_ctx_destroy(ctx);
 }
 
-void grpc_jwt_verifier_verify(grpc_exec_ctx *exec_ctx,
-                              grpc_jwt_verifier *verifier,
+void grpc_jwt_verifier_verify(grpc_jwt_verifier *verifier,
                               grpc_pollset *pollset, const char *jwt,
                               const char *audience,
                               grpc_jwt_verification_done_cb cb,
@@ -775,7 +769,7 @@ void grpc_jwt_verifier_verify(grpc_exec_ctx *exec_ctx,
   GPR_ASSERT(verifier != NULL && jwt != NULL && audience != NULL && cb != NULL);
   dot = strchr(cur, '.');
   if (dot == NULL) goto error;
-  json = parse_json_part_from_jwt(cur, (size_t)(dot - cur), &header_buffer);
+  json = parse_json_part_from_jwt(cur, dot - cur, &header_buffer);
   if (json == NULL) goto error;
   header = jose_header_from_json(json, header_buffer);
   if (header == NULL) goto error;
@@ -783,7 +777,7 @@ void grpc_jwt_verifier_verify(grpc_exec_ctx *exec_ctx,
   cur = dot + 1;
   dot = strchr(cur, '.');
   if (dot == NULL) goto error;
-  json = parse_json_part_from_jwt(cur, (size_t)(dot - cur), &claims_buffer);
+  json = parse_json_part_from_jwt(cur, dot - cur, &claims_buffer);
   if (json == NULL) goto error;
   claims = grpc_jwt_claims_from_json(json, claims_buffer);
   if (claims == NULL) goto error;
@@ -793,7 +787,6 @@ void grpc_jwt_verifier_verify(grpc_exec_ctx *exec_ctx,
   signature = grpc_base64_decode(cur, 1);
   if (GPR_SLICE_IS_EMPTY(signature)) goto error;
   retrieve_key_and_verify(
-      exec_ctx,
       verifier_cb_ctx_create(verifier, pollset, header, claims, audience,
                              signature, jwt, signed_jwt_len, user_data, cb));
   return;

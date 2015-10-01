@@ -31,9 +31,9 @@
  *
  */
 
+#include <atomic>
 #include <mutex>
 #include <thread>
-#include <time.h>
 
 #include <grpc++/channel.h>
 #include <grpc++/client_context.h>
@@ -44,7 +44,6 @@
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
 #include <grpc/grpc.h>
-#include <grpc/support/atm.h>
 #include <grpc/support/thd.h>
 #include <grpc/support/time.h>
 #include <gtest/gtest.h>
@@ -100,17 +99,11 @@ namespace testing {
 
 class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
  public:
-  static void BidiStream_Sender(ServerReaderWriter<EchoResponse, EchoRequest>* stream, gpr_atm* should_exit) {
+  static void BidiStream_Sender(ServerReaderWriter<EchoResponse, EchoRequest>* stream, std::atomic<bool>* should_exit) {
     EchoResponse response;
     response.set_message(kLargeString);
-    while (gpr_atm_acq_load(should_exit) == static_cast<gpr_atm>(0)) {
-      struct timespec tv = {0, 1000000}; // 1 ms
-      struct timespec rem;
-      // TODO (vpai): Mark this blocking
-      while (nanosleep(&tv, &rem) != 0) {
-	tv = rem;
-      };
-
+    while (!should_exit->load()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
       stream->Write(response);
     }
   }
@@ -120,20 +113,13 @@ class TestServiceImpl : public ::grpc::cpp::test::util::TestService::Service {
                     ServerReaderWriter<EchoResponse, EchoRequest>* stream)
       GRPC_OVERRIDE {
     EchoRequest request;
-    gpr_atm should_exit;
-    gpr_atm_rel_store(&should_exit, static_cast<gpr_atm>(0));
-
+    std::atomic<bool> should_exit(false);
     std::thread sender(std::bind(&TestServiceImpl::BidiStream_Sender, stream, &should_exit));
 
     while (stream->Read(&request)) {
-      struct timespec tv = {0, 3000000}; // 3 ms
-      struct timespec rem;
-      // TODO (vpai): Mark this blocking
-      while (nanosleep(&tv, &rem) != 0) {
-	tv = rem;
-      };
+      std::this_thread::sleep_for(std::chrono::milliseconds(3));
     }
-    gpr_atm_rel_store(&should_exit, static_cast<gpr_atm>(1));
+    should_exit.store(true);
     sender.join();
     return Status::OK;
   }
@@ -157,7 +143,7 @@ class End2endTest : public ::testing::Test {
   void ResetStub() {
     std::shared_ptr<Channel> channel = CreateChannel(
         server_address_.str(), InsecureCredentials());
-    stub_ = grpc::cpp::test::util::TestService::NewStub(channel);
+    stub_ = std::move(grpc::cpp::test::util::TestService::NewStub(channel));
   }
 
   std::unique_ptr<grpc::cpp::test::util::TestService::Stub> stub_;
