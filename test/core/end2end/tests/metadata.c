@@ -113,8 +113,8 @@ static void test_request_response_with_metadata_and_payload(
       {"key1", "val1", 4, 0, {{NULL, NULL, NULL, NULL}}},
       {"key2", "val2", 4, 0, {{NULL, NULL, NULL, NULL}}}};
   grpc_metadata meta_s[2] = {
-      {"KeY3", "val3", 4, 0, {{NULL, NULL, NULL, NULL}}},
-      {"KeY4", "val4", 4, 0, {{NULL, NULL, NULL, NULL}}}};
+      {"key3", "val3", 4, 0, {{NULL, NULL, NULL, NULL}}},
+      {"key4", "val4", 4, 0, {{NULL, NULL, NULL, NULL}}}};
   grpc_end2end_test_fixture f = begin_test(
       config, "test_request_response_with_metadata_and_payload", NULL, NULL);
   cq_verifier *cqv = cq_verifier_create(f.cq);
@@ -175,7 +175,7 @@ static void test_request_response_with_metadata_and_payload(
   op->flags = 0;
   op->reserved = NULL;
   op++;
-  error = grpc_call_start_batch(c, ops, op - ops, tag(1), NULL);
+  error = grpc_call_start_batch(c, ops, (size_t)(op - ops), tag(1), NULL);
   GPR_ASSERT(GRPC_CALL_OK == error);
 
   error =
@@ -197,7 +197,7 @@ static void test_request_response_with_metadata_and_payload(
   op->flags = 0;
   op->reserved = NULL;
   op++;
-  error = grpc_call_start_batch(s, ops, op - ops, tag(102), NULL);
+  error = grpc_call_start_batch(s, ops, (size_t)(op - ops), tag(102), NULL);
   GPR_ASSERT(GRPC_CALL_OK == error);
 
   cq_expect_completion(cqv, tag(102), 1);
@@ -221,7 +221,7 @@ static void test_request_response_with_metadata_and_payload(
   op->flags = 0;
   op->reserved = NULL;
   op++;
-  error = grpc_call_start_batch(s, ops, op - ops, tag(103), NULL);
+  error = grpc_call_start_batch(s, ops, (size_t)(op - ops), tag(103), NULL);
   GPR_ASSERT(GRPC_CALL_OK == error);
 
   cq_expect_completion(cqv, tag(103), 1);
