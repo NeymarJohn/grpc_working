@@ -53,7 +53,8 @@ _CLOUD_TO_CLOUD_BASE_ARGS = [
 # supported by C core SslCredentials instead.
 _SSL_CERT_ENV = { 'SSL_CERT_FILE':'/usr/local/share/grpc/roots.pem' }
 
-# TODO(jtatttermusch) unify usage of --use_tls and --use_tls=true
+# TODO(jtatttermusch) unify usage of --enable_ssl, --use_tls and --use_tls=true
+
 
 class CXXLanguage:
 
@@ -63,11 +64,11 @@ class CXXLanguage:
 
   def cloud_to_prod_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
-            ['--use_tls=true','--use_prod_roots'])
+            ['--enable_ssl','--use_prod_roots'])
 
   def cloud_to_cloud_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
-            ['--use_tls=true'])
+            ['--enable_ssl'])
 
   def cloud_to_prod_env(self):
     return None
