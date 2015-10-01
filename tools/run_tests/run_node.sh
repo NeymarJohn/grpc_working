@@ -37,15 +37,6 @@ cd $(dirname $0)/../..
 
 root=`pwd`
 
-if [ "$CONFIG" = "gcov" ]
-then
-  ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- \
-    --timeout 8000 src/node/test
-  cd build
-  gcov Release/obj.target/grpc/ext/*.o
-  lcov --base-directory . --directory . -c -o coverage.info
-  genhtml -o ../ext_coverage --num-spaces 2 -t 'Node gRPC test coverage' \
-    coverage.info
-else
-  ./node_modules/mocha/bin/mocha --timeout 8000 src/node/test
-fi
+export LD_LIBRARY_PATH=$root/libs/$CONFIG
+
+$root/src/node/node_modules/mocha/bin/mocha --timeout 8000 $root/src/node/test

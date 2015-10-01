@@ -92,13 +92,10 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_USE_32BIT_TIME_T;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug-DLL|x64'">
@@ -109,13 +106,10 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-DLL|Win32'">
@@ -128,13 +122,10 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -149,13 +140,10 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -168,13 +156,10 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_USE_32BIT_TIME_T;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -185,13 +170,10 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -204,13 +186,10 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -225,13 +204,10 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -258,10 +234,7 @@
     <ClInclude Include="..\..\..\src\core\client_config\client_config.h" />
     <ClInclude Include="..\..\..\src\core\client_config\connector.h" />
     <ClInclude Include="..\..\..\src\core\client_config\lb_policies\pick_first.h" />
-    <ClInclude Include="..\..\..\src\core\client_config\lb_policies\round_robin.h" />
     <ClInclude Include="..\..\..\src\core\client_config\lb_policy.h" />
-    <ClInclude Include="..\..\..\src\core\client_config\lb_policy_factory.h" />
-    <ClInclude Include="..\..\..\src\core\client_config\lb_policy_registry.h" />
     <ClInclude Include="..\..\..\src\core\client_config\resolver.h" />
     <ClInclude Include="..\..\..\src\core\client_config\resolver_factory.h" />
     <ClInclude Include="..\..\..\src\core\client_config\resolver_registry.h" />
@@ -280,10 +253,8 @@
     <ClInclude Include="..\..\..\src\core\iomgr\alarm.h" />
     <ClInclude Include="..\..\..\src\core\iomgr\alarm_heap.h" />
     <ClInclude Include="..\..\..\src\core\iomgr\alarm_internal.h" />
-    <ClInclude Include="..\..\..\src\core\iomgr\closure.h" />
     <ClInclude Include="..\..\..\src\core\iomgr\endpoint.h" />
     <ClInclude Include="..\..\..\src\core\iomgr\endpoint_pair.h" />
-    <ClInclude Include="..\..\..\src\core\iomgr\exec_ctx.h" />
     <ClInclude Include="..\..\..\src\core\iomgr\fd_posix.h" />
     <ClInclude Include="..\..\..\src\core\iomgr\iocp_windows.h" />
     <ClInclude Include="..\..\..\src\core\iomgr\iomgr.h" />
@@ -310,9 +281,6 @@
     <ClInclude Include="..\..\..\src\core\iomgr\udp_server.h" />
     <ClInclude Include="..\..\..\src\core\iomgr\wakeup_fd_pipe.h" />
     <ClInclude Include="..\..\..\src\core\iomgr\wakeup_fd_posix.h" />
-    <ClInclude Include="..\..\..\src\core\iomgr\workqueue.h" />
-    <ClInclude Include="..\..\..\src\core\iomgr\workqueue_posix.h" />
-    <ClInclude Include="..\..\..\src\core\iomgr\workqueue_windows.h" />
     <ClInclude Include="..\..\..\src\core\json\json.h" />
     <ClInclude Include="..\..\..\src\core\json\json_common.h" />
     <ClInclude Include="..\..\..\src\core\json\json_reader.h" />
@@ -387,13 +355,7 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\client_config\lb_policies\pick_first.c">
     </ClCompile>
-    <ClCompile Include="..\..\..\src\core\client_config\lb_policies\round_robin.c">
-    </ClCompile>
     <ClCompile Include="..\..\..\src\core\client_config\lb_policy.c">
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\client_config\lb_policy_factory.c">
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\client_config\lb_policy_registry.c">
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\client_config\resolver.c">
     </ClCompile>
@@ -431,15 +393,11 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\alarm_heap.c">
     </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\closure.c">
-    </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\endpoint.c">
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\endpoint_pair_posix.c">
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\endpoint_pair_windows.c">
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\exec_ctx.c">
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\fd_posix.c">
     </ClCompile>
@@ -500,10 +458,6 @@
     <ClCompile Include="..\..\..\src\core\iomgr\wakeup_fd_pipe.c">
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\wakeup_fd_posix.c">
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\workqueue_posix.c">
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\workqueue_windows.c">
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\json\json.c">
     </ClCompile>
