@@ -46,7 +46,6 @@ typedef struct grpc_fd_watcher {
   struct grpc_fd_watcher *next;
   struct grpc_fd_watcher *prev;
   grpc_pollset *pollset;
-  grpc_pollset_worker *worker;
   grpc_fd *fd;
 } grpc_fd_watcher;
 
@@ -59,8 +58,8 @@ struct grpc_fd {
      and just unref by 1 when we're ready to flag the object as orphaned */
   gpr_atm refst;
 
-  gpr_mu mu;
-  int shutdown;
+  gpr_mu set_state_mu;
+  gpr_atm shutdown;
   int closed;
 
   /* The watcher list.
@@ -85,16 +84,18 @@ struct grpc_fd {
      If at a later time there becomes need of a poller to poll, one of
      the inactive pollers may be kicked out of their poll loops to take
      that responsibility. */
+  gpr_mu watcher_mu;
   grpc_fd_watcher inactive_watcher_root;
   grpc_fd_watcher *read_watcher;
   grpc_fd_watcher *write_watcher;
 
-  grpc_closure *read_closure;
-  grpc_closure *write_closure;
+  gpr_atm readst;
+  gpr_atm writest;
 
   struct grpc_fd *freelist_next;
 
   grpc_closure *on_done_closure;
+  grpc_closure *shutdown_closures[2];
 
   grpc_iomgr_object iomgr_object;
 };
@@ -125,8 +126,8 @@ void grpc_fd_orphan(grpc_exec_ctx *exec_ctx, grpc_fd *fd, grpc_closure *on_done,
    fd's current interest (such as epoll) do not need to call this function.
    MUST NOT be called with a pollset lock taken */
 gpr_uint32 grpc_fd_begin_poll(grpc_fd *fd, grpc_pollset *pollset,
-                              grpc_pollset_worker *worker, gpr_uint32 read_mask,
-                              gpr_uint32 write_mask, grpc_fd_watcher *rec);
+                              gpr_uint32 read_mask, gpr_uint32 write_mask,
+                              grpc_fd_watcher *rec);
 /* Complete polling previously started with grpc_fd_begin_poll
    MUST NOT be called with a pollset lock taken */
 void grpc_fd_end_poll(grpc_exec_ctx *exec_ctx, grpc_fd_watcher *rec,
