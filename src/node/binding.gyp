@@ -1,4 +1,7 @@
 {
+  "variables" : {
+    'config': '<!(echo $CONFIG)'
+  },
   "targets" : [
     {
       'include_dirs': [
@@ -22,6 +25,18 @@
             'pkg_config_grpc': '<!(pkg-config --exists grpc >/dev/null 2>&1 && echo true || echo false)'
           },
           'conditions': [
+            ['config=="gcov"', {
+              'cflags': [
+                '-ftest-coverage',
+                '-fprofile-arcs',
+                '-O0'
+              ],
+              'ldflags': [
+                '-ftest-coverage',
+                '-fprofile-arcs'
+              ]
+            }
+           ],
             ['pkg_config_grpc == "true"', {
               'link_settings': {
                 'libraries': [
@@ -72,10 +87,9 @@
       "sources": [
         "ext/byte_buffer.cc",
         "ext/call.cc",
-        "ext/call_credentials.cc",
         "ext/channel.cc",
-        "ext/channel_credentials.cc",
         "ext/completion_queue_async_worker.cc",
+        "ext/credentials.cc",
         "ext/node_grpc.cc",
         "ext/server.cc",
         "ext/server_credentials.cc",
