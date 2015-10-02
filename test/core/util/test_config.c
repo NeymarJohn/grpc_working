@@ -35,7 +35,6 @@
 
 #include <grpc/support/port_platform.h>
 #include <grpc/support/log.h>
-#include "src/core/support/string.h"
 #include <stdlib.h>
 #include <signal.h>
 
@@ -89,43 +88,25 @@ static void install_crash_handler() {
 #include <stdio.h>
 #include <string.h>
 #include <grpc/support/useful.h>
-#include <errno.h>
 
 static char g_alt_stack[MINSIGSTKSZ];
 
 #define MAX_FRAMES 32
 
-/* signal safe output */
-static void output_string(const char *string) {
-  size_t len = strlen(string);
-  ssize_t r;
-
-  do {
-    r = write(STDERR_FILENO, string, len);
-  } while (r == -1 && errno == EINTR);
-}
-
-static void output_num(long num) {
-  char buf[GPR_LTOA_MIN_BUFSIZE];
-  gpr_ltoa(num, buf);
-  output_string(buf);
-}
-
 static void crash_handler(int signum, siginfo_t *info, void *data) {
   void *addrlist[MAX_FRAMES + 1];
   int addrlen;
+  int i;
+  char **symlist;
 
-  output_string("\n\n\n*******************************\nCaught signal ");
-  output_num(signum);
-  output_string("\n");
-
+  fprintf(stderr, "Caught signal %d\n", signum);
   addrlen = backtrace(addrlist, GPR_ARRAY_SIZE(addrlist));
 
-  if (addrlen == 0) {
-    output_string("  no backtrace\n");
-  } else {
-    backtrace_symbols_fd(addrlist, addrlen, STDERR_FILENO);
+  symlist = backtrace_symbols(addrlist, addrlen);
+  for (i = 0; i < addrlen; i++) {
+    fprintf(stderr, "  %s\n", symlist[i]);
   }
+  free(symlist);
 
   raise(signum);
 }
@@ -133,7 +114,6 @@ static void crash_handler(int signum, siginfo_t *info, void *data) {
 static void install_crash_handler() {
   stack_t ss;
   struct sigaction sa;
-
   memset(&ss, 0, sizeof(ss));
   memset(&sa, 0, sizeof(sa));
   ss.ss_size = sizeof(g_alt_stack);

@@ -45,7 +45,8 @@ const char kTestStringWithEmbeddedNull[] = "blah\0foo";
 const size_t kTestStringWithEmbeddedNullLength = 8;
 const char kTestUnrelatedString[] = "foo";
 
-class StringRefTest : public ::testing::Test {};
+class StringRefTest : public ::testing::Test {
+};
 
 TEST_F(StringRefTest, Empty) {
   string_ref s;
@@ -73,8 +74,7 @@ TEST_F(StringRefTest, FromString) {
 }
 
 TEST_F(StringRefTest, CopyConstructor) {
-  string_ref s1(kTestString);
-  ;
+  string_ref s1(kTestString);;
   string_ref s2(s1);
   EXPECT_EQ(s1.length(), s2.length());
   EXPECT_EQ(s1.data(), s2.data());
@@ -89,8 +89,7 @@ TEST_F(StringRefTest, FromStringWithEmbeddedNull) {
 }
 
 TEST_F(StringRefTest, Assignment) {
-  string_ref s1(kTestString);
-  ;
+  string_ref s1(kTestString);;
   string_ref s2;
   EXPECT_EQ(nullptr, s2.data());
   s2 = s1;
@@ -110,7 +109,7 @@ TEST_F(StringRefTest, Iterator) {
 TEST_F(StringRefTest, ReverseIterator) {
   string_ref s(kTestString);
   size_t i = strlen(kTestString);
-  for (auto rit = s.crbegin(); rit != s.crend(); ++rit) {
+  for (auto rit = s.crbegin();  rit != s.crend(); ++rit) {
     EXPECT_EQ(kTestString[--i], *rit);
   }
   EXPECT_EQ(0U, i);
@@ -169,9 +168,9 @@ TEST_F(StringRefTest, Find) {
   EXPECT_EQ(0U, s1.find(s1));
   EXPECT_EQ(0U, s2.find(s2));
   EXPECT_EQ(0U, s3.find(s3));
-  EXPECT_EQ(string_ref::npos, s1.find(s2));
-  EXPECT_EQ(string_ref::npos, s2.find(s1));
-  EXPECT_EQ(string_ref::npos, s1.find(s3));
+  EXPECT_EQ(string_ref::npos,s1.find(s2) );
+  EXPECT_EQ(string_ref::npos,s2.find(s1));
+  EXPECT_EQ(string_ref::npos,s1.find(s3));
   EXPECT_EQ(0U, s3.find(s1));
   EXPECT_EQ(5U, s3.find(s2));
   EXPECT_EQ(string_ref::npos, s1.find('z'));
@@ -213,3 +212,4 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
+
