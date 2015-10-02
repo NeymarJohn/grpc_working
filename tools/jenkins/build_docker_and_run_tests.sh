@@ -74,10 +74,6 @@ then
   docker cp "$DOCKER_CID:/var/local/git/grpc/$XML_REPORT" $git_root
 fi
 
-docker cp "$DOCKER_CID:/var/local/git/grpc/reports.zip" $git_root || true
-unzip $git_root/reports.zip -d $git_root || true
-rm -f reports.zip
-
 # remove the container, possibly killing it first
 docker rm -f $DOCKER_CID || true
 
