@@ -47,6 +47,7 @@
 #include "test/cpp/qps/server.h"
 #include "test/cpp/qps/timer.h"
 
+
 namespace grpc {
 namespace testing {
 
@@ -85,7 +86,8 @@ class TestServiceImpl GRPC_FINAL : public TestService::Service {
 class SynchronousServer GRPC_FINAL : public grpc::testing::Server {
  public:
   SynchronousServer(const ServerConfig& config, int port)
-      : impl_(MakeImpl(port)) {}
+      : impl_(MakeImpl(port)) {
+  }
 
  private:
   std::unique_ptr<grpc::Server> MakeImpl(int port) {
