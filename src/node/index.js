@@ -43,7 +43,7 @@ var server = require('./src/server.js');
 
 var Metadata = require('./src/metadata.js');
 
-var grpc = require('bindings')('grpc_node');
+var grpc = require('bindings')('grpc');
 
 /**
  * Load a gRPC object from an existing ProtoBuf.Reflect object.
@@ -90,6 +90,7 @@ exports.load = function load(filename, format) {
     default:
     throw new Error('Unrecognized format "' + format + '"');
   }
+
   return loadObject(builder.ns);
 };
 

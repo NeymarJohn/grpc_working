@@ -37,9 +37,7 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
 var grpc = require('..');
-var testProto = grpc.load({
-  root: __dirname + '/../../..',
-  file: 'test/proto/test.proto'}).grpc.testing;
+var testProto = grpc.load(__dirname + '/test.proto').grpc.testing;
 var GoogleAuth = require('google-auth-library');
 
 var assert = require('assert');
