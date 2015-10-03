@@ -1,5 +1,4 @@
-#!/usr/bin/env python2.7
-
+#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,58 +27,33 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Builds PHP interop server and client in a base image.
+set -e
 
-import glob
-import os
-import shutil
-import sys
-import tempfile
-sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..', 'run_tests'))
+mkdir -p /var/local/git
+git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
 
-assert sys.argv[1:], 'run generate_projects.sh instead of this directly'
+cd /var/local/git/grpc
+rvm --default use ruby-2.1
 
-import jobset
+make install-certs
 
-os.chdir(os.path.join(os.path.dirname(sys.argv[0]), '..', '..'))
-json = sys.argv[1:]
+# gRPC core and protobuf need to be installed
+make install
 
-test = {} if 'TEST' in os.environ else None
+# Download the patched PHP protobuf so that PHP gRPC clients can be generated
+# from proto3 schemas.
+git clone https://github.com/stanley-cheung/Protobuf-PHP.git /var/local/git/protobuf-php
 
-plugins = sorted(glob.glob('tools/buildgen/plugins/*.py'))
+(cd src/php/ext/grpc && phpize && ./configure && make)
 
-jobs = []
-for root, dirs, files in os.walk('templates'):
-  for f in files:
-    if os.path.splitext(f)[1] == '.template':
-      out_dir = '.' + root[len('templates'):]
-      out = out_dir + '/' + os.path.splitext(f)[0]
-      if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-      cmd = ['python', 'tools/buildgen/mako_renderer.py']
-      for plugin in plugins:
-        cmd.append('-p')
-        cmd.append(plugin)
-      for js in json:
-        cmd.append('-d')
-        cmd.append(js)
-      cmd.append('-o')
-      if test is None:
-        cmd.append(out)
-      else:
-        tf = tempfile.mkstemp()
-        test[out] = tf[1]
-        os.close(tf[0])
-        cmd.append(test[out])
-      cmd.append(root + '/' + f)
-      jobs.append(jobset.JobSpec(cmd, shortname=out))
+(cd third_party/protobuf && make install)
 
-jobset.run(jobs)
+(cd /var/local/git/protobuf-php \
+  && rvm all do rake pear:package version=1.0 \
+  && pear install Protobuf-1.0.tgz)
 
-if test is not None:
-  for s, g in test.iteritems():
-    if os.path.isfile(g):
-      assert(0 == os.system('diff %s %s' % (s, g)))
-      os.unlink(g)
-    else:
-      assert(0 == os.system('diff -r %s %s' % (s, g)))
-      shutil.rmtree(g, ignore_errors=True)
+(cd src/php && composer install)
+
+(cd src/php && protoc-gen-php -i tests/interop/ -o tests/interop/ tests/interop/test.proto)

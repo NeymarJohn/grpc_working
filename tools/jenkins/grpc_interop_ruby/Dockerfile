@@ -1,5 +1,3 @@
-#!/usr/bin/env python2.7
-
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -29,57 +27,61 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import glob
-import os
-import shutil
-import sys
-import tempfile
-sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..', 'run_tests'))
+# A work-in-progress Dockerfile that allows running gRPC test suites
+# inside a docker container.
 
-assert sys.argv[1:], 'run generate_projects.sh instead of this directly'
+FROM debian:jessie
 
-import jobset
+# Install Git.
+RUN apt-get update && apt-get install -y \
+  autoconf \
+  autotools-dev \
+  build-essential \
+  bzip2 \
+  ccache \
+  curl \
+  gcc \
+  gcc-multilib \
+  git \
+  gyp \
+  libc6 \
+  libc6-dbg \
+  libc6-dev \
+  libgtest-dev \
+  libtool \
+  make \
+  strace \
+  python-dev \
+  python-setuptools \
+  python-yaml \
+  telnet \
+  unzip \
+  wget \
+  zip && apt-get clean
 
-os.chdir(os.path.join(os.path.dirname(sys.argv[0]), '..', '..'))
-json = sys.argv[1:]
+# Prepare ccache
+RUN ln -s /usr/bin/ccache /usr/local/bin/gcc
+RUN ln -s /usr/bin/ccache /usr/local/bin/g++
+RUN ln -s /usr/bin/ccache /usr/local/bin/cc
+RUN ln -s /usr/bin/ccache /usr/local/bin/c++
+RUN ln -s /usr/bin/ccache /usr/local/bin/clang
+RUN ln -s /usr/bin/ccache /usr/local/bin/clang++
 
-test = {} if 'TEST' in os.environ else None
 
-plugins = sorted(glob.glob('tools/buildgen/plugins/*.py'))
+##################
+# Ruby dependencies
 
-jobs = []
-for root, dirs, files in os.walk('templates'):
-  for f in files:
-    if os.path.splitext(f)[1] == '.template':
-      out_dir = '.' + root[len('templates'):]
-      out = out_dir + '/' + os.path.splitext(f)[0]
-      if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-      cmd = ['python', 'tools/buildgen/mako_renderer.py']
-      for plugin in plugins:
-        cmd.append('-p')
-        cmd.append(plugin)
-      for js in json:
-        cmd.append('-d')
-        cmd.append(js)
-      cmd.append('-o')
-      if test is None:
-        cmd.append(out)
-      else:
-        tf = tempfile.mkstemp()
-        test[out] = tf[1]
-        os.close(tf[0])
-        cmd.append(test[out])
-      cmd.append(root + '/' + f)
-      jobs.append(jobset.JobSpec(cmd, shortname=out))
+# Install rvm
+RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+RUN \curl -sSL https://get.rvm.io | bash -s stable
 
-jobset.run(jobs)
+# Install Ruby 2.1
+RUN /bin/bash -l -c "rvm install ruby-2.1"
+RUN /bin/bash -l -c "rvm use --default ruby-2.1"
+RUN /bin/bash -l -c "echo 'gem: --no-ri --no-rdoc' > ~/.gemrc"
+RUN /bin/bash -l -c "echo 'export PATH=/usr/local/rvm/bin:$PATH' >> ~/.bashrc"
+RUN /bin/bash -l -c "echo 'rvm --default use ruby-2.1' >> ~/.bashrc"
+RUN /bin/bash -l -c "gem install bundler --no-ri --no-rdoc"
 
-if test is not None:
-  for s, g in test.iteritems():
-    if os.path.isfile(g):
-      assert(0 == os.system('diff %s %s' % (s, g)))
-      os.unlink(g)
-    else:
-      assert(0 == os.system('diff -r %s %s' % (s, g)))
-      shutil.rmtree(g, ignore_errors=True)
+# Define the default command.
+CMD ["bash"]

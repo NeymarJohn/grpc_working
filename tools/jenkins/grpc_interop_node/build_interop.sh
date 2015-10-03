@@ -1,5 +1,4 @@
-#!/usr/bin/env python2.7
-
+#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,58 +27,20 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Builds Node interop server and client in a base image.
+set -e
 
-import glob
-import os
-import shutil
-import sys
-import tempfile
-sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..', 'run_tests'))
+mkdir -p /var/local/git
+git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
 
-assert sys.argv[1:], 'run generate_projects.sh instead of this directly'
+cd /var/local/git/grpc
+nvm use 0.12
+nvm alias default 0.12  # prevent the need to run 'nvm use' in every shell
 
-import jobset
+make install-certs
 
-os.chdir(os.path.join(os.path.dirname(sys.argv[0]), '..', '..'))
-json = sys.argv[1:]
-
-test = {} if 'TEST' in os.environ else None
-
-plugins = sorted(glob.glob('tools/buildgen/plugins/*.py'))
-
-jobs = []
-for root, dirs, files in os.walk('templates'):
-  for f in files:
-    if os.path.splitext(f)[1] == '.template':
-      out_dir = '.' + root[len('templates'):]
-      out = out_dir + '/' + os.path.splitext(f)[0]
-      if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-      cmd = ['python', 'tools/buildgen/mako_renderer.py']
-      for plugin in plugins:
-        cmd.append('-p')
-        cmd.append(plugin)
-      for js in json:
-        cmd.append('-d')
-        cmd.append(js)
-      cmd.append('-o')
-      if test is None:
-        cmd.append(out)
-      else:
-        tf = tempfile.mkstemp()
-        test[out] = tf[1]
-        os.close(tf[0])
-        cmd.append(test[out])
-      cmd.append(root + '/' + f)
-      jobs.append(jobset.JobSpec(cmd, shortname=out))
-
-jobset.run(jobs)
-
-if test is not None:
-  for s, g in test.iteritems():
-    if os.path.isfile(g):
-      assert(0 == os.system('diff %s %s' % (s, g)))
-      os.unlink(g)
-    else:
-      assert(0 == os.system('diff -r %s %s' % (s, g)))
-      shutil.rmtree(g, ignore_errors=True)
+# build Node interop client & server
+npm install -g node-gyp
+make install_c -C /var/local/git/grpc
+(cd src/node && npm install && node-gyp rebuild)
