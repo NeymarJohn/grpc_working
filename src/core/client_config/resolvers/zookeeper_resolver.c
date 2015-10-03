@@ -45,7 +45,6 @@
 #include "src/core/client_config/resolver_registry.h"
 #include "src/core/iomgr/resolve_address.h"
 #include "src/core/support/string.h"
-#include "src/core/surface/api_trace.h"
 #include "src/core/json/json.h"
 
 /** Zookeeper session expiration time in milliseconds */
@@ -488,7 +487,6 @@ static void zookeeper_plugin_init() {
 }
 
 void grpc_zookeeper_register() {
-  GRPC_API_TRACE("grpc_zookeeper_register(void)", 0, ());
   grpc_register_plugin(zookeeper_plugin_init, NULL);
 }
 
