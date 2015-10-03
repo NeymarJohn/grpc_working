@@ -46,7 +46,6 @@ Pod::Spec.new do |s|
   s.source = { :git => 'https://github.com/grpc/grpc.git',
                :tag => "release-#{version.gsub(/\./, '_')}-objectivec-#{version}" }
 
-
   s.ios.deployment_target = '7.1'
   s.osx.deployment_target = '10.9'
   s.requires_arc = true
