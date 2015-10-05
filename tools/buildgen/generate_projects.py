@@ -73,7 +73,7 @@ for root, dirs, files in os.walk('templates'):
       cmd.append(root + '/' + f)
       jobs.append(jobset.JobSpec(cmd, shortname=out))
 
-jobset.run(jobs)
+jobset.run(jobs, maxjobs=4)
 
 if test is not None:
   for s, g in test.iteritems():
