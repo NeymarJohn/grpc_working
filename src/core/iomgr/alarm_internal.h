@@ -31,53 +31,33 @@
  *
  */
 
-#include "src/core/iomgr/timer.h"
-#include "src/core/surface/completion_queue.h"
-#include <grpc/grpc.h>
-#include <grpc/support/alloc.h>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_ALARM_INTERNAL_H
+#define GRPC_INTERNAL_CORE_IOMGR_ALARM_INTERNAL_H
 
-struct grpc_alarm {
-  grpc_timer alarm;
-  grpc_cq_completion completion;
-  /** completion queue where events about this alarm will be posted */
-  grpc_completion_queue *cq;
-  /** user supplied tag */
-  void *tag;
-};
+#include "src/core/iomgr/exec_ctx.h"
+#include <grpc/support/sync.h>
+#include <grpc/support/time.h>
 
-static void do_nothing_end_completion(grpc_exec_ctx *exec_ctx, void *arg,
-                                      grpc_cq_completion *c) {}
+/* iomgr internal api for dealing with alarms */
 
-static void alarm_cb(grpc_exec_ctx *exec_ctx, void *arg, int success) {
-  grpc_alarm *alarm = arg;
-  grpc_cq_end_op(exec_ctx, alarm->cq, alarm->tag, success,
-                 do_nothing_end_completion, NULL, &alarm->completion);
-}
+/* Check for alarms to be run, and run them.
+   Return non zero if alarm callbacks were executed.
+   Drops drop_mu if it is non-null before executing callbacks.
+   If next is non-null, TRY to update *next with the next running alarm
+   IF that alarm occurs before *next current value.
+   *next is never guaranteed to be updated on any given execution; however,
+   with high probability at least one thread in the system will see an update
+   at any time slice. */
 
-grpc_alarm *grpc_alarm_create(grpc_completion_queue *cq, gpr_timespec deadline,
-                              void *tag) {
-  grpc_alarm *alarm = gpr_malloc(sizeof(grpc_alarm));
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
+int grpc_alarm_check(grpc_exec_ctx* exec_ctx, gpr_timespec now,
+                     gpr_timespec* next);
+void grpc_alarm_list_init(gpr_timespec now);
+void grpc_alarm_list_shutdown(grpc_exec_ctx* exec_ctx);
 
-  GRPC_CQ_INTERNAL_REF(cq, "alarm");
-  alarm->cq = cq;
-  alarm->tag = tag;
+gpr_timespec grpc_alarm_list_next_timeout(void);
 
-  grpc_timer_init(&exec_ctx, &alarm->alarm, deadline, alarm_cb, alarm,
-                  gpr_now(GPR_CLOCK_MONOTONIC));
-  grpc_cq_begin_op(cq);
-  grpc_exec_ctx_finish(&exec_ctx);
-  return alarm;
-}
+/* the following must be implemented by each iomgr implementation */
 
-void grpc_alarm_cancel(grpc_alarm *alarm) {
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-  grpc_timer_cancel(&exec_ctx, &alarm->alarm);
-  grpc_exec_ctx_finish(&exec_ctx);
-}
+void grpc_kick_poller(void);
 
-void grpc_alarm_destroy(grpc_alarm *alarm) {
-  grpc_alarm_cancel(alarm);
-  GRPC_CQ_INTERNAL_UNREF(alarm->cq, "alarm");
-  gpr_free(alarm);
-}
+#endif /* GRPC_INTERNAL_CORE_IOMGR_ALARM_INTERNAL_H */
