@@ -34,7 +34,7 @@
 'use strict';
 
 var assert = require('assert');
-var grpc = require('bindings')('grpc_node');
+var grpc = require('bindings')('grpc.node');
 
 /**
  * List of all status names

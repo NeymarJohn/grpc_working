@@ -40,7 +40,7 @@
 
 var _ = require('lodash');
 
-var grpc = require('bindings')('grpc_node');
+var grpc = require('bindings')('grpc.node');
 
 var common = require('./common');
 
