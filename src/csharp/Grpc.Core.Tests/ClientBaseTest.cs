@@ -1,4 +1,5 @@
 #region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,52 +28,35 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #endregion
+
 using System;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
+using Grpc.Core;
+using Grpc.Core.Internal;
+using Grpc.Core.Utils;
+using NUnit.Framework;
 
-namespace Grpc.Core.Internal
+namespace Grpc.Core.Tests
 {
-    /// <summary>
-    /// grpc_credentials from <c>grpc/grpc_security.h</c>
-    /// </summary>
-    internal class CredentialsSafeHandle : SafeHandleZeroIsInvalid
+    public class ClientBaseTest
     {
-        [DllImport("grpc_csharp_ext.dll", CharSet = CharSet.Ansi)]
-        static extern CredentialsSafeHandle grpcsharp_ssl_credentials_create(string pemRootCerts, string keyCertPairCertChain, string keyCertPairPrivateKey);
-
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern void grpcsharp_credentials_release(IntPtr credentials);
-
-        private CredentialsSafeHandle()
+        [Test]
+        public void GetAuthUriBase_Valid()
         {
+            Assert.AreEqual("https://some.googleapi.com/", ClientBase.GetAuthUriBase("some.googleapi.com"));
+            Assert.AreEqual("https://some.googleapi.com/", ClientBase.GetAuthUriBase("dns:///some.googleapi.com/"));
+            Assert.AreEqual("https://some.googleapi.com/", ClientBase.GetAuthUriBase("dns:///some.googleapi.com:443/"));
+            Assert.AreEqual("https://some.googleapi.com/", ClientBase.GetAuthUriBase("some.googleapi.com:443/"));
         }
 
-        public static CredentialsSafeHandle CreateNullCredentials()
+        [Test]
+        public void GetAuthUriBase_Invalid()
         {
-            var creds = new CredentialsSafeHandle();
-            creds.SetHandle(IntPtr.Zero);
-            return creds;
-        }
-
-        public static CredentialsSafeHandle CreateSslCredentials(string pemRootCerts, KeyCertificatePair keyCertPair)
-        {
-            if (keyCertPair != null)
-            {
-                return grpcsharp_ssl_credentials_create(pemRootCerts, keyCertPair.CertificateChain, keyCertPair.PrivateKey);
-            }
-            else
-            {
-                return grpcsharp_ssl_credentials_create(pemRootCerts, null, null);
-            }
-        }
-
-        protected override bool ReleaseHandle()
-        {
-            grpcsharp_credentials_release(handle);
-            return true;
+            Assert.IsNull(ClientBase.GetAuthUriBase("some.googleapi.com:"));
+            Assert.IsNull(ClientBase.GetAuthUriBase("https://some.googleapi.com/"));
+            Assert.IsNull(ClientBase.GetAuthUriBase("dns://some.googleapi.com:443"));  // just two slashes
+            Assert.IsNull(ClientBase.GetAuthUriBase(""));
         }
     }
 }
