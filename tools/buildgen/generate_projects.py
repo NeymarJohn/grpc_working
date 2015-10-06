@@ -34,7 +34,6 @@ import os
 import shutil
 import sys
 import tempfile
-import multiprocessing
 sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..', 'run_tests'))
 
 assert sys.argv[1:], 'run generate_projects.sh instead of this directly'
@@ -56,7 +55,7 @@ for root, dirs, files in os.walk('templates'):
       out = out_dir + '/' + os.path.splitext(f)[0]
       if not os.path.exists(out_dir):
         os.makedirs(out_dir)
-      cmd = ['python2.7', 'tools/buildgen/mako_renderer.py']
+      cmd = ['python', 'tools/buildgen/mako_renderer.py']
       for plugin in plugins:
         cmd.append('-p')
         cmd.append(plugin)
@@ -74,7 +73,7 @@ for root, dirs, files in os.walk('templates'):
       cmd.append(root + '/' + f)
       jobs.append(jobset.JobSpec(cmd, shortname=out))
 
-jobset.run(jobs, maxjobs=multiprocessing.cpu_count())
+jobset.run(jobs)
 
 if test is not None:
   for s, g in test.iteritems():
