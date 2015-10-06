@@ -31,51 +31,57 @@
  *
  */
 
-/* generates constant table for metadata.c */
+'use strict';
 
-#include <stdio.h>
-#include <string.h>
+var _ = require('lodash');
+var grpc = require('..');
+var examples = grpc.load(__dirname + '/stock.proto').examples;
 
-static unsigned char legal_bits[256 / 8];
-
-static void legal(int x) {
-  int byte = x / 8;
-  int bit = x % 8;
-  /* NB: the following integer arithmetic operation needs to be in its
-   * expanded form due to the "integral promotion" performed (see section
-   * 3.2.1.1 of the C89 draft standard). A cast to the smaller container type
-   * is then required to avoid the compiler warning */
-  legal_bits[byte] =
-      (unsigned char)((legal_bits[byte] | (unsigned char)(1 << bit)));
+function getLastTradePrice(call, callback) {
+  callback(null, {symbol: call.request.symbol, price: 88});
 }
 
-static void dump(void) {
-  int i;
-
-  printf("static const gpr_uint8 legal_header_bits[256/8] = ");
-  for (i = 0; i < 256 / 8; i++)
-    printf("%c 0x%02x", i ? ',' : '{', legal_bits[i]);
-  printf(" };\n");
-}
-
-static void clear(void) { memset(legal_bits, 0, sizeof(legal_bits)); }
-
-int main(void) {
-  int i;
-
-  clear();
-  for (i = 'a'; i <= 'z'; i++) legal(i);
-  for (i = '0'; i <= '9'; i++) legal(i);
-  legal('-');
-  legal('_');
-  dump();
-
-  clear();
-  for (i = 32; i <= 126; i++) {
-    if (i == ',') continue;
-    legal(i);
+function watchFutureTrades(call) {
+  for (var i = 0; i < call.request.num_trades_to_watch; i++) {
+    call.write({price: 88.00 + i * 10.00});
   }
-  dump();
-
-  return 0;
+  call.end();
 }
+
+function getHighestTradePrice(call, callback) {
+  var trades = [];
+  call.on('data', function(data) {
+    trades.push({symbol: data.symbol, price: _.random(0, 100)});
+  });
+  call.on('end', function() {
+    if(_.isEmpty(trades)) {
+      callback(null, {});
+    } else {
+      callback(null, _.max(trades, function(trade){return trade.price;}));
+    }
+  });
+}
+
+function getLastTradePriceMultiple(call) {
+  call.on('data', function(data) {
+    call.write({price: 88});
+  });
+  call.on('end', function() {
+    call.end();
+  });
+}
+
+var stockServer = new grpc.Server();
+stockServer.addProtoService(examples.Stock.service, {
+  getLastTradePrice: getLastTradePrice,
+  getLastTradePriceMultiple: getLastTradePriceMultiple,
+  watchFutureTrades: watchFutureTrades,
+  getHighestTradePrice: getHighestTradePrice
+});
+
+if (require.main === module) {
+  stockServer.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure());
+  stockServer.start();
+}
+
+module.exports = stockServer;
