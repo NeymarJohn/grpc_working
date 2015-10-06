@@ -82,6 +82,11 @@ void grpc_subchannel_create_call(grpc_exec_ctx *exec_ctx,
                                  grpc_subchannel_call **target,
                                  grpc_closure *notify);
 
+/** cancel \a call in the waiting state. */
+void grpc_subchannel_cancel_waiting_call(grpc_exec_ctx *exec_ctx,
+                                         grpc_subchannel *subchannel,
+                                         int iomgr_success);
+
 /** process a transport level op */
 void grpc_subchannel_process_transport_op(grpc_exec_ctx *exec_ctx,
                                           grpc_subchannel *subchannel,
@@ -143,5 +148,11 @@ struct grpc_subchannel_args {
 /** create a subchannel given a connector */
 grpc_subchannel *grpc_subchannel_create(grpc_connector *connector,
                                         grpc_subchannel_args *args);
+
+/** Return the metadata context associated with the subchannel */
+grpc_mdctx *grpc_subchannel_get_mdctx(grpc_subchannel *subchannel);
+
+/** Return the master channel associated with the subchannel */
+grpc_channel *grpc_subchannel_get_master(grpc_subchannel *subchannel);
 
 #endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_H */
