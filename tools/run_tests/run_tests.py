@@ -607,7 +607,7 @@ run_configs = set(_CONFIGS[cfg]
 build_configs = set(cfg.build_config for cfg in run_configs)
 
 if args.travis:
-  _FORCE_ENVIRON_FOR_WRAPPERS = {'GRPC_TRACE': 'api'}
+  _FORCE_ENVIRON_FOR_WRAPPERS = {'GRPC_TRACE': 'surface,batch'}
 
 languages = set(_LANGUAGES[l]
                 for l in itertools.chain.from_iterable(
