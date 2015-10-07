@@ -168,9 +168,8 @@ Local<Value> ParseMetadata(const grpc_metadata_array *metadata_array) {
     }
     if (EndsWith(elem->key, "-bin")) {
       Nan::Set(array, index_map[elem->key],
-               MakeFastBuffer(
-                   Nan::CopyBuffer(elem->value,
-                                   elem->value_length).ToLocalChecked()));
+               Nan::CopyBuffer(elem->value,
+                               elem->value_length).ToLocalChecked());
     } else {
       Nan::Set(array, index_map[elem->key],
                Nan::New(elem->value).ToLocalChecked());
