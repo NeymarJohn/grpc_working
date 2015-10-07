@@ -153,7 +153,8 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
         GPR_ASSERT((*req)->in_flight_);
         return true;
     }
-    GPR_UNREACHABLE_CODE(return false);
+    gpr_log(GPR_ERROR, "Should never reach here");
+    abort();
   }
 
   void SetupRequest() { cq_ = grpc_completion_queue_create(nullptr); }

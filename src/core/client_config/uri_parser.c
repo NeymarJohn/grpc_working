@@ -37,7 +37,6 @@
 
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
-#include <grpc/support/port_platform.h>
 #include <grpc/support/string_util.h>
 
 /** a size_t default value... maps to all 1's */
@@ -121,7 +120,8 @@ static int parse_fragment_or_query(const char *uri_text, size_t *i) {
         } else {
           return 1;
         }
-        GPR_UNREACHABLE_CODE(return 0);
+        gpr_log(GPR_ERROR, "should never reach here");
+        abort();
       default:
         (*i) += advance;
         break;

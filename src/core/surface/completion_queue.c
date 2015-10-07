@@ -254,7 +254,8 @@ static void del_plucker(grpc_completion_queue *cc, void *tag,
       return;
     }
   }
-  GPR_UNREACHABLE_CODE(return );
+  gpr_log(GPR_ERROR, "should never reach here");
+  abort();
 }
 
 grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
