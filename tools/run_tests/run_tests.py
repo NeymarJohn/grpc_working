@@ -181,6 +181,45 @@ class CLanguage(object):
   def __str__(self):
     return self.make_target
 
+
+def gyp_test_paths(travis, config=None):
+  binaries = get_c_tests(travis, 'c')
+  out = []
+  for target in binaries:
+    if config is not None and config.build_config in target['exclude_configs']:
+        continue
+    binary = 'out/Debug/%s' % target['name']
+    out.append(binary)
+  return sorted(out)
+
+
+class GYPCLanguage(object):
+
+  def test_specs(self, config, travis):
+    return [config.job_spec([binary], [binary])
+            for binary in gyp_test_paths(travis, config)]
+
+  def pre_build_steps(self):
+    return [['gyp', '--depth=.', '--suffix=-gyp', 'grpc.gyp']]
+
+  def make_targets(self):
+    # HACK(ctiller): force fling_client and fling_server to be built, as fling_test
+    # needs these
+    return gyp_test_paths(False) + ['fling_client', 'fling_server']
+
+  def build_steps(self):
+    return []
+
+  def makefile_name(self):
+    return 'Makefile-gyp'
+
+  def supports_multi_config(self):
+    return False
+
+  def __str__(self):
+    return 'gyp'
+
+
 class NodeLanguage(object):
 
   def test_specs(self, config, travis):
@@ -191,7 +230,7 @@ class NodeLanguage(object):
     return []
 
   def make_targets(self):
-    return []
+    return ['static_c', 'shared_c']
 
   def build_steps(self):
     return [['tools/run_tests/build_node.sh']]
@@ -444,6 +483,7 @@ _DEFAULT = ['opt']
 _LANGUAGES = {
     'c++': CLanguage('cxx', 'c++'),
     'c': CLanguage('c', 'c'),
+    'gyp': GYPCLanguage(),
     'node': NodeLanguage(),
     'php': PhpLanguage(),
     'python': PythonLanguage(),
@@ -567,7 +607,7 @@ run_configs = set(_CONFIGS[cfg]
 build_configs = set(cfg.build_config for cfg in run_configs)
 
 if args.travis:
-  _FORCE_ENVIRON_FOR_WRAPPERS = {'GRPC_TRACE': 'surface,batch'}
+  _FORCE_ENVIRON_FOR_WRAPPERS = {'GRPC_TRACE': 'api'}
 
 languages = set(_LANGUAGES[l]
                 for l in itertools.chain.from_iterable(
@@ -584,9 +624,7 @@ if platform.system() == 'Windows':
   def make_jobspec(cfg, targets, makefile='Makefile'):
     extra_args = []
     # better do parallel compilation
-    # empirically /m:2 gives the best performance/price and should prevent
-    # overloading the windows workers.
-    extra_args.extend(["/m:2"])
+    extra_args.extend(["/m"])
     # disable PDB generation: it's broken, and we don't need it during CI
     extra_args.extend(["/p:Jenkins=true"])
     return [
@@ -675,24 +713,21 @@ def _start_port_server(port_server_port):
   # if not running ==> start a new one
   # otherwise, leave it up
   try:
-    version = int(urllib2.urlopen(
-        'http://localhost:%d/version_number' % port_server_port,
-        timeout=1).read())
-    print 'detected port server running version %d' % version
+    version = urllib2.urlopen('http://localhost:%d/version' % port_server_port,
+                              timeout=1).read()
+    print 'detected port server running'
     running = True
-  except Exception as e:
+  except Exception:
     print 'failed to detect port server: %s' % sys.exc_info()[0]
-    print e.strerror
     running = False
   if running:
-    current_version = int(subprocess.check_output(
-        [sys.executable, 'tools/run_tests/port_server.py', 'dump_version']))
-    print 'my port server is version %d' % current_version
-    running = (version >= current_version)
-    if not running:
-      print 'port_server version mismatch: killing the old one'
-      urllib2.urlopen('http://localhost:%d/quitquitquit' % port_server_port).read()
-      time.sleep(1)
+    with open('tools/run_tests/port_server.py') as f:
+      current_version = hashlib.sha1(f.read()).hexdigest()
+      running = (version == current_version)
+      if not running:
+        print 'port_server version mismatch: killing the old one'
+        urllib2.urlopen('http://localhost:%d/quit' % port_server_port).read()
+        time.sleep(1)
   if not running:
     print 'starting port_server'
     port_log = open('portlog.txt', 'w')
@@ -738,7 +773,7 @@ def _build_and_run(
   # start antagonists
   antagonists = [subprocess.Popen(['tools/run_tests/antagonist.py'])
                  for _ in range(0, args.antagonists)]
-  port_server_port = 32767
+  port_server_port = 9999
   _start_port_server(port_server_port)
   try:
     infinite_runs = runs_per_test == 0
