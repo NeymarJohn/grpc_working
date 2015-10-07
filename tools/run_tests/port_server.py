@@ -38,18 +38,6 @@ import socket
 import sys
 import time
 
-
-# increment this number whenever making a change to ensure that
-# the changes are picked up by running CI servers
-# note that all changes must be backwards compatible
-_MY_VERSION = 2
-
-
-if len(sys.argv) == 2 and sys.argv[1] == 'dump_version':
-  print _MY_VERSION
-  sys.exit(0)
-
-
 argp = argparse.ArgumentParser(description='Server for httpcli_test')
 argp.add_argument('-p', '--port', default=12345, type=int)
 args = argp.parse_args()
@@ -58,6 +46,9 @@ print 'port server running on port %d' % args.port
 
 pool = []
 in_use = {}
+
+with open(__file__) as f:
+  _MY_VERSION = hashlib.sha1(f.read()).hexdigest()
 
 
 def refill_pool(max_timeout, req):
@@ -122,7 +113,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
       del in_use[p]
       pool.append(p)
       self.log_message('drop port %d' % p)
-    elif self.path == '/version_number':
+    elif self.path == '/version':
       # fetch a version string and the current process pid
       self.send_response(200)
       self.send_header('Content-Type', 'text/plain')
@@ -137,7 +128,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
       self.end_headers()
       now = time.time()
       self.wfile.write(yaml.dump({'pool': pool, 'in_use': dict((k, now - v) for k, v in in_use.iteritems())}))
-    elif self.path == '/quitquitquit':
+    elif self.path == '/quit':
       self.send_response(200)
       self.end_headers()
       keep_running = False
