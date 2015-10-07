@@ -97,5 +97,4 @@ size_t grpc_byte_buffer_length(grpc_byte_buffer *bb) {
   }
   gpr_log(GPR_ERROR, "should never reach here");
   abort();
-  return 0;
 }
