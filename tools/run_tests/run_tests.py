@@ -181,6 +181,45 @@ class CLanguage(object):
   def __str__(self):
     return self.make_target
 
+
+def gyp_test_paths(travis, config=None):
+  binaries = get_c_tests(travis, 'c')
+  out = []
+  for target in binaries:
+    if config is not None and config.build_config in target['exclude_configs']:
+        continue
+    binary = 'out/Debug/%s' % target['name']
+    out.append(binary)
+  return sorted(out)
+
+
+class GYPCLanguage(object):
+
+  def test_specs(self, config, travis):
+    return [config.job_spec([binary], [binary])
+            for binary in gyp_test_paths(travis, config)]
+
+  def pre_build_steps(self):
+    return [['gyp', '--depth=.', '--suffix=-gyp', 'grpc.gyp']]
+
+  def make_targets(self):
+    # HACK(ctiller): force fling_client and fling_server to be built, as fling_test
+    # needs these
+    return gyp_test_paths(False) + ['fling_client', 'fling_server']
+
+  def build_steps(self):
+    return []
+
+  def makefile_name(self):
+    return 'Makefile-gyp'
+
+  def supports_multi_config(self):
+    return False
+
+  def __str__(self):
+    return 'gyp'
+
+
 class NodeLanguage(object):
 
   def test_specs(self, config, travis):
@@ -191,7 +230,7 @@ class NodeLanguage(object):
     return []
 
   def make_targets(self):
-    return []
+    return ['static_c', 'shared_c']
 
   def build_steps(self):
     return [['tools/run_tests/build_node.sh']]
@@ -444,6 +483,7 @@ _DEFAULT = ['opt']
 _LANGUAGES = {
     'c++': CLanguage('cxx', 'c++'),
     'c': CLanguage('c', 'c'),
+    'gyp': GYPCLanguage(),
     'node': NodeLanguage(),
     'php': PhpLanguage(),
     'python': PythonLanguage(),
@@ -584,7 +624,9 @@ if platform.system() == 'Windows':
   def make_jobspec(cfg, targets, makefile='Makefile'):
     extra_args = []
     # better do parallel compilation
-    extra_args.extend(["/m"])
+    # empirically /m:2 gives the best performance/price and should prevent
+    # overloading the windows workers.
+    extra_args.extend(["/m:2"])
     # disable PDB generation: it's broken, and we don't need it during CI
     extra_args.extend(["/p:Jenkins=true"])
     return [
