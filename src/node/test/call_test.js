@@ -34,7 +34,7 @@
 'use strict';
 
 var assert = require('assert');
-var grpc = require('bindings')('grpc_node');
+var grpc = require('bindings')('grpc.node');
 
 /**
  * Helper function to return an absolute deadline given a relative timeout in
@@ -48,7 +48,7 @@ function getDeadline(timeout_secs) {
   return deadline;
 }
 
-var insecureCreds = grpc.ChannelCredentials.createInsecure();
+var insecureCreds = grpc.Credentials.createInsecure();
 
 describe('call', function() {
   var channel;
