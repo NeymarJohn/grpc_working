@@ -1,3 +1,5 @@
+#region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,36 +29,45 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-syntax = "proto3";
+#endregion
 
-package examples;
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using Grpc.Core;
+using Grpc.Core.Internal;
+using Grpc.Core.Utils;
+using NUnit.Framework;
 
-// Protocol type definitions
-message StockRequest {
-  string symbol = 1;
-  int32 num_trades_to_watch = 2;
-}
+namespace Grpc.Core.Tests
+{
+    public class ChannelCredentialsTest
+    {
+        [Test]
+        public void InsecureCredentials_IsNonComposable()
+        {
+            Assert.IsFalse(ChannelCredentials.Insecure.IsComposable);
+        }
 
-message StockReply {
-  float price = 1;
-  string symbol = 2;
-}
+        [Test]
+        public void ChannelCredentials_CreateComposite()
+        {
+            var composite = ChannelCredentials.Create(new FakeChannelCredentials(true), new FakeCallCredentials());
+            Assert.IsFalse(composite.IsComposable);
 
+            Assert.Throws(typeof(ArgumentNullException), () => ChannelCredentials.Create(null, new FakeCallCredentials()));
+            Assert.Throws(typeof(ArgumentNullException), () => ChannelCredentials.Create(new FakeChannelCredentials(true), null));
+            
+            // forbid composing non-composable
+            Assert.Throws(typeof(ArgumentException), () => ChannelCredentials.Create(new FakeChannelCredentials(false), new FakeCallCredentials()));
+        }
 
-// Interface exported by the server
-service Stock {
-  // Simple blocking RPC
-  rpc GetLastTradePrice(StockRequest) returns (StockReply) {
-  }
-  // Bidirectional streaming RPC
-  rpc GetLastTradePriceMultiple(stream StockRequest) returns
-    (stream StockReply) {
-  }
-  // Unidirectional server-to-client streaming RPC
-  rpc WatchFutureTrades(StockRequest) returns (stream StockReply) {
-  }
-  // Unidirectional client-to-server streaming RPC
-  rpc GetHighestTradePrice(stream StockRequest) returns (StockReply) {
-  }
-
+        [Test]
+        public void ChannelCredentials_CreateWrapped()
+        {
+            ChannelCredentials.Create(new FakeCallCredentials());
+        }
+    }
 }
