@@ -36,4 +36,9 @@ CONFIG=${CONFIG:-opt}
 # change to grpc repo root
 cd $(dirname $0)/../..
 
+export CXXFLAGS=-I`pwd`/include
+export LDFLAGS=-L`pwd`/libs/$CONFIG
+
+cd src/node
+
 npm install --unsafe-perm

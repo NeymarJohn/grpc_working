@@ -7,5 +7,4 @@ dist/
 *.eggs/
 .coverage
 .coverage.*
-.cache
 nosetests.xml
