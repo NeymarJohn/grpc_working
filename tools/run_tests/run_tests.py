@@ -321,10 +321,7 @@ class CSharpLanguage(object):
             for assembly in assemblies]
 
   def pre_build_steps(self):
-    if self.platform == 'windows':
-      return []
-    else:
-      return [['tools/run_tests/pre_build_csharp.sh']]
+    return []
 
   def make_targets(self):
     # For Windows, this target doesn't really build anything,
