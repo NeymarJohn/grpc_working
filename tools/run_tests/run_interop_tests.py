@@ -250,7 +250,8 @@ _LANGUAGES = {
 }
 
 # languages supported as cloud_to_cloud servers
-_SERVERS = ['c++', 'node', 'csharp', 'java', 'go', 'ruby']
+# TODO(jtattermusch): enable other languages as servers as well
+_SERVERS = ['c++', 'node', 'csharp', 'java', 'go']
 
 # TODO(jtattermusch): add empty_stream once PHP starts supporting it.
 # TODO(jtattermusch): add timeout_on_sleeping_server once java starts supporting it.
