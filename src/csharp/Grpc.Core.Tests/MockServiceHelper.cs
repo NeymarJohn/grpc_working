@@ -154,7 +154,7 @@ namespace Grpc.Core.Tests
         {
             if (channel == null)
             {
-                channel = new Channel(Host, GetServer().Ports.Single().BoundPort, ChannelCredentials.Insecure);
+                channel = new Channel(Host, GetServer().Ports.Single().BoundPort, Credentials.Insecure);
             }
             return channel;
         }
