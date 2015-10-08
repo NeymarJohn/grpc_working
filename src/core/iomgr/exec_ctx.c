@@ -35,19 +35,16 @@
 
 #include <grpc/support/log.h>
 
-int grpc_exec_ctx_flush(grpc_exec_ctx *exec_ctx) {
-  int did_something = 0;
+void grpc_exec_ctx_flush(grpc_exec_ctx *exec_ctx) {
   while (!grpc_closure_list_empty(exec_ctx->closure_list)) {
     grpc_closure *c = exec_ctx->closure_list.head;
     exec_ctx->closure_list.head = exec_ctx->closure_list.tail = NULL;
     while (c != NULL) {
       grpc_closure *next = c->next;
-      did_something = 1;
       c->cb(exec_ctx, c->cb_arg, c->success);
       c = next;
     }
   }
-  return did_something;
 }
 
 void grpc_exec_ctx_finish(grpc_exec_ctx *exec_ctx) {
