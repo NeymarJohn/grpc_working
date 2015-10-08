@@ -31,53 +31,23 @@
  *
  */
 
-#include "src/core/iomgr/timer.h"
-#include "src/core/surface/completion_queue.h"
-#include <grpc/grpc.h>
-#include <grpc/support/alloc.h>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H
+#define GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H
 
-struct grpc_alarm {
-  grpc_timer alarm;
-  grpc_cq_completion completion;
-  /** completion queue where events about this alarm will be posted */
-  grpc_completion_queue *cq;
-  /** user supplied tag */
-  void *tag;
-};
+#include "src/core/iomgr/closure.h"
 
-static void do_nothing_end_completion(grpc_exec_ctx *exec_ctx, void *arg,
-                                      grpc_cq_completion *c) {}
+/** Initialize the global executor.
+ *
+ * This mechanism is meant to outsource work (grpc_closure instances) to a
+ * thread, for those cases where blocking isn't an option but there isn't a
+ * non-blocking solution available. */
+void grpc_executor_init();
 
-static void alarm_cb(grpc_exec_ctx *exec_ctx, void *arg, int success) {
-  grpc_alarm *alarm = arg;
-  grpc_cq_end_op(exec_ctx, alarm->cq, alarm->tag, success,
-                 do_nothing_end_completion, NULL, &alarm->completion);
-}
+/** Enqueue \a closure for its eventual execution of \a f(arg) on a separate
+ * thread */
+void grpc_executor_enqueue(grpc_closure *closure, int success);
 
-grpc_alarm *grpc_alarm_create(grpc_completion_queue *cq, gpr_timespec deadline,
-                              void *tag) {
-  grpc_alarm *alarm = gpr_malloc(sizeof(grpc_alarm));
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
+/** Shutdown the executor, running all pending work as part of the call */
+void grpc_executor_shutdown();
 
-  GRPC_CQ_INTERNAL_REF(cq, "alarm");
-  alarm->cq = cq;
-  alarm->tag = tag;
-
-  grpc_timer_init(&exec_ctx, &alarm->alarm, deadline, alarm_cb, alarm,
-                  gpr_now(GPR_CLOCK_MONOTONIC));
-  grpc_cq_begin_op(cq);
-  grpc_exec_ctx_finish(&exec_ctx);
-  return alarm;
-}
-
-void grpc_alarm_cancel(grpc_alarm *alarm) {
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-  grpc_timer_cancel(&exec_ctx, &alarm->alarm);
-  grpc_exec_ctx_finish(&exec_ctx);
-}
-
-void grpc_alarm_destroy(grpc_alarm *alarm) {
-  grpc_alarm_cancel(alarm);
-  GRPC_CQ_INTERNAL_UNREF(alarm->cq, "alarm");
-  gpr_free(alarm);
-}
+#endif /* GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H */

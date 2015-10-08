@@ -31,38 +31,27 @@
  *
  */
 
-/// An Alarm posts the user provided tag to its associated completion queue upon
-/// expiry or cancellation.
-#ifndef GRPCXX_ALARM_H
-#define GRPCXX_ALARM_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_ALARM_HEAP_H
+#define GRPC_INTERNAL_CORE_IOMGR_ALARM_HEAP_H
 
-#include <grpc++/completion_queue.h>
-#include <grpc++/impl/grpc_library.h>
-#include <grpc++/support/time.h>
+#include "src/core/iomgr/alarm.h"
 
-namespace grpc {
+typedef struct {
+  grpc_alarm **alarms;
+  gpr_uint32 alarm_count;
+  gpr_uint32 alarm_capacity;
+} grpc_alarm_heap;
 
-/// A thin wrapper around \a grpc_alarm (see / \a / src/core/surface/alarm.h).
-class Alarm: public GrpcLibrary {
- public:
-  /// Create a completion queue alarm instance associated to \a cq.
-  ///
-  /// Once the alarm expires (at \a deadline) or it's cancelled (see \a Cancel),
-  /// an event with tag \a tag will be added to \a cq. If the alarm expired, the
-  /// event's success bit will be true, false otherwise (ie, upon cancellation).
-  Alarm(CompletionQueue* cq, gpr_timespec deadline, void* tag);
+/* return 1 if the new alarm is the first alarm in the heap */
+int grpc_alarm_heap_add(grpc_alarm_heap *heap, grpc_alarm *alarm);
 
-  /// Destroy the given completion queue alarm, cancelling it in the process.
-  ~Alarm();
+void grpc_alarm_heap_init(grpc_alarm_heap *heap);
+void grpc_alarm_heap_destroy(grpc_alarm_heap *heap);
 
-  /// Cancel a completion queue alarm. Calling this function over an alarm that
-  /// has already fired has no effect.
-  void Cancel();
+void grpc_alarm_heap_remove(grpc_alarm_heap *heap, grpc_alarm *alarm);
+grpc_alarm *grpc_alarm_heap_top(grpc_alarm_heap *heap);
+void grpc_alarm_heap_pop(grpc_alarm_heap *heap);
 
- private:
-  grpc_alarm* const alarm_;  // owned
-};
+int grpc_alarm_heap_is_empty(grpc_alarm_heap *heap);
 
-}  // namespace grpc
-
-#endif  // GRPCXX_ALARM_H
+#endif /* GRPC_INTERNAL_CORE_IOMGR_ALARM_HEAP_H */
