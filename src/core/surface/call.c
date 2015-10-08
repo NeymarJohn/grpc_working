@@ -425,12 +425,18 @@ static grpc_cq_completion *allocate_completion(grpc_call *call) {
     if (call->allocated_completions & (1u << i)) {
       continue;
     }
-    call->allocated_completions |= (gpr_uint8)(1u << i);
+    /* NB: the following integer arithmetic operation needs to be in its
+     * expanded form due to the "integral promotion" performed (see section
+     * 3.2.1.1 of the C89 draft standard). A cast to the smaller container type
+     * is then required to avoid the compiler warning */
+    call->allocated_completions =
+        (gpr_uint8)(call->allocated_completions | (1u << i));
     gpr_mu_unlock(&call->completion_mu);
     return &call->completions[i];
   }
   gpr_log(GPR_ERROR, "should never reach here");
   abort();
+  return NULL;
 }
 
 static void done_completion(grpc_exec_ctx *exec_ctx, void *call,
@@ -521,13 +527,9 @@ static void set_compression_algorithm(grpc_call *call,
   call->compression_algorithm = algo;
 }
 
-grpc_compression_algorithm grpc_call_test_only_get_compression_algorithm(
-    grpc_call *call) {
-  grpc_compression_algorithm algorithm;
-  gpr_mu_lock(&call->mu);
-  algorithm = call->compression_algorithm;
-  gpr_mu_unlock(&call->mu);
-  return algorithm;
+grpc_compression_algorithm grpc_call_get_compression_algorithm(
+    const grpc_call *call) {
+  return call->compression_algorithm;
 }
 
 static void set_encodings_accepted_by_peer(
@@ -561,20 +563,12 @@ static void set_encodings_accepted_by_peer(
   }
 }
 
-gpr_uint32 grpc_call_test_only_get_encodings_accepted_by_peer(grpc_call *call) {
-  gpr_uint32 encodings_accepted_by_peer;
-  gpr_mu_lock(&call->mu);
-  encodings_accepted_by_peer = call->encodings_accepted_by_peer;
-  gpr_mu_unlock(&call->mu);
-  return encodings_accepted_by_peer;
+gpr_uint32 grpc_call_get_encodings_accepted_by_peer(grpc_call *call) {
+  return call->encodings_accepted_by_peer;
 }
 
-gpr_uint32 grpc_call_test_only_get_message_flags(grpc_call *call) {
-  gpr_uint32 flags;
-  gpr_mu_lock(&call->mu);
-  flags = call->incoming_message_flags;
-  gpr_mu_unlock(&call->mu);
-  return flags;
+gpr_uint32 grpc_call_get_message_flags(const grpc_call *call) {
+  return call->incoming_message_flags;
 }
 
 static void set_status_details(grpc_call *call, status_source source,
@@ -618,6 +612,8 @@ static void unlock(grpc_exec_ctx *exec_ctx, grpc_call *call) {
   int i;
   const size_t MAX_RECV_PEEK_AHEAD = 65536;
   size_t buffered_bytes;
+
+  GRPC_TIMER_BEGIN(GRPC_PTAG_CALL_UNLOCK, 0);
 
   memset(&op, 0, sizeof(op));
 
@@ -689,6 +685,8 @@ static void unlock(grpc_exec_ctx *exec_ctx, grpc_call *call) {
     unlock(exec_ctx, call);
     GRPC_CALL_INTERNAL_UNREF(exec_ctx, call, "completing");
   }
+
+  GRPC_TIMER_END(GRPC_PTAG_CALL_UNLOCK, 0);
 }
 
 static void get_final_status(grpc_call *call, grpc_ioreq_data out) {
@@ -748,7 +746,11 @@ static void finish_live_ioreq_op(grpc_call *call, grpc_ioreq_op op,
   size_t i;
   /* ioreq is live: we need to do something */
   master = &call->masters[master_set];
-  master->complete_mask |= (gpr_uint16)(1u << op);
+  /* NB: the following integer arithmetic operation needs to be in its
+   * expanded form due to the "integral promotion" performed (see section
+   * 3.2.1.1 of the C89 draft standard). A cast to the smaller container type
+   * is then required to avoid the compiler warning */
+  master->complete_mask = (gpr_uint16)(master->complete_mask | (1u << op));
   if (!success) {
     master->success = 0;
   }
@@ -939,6 +941,7 @@ static int add_slice_to_message(grpc_call *call, gpr_slice slice) {
   }
   /* we have to be reading a message to know what to do here */
   if (!call->reading_message) {
+    gpr_slice_unref(slice);
     cancel_with_status(call, GRPC_STATUS_INVALID_ARGUMENT,
                        "Received payload data while not reading a message");
     return 0;
@@ -1258,7 +1261,11 @@ static grpc_call_error start_ioreq(grpc_call *call, const grpc_ioreq *reqs,
                            GRPC_MDSTR_REF(reqs[i].data.send_status.details));
       }
     }
-    have_ops |= (gpr_uint16)(1u << op);
+    /* NB: the following integer arithmetic operation needs to be in its
+     * expanded form due to the "integral promotion" performed (see section
+     * 3.2.1.1 of the C89 draft standard). A cast to the smaller container type
+     * is then required to avoid the compiler warning */
+    have_ops = (gpr_uint16)(have_ops | (1u << op));
 
     call->request_data[op] = data;
     call->request_flags[op] = reqs[i].flags;
@@ -1601,6 +1608,8 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
   grpc_call_error error;
   grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
 
+  GRPC_TIMER_BEGIN(GRPC_PTAG_CALL_START_BATCH, 0);
+
   GRPC_API_TRACE(
       "grpc_call_start_batch(call=%p, ops=%p, nops=%lu, tag=%p, reserved=%p)",
       5, (call, ops, (unsigned long)nops, tag, reserved));
@@ -1838,6 +1847,7 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
                                               finish_func, tag);
 done:
   grpc_exec_ctx_finish(&exec_ctx);
+  GRPC_TIMER_END(GRPC_PTAG_CALL_START_BATCH, 0);
   return error;
 }
 
