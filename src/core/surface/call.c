@@ -434,8 +434,7 @@ static grpc_cq_completion *allocate_completion(grpc_call *call) {
     gpr_mu_unlock(&call->completion_mu);
     return &call->completions[i];
   }
-  gpr_log(GPR_ERROR, "should never reach here");
-  abort();
+  GPR_UNREACHABLE_CODE(return NULL);
   return NULL;
 }
 
@@ -613,8 +612,6 @@ static void unlock(grpc_exec_ctx *exec_ctx, grpc_call *call) {
   const size_t MAX_RECV_PEEK_AHEAD = 65536;
   size_t buffered_bytes;
 
-  GRPC_TIMER_BEGIN(GRPC_PTAG_CALL_UNLOCK, 0);
-
   memset(&op, 0, sizeof(op));
 
   op.cancel_with_status = call->cancel_with_status;
@@ -685,8 +682,6 @@ static void unlock(grpc_exec_ctx *exec_ctx, grpc_call *call) {
     unlock(exec_ctx, call);
     GRPC_CALL_INTERNAL_UNREF(exec_ctx, call, "completing");
   }
-
-  GRPC_TIMER_END(GRPC_PTAG_CALL_UNLOCK, 0);
 }
 
 static void get_final_status(grpc_call *call, grpc_ioreq_data out) {
@@ -1608,8 +1603,6 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
   grpc_call_error error;
   grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
 
-  GRPC_TIMER_BEGIN(GRPC_PTAG_CALL_START_BATCH, 0);
-
   GRPC_API_TRACE(
       "grpc_call_start_batch(call=%p, ops=%p, nops=%lu, tag=%p, reserved=%p)",
       5, (call, ops, (unsigned long)nops, tag, reserved));
@@ -1847,7 +1840,6 @@ grpc_call_error grpc_call_start_batch(grpc_call *call, const grpc_op *ops,
                                               finish_func, tag);
 done:
   grpc_exec_ctx_finish(&exec_ctx);
-  GRPC_TIMER_END(GRPC_PTAG_CALL_START_BATCH, 0);
   return error;
 }
 
