@@ -344,13 +344,9 @@ namespace Grpc.Core.Internal
 
             var parentCall = details.Options.PropagationToken != null ? details.Options.PropagationToken.ParentCall : CallSafeHandle.NullInstance;
 
-            var credentials = details.Options.Credentials;
-            using (var nativeCredentials = credentials != null ? credentials.ToNativeCredentials() : null)
-            {
-                return details.Channel.Handle.CreateCall(environment.CompletionRegistry,
-                    parentCall, ContextPropagationToken.DefaultMask, cq,
-                    details.Method, details.Host, Timespec.FromDateTime(details.Options.Deadline.Value), nativeCredentials);
-            }
+            return details.Channel.Handle.CreateCall(environment.CompletionRegistry,
+                parentCall, ContextPropagationToken.DefaultMask, cq,
+                details.Method, details.Host, Timespec.FromDateTime(details.Options.Deadline.Value));
         }
 
         // Make sure that once cancellationToken for this call is cancelled, Cancel() will be called.
