@@ -143,13 +143,10 @@ ${gen_package_props(packages, repo_root)}\
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_USE_32BIT_TIME_T;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>${get_subsystem(project.is_library)}</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug-DLL|x64'">
@@ -160,13 +157,10 @@ ${gen_package_props(packages, repo_root)}\
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>${get_subsystem(project.is_library)}</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-DLL|Win32'">
@@ -179,13 +173,10 @@ ${gen_package_props(packages, repo_root)}\
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>${get_subsystem(project.is_library)}</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -200,13 +191,10 @@ ${gen_package_props(packages, repo_root)}\
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>${get_subsystem(project.is_library)}</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -220,13 +208,10 @@ ${gen_package_props(packages, repo_root)}\
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_USE_32BIT_TIME_T;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>${get_subsystem(project.is_library)}</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -237,13 +222,10 @@ ${gen_package_props(packages, repo_root)}\
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>${get_subsystem(project.is_library)}</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -256,13 +238,10 @@ ${gen_package_props(packages, repo_root)}\
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>${get_subsystem(project.is_library)}</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -277,13 +256,10 @@ ${gen_package_props(packages, repo_root)}\
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>${get_subsystem(project.is_library)}</SubSystem>
-      <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
-      <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
