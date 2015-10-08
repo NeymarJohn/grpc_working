@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -27,27 +28,12 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Builds Go interop server and client in a base image.
-set -e
 
-# Clone just the grpc-go source code without any dependencies.
-# We are cloning from a local git repo that contains the right revision
-# to test instead of using "go get" to download from Github directly.
-git clone --recursive /var/local/jenkins/grpc-go src/gooogle.golang.org/grpc
+set -ex
 
-# copy service account keys if available
-cp -r /var/local/jenkins/service_account $HOME || true
+export GRPC_CONFIG=${CONFIG:-opt}
 
-# Get dependencies from GitHub
-# NOTE: once grpc-go dependencies change, this needs to be updated manually
-# but we don't expect this to happen any time soon.
-go get github.com/golang/protobuf/proto
-go get golang.org/x/net/context
-go get golang.org/x/net/trace
-go get golang.org/x/oauth2
-go get google.golang.org/cloud
+# change to grpc's ruby directory
+cd $(dirname $0)/../../src/ruby
 
-# Build the interop client and server
-(cd src/google.golang.org/grpc/interop/client && go install)
-(cd src/google.golang.org/grpc/interop/server && go install)
+bundle install
