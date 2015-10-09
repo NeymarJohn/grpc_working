@@ -175,12 +175,6 @@ class CLanguage(object):
   def build_steps(self):
     return []
 
-  def post_tests_steps(self):
-    if self.platform == 'windows':
-      return []
-    else:
-      return [['tools/run_tests/post_tests_c.sh']]
-
   def makefile_name(self):
     return 'Makefile'
 
@@ -204,9 +198,6 @@ class NodeLanguage(object):
 
   def build_steps(self):
     return [['tools/run_tests/build_node.sh']]
-
-  def post_tests_steps(self):
-    return []
 
   def makefile_name(self):
     return 'Makefile'
@@ -232,9 +223,6 @@ class PhpLanguage(object):
 
   def build_steps(self):
     return [['tools/run_tests/build_php.sh']]
-
-  def post_tests_steps(self):
-    return []
 
   def makefile_name(self):
     return 'Makefile'
@@ -282,9 +270,6 @@ class PythonLanguage(object):
                        do_newline=True)
     return commands
 
-  def post_tests_steps(self):
-    return []
-
   def makefile_name(self):
     return 'Makefile'
 
@@ -309,9 +294,6 @@ class RubyLanguage(object):
 
   def build_steps(self):
     return [['tools/run_tests/build_ruby.sh']]
-
-  def post_tests_steps(self):
-    return []
 
   def makefile_name(self):
     return 'Makefile'
@@ -361,9 +343,6 @@ class CSharpLanguage(object):
     else:
       return [['tools/run_tests/build_csharp.sh']]
 
-  def post_tests_steps(self):
-    return []
-
   def makefile_name(self):
     return 'Makefile'
 
@@ -389,9 +368,6 @@ class ObjCLanguage(object):
   def build_steps(self):
     return [['src/objective-c/tests/build_tests.sh']]
 
-  def post_tests_steps(self):
-    return []
-
   def makefile_name(self):
     return 'Makefile'
 
@@ -415,9 +391,6 @@ class Sanity(object):
     return ['run_dep_checks']
 
   def build_steps(self):
-    return []
-
-  def post_tests_steps(self):
     return []
 
   def makefile_name(self):
@@ -658,11 +631,6 @@ build_steps.extend(set(
                    for l in languages
                    for cmdline in l.build_steps()))
 
-post_tests_steps = list(set(
-                        jobset.JobSpec(cmdline, environ={'CONFIG': cfg})
-                        for cfg in build_configs
-                        for l in languages
-                        for cmdline in l.post_tests_steps()))
 runs_per_test = args.runs_per_test
 forever = args.forever
 
@@ -819,10 +787,6 @@ def _build_and_run(
     if xml_report:
       tree = ET.ElementTree(root)
       tree.write(xml_report, encoding='UTF-8')
-
-  if not jobset.run(post_tests_steps, maxjobs=1, stop_on_failure=True,
-                    newline_on_success=newline_on_success, travis=travis):
-    return 3
 
   if cache: cache.save()
 

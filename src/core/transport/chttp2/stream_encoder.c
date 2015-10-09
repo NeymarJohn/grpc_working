@@ -428,7 +428,7 @@ static grpc_mdelem *hpack_enc(grpc_chttp2_hpack_compressor *c,
       emit_lithdr_noidx(c, dynidx(c, indices_key), elem, st);
       return elem;
     }
-    GPR_UNREACHABLE_CODE(return NULL);
+    abort();
   }
 
   indices_key = c->indices_keys[HASH_FRAGMENT_3(key_hash)];
@@ -442,7 +442,7 @@ static grpc_mdelem *hpack_enc(grpc_chttp2_hpack_compressor *c,
       emit_lithdr_noidx(c, dynidx(c, indices_key), elem, st);
       return elem;
     }
-    GPR_UNREACHABLE_CODE(return NULL);
+    abort();
   }
 
   /* no elem, key in the table... fall back to literal emission */
@@ -454,7 +454,7 @@ static grpc_mdelem *hpack_enc(grpc_chttp2_hpack_compressor *c,
     emit_lithdr_noidx_v(c, elem, st);
     return elem;
   }
-  GPR_UNREACHABLE_CODE(return NULL);
+  abort();
 }
 
 #define STRLEN_LIT(x) (sizeof(x) - 1)

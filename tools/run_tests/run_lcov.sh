@@ -30,9 +30,9 @@
 
 set -ex
 
-out=`readlink -f ${1:-coverage}`
+out=`realpath ${1:-coverage}`
 
-root=`readlink -f $(dirname $0)/../..`
+root=`realpath $(dirname $0)/../..`
 tmp=`mktemp`
 cd $root
 tools/run_tests/run_tests.py -c gcov -l c c++ || true
