@@ -48,7 +48,7 @@ function getDeadline(timeout_secs) {
   return deadline;
 }
 
-var insecureCreds = grpc.ChannelCredentials.createInsecure();
+var insecureCreds = grpc.Credentials.createInsecure();
 
 describe('call', function() {
   var channel;

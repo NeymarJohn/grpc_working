@@ -31,35 +31,6 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_CALL_TEST_ONLY_H
-#define GRPC_INTERNAL_CORE_SURFACE_CALL_TEST_ONLY_H
-
-#include <grpc/grpc.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/** Return the compression algorithm from \a call.
- *
- * \warning This function should \b only be used in test code. */
-grpc_compression_algorithm grpc_call_test_only_get_compression_algorithm(
-    grpc_call *call);
-
-/** Return the message flags from \a call.
- *
- * \warning This function should \b only be used in test code. */
-gpr_uint32 grpc_call_test_only_get_message_flags(grpc_call *call);
-
-/** Returns a bitset for the encodings (compression algorithms) supported by \a
- * call's peer.
- *
- * To be indexed by grpc_compression_algorithm enum values. */
-gpr_uint32 grpc_call_test_only_get_encodings_accepted_by_peer(grpc_call *call);
-
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* GRPC_INTERNAL_CORE_SURFACE_CALL_TEST_ONLY_H */
+var grpc = require('grpc');
+exports.client = grpc.load(__dirname + '/service.json', 'json');
+exports.auth = require('google-auth-library');
