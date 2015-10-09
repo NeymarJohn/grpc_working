@@ -1166,7 +1166,9 @@ static int append_string(grpc_chttp2_hpack_parser *p, const gpr_uint8 *cur,
       append_bytes(str, decoded, 3);
       goto b64_byte0;
   }
-  GPR_UNREACHABLE_CODE(return 1);
+  gpr_log(GPR_ERROR, "should never reach here");
+  abort();
+  return 1;
 }
 
 /* append a null terminator to a string */
@@ -1311,7 +1313,9 @@ static int parse_value_string(grpc_chttp2_hpack_parser *p, const gpr_uint8 *cur,
       return 0;
   }
   /* Add code to prevent return without value error */
-  GPR_UNREACHABLE_CODE(return 0);
+  gpr_log(GPR_ERROR, "Should never reach beyond switch in parse_value_string");
+  abort();
+  return 0;
 }
 
 static int parse_value_string_with_indexed_key(grpc_chttp2_hpack_parser *p,

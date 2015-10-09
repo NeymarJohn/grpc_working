@@ -191,8 +191,7 @@ class NodeLanguage(object):
                             environ=_FORCE_ENVIRON_FOR_WRAPPERS)]
 
   def pre_build_steps(self):
-    # Default to 1 week cache expiration
-    return [['npm', 'update', '--cache-min', '604800']]
+    return []
 
   def make_targets(self):
     return []

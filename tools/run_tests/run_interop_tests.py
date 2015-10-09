@@ -71,7 +71,6 @@ class CXXLanguage:
     self.client_cmdline_base = ['bins/opt/interop_client']
     self.client_cwd = None
     self.server_cwd = None
-    self.safename = 'cxx'
 
   def cloud_to_prod_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
@@ -97,7 +96,6 @@ class CSharpLanguage:
     self.client_cmdline_base = ['mono', 'Grpc.IntegrationTesting.Client.exe']
     self.client_cwd = 'src/csharp/Grpc.IntegrationTesting.Client/bin/Debug'
     self.server_cwd = 'src/csharp/Grpc.IntegrationTesting.Server/bin/Debug'
-    self.safename = str(self)
 
   def cloud_to_prod_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
@@ -123,7 +121,6 @@ class JavaLanguage:
     self.client_cmdline_base = ['./run-test-client.sh']
     self.client_cwd = '../grpc-java'
     self.server_cwd = '../grpc-java'
-    self.safename = str(self)
 
   def cloud_to_prod_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
@@ -150,7 +147,6 @@ class GoLanguage:
     # TODO: this relies on running inside docker
     self.client_cwd = '/go/src/google.golang.org/grpc/interop/client'
     self.server_cwd = '/go/src/google.golang.org/grpc/interop/server'
-    self.safename = str(self)
 
   def cloud_to_prod_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
@@ -176,7 +172,6 @@ class NodeLanguage:
     self.client_cmdline_base = ['node', 'src/node/interop/interop_client.js']
     self.client_cwd = None
     self.server_cwd = None
-    self.safename = str(self)
 
   def cloud_to_prod_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
@@ -201,7 +196,6 @@ class PHPLanguage:
   def __init__(self):
     self.client_cmdline_base = ['src/php/bin/interop_client.sh']
     self.client_cwd = None
-    self.safename = str(self)
 
   def cloud_to_prod_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
@@ -224,7 +218,6 @@ class RubyLanguage:
     self.client_cmdline_base = ['ruby', 'src/ruby/bin/interop/interop_client.rb']
     self.client_cwd = None
     self.server_cwd = None
-    self.safename = str(self)
 
   def cloud_to_prod_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
@@ -258,9 +251,11 @@ _LANGUAGES = {
 # languages supported as cloud_to_cloud servers
 _SERVERS = ['c++', 'node', 'csharp', 'java', 'go', 'ruby']
 
+# TODO(jtattermusch): add empty_stream once PHP starts supporting it.
 # TODO(jtattermusch): add timeout_on_sleeping_server once java starts supporting it.
+# TODO(jtattermusch): add support for auth tests.
 _TEST_CASES = ['large_unary', 'empty_unary', 'ping_pong',
-               'empty_stream', 'client_streaming', 'server_streaming',
+               'client_streaming', 'server_streaming',
                'cancel_after_begin', 'cancel_after_first_response']
 
 _AUTH_TEST_CASES = ['compute_engine_creds', 'jwt_token_creds',
@@ -342,7 +337,7 @@ def cloud_to_prod_jobspec(language, test_case, docker_image=None, auth=False):
   cmdline = bash_login_cmdline(cmdline)
 
   if docker_image:
-    container_name = dockerjob.random_name('interop_client_%s' % language.safename)
+    container_name = dockerjob.random_name('interop_client_%s' % language)
     cmdline = docker_run_cmdline(cmdline,
                                  image=docker_image,
                                  cwd=cwd,
@@ -375,7 +370,7 @@ def cloud_to_cloud_jobspec(language, test_case, server_name, server_host,
                                 '--server_port=%s' % server_port ])
   cwd = language.client_cwd
   if docker_image:
-    container_name = dockerjob.random_name('interop_client_%s' % language.safename)
+    container_name = dockerjob.random_name('interop_client_%s' % language)
     cmdline = docker_run_cmdline(cmdline,
                                  image=docker_image,
                                  cwd=cwd,
@@ -398,7 +393,7 @@ def cloud_to_cloud_jobspec(language, test_case, server_name, server_host,
 
 def server_jobspec(language, docker_image):
   """Create jobspec for running a server"""
-  container_name = dockerjob.random_name('interop_server_%s' % language.safename)
+  container_name = dockerjob.random_name('interop_server_%s' % language)
   cmdline = bash_login_cmdline(language.server_args() +
                                ['--port=%s' % _DEFAULT_SERVER_PORT])
   docker_cmdline = docker_run_cmdline(cmdline,
@@ -416,10 +411,10 @@ def server_jobspec(language, docker_image):
 
 def build_interop_image_jobspec(language, tag=None):
   """Creates jobspec for building interop docker image for a language"""
+  safelang = str(language).replace("+", "x")
   if not tag:
-    tag = 'grpc_interop_%s:%s' % (language.safename, uuid.uuid4())
-  env = {'INTEROP_IMAGE': tag,
-         'BASE_NAME': 'grpc_interop_%s' % language.safename}
+    tag = 'grpc_interop_%s:%s' % (safelang, uuid.uuid4())
+  env = {'INTEROP_IMAGE': tag, 'BASE_NAME': 'grpc_interop_%s' % safelang}
   if not args.travis:
     env['TTY_FLAG'] = '-t'
   build_job = jobset.JobSpec(

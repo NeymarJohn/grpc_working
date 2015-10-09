@@ -417,10 +417,14 @@ int grpc_chttp2_perform_read(grpc_exec_ctx *exec_ctx,
         transport_parsing->incoming_frame_size -= (gpr_uint32)(end - cur);
         return 1;
       }
-      GPR_UNREACHABLE_CODE(return 0);
+      gpr_log(GPR_ERROR, "should never reach here");
+      abort();
   }
 
-  GPR_UNREACHABLE_CODE(return 0);
+  gpr_log(GPR_ERROR, "should never reach here");
+  abort();
+
+  return 0;
 }
 
 static int init_frame_parser(grpc_chttp2_transport_parsing *transport_parsing) {
@@ -576,7 +580,9 @@ static int init_data_frame_parser(
     case GRPC_CHTTP2_CONNECTION_ERROR:
       return 0;
   }
-  GPR_UNREACHABLE_CODE(return 0);
+  gpr_log(GPR_ERROR, "should never reach here");
+  abort();
+  return 0;
 }
 
 static void free_timeout(void *p) { gpr_free(p); }
@@ -814,5 +820,7 @@ static int parse_frame_slice(grpc_exec_ctx *exec_ctx,
     case GRPC_CHTTP2_CONNECTION_ERROR:
       return 0;
   }
-  GPR_UNREACHABLE_CODE(return 0);
+  gpr_log(GPR_ERROR, "should never reach here");
+  abort();
+  return 0;
 }
