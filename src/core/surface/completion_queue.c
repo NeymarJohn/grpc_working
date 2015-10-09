@@ -42,7 +42,6 @@
 #include "src/core/surface/call.h"
 #include "src/core/surface/event_string.h"
 #include "src/core/surface/surface_trace.h"
-#include "src/core/profiling/timers.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/atm.h>
 #include <grpc/support/log.h>
@@ -185,8 +184,6 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
   gpr_timespec now;
   grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
 
-  GRPC_TIMER_BEGIN("grpc_completion_queue_next", 0);
-
   GRPC_API_TRACE(
       "grpc_completion_queue_next("
       "cc=%p, "
@@ -233,9 +230,6 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
   GRPC_SURFACE_TRACE_RETURNED_EVENT(cc, &ret);
   GRPC_CQ_INTERNAL_UNREF(cc, "next");
   grpc_exec_ctx_finish(&exec_ctx);
-
-  GRPC_TIMER_END("grpc_completion_queue_next", 0);
-
   return ret;
 }
 
@@ -273,8 +267,6 @@ grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
   gpr_timespec now;
   int first_loop = 1;
   grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-
-  GRPC_TIMER_BEGIN("grpc_completion_queue_pluck", 0);
 
   GRPC_API_TRACE(
       "grpc_completion_queue_pluck("
@@ -341,9 +333,6 @@ done:
   GRPC_SURFACE_TRACE_RETURNED_EVENT(cc, &ret);
   GRPC_CQ_INTERNAL_UNREF(cc, "pluck");
   grpc_exec_ctx_finish(&exec_ctx);
-
-  GRPC_TIMER_END("grpc_completion_queue_pluck", 0);
-
   return ret;
 }
 
