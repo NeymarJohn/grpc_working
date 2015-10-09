@@ -62,6 +62,7 @@ _CLOUD_TO_CLOUD_BASE_ARGS = [
 _SSL_CERT_ENV = { 'SSL_CERT_FILE':'/usr/local/share/grpc/roots.pem' }
 
 # TODO(jtattermusch) unify usage of --use_tls and --use_tls=true
+# TODO(jtattermusch) unify usage of --use_prod_roots and --use_test_ca
 # TODO(jtattermusch) go uses --tls_ca_file instead of --use_test_ca
 
 
@@ -74,11 +75,11 @@ class CXXLanguage:
 
   def cloud_to_prod_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
-            ['--use_tls=true'])
+            ['--use_tls=true','--use_prod_roots'])
 
   def cloud_to_cloud_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
-            ['--use_tls=true', '--use_test_ca=true'])
+            ['--use_tls=true'])
 
   def cloud_to_prod_env(self):
     return {}
@@ -99,17 +100,17 @@ class CSharpLanguage:
 
   def cloud_to_prod_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
-            ['--use_tls=true'])
+            ['--use_tls'])
 
   def cloud_to_cloud_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
-            ['--use_tls=true', '--use_test_ca=true'])
+            ['--use_tls', '--use_test_ca'])
 
   def cloud_to_prod_env(self):
     return _SSL_CERT_ENV
 
   def server_args(self):
-    return ['mono', 'Grpc.IntegrationTesting.Server.exe', '--use_tls=true']
+    return ['mono', 'Grpc.IntegrationTesting.Server.exe', '--use_tls']
 
   def __str__(self):
     return 'csharp'
@@ -310,10 +311,6 @@ def add_auth_options(language, test_case, cmdline, env):
 
   if test_case in ['per_rpc_creds', 'oauth2_auth_token']:
     cmdline += [oauth_scope_arg]
-
-  if test_case == 'oauth2_auth_token' and language == 'c++':
-    # C++ oauth2 test uses GCE creds and thus needs to know the default account
-    cmdline += [default_account_arg]
 
   if test_case == 'compute_engine_creds':
     cmdline += [oauth_scope_arg, default_account_arg]

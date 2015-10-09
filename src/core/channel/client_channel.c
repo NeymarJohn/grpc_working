@@ -36,18 +36,16 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "src/core/channel/channel_args.h"
+#include "src/core/channel/connected_channel.h"
+#include "src/core/surface/channel.h"
+#include "src/core/iomgr/iomgr.h"
+#include "src/core/support/string.h"
+#include "src/core/transport/connectivity_state.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/sync.h>
 #include <grpc/support/useful.h>
-
-#include "src/core/channel/channel_args.h"
-#include "src/core/channel/connected_channel.h"
-#include "src/core/iomgr/iomgr.h"
-#include "src/core/profiling/timers.h"
-#include "src/core/support/string.h"
-#include "src/core/surface/channel.h"
-#include "src/core/transport/connectivity_state.h"
 
 /* Client channel implementation */
 
@@ -198,13 +196,12 @@ static int is_empty(void *p, int len) {
   return 1;
 }
 
-static void started_call(grpc_exec_ctx *exec_ctx, void *arg,
-                         int iomgr_success) {
+static void started_call_locked(grpc_exec_ctx *exec_ctx, void *arg,
+                                int iomgr_success) {
   call_data *calld = arg;
   grpc_transport_stream_op op;
   int have_waiting;
 
-  gpr_mu_lock(&calld->mu_state);
   if (calld->state == CALL_CANCELLED && calld->subchannel_call != NULL) {
     memset(&op, 0, sizeof(op));
     op.cancel_with_status = GRPC_STATUS_CANCELLED;
@@ -232,12 +229,18 @@ static void started_call(grpc_exec_ctx *exec_ctx, void *arg,
   }
 }
 
+static void started_call(grpc_exec_ctx *exec_ctx, void *arg,
+                         int iomgr_success) {
+  call_data *calld = arg;
+  gpr_mu_lock(&calld->mu_state);
+  started_call_locked(exec_ctx, arg, iomgr_success);
+}
+
 static void picked_target(grpc_exec_ctx *exec_ctx, void *arg,
                           int iomgr_success) {
   call_data *calld = arg;
   grpc_pollset *pollset;
-
-  GRPC_TIMER_BEGIN("picked_target", 0);
+  grpc_subchannel_call_create_status call_creation_status;
 
   if (calld->picked_channel == NULL) {
     /* treat this like a cancellation */
@@ -252,15 +255,17 @@ static void picked_target(grpc_exec_ctx *exec_ctx, void *arg,
       GPR_ASSERT(calld->state == CALL_WAITING_FOR_PICK);
       calld->state = CALL_WAITING_FOR_CALL;
       pollset = calld->waiting_op.bind_pollset;
-      gpr_mu_unlock(&calld->mu_state);
       grpc_closure_init(&calld->async_setup_task, started_call, calld);
-      grpc_subchannel_create_call(exec_ctx, calld->picked_channel, pollset,
-                                  &calld->subchannel_call,
-                                  &calld->async_setup_task);
+      call_creation_status = grpc_subchannel_create_call(
+          exec_ctx, calld->picked_channel, pollset, &calld->subchannel_call,
+          &calld->async_setup_task);
+      if (call_creation_status == GRPC_SUBCHANNEL_CALL_CREATE_READY) {
+        started_call_locked(exec_ctx, calld, iomgr_success);
+      } else {
+        gpr_mu_unlock(&calld->mu_state);
+      }
     }
   }
-
-  GRPC_TIMER_END("picked_target", 0);
 }
 
 static grpc_closure *merge_into_waiting_op(grpc_call_element *elem,
@@ -321,7 +326,6 @@ static void perform_transport_stream_op(grpc_exec_ctx *exec_ctx,
   grpc_subchannel_call *subchannel_call;
   grpc_lb_policy *lb_policy;
   grpc_transport_stream_op op2;
-  GRPC_TIMER_BEGIN("perform_transport_stream_op", 0);
   GPR_ASSERT(elem->filter == &grpc_client_channel_filter);
   GRPC_CALL_LOG_OP(GPR_INFO, elem, op);
 
@@ -433,8 +437,6 @@ static void perform_transport_stream_op(grpc_exec_ctx *exec_ctx,
       }
       break;
   }
-
-  GRPC_TIMER_END("perform_transport_stream_op", 0);
 }
 
 static void cc_start_transport_stream_op(grpc_exec_ctx *exec_ctx,

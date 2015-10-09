@@ -167,10 +167,7 @@ class CLanguage(object):
     return ['buildtests_%s' % self.make_target, 'tools_%s' % self.make_target]
 
   def pre_build_steps(self):
-    if self.platform == 'windows':
-      return [['tools\\run_tests\\pre_build_c.bat']]
-    else:
-      return []
+    return []
 
   def build_steps(self):
     return []
@@ -287,7 +284,7 @@ class RubyLanguage(object):
                             environ=_FORCE_ENVIRON_FOR_WRAPPERS)]
 
   def pre_build_steps(self):
-    return [['tools/run_tests/pre_build_ruby.sh']]
+    return []
 
   def make_targets(self):
     return ['static_c']
@@ -324,10 +321,7 @@ class CSharpLanguage(object):
             for assembly in assemblies]
 
   def pre_build_steps(self):
-    if self.platform == 'windows':
-      return [['tools\\run_tests\\pre_build_csharp.bat']]
-    else:
-      return [['tools/run_tests/pre_build_csharp.sh']]
+    return []
 
   def make_targets(self):
     # For Windows, this target doesn't really build anything,
@@ -590,9 +584,7 @@ if platform.system() == 'Windows':
   def make_jobspec(cfg, targets, makefile='Makefile'):
     extra_args = []
     # better do parallel compilation
-    # empirically /m:2 gives the best performance/price and should prevent
-    # overloading the windows workers.
-    extra_args.extend(["/m:2"])
+    extra_args.extend(["/m"])
     # disable PDB generation: it's broken, and we don't need it during CI
     extra_args.extend(["/p:Jenkins=true"])
     return [
@@ -618,7 +610,7 @@ for l in languages:
       set(l.make_targets()))
 
 build_steps = list(set(
-                   jobset.JobSpec(cmdline, environ={'CONFIG': cfg}, flake_retries=5)
+                   jobset.JobSpec(cmdline, environ={'CONFIG': cfg})
                    for cfg in build_configs
                    for l in languages
                    for cmdline in l.pre_build_steps()))
@@ -626,7 +618,7 @@ if make_targets:
   make_commands = itertools.chain.from_iterable(make_jobspec(cfg, list(targets), makefile) for cfg in build_configs for (makefile, targets) in make_targets.iteritems())
   build_steps.extend(set(make_commands))
 build_steps.extend(set(
-                   jobset.JobSpec(cmdline, environ={'CONFIG': cfg}, timeout_seconds=10*60)
+                   jobset.JobSpec(cmdline, environ={'CONFIG': cfg})
                    for cfg in build_configs
                    for l in languages
                    for cmdline in l.build_steps()))
@@ -737,7 +729,7 @@ def _build_and_run(
     check_cancelled, newline_on_success, travis, cache, xml_report=None):
   """Do one pass of building & running tests."""
   # build latest sequentially
-  if not jobset.run(build_steps, maxjobs=1, stop_on_failure=True,
+  if not jobset.run(build_steps, maxjobs=1,
                     newline_on_success=newline_on_success, travis=travis):
     return 1
 
