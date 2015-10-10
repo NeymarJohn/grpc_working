@@ -94,6 +94,8 @@
       'dependencies': [
       ],
       'sources': [
+        'src/core/profiling/basic_timers.c',
+        'src/core/profiling/stap_timers.c',
         'src/core/support/alloc.c',
         'src/core/support/cmdline.c',
         'src/core/support/cpu_iphone.c',
@@ -129,6 +131,7 @@
         'src/core/support/thd_win32.c',
         'src/core/support/time.c',
         'src/core/support/time_posix.c',
+        'src/core/support/time_precise.c',
         'src/core/support/time_win32.c',
         'src/core/support/tls_pthread.c',
       ],
@@ -238,8 +241,6 @@
         'src/core/json/json_reader.c',
         'src/core/json/json_string.c',
         'src/core/json/json_writer.c',
-        'src/core/profiling/basic_timers.c',
-        'src/core/profiling/stap_timers.c',
         'src/core/surface/api_trace.c',
         'src/core/surface/byte_buffer.c',
         'src/core/surface/byte_buffer_queue.c',

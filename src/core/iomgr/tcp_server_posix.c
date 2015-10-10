@@ -352,7 +352,7 @@ static void on_read(grpc_exec_ctx *exec_ctx, void *arg, int success) {
     gpr_free(addr_str);
   }
 
-  GPR_UNREACHABLE_CODE(return );
+  abort();
 
 error:
   gpr_mu_lock(&sp->server->mu);
