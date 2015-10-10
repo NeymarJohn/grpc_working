@@ -30,24 +30,13 @@
 
 set -ex
 
-CONFIG=${CONFIG:-opt}
+if [ "$CONFIG" != "gcov" ] ; then exit ; fi
 
-# change to grpc repo root
-cd $(dirname $0)/../..
-
-root=`pwd`
-
-if [ "$CONFIG" = "gcov" ]
-then
-  ./node_modules/.bin/istanbul cover --dir reports/node_coverage \
-    ./node_modules/.bin/_mocha -- --timeout 8000 src/node/test
-  cd build
-  gcov Release/obj.target/grpc/ext/*.o
-  lcov --base-directory . --directory . -c -o coverage.info
-  genhtml -o ../reports/node_ext_coverage --num-spaces 2 \
-    -t 'Node gRPC test coverage' coverage.info
-  echo '<html><head><meta http-equiv="refresh" content="0;URL=lcov-report/index.html"></head></html>' > \
-    ../reports/node_coverage/index.html
-else
-  ./node_modules/mocha/bin/mocha --timeout 8000 src/node/test
-fi
+root=`readlink -f $(dirname $0)/../..`
+out=$root/reports/c_cxx_coverage
+tmp=`mktemp`
+cd $root
+tools/run_tests/run_tests.py -c gcov -l c c++ || true
+lcov --capture --directory . --output-file $tmp
+genhtml $tmp --output-directory $out
+rm $tmp

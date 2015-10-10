@@ -31,51 +31,35 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef GRPC_INTERNAL_CORE_SURFACE_CALL_TEST_ONLY_H
+#define GRPC_INTERNAL_CORE_SURFACE_CALL_TEST_ONLY_H
 
-#ifdef GPR_LINUX_EVENTFD
+#include <grpc/grpc.h>
 
-#include <errno.h>
-#include <sys/eventfd.h>
-#include <unistd.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "src/core/iomgr/wakeup_fd_posix.h"
-#include <grpc/support/log.h>
+/** Return the compression algorithm from \a call.
+ *
+ * \warning This function should \b only be used in test code. */
+grpc_compression_algorithm grpc_call_test_only_get_compression_algorithm(
+    grpc_call *call);
 
-static void eventfd_create(grpc_wakeup_fd* fd_info) {
-  int efd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-  /* TODO(klempner): Handle failure more gracefully */
-  GPR_ASSERT(efd >= 0);
-  fd_info->read_fd = efd;
-  fd_info->write_fd = -1;
+/** Return the message flags from \a call.
+ *
+ * \warning This function should \b only be used in test code. */
+gpr_uint32 grpc_call_test_only_get_message_flags(grpc_call *call);
+
+/** Returns a bitset for the encodings (compression algorithms) supported by \a
+ * call's peer.
+ *
+ * To be indexed by grpc_compression_algorithm enum values. */
+gpr_uint32 grpc_call_test_only_get_encodings_accepted_by_peer(grpc_call *call);
+
+
+#ifdef __cplusplus
 }
+#endif
 
-static void eventfd_consume(grpc_wakeup_fd* fd_info) {
-  eventfd_t value;
-  int err;
-  do {
-    err = eventfd_read(fd_info->read_fd, &value);
-  } while (err < 0 && errno == EINTR);
-}
-
-static void eventfd_wakeup(grpc_wakeup_fd* fd_info) {
-  int err;
-  do {
-    err = eventfd_write(fd_info->read_fd, 1);
-  } while (err < 0 && errno == EINTR);
-}
-
-static void eventfd_destroy(grpc_wakeup_fd* fd_info) {
-  if (fd_info->read_fd != 0) close(fd_info->read_fd);
-}
-
-static int eventfd_check_availability(void) {
-  /* TODO(klempner): Actually check if eventfd is available */
-  return 1;
-}
-
-const grpc_wakeup_fd_vtable grpc_specialized_wakeup_fd_vtable = {
-    eventfd_create, eventfd_consume, eventfd_wakeup, eventfd_destroy,
-    eventfd_check_availability};
-
-#endif /* GPR_LINUX_EVENTFD */
+#endif /* GRPC_INTERNAL_CORE_SURFACE_CALL_TEST_ONLY_H */
