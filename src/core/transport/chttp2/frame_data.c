@@ -168,5 +168,7 @@ grpc_chttp2_parse_error grpc_chttp2_data_parser_parse(
       }
   }
 
-  GPR_UNREACHABLE_CODE(return GRPC_CHTTP2_CONNECTION_ERROR);
+  gpr_log(GPR_ERROR, "should never reach here");
+  abort();
+  return GRPC_CHTTP2_CONNECTION_ERROR;
 }

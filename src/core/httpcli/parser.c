@@ -139,7 +139,8 @@ static int finish_line(grpc_httpcli_parser *parser) {
       }
       break;
     case GRPC_HTTPCLI_BODY:
-      GPR_UNREACHABLE_CODE(return 0);
+      gpr_log(GPR_ERROR, "should never reach here");
+      abort();
   }
 
   parser->cur_line_length = 0;
@@ -164,7 +165,8 @@ static int addbyte(grpc_httpcli_parser *parser, gpr_uint8 byte) {
       } else {
         return 1;
       }
-      GPR_UNREACHABLE_CODE(return 0);
+      gpr_log(GPR_ERROR, "should never reach here");
+      abort();
     case GRPC_HTTPCLI_BODY:
       if (parser->r.body_length == parser->body_capacity) {
         parser->body_capacity = GPR_MAX(8, parser->body_capacity * 3 / 2);
@@ -175,7 +177,10 @@ static int addbyte(grpc_httpcli_parser *parser, gpr_uint8 byte) {
       parser->r.body_length++;
       return 1;
   }
-  GPR_UNREACHABLE_CODE(return 0);
+  gpr_log(GPR_ERROR, "should never reach here");
+  abort();
+
+  return 0;
 }
 
 void grpc_httpcli_parser_init(grpc_httpcli_parser *parser) {

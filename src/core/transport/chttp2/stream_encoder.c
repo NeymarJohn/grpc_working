@@ -428,7 +428,7 @@ static grpc_mdelem *hpack_enc(grpc_chttp2_hpack_compressor *c,
       emit_lithdr_noidx(c, dynidx(c, indices_key), elem, st);
       return elem;
     }
-    GPR_UNREACHABLE_CODE(return NULL);
+    abort();
   }
 
   indices_key = c->indices_keys[HASH_FRAGMENT_3(key_hash)];
@@ -442,7 +442,7 @@ static grpc_mdelem *hpack_enc(grpc_chttp2_hpack_compressor *c,
       emit_lithdr_noidx(c, dynidx(c, indices_key), elem, st);
       return elem;
     }
-    GPR_UNREACHABLE_CODE(return NULL);
+    abort();
   }
 
   /* no elem, key in the table... fall back to literal emission */
@@ -454,7 +454,7 @@ static grpc_mdelem *hpack_enc(grpc_chttp2_hpack_compressor *c,
     emit_lithdr_noidx_v(c, elem, st);
     return elem;
   }
-  GPR_UNREACHABLE_CODE(return NULL);
+  abort();
 }
 
 #define STRLEN_LIT(x) (sizeof(x) - 1)
@@ -584,7 +584,6 @@ void grpc_chttp2_encode(grpc_stream_op *ops, size_t ops_count, int eof,
   size_t max_take_size;
   gpr_uint32 curop = 0;
   gpr_uint32 unref_op;
-  grpc_mdctx *mdctx = compressor->mdctx;
   grpc_linked_mdelem *l;
   int need_unref = 0;
   gpr_timespec deadline;
@@ -650,17 +649,15 @@ void grpc_chttp2_encode(grpc_stream_op *ops, size_t ops_count, int eof,
   finish_frame(&st, 1, eof);
 
   if (need_unref) {
-    grpc_mdctx_lock(mdctx);
     for (unref_op = 0; unref_op < curop; unref_op++) {
       op = &ops[unref_op];
       if (op->type != GRPC_OP_METADATA) continue;
       for (l = op->data.metadata.list.head; l; l = l->next) {
-        if (l->md) GRPC_MDCTX_LOCKED_MDELEM_UNREF(mdctx, l->md);
+        if (l->md) GRPC_MDELEM_UNREF(l->md);
       }
       for (l = op->data.metadata.garbage.head; l; l = l->next) {
-        GRPC_MDCTX_LOCKED_MDELEM_UNREF(mdctx, l->md);
+        GRPC_MDELEM_UNREF(l->md);
       }
     }
-    grpc_mdctx_unlock(mdctx);
   }
 }

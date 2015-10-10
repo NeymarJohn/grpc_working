@@ -51,7 +51,7 @@
 
 typedef struct call_data call_data;
 
-typedef struct client_channel_channel_data {
+typedef struct {
   /** metadata context for this channel */
   grpc_mdctx *mdctx;
   /** resolver for this channel */
@@ -645,7 +645,9 @@ static void destroy_call_elem(grpc_exec_ctx *exec_ctx,
     case CALL_WAITING_FOR_CONFIG:
     case CALL_WAITING_FOR_CALL:
     case CALL_WAITING_FOR_SEND:
-      GPR_UNREACHABLE_CODE(return );
+      gpr_log(GPR_ERROR, "should never reach here");
+      abort();
+      break;
   }
 }
 
