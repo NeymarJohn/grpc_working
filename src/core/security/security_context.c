@@ -46,7 +46,7 @@
 /* --- grpc_call --- */
 
 grpc_call_error grpc_call_set_credentials(grpc_call *call,
-                                          grpc_call_credentials *creds) {
+                                          grpc_credentials *creds) {
   grpc_client_security_context *ctx = NULL;
   GRPC_API_TRACE("grpc_call_set_credentials(call=%p, creds=%p)", 2,
                  (call, creds));
@@ -54,16 +54,20 @@ grpc_call_error grpc_call_set_credentials(grpc_call *call,
     gpr_log(GPR_ERROR, "Method is client-side only.");
     return GRPC_CALL_ERROR_NOT_ON_SERVER;
   }
+  if (creds != NULL && !grpc_credentials_has_request_metadata_only(creds)) {
+    gpr_log(GPR_ERROR, "Incompatible credentials to set on a call.");
+    return GRPC_CALL_ERROR;
+  }
   ctx = (grpc_client_security_context *)grpc_call_context_get(
       call, GRPC_CONTEXT_SECURITY);
   if (ctx == NULL) {
     ctx = grpc_client_security_context_create();
-    ctx->creds = grpc_call_credentials_ref(creds);
+    ctx->creds = grpc_credentials_ref(creds);
     grpc_call_context_set(call, GRPC_CONTEXT_SECURITY, ctx,
                           grpc_client_security_context_destroy);
   } else {
-    grpc_call_credentials_unref(ctx->creds);
-    ctx->creds = grpc_call_credentials_ref(creds);
+    grpc_credentials_unref(ctx->creds);
+    ctx->creds = grpc_credentials_ref(creds);
   }
   return GRPC_CALL_OK;
 }
@@ -97,7 +101,7 @@ grpc_client_security_context *grpc_client_security_context_create(void) {
 
 void grpc_client_security_context_destroy(void *ctx) {
   grpc_client_security_context *c = (grpc_client_security_context *)ctx;
-  grpc_call_credentials_unref(c->creds);
+  grpc_credentials_unref(c->creds);
   GRPC_AUTH_CONTEXT_UNREF(c->auth_context, "client_security_context");
   gpr_free(ctx);
 }
@@ -301,43 +305,33 @@ void grpc_auth_property_reset(grpc_auth_property *property) {
   memset(property, 0, sizeof(grpc_auth_property));
 }
 
-static void auth_context_pointer_arg_destroy(void *p) {
-  GRPC_AUTH_CONTEXT_UNREF(p, "auth_context_pointer_arg");
-}
-
-static void *auth_context_pointer_arg_copy(void *p) {
-  return GRPC_AUTH_CONTEXT_REF(p, "auth_context_pointer_arg");
-}
-
-grpc_arg grpc_auth_context_to_arg(grpc_auth_context *p) {
+grpc_arg grpc_auth_metadata_processor_to_arg(grpc_auth_metadata_processor *p) {
   grpc_arg arg;
   memset(&arg, 0, sizeof(grpc_arg));
   arg.type = GRPC_ARG_POINTER;
-  arg.key = GRPC_AUTH_CONTEXT_ARG;
+  arg.key = GRPC_AUTH_METADATA_PROCESSOR_ARG;
   arg.value.pointer.p = p;
-  arg.value.pointer.copy = auth_context_pointer_arg_copy;
-  arg.value.pointer.destroy = auth_context_pointer_arg_destroy;
   return arg;
 }
 
-grpc_auth_context *grpc_auth_context_from_arg(
+grpc_auth_metadata_processor *grpc_auth_metadata_processor_from_arg(
     const grpc_arg *arg) {
-  if (strcmp(arg->key, GRPC_AUTH_CONTEXT_ARG) != 0) return NULL;
+  if (strcmp(arg->key, GRPC_AUTH_METADATA_PROCESSOR_ARG) != 0) return NULL;
   if (arg->type != GRPC_ARG_POINTER) {
     gpr_log(GPR_ERROR, "Invalid type %d for arg %s", arg->type,
-            GRPC_AUTH_CONTEXT_ARG);
+            GRPC_AUTH_METADATA_PROCESSOR_ARG);
     return NULL;
   }
   return arg->value.pointer.p;
 }
 
-grpc_auth_context *grpc_find_auth_context_in_args(
+grpc_auth_metadata_processor *grpc_find_auth_metadata_processor_in_args(
     const grpc_channel_args *args) {
   size_t i;
   if (args == NULL) return NULL;
   for (i = 0; i < args->num_args; i++) {
-    grpc_auth_context *p =
-        grpc_auth_context_from_arg(&args->args[i]);
+    grpc_auth_metadata_processor *p =
+        grpc_auth_metadata_processor_from_arg(&args->args[i]);
     if (p != NULL) return p;
   }
   return NULL;

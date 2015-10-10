@@ -34,7 +34,7 @@
 'use strict';
 
 var assert = require('assert');
-var grpc = require('bindings')('grpc_node');
+var grpc = require('bindings')('grpc.node');
 
 /**
  * This is used for testing functions with multiple asynchronous calls that
@@ -56,7 +56,7 @@ function multiDone(done, count) {
     }
   };
 }
-var insecureCreds = grpc.ChannelCredentials.createInsecure();
+var insecureCreds = grpc.Credentials.createInsecure();
 
 describe('channel', function() {
   describe('constructor', function() {
@@ -155,7 +155,6 @@ describe('channel', function() {
       deadline.setSeconds(deadline.getSeconds() + 1);
       channel.watchConnectivityState(old_state, deadline, function(err, value) {
         assert(err);
-        console.log('Callback from watchConnectivityState');
         done();
       });
     });

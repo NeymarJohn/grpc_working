@@ -34,9 +34,6 @@ set -e
 mkdir -p /var/local/git
 git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
 
-# copy service account keys if available
-cp -r /var/local/jenkins/service_account $HOME || true
-
 cd /var/local/git/grpc
 nvm use 0.12
 nvm alias default 0.12  # prevent the need to run 'nvm use' in every shell
@@ -45,4 +42,5 @@ make install-certs
 
 # build Node interop client & server
 npm install -g node-gyp
-(npm install && node-gyp rebuild)
+make install_c -C /var/local/git/grpc
+(cd src/node && npm install && node-gyp rebuild)
