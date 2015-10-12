@@ -382,8 +382,7 @@ describe('Other conditions', function() {
       unary: function(call, cb) {
         var req = call.request;
         if (req.error) {
-          cb({code: grpc.status.UNKNOWN,
-              details: 'Requested error'}, null, trailer_metadata);
+          cb(new Error('Requested error'), null, trailer_metadata);
         } else {
           cb(null, {count: 1}, trailer_metadata);
         }
@@ -408,8 +407,7 @@ describe('Other conditions', function() {
       serverStream: function(stream) {
         var req = stream.request;
         if (req.error) {
-          var err = {code: grpc.status.UNKNOWN,
-                     details: 'Requested error'};
+          var err = new Error('Requested error');
           err.metadata = trailer_metadata;
           stream.emit('error', err);
         } else {

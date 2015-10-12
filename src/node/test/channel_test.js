@@ -155,6 +155,7 @@ describe('channel', function() {
       deadline.setSeconds(deadline.getSeconds() + 1);
       channel.watchConnectivityState(old_state, deadline, function(err, value) {
         assert(err);
+        console.log('Callback from watchConnectivityState');
         done();
       });
     });

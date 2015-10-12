@@ -712,11 +712,7 @@ NAN_METHOD(Call::CancelWithStatus) {
   Call *call = ObjectWrap::Unwrap<Call>(info.This());
   grpc_status_code code = static_cast<grpc_status_code>(
       Nan::To<uint32_t>(info[0]).FromJust());
-  if (code == GRPC_STATUS_OK) {
-    return Nan::ThrowRangeError(
-        "cancelWithStatus cannot be called with OK status");
-  }
-  Utf8String details(info[1]);
+  Utf8String details(info[0]);
   grpc_call_cancel_with_status(call->wrapped_call, code, *details, NULL);
 }
 
