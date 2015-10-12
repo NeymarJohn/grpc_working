@@ -365,18 +365,6 @@ describe('Echo metadata', function() {
       done();
     });
   });
-  it('properly handles duplicate values', function(done) {
-    var dup_metadata = metadata.clone();
-    dup_metadata.add('key', 'value2');
-    var call = client.unary({}, function(err, data) {assert.ifError(err); },
-                            dup_metadata);
-    call.on('metadata', function(resp_metadata) {
-      // Two arrays are equal iff their symmetric difference is empty
-      assert.deepEqual(_.xor(dup_metadata.get('key'), resp_metadata.get('key')),
-                       []);
-      done();
-    });
-  });
 });
 describe('Other conditions', function() {
   var test_service;
@@ -394,8 +382,7 @@ describe('Other conditions', function() {
       unary: function(call, cb) {
         var req = call.request;
         if (req.error) {
-          cb({code: grpc.status.UNKNOWN,
-              details: 'Requested error'}, null, trailer_metadata);
+          cb(new Error('Requested error'), null, trailer_metadata);
         } else {
           cb(null, {count: 1}, trailer_metadata);
         }
@@ -420,8 +407,7 @@ describe('Other conditions', function() {
       serverStream: function(stream) {
         var req = stream.request;
         if (req.error) {
-          var err = {code: grpc.status.UNKNOWN,
-                     details: 'Requested error'};
+          var err = new Error('Requested error');
           err.metadata = trailer_metadata;
           stream.emit('error', err);
         } else {
