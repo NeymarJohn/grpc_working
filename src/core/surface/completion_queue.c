@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "src/core/iomgr/timer.h"
 #include "src/core/iomgr/pollset.h"
 #include "src/core/support/string.h"
 #include "src/core/surface/api_trace.h"
@@ -45,6 +46,7 @@
 #include <grpc/support/alloc.h>
 #include <grpc/support/atm.h>
 #include <grpc/support/log.h>
+#include <grpc/support/time.h>
 
 typedef struct {
   grpc_pollset_worker *worker;
@@ -69,6 +71,15 @@ struct grpc_completion_queue {
   int num_pluckers;
   plucker pluckers[GRPC_MAX_COMPLETION_QUEUE_PLUCKERS];
   grpc_closure pollset_destroy_done;
+};
+
+struct grpc_cq_alarm {
+  grpc_timer alarm;
+  grpc_cq_completion completion;
+  /** completion queue where events about this alarm will be posted */
+  grpc_completion_queue *cq;
+  /** user supplied tag */
+  void *tag;
 };
 
 static void on_pollset_destroy_done(grpc_exec_ctx *exec_ctx, void *cc,
@@ -254,8 +265,7 @@ static void del_plucker(grpc_completion_queue *cc, void *tag,
       return;
     }
   }
-  gpr_log(GPR_ERROR, "should never reach here");
-  abort();
+  GPR_UNREACHABLE_CODE(return );
 }
 
 grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,

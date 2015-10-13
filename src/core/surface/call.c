@@ -42,7 +42,7 @@
 #include <grpc/support/useful.h>
 
 #include "src/core/channel/channel_stack.h"
-#include "src/core/iomgr/alarm.h"
+#include "src/core/iomgr/timer.h"
 #include "src/core/profiling/timers.h"
 #include "src/core/support/string.h"
 #include "src/core/surface/api_trace.h"
@@ -237,7 +237,7 @@ struct grpc_call {
   grpc_call_context_element context[GRPC_CONTEXT_COUNT];
 
   /* Deadline alarm - if have_alarm is non-zero */
-  grpc_alarm alarm;
+  grpc_timer alarm;
 
   /* Call refcount - to keep the call alive during asynchronous operations */
   gpr_refcount internal_refcount;
@@ -434,8 +434,8 @@ static grpc_cq_completion *allocate_completion(grpc_call *call) {
     gpr_mu_unlock(&call->completion_mu);
     return &call->completions[i];
   }
-  gpr_log(GPR_ERROR, "should never reach here");
-  abort();
+  GPR_UNREACHABLE_CODE(return NULL);
+  return NULL;
 }
 
 static void done_completion(grpc_exec_ctx *exec_ctx, void *call,
@@ -526,9 +526,13 @@ static void set_compression_algorithm(grpc_call *call,
   call->compression_algorithm = algo;
 }
 
-grpc_compression_algorithm grpc_call_get_compression_algorithm(
-    const grpc_call *call) {
-  return call->compression_algorithm;
+grpc_compression_algorithm grpc_call_test_only_get_compression_algorithm(
+    grpc_call *call) {
+  grpc_compression_algorithm algorithm;
+  gpr_mu_lock(&call->mu);
+  algorithm = call->compression_algorithm;
+  gpr_mu_unlock(&call->mu);
+  return algorithm;
 }
 
 static void set_encodings_accepted_by_peer(
@@ -562,12 +566,20 @@ static void set_encodings_accepted_by_peer(
   }
 }
 
-gpr_uint32 grpc_call_get_encodings_accepted_by_peer(grpc_call *call) {
-  return call->encodings_accepted_by_peer;
+gpr_uint32 grpc_call_test_only_get_encodings_accepted_by_peer(grpc_call *call) {
+  gpr_uint32 encodings_accepted_by_peer;
+  gpr_mu_lock(&call->mu);
+  encodings_accepted_by_peer = call->encodings_accepted_by_peer;
+  gpr_mu_unlock(&call->mu);
+  return encodings_accepted_by_peer;
 }
 
-gpr_uint32 grpc_call_get_message_flags(const grpc_call *call) {
-  return call->incoming_message_flags;
+gpr_uint32 grpc_call_test_only_get_message_flags(grpc_call *call) {
+  gpr_uint32 flags;
+  gpr_mu_lock(&call->mu);
+  flags = call->incoming_message_flags;
+  gpr_mu_unlock(&call->mu);
+  return flags;
 }
 
 static void set_status_details(grpc_call *call, status_source source,
@@ -997,7 +1009,7 @@ static void call_on_done_recv(grpc_exec_ctx *exec_ctx, void *pc, int success) {
       GPR_ASSERT(call->read_state <= READ_STATE_STREAM_CLOSED);
       call->read_state = READ_STATE_STREAM_CLOSED;
       if (call->have_alarm) {
-        grpc_alarm_cancel(exec_ctx, &call->alarm);
+        grpc_timer_cancel(exec_ctx, &call->alarm);
       }
       /* propagate cancellation to any interested children */
       child_call = call->first_child;
@@ -1315,7 +1327,7 @@ void grpc_call_destroy(grpc_call *c) {
   GPR_ASSERT(!c->destroy_called);
   c->destroy_called = 1;
   if (c->have_alarm) {
-    grpc_alarm_cancel(&exec_ctx, &c->alarm);
+    grpc_timer_cancel(&exec_ctx, &c->alarm);
   }
   cancel = c->read_state != READ_STATE_STREAM_CLOSED;
   unlock(&exec_ctx, c);
@@ -1440,7 +1452,7 @@ static void set_deadline_alarm(grpc_exec_ctx *exec_ctx, grpc_call *call,
   GRPC_CALL_INTERNAL_REF(call, "alarm");
   call->have_alarm = 1;
   call->send_deadline = gpr_convert_clock_type(deadline, GPR_CLOCK_MONOTONIC);
-  grpc_alarm_init(exec_ctx, &call->alarm, call->send_deadline, call_alarm, call,
+  grpc_timer_init(exec_ctx, &call->alarm, call->send_deadline, call_alarm, call,
                   gpr_now(GPR_CLOCK_MONOTONIC));
 }
 
