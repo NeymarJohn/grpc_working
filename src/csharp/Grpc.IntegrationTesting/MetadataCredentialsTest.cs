@@ -75,7 +75,7 @@ namespace Grpc.IntegrationTesting
 
             var clientCredentials = ChannelCredentials.Create(
                 new SslCredentials(File.ReadAllText(TestCredentials.ClientCertAuthorityPath)),
-                CallCredentials.FromInterceptor(asyncAuthInterceptor));
+                new MetadataCredentials(asyncAuthInterceptor));
             channel = new Channel(Host, server.Ports.Single().BoundPort, clientCredentials, options);
             client = TestService.NewClient(channel);
         }

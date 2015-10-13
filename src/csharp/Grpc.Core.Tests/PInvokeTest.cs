@@ -60,7 +60,7 @@ namespace Grpc.Core.Tests
         public void CompletionQueueCreateDestroyBenchmark()
         {
             BenchmarkUtil.RunBenchmark(
-                10, 10,
+                100000, 1000000,
                 () =>
                 {
                     CompletionQueueSafeHandle cq = CompletionQueueSafeHandle.Create();
