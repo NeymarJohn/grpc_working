@@ -71,17 +71,16 @@ def platform_string():
 # SimpleConfig: just compile with CONFIG=config, and run the binary to test
 class SimpleConfig(object):
 
-  def __init__(self, config, environ=None, timeout_multiplier=1):
+  def __init__(self, config, environ=None, timeout_seconds=5*60):
     if environ is None:
       environ = {}
     self.build_config = config
     self.allow_hashing = (config != 'gcov')
     self.environ = environ
     self.environ['CONFIG'] = config
-    self.timeout_multiplier = timeout_multiplier
+    self.timeout_seconds = timeout_seconds
 
-  def job_spec(self, cmdline, hash_targets, timeout_seconds=5*60,
-               shortname=None, environ={}):
+  def job_spec(self, cmdline, hash_targets, shortname=None, environ={}):
     """Construct a jobset.JobSpec for a test under this config
 
        Args:
@@ -99,11 +98,10 @@ class SimpleConfig(object):
     return jobset.JobSpec(cmdline=cmdline,
                           shortname=shortname,
                           environ=actual_environ,
-                          timeout_seconds=self.timeout_multiplier * timeout_seconds,
+                          timeout_seconds=self.timeout_seconds,
                           hash_targets=hash_targets
                               if self.allow_hashing else None,
-                          flake_retries=5 if args.allow_flakes else 0,
-                          timeout_retries=3 if args.allow_flakes else 0)
+                          flake_retries=5 if args.allow_flakes else 0)
 
 
 # ValgrindConfig: compile with some CONFIG=config, but use valgrind to run
@@ -123,7 +121,7 @@ class ValgrindConfig(object):
                           shortname='valgrind %s' % cmdline[0],
                           hash_targets=None,
                           flake_retries=5 if args.allow_flakes else 0,
-                          timeout_retries=3 if args.allow_flakes else 0)
+                          timeout_retries=2 if args.allow_flakes else 0)
 
 
 def get_c_tests(travis, test_lang) :
@@ -169,10 +167,7 @@ class CLanguage(object):
     return ['buildtests_%s' % self.make_target, 'tools_%s' % self.make_target]
 
   def pre_build_steps(self):
-    if self.platform == 'windows':
-      return [['tools\\run_tests\\pre_build_c.bat']]
-    else:
-      return []
+    return []
 
   def build_steps(self):
     return []
@@ -193,8 +188,7 @@ class NodeLanguage(object):
                             environ=_FORCE_ENVIRON_FOR_WRAPPERS)]
 
   def pre_build_steps(self):
-    # Default to 1 week cache expiration
-    return [['npm', 'update', '--cache-min', '604800']]
+    return []
 
   def make_targets(self):
     return []
@@ -251,7 +245,6 @@ class PythonLanguage(object):
         None,
         environ=environment,
         shortname='py.test',
-        timeout_seconds=15*60
     )]
 
   def pre_build_steps(self):
@@ -291,7 +284,7 @@ class RubyLanguage(object):
                             environ=_FORCE_ENVIRON_FOR_WRAPPERS)]
 
   def pre_build_steps(self):
-    return [['tools/run_tests/pre_build_ruby.sh']]
+    return []
 
   def make_targets(self):
     return ['static_c']
@@ -328,10 +321,7 @@ class CSharpLanguage(object):
             for assembly in assemblies]
 
   def pre_build_steps(self):
-    if self.platform == 'windows':
-      return [['tools\\run_tests\\pre_build_csharp.bat']]
-    else:
-      return [['tools/run_tests/pre_build_csharp.sh']]
+    return []
 
   def make_targets(self):
     # For Windows, this target doesn't really build anything,
@@ -435,11 +425,11 @@ class Build(object):
 _CONFIGS = {
     'dbg': SimpleConfig('dbg'),
     'opt': SimpleConfig('opt'),
-    'tsan': SimpleConfig('tsan', timeout_multiplier=2, environ={
+    'tsan': SimpleConfig('tsan', timeout_seconds=10*60, environ={
         'TSAN_OPTIONS': 'suppressions=tools/tsan_suppressions.txt:halt_on_error=1:second_deadlock_stack=1'}),
-    'msan': SimpleConfig('msan', timeout_multiplier=1.5),
+    'msan': SimpleConfig('msan', timeout_seconds=7*60),
     'ubsan': SimpleConfig('ubsan'),
-    'asan': SimpleConfig('asan', timeout_multiplier=1.5, environ={
+    'asan': SimpleConfig('asan', timeout_seconds=7*60, environ={
         'ASAN_OPTIONS': 'detect_leaks=1:color=always:suppressions=tools/tsan_suppressions.txt',
         'LSAN_OPTIONS': 'report_objects=1'}),
     'asan-noleaks': SimpleConfig('asan', environ={
@@ -622,7 +612,7 @@ for l in languages:
       set(l.make_targets()))
 
 build_steps = list(set(
-                   jobset.JobSpec(cmdline, environ={'CONFIG': cfg}, flake_retries=5)
+                   jobset.JobSpec(cmdline, environ={'CONFIG': cfg})
                    for cfg in build_configs
                    for l in languages
                    for cmdline in l.pre_build_steps()))
@@ -741,7 +731,7 @@ def _build_and_run(
     check_cancelled, newline_on_success, travis, cache, xml_report=None):
   """Do one pass of building & running tests."""
   # build latest sequentially
-  if not jobset.run(build_steps, maxjobs=1, stop_on_failure=True,
+  if not jobset.run(build_steps, maxjobs=1,
                     newline_on_success=newline_on_success, travis=travis):
     return 1
 

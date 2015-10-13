@@ -31,35 +31,23 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SURFACE_CALL_TEST_ONLY_H
-#define GRPC_INTERNAL_CORE_SURFACE_CALL_TEST_ONLY_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H
+#define GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H
 
-#include <grpc/grpc.h>
+#include "src/core/iomgr/closure.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/** Return the compression algorithm from \a call.
+/** Initialize the global executor.
  *
- * \warning This function should \b only be used in test code. */
-grpc_compression_algorithm grpc_call_test_only_get_compression_algorithm(
-    grpc_call *call);
+ * This mechanism is meant to outsource work (grpc_closure instances) to a
+ * thread, for those cases where blocking isn't an option but there isn't a
+ * non-blocking solution available. */
+void grpc_executor_init();
 
-/** Return the message flags from \a call.
- *
- * \warning This function should \b only be used in test code. */
-gpr_uint32 grpc_call_test_only_get_message_flags(grpc_call *call);
+/** Enqueue \a closure for its eventual execution of \a f(arg) on a separate
+ * thread */
+void grpc_executor_enqueue(grpc_closure *closure, int success);
 
-/** Returns a bitset for the encodings (compression algorithms) supported by \a
- * call's peer.
- *
- * To be indexed by grpc_compression_algorithm enum values. */
-gpr_uint32 grpc_call_test_only_get_encodings_accepted_by_peer(grpc_call *call);
+/** Shutdown the executor, running all pending work as part of the call */
+void grpc_executor_shutdown();
 
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* GRPC_INTERNAL_CORE_SURFACE_CALL_TEST_ONLY_H */
+#endif /* GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H */

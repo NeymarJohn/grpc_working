@@ -100,7 +100,9 @@ static void finished_completion(grpc_exec_ctx *exec_ctx, void *pw,
   switch (w->phase) {
     case WAITING:
     case CALLED_BACK:
-      GPR_UNREACHABLE_CODE(return );
+      gpr_log(GPR_ERROR, "should never reach here");
+      abort();
+      break;
     case CALLING_BACK:
       w->phase = CALLED_BACK;
       break;
@@ -147,7 +149,9 @@ static void partly_done(grpc_exec_ctx *exec_ctx, state_watcher *w,
       w->phase = CALLING_BACK_AND_FINISHED;
       break;
     case CALLING_BACK_AND_FINISHED:
-      GPR_UNREACHABLE_CODE(return );
+      gpr_log(GPR_ERROR, "should never reach here");
+      abort();
+      break;
     case CALLED_BACK:
       delete = 1;
       break;
