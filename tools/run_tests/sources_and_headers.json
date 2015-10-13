@@ -10,6 +10,34 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "alarm_heap_test", 
+    "src": [
+      "test/core/iomgr/alarm_heap_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "alarm_list_test", 
+    "src": [
+      "test/core/iomgr/alarm_list_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "alpn_test", 
     "src": [
       "test/core/transport/chttp2/alpn_test.c"
@@ -396,20 +424,6 @@
     "name": "gpr_useful_test", 
     "src": [
       "test/core/support/useful_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "grpc_alarm_test", 
-    "src": [
-      "test/core/surface/alarm_test.c"
     ]
   }, 
   {
@@ -963,34 +977,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "timer_heap_test", 
-    "src": [
-      "test/core/iomgr/timer_heap_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "timer_list_test", 
-    "src": [
-      "test/core/iomgr/timer_list_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "timers_test", 
     "src": [
       "test/core/profiling/timers_test.c"
@@ -1064,22 +1050,6 @@
     "name": "workqueue_test", 
     "src": [
       "test/core/iomgr/workqueue_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc++", 
-      "grpc++_test_util", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "alarm_test", 
-    "src": [
-      "test/cpp/common/alarm_test.cc"
     ]
   }, 
   {
@@ -12340,10 +12310,14 @@
       "src/core/httpcli/format_request.h", 
       "src/core/httpcli/httpcli.h", 
       "src/core/httpcli/parser.h", 
+      "src/core/iomgr/alarm.h", 
+      "src/core/iomgr/alarm_heap.h", 
+      "src/core/iomgr/alarm_internal.h", 
       "src/core/iomgr/closure.h", 
       "src/core/iomgr/endpoint.h", 
       "src/core/iomgr/endpoint_pair.h", 
       "src/core/iomgr/exec_ctx.h", 
+      "src/core/iomgr/executor.h", 
       "src/core/iomgr/fd_posix.h", 
       "src/core/iomgr/iocp_windows.h", 
       "src/core/iomgr/iomgr.h", 
@@ -12367,9 +12341,6 @@
       "src/core/iomgr/tcp_server.h", 
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.h", 
-      "src/core/iomgr/timer.h", 
-      "src/core/iomgr/timer_heap.h", 
-      "src/core/iomgr/timer_internal.h", 
       "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.h", 
@@ -12516,6 +12487,11 @@
       "src/core/httpcli/httpcli_security_connector.c", 
       "src/core/httpcli/parser.c", 
       "src/core/httpcli/parser.h", 
+      "src/core/iomgr/alarm.c", 
+      "src/core/iomgr/alarm.h", 
+      "src/core/iomgr/alarm_heap.c", 
+      "src/core/iomgr/alarm_heap.h", 
+      "src/core/iomgr/alarm_internal.h", 
       "src/core/iomgr/closure.c", 
       "src/core/iomgr/closure.h", 
       "src/core/iomgr/endpoint.c", 
@@ -12525,6 +12501,8 @@
       "src/core/iomgr/endpoint_pair_windows.c", 
       "src/core/iomgr/exec_ctx.c", 
       "src/core/iomgr/exec_ctx.h", 
+      "src/core/iomgr/executor.c", 
+      "src/core/iomgr/executor.h", 
       "src/core/iomgr/fd_posix.c", 
       "src/core/iomgr/fd_posix.h", 
       "src/core/iomgr/iocp_windows.c", 
@@ -12573,11 +12551,6 @@
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.c", 
       "src/core/iomgr/time_averaged_stats.h", 
-      "src/core/iomgr/timer.c", 
-      "src/core/iomgr/timer.h", 
-      "src/core/iomgr/timer_heap.c", 
-      "src/core/iomgr/timer_heap.h", 
-      "src/core/iomgr/timer_internal.h", 
       "src/core/iomgr/udp_server.c", 
       "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_eventfd.c", 
@@ -12628,7 +12601,6 @@
       "src/core/security/server_secure_chttp2.c", 
       "src/core/statistics/census_interface.h", 
       "src/core/statistics/census_rpc_stats.h", 
-      "src/core/surface/alarm.c", 
       "src/core/surface/api_trace.c", 
       "src/core/surface/api_trace.h", 
       "src/core/surface/byte_buffer.c", 
@@ -12848,10 +12820,14 @@
       "src/core/httpcli/format_request.h", 
       "src/core/httpcli/httpcli.h", 
       "src/core/httpcli/parser.h", 
+      "src/core/iomgr/alarm.h", 
+      "src/core/iomgr/alarm_heap.h", 
+      "src/core/iomgr/alarm_internal.h", 
       "src/core/iomgr/closure.h", 
       "src/core/iomgr/endpoint.h", 
       "src/core/iomgr/endpoint_pair.h", 
       "src/core/iomgr/exec_ctx.h", 
+      "src/core/iomgr/executor.h", 
       "src/core/iomgr/fd_posix.h", 
       "src/core/iomgr/iocp_windows.h", 
       "src/core/iomgr/iomgr.h", 
@@ -12875,9 +12851,6 @@
       "src/core/iomgr/tcp_server.h", 
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.h", 
-      "src/core/iomgr/timer.h", 
-      "src/core/iomgr/timer_heap.h", 
-      "src/core/iomgr/timer_internal.h", 
       "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.h", 
@@ -13009,6 +12982,11 @@
       "src/core/httpcli/httpcli.h", 
       "src/core/httpcli/parser.c", 
       "src/core/httpcli/parser.h", 
+      "src/core/iomgr/alarm.c", 
+      "src/core/iomgr/alarm.h", 
+      "src/core/iomgr/alarm_heap.c", 
+      "src/core/iomgr/alarm_heap.h", 
+      "src/core/iomgr/alarm_internal.h", 
       "src/core/iomgr/closure.c", 
       "src/core/iomgr/closure.h", 
       "src/core/iomgr/endpoint.c", 
@@ -13018,6 +12996,8 @@
       "src/core/iomgr/endpoint_pair_windows.c", 
       "src/core/iomgr/exec_ctx.c", 
       "src/core/iomgr/exec_ctx.h", 
+      "src/core/iomgr/executor.c", 
+      "src/core/iomgr/executor.h", 
       "src/core/iomgr/fd_posix.c", 
       "src/core/iomgr/fd_posix.h", 
       "src/core/iomgr/iocp_windows.c", 
@@ -13066,11 +13046,6 @@
       "src/core/iomgr/tcp_windows.h", 
       "src/core/iomgr/time_averaged_stats.c", 
       "src/core/iomgr/time_averaged_stats.h", 
-      "src/core/iomgr/timer.c", 
-      "src/core/iomgr/timer.h", 
-      "src/core/iomgr/timer_heap.c", 
-      "src/core/iomgr/timer_heap.h", 
-      "src/core/iomgr/timer_internal.h", 
       "src/core/iomgr/udp_server.c", 
       "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_eventfd.c", 
@@ -13097,7 +13072,6 @@
       "src/core/profiling/timers.h", 
       "src/core/statistics/census_interface.h", 
       "src/core/statistics/census_rpc_stats.h", 
-      "src/core/surface/alarm.c", 
       "src/core/surface/api_trace.c", 
       "src/core/surface/api_trace.h", 
       "src/core/surface/byte_buffer.c", 
@@ -13222,7 +13196,6 @@
       "grpc"
     ], 
     "headers": [
-      "include/grpc++/alarm.h", 
       "include/grpc++/channel.h", 
       "include/grpc++/client_context.h", 
       "include/grpc++/completion_queue.h", 
@@ -13276,7 +13249,6 @@
     "language": "c++", 
     "name": "grpc++", 
     "src": [
-      "include/grpc++/alarm.h", 
       "include/grpc++/channel.h", 
       "include/grpc++/client_context.h", 
       "include/grpc++/completion_queue.h", 
@@ -13330,7 +13302,6 @@
       "src/cpp/client/secure_channel_arguments.cc", 
       "src/cpp/client/secure_credentials.cc", 
       "src/cpp/client/secure_credentials.h", 
-      "src/cpp/common/alarm.cc", 
       "src/cpp/common/auth_property_iterator.cc", 
       "src/cpp/common/call.cc", 
       "src/cpp/common/completion_queue.cc", 
@@ -13409,7 +13380,6 @@
       "grpc_unsecure"
     ], 
     "headers": [
-      "include/grpc++/alarm.h", 
       "include/grpc++/channel.h", 
       "include/grpc++/client_context.h", 
       "include/grpc++/completion_queue.h", 
@@ -13460,7 +13430,6 @@
     "language": "c++", 
     "name": "grpc++_unsecure", 
     "src": [
-      "include/grpc++/alarm.h", 
       "include/grpc++/channel.h", 
       "include/grpc++/client_context.h", 
       "include/grpc++/completion_queue.h", 
@@ -13511,7 +13480,6 @@
       "src/cpp/client/credentials.cc", 
       "src/cpp/client/generic_stub.cc", 
       "src/cpp/client/insecure_credentials.cc", 
-      "src/cpp/common/alarm.cc", 
       "src/cpp/common/call.cc", 
       "src/cpp/common/completion_queue.cc", 
       "src/cpp/common/create_auth_context.h", 

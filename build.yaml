@@ -23,7 +23,6 @@ filegroups:
   - src/core/census/tracing.c
 - name: grpc++_base
   public_headers:
-  - include/grpc++/alarm.h
   - include/grpc++/channel.h
   - include/grpc++/client_context.h
   - include/grpc++/completion_queue.h
@@ -80,7 +79,6 @@ filegroups:
   - src/cpp/client/credentials.cc
   - src/cpp/client/generic_stub.cc
   - src/cpp/client/insecure_credentials.cc
-  - src/cpp/common/alarm.cc
   - src/cpp/common/call.cc
   - src/cpp/common/completion_queue.cc
   - src/cpp/common/rpc_method.cc
@@ -139,10 +137,14 @@ filegroups:
   - src/core/httpcli/format_request.h
   - src/core/httpcli/httpcli.h
   - src/core/httpcli/parser.h
+  - src/core/iomgr/alarm.h
+  - src/core/iomgr/alarm_heap.h
+  - src/core/iomgr/alarm_internal.h
   - src/core/iomgr/closure.h
   - src/core/iomgr/endpoint.h
   - src/core/iomgr/endpoint_pair.h
   - src/core/iomgr/exec_ctx.h
+  - src/core/iomgr/executor.h
   - src/core/iomgr/fd_posix.h
   - src/core/iomgr/iocp_windows.h
   - src/core/iomgr/iomgr.h
@@ -166,9 +168,6 @@ filegroups:
   - src/core/iomgr/tcp_server.h
   - src/core/iomgr/tcp_windows.h
   - src/core/iomgr/time_averaged_stats.h
-  - src/core/iomgr/timer.h
-  - src/core/iomgr/timer_heap.h
-  - src/core/iomgr/timer_internal.h
   - src/core/iomgr/udp_server.h
   - src/core/iomgr/wakeup_fd_pipe.h
   - src/core/iomgr/wakeup_fd_posix.h
@@ -252,11 +251,14 @@ filegroups:
   - src/core/httpcli/format_request.c
   - src/core/httpcli/httpcli.c
   - src/core/httpcli/parser.c
+  - src/core/iomgr/alarm.c
+  - src/core/iomgr/alarm_heap.c
   - src/core/iomgr/closure.c
   - src/core/iomgr/endpoint.c
   - src/core/iomgr/endpoint_pair_posix.c
   - src/core/iomgr/endpoint_pair_windows.c
   - src/core/iomgr/exec_ctx.c
+  - src/core/iomgr/executor.c
   - src/core/iomgr/fd_posix.c
   - src/core/iomgr/iocp_windows.c
   - src/core/iomgr/iomgr.c
@@ -282,8 +284,6 @@ filegroups:
   - src/core/iomgr/tcp_server_windows.c
   - src/core/iomgr/tcp_windows.c
   - src/core/iomgr/time_averaged_stats.c
-  - src/core/iomgr/timer.c
-  - src/core/iomgr/timer_heap.c
   - src/core/iomgr/udp_server.c
   - src/core/iomgr/wakeup_fd_eventfd.c
   - src/core/iomgr/wakeup_fd_nospecial.c
@@ -297,7 +297,6 @@ filegroups:
   - src/core/json/json_writer.c
   - src/core/profiling/basic_timers.c
   - src/core/profiling/stap_timers.c
-  - src/core/surface/alarm.c
   - src/core/surface/api_trace.c
   - src/core/surface/byte_buffer.c
   - src/core/surface/byte_buffer_queue.c
@@ -785,6 +784,26 @@ libs:
   - winsock
   - global
 targets:
+- name: alarm_heap_test
+  build: test
+  language: c
+  src:
+  - test/core/iomgr/alarm_heap_test.c
+  deps:
+  - grpc_test_util
+  - grpc
+  - gpr_test_util
+  - gpr
+- name: alarm_list_test
+  build: test
+  language: c
+  src:
+  - test/core/iomgr/alarm_list_test.c
+  deps:
+  - grpc_test_util
+  - grpc
+  - gpr_test_util
+  - gpr
 - name: alpn_test
   build: test
   language: c
@@ -1079,16 +1098,6 @@ targets:
   src:
   - test/core/support/useful_test.c
   deps:
-  - gpr_test_util
-  - gpr
-- name: grpc_alarm_test
-  build: test
-  language: c
-  src:
-  - test/core/surface/alarm_test.c
-  deps:
-  - grpc_test_util
-  - grpc
   - gpr_test_util
   - gpr
 - name: grpc_auth_context_test
@@ -1502,26 +1511,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-- name: timer_heap_test
-  build: test
-  language: c
-  src:
-  - test/core/iomgr/timer_heap_test.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-- name: timer_list_test
-  build: test
-  language: c
-  src:
-  - test/core/iomgr/timer_list_test.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
 - name: timers_test
   build: test
   language: c
@@ -1594,18 +1583,6 @@ targets:
   - mac
   - linux
   - posix
-- name: alarm_test
-  build: test
-  language: c++
-  src:
-  - test/cpp/common/alarm_test.cc
-  deps:
-  - grpc++_test_util
-  - grpc_test_util
-  - grpc++
-  - grpc
-  - gpr_test_util
-  - gpr
 - name: async_end2end_test
   build: test
   language: c++
