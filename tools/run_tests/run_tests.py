@@ -43,6 +43,8 @@ import re
 import socket
 import subprocess
 import sys
+import tempfile
+import traceback
 import time
 import xml.etree.cElementTree as ET
 import urllib2
@@ -177,6 +179,12 @@ class CLanguage(object):
   def build_steps(self):
     return []
 
+  def post_tests_steps(self):
+    if self.platform == 'windows':
+      return []
+    else:
+      return [['tools/run_tests/post_tests_c.sh']]
+
   def makefile_name(self):
     return 'Makefile'
 
@@ -202,6 +210,9 @@ class NodeLanguage(object):
   def build_steps(self):
     return [['tools/run_tests/build_node.sh']]
 
+  def post_tests_steps(self):
+    return []
+
   def makefile_name(self):
     return 'Makefile'
 
@@ -226,6 +237,9 @@ class PhpLanguage(object):
 
   def build_steps(self):
     return [['tools/run_tests/build_php.sh']]
+
+  def post_tests_steps(self):
+    return []
 
   def makefile_name(self):
     return 'Makefile'
@@ -274,6 +288,9 @@ class PythonLanguage(object):
                        do_newline=True)
     return commands
 
+  def post_tests_steps(self):
+    return []
+
   def makefile_name(self):
     return 'Makefile'
 
@@ -298,6 +315,9 @@ class RubyLanguage(object):
 
   def build_steps(self):
     return [['tools/run_tests/build_ruby.sh']]
+
+  def post_tests_steps(self):
+    return []
 
   def makefile_name(self):
     return 'Makefile'
@@ -347,6 +367,9 @@ class CSharpLanguage(object):
     else:
       return [['tools/run_tests/build_csharp.sh']]
 
+  def post_tests_steps(self):
+    return []
+
   def makefile_name(self):
     return 'Makefile'
 
@@ -372,6 +395,9 @@ class ObjCLanguage(object):
   def build_steps(self):
     return [['src/objective-c/tests/build_tests.sh']]
 
+  def post_tests_steps(self):
+    return []
+
   def makefile_name(self):
     return 'Makefile'
 
@@ -395,6 +421,9 @@ class Sanity(object):
     return ['run_dep_checks']
 
   def build_steps(self):
+    return []
+
+  def post_tests_steps(self):
     return []
 
   def makefile_name(self):
@@ -577,7 +606,7 @@ run_configs = set(_CONFIGS[cfg]
 build_configs = set(cfg.build_config for cfg in run_configs)
 
 if args.travis:
-  _FORCE_ENVIRON_FOR_WRAPPERS = {'GRPC_TRACE': 'surface,batch'}
+  _FORCE_ENVIRON_FOR_WRAPPERS = {'GRPC_TRACE': 'api'}
 
 languages = set(_LANGUAGES[l]
                 for l in itertools.chain.from_iterable(
@@ -635,6 +664,11 @@ build_steps.extend(set(
                    for l in languages
                    for cmdline in l.build_steps()))
 
+post_tests_steps = list(set(
+                        jobset.JobSpec(cmdline, environ={'CONFIG': cfg})
+                        for cfg in build_configs
+                        for l in languages
+                        for cmdline in l.post_tests_steps()))
 runs_per_test = args.runs_per_test
 forever = args.forever
 
@@ -704,35 +738,62 @@ def _start_port_server(port_server_port):
       urllib2.urlopen('http://localhost:%d/quitquitquit' % port_server_port).read()
       time.sleep(1)
   if not running:
-    print 'starting port_server'
-    port_log = open('portlog.txt', 'w')
-    port_server = subprocess.Popen(
-        [sys.executable, 'tools/run_tests/port_server.py', '-p', '%d' % port_server_port],
-        stderr=subprocess.STDOUT,
-        stdout=port_log)
+    fd, logfile = tempfile.mkstemp()
+    os.close(fd)
+    print 'starting port_server, with log file %s' % logfile
+    args = [sys.executable, 'tools/run_tests/port_server.py', '-p', '%d' % port_server_port, '-l', logfile]
+    env = dict(os.environ)
+    env['BUILD_ID'] = 'pleaseDontKillMeJenkins'
+    if platform.system() == 'Windows':
+      port_server = subprocess.Popen(
+          args,
+          env=env,
+          creationflags = 0x00000008, # detached process
+          close_fds=True)
+    else:
+      port_server = subprocess.Popen(
+          args,
+          env=env,
+          preexec_fn=os.setsid,
+          close_fds=True)
+    time.sleep(1)
     # ensure port server is up
     waits = 0
     while True:
       if waits > 10:
+        print 'killing port server due to excessive start up waits'
         port_server.kill()
       if port_server.poll() is not None:
         print 'port_server failed to start'
-        port_log = open('portlog.txt', 'r').read()
-        print port_log
-        sys.exit(1)
+        # try one final time: maybe another build managed to start one
+        time.sleep(1)
+        try:
+          urllib2.urlopen('http://localhost:%d/get' % port_server_port,
+                          timeout=1).read()
+          print 'last ditch attempt to contact port server succeeded'
+          break
+        except:
+          traceback.print_exc();
+          port_log = open(logfile, 'r').read()
+          print port_log
+          sys.exit(1)
       try:
         urllib2.urlopen('http://localhost:%d/get' % port_server_port,
                         timeout=1).read()
+        print 'port server is up and ready'
         break
       except socket.timeout:
         print 'waiting for port_server: timeout'
-        time.sleep(0.5)
+        traceback.print_exc();
+        time.sleep(1)
         waits += 1
       except urllib2.URLError:
         print 'waiting for port_server: urlerror'
-        time.sleep(0.5)
+        traceback.print_exc();
+        time.sleep(1)
         waits += 1
       except:
+        traceback.print_exc();
         port_server.kill()
         raise
 
@@ -791,6 +852,10 @@ def _build_and_run(
     if xml_report:
       tree = ET.ElementTree(root)
       tree.write(xml_report, encoding='UTF-8')
+
+  if not jobset.run(post_tests_steps, maxjobs=1, stop_on_failure=True,
+                    newline_on_success=newline_on_success, travis=travis):
+    return 3
 
   if cache: cache.save()
 

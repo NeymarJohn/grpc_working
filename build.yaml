@@ -109,6 +109,7 @@ filegroups:
   - src/core/channel/channel_args.h
   - src/core/channel/channel_stack.h
   - src/core/channel/client_channel.h
+  - src/core/channel/client_uchannel.h
   - src/core/channel/compress_filter.h
   - src/core/channel/connected_channel.h
   - src/core/channel/context.h
@@ -177,7 +178,6 @@ filegroups:
   - src/core/json/json_common.h
   - src/core/json/json_reader.h
   - src/core/json/json_writer.h
-  - src/core/profiling/timers.h
   - src/core/statistics/census_interface.h
   - src/core/statistics/census_rpc_stats.h
   - src/core/surface/api_trace.h
@@ -222,6 +222,7 @@ filegroups:
   - src/core/channel/channel_args.c
   - src/core/channel/channel_stack.c
   - src/core/channel/client_channel.c
+  - src/core/channel/client_uchannel.c
   - src/core/channel/compress_filter.c
   - src/core/channel/connected_channel.c
   - src/core/channel/http_client_filter.c
@@ -293,8 +294,6 @@ filegroups:
   - src/core/json/json_reader.c
   - src/core/json/json_string.c
   - src/core/json/json_writer.c
-  - src/core/profiling/basic_timers.c
-  - src/core/profiling/stap_timers.c
   - src/core/surface/api_trace.c
   - src/core/surface/byte_buffer.c
   - src/core/surface/byte_buffer_queue.c
@@ -393,6 +392,7 @@ libs:
   - include/grpc/support/tls_pthread.h
   - include/grpc/support/useful.h
   headers:
+  - src/core/profiling/timers.h
   - src/core/support/block_annotate.h
   - src/core/support/env.h
   - src/core/support/file.h
@@ -403,6 +403,8 @@ libs:
   - src/core/support/thd_internal.h
   - src/core/support/time_precise.h
   src:
+  - src/core/profiling/basic_timers.c
+  - src/core/profiling/stap_timers.c
   - src/core/support/alloc.c
   - src/core/support/cmdline.c
   - src/core/support/cpu_iphone.c
@@ -438,6 +440,7 @@ libs:
   - src/core/support/thd_win32.c
   - src/core/support/time.c
   - src/core/support/time_posix.c
+  - src/core/support/time_precise.c
   - src/core/support/time_win32.c
   - src/core/support/tls_pthread.c
   secure: false
