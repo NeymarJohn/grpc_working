@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -26,55 +27,11 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# This script is invoked by Jenkins and runs interop test suite.
+set -ex
 
-# A work-in-progress Dockerfile that allows running gRPC test suites
-# inside a docker container.
+# Enter the gRPC repo root
+cd $(dirname $0)/../..
 
-FROM debian:jessie
-
-# Install Git.
-RUN apt-get update && apt-get install -y \
-  autoconf \
-  autotools-dev \
-  build-essential \
-  bzip2 \
-  ccache \
-  curl \
-  gcc \
-  gcc-multilib \
-  git \
-  gyp \
-  libc6 \
-  libc6-dbg \
-  libc6-dev \
-  libgtest-dev \
-  libtool \
-  make \
-  strace \
-  python-dev \
-  python-pip \
-  python-setuptools \
-  python-yaml \
-  telnet \
-  unzip \
-  wget \
-  zip && apt-get clean
-
-# Prepare ccache
-RUN ln -s /usr/bin/ccache /usr/local/bin/gcc
-RUN ln -s /usr/bin/ccache /usr/local/bin/g++
-RUN ln -s /usr/bin/ccache /usr/local/bin/cc
-RUN ln -s /usr/bin/ccache /usr/local/bin/c++
-RUN ln -s /usr/bin/ccache /usr/local/bin/clang
-RUN ln -s /usr/bin/ccache /usr/local/bin/clang++
-
-
-#####################
-# Python dependencies
-
-# Install Python requisites
-RUN /bin/bash -l -c "pip install --upgrade pip"
-RUN /bin/bash -l -c "pip install virtualenv"
-
-# Define the default command.
-CMD ["bash"]
+tools/run_tests/run_interop_tests.py -l all -s all --cloud_to_prod --use_docker -t -j 8 $@ || true
