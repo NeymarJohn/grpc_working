@@ -54,6 +54,24 @@
     'include_dirs': [
       '.',
       'include'
+    ],
+    'conditions': [
+      ['OS != "win"', {
+        'conditions': [
+          ['config=="gcov"', {
+            'cflags': [
+              '-ftest-coverage',
+              '-fprofile-arcs',
+              '-O0'
+            ],
+            'ldflags': [
+              '-ftest-coverage',
+              '-fprofile-arcs'
+            ]
+          }
+         ]
+        ]
+      }],
     ]
   },
   'targets': [
@@ -172,7 +190,6 @@
         'src/core/iomgr/endpoint_pair_posix.c',
         'src/core/iomgr/endpoint_pair_windows.c',
         'src/core/iomgr/exec_ctx.c',
-        'src/core/iomgr/executor.c',
         'src/core/iomgr/fd_posix.c',
         'src/core/iomgr/iocp_windows.c',
         'src/core/iomgr/iomgr.c',
@@ -279,22 +296,6 @@
         '-g'
       ],
       "conditions": [
-        ['OS != "win"', {
-          'conditions': [
-            ['config=="gcov"', {
-              'cflags': [
-                '-ftest-coverage',
-                '-fprofile-arcs',
-                '-O0'
-              ],
-              'ldflags': [
-                '-ftest-coverage',
-                '-fprofile-arcs'
-              ]
-            }
-           ]
-          ]
-        }],
         ['OS == "mac"', {
           'xcode_settings': {
             'MACOSX_DEPLOYMENT_TARGET': '10.9',
