@@ -60,22 +60,6 @@ function multiDone(done, count) {
   };
 }
 
-var fakeSuccessfulGoogleCredentials = {
-  getRequestMetadata: function(service_url, callback) {
-    setTimeout(function() {
-      callback(null, {Authorization: 'success'});
-    }, 0);
-  }
-};
-
-var fakeFailingGoogleCredentials = {
-  getRequestMetadata: function(service_url, callback) {
-    setTimeout(function() {
-      callback(new Error("Authorization failure"));
-    }, 0);
-  }
-};
-
 describe('client credentials', function() {
   var Client;
   var server;
@@ -146,8 +130,8 @@ describe('client credentials', function() {
       callback(null, metadata);
     };
     var creds = grpc.credentials.createFromMetadataGenerator(metadataUpdater);
-    var combined_creds = grpc.credentials.combineChannelCredentials(
-        client_ssl_creds, creds);
+    var combined_creds = grpc.credentials.combineCredentials(client_ssl_creds,
+                                                             creds);
     var client = new Client('localhost:' + port, combined_creds,
                             client_options);
     var call = client.unary({}, function(err, data) {
@@ -166,8 +150,8 @@ describe('client credentials', function() {
       callback(null, metadata);
     };
     var creds = grpc.credentials.createFromMetadataGenerator(metadataUpdater);
-    var combined_creds = grpc.credentials.combineChannelCredentials(
-        client_ssl_creds, creds);
+    var combined_creds = grpc.credentials.combineCredentials(client_ssl_creds,
+                                                             creds);
     var client = new Client('localhost:' + port, combined_creds,
                             client_options);
     var call = client.unary({}, function(err, data) {
@@ -182,52 +166,6 @@ describe('client credentials', function() {
     });
     call2.on('metadata', function(metadata) {
       assert.deepEqual(metadata.get('plugin_key'), ['plugin_value']);
-      done();
-    });
-  });
-  it.skip('should propagate errors that the updater emits', function(done) {
-    var metadataUpdater = function(service_url, callback) {
-      var error = new Error('Authentication error');
-      error.code = grpc.status.UNAUTHENTICATED;
-      callback(error);
-    };
-    var creds = grpc.credentials.createFromMetadataGenerator(metadataUpdater);
-    var combined_creds = grpc.credentials.combineChannelCredentials(
-        client_ssl_creds, creds);
-    var client = new Client('localhost:' + port, combined_creds,
-                            client_options);
-    client.unary({}, function(err, data) {
-      assert(err);
-      assert.strictEqual(err.message, 'Authentication error');
-      assert.strictEqual(err.code, grpc.status.UNAUTHENTICATED);
-      done();
-    });
-  });
-  it('should successfully wrap a Google credential', function(done) {
-    var creds = grpc.credentials.createFromGoogleCredential(
-        fakeSuccessfulGoogleCredentials);
-    var combined_creds = grpc.credentials.combineChannelCredentials(
-        client_ssl_creds, creds);
-    var client = new Client('localhost:' + port, combined_creds,
-                            client_options);
-    var call = client.unary({}, function(err, data) {
-      assert.ifError(err);
-    });
-    call.on('metadata', function(metadata) {
-      assert.deepStrictEqual(metadata.get('authorization'), ['success']);
-      done();
-    });
-  });
-  it.skip('should get an error from a Google credential', function(done) {
-    var creds = grpc.credentials.createFromGoogleCredential(
-        fakeFailingGoogleCredentials);
-    var combined_creds = grpc.credentials.combineChannelCredentials(
-        client_ssl_creds, creds);
-    var client = new Client('localhost:' + port, combined_creds,
-                            client_options);
-    client.unary({}, function(err, data) {
-      assert(err);
-      assert.strictEqual(err.message, 'Authorization failure');
       done();
     });
   });
@@ -293,7 +231,7 @@ describe('client credentials', function() {
           updater_creds, alt_updater_creds);
       var call = client.unary({}, function(err, data) {
         assert.ifError(err);
-      }, null, {credentials: combined_updater});
+      }, null, {credentials: updater_creds});
       call.on('metadata', function(metadata) {
         assert.deepEqual(metadata.get('plugin_key'), ['plugin_value']);
         assert.deepEqual(metadata.get('other_plugin_key'),

@@ -87,9 +87,14 @@ exports.fullyQualifiedName = function fullyQualifiedName(value) {
     return '';
   }
   var name = value.name;
-  var parent_name = fullyQualifiedName(value.parent);
-  if (parent_name !== '') {
-    name = parent_name + '.' + name;
+  if (value.className === 'Service.RPCMethod') {
+    name = _.capitalize(name);
+  }
+  if (value.hasOwnProperty('parent')) {
+    var parent_name = fullyQualifiedName(value.parent);
+    if (parent_name !== '') {
+      name = parent_name + '.' + name;
+    }
   }
   return name;
 };

@@ -44,9 +44,6 @@ var testProto = grpc.load({
 var ECHO_INITIAL_KEY = 'x-grpc-test-echo-initial';
 var ECHO_TRAILING_KEY = 'x-grpc-test-echo-trailing-bin';
 
-var incompressible_data = fs.readFileSync(
-    __dirname + '/../../../test/cpp/interop/rnd.dat');
-
 /**
  * Create a buffer filled with size zeroes
  * @param {number} size The length of the buffer
@@ -86,19 +83,6 @@ function getEchoTrailer(call) {
   return response_trailer;
 }
 
-function getPayload(payload_type, size) {
-  if (payload_type === 'RANDOM') {
-    payload_type = ['COMPRESSABLE',
-                    'UNCOMPRESSABLE'][Math.random() < 0.5 ? 0 : 1];
-  }
-  var body;
-  switch (payload_type) {
-    case 'COMPRESSABLE': body = zeroBuffer(size); break;
-    case 'UNCOMPRESSABLE': incompressible_data.slice(size); break;
-  }
-  return {type: payload_type, body: body};
-}
-
 /**
  * Respond to an empty parameter with an empty response.
  * NOTE: this currently does not work due to issue #137
@@ -120,14 +104,13 @@ function handleEmpty(call, callback) {
 function handleUnary(call, callback) {
   echoHeader(call);
   var req = call.request;
-  if (req.response_status) {
-    var status = req.response_status;
-    status.metadata = getEchoTrailer(call);
-    callback(status);
-    return;
+  var zeros = zeroBuffer(req.response_size);
+  var payload_type = req.response_type;
+  if (payload_type === 'RANDOM') {
+    payload_type = ['COMPRESSABLE',
+                    'UNCOMPRESSABLE'][Math.random() < 0.5 ? 0 : 1];
   }
-  var payload = getPayload(req.response_type, req.response_size);
-  callback(null, {payload: payload},
+  callback(null, {payload: {type: payload_type, body: zeros}},
            getEchoTrailer(call));
 }
 
@@ -156,14 +139,18 @@ function handleStreamingInput(call, callback) {
 function handleStreamingOutput(call) {
   echoHeader(call);
   var req = call.request;
-  if (req.response_status) {
-    var status = req.response_status;
-    status.metadata = getEchoTrailer(call);
-    call.emit('error', status);
-    return;
+  var payload_type = req.response_type;
+  if (payload_type === 'RANDOM') {
+    payload_type = ['COMPRESSABLE',
+                    'UNCOMPRESSABLE'][Math.random() < 0.5 ? 0 : 1];
   }
   _.each(req.response_parameters, function(resp_param) {
-    call.write({payload: getPayload(req.response_type, resp_param.size)});
+    call.write({
+      payload: {
+        body: zeroBuffer(resp_param.size),
+        type: payload_type
+      }
+    });
   });
   call.end(getEchoTrailer(call));
 }
@@ -176,14 +163,18 @@ function handleStreamingOutput(call) {
 function handleFullDuplex(call) {
   echoHeader(call);
   call.on('data', function(value) {
-    if (value.response_status) {
-      var status = value.response_status;
-      status.metadata = getEchoTrailer(call);
-      call.emit('error', status);
-      return;
+    var payload_type = value.response_type;
+    if (payload_type === 'RANDOM') {
+      payload_type = ['COMPRESSABLE',
+                      'UNCOMPRESSABLE'][Math.random() < 0.5 ? 0 : 1];
     }
     _.each(value.response_parameters, function(resp_param) {
-      call.write({payload: getPayload(value.response_type, resp_param.size)});
+      call.write({
+        payload: {
+          body: zeroBuffer(resp_param.size),
+          type: payload_type
+        }
+      });
     });
   });
   call.on('end', function() {
@@ -197,7 +188,7 @@ function handleFullDuplex(call) {
  * @param {Call} call Call to handle
  */
 function handleHalfDuplex(call) {
-  call.emit('error', Error('HalfDuplexCall not yet implemented'));
+  throw new Error('HalfDuplexCall not yet implemented');
 }
 
 /**
