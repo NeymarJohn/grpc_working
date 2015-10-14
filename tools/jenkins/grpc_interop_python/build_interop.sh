@@ -27,28 +27,21 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Builds Python interop server and client in a base image.
+set -e
 
-set -ex
+mkdir -p /var/local/git
+git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
 
-CONFIG=${CONFIG:-opt}
+# copy service account keys if available
+cp -r /var/local/jenkins/service_account $HOME || true
 
-# change to grpc repo root
-cd $(dirname $0)/../..
+cd /var/local/git/grpc
 
-root=`pwd`
+make install-certs
+make
 
-if [ "$CONFIG" = "gcov" ]
-then
-  ./node_modules/.bin/istanbul cover --dir reports/node_coverage \
-    ./node_modules/.bin/_mocha -- --timeout 8000 src/node/test
-  cd build
-  gcov Release/obj.target/grpc/ext/*.o
-  lcov --base-directory . --directory . -c -o coverage.info
-  genhtml -o ../reports/node_ext_coverage --num-spaces 2 \
-    -t 'Node gRPC test coverage' coverage.info --rc genhtml_hi_limit=95 \
-    --rc genhtml_med_limit=80
-  echo '<html><head><meta http-equiv="refresh" content="0;URL=lcov-report/index.html"></head></html>' > \
-    ../reports/node_coverage/index.html
-else
-  ./node_modules/mocha/bin/mocha --timeout 8000 src/node/test
-fi
+# build Python interop client and server
+CONFIG=opt ./tools/run_tests/build_python.sh 2.7
+
