@@ -36,7 +36,7 @@
 
 Pod::Spec.new do |s|
   s.name     = 'gRPC'
-  version = '0.11.2'
+  version = '0.11.1'
   s.version  = version
   s.summary  = 'gRPC client library for iOS/OSX'
   s.homepage = 'http://www.grpc.io'
@@ -63,41 +63,45 @@ Pod::Spec.new do |s|
 
   # Core cross-platform gRPC library, written in C.
   s.subspec 'C-Core' do |ss|
-    ss.source_files = 'src/core/support/env.h',
+    ss.source_files = 'src/core/profiling/timers.h',
+                      'src/core/support/block_annotate.h',
+                      'src/core/support/env.h',
                       'src/core/support/file.h',
                       'src/core/support/murmur_hash.h',
                       'src/core/support/stack_lockfree.h',
-                      'src/core/support/string.h',
+                      'src/core/support/grpc_string.h',
                       'src/core/support/string_win32.h',
                       'src/core/support/thd_internal.h',
                       'src/core/support/time_precise.h',
-                      'include/grpc/support/alloc.h',
-                      'include/grpc/support/atm.h',
-                      'include/grpc/support/atm_gcc_atomic.h',
-                      'include/grpc/support/atm_gcc_sync.h',
-                      'include/grpc/support/atm_win32.h',
-                      'include/grpc/support/cmdline.h',
-                      'include/grpc/support/cpu.h',
-                      'include/grpc/support/histogram.h',
-                      'include/grpc/support/host_port.h',
-                      'include/grpc/support/log.h',
-                      'include/grpc/support/log_win32.h',
-                      'include/grpc/support/port_platform.h',
-                      'include/grpc/support/slice.h',
-                      'include/grpc/support/slice_buffer.h',
-                      'include/grpc/support/string_util.h',
-                      'include/grpc/support/subprocess.h',
-                      'include/grpc/support/sync.h',
-                      'include/grpc/support/sync_generic.h',
-                      'include/grpc/support/sync_posix.h',
-                      'include/grpc/support/sync_win32.h',
-                      'include/grpc/support/thd.h',
-                      'include/grpc/support/time.h',
-                      'include/grpc/support/tls.h',
-                      'include/grpc/support/tls_gcc.h',
-                      'include/grpc/support/tls_msvc.h',
-                      'include/grpc/support/tls_pthread.h',
-                      'include/grpc/support/useful.h',
+                      'grpc/support/alloc.h',
+                      'grpc/support/atm.h',
+                      'grpc/support/atm_gcc_atomic.h',
+                      'grpc/support/atm_gcc_sync.h',
+                      'grpc/support/atm_win32.h',
+                      'grpc/support/cmdline.h',
+                      'grpc/support/cpu.h',
+                      'grpc/support/histogram.h',
+                      'grpc/support/host_port.h',
+                      'grpc/support/log.h',
+                      'grpc/support/log_win32.h',
+                      'grpc/support/port_platform.h',
+                      'grpc/support/slice.h',
+                      'grpc/support/slice_buffer.h',
+                      'grpc/support/string_util.h',
+                      'grpc/support/subprocess.h',
+                      'grpc/support/sync.h',
+                      'grpc/support/sync_generic.h',
+                      'grpc/support/sync_posix.h',
+                      'grpc/support/sync_win32.h',
+                      'grpc/support/thd.h',
+                      'grpc/support/grpc_time.h',
+                      'grpc/support/tls.h',
+                      'grpc/support/tls_gcc.h',
+                      'grpc/support/tls_msvc.h',
+                      'grpc/support/tls_pthread.h',
+                      'grpc/support/useful.h',
+                      'src/core/profiling/basic_timers.c',
+                      'src/core/profiling/stap_timers.c',
                       'src/core/support/alloc.c',
                       'src/core/support/cmdline.c',
                       'src/core/support/cpu_iphone.c',
@@ -133,15 +137,16 @@ Pod::Spec.new do |s|
                       'src/core/support/thd_win32.c',
                       'src/core/support/time.c',
                       'src/core/support/time_posix.c',
+                      'src/core/support/time_precise.c',
                       'src/core/support/time_win32.c',
                       'src/core/support/tls_pthread.c',
                       'src/core/security/auth_filters.h',
                       'src/core/security/base64.h',
                       'src/core/security/credentials.h',
+                      'src/core/security/handshake.h',
                       'src/core/security/json_token.h',
                       'src/core/security/jwt_verifier.h',
                       'src/core/security/secure_endpoint.h',
-                      'src/core/security/secure_transport_setup.h',
                       'src/core/security/security_connector.h',
                       'src/core/security/security_context.h',
                       'src/core/tsi/fake_transport_security.h',
@@ -161,7 +166,10 @@ Pod::Spec.new do |s|
                       'src/core/client_config/client_config.h',
                       'src/core/client_config/connector.h',
                       'src/core/client_config/lb_policies/pick_first.h',
+                      'src/core/client_config/lb_policies/round_robin.h',
                       'src/core/client_config/lb_policy.h',
+                      'src/core/client_config/lb_policy_factory.h',
+                      'src/core/client_config/lb_policy_registry.h',
                       'src/core/client_config/resolver.h',
                       'src/core/client_config/resolver_factory.h',
                       'src/core/client_config/resolver_registry.h',
@@ -180,8 +188,10 @@ Pod::Spec.new do |s|
                       'src/core/iomgr/alarm.h',
                       'src/core/iomgr/alarm_heap.h',
                       'src/core/iomgr/alarm_internal.h',
+                      'src/core/iomgr/closure.h',
                       'src/core/iomgr/endpoint.h',
                       'src/core/iomgr/endpoint_pair.h',
+                      'src/core/iomgr/exec_ctx.h',
                       'src/core/iomgr/fd_posix.h',
                       'src/core/iomgr/iocp_windows.h',
                       'src/core/iomgr/iomgr.h',
@@ -208,15 +218,19 @@ Pod::Spec.new do |s|
                       'src/core/iomgr/udp_server.h',
                       'src/core/iomgr/wakeup_fd_pipe.h',
                       'src/core/iomgr/wakeup_fd_posix.h',
+                      'src/core/iomgr/workqueue.h',
+                      'src/core/iomgr/workqueue_posix.h',
+                      'src/core/iomgr/workqueue_windows.h',
                       'src/core/json/json.h',
                       'src/core/json/json_common.h',
                       'src/core/json/json_reader.h',
                       'src/core/json/json_writer.h',
-                      'src/core/profiling/timers.h',
                       'src/core/statistics/census_interface.h',
                       'src/core/statistics/census_rpc_stats.h',
+                      'src/core/surface/api_trace.h',
                       'src/core/surface/byte_buffer_queue.h',
                       'src/core/surface/call.h',
+                      'src/core/surface/call_test_only.h',
                       'src/core/surface/channel.h',
                       'src/core/surface/completion_queue.h',
                       'src/core/surface/event_string.h',
@@ -252,13 +266,13 @@ Pod::Spec.new do |s|
                       'src/core/census/aggregation.h',
                       'src/core/census/context.h',
                       'src/core/census/rpc_metric_id.h',
-                      'include/grpc/grpc_security.h',
-                      'include/grpc/byte_buffer.h',
-                      'include/grpc/byte_buffer_reader.h',
-                      'include/grpc/compression.h',
-                      'include/grpc/grpc.h',
-                      'include/grpc/status.h',
-                      'include/grpc/census.h',
+                      'grpc/grpc_security.h',
+                      'grpc/byte_buffer.h',
+                      'grpc/byte_buffer_reader.h',
+                      'grpc/compression.h',
+                      'grpc/grpc.h',
+                      'grpc/status.h',
+                      'grpc/census.h',
                       'src/core/httpcli/httpcli_security_connector.c',
                       'src/core/security/base64.c',
                       'src/core/security/client_auth_filter.c',
@@ -267,10 +281,10 @@ Pod::Spec.new do |s|
                       'src/core/security/credentials_posix.c',
                       'src/core/security/credentials_win32.c',
                       'src/core/security/google_default_credentials.c',
+                      'src/core/security/handshake.c',
                       'src/core/security/json_token.c',
                       'src/core/security/jwt_verifier.c',
                       'src/core/security/secure_endpoint.c',
-                      'src/core/security/secure_transport_setup.c',
                       'src/core/security/security_connector.c',
                       'src/core/security/security_context.c',
                       'src/core/security/server_auth_filter.c',
@@ -293,7 +307,10 @@ Pod::Spec.new do |s|
                       'src/core/client_config/client_config.c',
                       'src/core/client_config/connector.c',
                       'src/core/client_config/lb_policies/pick_first.c',
+                      'src/core/client_config/lb_policies/round_robin.c',
                       'src/core/client_config/lb_policy.c',
+                      'src/core/client_config/lb_policy_factory.c',
+                      'src/core/client_config/lb_policy_registry.c',
                       'src/core/client_config/resolver.c',
                       'src/core/client_config/resolver_factory.c',
                       'src/core/client_config/resolver_registry.c',
@@ -312,9 +329,11 @@ Pod::Spec.new do |s|
                       'src/core/httpcli/parser.c',
                       'src/core/iomgr/alarm.c',
                       'src/core/iomgr/alarm_heap.c',
+                      'src/core/iomgr/closure.c',
                       'src/core/iomgr/endpoint.c',
                       'src/core/iomgr/endpoint_pair_posix.c',
                       'src/core/iomgr/endpoint_pair_windows.c',
+                      'src/core/iomgr/exec_ctx.c',
                       'src/core/iomgr/fd_posix.c',
                       'src/core/iomgr/iocp_windows.c',
                       'src/core/iomgr/iomgr.c',
@@ -345,12 +364,13 @@ Pod::Spec.new do |s|
                       'src/core/iomgr/wakeup_fd_nospecial.c',
                       'src/core/iomgr/wakeup_fd_pipe.c',
                       'src/core/iomgr/wakeup_fd_posix.c',
+                      'src/core/iomgr/workqueue_posix.c',
+                      'src/core/iomgr/workqueue_windows.c',
                       'src/core/json/json.c',
                       'src/core/json/json_reader.c',
                       'src/core/json/json_string.c',
                       'src/core/json/json_writer.c',
-                      'src/core/profiling/basic_timers.c',
-                      'src/core/profiling/stap_timers.c',
+                      'src/core/surface/api_trace.c',
                       'src/core/surface/byte_buffer.c',
                       'src/core/surface/byte_buffer_queue.c',
                       'src/core/surface/byte_buffer_reader.c',
@@ -368,7 +388,6 @@ Pod::Spec.new do |s|
                       'src/core/surface/server.c',
                       'src/core/surface/server_chttp2.c',
                       'src/core/surface/server_create.c',
-                      'src/core/surface/surface_trace.c',
                       'src/core/surface/version.c',
                       'src/core/transport/chttp2/alpn.c',
                       'src/core/transport/chttp2/bin_encoder.c',
@@ -401,7 +420,9 @@ Pod::Spec.new do |s|
                       'src/core/census/operation.c',
                       'src/core/census/tracing.c'
 
-    ss.private_header_files = 'src/core/support/env.h',
+    ss.private_header_files = 'src/core/profiling/timers.h',
+                              'src/core/support/block_annotate.h',
+                              'src/core/support/env.h',
                               'src/core/support/file.h',
                               'src/core/support/murmur_hash.h',
                               'src/core/support/stack_lockfree.h',
@@ -412,10 +433,10 @@ Pod::Spec.new do |s|
                               'src/core/security/auth_filters.h',
                               'src/core/security/base64.h',
                               'src/core/security/credentials.h',
+                              'src/core/security/handshake.h',
                               'src/core/security/json_token.h',
                               'src/core/security/jwt_verifier.h',
                               'src/core/security/secure_endpoint.h',
-                              'src/core/security/secure_transport_setup.h',
                               'src/core/security/security_connector.h',
                               'src/core/security/security_context.h',
                               'src/core/tsi/fake_transport_security.h',
@@ -435,7 +456,10 @@ Pod::Spec.new do |s|
                               'src/core/client_config/client_config.h',
                               'src/core/client_config/connector.h',
                               'src/core/client_config/lb_policies/pick_first.h',
+                              'src/core/client_config/lb_policies/round_robin.h',
                               'src/core/client_config/lb_policy.h',
+                              'src/core/client_config/lb_policy_factory.h',
+                              'src/core/client_config/lb_policy_registry.h',
                               'src/core/client_config/resolver.h',
                               'src/core/client_config/resolver_factory.h',
                               'src/core/client_config/resolver_registry.h',
@@ -454,8 +478,10 @@ Pod::Spec.new do |s|
                               'src/core/iomgr/alarm.h',
                               'src/core/iomgr/alarm_heap.h',
                               'src/core/iomgr/alarm_internal.h',
+                              'src/core/iomgr/closure.h',
                               'src/core/iomgr/endpoint.h',
                               'src/core/iomgr/endpoint_pair.h',
+                              'src/core/iomgr/exec_ctx.h',
                               'src/core/iomgr/fd_posix.h',
                               'src/core/iomgr/iocp_windows.h',
                               'src/core/iomgr/iomgr.h',
@@ -482,15 +508,19 @@ Pod::Spec.new do |s|
                               'src/core/iomgr/udp_server.h',
                               'src/core/iomgr/wakeup_fd_pipe.h',
                               'src/core/iomgr/wakeup_fd_posix.h',
+                              'src/core/iomgr/workqueue.h',
+                              'src/core/iomgr/workqueue_posix.h',
+                              'src/core/iomgr/workqueue_windows.h',
                               'src/core/json/json.h',
                               'src/core/json/json_common.h',
                               'src/core/json/json_reader.h',
                               'src/core/json/json_writer.h',
-                              'src/core/profiling/timers.h',
                               'src/core/statistics/census_interface.h',
                               'src/core/statistics/census_rpc_stats.h',
+                              'src/core/surface/api_trace.h',
                               'src/core/surface/byte_buffer_queue.h',
                               'src/core/surface/call.h',
+                              'src/core/surface/call_test_only.h',
                               'src/core/surface/channel.h',
                               'src/core/surface/completion_queue.h',
                               'src/core/surface/event_string.h',
@@ -528,10 +558,6 @@ Pod::Spec.new do |s|
                               'src/core/census/rpc_metric_id.h'
 
     ss.header_mappings_dir = '.'
-    # This isn't officially supported in Cocoapods. We've asked for an alternative:
-    # https://github.com/CocoaPods/CocoaPods/issues/4386
-    ss.xcconfig = { 'HEADER_SEARCH_PATHS' => '"$(PODS_ROOT)/Headers/Private/gRPC" ' +
-                                             '"$(PODS_ROOT)/Headers/Private/gRPC/include"' }
 
     ss.requires_arc = false
     ss.libraries = 'z'
@@ -539,6 +565,35 @@ Pod::Spec.new do |s|
 
     # ss.compiler_flags = '-GCC_WARN_INHIBIT_ALL_WARNINGS', '-w'
   end
+
+  # This is a workaround for Cocoapods Issue #1437.
+  # It renames time.h and string.h to grpc_time.h and grpc_string.h.
+  # It needs to be here (top-level) instead of in the C-Core subspec because Cocoapods doesn't run
+  # prepare_command's of subspecs.
+  #
+  # TODO(jcanizales): Try out others' solutions at Issue #1437.
+  s.prepare_command = <<-CMD
+    # Move contents of include up a level to avoid manually specifying include paths
+    cp -r "include/grpc" "."
+
+    DIR_TIME="grpc/support"
+    BAD_TIME="$DIR_TIME/time.h"
+    GOOD_TIME="$DIR_TIME/grpc_time.h"
+    grep -rl "$BAD_TIME" grpc src/core src/objective-c/GRPCClient | xargs sed -i '' -e s@$BAD_TIME@$GOOD_TIME@g
+    if [ -f "$BAD_TIME" ];
+    then
+      mv -f "$BAD_TIME" "$GOOD_TIME"
+    fi
+
+    DIR_STRING="src/core/support"
+    BAD_STRING="$DIR_STRING/string.h"
+    GOOD_STRING="$DIR_STRING/grpc_string.h"
+    grep -rl "$BAD_STRING" grpc src/core src/objective-c/GRPCClient | xargs sed -i '' -e s@$BAD_STRING@$GOOD_STRING@g
+    if [ -f "$BAD_STRING" ];
+    then
+      mv -f "$BAD_STRING" "$GOOD_STRING"
+    fi
+  CMD
 
   # Objective-C wrapper around the core gRPC library.
   s.subspec 'GRPCClient' do |ss|
