@@ -54,24 +54,6 @@
     'include_dirs': [
       '.',
       'include'
-    ],
-    'conditions': [
-      ['OS != "win"', {
-        'conditions': [
-          ['config=="gcov"', {
-            'cflags': [
-              '-ftest-coverage',
-              '-fprofile-arcs',
-              '-O0'
-            ],
-            'ldflags': [
-              '-ftest-coverage',
-              '-fprofile-arcs'
-            ]
-          }
-         ]
-        ]
-      }],
     ]
   },
   'targets': [
@@ -186,6 +168,8 @@
         'src/core/httpcli/format_request.c',
         'src/core/httpcli/httpcli.c',
         'src/core/httpcli/parser.c',
+        'src/core/iomgr/alarm.c',
+        'src/core/iomgr/alarm_heap.c',
         'src/core/iomgr/closure.c',
         'src/core/iomgr/endpoint.c',
         'src/core/iomgr/endpoint_pair_posix.c',
@@ -216,8 +200,6 @@
         'src/core/iomgr/tcp_server_windows.c',
         'src/core/iomgr/tcp_windows.c',
         'src/core/iomgr/time_averaged_stats.c',
-        'src/core/iomgr/timer.c',
-        'src/core/iomgr/timer_heap.c',
         'src/core/iomgr/udp_server.c',
         'src/core/iomgr/wakeup_fd_eventfd.c',
         'src/core/iomgr/wakeup_fd_nospecial.c',
@@ -297,6 +279,22 @@
         '-g'
       ],
       "conditions": [
+        ['OS != "win"', {
+          'conditions': [
+            ['config=="gcov"', {
+              'cflags': [
+                '-ftest-coverage',
+                '-fprofile-arcs',
+                '-O0'
+              ],
+              'ldflags': [
+                '-ftest-coverage',
+                '-fprofile-arcs'
+              ]
+            }
+           ]
+          ]
+        }],
         ['OS == "mac"', {
           'xcode_settings': {
             'MACOSX_DEPLOYMENT_TARGET': '10.9',

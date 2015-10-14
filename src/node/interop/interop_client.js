@@ -35,6 +35,7 @@
 
 var fs = require('fs');
 var path = require('path');
+var _ = require('lodash');
 var grpc = require('..');
 var testProto = grpc.load({
   root: __dirname + '/../../..',
