@@ -42,7 +42,7 @@
 #include <grpc/support/useful.h>
 
 #include "src/core/channel/channel_stack.h"
-#include "src/core/iomgr/alarm.h"
+#include "src/core/iomgr/timer.h"
 #include "src/core/profiling/timers.h"
 #include "src/core/support/string.h"
 #include "src/core/surface/api_trace.h"
@@ -237,7 +237,7 @@ struct grpc_call {
   grpc_call_context_element context[GRPC_CONTEXT_COUNT];
 
   /* Deadline alarm - if have_alarm is non-zero */
-  grpc_alarm alarm;
+  grpc_timer alarm;
 
   /* Call refcount - to keep the call alive during asynchronous operations */
   gpr_refcount internal_refcount;
@@ -1027,7 +1027,7 @@ static void call_on_done_recv(grpc_exec_ctx *exec_ctx, void *pc, int success) {
       GPR_ASSERT(call->read_state <= READ_STATE_STREAM_CLOSED);
       call->read_state = READ_STATE_STREAM_CLOSED;
       if (call->have_alarm) {
-        grpc_alarm_cancel(exec_ctx, &call->alarm);
+        grpc_timer_cancel(exec_ctx, &call->alarm);
       }
       /* propagate cancellation to any interested children */
       child_call = call->first_child;
@@ -1345,7 +1345,7 @@ void grpc_call_destroy(grpc_call *c) {
   GPR_ASSERT(!c->destroy_called);
   c->destroy_called = 1;
   if (c->have_alarm) {
-    grpc_alarm_cancel(&exec_ctx, &c->alarm);
+    grpc_timer_cancel(&exec_ctx, &c->alarm);
   }
   cancel = c->read_state != READ_STATE_STREAM_CLOSED;
   unlock(&exec_ctx, c);
@@ -1470,7 +1470,7 @@ static void set_deadline_alarm(grpc_exec_ctx *exec_ctx, grpc_call *call,
   GRPC_CALL_INTERNAL_REF(call, "alarm");
   call->have_alarm = 1;
   call->send_deadline = gpr_convert_clock_type(deadline, GPR_CLOCK_MONOTONIC);
-  grpc_alarm_init(exec_ctx, &call->alarm, call->send_deadline, call_alarm, call,
+  grpc_timer_init(exec_ctx, &call->alarm, call->send_deadline, call_alarm, call,
                   gpr_now(GPR_CLOCK_MONOTONIC));
 }
 
@@ -1528,7 +1528,6 @@ static void recv_metadata(grpc_exec_ctx *exec_ctx, grpc_call *call,
   grpc_metadata_array *dest;
   grpc_metadata *mdusr;
   int is_trailing;
-  grpc_mdctx *mdctx = call->metadata_context;
 
   is_trailing = call->read_state >= READ_STATE_GOT_INITIAL_METADATA;
   for (l = md->list.head; l != NULL; l = l->next) {
@@ -1588,14 +1587,12 @@ static void recv_metadata(grpc_exec_ctx *exec_ctx, grpc_call *call,
     call->read_state = READ_STATE_GOT_INITIAL_METADATA;
   }
 
-  grpc_mdctx_lock(mdctx);
   for (l = md->list.head; l; l = l->next) {
-    if (l->md) GRPC_MDCTX_LOCKED_MDELEM_UNREF(mdctx, l->md);
+    if (l->md) GRPC_MDELEM_UNREF(l->md);
   }
   for (l = md->garbage.head; l; l = l->next) {
-    GRPC_MDCTX_LOCKED_MDELEM_UNREF(mdctx, l->md);
+    GRPC_MDELEM_UNREF(l->md);
   }
-  grpc_mdctx_unlock(mdctx);
 }
 
 grpc_call_stack *grpc_call_get_call_stack(grpc_call *call) {
