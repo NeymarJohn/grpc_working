@@ -54,24 +54,6 @@
     'include_dirs': [
       '.',
       'include'
-    ],
-    'conditions': [
-      ['OS != "win"', {
-        'conditions': [
-          ['config=="gcov"', {
-            'cflags': [
-              '-ftest-coverage',
-              '-fprofile-arcs',
-              '-O0'
-            ],
-            'ldflags': [
-              '-ftest-coverage',
-              '-fprofile-arcs'
-            ]
-          }
-         ]
-        ]
-      }],
     ]
   },
   'targets': [
@@ -297,6 +279,22 @@
         '-g'
       ],
       "conditions": [
+        ['OS != "win"', {
+          'conditions': [
+            ['config=="gcov"', {
+              'cflags': [
+                '-ftest-coverage',
+                '-fprofile-arcs',
+                '-O0'
+              ],
+              'ldflags': [
+                '-ftest-coverage',
+                '-fprofile-arcs'
+              ]
+            }
+           ]
+          ]
+        }],
         ['OS == "mac"', {
           'xcode_settings': {
             'MACOSX_DEPLOYMENT_TARGET': '10.9',
