@@ -36,8 +36,6 @@ require 'empty.php';
 require 'message_set.php';
 require 'messages.php';
 require 'test.php';
-use Google\Auth\CredentialsLoader;
-use Google\Auth\ApplicationDefaultCredentials;
 
 /**
  * Assertion function that always exits with an error code if the assertion is
@@ -116,7 +114,7 @@ function serviceAccountCreds($stub, $args) {
     throw new Exception('Missing oauth scope');
   }
   $jsonKey = json_decode(
-      file_get_contents(getenv(CredentialsLoader::ENV_VAR)),
+      file_get_contents(getenv(Google\Auth\CredentialsLoader::ENV_VAR)),
       true);
   $result = performLargeUnary($stub, $fillUsername=true, $fillOauthScope=true);
   hardAssert($result->getUsername() == $jsonKey['client_email'],
@@ -151,7 +149,7 @@ function computeEngineCreds($stub, $args) {
  */
 function jwtTokenCreds($stub, $args) {
   $jsonKey = json_decode(
-      file_get_contents(getenv(CredentialsLoader::ENV_VAR)),
+      file_get_contents(getenv(Google\Auth\CredentialsLoader::ENV_VAR)),
       true);
   $result = performLargeUnary($stub, $fillUsername=true, $fillOauthScope=true);
   hardAssert($result->getUsername() == $jsonKey['client_email'],
@@ -321,17 +319,12 @@ function timeoutOnSleepingServer($stub) {
 }
 
 $args = getopt('', array('server_host:', 'server_port:', 'test_case:',
-                         'use_tls::', 'use_test_ca::',
                          'server_host_override:', 'oauth_scope:',
                          'default_service_account:'));
-if (!array_key_exists('server_host', $args)) {
-  throw new Exception('Missing argument: --server_host is required');
-}
-if (!array_key_exists('server_port', $args)) {
-  throw new Exception('Missing argument: --server_port is required');
-}
-if (!array_key_exists('test_case', $args)) {
-  throw new Exception('Missing argument: --test_case is required');
+if (!array_key_exists('server_host', $args) ||
+    !array_key_exists('server_port', $args) ||
+    !array_key_exists('test_case', $args)) {
+  throw new Exception('Missing argument');
 }
 
 if ($args['server_port'] == 443) {
@@ -340,57 +333,41 @@ if ($args['server_port'] == 443) {
   $server_address = $args['server_host'] . ':' . $args['server_port'];
 }
 
-$test_case = $args['test_case'];
-
-$host_override = 'foo.test.google.fr';
-if (array_key_exists('server_host_override', $args)) {
-  $host_override = $args['server_host_override'];
+if (!array_key_exists('server_host_override', $args)) {
+  $args['server_host_override'] = 'foo.test.google.fr';
 }
 
-$use_tls = false;
-if (array_key_exists('use_tls', $args) &&
-    $args['use_tls'] != 'false') {
-  $use_tls = true;
+$ssl_cert_file = getenv('SSL_CERT_FILE');
+if (!$ssl_cert_file) {
+  $ssl_cert_file = dirname(__FILE__) . '/../data/ca.pem';
 }
 
-$use_test_ca = false;
-if (array_key_exists('use_test_ca', $args) &&
-    $args['use_test_ca'] != 'false') {
-  $use_test_ca = true;
-}
+$credentials = Grpc\Credentials::createSsl(file_get_contents($ssl_cert_file));
 
-$opts = [];
+$opts = [
+    'grpc.ssl_target_name_override' => $args['server_host_override'],
+    'credentials' => $credentials,
+         ];
 
-if ($use_tls) {
-  if ($use_test_ca) {
-    $ssl_cert_file = dirname(__FILE__) . '/../data/ca.pem';
+if (in_array($args['test_case'], array(
+      'service_account_creds',
+      'compute_engine_creds',
+      'jwt_token_creds'))) {
+  if ($args['test_case'] == 'jwt_token_creds') {
+    $auth = Google\Auth\ApplicationDefaultCredentials::getCredentials();
   } else {
-    $ssl_cert_file = getenv('SSL_CERT_FILE');
+    $auth = Google\Auth\ApplicationDefaultCredentials::getCredentials(
+      $args['oauth_scope']);
   }
-  $ssl_credentials = Grpc\Credentials::createSsl(
-      file_get_contents($ssl_cert_file));
-  $opts['credentials'] = $ssl_credentials;
-  $opts['grpc.ssl_target_name_override'] = $host_override;
-}
-
-if (in_array($test_case, array('service_account_creds',
-    'compute_engine_creds', 'jwt_token_creds'))) {
-  if ($test_case == 'jwt_token_creds') {
-    $auth_credentials = ApplicationDefaultCredentials::getCredentials();
-  } else {
-    $auth_credentials = ApplicationDefaultCredentials::getCredentials(
-      $args['oauth_scope']
-    );
-  }
-  $opts['update_metadata'] = $auth_credentials->getUpdateMetadataFunc();
+  $opts['update_metadata'] = $auth->getUpdateMetadataFunc();
 }
 
 $stub = new grpc\testing\TestServiceClient($server_address, $opts);
 
 echo "Connecting to $server_address\n";
-echo "Running test case $test_case\n";
+echo "Running test case $args[test_case]\n";
 
-switch ($test_case) {
+switch ($args['test_case']) {
   case 'empty_unary':
     emptyUnary($stub);
     break;
@@ -428,6 +405,6 @@ switch ($test_case) {
     jwtTokenCreds($stub, $args);
     break;
   default:
-    echo "Unsupported test case $test_case\n";
+    echo "Unsupported test case $args[test_case]\n";
     exit(1);
 }
