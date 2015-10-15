@@ -31,53 +31,33 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_CHANNEL_H_
-#define NET_GRPC_NODE_CHANNEL_H_
+#ifndef GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H
+#define GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H
 
-#include <node.h>
-#include <nan.h>
-#include "grpc/grpc.h"
+#include "src/core/iomgr/exec_ctx.h"
+#include <grpc/support/sync.h>
+#include <grpc/support/time.h>
 
-namespace grpc {
-namespace node {
+/* iomgr internal api for dealing with timers */
 
-bool ParseChannelArgs(v8::Local<v8::Value> args_val,
-                      grpc_channel_args **channel_args_ptr);
+/* Check for timers to be run, and run them.
+   Return non zero if timer callbacks were executed.
+   Drops drop_mu if it is non-null before executing callbacks.
+   If next is non-null, TRY to update *next with the next running timer
+   IF that timer occurs before *next current value.
+   *next is never guaranteed to be updated on any given execution; however,
+   with high probability at least one thread in the system will see an update
+   at any time slice. */
 
-void DeallocateChannelArgs(grpc_channel_args *channel_args);
+int grpc_timer_check(grpc_exec_ctx* exec_ctx, gpr_timespec now,
+                     gpr_timespec* next);
+void grpc_timer_list_init(gpr_timespec now);
+void grpc_timer_list_shutdown(grpc_exec_ctx* exec_ctx);
 
-/* Wrapper class for grpc_channel structs */
-class Channel : public Nan::ObjectWrap {
- public:
-  static void Init(v8::Local<v8::Object> exports);
-  static bool HasInstance(v8::Local<v8::Value> val);
-  /* This is used to typecheck javascript objects before converting them to
-     this type */
-  static v8::Persistent<v8::Value> prototype;
+gpr_timespec grpc_timer_list_next_timeout(void);
 
-  /* Returns the grpc_channel struct that this object wraps */
-  grpc_channel *GetWrappedChannel();
+/* the following must be implemented by each iomgr implementation */
 
- private:
-  explicit Channel(grpc_channel *channel);
-  ~Channel();
+void grpc_kick_poller(void);
 
-  // Prevent copying
-  Channel(const Channel &);
-  Channel &operator=(const Channel &);
-
-  static NAN_METHOD(New);
-  static NAN_METHOD(Close);
-  static NAN_METHOD(GetTarget);
-  static NAN_METHOD(GetConnectivityState);
-  static NAN_METHOD(WatchConnectivityState);
-  static Nan::Callback *constructor;
-  static Nan::Persistent<v8::FunctionTemplate> fun_tpl;
-
-  grpc_channel *wrapped_channel;
-};
-
-}  // namespace node
-}  // namespace grpc
-
-#endif  // NET_GRPC_NODE_CHANNEL_H_
+#endif /* GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H */

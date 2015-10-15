@@ -31,53 +31,27 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_CHANNEL_H_
-#define NET_GRPC_NODE_CHANNEL_H_
+#ifndef GRPC_INTERNAL_CORE_IOMGR_TIMER_HEAP_H
+#define GRPC_INTERNAL_CORE_IOMGR_TIMER_HEAP_H
 
-#include <node.h>
-#include <nan.h>
-#include "grpc/grpc.h"
+#include "src/core/iomgr/timer.h"
 
-namespace grpc {
-namespace node {
+typedef struct {
+  grpc_timer **timers;
+  gpr_uint32 timer_count;
+  gpr_uint32 timer_capacity;
+} grpc_timer_heap;
 
-bool ParseChannelArgs(v8::Local<v8::Value> args_val,
-                      grpc_channel_args **channel_args_ptr);
+/* return 1 if the new timer is the first timer in the heap */
+int grpc_timer_heap_add(grpc_timer_heap *heap, grpc_timer *timer);
 
-void DeallocateChannelArgs(grpc_channel_args *channel_args);
+void grpc_timer_heap_init(grpc_timer_heap *heap);
+void grpc_timer_heap_destroy(grpc_timer_heap *heap);
 
-/* Wrapper class for grpc_channel structs */
-class Channel : public Nan::ObjectWrap {
- public:
-  static void Init(v8::Local<v8::Object> exports);
-  static bool HasInstance(v8::Local<v8::Value> val);
-  /* This is used to typecheck javascript objects before converting them to
-     this type */
-  static v8::Persistent<v8::Value> prototype;
+void grpc_timer_heap_remove(grpc_timer_heap *heap, grpc_timer *timer);
+grpc_timer *grpc_timer_heap_top(grpc_timer_heap *heap);
+void grpc_timer_heap_pop(grpc_timer_heap *heap);
 
-  /* Returns the grpc_channel struct that this object wraps */
-  grpc_channel *GetWrappedChannel();
+int grpc_timer_heap_is_empty(grpc_timer_heap *heap);
 
- private:
-  explicit Channel(grpc_channel *channel);
-  ~Channel();
-
-  // Prevent copying
-  Channel(const Channel &);
-  Channel &operator=(const Channel &);
-
-  static NAN_METHOD(New);
-  static NAN_METHOD(Close);
-  static NAN_METHOD(GetTarget);
-  static NAN_METHOD(GetConnectivityState);
-  static NAN_METHOD(WatchConnectivityState);
-  static Nan::Callback *constructor;
-  static Nan::Persistent<v8::FunctionTemplate> fun_tpl;
-
-  grpc_channel *wrapped_channel;
-};
-
-}  // namespace node
-}  // namespace grpc
-
-#endif  // NET_GRPC_NODE_CHANNEL_H_
+#endif /* GRPC_INTERNAL_CORE_IOMGR_TIMER_HEAP_H */

@@ -31,53 +31,38 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_CHANNEL_H_
-#define NET_GRPC_NODE_CHANNEL_H_
+/// An Alarm posts the user provided tag to its associated completion queue upon
+/// expiry or cancellation.
+#ifndef GRPCXX_ALARM_H
+#define GRPCXX_ALARM_H
 
-#include <node.h>
-#include <nan.h>
-#include "grpc/grpc.h"
+#include <grpc++/completion_queue.h>
+#include <grpc++/impl/grpc_library.h>
+#include <grpc++/support/time.h>
 
 namespace grpc {
-namespace node {
 
-bool ParseChannelArgs(v8::Local<v8::Value> args_val,
-                      grpc_channel_args **channel_args_ptr);
-
-void DeallocateChannelArgs(grpc_channel_args *channel_args);
-
-/* Wrapper class for grpc_channel structs */
-class Channel : public Nan::ObjectWrap {
+/// A thin wrapper around \a grpc_alarm (see / \a / src/core/surface/alarm.h).
+class Alarm: public GrpcLibrary {
  public:
-  static void Init(v8::Local<v8::Object> exports);
-  static bool HasInstance(v8::Local<v8::Value> val);
-  /* This is used to typecheck javascript objects before converting them to
-     this type */
-  static v8::Persistent<v8::Value> prototype;
+  /// Create a completion queue alarm instance associated to \a cq.
+  ///
+  /// Once the alarm expires (at \a deadline) or it's cancelled (see \a Cancel),
+  /// an event with tag \a tag will be added to \a cq. If the alarm expired, the
+  /// event's success bit will be true, false otherwise (ie, upon cancellation).
+  Alarm(CompletionQueue* cq, gpr_timespec deadline, void* tag);
 
-  /* Returns the grpc_channel struct that this object wraps */
-  grpc_channel *GetWrappedChannel();
+  /// Destroy the given completion queue alarm, cancelling it in the process.
+  ~Alarm();
+
+  /// Cancel a completion queue alarm. Calling this function over an alarm that
+  /// has already fired has no effect.
+  void Cancel();
 
  private:
-  explicit Channel(grpc_channel *channel);
-  ~Channel();
-
-  // Prevent copying
-  Channel(const Channel &);
-  Channel &operator=(const Channel &);
-
-  static NAN_METHOD(New);
-  static NAN_METHOD(Close);
-  static NAN_METHOD(GetTarget);
-  static NAN_METHOD(GetConnectivityState);
-  static NAN_METHOD(WatchConnectivityState);
-  static Nan::Callback *constructor;
-  static Nan::Persistent<v8::FunctionTemplate> fun_tpl;
-
-  grpc_channel *wrapped_channel;
+  grpc_alarm* const alarm_;  // owned
 };
 
-}  // namespace node
 }  // namespace grpc
 
-#endif  // NET_GRPC_NODE_CHANNEL_H_
+#endif  // GRPCXX_ALARM_H

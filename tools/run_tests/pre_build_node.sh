@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -30,25 +31,10 @@
 
 set -ex
 
-CONFIG=${CONFIG:-opt}
+export GRPC_CONFIG=${CONFIG:-opt}
 
-# change to grpc repo root
-cd $(dirname $0)/../..
+# Expire cache after 1 week
+npm update --cache-min 604800
 
-root=`pwd`
-
-if [ "$CONFIG" = "gcov" ]
-then
-  ./node_modules/.bin/istanbul cover --dir reports/node_coverage \
-    ./node_modules/.bin/_mocha -- --timeout 8000 src/node/test
-  cd build
-  gcov Release/obj.target/grpc/ext/*.o
-  lcov --base-directory . --directory . -c -o coverage.info
-  genhtml -o ../reports/node_ext_coverage --num-spaces 2 \
-    -t 'Node gRPC test coverage' coverage.info --rc genhtml_hi_limit=95 \
-    --rc genhtml_med_limit=80
-  echo '<html><head><meta http-equiv="refresh" content="0;URL=lcov-report/index.html"></head></html>' > \
-    ../reports/node_coverage/index.html
-else
-  ./node_modules/mocha/bin/mocha --timeout 8000 src/node/test
-fi
+npm install node-gyp-install
+./node_modules/.bin/node-gyp-install

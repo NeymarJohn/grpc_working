@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2015, Google Inc.
  * All rights reserved.
  *
@@ -31,53 +30,20 @@
  *
  */
 
-#ifndef NET_GRPC_NODE_CHANNEL_H_
-#define NET_GRPC_NODE_CHANNEL_H_
-
-#include <node.h>
-#include <nan.h>
-#include "grpc/grpc.h"
+#include <grpc/grpc.h>
+#include <grpc++/alarm.h>
 
 namespace grpc {
-namespace node {
 
-bool ParseChannelArgs(v8::Local<v8::Value> args_val,
-                      grpc_channel_args **channel_args_ptr);
+Alarm::Alarm(CompletionQueue* cq, gpr_timespec deadline, void* tag)
+    : alarm_(grpc_alarm_create(cq->cq(), deadline, tag)) {}
 
-void DeallocateChannelArgs(grpc_channel_args *channel_args);
+Alarm::~Alarm() {
+  grpc_alarm_destroy(alarm_);
+}
 
-/* Wrapper class for grpc_channel structs */
-class Channel : public Nan::ObjectWrap {
- public:
-  static void Init(v8::Local<v8::Object> exports);
-  static bool HasInstance(v8::Local<v8::Value> val);
-  /* This is used to typecheck javascript objects before converting them to
-     this type */
-  static v8::Persistent<v8::Value> prototype;
+void Alarm::Cancel() {
+  grpc_alarm_cancel(alarm_);
+}
 
-  /* Returns the grpc_channel struct that this object wraps */
-  grpc_channel *GetWrappedChannel();
-
- private:
-  explicit Channel(grpc_channel *channel);
-  ~Channel();
-
-  // Prevent copying
-  Channel(const Channel &);
-  Channel &operator=(const Channel &);
-
-  static NAN_METHOD(New);
-  static NAN_METHOD(Close);
-  static NAN_METHOD(GetTarget);
-  static NAN_METHOD(GetConnectivityState);
-  static NAN_METHOD(WatchConnectivityState);
-  static Nan::Callback *constructor;
-  static Nan::Persistent<v8::FunctionTemplate> fun_tpl;
-
-  grpc_channel *wrapped_channel;
-};
-
-}  // namespace node
 }  // namespace grpc
-
-#endif  // NET_GRPC_NODE_CHANNEL_H_
