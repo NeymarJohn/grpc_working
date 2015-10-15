@@ -220,11 +220,11 @@ class PHPLanguage:
 
   def cloud_to_prod_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
-            ['--use_tls'])
+            ['--use_tls=true'])
 
   def cloud_to_cloud_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
-            ['--use_tls', '--use_test_ca'])
+            ['--use_tls=true', '--use_test_ca=true'])
 
   def cloud_to_prod_env(self):
     return _SSL_CERT_ENV
@@ -478,6 +478,12 @@ def build_interop_image_jobspec(language, tag=None):
          'BASE_NAME': 'grpc_interop_%s' % language.safename}
   if not args.travis:
     env['TTY_FLAG'] = '-t'
+  # This env variable is used to get around the github rate limit
+  # error when running the PHP `composer install` command
+  # TODO(stanleycheung): find a more elegant way to do this
+  if language.safename == 'php':
+    env['BUILD_INTEROP_DOCKER_EXTRA_ARGS'] = \
+      "-v /var/local/.composer/auth.json:/root/.composer/auth.json:ro"
   build_job = jobset.JobSpec(
           cmdline=['tools/jenkins/build_interop_image.sh'],
           environ=env,
