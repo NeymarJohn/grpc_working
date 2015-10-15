@@ -202,7 +202,7 @@ class NodeLanguage(object):
 
   def pre_build_steps(self):
     # Default to 1 week cache expiration
-    return [['tools/run_tests/pre_build_node.sh']]
+    return [['npm', 'update', '--cache-min', '604800']]
 
   def make_targets(self):
     return []

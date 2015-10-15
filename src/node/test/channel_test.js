@@ -104,12 +104,6 @@ describe('channel', function() {
         new grpc.Channel('hostname', insecureCreds, {'key' : new Date()});
       });
     });
-    it('should succeed without the new keyword', function() {
-      assert.doesNotThrow(function() {
-        var channel = grpc.Channel('hostname', insecureCreds);
-        assert(channel instanceof grpc.Channel);
-      });
-    });
   });
   describe('close', function() {
     var channel;
@@ -161,6 +155,7 @@ describe('channel', function() {
       deadline.setSeconds(deadline.getSeconds() + 1);
       channel.watchConnectivityState(old_state, deadline, function(err, value) {
         assert(err);
+        console.log('Callback from watchConnectivityState');
         done();
       });
     });
