@@ -275,17 +275,17 @@ class PythonLanguage:
 
   def cloud_to_prod_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
-            ['--use_tls=true'])
+            ['--use_tls'])
 
   def cloud_to_cloud_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
-            ['--use_tls=true', '--use_test_ca=true'])
+            ['--use_tls', '--use_test_ca'])
 
   def cloud_to_prod_env(self):
     return _SSL_CERT_ENV
 
   def server_args(self):
-    return ['python2.7_virtual_environment/bin/python', '-m', 'grpc_interop.server', '--use_tls=true']
+    return ['python2.7_virtual_environment/bin/python', '-m', 'grpc_interop.server', '--use_tls']
 
   def global_env(self):
     return {'LD_LIBRARY_PATH': 'libs/opt'}
