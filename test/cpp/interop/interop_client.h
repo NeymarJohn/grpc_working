@@ -39,7 +39,6 @@
 #include <grpc/grpc.h>
 #include <grpc++/channel.h>
 #include "test/proto/messages.grpc.pb.h"
-#include "test/proto/test.grpc.pb.h"
 
 namespace grpc {
 namespace testing {
@@ -81,7 +80,6 @@ class InteropClient {
   void AssertOkOrPrintErrorStatus(const Status& s);
 
   std::shared_ptr<Channel> channel_;
-  std::unique_ptr<TestService::Stub> stub_;
 };
 
 }  // namespace testing
