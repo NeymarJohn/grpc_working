@@ -83,7 +83,7 @@ CompressionType GetInteropCompressionTypeFromCompressionAlgorithm(
 }  // namespace
 
 InteropClient::InteropClient(std::shared_ptr<Channel> channel)
-    : channel_(channel), stub_(TestService::NewStub(channel)) {}
+    : channel_(channel) {}
 
 void InteropClient::AssertOkOrPrintErrorStatus(const Status& s) {
   if (s.ok()) {
@@ -96,12 +96,13 @@ void InteropClient::AssertOkOrPrintErrorStatus(const Status& s) {
 
 void InteropClient::DoEmpty() {
   gpr_log(GPR_INFO, "Sending an empty rpc...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   Empty request = Empty::default_instance();
   Empty response = Empty::default_instance();
   ClientContext context;
 
-  Status s = stub_->EmptyCall(&context, request, &response);
+  Status s = stub->EmptyCall(&context, request, &response);
   AssertOkOrPrintErrorStatus(s);
 
   gpr_log(GPR_INFO, "Empty rpc done.");
@@ -110,6 +111,7 @@ void InteropClient::DoEmpty() {
 // Shared code to set large payload, make rpc and check response payload.
 void InteropClient::PerformLargeUnary(SimpleRequest* request,
                                       SimpleResponse* response) {
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   InteropClientContextInspector inspector(context);
@@ -119,7 +121,7 @@ void InteropClient::PerformLargeUnary(SimpleRequest* request,
   grpc::string payload(kLargeRequestSize, '\0');
   request->mutable_payload()->set_body(payload.c_str(), kLargeRequestSize);
 
-  Status s = stub_->UnaryCall(&context, *request, response);
+  Status s = stub->UnaryCall(&context, *request, response);
 
   // Compression related checks.
   GPR_ASSERT(request->response_compression() ==
@@ -185,10 +187,11 @@ void InteropClient::DoOauth2AuthToken(const grpc::string& username,
   SimpleResponse response;
   request.set_fill_username(true);
   request.set_fill_oauth_scope(true);
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
 
-  Status s = stub_->UnaryCall(&context, request, &response);
+  Status s = stub->UnaryCall(&context, request, &response);
 
   AssertOkOrPrintErrorStatus(s);
   GPR_ASSERT(!response.username().empty());
@@ -204,6 +207,7 @@ void InteropClient::DoPerRpcCreds(const grpc::string& json_key) {
   SimpleRequest request;
   SimpleResponse response;
   request.set_fill_username(true);
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   std::chrono::seconds token_lifetime = std::chrono::hours(1);
@@ -212,7 +216,7 @@ void InteropClient::DoPerRpcCreds(const grpc::string& json_key) {
 
   context.set_credentials(creds);
 
-  Status s = stub_->UnaryCall(&context, request, &response);
+  Status s = stub->UnaryCall(&context, request, &response);
 
   AssertOkOrPrintErrorStatus(s);
   GPR_ASSERT(!response.username().empty());
@@ -265,13 +269,14 @@ void InteropClient::DoLargeCompressedUnary() {
 
 void InteropClient::DoRequestStreaming() {
   gpr_log(GPR_INFO, "Sending request steaming rpc ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   StreamingInputCallRequest request;
   StreamingInputCallResponse response;
 
   std::unique_ptr<ClientWriter<StreamingInputCallRequest>> stream(
-      stub_->StreamingInputCall(&context, &response));
+      stub->StreamingInputCall(&context, &response));
 
   int aggregated_payload_size = 0;
   for (unsigned int i = 0; i < request_stream_sizes.size(); ++i) {
@@ -290,6 +295,7 @@ void InteropClient::DoRequestStreaming() {
 
 void InteropClient::DoResponseStreaming() {
   gpr_log(GPR_INFO, "Receiving response steaming rpc ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   StreamingOutputCallRequest request;
@@ -299,7 +305,7 @@ void InteropClient::DoResponseStreaming() {
   }
   StreamingOutputCallResponse response;
   std::unique_ptr<ClientReader<StreamingOutputCallResponse>> stream(
-      stub_->StreamingOutputCall(&context, request));
+      stub->StreamingOutputCall(&context, request));
 
   unsigned int i = 0;
   while (stream->Read(&response)) {
@@ -314,6 +320,7 @@ void InteropClient::DoResponseStreaming() {
 }
 
 void InteropClient::DoResponseCompressedStreaming() {
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   const CompressionType compression_types[] = {NONE, GZIP, DEFLATE};
   const PayloadType payload_types[] = {COMPRESSABLE, UNCOMPRESSABLE, RANDOM};
@@ -341,7 +348,7 @@ void InteropClient::DoResponseCompressedStreaming() {
       StreamingOutputCallResponse response;
 
       std::unique_ptr<ClientReader<StreamingOutputCallResponse>> stream(
-          stub_->StreamingOutputCall(&context, request));
+          stub->StreamingOutputCall(&context, request));
 
       size_t k = 0;
       while (stream->Read(&response)) {
@@ -394,6 +401,7 @@ void InteropClient::DoResponseCompressedStreaming() {
 
 void InteropClient::DoResponseStreamingWithSlowConsumer() {
   gpr_log(GPR_INFO, "Receiving response steaming rpc with slow consumer ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   StreamingOutputCallRequest request;
@@ -404,7 +412,7 @@ void InteropClient::DoResponseStreamingWithSlowConsumer() {
   }
   StreamingOutputCallResponse response;
   std::unique_ptr<ClientReader<StreamingOutputCallResponse>> stream(
-      stub_->StreamingOutputCall(&context, request));
+      stub->StreamingOutputCall(&context, request));
 
   int i = 0;
   while (stream->Read(&response)) {
@@ -423,11 +431,12 @@ void InteropClient::DoResponseStreamingWithSlowConsumer() {
 
 void InteropClient::DoHalfDuplex() {
   gpr_log(GPR_INFO, "Sending half-duplex streaming rpc ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   std::unique_ptr<ClientReaderWriter<StreamingOutputCallRequest,
                                      StreamingOutputCallResponse>>
-      stream(stub_->HalfDuplexCall(&context));
+      stream(stub->HalfDuplexCall(&context));
 
   StreamingOutputCallRequest request;
   ResponseParameters* response_parameter = request.add_response_parameters();
@@ -452,11 +461,12 @@ void InteropClient::DoHalfDuplex() {
 
 void InteropClient::DoPingPong() {
   gpr_log(GPR_INFO, "Sending Ping Pong streaming rpc ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   std::unique_ptr<ClientReaderWriter<StreamingOutputCallRequest,
                                      StreamingOutputCallResponse>>
-      stream(stub_->FullDuplexCall(&context));
+      stream(stub->FullDuplexCall(&context));
 
   StreamingOutputCallRequest request;
   request.set_response_type(PayloadType::COMPRESSABLE);
@@ -481,13 +491,14 @@ void InteropClient::DoPingPong() {
 
 void InteropClient::DoCancelAfterBegin() {
   gpr_log(GPR_INFO, "Sending request steaming rpc ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   StreamingInputCallRequest request;
   StreamingInputCallResponse response;
 
   std::unique_ptr<ClientWriter<StreamingInputCallRequest>> stream(
-      stub_->StreamingInputCall(&context, &response));
+      stub->StreamingInputCall(&context, &response));
 
   gpr_log(GPR_INFO, "Trying to cancel...");
   context.TryCancel();
@@ -498,11 +509,12 @@ void InteropClient::DoCancelAfterBegin() {
 
 void InteropClient::DoCancelAfterFirstResponse() {
   gpr_log(GPR_INFO, "Sending Ping Pong streaming rpc ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   std::unique_ptr<ClientReaderWriter<StreamingOutputCallRequest,
                                      StreamingOutputCallResponse>>
-      stream(stub_->FullDuplexCall(&context));
+      stream(stub->FullDuplexCall(&context));
 
   StreamingOutputCallRequest request;
   request.set_response_type(PayloadType::COMPRESSABLE);
@@ -522,6 +534,7 @@ void InteropClient::DoCancelAfterFirstResponse() {
 
 void InteropClient::DoTimeoutOnSleepingServer() {
   gpr_log(GPR_INFO, "Sending Ping Pong streaming rpc with a short deadline...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   std::chrono::system_clock::time_point deadline =
@@ -529,7 +542,7 @@ void InteropClient::DoTimeoutOnSleepingServer() {
   context.set_deadline(deadline);
   std::unique_ptr<ClientReaderWriter<StreamingOutputCallRequest,
                                      StreamingOutputCallResponse>>
-      stream(stub_->FullDuplexCall(&context));
+      stream(stub->FullDuplexCall(&context));
 
   StreamingOutputCallRequest request;
   request.mutable_payload()->set_body(grpc::string(27182, '\0'));
@@ -542,11 +555,12 @@ void InteropClient::DoTimeoutOnSleepingServer() {
 
 void InteropClient::DoEmptyStream() {
   gpr_log(GPR_INFO, "Starting empty_stream.");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   std::unique_ptr<ClientReaderWriter<StreamingOutputCallRequest,
                                      StreamingOutputCallResponse>>
-      stream(stub_->FullDuplexCall(&context));
+      stream(stub->FullDuplexCall(&context));
   stream->WritesDone();
   StreamingOutputCallResponse response;
   GPR_ASSERT(stream->Read(&response) == false);
@@ -557,6 +571,7 @@ void InteropClient::DoEmptyStream() {
 
 void InteropClient::DoStatusWithMessage() {
   gpr_log(GPR_INFO, "Sending RPC with a request for status code 2 and message");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   SimpleRequest request;
@@ -566,7 +581,7 @@ void InteropClient::DoStatusWithMessage() {
   grpc::string test_msg = "This is a test message";
   requested_status->set_message(test_msg);
 
-  Status s = stub_->UnaryCall(&context, request, &response);
+  Status s = stub->UnaryCall(&context, request, &response);
 
   GPR_ASSERT(s.error_code() == grpc::StatusCode::UNKNOWN);
   GPR_ASSERT(s.error_message() == test_msg);
