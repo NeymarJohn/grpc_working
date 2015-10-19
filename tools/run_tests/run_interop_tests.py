@@ -51,17 +51,18 @@ _DEFAULT_SERVER_PORT=8080
 _CLOUD_TO_PROD_BASE_ARGS = [
     '--server_host_override=grpc-test.sandbox.google.com',
     '--server_host=grpc-test.sandbox.google.com',
-    '--server_port=443',
-    '--use_tls=true']
+    '--server_port=443']
 
 _CLOUD_TO_CLOUD_BASE_ARGS = [
-    '--server_host_override=foo.test.google.fr',
-    '--use_tls=true']
+    '--server_host_override=foo.test.google.fr']
 
 # TOOD(jtattermusch) wrapped languages use this variable for location
 # of roots.pem. We might want to use GRPC_DEFAULT_SSL_ROOTS_FILE_PATH
 # supported by C core SslCredentials instead.
 _SSL_CERT_ENV = { 'SSL_CERT_FILE':'/usr/local/share/grpc/roots.pem' }
+
+# TODO(jtattermusch) unify usage of --use_tls and --use_tls=true
+# TODO(jtattermusch) go uses --tls_ca_file instead of --use_test_ca
 
 
 class CXXLanguage:
@@ -73,11 +74,12 @@ class CXXLanguage:
     self.safename = 'cxx'
 
   def cloud_to_prod_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
+            ['--use_tls=true'])
 
   def cloud_to_cloud_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
-            ['--use_test_ca=true'])
+            ['--use_tls=true', '--use_test_ca=true'])
 
   def cloud_to_prod_env(self):
     return {}
@@ -101,11 +103,12 @@ class CSharpLanguage:
     self.safename = str(self)
 
   def cloud_to_prod_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
+            ['--use_tls=true'])
 
   def cloud_to_cloud_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
-            ['--use_test_ca=true'])
+            ['--use_tls=true', '--use_test_ca=true'])
 
   def cloud_to_prod_env(self):
     return _SSL_CERT_ENV
@@ -129,11 +132,12 @@ class JavaLanguage:
     self.safename = str(self)
 
   def cloud_to_prod_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
+            ['--use_tls=true'])
 
   def cloud_to_cloud_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
-            ['--use_test_ca=true'])
+            ['--use_tls=true', '--use_test_ca=true'])
 
   def cloud_to_prod_env(self):
     return {}
@@ -158,12 +162,12 @@ class GoLanguage:
     self.safename = str(self)
 
   def cloud_to_prod_args(self):
-    # TODO(jtattermusch) go uses --tls_ca_file instead of --use_test_ca
     return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
-            ['--tls_ca_file=""'])
+            ['--use_tls=true', '--tls_ca_file=""'])
 
   def cloud_to_cloud_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
+            ['--use_tls=true'])
 
   def cloud_to_prod_env(self):
     return {}
@@ -187,11 +191,12 @@ class NodeLanguage:
     self.safename = str(self)
 
   def cloud_to_prod_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
+            ['--use_tls=true'])
 
   def cloud_to_cloud_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
-            ['--use_test_ca=true'])
+            ['--use_tls=true', '--use_test_ca=true'])
 
   def cloud_to_prod_env(self):
     return _SSL_CERT_ENV
@@ -214,11 +219,12 @@ class PHPLanguage:
     self.safename = str(self)
 
   def cloud_to_prod_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
+            ['--use_tls'])
 
   def cloud_to_cloud_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
-            ['--use_test_ca=true'])
+            ['--use_tls', '--use_test_ca'])
 
   def cloud_to_prod_env(self):
     return _SSL_CERT_ENV
@@ -239,17 +245,18 @@ class RubyLanguage:
     self.safename = str(self)
 
   def cloud_to_prod_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
+            ['--use_tls'])
 
   def cloud_to_cloud_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
-            ['--use_test_ca=true'])
+            ['--use_tls', '--use_test_ca'])
 
   def cloud_to_prod_env(self):
     return _SSL_CERT_ENV
 
   def server_args(self):
-    return ['ruby', 'src/ruby/bin/interop/interop_server.rb', '--use_tls=true']
+    return ['ruby', 'src/ruby/bin/interop/interop_server.rb', '--use_tls']
 
   def global_env(self):
     return {}
@@ -267,17 +274,18 @@ class PythonLanguage:
     self.safename = str(self)
 
   def cloud_to_prod_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
+            ['--use_tls'])
 
   def cloud_to_cloud_args(self):
     return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
-            ['--use_test_ca=true'])
+            ['--use_tls', '--use_test_ca'])
 
   def cloud_to_prod_env(self):
     return _SSL_CERT_ENV
 
   def server_args(self):
-    return ['python2.7_virtual_environment/bin/python', '-m', 'grpc_interop.server', '--use_tls=true']
+    return ['python2.7_virtual_environment/bin/python', '-m', 'grpc_interop.server', '--use_tls']
 
   def global_env(self):
     return {'LD_LIBRARY_PATH': 'libs/opt'}
@@ -470,12 +478,6 @@ def build_interop_image_jobspec(language, tag=None):
          'BASE_NAME': 'grpc_interop_%s' % language.safename}
   if not args.travis:
     env['TTY_FLAG'] = '-t'
-  # This env variable is used to get around the github rate limit
-  # error when running the PHP `composer install` command
-  # TODO(stanleycheung): find a more elegant way to do this
-  if language.safename == 'php' and os.path.exists('/var/local/.composer/auth.json'):
-    env['BUILD_INTEROP_DOCKER_EXTRA_ARGS'] = \
-      "-v /var/local/.composer/auth.json:/root/.composer/auth.json:ro"
   build_job = jobset.JobSpec(
           cmdline=['tools/jenkins/build_interop_image.sh'],
           environ=env,
