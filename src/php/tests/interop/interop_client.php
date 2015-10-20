@@ -36,9 +36,6 @@ require 'empty.php';
 require 'message_set.php';
 require 'messages.php';
 require 'test.php';
-use Google\Auth\CredentialsLoader;
-use Google\Auth\ApplicationDefaultCredentials;
-use GuzzleHttp\ClientInterface;
 
 /**
  * Assertion function that always exits with an error code if the assertion is
@@ -55,6 +52,7 @@ function hardAssert($value, $error_message) {
 
 /**
  * Run the empty_unary test.
+ * Passes when run against the Node server as of 2015-04-30
  * @param $stub Stub object that has service methods
  */
 function emptyUnary($stub) {
@@ -65,6 +63,7 @@ function emptyUnary($stub) {
 
 /**
  * Run the large_unary test.
+ * Passes when run against the C++/Node server as of 2015-04-30
  * @param $stub Stub object that has service methods
  */
 function largeUnary($stub) {
@@ -77,8 +76,7 @@ function largeUnary($stub) {
  * @param $fillUsername boolean whether to fill result with username
  * @param $fillOauthScope boolean whether to fill result with oauth scope
  */
-function performLargeUnary($stub, $fillUsername = false, $fillOauthScope = false,
-                           $metadata = array()) {
+function performLargeUnary($stub, $fillUsername = false, $fillOauthScope = false) {
   $request_len = 271828;
   $response_len = 314159;
 
@@ -92,7 +90,7 @@ function performLargeUnary($stub, $fillUsername = false, $fillOauthScope = false
   $request->setFillUsername($fillUsername);
   $request->setFillOauthScope($fillOauthScope);
 
-  list($result, $status) = $stub->UnaryCall($request, $metadata)->wait();
+  list($result, $status) = $stub->UnaryCall($request)->wait();
   hardAssert($status->code === Grpc\STATUS_OK, 'Call did not complete successfully');
   hardAssert($result !== null, 'Call returned a null response');
   $payload = $result->getPayload();
@@ -107,6 +105,7 @@ function performLargeUnary($stub, $fillUsername = false, $fillOauthScope = false
 
 /**
  * Run the service account credentials auth test.
+ * Passes when run against the cloud server as of 2015-04-30
  * @param $stub Stub object that has service methods
  * @param $args array command line args
  */
@@ -115,7 +114,7 @@ function serviceAccountCreds($stub, $args) {
     throw new Exception('Missing oauth scope');
   }
   $jsonKey = json_decode(
-      file_get_contents(getenv(CredentialsLoader::ENV_VAR)),
+      file_get_contents(getenv(Google\Auth\CredentialsLoader::ENV_VAR)),
       true);
   $result = performLargeUnary($stub, $fillUsername=true, $fillOauthScope=true);
   hardAssert($result->getUsername() == $jsonKey['client_email'],
@@ -144,57 +143,22 @@ function computeEngineCreds($stub, $args) {
 
 /**
  * Run the jwt token credentials auth test.
+ * Passes when run against the cloud server as of 2015-05-12
  * @param $stub Stub object that has service methods
  * @param $args array command line args
  */
 function jwtTokenCreds($stub, $args) {
   $jsonKey = json_decode(
-      file_get_contents(getenv(CredentialsLoader::ENV_VAR)),
+      file_get_contents(getenv(Google\Auth\CredentialsLoader::ENV_VAR)),
       true);
   $result = performLargeUnary($stub, $fillUsername=true, $fillOauthScope=true);
-  hardAssert($result->getUsername() == $jsonKey['client_email'],
-             'invalid email returned');
-}
-
-/**
- * Run the oauth2_auth_token auth test.
- * @param $stub Stub object that has service methods
- * @param $args array command line args
- */
-function oauth2AuthToken($stub, $args) {
-  $jsonKey = json_decode(
-      file_get_contents(getenv(CredentialsLoader::ENV_VAR)),
-      true);
-  $result = performLargeUnary($stub, $fillUsername=true, $fillOauthScope=true);
-  hardAssert($result->getUsername() == $jsonKey['client_email'],
-             'invalid email returned');
-}
-
-/**
- * Run the per_rpc_creds auth test.
- * @param $stub Stub object that has service methods
- * @param $args array command line args
- */
-function perRpcCreds($stub, $args) {
-  $jsonKey = json_decode(
-      file_get_contents(getenv(CredentialsLoader::ENV_VAR)),
-      true);
-  $auth_credentials = ApplicationDefaultCredentials::getCredentials(
-      $args['oauth_scope']
-  );
-  $token = $auth_credentials->fetchAuthToken();
-  $metadata = array(CredentialsLoader::AUTH_METADATA_KEY =>
-                    array(sprintf("%s %s",
-                                  $token['token_type'],
-                                  $token['access_token'])));
-  $result = performLargeUnary($stub, $fillUsername=true, $fillOauthScope=true,
-                              $metadata);
   hardAssert($result->getUsername() == $jsonKey['client_email'],
              'invalid email returned');
 }
 
 /**
  * Run the client_streaming test.
+ * Passes when run against the Node server as of 2015-04-30
  * @param $stub Stub object that has service methods
  */
 function clientStreaming($stub) {
@@ -221,6 +185,7 @@ function clientStreaming($stub) {
 
 /**
  * Run the server_streaming test.
+ * Passes when run against the Node server as of 2015-04-30
  * @param $stub Stub object that has service methods.
  */
 function serverStreaming($stub) {
@@ -251,6 +216,7 @@ function serverStreaming($stub) {
 
 /**
  * Run the ping_pong test.
+ * Passes when run against the Node server as of 2015-04-30
  * @param $stub Stub object that has service methods.
  */
 function pingPong($stub) {
@@ -286,18 +252,24 @@ function pingPong($stub) {
 
 /**
  * Run the empty_stream test.
+ * Passes when run against the Node server as of 2015-10-09
  * @param $stub Stub object that has service methods.
  */
 function emptyStream($stub) {
-  $call = $stub->FullDuplexCall();
+  // for the current PHP implementation, $call->read() will wait
+  // forever for a server response if the server is not sending any.
+  // so this test is imeplemented as a timeout to indicate the absence
+  // of receiving any response from the server
+  $call = $stub->FullDuplexCall(array('timeout' => 100000));
   $call->writesDone();
   hardAssert($call->read() === null, 'Server returned too many responses');
   hardAssert($call->getStatus()->code === Grpc\STATUS_OK,
-             'Call did not complete successfully');
+              'Call did not complete successfully');
 }
 
 /**
  * Run the cancel_after_begin test.
+ * Passes when run against the Node server as of 2015-08-28
  * @param $stub Stub object that has service methods.
  */
 function cancelAfterBegin($stub) {
@@ -310,6 +282,7 @@ function cancelAfterBegin($stub) {
 
 /**
  * Run the cancel_after_first_response test.
+ * Passes when run against the Node server as of 2015-04-30
  * @param $stub Stub object that has service methods.
  */
 function cancelAfterFirstResponse($stub) {
@@ -350,17 +323,12 @@ function timeoutOnSleepingServer($stub) {
 }
 
 $args = getopt('', array('server_host:', 'server_port:', 'test_case:',
-                         'use_tls::', 'use_test_ca::',
                          'server_host_override:', 'oauth_scope:',
                          'default_service_account:'));
-if (!array_key_exists('server_host', $args)) {
-  throw new Exception('Missing argument: --server_host is required');
-}
-if (!array_key_exists('server_port', $args)) {
-  throw new Exception('Missing argument: --server_port is required');
-}
-if (!array_key_exists('test_case', $args)) {
-  throw new Exception('Missing argument: --test_case is required');
+if (!array_key_exists('server_host', $args) ||
+    !array_key_exists('server_port', $args) ||
+    !array_key_exists('test_case', $args)) {
+  throw new Exception('Missing argument');
 }
 
 if ($args['server_port'] == 443) {
@@ -369,76 +337,41 @@ if ($args['server_port'] == 443) {
   $server_address = $args['server_host'] . ':' . $args['server_port'];
 }
 
-$test_case = $args['test_case'];
-
-$host_override = 'foo.test.google.fr';
-if (array_key_exists('server_host_override', $args)) {
-  $host_override = $args['server_host_override'];
+if (!array_key_exists('server_host_override', $args)) {
+  $args['server_host_override'] = 'foo.test.google.fr';
 }
 
-$use_tls = false;
-if (array_key_exists('use_tls', $args) &&
-    $args['use_tls'] != 'false') {
-  $use_tls = true;
+$ssl_cert_file = getenv('SSL_CERT_FILE');
+if (!$ssl_cert_file) {
+  $ssl_cert_file = dirname(__FILE__) . '/../data/ca.pem';
 }
 
-$use_test_ca = false;
-if (array_key_exists('use_test_ca', $args) &&
-    $args['use_test_ca'] != 'false') {
-  $use_test_ca = true;
-}
+$credentials = Grpc\Credentials::createSsl(file_get_contents($ssl_cert_file));
 
-$opts = [];
+$opts = [
+    'grpc.ssl_target_name_override' => $args['server_host_override'],
+    'credentials' => $credentials,
+         ];
 
-if ($use_tls) {
-  if ($use_test_ca) {
-    $ssl_cert_file = dirname(__FILE__) . '/../data/ca.pem';
+if (in_array($args['test_case'], array(
+      'service_account_creds',
+      'compute_engine_creds',
+      'jwt_token_creds'))) {
+  if ($args['test_case'] == 'jwt_token_creds') {
+    $auth = Google\Auth\ApplicationDefaultCredentials::getCredentials();
   } else {
-    $ssl_cert_file = getenv('SSL_CERT_FILE');
+    $auth = Google\Auth\ApplicationDefaultCredentials::getCredentials(
+      $args['oauth_scope']);
   }
-  $ssl_credentials = Grpc\Credentials::createSsl(
-      file_get_contents($ssl_cert_file));
-  $opts['credentials'] = $ssl_credentials;
-  $opts['grpc.ssl_target_name_override'] = $host_override;
-}
-
-if (in_array($test_case, array('service_account_creds',
-    'compute_engine_creds', 'jwt_token_creds'))) {
-  if ($test_case == 'jwt_token_creds') {
-    $auth_credentials = ApplicationDefaultCredentials::getCredentials();
-  } else {
-    $auth_credentials = ApplicationDefaultCredentials::getCredentials(
-      $args['oauth_scope']
-    );
-  }
-  $opts['update_metadata'] = $auth_credentials->getUpdateMetadataFunc();
-}
-
-if ($test_case == 'oauth2_auth_token') {
-  $auth_credentials = ApplicationDefaultCredentials::getCredentials(
-      $args['oauth_scope']
-  );
-  $token = $auth_credentials->fetchAuthToken();
-  $update_metadata =
-      function($metadata,
-               $authUri = null,
-               ClientInterface $client = null) use ($token) {
-        $metadata_copy = $metadata;
-        $metadata_copy[CredentialsLoader::AUTH_METADATA_KEY] =
-            array(sprintf("%s %s",
-                          $token['token_type'],
-                          $token['access_token']));
-        return $metadata_copy;
-      };
-  $opts['update_metadata'] = $update_metadata;
+  $opts['update_metadata'] = $auth->getUpdateMetadataFunc();
 }
 
 $stub = new grpc\testing\TestServiceClient($server_address, $opts);
 
 echo "Connecting to $server_address\n";
-echo "Running test case $test_case\n";
+echo "Running test case $args[test_case]\n";
 
-switch ($test_case) {
+switch ($args['test_case']) {
   case 'empty_unary':
     emptyUnary($stub);
     break;
@@ -475,13 +408,7 @@ switch ($test_case) {
   case 'jwt_token_creds':
     jwtTokenCreds($stub, $args);
     break;
-  case 'oauth2_auth_token':
-    oauth2AuthToken($stub, $args);
-    break;
-  case 'per_rpc_creds':
-    perRpcCreds($stub, $args);
-    break;
   default:
-    echo "Unsupported test case $test_case\n";
+    echo "Unsupported test case $args[test_case]\n";
     exit(1);
 }

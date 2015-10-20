@@ -40,7 +40,7 @@
 #include "src/core/channel/channel_args.h"
 #include "src/core/channel/client_channel.h"
 #include "src/core/channel/connected_channel.h"
-#include "src/core/iomgr/timer.h"
+#include "src/core/iomgr/alarm.h"
 #include "src/core/transport/connectivity_state.h"
 #include "src/core/surface/channel.h"
 
@@ -130,7 +130,7 @@ struct grpc_subchannel {
   /** do we have an active alarm? */
   int have_alarm;
   /** our alarm */
-  grpc_timer alarm;
+  grpc_alarm alarm;
   /** current random value */
   gpr_uint32 random;
 };
@@ -335,20 +335,18 @@ static void start_connect(grpc_exec_ctx *exec_ctx, grpc_subchannel *c) {
 
 static void continue_creating_call(grpc_exec_ctx *exec_ctx, void *arg,
                                    int iomgr_success) {
-  grpc_subchannel_call_create_status call_creation_status;
   waiting_for_connect *w4c = arg;
   grpc_subchannel_del_interested_party(exec_ctx, w4c->subchannel, w4c->pollset);
-  call_creation_status = grpc_subchannel_create_call(
-      exec_ctx, w4c->subchannel, w4c->pollset, w4c->target, w4c->notify);
-  GPR_ASSERT(call_creation_status == GRPC_SUBCHANNEL_CALL_CREATE_READY);
-  w4c->notify->cb(exec_ctx, w4c->notify->cb_arg, iomgr_success);
+  grpc_subchannel_create_call(exec_ctx, w4c->subchannel, w4c->pollset,
+                              w4c->target, w4c->notify);
   GRPC_SUBCHANNEL_UNREF(exec_ctx, w4c->subchannel, "waiting_for_connect");
   gpr_free(w4c);
 }
 
-grpc_subchannel_call_create_status grpc_subchannel_create_call(
-    grpc_exec_ctx *exec_ctx, grpc_subchannel *c, grpc_pollset *pollset,
-    grpc_subchannel_call **target, grpc_closure *notify) {
+void grpc_subchannel_create_call(grpc_exec_ctx *exec_ctx, grpc_subchannel *c,
+                                 grpc_pollset *pollset,
+                                 grpc_subchannel_call **target,
+                                 grpc_closure *notify) {
   connection *con;
   gpr_mu_lock(&c->mu);
   if (c->active != NULL) {
@@ -357,7 +355,7 @@ grpc_subchannel_call_create_status grpc_subchannel_create_call(
     gpr_mu_unlock(&c->mu);
 
     *target = create_call(exec_ctx, con);
-    return GRPC_SUBCHANNEL_CALL_CREATE_READY;
+    notify->cb(exec_ctx, notify->cb_arg, 1);
   } else {
     waiting_for_connect *w4c = gpr_malloc(sizeof(*w4c));
     w4c->next = c->waiting;
@@ -382,7 +380,6 @@ grpc_subchannel_call_create_status grpc_subchannel_create_call(
     } else {
       gpr_mu_unlock(&c->mu);
     }
-    return GRPC_SUBCHANNEL_CALL_CREATE_PENDING;
   }
 }
 
@@ -462,7 +459,7 @@ void grpc_subchannel_process_transport_op(grpc_exec_ctx *exec_ctx,
   }
 
   if (cancel_alarm) {
-    grpc_timer_cancel(exec_ctx, &c->alarm);
+    grpc_alarm_cancel(exec_ctx, &c->alarm);
   }
 
   if (op->disconnect) {
@@ -693,7 +690,7 @@ static void subchannel_connected(grpc_exec_ctx *exec_ctx, void *arg,
     GPR_ASSERT(!c->have_alarm);
     c->have_alarm = 1;
     connectivity_state_changed_locked(exec_ctx, c, "connect_failed");
-    grpc_timer_init(exec_ctx, &c->alarm, c->next_attempt, on_alarm, c, now);
+    grpc_alarm_init(exec_ctx, &c->alarm, c->next_attempt, on_alarm, c, now);
     gpr_mu_unlock(&c->mu);
   }
 }

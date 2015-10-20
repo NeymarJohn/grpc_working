@@ -99,9 +99,6 @@ exports.createFromMetadataGenerator = function(metadata_generator) {
         if (error.hasOwnProperty('code')) {
           code = error.code;
         }
-        if (!metadata) {
-          metadata = new Metadata();
-        }
       }
       callback(code, message, metadata._getCoreRepresentation());
     });
@@ -156,7 +153,7 @@ exports.combineCallCredentials = function() {
     current = current.compose(arguments[i]);
   }
   return current;
-};
+}
 
 /**
  * Create an insecure credentials object. This is used to create a channel that

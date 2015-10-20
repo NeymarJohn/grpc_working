@@ -584,6 +584,7 @@ void grpc_chttp2_encode(grpc_stream_op *ops, size_t ops_count, int eof,
   size_t max_take_size;
   gpr_uint32 curop = 0;
   gpr_uint32 unref_op;
+  grpc_mdctx *mdctx = compressor->mdctx;
   grpc_linked_mdelem *l;
   int need_unref = 0;
   gpr_timespec deadline;
@@ -649,15 +650,17 @@ void grpc_chttp2_encode(grpc_stream_op *ops, size_t ops_count, int eof,
   finish_frame(&st, 1, eof);
 
   if (need_unref) {
+    grpc_mdctx_lock(mdctx);
     for (unref_op = 0; unref_op < curop; unref_op++) {
       op = &ops[unref_op];
       if (op->type != GRPC_OP_METADATA) continue;
       for (l = op->data.metadata.list.head; l; l = l->next) {
-        if (l->md) GRPC_MDELEM_UNREF(l->md);
+        if (l->md) GRPC_MDCTX_LOCKED_MDELEM_UNREF(mdctx, l->md);
       }
       for (l = op->data.metadata.garbage.head; l; l = l->next) {
-        GRPC_MDELEM_UNREF(l->md);
+        GRPC_MDCTX_LOCKED_MDELEM_UNREF(mdctx, l->md);
       }
     }
+    grpc_mdctx_unlock(mdctx);
   }
 }

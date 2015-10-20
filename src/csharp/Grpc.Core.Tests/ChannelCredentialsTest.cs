@@ -63,5 +63,11 @@ namespace Grpc.Core.Tests
             // forbid composing non-composable
             Assert.Throws(typeof(ArgumentException), () => ChannelCredentials.Create(new FakeChannelCredentials(false), new FakeCallCredentials()));
         }
+
+        [Test]
+        public void ChannelCredentials_CreateWrapped()
+        {
+            ChannelCredentials.Create(new FakeCallCredentials());
+        }
     }
 }

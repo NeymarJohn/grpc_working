@@ -54,15 +54,15 @@ void test_log_events(size_t num_seqs) {
       for (j = 0; j < advance; j++) {
         switch (state[i]) {
           case 0:
-            GPR_TIMER_MARK(STATE_0, i);
+            GRPC_TIMER_MARK(STATE_0, i);
             state[i]++;
             break;
           case 1:
-            GPR_TIMER_MARK(STATE_1, i);
+            GRPC_TIMER_MARK(STATE_1, i);
             state[i]++;
             break;
           case 2:
-            GPR_TIMER_MARK(STATE_2, i);
+            GRPC_TIMER_MARK(STATE_2, i);
             state[i]++;
             break;
           case 3:
@@ -76,8 +76,8 @@ void test_log_events(size_t num_seqs) {
 
 int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
-  gpr_timers_global_init();
+  grpc_timers_global_init();
   test_log_events(1000000);
-  gpr_timers_global_destroy();
+  grpc_timers_global_destroy();
   return 0;
 }
