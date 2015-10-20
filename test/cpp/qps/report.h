@@ -41,7 +41,7 @@
 #include <grpc++/support/config.h>
 
 #include "test/cpp/qps/driver.h"
-#include "test/cpp/qps/qpstest.grpc.pb.h"
+#include "test/proto/qpstest.grpc.pb.h"
 #include "test/cpp/qps/perf_db_client.h"
 
 namespace grpc {
@@ -116,8 +116,8 @@ class PerfDbReporter : public Reporter {
         test_name_(test_name),
         sys_info_(sys_info),
         tag_(tag) {
-    perf_db_client_.init(grpc::CreateChannel(
-        server_address, grpc::InsecureChannelCredentials()));
+    perf_db_client_.init(
+        grpc::CreateChannel(server_address, grpc::InsecureCredentials()));
   }
   ~PerfDbReporter() GRPC_OVERRIDE { SendData(); };
 

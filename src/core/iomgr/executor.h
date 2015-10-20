@@ -1,4 +1,3 @@
-<?php
 /*
  *
  * Copyright 2015, Google Inc.
@@ -31,21 +30,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-require_once dirname(__FILE__) . '/AbstractGeneratedCodeTest.php';
 
-class GeneratedCodeWithCallbackTest extends AbstractGeneratedCodeTest {
-  public function setUp() {
-    self::$client = new math\MathClient(
-        getenv('GRPC_TEST_HOST'), ['update_metadata' =>
-                                   function($a_hash,
-                                            $client = array()) {
-                                     $a_copy = $a_hash;
-                                     $a_copy['foo'] = ['bar'];
-                                     return $a_copy;
-                                   }]);
-  }
+#ifndef GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H
+#define GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H
 
-  public static function tearDownAfterClass() {
-    self::$client->close();
-  }
-}
+#include "src/core/iomgr/closure.h"
+
+/** Initialize the global executor.
+ *
+ * This mechanism is meant to outsource work (grpc_closure instances) to a
+ * thread, for those cases where blocking isn't an option but there isn't a
+ * non-blocking solution available. */
+void grpc_executor_init();
+
+/** Enqueue \a closure for its eventual execution of \a f(arg) on a separate
+ * thread */
+void grpc_executor_enqueue(grpc_closure *closure, int success);
+
+/** Shutdown the executor, running all pending work as part of the call */
+void grpc_executor_shutdown();
+
+#endif /* GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H */

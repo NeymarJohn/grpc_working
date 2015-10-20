@@ -71,7 +71,7 @@ var fakeSuccessfulGoogleCredentials = {
 var fakeFailingGoogleCredentials = {
   getRequestMetadata: function(service_url, callback) {
     setTimeout(function() {
-      callback(new Error("Authorization failure"));
+      callback(new Error('Authorization failure'));
     }, 0);
   }
 };
@@ -215,25 +215,6 @@ describe('client credentials', function() {
     });
     call.on('metadata', function(metadata) {
       assert.deepEqual(metadata.get('authorization'), ['success']);
-      done();
-    });
-  });
-  it('Should not add metadata with just SSL credentials', function(done) {
-    var metadataUpdater = function(service_url, callback) {
-      var metadata = new grpc.Metadata();
-      metadata.set('plugin_key', 'plugin_value');
-      callback(null, metadata);
-    };
-    var creds = grpc.credentials.createFromMetadataGenerator(metadataUpdater);
-    var combined_creds = grpc.credentials.combineChannelCredentials(
-        client_ssl_creds, creds);
-    var client = new Client('localhost:' + port, client_ssl_creds,
-                            client_options);
-    var call = client.unary({}, function(err, data) {
-      assert.ifError(err);
-    });
-    call.on('metadata', function(metadata) {
-      assert.deepEqual(metadata.get('plugin_key'), []);
       done();
     });
   });
