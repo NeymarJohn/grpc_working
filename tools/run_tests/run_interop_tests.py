@@ -56,8 +56,7 @@ _CLOUD_TO_PROD_BASE_ARGS = [
 
 _CLOUD_TO_CLOUD_BASE_ARGS = [
     '--server_host_override=foo.test.google.fr',
-    '--use_tls=true',
-    '--use_test_ca=true']
+    '--use_tls=true']
 
 # TOOD(jtattermusch) wrapped languages use this variable for location
 # of roots.pem. We might want to use GRPC_DEFAULT_SSL_ROOTS_FILE_PATH
@@ -77,7 +76,8 @@ class CXXLanguage:
     return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
 
   def cloud_to_cloud_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
+            ['--use_test_ca=true'])
 
   def cloud_to_prod_env(self):
     return {}
@@ -104,7 +104,8 @@ class CSharpLanguage:
     return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
 
   def cloud_to_cloud_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
+            ['--use_test_ca=true'])
 
   def cloud_to_prod_env(self):
     return _SSL_CERT_ENV
@@ -131,7 +132,8 @@ class JavaLanguage:
     return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
 
   def cloud_to_cloud_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
+            ['--use_test_ca=true'])
 
   def cloud_to_prod_env(self):
     return {}
@@ -156,7 +158,9 @@ class GoLanguage:
     self.safename = str(self)
 
   def cloud_to_prod_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
+    # TODO(jtattermusch) go uses --tls_ca_file instead of --use_test_ca
+    return (self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS +
+            ['--tls_ca_file=""'])
 
   def cloud_to_cloud_args(self):
     return self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS
@@ -186,7 +190,8 @@ class NodeLanguage:
     return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
 
   def cloud_to_cloud_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
+            ['--use_test_ca=true'])
 
   def cloud_to_prod_env(self):
     return _SSL_CERT_ENV
@@ -212,7 +217,8 @@ class PHPLanguage:
     return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
 
   def cloud_to_cloud_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
+            ['--use_test_ca=true'])
 
   def cloud_to_prod_env(self):
     return _SSL_CERT_ENV
@@ -236,7 +242,8 @@ class RubyLanguage:
     return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
 
   def cloud_to_cloud_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
+            ['--use_test_ca=true'])
 
   def cloud_to_prod_env(self):
     return _SSL_CERT_ENV
@@ -263,7 +270,8 @@ class PythonLanguage:
     return self.client_cmdline_base + _CLOUD_TO_PROD_BASE_ARGS
 
   def cloud_to_cloud_args(self):
-    return self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS
+    return (self.client_cmdline_base + _CLOUD_TO_CLOUD_BASE_ARGS +
+            ['--use_test_ca=true'])
 
   def cloud_to_prod_env(self):
     return _SSL_CERT_ENV
