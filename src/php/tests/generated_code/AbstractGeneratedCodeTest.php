@@ -32,7 +32,7 @@
  *
  */
 require_once realpath(dirname(__FILE__) . '/../../vendor/autoload.php');
-require_once dirname(__FILE__) . '/math.php';
+require 'math.php';
 abstract class AbstractGeneratedCodeTest extends PHPUnit_Framework_TestCase {
   /* These tests require that a server exporting the math service must be
    * running on $GRPC_TEST_HOST */

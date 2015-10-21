@@ -86,6 +86,7 @@ describe('Async functionality', function() {
       });
 
       readStream.on('error', function (error) {
+        console.log(error);
       });
     });
 
