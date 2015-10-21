@@ -235,6 +235,24 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
+    "name": "gpr_cpu_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
     "name": "gpr_env_test", 
     "platforms": [
       "linux", 
@@ -1597,24 +1615,6 @@
       "linux", 
       "mac", 
       "posix"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c++", 
-    "name": "stress_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
     ]
   }, 
   {

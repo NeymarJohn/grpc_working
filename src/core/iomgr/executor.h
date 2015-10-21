@@ -31,67 +31,23 @@
  *
  */
 
-'use strict';
+#ifndef GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H
+#define GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H
 
-var assert = require('assert');
+#include "src/core/iomgr/closure.h"
 
-var grpc = require('..');
-var math = grpc.load(__dirname + '/math/math.proto').math;
+/** Initialize the global executor.
+ *
+ * This mechanism is meant to outsource work (grpc_closure instances) to a
+ * thread, for those cases where blocking isn't an option but there isn't a
+ * non-blocking solution available. */
+void grpc_executor_init();
 
+/** Enqueue \a closure for its eventual execution of \a f(arg) on a separate
+ * thread */
+void grpc_executor_enqueue(grpc_closure *closure, int success);
 
-/**
- * Client to use to make requests to a running server.
- */
-var math_client;
+/** Shutdown the executor, running all pending work as part of the call */
+void grpc_executor_shutdown();
 
-/**
- * Server to test against
- */
-var getServer = require('./math/math_server.js');
-
-var server = getServer();
-
-describe('Async functionality', function() {
-  before(function(done) {
-    var port_num = server.bind('0.0.0.0:0',
-                               grpc.ServerCredentials.createInsecure());
-    server.start();
-    math_client = new math.Math('localhost:' + port_num,
-                                grpc.credentials.createInsecure());
-    done();
-  });
-  after(function() {
-    server.forceShutdown();
-  });
-  it('should not hang', function(done) {
-    var chunkCount=0;
-    var call = math_client.sum(function handleSumResult(err, value) {
-      assert.ifError(err);
-      assert.equal(value.num, chunkCount);
-    });
-
-    var path = require('path');
-    var fs = require('fs');
-    var fileToRead = path.join(__dirname, 'numbers.txt');
-    var readStream = fs.createReadStream(fileToRead);
-
-    readStream.once('readable', function () {
-      readStream.on('data', function (chunk) {
-        call.write({'num': 1});
-        chunkCount += 1;
-      });
-
-      readStream.on('end', function () {
-        call.end();
-      });
-
-      readStream.on('error', function (error) {
-      });
-    });
-
-    call.on('status', function checkStatus(status) {
-      assert.strictEqual(status.code, grpc.status.OK);
-      done();
-    });
-  });
-});
+#endif /* GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H */

@@ -237,6 +237,18 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "gpr_cpu_test", 
+    "src": [
+      "test/core/support/cpu_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "gpr_env_test", 
     "src": [
       "test/core/support/env_test.c"
@@ -1652,36 +1664,6 @@
     "name": "streaming_throughput_test", 
     "src": [
       "test/cpp/end2end/streaming_throughput_test.cc"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc++", 
-      "grpc++_test_config", 
-      "grpc++_test_util", 
-      "grpc_test_util"
-    ], 
-    "headers": [
-      "test/cpp/interop/interop_client.h", 
-      "test/cpp/interop/stress_interop_client.h", 
-      "test/proto/empty.grpc.pb.h", 
-      "test/proto/empty.pb.h", 
-      "test/proto/messages.grpc.pb.h", 
-      "test/proto/messages.pb.h", 
-      "test/proto/test.grpc.pb.h", 
-      "test/proto/test.pb.h"
-    ], 
-    "language": "c++", 
-    "name": "stress_test", 
-    "src": [
-      "test/cpp/interop/interop_client.cc", 
-      "test/cpp/interop/interop_client.h", 
-      "test/cpp/interop/stress_interop_client.cc", 
-      "test/cpp/interop/stress_interop_client.h", 
-      "test/cpp/interop/stress_test.cc"
     ]
   }, 
   {
@@ -12349,6 +12331,7 @@
       "src/core/iomgr/endpoint.h", 
       "src/core/iomgr/endpoint_pair.h", 
       "src/core/iomgr/exec_ctx.h", 
+      "src/core/iomgr/executor.h", 
       "src/core/iomgr/fd_posix.h", 
       "src/core/iomgr/iocp_windows.h", 
       "src/core/iomgr/iomgr.h", 
@@ -12529,6 +12512,8 @@
       "src/core/iomgr/endpoint_pair_windows.c", 
       "src/core/iomgr/exec_ctx.c", 
       "src/core/iomgr/exec_ctx.h", 
+      "src/core/iomgr/executor.c", 
+      "src/core/iomgr/executor.h", 
       "src/core/iomgr/fd_posix.c", 
       "src/core/iomgr/fd_posix.h", 
       "src/core/iomgr/iocp_windows.c", 
@@ -12852,6 +12837,7 @@
       "src/core/iomgr/endpoint.h", 
       "src/core/iomgr/endpoint_pair.h", 
       "src/core/iomgr/exec_ctx.h", 
+      "src/core/iomgr/executor.h", 
       "src/core/iomgr/fd_posix.h", 
       "src/core/iomgr/iocp_windows.h", 
       "src/core/iomgr/iomgr.h", 
@@ -13017,6 +13003,8 @@
       "src/core/iomgr/endpoint_pair_windows.c", 
       "src/core/iomgr/exec_ctx.c", 
       "src/core/iomgr/exec_ctx.h", 
+      "src/core/iomgr/executor.c", 
+      "src/core/iomgr/executor.h", 
       "src/core/iomgr/fd_posix.c", 
       "src/core/iomgr/fd_posix.h", 
       "src/core/iomgr/iocp_windows.c", 
@@ -13675,13 +13663,13 @@
       "test/cpp/qps/perf_db.pb.h", 
       "test/cpp/qps/perf_db_client.h", 
       "test/cpp/qps/qps_worker.h", 
-      "test/cpp/qps/qpstest.grpc.pb.h", 
-      "test/cpp/qps/qpstest.pb.h", 
       "test/cpp/qps/report.h", 
       "test/cpp/qps/server.h", 
       "test/cpp/qps/stats.h", 
       "test/cpp/qps/timer.h", 
-      "test/cpp/util/benchmark_config.h"
+      "test/cpp/util/benchmark_config.h", 
+      "test/proto/qpstest.grpc.pb.h", 
+      "test/proto/qpstest.pb.h"
     ], 
     "language": "c++", 
     "name": "qps", 
