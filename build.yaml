@@ -749,9 +749,7 @@ libs:
   - test/cpp/qps/timer.h
   - test/cpp/util/benchmark_config.h
   src:
-  - test/proto/messages.proto
-  - test/proto/perf_control.proto
-  - test/proto/perf_stats.proto
+  - test/proto/qpstest.proto
   - test/cpp/qps/perf_db.proto
   - test/cpp/qps/client_async.cc
   - test/cpp/qps/client_sync.cc
@@ -968,6 +966,14 @@ targets:
   language: c
   src:
   - test/core/support/cmdline_test.c
+  deps:
+  - gpr_test_util
+  - gpr
+- name: gpr_cpu_test
+  build: test
+  language: c
+  src:
+  - test/core/support/cpu_test.c
   deps:
   - gpr_test_util
   - gpr
