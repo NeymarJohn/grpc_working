@@ -34,10 +34,31 @@ set -ex
 cd $(dirname $0)/../..
 
 ROOT=`pwd`
-GRPCIO_TEST=$ROOT/src/python/grpcio_test
+GRPCIO=$ROOT/src/python/grpcio
 export LD_LIBRARY_PATH=$ROOT/libs/$CONFIG
 export DYLD_LIBRARY_PATH=$ROOT/libs/$CONFIG
 export PATH=$ROOT/bins/$CONFIG:$ROOT/bins/$CONFIG/protobuf:$PATH
-source "python"$PYVER"_virtual_environment"/bin/activate
+export CFLAGS="-I$ROOT/include -std=c89"
+export LDFLAGS="-L$ROOT/libs/$CONFIG"
+export GRPC_PYTHON_BUILD_WITH_CYTHON=1
+export GRPC_PYTHON_ENABLE_CYTHON_TRACING=1
 
-"python"$PYVER $GRPCIO_TEST/setup.py test -a "-n8 --cov=grpc --junitxml=./report.xml --timeout=300 -v --boxed --timeout_method=thread"
+VIRTUALENV=python"$PYVER"_virtual_environment
+source $VIRTUALENV/bin/activate
+
+(rm $GRPCIO/.coverage)   || true
+(rm $GRPCIO/.coverage.*) || true
+
+if python -u $GRPCIO/setup.py test; then
+  EXIT_CODE=0
+else
+  EXIT_CODE=$?
+fi
+
+cp $GRPCIO/report.xml $ROOT
+
+cd $GRPCIO
+(coverage combine) || true
+(coverage report --include='grpc/*' --omit='grpc/framework/alpha/*','grpc/early_adopter/*','grpc/framework/base/*''grpc/framework/face/*') || true
+
+exit $EXIT_CODE

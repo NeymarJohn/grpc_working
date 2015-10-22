@@ -47,19 +47,9 @@ service BenchmarkService {
 }
 
 service WorkerService {
-  // Start server with specified workload.
-  // First request sent specifies the ServerConfig followed by ServerStatus
-  // response. After that, a "Mark" can be sent anytime to request the latest
-  // stats. Closing the stream will initiate shutdown of the test server
-  // and once the shutdown has finished, the OK status is sent to terminate
-  // this RPC.
+  // Start server with specified workload
   rpc RunServer(stream ServerArgs) returns (stream ServerStatus);
 
-  // Start client with specified workload.
-  // First request sent specifies the ClientConfig followed by ClientStatus
-  // response. After that, a "Mark" can be sent anytime to request the latest
-  // stats. Closing the stream will initiate shutdown of the test client
-  // and once the shutdown has finished, the OK status is sent to terminate
-  // this RPC.
+  // Start client with specified workload
   rpc RunClient(stream ClientArgs) returns (stream ClientStatus);
 }
