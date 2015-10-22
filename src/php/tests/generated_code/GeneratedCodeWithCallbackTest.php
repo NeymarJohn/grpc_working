@@ -34,7 +34,7 @@
 require_once dirname(__FILE__) . '/AbstractGeneratedCodeTest.php';
 
 class GeneratedCodeWithCallbackTest extends AbstractGeneratedCodeTest {
-  public function setUp() {
+  public static function setUpBeforeClass() {
     self::$client = new math\MathClient(
         getenv('GRPC_TEST_HOST'), ['update_metadata' =>
                                    function($a_hash,
