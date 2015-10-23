@@ -8,7 +8,7 @@ Beta : Core behavior well-used and proven; bugs lurk off the beaten path.
 
 PREREQUISITES
 -------------
-- python-virtualenv, python-pip, python3-pip, python-dev, python3-dev
+- Python 2.7, virtualenv, pip
 - [homebrew][] on Mac OS X.  These simplify the installation of the gRPC C core.
 
 INSTALLATION

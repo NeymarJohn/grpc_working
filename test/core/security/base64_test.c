@@ -52,7 +52,6 @@ static int buffers_are_equal(const unsigned char *buf1,
   }
   return 1;
 }
-
 static void test_simple_encode_decode_b64(int url_safe, int multiline) {
   const char *hello = "hello";
   char *hello_b64 =
@@ -71,7 +70,7 @@ static void test_full_range_encode_decode_b64(int url_safe, int multiline) {
   size_t i;
   char *b64;
   gpr_slice orig_decoded;
-  for (i = 0; i < sizeof(orig); i++) orig[i] = (gpr_uint8)i;
+  for (i = 0; i < sizeof(orig); i++) orig[i] = (char)i;
 
   /* Try all the different paddings. */
   for (i = 0; i < 3; i++) {
@@ -123,7 +122,7 @@ static void test_url_safe_unsafe_mismtach_failure(void) {
   char *b64;
   gpr_slice orig_decoded;
   int url_safe = 1;
-  for (i = 0; i < sizeof(orig); i++) orig[i] = (gpr_uint8)i;
+  for (i = 0; i < sizeof(orig); i++) orig[i] = (char)i;
 
   b64 = grpc_base64_encode(orig, sizeof(orig), url_safe, 0);
   orig_decoded = grpc_base64_decode(b64, !url_safe);
