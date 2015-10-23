@@ -51,15 +51,26 @@ namespace Grpc.IntegrationTesting
         public const string DefaultHostOverride = "foo.test.google.fr";
 
         public const string ClientCertAuthorityPath = "data/ca.pem";
+        public const string ClientCertAuthorityEnvName = "SSL_CERT_FILE";
+
         public const string ServerCertChainPath = "data/server1.pem";
         public const string ServerPrivateKeyPath = "data/server1.key";
 
-        public static SslCredentials CreateSslCredentials()
+        public static SslCredentials CreateTestClientCredentials(bool useTestCa)
         {
-            return new SslCredentials(File.ReadAllText(ClientCertAuthorityPath));
+            string caPath = ClientCertAuthorityPath;
+            if (!useTestCa)
+            {
+                caPath = Environment.GetEnvironmentVariable(ClientCertAuthorityEnvName);
+                if (string.IsNullOrEmpty(caPath))
+                {
+                    throw new ArgumentException("CA path environment variable is not set.");
+                }
+            }
+            return new SslCredentials(File.ReadAllText(caPath));
         }
 
-        public static SslServerCredentials CreateSslServerCredentials()
+        public static SslServerCredentials CreateTestServerCredentials()
         {
             var keyCertPair = new KeyCertificatePair(
                 File.ReadAllText(ServerCertChainPath),
