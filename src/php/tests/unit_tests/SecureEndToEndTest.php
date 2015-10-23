@@ -33,7 +33,7 @@
  */
 class SecureEndToEndTest extends PHPUnit_Framework_TestCase{
   public function setUp() {
-    $channel_credentials = Grpc\ChannelCredentials::createSsl(
+    $credentials = Grpc\Credentials::createSsl(
         file_get_contents(dirname(__FILE__) . '/../data/ca.pem'));
     $server_credentials = Grpc\ServerCredentials::createSsl(
         null,
@@ -49,7 +49,7 @@ class SecureEndToEndTest extends PHPUnit_Framework_TestCase{
         [
             'grpc.ssl_target_name_override' => $this->host_override,
             'grpc.default_authority' => $this->host_override,
-            'credentials' => $channel_credentials
+            'credentials' => $credentials
          ]);
   }
 

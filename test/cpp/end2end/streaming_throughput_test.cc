@@ -160,7 +160,7 @@ class End2endTest : public ::testing::Test {
 
   void ResetStub() {
     std::shared_ptr<Channel> channel =
-        CreateChannel(server_address_.str(), InsecureChannelCredentials());
+        CreateChannel(server_address_.str(), InsecureCredentials());
     stub_ = grpc::cpp::test::util::TestService::NewStub(channel);
   }
 
