@@ -40,7 +40,7 @@
 
 var _ = require('lodash');
 
-var grpc = require('bindings')('grpc.node');
+var grpc = require('bindings')('grpc_node');
 
 var common = require('./common');
 
@@ -597,10 +597,6 @@ function Server(options) {
       throw new Error('Server is already running');
     }
     this.started = true;
-    console.log('Server starting');
-    _.each(handlers, function(handler, handler_name) {
-      console.log('Serving', handler_name);
-    });
     server.start();
     /**
      * Handles the SERVER_RPC_NEW event. If there is a handler associated with
@@ -629,7 +625,7 @@ function Server(options) {
             (new Metadata())._getCoreRepresentation();
         batch[grpc.opType.SEND_STATUS_FROM_SERVER] = {
           code: grpc.status.UNIMPLEMENTED,
-          details: 'This method is not available on this server.',
+          details: '',
           metadata: {}
         };
         batch[grpc.opType.RECV_CLOSE_ON_SERVER] = true;
