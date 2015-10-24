@@ -173,9 +173,7 @@ Metadata.prototype._getCoreRepresentation = function() {
 Metadata._fromCoreRepresentation = function(metadata) {
   var newMetadata = new Metadata();
   if (metadata) {
-    _.forOwn(metadata, function(value, key) {
-      newMetadata._internal_repr[key] = _.clone(value);
-    });
+    newMetadata._internal_repr = _.cloneDeep(metadata);
   }
   return newMetadata;
 };

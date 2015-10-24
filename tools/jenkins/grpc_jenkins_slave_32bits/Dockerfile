@@ -32,7 +32,7 @@
 
 FROM 32bit/debian:jessie
 
-# Install Git and basic packages.
+# Install Git.
 RUN apt-get update && apt-get install -y \
   autoconf \
   autotools-dev \
@@ -43,8 +43,6 @@ RUN apt-get update && apt-get install -y \
   gcc \
   gcc-multilib \
   git \
-  gyp \
-  lcov \
   libc6 \
   libc6-dbg \
   libc6-dev \
@@ -101,7 +99,7 @@ ENV NUGET mono /var/local/NuGet.exe
 # Install nvm
 RUN touch .profile
 RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.25.4/install.sh | bash
-RUN /bin/bash -l -c "nvm install 0.12 && npm config set cache /tmp/npm-cache"
+RUN /bin/bash -l -c "nvm install 0.12"
 
 ##################
 # Ruby dependencies
