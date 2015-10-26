@@ -19,9 +19,6 @@
     <ClCompile Include="..\..\..\src\core\channel\client_channel.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\core\channel\client_uchannel.c">
-      <Filter>src\core\channel</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\core\channel\compress_filter.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
@@ -46,16 +43,7 @@
     <ClCompile Include="..\..\..\src\core\client_config\lb_policies\pick_first.c">
       <Filter>src\core\client_config\lb_policies</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\core\client_config\lb_policies\round_robin.c">
-      <Filter>src\core\client_config\lb_policies</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\core\client_config\lb_policy.c">
-      <Filter>src\core\client_config</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\client_config\lb_policy_factory.c">
-      <Filter>src\core\client_config</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\client_config\lb_policy_registry.c">
       <Filter>src\core\client_config</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\client_config\resolver.c">
@@ -106,7 +94,10 @@
     <ClCompile Include="..\..\..\src\core\httpcli\parser.c">
       <Filter>src\core\httpcli</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\closure.c">
+    <ClCompile Include="..\..\..\src\core\iomgr\alarm.c">
+      <Filter>src\core\iomgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\core\iomgr\alarm_heap.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\endpoint.c">
@@ -116,12 +107,6 @@
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\endpoint_pair_windows.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\exec_ctx.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\executor.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\fd_posix.c">
@@ -199,12 +184,6 @@
     <ClCompile Include="..\..\..\src\core\iomgr\time_averaged_stats.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\timer.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\timer_heap.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\udp_server.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
@@ -220,12 +199,6 @@
     <ClCompile Include="..\..\..\src\core\iomgr\wakeup_fd_posix.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\workqueue_posix.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\workqueue_windows.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\core\json\json.c">
       <Filter>src\core\json</Filter>
     </ClCompile>
@@ -238,8 +211,11 @@
     <ClCompile Include="..\..\..\src\core\json\json_writer.c">
       <Filter>src\core\json</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\core\surface\api_trace.c">
-      <Filter>src\core\surface</Filter>
+    <ClCompile Include="..\..\..\src\core\profiling\basic_timers.c">
+      <Filter>src\core\profiling</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\core\profiling\stap_timers.c">
+      <Filter>src\core\profiling</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\surface\byte_buffer.c">
       <Filter>src\core\surface</Filter>
@@ -290,6 +266,9 @@
       <Filter>src\core\surface</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\surface\server_create.c">
+      <Filter>src\core\surface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\core\surface\surface_trace.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\surface\version.c">
@@ -419,9 +398,6 @@
     <ClInclude Include="..\..\..\src\core\channel\client_channel.h">
       <Filter>src\core\channel</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\core\channel\client_uchannel.h">
-      <Filter>src\core\channel</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\core\channel\compress_filter.h">
       <Filter>src\core\channel</Filter>
     </ClInclude>
@@ -449,16 +425,7 @@
     <ClInclude Include="..\..\..\src\core\client_config\lb_policies\pick_first.h">
       <Filter>src\core\client_config\lb_policies</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\core\client_config\lb_policies\round_robin.h">
-      <Filter>src\core\client_config\lb_policies</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\core\client_config\lb_policy.h">
-      <Filter>src\core\client_config</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\client_config\lb_policy_factory.h">
-      <Filter>src\core\client_config</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\client_config\lb_policy_registry.h">
       <Filter>src\core\client_config</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\client_config\resolver.h">
@@ -506,19 +473,19 @@
     <ClInclude Include="..\..\..\src\core\httpcli\parser.h">
       <Filter>src\core\httpcli</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\core\iomgr\closure.h">
+    <ClInclude Include="..\..\..\src\core\iomgr\alarm.h">
+      <Filter>src\core\iomgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\iomgr\alarm_heap.h">
+      <Filter>src\core\iomgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\core\iomgr\alarm_internal.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\iomgr\endpoint.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\iomgr\endpoint_pair.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\iomgr\exec_ctx.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\iomgr\executor.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\iomgr\fd_posix.h">
@@ -590,15 +557,6 @@
     <ClInclude Include="..\..\..\src\core\iomgr\time_averaged_stats.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\core\iomgr\timer.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\iomgr\timer_heap.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\iomgr\timer_internal.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\core\iomgr\udp_server.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
@@ -606,15 +564,6 @@
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\iomgr\wakeup_fd_posix.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\iomgr\workqueue.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\iomgr\workqueue_posix.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\iomgr\workqueue_windows.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\json\json.h">
@@ -629,22 +578,19 @@
     <ClInclude Include="..\..\..\src\core\json\json_writer.h">
       <Filter>src\core\json</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\core\profiling\timers.h">
+      <Filter>src\core\profiling</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\src\core\statistics\census_interface.h">
       <Filter>src\core\statistics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\statistics\census_rpc_stats.h">
       <Filter>src\core\statistics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\core\surface\api_trace.h">
-      <Filter>src\core\surface</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\core\surface\byte_buffer_queue.h">
       <Filter>src\core\surface</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\surface\call.h">
-      <Filter>src\core\surface</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\surface\call_test_only.h">
       <Filter>src\core\surface</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\surface\channel.h">
@@ -799,6 +745,9 @@
     </Filter>
     <Filter Include="src\core\json">
       <UniqueIdentifier>{443ffc61-1bea-2477-6e54-1ddf8c139264}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\core\profiling">
+      <UniqueIdentifier>{7f91d9bf-c9de-835a-d74d-b16f843b89a9}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\core\statistics">
       <UniqueIdentifier>{e084164c-a069-00e3-db35-4e0b1cd6f0b7}</UniqueIdentifier>

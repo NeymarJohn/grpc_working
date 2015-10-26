@@ -37,53 +37,123 @@ import time
 
 from oauth2client import client as oauth2client_client
 
-from grpc.framework.common import cardinality
-from grpc.framework.interfaces.face import face
+from grpc.framework.alpha import utilities
+from grpc.framework.alpha import exceptions
 
 from grpc_interop import empty_pb2
 from grpc_interop import messages_pb2
-from grpc_interop import test_pb2
 
 _TIMEOUT = 7
 
 
-class TestService(test_pb2.BetaTestServiceServicer):
+def _empty_call(request, unused_context):
+  return empty_pb2.Empty()
 
-  def EmptyCall(self, request, context):
-    return empty_pb2.Empty()
+_CLIENT_EMPTY_CALL = utilities.unary_unary_invocation_description(
+    empty_pb2.Empty.SerializeToString, empty_pb2.Empty.FromString)
+_SERVER_EMPTY_CALL = utilities.unary_unary_service_description(
+    _empty_call, empty_pb2.Empty.FromString,
+    empty_pb2.Empty.SerializeToString)
 
-  def UnaryCall(self, request, context):
-    return messages_pb2.SimpleResponse(
+
+def _unary_call(request, unused_context):
+  return messages_pb2.SimpleResponse(
+      payload=messages_pb2.Payload(
+          type=messages_pb2.COMPRESSABLE,
+          body=b'\x00' * request.response_size))
+
+_CLIENT_UNARY_CALL = utilities.unary_unary_invocation_description(
+    messages_pb2.SimpleRequest.SerializeToString,
+    messages_pb2.SimpleResponse.FromString)
+_SERVER_UNARY_CALL = utilities.unary_unary_service_description(
+    _unary_call, messages_pb2.SimpleRequest.FromString,
+    messages_pb2.SimpleResponse.SerializeToString)
+
+
+def _streaming_output_call(request, unused_context):
+  for response_parameters in request.response_parameters:
+    yield messages_pb2.StreamingOutputCallResponse(
         payload=messages_pb2.Payload(
-            type=messages_pb2.COMPRESSABLE,
-            body=b'\x00' * request.response_size))
+            type=request.response_type,
+            body=b'\x00' * response_parameters.size))
 
-  def StreamingOutputCall(self, request, context):
-    for response_parameters in request.response_parameters:
-      yield messages_pb2.StreamingOutputCallResponse(
-          payload=messages_pb2.Payload(
-              type=request.response_type,
-              body=b'\x00' * response_parameters.size))
+_CLIENT_STREAMING_OUTPUT_CALL = utilities.unary_stream_invocation_description(
+    messages_pb2.StreamingOutputCallRequest.SerializeToString,
+    messages_pb2.StreamingOutputCallResponse.FromString)
+_SERVER_STREAMING_OUTPUT_CALL = utilities.unary_stream_service_description(
+    _streaming_output_call,
+    messages_pb2.StreamingOutputCallRequest.FromString,
+    messages_pb2.StreamingOutputCallResponse.SerializeToString)
 
-  def StreamingInputCall(self, request_iterator, context):
-    aggregate_size = 0
-    for request in request_iterator:
-      if request.payload and request.payload.body:
-        aggregate_size += len(request.payload.body)
-    return messages_pb2.StreamingInputCallResponse(
-        aggregated_payload_size=aggregate_size)
 
-  def FullDuplexCall(self, request_iterator, context):
-    for request in request_iterator:
-      yield messages_pb2.StreamingOutputCallResponse(
-          payload=messages_pb2.Payload(
-              type=request.payload.type,
-              body=b'\x00' * request.response_parameters[0].size))
+def _streaming_input_call(request_iterator, unused_context):
+  aggregate_size = 0
+  for request in request_iterator:
+    if request.payload and request.payload.body:
+      aggregate_size += len(request.payload.body)
+  return messages_pb2.StreamingInputCallResponse(
+      aggregated_payload_size=aggregate_size)
 
-  # NOTE(nathaniel): Apparently this is the same as the full-duplex call?
-  # NOTE(atash): It isn't even called in the interop spec (Oct 22 2015)...
-  def HalfDuplexCall(self, request_iterator, context):
-    return self.FullDuplexCall(request_iterator, context)
+_CLIENT_STREAMING_INPUT_CALL = utilities.stream_unary_invocation_description(
+    messages_pb2.StreamingInputCallRequest.SerializeToString,
+    messages_pb2.StreamingInputCallResponse.FromString)
+_SERVER_STREAMING_INPUT_CALL = utilities.stream_unary_service_description(
+    _streaming_input_call,
+    messages_pb2.StreamingInputCallRequest.FromString,
+    messages_pb2.StreamingInputCallResponse.SerializeToString)
+
+
+def _full_duplex_call(request_iterator, unused_context):
+  for request in request_iterator:
+    yield messages_pb2.StreamingOutputCallResponse(
+        payload=messages_pb2.Payload(
+            type=request.payload.type,
+            body=b'\x00' * request.response_parameters[0].size))
+
+_CLIENT_FULL_DUPLEX_CALL = utilities.stream_stream_invocation_description(
+    messages_pb2.StreamingOutputCallRequest.SerializeToString,
+    messages_pb2.StreamingOutputCallResponse.FromString)
+_SERVER_FULL_DUPLEX_CALL = utilities.stream_stream_service_description(
+    _full_duplex_call,
+    messages_pb2.StreamingOutputCallRequest.FromString,
+    messages_pb2.StreamingOutputCallResponse.SerializeToString)
+
+# NOTE(nathaniel): Apparently this is the same as the full-duplex call?
+_CLIENT_HALF_DUPLEX_CALL = utilities.stream_stream_invocation_description(
+    messages_pb2.StreamingOutputCallRequest.SerializeToString,
+    messages_pb2.StreamingOutputCallResponse.FromString)
+_SERVER_HALF_DUPLEX_CALL = utilities.stream_stream_service_description(
+    _full_duplex_call,
+    messages_pb2.StreamingOutputCallRequest.FromString,
+    messages_pb2.StreamingOutputCallResponse.SerializeToString)
+
+
+SERVICE_NAME = 'grpc.testing.TestService'
+
+_EMPTY_CALL_METHOD_NAME = 'EmptyCall'
+_UNARY_CALL_METHOD_NAME = 'UnaryCall'
+_STREAMING_OUTPUT_CALL_METHOD_NAME = 'StreamingOutputCall'
+_STREAMING_INPUT_CALL_METHOD_NAME = 'StreamingInputCall'
+_FULL_DUPLEX_CALL_METHOD_NAME = 'FullDuplexCall'
+_HALF_DUPLEX_CALL_METHOD_NAME = 'HalfDuplexCall'
+
+CLIENT_METHODS = {
+    _EMPTY_CALL_METHOD_NAME: _CLIENT_EMPTY_CALL,
+    _UNARY_CALL_METHOD_NAME: _CLIENT_UNARY_CALL,
+    _STREAMING_OUTPUT_CALL_METHOD_NAME: _CLIENT_STREAMING_OUTPUT_CALL,
+    _STREAMING_INPUT_CALL_METHOD_NAME: _CLIENT_STREAMING_INPUT_CALL,
+    _FULL_DUPLEX_CALL_METHOD_NAME: _CLIENT_FULL_DUPLEX_CALL,
+    _HALF_DUPLEX_CALL_METHOD_NAME: _CLIENT_HALF_DUPLEX_CALL,
+}
+
+SERVER_METHODS = {
+    _EMPTY_CALL_METHOD_NAME: _SERVER_EMPTY_CALL,
+    _UNARY_CALL_METHOD_NAME: _SERVER_UNARY_CALL,
+    _STREAMING_OUTPUT_CALL_METHOD_NAME: _SERVER_STREAMING_OUTPUT_CALL,
+    _STREAMING_INPUT_CALL_METHOD_NAME: _SERVER_STREAMING_INPUT_CALL,
+    _FULL_DUPLEX_CALL_METHOD_NAME: _SERVER_FULL_DUPLEX_CALL,
+    _HALF_DUPLEX_CALL_METHOD_NAME: _SERVER_HALF_DUPLEX_CALL,
+}
 
 
 def _large_unary_common_behavior(stub, fill_username, fill_oauth_scope):
@@ -92,7 +162,7 @@ def _large_unary_common_behavior(stub, fill_username, fill_oauth_scope):
         response_type=messages_pb2.COMPRESSABLE, response_size=314159,
         payload=messages_pb2.Payload(body=b'\x00' * 271828),
         fill_username=fill_username, fill_oauth_scope=fill_oauth_scope)
-    response_future = stub.UnaryCall.future(request, _TIMEOUT)
+    response_future = stub.UnaryCall.async(request, _TIMEOUT)
     response = response_future.result()
     if response.payload.type is not messages_pb2.COMPRESSABLE:
       raise ValueError(
@@ -157,7 +227,7 @@ def _cancel_after_begin(stub):
     payloads = [messages_pb2.Payload(body=b'\x00' * size) for size in sizes]
     requests = [messages_pb2.StreamingInputCallRequest(payload=payload)
                 for payload in payloads]
-    responses = stub.StreamingInputCall.future(requests, _TIMEOUT)
+    responses = stub.StreamingInputCall.async(requests, _TIMEOUT)
     responses.cancel()
     if not responses.cancelled():
       raise ValueError('expected call to be cancelled')
@@ -262,21 +332,10 @@ def _timeout_on_sleeping_server(stub):
     time.sleep(0.1)
     try:
       next(response_iterator)
-    except face.ExpirationError:
+    except exceptions.ExpirationError:
       pass
     else:
       raise ValueError('expected call to exceed deadline')
-
-
-def _empty_stream(stub):
-  with stub, _Pipe() as pipe:
-    response_iterator = stub.FullDuplexCall(pipe, _TIMEOUT)
-    pipe.close()
-    try:
-      next(response_iterator)
-      raise ValueError('expected exactly 0 responses')
-    except StopIteration:
-      pass
 
 
 def _compute_engine_creds(stub, args):
@@ -309,7 +368,6 @@ class TestCase(enum.Enum):
   PING_PONG = 'ping_pong'
   CANCEL_AFTER_BEGIN = 'cancel_after_begin'
   CANCEL_AFTER_FIRST_RESPONSE = 'cancel_after_first_response'
-  EMPTY_STREAM = 'empty_stream'
   COMPUTE_ENGINE_CREDS = 'compute_engine_creds'
   OAUTH2_AUTH_TOKEN = 'oauth2_auth_token'
   TIMEOUT_ON_SLEEPING_SERVER = 'timeout_on_sleeping_server'
@@ -331,8 +389,6 @@ class TestCase(enum.Enum):
       _cancel_after_first_response(stub)
     elif self is TestCase.TIMEOUT_ON_SLEEPING_SERVER:
       _timeout_on_sleeping_server(stub)
-    elif self is TestCase.EMPTY_STREAM:
-      _empty_stream(stub)
     elif self is TestCase.COMPUTE_ENGINE_CREDS:
       _compute_engine_creds(stub, args)
     elif self is TestCase.OAUTH2_AUTH_TOKEN:

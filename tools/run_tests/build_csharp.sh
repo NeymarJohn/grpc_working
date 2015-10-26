@@ -37,6 +37,14 @@ else
   MSBUILD_CONFIG="Release"
 fi
 
-cd $(dirname $0)/../../src/csharp
+# change to gRPC repo root
+cd $(dirname $0)/../..
 
-xbuild /p:Configuration=$MSBUILD_CONFIG Grpc.sln
+root=`pwd`
+
+if [ -n "$NUGET" ]
+then
+  $NUGET restore src/csharp/Grpc.sln
+fi
+
+xbuild /p:Configuration=$MSBUILD_CONFIG src/csharp/Grpc.sln
