@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,4 +27,44 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-find . -type f -name "*.h" ! -path "*/Pods/*" ! -path "./generated_libraries/*" ! -path "./examples/*" ! -path "./tests/*" | xargs ./change-comments.py
+"""Utility for serialization in the context of test RPC services."""
+
+import collections
+
+
+class Serialization(
+    collections.namedtuple(
+        '_Serialization',
+        ['request_serializers',
+         'request_deserializers',
+         'response_serializers',
+         'response_deserializers'])):
+  """An aggregation of serialization behaviors for an RPC service.
+
+  Attributes:
+    request_serializers: A dict from method name to request object serializer
+      behavior.
+    request_deserializers: A dict from method name to request object
+      deserializer behavior.
+    response_serializers: A dict from method name to response object serializer
+      behavior.
+    response_deserializers: A dict from method name to response object
+      deserializer behavior.
+  """
+
+
+def serialization(methods):
+  """Creates a Serialization from a sequences of interfaces.Method objects."""
+  request_serializers = {}
+  request_deserializers = {}
+  response_serializers = {}
+  response_deserializers = {}
+  for method in methods:
+    name = method.name()
+    request_serializers[name] = method.serialize_request
+    request_deserializers[name] = method.deserialize_request
+    response_serializers[name] = method.serialize_response
+    response_deserializers[name] = method.deserialize_response
+  return Serialization(
+      request_serializers, request_deserializers, response_serializers,
+      response_deserializers)

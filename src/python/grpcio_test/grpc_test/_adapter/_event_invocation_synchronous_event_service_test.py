@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,13 +27,20 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -e
-command -v php-cs-fixer > /dev/null || {
-  echo "Cannot find php-cs-fixer. Exiting..."
-  exit 1
-}
-cd $(dirname $0)/..
-php-cs-fixer fix lib/Grpc || true
-php-cs-fixer fix tests/generated_code || true
-php-cs-fixer fix tests/interop || true
-php-cs-fixer fix tests/unit_tests || true
+"""One of the tests of the Face layer of RPC Framework."""
+
+import unittest
+
+from grpc_test._adapter import _face_test_case
+from grpc_test.framework.face.testing import event_invocation_synchronous_event_service_test_case as test_case
+
+
+class EventInvocationSynchronousEventServiceTest(
+    _face_test_case.FaceTestCase,
+    test_case.EventInvocationSynchronousEventServiceTestCase,
+    unittest.TestCase):
+  pass
+
+
+if __name__ == '__main__':
+  unittest.main(verbosity=2)
