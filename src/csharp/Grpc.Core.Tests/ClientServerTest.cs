@@ -210,7 +210,7 @@ namespace Grpc.Core.Tests
             });
 
             var callDetails = helper.CreateUnaryCall();
-            BenchmarkUtil.RunBenchmark(1, 10,
+            BenchmarkUtil.RunBenchmark(100, 100,
                                        () => { Calls.BlockingUnaryCall(callDetails, "ABC"); });
         }
             
