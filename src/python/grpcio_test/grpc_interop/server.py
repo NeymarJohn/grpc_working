@@ -33,11 +33,10 @@ import argparse
 import logging
 import time
 
-from grpc.beta import implementations
+from grpc.early_adopter import implementations
 
 from grpc_interop import methods
 from grpc_interop import resources
-from grpc_interop import test_pb2
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -47,19 +46,19 @@ def serve():
   parser.add_argument(
       '--port', help='the port on which to serve', type=int)
   parser.add_argument(
-      '--use_tls', help='require a secure connection',
-      default=False, type=resources.parse_bool)
+      '--use_tls', help='require a secure connection', dest='use_tls',
+      action='store_true')
   args = parser.parse_args()
 
-  server = test_pb2.beta_create_TestService_server(methods.TestService())
   if args.use_tls:
     private_key = resources.private_key()
     certificate_chain = resources.certificate_chain()
-    credentials = implementations.ssl_server_credentials(
-        [(private_key, certificate_chain)])
-    server.add_secure_port('[::]:{}'.format(args.port), credentials)
+    server = implementations.server(
+        methods.SERVICE_NAME, methods.SERVER_METHODS, args.port,
+        private_key=private_key, certificate_chain=certificate_chain)
   else:
-    server.add_insecure_port('[::]:{}'.format(args.port))
+    server = implementations.server(
+        methods.SERVICE_NAME, methods.SERVER_METHODS, args.port)
 
   server.start()
   logging.info('Server serving.')

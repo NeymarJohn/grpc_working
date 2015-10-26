@@ -39,14 +39,12 @@
 
 #include "grpc/support/log.h"
 #include "grpc/grpc.h"
-#include "grpc/grpc_security.h"
 #include "grpc/support/alloc.h"
 #include "grpc/support/time.h"
 #include "byte_buffer.h"
 #include "call.h"
 #include "channel.h"
 #include "completion_queue_async_worker.h"
-#include "call_credentials.h"
 #include "timeval.h"
 
 using std::unique_ptr;
@@ -82,18 +80,6 @@ using v8::Value;
 
 Callback *Call::constructor;
 Persistent<FunctionTemplate> Call::fun_tpl;
-
-/**
- * Helper function for throwing errors with a grpc_call_error value.
- * Modified from the answer by Gus Goose to
- * http://stackoverflow.com/questions/31794200.
- */
-Local<Value> nanErrorWithCode(const char *msg, grpc_call_error code) {
-  EscapableHandleScope scope;
-  Local<Object> err = Nan::Error(msg).As<Object>();
-  Nan::Set(err, Nan::New("code").ToLocalChecked(), Nan::New<Uint32>(code));
-  return scope.Escape(err);
-}
 
 bool EndsWith(const char *str, const char *substr) {
   return strcmp(str+strlen(str)-strlen(substr), substr) == 0;
@@ -182,9 +168,8 @@ Local<Value> ParseMetadata(const grpc_metadata_array *metadata_array) {
     }
     if (EndsWith(elem->key, "-bin")) {
       Nan::Set(array, index_map[elem->key],
-               MakeFastBuffer(
-                   Nan::CopyBuffer(elem->value,
-                                   elem->value_length).ToLocalChecked()));
+               Nan::CopyBuffer(elem->value,
+                               elem->value_length).ToLocalChecked());
     } else {
       Nan::Set(array, index_map[elem->key],
                Nan::New(elem->value).ToLocalChecked());
@@ -516,7 +501,6 @@ void Call::Init(Local<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "cancel", Cancel);
   Nan::SetPrototypeMethod(tpl, "cancelWithStatus", CancelWithStatus);
   Nan::SetPrototypeMethod(tpl, "getPeer", GetPeer);
-  Nan::SetPrototypeMethod(tpl, "setCredentials", SetCredentials);
   fun_tpl.Reset(tpl);
   Local<Function> ctr = Nan::GetFunction(tpl).ToLocalChecked();
   Nan::Set(exports, Nan::New("Call").ToLocalChecked(), ctr);
@@ -724,11 +708,7 @@ NAN_METHOD(Call::CancelWithStatus) {
   Call *call = ObjectWrap::Unwrap<Call>(info.This());
   grpc_status_code code = static_cast<grpc_status_code>(
       Nan::To<uint32_t>(info[0]).FromJust());
-  if (code == GRPC_STATUS_OK) {
-    return Nan::ThrowRangeError(
-        "cancelWithStatus cannot be called with OK status");
-  }
-  Utf8String details(info[1]);
+  Utf8String details(info[0]);
   grpc_call_cancel_with_status(call->wrapped_call, code, *details, NULL);
 }
 
@@ -742,27 +722,6 @@ NAN_METHOD(Call::GetPeer) {
   Local<Value> peer_value = Nan::New(peer).ToLocalChecked();
   gpr_free(peer);
   info.GetReturnValue().Set(peer_value);
-}
-
-NAN_METHOD(Call::SetCredentials) {
-  Nan::HandleScope scope;
-  if (!HasInstance(info.This())) {
-    return Nan::ThrowTypeError(
-        "setCredentials can only be called on Call objects");
-  }
-  if (!CallCredentials::HasInstance(info[0])) {
-    return Nan::ThrowTypeError(
-        "setCredentials' first argument must be a CallCredentials");
-  }
-  Call *call = ObjectWrap::Unwrap<Call>(info.This());
-  CallCredentials *creds_object = ObjectWrap::Unwrap<CallCredentials>(
-      Nan::To<Object>(info[0]).ToLocalChecked());
-  grpc_credentials *creds = creds_object->GetWrappedCredentials();
-  grpc_call_error error = GRPC_CALL_ERROR;
-  if (creds) {
-    error = grpc_call_set_credentials(call->wrapped_call, creds);
-  }
-  info.GetReturnValue().Set(Nan::New<Uint32>(error));
 }
 
 }  // namespace node

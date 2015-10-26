@@ -54,9 +54,8 @@ namespace Grpc.IntegrationTesting
             [Option("port", DefaultValue = 8070)]
             public int Port { get; set; }
 
-            // Deliberately using nullable bool type to allow --use_tls=true syntax (as opposed to --use_tls)
-            [Option("use_tls", DefaultValue = false)]
-            public bool? UseTls { get; set; }
+            [Option("use_tls")]
+            public bool UseTls { get; set; }
 
             [HelpOption]
             public string GetUsage()
@@ -100,9 +99,9 @@ namespace Grpc.IntegrationTesting
 
             string host = "0.0.0.0";
             int port = options.Port;
-            if (options.UseTls.Value)
+            if (options.UseTls)
             {
-                server.Ports.Add(host, port, TestCredentials.CreateSslServerCredentials());
+                server.Ports.Add(host, port, TestCredentials.CreateTestServerCredentials());
             }
             else
             {
