@@ -33,10 +33,8 @@
 
 #import <Foundation/Foundation.h>
 
-/**
- * A fully-qualified proto service method name. Full qualification is needed because a gRPC endpoint
- * can implement multiple services.
- */
+// A fully-qualified proto service method name. Full qualification is needed because a gRPC endpoint
+// can implement multiple services.
 @interface ProtoMethod : NSObject
 @property(nonatomic, readonly) NSString *package;
 @property(nonatomic, readonly) NSString *service;
