@@ -27,4 +27,54 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+"""Links suitable for use in tests."""
 
+import threading
+
+from grpc.framework.base import interfaces
+
+
+class ForeLink(interfaces.ForeLink):
+  """A ForeLink suitable for use in tests of RearLinks."""
+
+  def __init__(self, action, rear_link):
+    self.condition = threading.Condition()
+    self.tickets = []
+    self.action = action
+    self.rear_link = rear_link
+
+  def accept_back_to_front_ticket(self, ticket):
+    with self.condition:
+      self.tickets.append(ticket)
+      self.condition.notify_all()
+      action, rear_link = self.action, self.rear_link
+
+    if action is not None:
+      action(ticket, rear_link)
+
+  def join_rear_link(self, rear_link):
+    with self.condition:
+      self.rear_link = rear_link
+
+
+class RearLink(interfaces.RearLink):
+  """A RearLink suitable for use in tests of ForeLinks."""
+
+  def __init__(self, action, fore_link):
+    self.condition = threading.Condition()
+    self.tickets = []
+    self.action = action
+    self.fore_link = fore_link
+
+  def accept_front_to_back_ticket(self, ticket):
+    with self.condition:
+      self.tickets.append(ticket)
+      self.condition.notify_all()
+      action, fore_link = self.action, self.fore_link
+
+    if action is not None:
+      action(ticket, fore_link)
+
+  def join_fore_link(self, fore_link):
+    with self.condition:
+      self.fore_link = fore_link

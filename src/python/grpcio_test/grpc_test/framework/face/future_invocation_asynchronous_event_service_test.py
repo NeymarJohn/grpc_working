@@ -27,4 +27,20 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+"""One of the tests of the Face layer of RPC Framework."""
 
+import unittest
+
+from grpc_test.framework.face import _test_case
+from grpc_test.framework.face.testing import future_invocation_asynchronous_event_service_test_case as test_case
+
+
+class FutureInvocationAsynchronousEventServiceTest(
+    _test_case.FaceTestCase,
+    test_case.FutureInvocationAsynchronousEventServiceTestCase,
+    unittest.TestCase):
+  pass
+
+
+if __name__ == '__main__':
+  unittest.main(verbosity=2)
