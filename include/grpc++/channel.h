@@ -47,8 +47,8 @@ namespace grpc {
 class CallOpSetInterface;
 class ChannelArguments;
 class CompletionQueue;
-class ChannelCredentials;
-class SecureChannelCredentials;
+class Credentials;
+class SecureCredentials;
 
 template <class R>
 class ClientReader;
