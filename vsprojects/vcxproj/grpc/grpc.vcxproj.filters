@@ -79,9 +79,6 @@
     <ClCompile Include="..\..\..\src\core\channel\client_channel.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\core\channel\client_uchannel.c">
-      <Filter>src\core\channel</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\core\channel\compress_filter.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
@@ -179,9 +176,6 @@
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\exec_ctx.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\iomgr\executor.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\core\iomgr\fd_posix.c">
@@ -521,9 +515,6 @@
     <ClInclude Include="..\..\..\src\core\channel\client_channel.h">
       <Filter>src\core\channel</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\core\channel\client_uchannel.h">
-      <Filter>src\core\channel</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\core\channel\compress_filter.h">
       <Filter>src\core\channel</Filter>
     </ClInclude>
@@ -618,9 +609,6 @@
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\iomgr\exec_ctx.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\iomgr\executor.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\core\iomgr\fd_posix.h">

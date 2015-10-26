@@ -41,7 +41,6 @@
 #include <sys/un.h>
 #include <string.h>
 
-#include "src/core/iomgr/executor.h"
 #include "src/core/iomgr/iomgr_internal.h"
 #include "src/core/iomgr/sockaddr_utils.h"
 #include "src/core/support/block_annotate.h"
@@ -58,8 +57,8 @@ typedef struct {
   char *name;
   char *default_port;
   grpc_resolve_cb cb;
-  grpc_closure request_closure;
   void *arg;
+  grpc_iomgr_object iomgr_object;
 } request;
 
 grpc_resolved_addresses *grpc_blocking_resolve_address(
@@ -150,18 +149,20 @@ done:
   return addrs;
 }
 
-/* Callback to be passed to grpc_executor to asynch-ify
- * grpc_blocking_resolve_address */
-static void do_request_thread(grpc_exec_ctx *exec_ctx, void *rp, int success) {
+/* Thread function to asynch-ify grpc_blocking_resolve_address */
+static void do_request_thread(void *rp) {
   request *r = rp;
+  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
   grpc_resolved_addresses *resolved =
       grpc_blocking_resolve_address(r->name, r->default_port);
   void *arg = r->arg;
   grpc_resolve_cb cb = r->cb;
   gpr_free(r->name);
   gpr_free(r->default_port);
-  cb(exec_ctx, arg, resolved);
+  cb(&exec_ctx, arg, resolved);
+  grpc_iomgr_unregister_object(&r->iomgr_object);
   gpr_free(r);
+  grpc_exec_ctx_finish(&exec_ctx);
 }
 
 void grpc_resolved_addresses_destroy(grpc_resolved_addresses *addrs) {
@@ -172,12 +173,17 @@ void grpc_resolved_addresses_destroy(grpc_resolved_addresses *addrs) {
 void grpc_resolve_address(const char *name, const char *default_port,
                           grpc_resolve_cb cb, void *arg) {
   request *r = gpr_malloc(sizeof(request));
-  grpc_closure_init(&r->request_closure, do_request_thread, r);
+  gpr_thd_id id;
+  char *tmp;
+  gpr_asprintf(&tmp, "resolve_address:name='%s':default_port='%s'", name,
+               default_port);
+  grpc_iomgr_register_object(&r->iomgr_object, tmp);
+  gpr_free(tmp);
   r->name = gpr_strdup(name);
   r->default_port = gpr_strdup(default_port);
   r->cb = cb;
   r->arg = arg;
-  grpc_executor_enqueue(&r->request_closure, 1);
+  gpr_thd_new(&id, do_request_thread, r, NULL);
 }
 
 #endif

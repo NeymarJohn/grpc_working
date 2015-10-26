@@ -137,11 +137,7 @@ namespace Grpc.IntegrationTesting
 
         private async Task<ChannelCredentials> CreateCredentialsAsync()
         {
-            var credentials = ChannelCredentials.Insecure;
-            if (options.UseTls.Value)
-            {
-                credentials = options.UseTestCa.Value ? TestCredentials.CreateSslCredentials() : new SslCredentials();
-            }
+            var credentials = options.UseTls.Value ? TestCredentials.CreateTestClientCredentials(options.UseTestCa.Value) : ChannelCredentials.Insecure;
 
             if (options.TestCase == "jwt_token_creds")
             {
