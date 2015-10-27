@@ -148,9 +148,9 @@ int main(int argc, char** argv) {
   std::stringstream input_stream;
   input_stream << input_file.rdbuf();
 
-  std::shared_ptr<grpc::ChannelCredentials> creds;
+  std::shared_ptr<grpc::Credentials> creds;
   if (!FLAGS_enable_ssl) {
-    creds = grpc::InsecureChannelCredentials();
+    creds = grpc::InsecureCredentials();
   } else {
     if (FLAGS_use_auth) {
       creds = grpc::GoogleDefaultCredentials();

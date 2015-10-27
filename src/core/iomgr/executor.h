@@ -31,39 +31,23 @@
  *
  */
 
-#ifndef GRPCXX_CREATE_CHANNEL_H
-#define GRPCXX_CREATE_CHANNEL_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H
+#define GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H
 
-#include <memory>
+#include "src/core/iomgr/closure.h"
 
-#include <grpc++/security/credentials.h>
-#include <grpc++/support/channel_arguments.h>
-#include <grpc++/support/config.h>
+/** Initialize the global executor.
+ *
+ * This mechanism is meant to outsource work (grpc_closure instances) to a
+ * thread, for those cases where blocking isn't an option but there isn't a
+ * non-blocking solution available. */
+void grpc_executor_init();
 
-namespace grpc {
+/** Enqueue \a closure for its eventual execution of \a f(arg) on a separate
+ * thread */
+void grpc_executor_enqueue(grpc_closure *closure, int success);
 
-/// Create a new \a Channel pointing to \a target
-///
-/// \param target The URI of the endpoint to connect to.
-/// \param creds Credentials to use for the created channel. If it does not hold
-/// an object or is invalid, a lame channel is returned.
-/// \param args Options for channel creation.
-std::shared_ptr<Channel> CreateChannel(
-    const grpc::string& target, const std::shared_ptr<Credentials>& creds);
+/** Shutdown the executor, running all pending work as part of the call */
+void grpc_executor_shutdown();
 
-/// Create a new \em custom \a Channel pointing to \a target
-///
-/// \warning For advanced use and testing ONLY. Override default channel
-/// arguments only if necessary.
-///
-/// \param target The URI of the endpoint to connect to.
-/// \param creds Credentials to use for the created channel. If it does not hold
-/// an object or is invalid, a lame channel is returned.
-/// \param args Options for channel creation.
-std::shared_ptr<Channel> CreateCustomChannel(
-    const grpc::string& target, const std::shared_ptr<Credentials>& creds,
-    const ChannelArguments& args);
-
-}  // namespace grpc
-
-#endif  // GRPCXX_CREATE_CHANNEL_H
+#endif /* GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H */
