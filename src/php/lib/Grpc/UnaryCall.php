@@ -45,7 +45,7 @@ class UnaryCall extends AbstractCall {
    * @param array $options an array of options, possible keys:
    *              'flags' => a number
    */
-  public function start($data, $metadata = [], $options = []) {
+  public function start($data, $metadata = array(), $options = array()) {
     $message_array = ['message' => $data->serialize()];
     if (isset($options['flags'])) {
       $message_array['flags'] = $options['flags'];
@@ -66,6 +66,6 @@ class UnaryCall extends AbstractCall {
     $event = $this->call->startBatch([
         OP_RECV_MESSAGE => true,
         OP_RECV_STATUS_ON_CLIENT => true]);
-    return [$this->deserializeResponse($event->message), $event->status];
+    return array($this->deserializeResponse($event->message), $event->status);
   }
 }

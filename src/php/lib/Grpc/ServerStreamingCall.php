@@ -45,7 +45,7 @@ class ServerStreamingCall extends AbstractCall {
    * @param array $options an array of options, possible keys:
    *              'flags' => a number
    */
-  public function start($data, $metadata = [], $options = []) {
+  public function start($data, $metadata = array(), $options = array()) {
     $message_array = ['message' => $data->serialize()];
     if (isset($options['flags'])) {
       $message_array['flags'] = $options['flags'];

@@ -31,10 +31,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-require_once dirname(__FILE__) . '/AbstractGeneratedCodeTest.php';
+require 'AbstractGeneratedCodeTest.php';
 
 class GeneratedCodeWithCallbackTest extends AbstractGeneratedCodeTest {
-  public function setUp() {
+  public static function setUpBeforeClass() {
     self::$client = new math\MathClient(
         getenv('GRPC_TEST_HOST'), ['update_metadata' =>
                                    function($a_hash,
@@ -43,9 +43,5 @@ class GeneratedCodeWithCallbackTest extends AbstractGeneratedCodeTest {
                                      $a_copy['foo'] = ['bar'];
                                      return $a_copy;
                                    }]);
-  }
-
-  public static function tearDownAfterClass() {
-    self::$client->close();
   }
 }
