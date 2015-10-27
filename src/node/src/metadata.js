@@ -59,6 +59,7 @@ function normalizeKey(key) {
 function validate(key, value) {
   if (_.endsWith(key, '-bin')) {
     if (!(value instanceof Buffer)) {
+      console.log(value.constructor.toString());
       throw new Error('keys that end with \'-bin\' must have Buffer values');
     }
   } else {
