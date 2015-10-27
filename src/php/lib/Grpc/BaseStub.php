@@ -114,7 +114,9 @@ class BaseStub {
       return true;
     }
     if ($new_state == \Grpc\CHANNEL_FATAL_FAILURE) {
+      // @codeCoverageIgnoreStart
       throw new \Exception('Failed to connect to server');
+      // @codeCoverageIgnoreEnd
     }
     return false;
   }
@@ -123,7 +125,7 @@ class BaseStub {
    * Close the communication channel associated with this stub
    */
   public function close() {
-    $channel->close();
+    $this->channel->close();
   }
 
   /**
@@ -132,7 +134,7 @@ class BaseStub {
   private function _get_jwt_aud_uri($method) {
     $last_slash_idx = strrpos($method, '/');
     if ($last_slash_idx === false) {
-      return false;
+      throw new \InvalidArgumentException('service name must have a slash');
     }
     $service_name = substr($method, 0, $last_slash_idx);
     return "https://" . $this->hostname . $service_name;
@@ -150,7 +152,7 @@ class BaseStub {
       $timeout = $metadata['timeout'];
       unset($metadata_copy['timeout']);
     }
-    return array($metadata_copy, $timeout);
+    return [$metadata_copy, $timeout];
   }
 
   /**
@@ -160,7 +162,7 @@ class BaseStub {
    * @throw InvalidArgumentException if key contains invalid characters
    */
   private function _validate_and_normalize_metadata($metadata) {
-    $metadata_copy = array();
+    $metadata_copy = [];
     foreach ($metadata as $key => $value) {
       if (!preg_match('/^[A-Za-z\d_-]+$/', $key)) {
         throw new \InvalidArgumentException(
@@ -187,8 +189,8 @@ class BaseStub {
   public function _simpleRequest($method,
                                  $argument,
                                  callable $deserialize,
-                                 $metadata = array(),
-                                 $options = array()) {
+                                 $metadata = [],
+                                 $options = []) {
     list($actual_metadata, $timeout)  = $this->_extract_timeout_from_metadata($metadata);
     $call = new UnaryCall($this->channel, $method, $deserialize, $timeout);
     $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
@@ -215,7 +217,7 @@ class BaseStub {
    */
   public function _clientStreamRequest($method,
                                        callable $deserialize,
-                                       $metadata = array()) {
+                                       $metadata = []) {
     list($actual_metadata, $timeout)  = $this->_extract_timeout_from_metadata($metadata);
     $call = new ClientStreamingCall($this->channel, $method, $deserialize, $timeout);
     $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
@@ -242,8 +244,8 @@ class BaseStub {
   public function _serverStreamRequest($method,
                                        $argument,
                                        callable $deserialize,
-                                       $metadata = array(),
-                                       $options = array()) {
+                                       $metadata = [],
+                                       $options = []) {
     list($actual_metadata, $timeout)  = $this->_extract_timeout_from_metadata($metadata);
     $call = new ServerStreamingCall($this->channel, $method, $deserialize, $timeout);
     $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
@@ -267,7 +269,7 @@ class BaseStub {
    */
   public function _bidiRequest($method,
                                callable $deserialize,
-                               $metadata = array()) {
+                               $metadata = []) {
     list($actual_metadata, $timeout)  = $this->_extract_timeout_from_metadata($metadata);
     $call = new BidiStreamingCall($this->channel, $method, $deserialize, $timeout);
     $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
