@@ -474,9 +474,7 @@ def build_interop_image_jobspec(language, tag=None):
 # TODO(adelez): Use mako template.
 def fill_one_test_result(shortname, resultset, html_str):
   if shortname in resultset:
-    # Because interop tests does not have runs_per_test flag, each test is run
-    # once. So there should only be one element for each result.
-    result = resultset[shortname][0] 
+    result = resultset[shortname]
     if result.state == 'PASSED':
       html_str = '%s<td bgcolor=\"green\">PASS</td>\n' % html_str
     else:
@@ -485,8 +483,7 @@ def fill_one_test_result(shortname, resultset, html_str):
         if result.returncode > 0:
           tooltip = 'returncode: %d ' % result.returncode
         if result.message:
-          escaped_msg = result.message.replace('"', '&quot;')
-          tooltip = '%smessage: %s' % (tooltip, escaped_msg)     
+          tooltip = '%smessage: %s' % (tooltip, result.message)     
       if result.state == 'FAILED':
         html_str = '%s<td bgcolor=\"red\">' % html_str
         if tooltip:  
