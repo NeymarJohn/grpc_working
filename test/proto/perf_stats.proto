@@ -1,4 +1,3 @@
-#region Copyright notice and license
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,38 +26,37 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#endregion
-using System;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Grpc.Core.Internal
-{
-    /// <summary>
-    /// grpc_call_credentials from <c>grpc/grpc_security.h</c>
-    /// </summary>
-    internal class CallCredentialsSafeHandle : SafeHandleZeroIsInvalid
-    {
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern CallCredentialsSafeHandle grpcsharp_composite_call_credentials_create(CallCredentialsSafeHandle creds1, CallCredentialsSafeHandle creds2);
+// An integration test service that covers all the method signature permutations
+// of unary/streaming requests/responses.
+syntax = "proto3";
 
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern void grpcsharp_call_credentials_release(IntPtr credentials);
+package grpc.testing;
 
-        private CallCredentialsSafeHandle()
-        {
-        }
+message ServerStats {
+  // wall clock time
+  double time_elapsed = 1;
 
-        public static CallCredentialsSafeHandle CreateComposite(CallCredentialsSafeHandle creds1, CallCredentialsSafeHandle creds2)
-        {
-            return grpcsharp_composite_call_credentials_create(creds1, creds2);
-        }
+  // user time used by the server process and threads
+  double time_user = 2;
 
-        protected override bool ReleaseHandle()
-        {
-            grpcsharp_call_credentials_release(handle);
-            return true;
-        }
-    }
+  // server time used by the server process and all threads
+  double time_system = 3;
 }
+
+message HistogramData {
+  repeated uint32 bucket = 1;
+  double min_seen = 2;
+  double max_seen = 3;
+  double sum = 4;
+  double sum_of_squares = 5;
+  double count = 6;
+}
+
+message ClientStats {
+  HistogramData latencies = 1;
+  double time_elapsed = 2;
+  double time_user = 3;
+  double time_system = 4;
+}
+

@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef NET_GRPC_PHP_GRPC_CHANNEL_CREDENTIALS_H_
-#define NET_GRPC_PHP_GRPC_CHANNEL_CREDENTIALS_H_
+#ifndef NET_GRPC_PHP_GRPC_CREDENTIALS_H_
+#define NET_GRPC_PHP_GRPC_CREDENTIALS_H_
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -46,18 +46,18 @@
 #include "grpc/grpc.h"
 #include "grpc/grpc_security.h"
 
-/* Class entry for the ChannelCredentials PHP class */
-extern zend_class_entry *grpc_ce_channel_credentials;
+/* Class entry for the Credentials PHP class */
+extern zend_class_entry *grpc_ce_credentials;
 
-/* Wrapper struct for grpc_channel_credentials that can be associated
- * with a PHP object */
-typedef struct wrapped_grpc_channel_credentials {
+/* Wrapper struct for grpc_credentials that can be associated with a PHP
+ * object */
+typedef struct wrapped_grpc_credentials {
   zend_object std;
 
-  grpc_channel_credentials *wrapped;
-} wrapped_grpc_channel_credentials;
+  grpc_credentials *wrapped;
+} wrapped_grpc_credentials;
 
-/* Initializes the ChannelCredentials PHP class */
-void grpc_init_channel_credentials(TSRMLS_D);
+/* Initializes the Credentials PHP class */
+void grpc_init_credentials(TSRMLS_D);
 
-#endif /* NET_GRPC_PHP_GRPC_CHANNEL_CREDENTIALS_H_ */
+#endif /* NET_GRPC_PHP_GRPC_CREDENTIALS_H_ */

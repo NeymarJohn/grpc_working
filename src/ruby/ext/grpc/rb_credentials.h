@@ -31,33 +31,17 @@
  *
  */
 
-#ifndef NET_GRPC_PHP_GRPC_CALL_CREDENTIALS_H_
-#define NET_GRPC_PHP_GRPC_CALL_CREDENTIALS_H_
+#ifndef GRPC_RB_CREDENTIALS_H_
+#define GRPC_RB_CREDENTIALS_H_
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <ruby/ruby.h>
 
-#include "php.h"
-#include "php_ini.h"
-#include "ext/standard/info.h"
-#include "php_grpc.h"
+#include <grpc/grpc_security.h>
 
-#include "grpc/grpc.h"
-#include "grpc/grpc_security.h"
+/* Initializes the ruby Credentials class. */
+void Init_grpc_credentials();
 
-/* Class entry for the CallCredentials PHP class */
-extern zend_class_entry *grpc_ce_call_credentials;
+/* Gets the wrapped credentials from the ruby wrapper */
+grpc_credentials* grpc_rb_get_wrapped_credentials(VALUE v);
 
-/* Wrapper struct for grpc_call_credentials that can be associated
- * with a PHP object */
-typedef struct wrapped_grpc_call_credentials {
-  zend_object std;
-
-  grpc_call_credentials *wrapped;
-} wrapped_grpc_call_credentials;
-
-/* Initializes the CallCredentials PHP class */
-void grpc_init_call_credentials(TSRMLS_D);
-
-#endif /* NET_GRPC_PHP_GRPC_CALL_CREDENTIALS_H_ */
+#endif /* GRPC_RB_CREDENTIALS_H_ */

@@ -31,17 +31,23 @@
  *
  */
 
-#ifndef GRPC_RB_CREDENTIALS_H_
-#define GRPC_RB_CREDENTIALS_H_
+#ifndef GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H
+#define GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H
 
-#include <ruby/ruby.h>
+#include "src/core/iomgr/closure.h"
 
-#include <grpc/grpc_security.h>
+/** Initialize the global executor.
+ *
+ * This mechanism is meant to outsource work (grpc_closure instances) to a
+ * thread, for those cases where blocking isn't an option but there isn't a
+ * non-blocking solution available. */
+void grpc_executor_init();
 
-/* Initializes the ruby ChannelCredentials class. */
-void Init_grpc_channel_credentials();
+/** Enqueue \a closure for its eventual execution of \a f(arg) on a separate
+ * thread */
+void grpc_executor_enqueue(grpc_closure *closure, int success);
 
-/* Gets the wrapped credentials from the ruby wrapper */
-grpc_channel_credentials* grpc_rb_get_wrapped_channel_credentials(VALUE v);
+/** Shutdown the executor, running all pending work as part of the call */
+void grpc_executor_shutdown();
 
-#endif /* GRPC_RB_CREDENTIALS_H_ */
+#endif /* GRPC_INTERNAL_CORE_IOMGR_EXECUTOR_H */

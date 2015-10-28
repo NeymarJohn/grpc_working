@@ -36,31 +36,31 @@ using System.Threading.Tasks;
 namespace Grpc.Core.Internal
 {
     /// <summary>
-    /// grpc_channel_credentials from <c>grpc/grpc_security.h</c>
+    /// grpc_credentials from <c>grpc/grpc_security.h</c>
     /// </summary>
-    internal class ChannelCredentialsSafeHandle : SafeHandleZeroIsInvalid
+    internal class CredentialsSafeHandle : SafeHandleZeroIsInvalid
     {
         [DllImport("grpc_csharp_ext.dll", CharSet = CharSet.Ansi)]
-        static extern ChannelCredentialsSafeHandle grpcsharp_ssl_credentials_create(string pemRootCerts, string keyCertPairCertChain, string keyCertPairPrivateKey);
+        static extern CredentialsSafeHandle grpcsharp_ssl_credentials_create(string pemRootCerts, string keyCertPairCertChain, string keyCertPairPrivateKey);
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern ChannelCredentialsSafeHandle grpcsharp_composite_channel_credentials_create(ChannelCredentialsSafeHandle channelCreds, CallCredentialsSafeHandle callCreds);
+        static extern CredentialsSafeHandle grpcsharp_composite_credentials_create(CredentialsSafeHandle creds1, CredentialsSafeHandle creds2);
 
         [DllImport("grpc_csharp_ext.dll")]
-        static extern void grpcsharp_channel_credentials_release(IntPtr credentials);
+        static extern void grpcsharp_credentials_release(IntPtr credentials);
 
-        private ChannelCredentialsSafeHandle()
+        private CredentialsSafeHandle()
         {
         }
 
-        public static ChannelCredentialsSafeHandle CreateNullCredentials()
+        public static CredentialsSafeHandle CreateNullCredentials()
         {
-            var creds = new ChannelCredentialsSafeHandle();
+            var creds = new CredentialsSafeHandle();
             creds.SetHandle(IntPtr.Zero);
             return creds;
         }
 
-        public static ChannelCredentialsSafeHandle CreateSslCredentials(string pemRootCerts, KeyCertificatePair keyCertPair)
+        public static CredentialsSafeHandle CreateSslCredentials(string pemRootCerts, KeyCertificatePair keyCertPair)
         {
             if (keyCertPair != null)
             {
@@ -72,14 +72,14 @@ namespace Grpc.Core.Internal
             }
         }
 
-        public static ChannelCredentialsSafeHandle CreateComposite(ChannelCredentialsSafeHandle channelCreds, CallCredentialsSafeHandle callCreds)
+        public static CredentialsSafeHandle CreateComposite(CredentialsSafeHandle creds1, CredentialsSafeHandle creds2)
         {
-            return grpcsharp_composite_channel_credentials_create(channelCreds, callCreds);
+            return grpcsharp_composite_credentials_create(creds1, creds2);
         }
 
         protected override bool ReleaseHandle()
         {
-            grpcsharp_channel_credentials_release(handle);
+            grpcsharp_credentials_release(handle);
             return true;
         }
     }
