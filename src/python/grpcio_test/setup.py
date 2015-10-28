@@ -40,7 +40,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 # Break import-style to ensure we can actually find our commands module.
 import commands
 
-_PACKAGES = setuptools.find_packages('.', exclude=['*._cython', '*._cython.*'])
+_PACKAGES = setuptools.find_packages('.')
 
 _PACKAGE_DIRECTORIES = {
     '': '.',
@@ -77,7 +77,9 @@ _INSTALL_REQUIRES = (
 )
 
 _COMMAND_CLASS = {
-    'test': commands.RunTests
+    'test': commands.RunTests,
+    'build_proto_modules': commands.BuildProtoModules,
+    'build_py': commands.BuildPy,
 }
 
 setuptools.setup(
