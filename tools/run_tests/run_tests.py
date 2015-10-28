@@ -161,7 +161,7 @@ class CLanguage(object):
       if os.path.isfile(binary):
         out.append(config.job_spec([binary], [binary]))
       else:
-        print '\nWARNING: binary not found, skipping', binary
+        print "\nWARNING: binary not found, skipping", binary
     return sorted(out)
 
   def make_targets(self):
@@ -342,18 +342,10 @@ class CSharpLanguage(object):
       cmd = 'tools\\run_tests\\run_csharp.bat'
     else:
       cmd = 'tools/run_tests/run_csharp.sh'
-
-    if config.build_config == 'gcov' and self.platform == 'windows':
-      # For C# code coverage we need to:
-      # 1) Run all tests as one suite.
-      # 2) Need to be on Windows.
-      return [config.job_spec([cmd], None,
-              environ=_FORCE_ENVIRON_FOR_WRAPPERS)]
-    else:
-      return [config.job_spec([cmd, assembly],
-              None, shortname=assembly,
-              environ=_FORCE_ENVIRON_FOR_WRAPPERS)
-              for assembly in assemblies]
+    return [config.job_spec([cmd, assembly],
+            None, shortname=assembly,
+            environ=_FORCE_ENVIRON_FOR_WRAPPERS)
+            for assembly in assemblies]
 
   def pre_build_steps(self):
     if self.platform == 'windows':
@@ -524,7 +516,7 @@ def runs_per_test_type(arg_str):
         if n <= 0: raise ValueError
         return n
     except:
-        msg = '\'{}\' is not a positive integer or \'inf\''.format(arg_str)
+        msg = "'{}' isn't a positive integer or 'inf'".format(arg_str)
         raise argparse.ArgumentTypeError(msg)
 
 # parse command line
@@ -563,14 +555,14 @@ argp.add_argument('--use_docker',
                   default=False,
                   action='store_const',
                   const=True,
-                  help='Run all the tests under docker. That provides ' +
-                  'additional isolation and prevents the need to install ' +
-                  'language specific prerequisites. Only available on Linux.')
+                  help="Run all the tests under docker. That provides " +
+                  "additional isolation and prevents the need to install " +
+                  "language specific prerequisites. Only available on Linux.")
 argp.add_argument('--allow_flakes',
                   default=False,
                   action='store_const',
                   const=True,
-                  help='Allow flaky tests to show as passing (re-runs failed tests up to five times)')
+                  help="Allow flaky tests to show as passing (re-runs failed tests up to five times)")
 argp.add_argument('-a', '--antagonists', default=0, type=int)
 argp.add_argument('-x', '--xml_report', default=None, type=str,
         help='Generates a JUnit-compatible XML report')
@@ -586,7 +578,7 @@ if args.use_docker:
     time.sleep(5)
 
   child_argv = [ arg for arg in sys.argv if not arg == '--use_docker' ]
-  run_tests_cmd = 'tools/run_tests/run_tests.py %s' % ' '.join(child_argv[1:])
+  run_tests_cmd = 'tools/run_tests/run_tests.py %s' % " ".join(child_argv[1:])
 
   # TODO(jtattermusch): revisit if we need special handling for arch here
   # set arch command prefix in case we are working with different arch.
@@ -633,9 +625,9 @@ if platform.system() == 'Windows':
     # better do parallel compilation
     # empirically /m:2 gives the best performance/price and should prevent
     # overloading the windows workers.
-    extra_args.extend(['/m:2'])
+    extra_args.extend(["/m:2"])
     # disable PDB generation: it's broken, and we don't need it during CI
-    extra_args.extend(['/p:Jenkins=true'])
+    extra_args.extend(["/p:Jenkins=true"])
     return [
       jobset.JobSpec(['vsprojects\\build.bat',
                       'vsprojects\\%s.sln' % target,
@@ -810,10 +802,8 @@ def _build_and_run(
     check_cancelled, newline_on_success, travis, cache, xml_report=None):
   """Do one pass of building & running tests."""
   # build latest sequentially
-  num_failures, _ = jobset.run(
-      build_steps, maxjobs=1, stop_on_failure=True,
-      newline_on_success=newline_on_success, travis=travis)
-  if num_failures:
+  if not jobset.run(build_steps, maxjobs=1, stop_on_failure=True,
+                    newline_on_success=newline_on_success, travis=travis):
     return 1
 
   # start antagonists
@@ -847,14 +837,14 @@ def _build_and_run(
     root = ET.Element('testsuites') if xml_report else None
     testsuite = ET.SubElement(root, 'testsuite', id='1', package='grpc', name='tests') if xml_report else None
 
-    number_failures, _ = jobset.run(
-        all_runs, check_cancelled, newline_on_success=newline_on_success, 
-        travis=travis, infinite_runs=infinite_runs, maxjobs=args.jobs,
-        stop_on_failure=args.stop_on_failure, 
-        cache=cache if not xml_report else None,
-        xml_report=testsuite,
-        add_env={'GRPC_TEST_PORT_SERVER': 'localhost:%d' % port_server_port})
-    if number_failures:
+    if not jobset.run(all_runs, check_cancelled,
+                      newline_on_success=newline_on_success, travis=travis,
+                      infinite_runs=infinite_runs,
+                      maxjobs=args.jobs,
+                      stop_on_failure=args.stop_on_failure,
+                      cache=cache if not xml_report else None,
+                      xml_report=testsuite,
+                      add_env={'GRPC_TEST_PORT_SERVER': 'localhost:%d' % port_server_port}):
       return 2
   finally:
     for antagonist in antagonists:
@@ -863,10 +853,8 @@ def _build_and_run(
       tree = ET.ElementTree(root)
       tree.write(xml_report, encoding='UTF-8')
 
-  number_failures, _ = jobset.run(
-      post_tests_steps, maxjobs=1, stop_on_failure=True,
-      newline_on_success=newline_on_success, travis=travis)
-  if number_failures:
+  if not jobset.run(post_tests_steps, maxjobs=1, stop_on_failure=True,
+                    newline_on_success=newline_on_success, travis=travis):
     return 3
 
   if cache: cache.save()

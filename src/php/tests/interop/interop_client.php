@@ -33,6 +33,7 @@
  */
 require_once realpath(dirname(__FILE__) . '/../../vendor/autoload.php');
 require 'empty.php';
+require 'message_set.php';
 require 'messages.php';
 require 'test.php';
 use Google\Auth\CredentialsLoader;
