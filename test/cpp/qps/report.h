@@ -41,6 +41,7 @@
 #include <grpc++/support/config.h>
 
 #include "test/cpp/qps/driver.h"
+#include "test/cpp/qps/qpstest.grpc.pb.h"
 #include "test/cpp/qps/perf_db_client.h"
 
 namespace grpc {
