@@ -30,7 +30,6 @@
 from grpc._cython._cygrpc cimport call
 from grpc._cython._cygrpc cimport completion_queue
 from grpc._cython._cygrpc cimport credentials
-from grpc._cython._cygrpc cimport grpc
 from grpc._cython._cygrpc cimport records
 
 
@@ -50,17 +49,15 @@ cdef class Channel:
     else:
       raise TypeError("expected target to be str or bytes")
     if client_credentials is None:
-      self.c_channel = grpc.grpc_insecure_channel_create(target, c_arguments,
-                                                         NULL)
+      self.c_channel = grpc.grpc_channel_create(target, c_arguments)
     else:
       self.c_channel = grpc.grpc_secure_channel_create(
-          client_credentials.c_credentials, target, c_arguments, NULL)
+          client_credentials.c_credentials, target, c_arguments)
       self.references.append(client_credentials)
     self.references.append(target)
     self.references.append(arguments)
 
-  def create_call(self, call.Call parent, int flags,
-                  completion_queue.CompletionQueue queue not None,
+  def create_call(self, completion_queue.CompletionQueue queue not None,
                   method, host, records.Timespec deadline not None):
     if queue.is_shutting_down:
       raise ValueError("queue must not be shutting down or shutdown")
@@ -78,13 +75,8 @@ cdef class Channel:
       raise TypeError("expected host to be str or bytes")
     cdef call.Call operation_call = call.Call()
     operation_call.references = [self, method, host, queue]
-    cdef grpc.grpc_call *parent_call = NULL
-    if parent is not None:
-      parent_call = parent.c_call
     operation_call.c_call = grpc.grpc_channel_create_call(
-        self.c_channel, parent_call, flags,
-        queue.c_completion_queue, method, host, deadline.c_time,
-        NULL)
+        self.c_channel, queue.c_completion_queue, method, host, deadline.c_time)
     return operation_call
 
   def __dealloc__(self):

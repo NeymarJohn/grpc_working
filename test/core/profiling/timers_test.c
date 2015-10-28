@@ -35,34 +35,34 @@
 #include <stdlib.h>
 #include "test/core/util/test_config.h"
 
-void test_log_events(size_t num_seqs) {
-  size_t start = 0;
-  size_t *state;
+void test_log_events(int num_seqs) {
+  int start = 0;
+  int *state;
   state = calloc(num_seqs, sizeof(state[0]));
   while (start < num_seqs) {
-    size_t i;
-    size_t row;
+    int i;
+    int row;
     if (state[start] == 3) { /* Already done with this posn */
       start++;
       continue;
     }
 
-    row = (size_t)rand() % 10; /* how many in a row */
+    row = rand() % 10; /* how many in a row */
     for (i = start; (i < start + row) && (i < num_seqs); i++) {
-      size_t j;
-      size_t advance = 1 + (size_t)rand() % 3; /* how many to advance by */
+      int j;
+      int advance = 1 + rand() % 3; /* how many to advance by */
       for (j = 0; j < advance; j++) {
         switch (state[i]) {
           case 0:
-            GPR_TIMER_MARK(STATE_0, i);
+            GRPC_TIMER_MARK(STATE_0, i);
             state[i]++;
             break;
           case 1:
-            GPR_TIMER_MARK(STATE_1, i);
+            GRPC_TIMER_MARK(STATE_1, i);
             state[i]++;
             break;
           case 2:
-            GPR_TIMER_MARK(STATE_2, i);
+            GRPC_TIMER_MARK(STATE_2, i);
             state[i]++;
             break;
           case 3:
@@ -76,8 +76,8 @@ void test_log_events(size_t num_seqs) {
 
 int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
-  gpr_timers_global_init();
+  grpc_timers_global_init();
   test_log_events(1000000);
-  gpr_timers_global_destroy();
+  grpc_timers_global_destroy();
   return 0;
 }

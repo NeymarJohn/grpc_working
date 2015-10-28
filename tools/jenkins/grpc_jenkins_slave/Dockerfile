@@ -32,7 +32,7 @@
 
 FROM debian:jessie
 
-# Install Git and basic packages.
+# Install Git.
 RUN apt-get update && apt-get install -y \
   autoconf \
   autotools-dev \
@@ -43,8 +43,6 @@ RUN apt-get update && apt-get install -y \
   gcc \
   gcc-multilib \
   git \
-  gyp \
-  lcov \
   libc6 \
   libc6-dbg \
   libc6-dev \
@@ -101,7 +99,7 @@ ENV NUGET mono /var/local/NuGet.exe
 # Install nvm
 RUN touch .profile
 RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.25.4/install.sh | bash
-RUN /bin/bash -l -c "nvm install 0.12 && npm config set cache /tmp/npm-cache"
+RUN /bin/bash -l -c "nvm install 0.12"
 
 ##################
 # Ruby dependencies
@@ -126,11 +124,10 @@ RUN /bin/bash -l -c "gem install bundler --no-ri --no-rdoc"
 RUN apt-get update && apt-get install -y \
     python-all-dev \
     python3-all-dev \
-    python-pip
+    python-pip \
+    python-virtualenv
 
 # Install Python packages from PyPI
-RUN pip install pip --upgrade
-RUN pip install virtualenv
 RUN pip install futures==2.2.0 enum34==1.0.4 protobuf==3.0.0a2
 
 # For sanity test
@@ -157,12 +154,6 @@ RUN apt-get update && apt-get install -y \
 
 RUN apt-get install -y libzookeeper-mt-dev
 
-##################
-# Docker "inception".
-# Note this is quite the ugly hack.
-# This makes sure that the docker binary we inject has its dependencies.
-RUN curl https://get.docker.com/ | sh
-RUN apt-get remove --purge -y docker-engine
 
 RUN mkdir /var/local/jenkins
 
