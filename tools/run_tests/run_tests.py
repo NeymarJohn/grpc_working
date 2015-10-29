@@ -342,10 +342,18 @@ class CSharpLanguage(object):
       cmd = 'tools\\run_tests\\run_csharp.bat'
     else:
       cmd = 'tools/run_tests/run_csharp.sh'
-    return [config.job_spec([cmd, assembly],
-            None, shortname=assembly,
-            environ=_FORCE_ENVIRON_FOR_WRAPPERS)
-            for assembly in assemblies]
+
+    if config.build_config == 'gcov':
+      # On Windows, we only collect C# code coverage.
+      # On Linux, we only collect coverage for native extension.
+      # For code coverage all tests need to run as one suite.
+      return [config.job_spec([cmd], None,
+              environ=_FORCE_ENVIRON_FOR_WRAPPERS)]
+    else:
+      return [config.job_spec([cmd, assembly],
+              None, shortname=assembly,
+              environ=_FORCE_ENVIRON_FOR_WRAPPERS)
+              for assembly in assemblies]
 
   def pre_build_steps(self):
     if self.platform == 'windows':
@@ -411,8 +419,8 @@ class ObjCLanguage(object):
 class Sanity(object):
 
   def test_specs(self, config, travis):
-    return [config.job_spec('tools/run_tests/run_sanity.sh', None),
-            config.job_spec('tools/run_tests/check_sources_and_headers.py', None)]
+    return [config.job_spec(['tools/run_tests/run_sanity.sh'], None),
+            config.job_spec(['tools/run_tests/check_sources_and_headers.py'], None)]
 
   def pre_build_steps(self):
     return []
@@ -448,6 +456,9 @@ class Build(object):
     return ['static']
 
   def build_steps(self):
+    return []
+
+  def post_tests_steps(self):
     return []
 
   def makefile_name(self):
@@ -637,13 +648,16 @@ if platform.system() == 'Windows':
       for target in targets]
 else:
   def make_jobspec(cfg, targets, makefile='Makefile'):
-    return [jobset.JobSpec([os.getenv('MAKE', 'make'),
-                            '-f', makefile,
-                            '-j', '%d' % (multiprocessing.cpu_count() + 1),
-                            'EXTRA_DEFINES=GRPC_TEST_SLOWDOWN_MACHINE_FACTOR=%f' %
-                                args.slowdown,
-                            'CONFIG=%s' % cfg] + targets,
-                           timeout_seconds=30*60)]
+    if targets:
+      return [jobset.JobSpec([os.getenv('MAKE', 'make'),
+                              '-f', makefile,
+                              '-j', '%d' % (multiprocessing.cpu_count() + 1),
+                              'EXTRA_DEFINES=GRPC_TEST_SLOWDOWN_MACHINE_FACTOR=%f' %
+                              args.slowdown,
+                              'CONFIG=%s' % cfg] + targets,
+                             timeout_seconds=30*60)]
+    else:
+      return []
 make_targets = {}
 for l in languages:
   makefile = l.makefile_name()
@@ -839,14 +853,14 @@ def _build_and_run(
     root = ET.Element('testsuites') if xml_report else None
     testsuite = ET.SubElement(root, 'testsuite', id='1', package='grpc', name='tests') if xml_report else None
 
-    if not jobset.run(all_runs, check_cancelled,
-                      newline_on_success=newline_on_success, travis=travis,
-                      infinite_runs=infinite_runs,
-                      maxjobs=args.jobs,
-                      stop_on_failure=args.stop_on_failure,
-                      cache=cache if not xml_report else None,
-                      xml_report=testsuite,
-                      add_env={'GRPC_TEST_PORT_SERVER': 'localhost:%d' % port_server_port}):
+    number_failures, _ = jobset.run(
+        all_runs, check_cancelled, newline_on_success=newline_on_success,
+        travis=travis, infinite_runs=infinite_runs, maxjobs=args.jobs,
+        stop_on_failure=args.stop_on_failure,
+        cache=cache if not xml_report else None,
+        xml_report=testsuite,
+        add_env={'GRPC_TEST_PORT_SERVER': 'localhost:%d' % port_server_port})
+    if number_failures:
       return 2
   finally:
     for antagonist in antagonists:
@@ -855,8 +869,10 @@ def _build_and_run(
       tree = ET.ElementTree(root)
       tree.write(xml_report, encoding='UTF-8')
 
-  if not jobset.run(post_tests_steps, maxjobs=1, stop_on_failure=True,
-                    newline_on_success=newline_on_success, travis=travis):
+  number_failures, _ = jobset.run(
+      post_tests_steps, maxjobs=1, stop_on_failure=True,
+      newline_on_success=newline_on_success, travis=travis)
+  if number_failures:
     return 3
 
   if cache: cache.save()
