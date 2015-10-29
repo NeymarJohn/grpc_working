@@ -32,8 +32,6 @@
  */
 
 /**
- * This module contains functions that are common to client and server
- * code. None of them should be used directly by gRPC users.
  * @module
  */
 
