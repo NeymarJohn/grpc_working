@@ -31,13 +31,15 @@
  *
  */
 
+// Repeat of the tests in InteropTests.m, but sending the RPCs to a local SSL server instead of the
+// remote one.
+
 #import <GRPCClient/GRPCCall+Tests.h>
 
 #import "InteropTests.h"
 
 static NSString * const kLocalSSLHost = @"localhost:5051";
 
-/** Tests in InteropTests.m, sending the RPCs to a local SSL server. */
 @interface InteropTestsLocalSSL : InteropTests
 @end
 
