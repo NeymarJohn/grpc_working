@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,16 +27,38 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -ex
+"""Common code for unit tests of the interoperability test code."""
 
-# change to grpc repo root
-cd $(dirname $0)/../..
+from grpc_interop import methods
 
-ROOT=`pwd`
-GRPCIO_TEST=$ROOT/src/python/grpcio_test
-export LD_LIBRARY_PATH=$ROOT/libs/$CONFIG
-export DYLD_LIBRARY_PATH=$ROOT/libs/$CONFIG
-export PATH=$ROOT/bins/$CONFIG:$ROOT/bins/$CONFIG/protobuf:$PATH
-source "python"$PYVER"_virtual_environment"/bin/activate
 
-"python"$PYVER $GRPCIO_TEST/setup.py test -a "-n8 --cov=grpc --junitxml=./report.xml --timeout=300 -v --boxed --timeout_method=thread"
+class InteropTestCase(object):
+  """Unit test methods.
+
+  This class must be mixed in with unittest.TestCase and a class that defines
+  setUp and tearDown methods that manage a stub attribute.
+  """
+
+  def testEmptyUnary(self):
+    methods.TestCase.EMPTY_UNARY.test_interoperability(self.stub, None)
+
+  def testLargeUnary(self):
+    methods.TestCase.LARGE_UNARY.test_interoperability(self.stub, None)
+
+  def testServerStreaming(self):
+    methods.TestCase.SERVER_STREAMING.test_interoperability(self.stub, None)
+
+  def testClientStreaming(self):
+    methods.TestCase.CLIENT_STREAMING.test_interoperability(self.stub, None)
+
+  def testPingPong(self):
+    methods.TestCase.PING_PONG.test_interoperability(self.stub, None)
+
+  def testCancelAfterBegin(self):
+    methods.TestCase.CANCEL_AFTER_BEGIN.test_interoperability(self.stub, None)
+
+  def testCancelAfterFirstResponse(self):
+    methods.TestCase.CANCEL_AFTER_FIRST_RESPONSE.test_interoperability(self.stub, None)
+
+  def testTimeoutOnSleepingServer(self):
+    methods.TestCase.TIMEOUT_ON_SLEEPING_SERVER.test_interoperability(self.stub, None)

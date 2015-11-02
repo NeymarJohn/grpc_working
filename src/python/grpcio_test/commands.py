@@ -27,32 +27,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Provides distutils command classes for the GRPC Python setup process."""
+"""Provides distutils command classes for the GRPC Python test setup process."""
 
+import distutils
 import os
 import os.path
+import subprocess
 import sys
 
 import setuptools
 from setuptools.command import build_py
 
-_CONF_PY_ADDENDUM = """
-extensions.append('sphinx.ext.napoleon')
-napoleon_google_docstring = True
-napoleon_numpy_docstring = True
 
-html_theme = 'sphinx_rtd_theme'
-"""
-
-
-class SphinxDocumentation(setuptools.Command):
-  """Command to generate documentation via sphinx."""
+class RunTests(setuptools.Command):
+  """Command to run all tests via py.test."""
 
   description = ''
-  user_options = []
+  user_options = [('pytest-args=', 'a', 'arguments to pass to py.test')]
 
   def initialize_options(self):
-    pass
+    self.pytest_args = []
 
   def finalize_options(self):
     pass
@@ -60,24 +54,16 @@ class SphinxDocumentation(setuptools.Command):
   def run(self):
     # We import here to ensure that setup.py has had a chance to install the
     # relevant package eggs first.
-    import sphinx
-    import sphinx.apidoc
-    metadata = self.distribution.metadata
-    src_dir = os.path.join(
-        os.getcwd(), self.distribution.package_dir[''], 'grpc')
-    sys.path.append(src_dir)
-    sphinx.apidoc.main([
-        '', '--force', '--full', '-H', metadata.name, '-A', metadata.author,
-        '-V', metadata.version, '-R', metadata.version,
-        '-o', os.path.join('doc', 'src'), src_dir])
-    conf_filepath = os.path.join('doc', 'src', 'conf.py')
-    with open(conf_filepath, 'a') as conf_file:
-      conf_file.write(_CONF_PY_ADDENDUM)
-    sphinx.main(['', os.path.join('doc', 'src'), os.path.join('doc', 'build')])
+    import pytest
+
+    self.run_command('build_proto_modules')
+    result = pytest.main(self.pytest_args)
+    if result != 0:
+      raise SystemExit(result)
 
 
-class BuildProjectMetadata(setuptools.Command):
-  """Command to generate project metadata in a module."""
+class BuildProtoModules(setuptools.Command):
+  """Command to generate project *_pb2.py modules from proto files."""
 
   description = ''
   user_options = []
@@ -86,17 +72,35 @@ class BuildProjectMetadata(setuptools.Command):
     pass
 
   def finalize_options(self):
-    pass
+    self.protoc_command = distutils.spawn.find_executable('protoc')
+    self.grpc_python_plugin_command = distutils.spawn.find_executable(
+        'grpc_python_plugin')
 
   def run(self):
-    with open('grpc/_grpcio_metadata.py', 'w') as module_file:
-      module_file.write('__version__ = """{}"""'.format(
-          self.distribution.get_version()))
+    paths = []
+    root_directory = os.getcwd()
+    for walk_root, directories, filenames in os.walk(root_directory):
+      for filename in filenames:
+        if filename.endswith('.proto'):
+          paths.append(os.path.join(walk_root, filename))
+    command = [
+        self.protoc_command,
+        '--plugin=protoc-gen-python-grpc={}'.format(
+            self.grpc_python_plugin_command),
+        '-I {}'.format(root_directory),
+        '--python_out={}'.format(root_directory),
+        '--python-grpc_out={}'.format(root_directory),
+    ] + paths
+    try:
+      subprocess.check_output(' '.join(command), cwd=root_directory, shell=True,
+                              stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+      raise Exception('{}\nOutput:\n{}'.format(e.message, e.output))
 
 
 class BuildPy(build_py.build_py):
   """Custom project build command."""
 
   def run(self):
-    self.run_command('build_project_metadata')
+    self.run_command('build_proto_modules')
     build_py.build_py.run(self)

@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,16 +27,68 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -ex
+"""A setup module for the GRPC Python interop testing package."""
 
-# change to grpc repo root
-cd $(dirname $0)/../..
+import os
+import os.path
 
-ROOT=`pwd`
-GRPCIO_TEST=$ROOT/src/python/grpcio_test
-export LD_LIBRARY_PATH=$ROOT/libs/$CONFIG
-export DYLD_LIBRARY_PATH=$ROOT/libs/$CONFIG
-export PATH=$ROOT/bins/$CONFIG:$ROOT/bins/$CONFIG/protobuf:$PATH
-source "python"$PYVER"_virtual_environment"/bin/activate
+import setuptools
 
-"python"$PYVER $GRPCIO_TEST/setup.py test -a "-n8 --cov=grpc --junitxml=./report.xml --timeout=300 -v --boxed --timeout_method=thread"
+# Ensure we're in the proper directory whether or not we're being used by pip.
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+# Break import-style to ensure we can actually find our commands module.
+import commands
+
+_PACKAGES = setuptools.find_packages('.')
+
+_PACKAGE_DIRECTORIES = {
+    '': '.',
+}
+
+_PACKAGE_DATA = {
+    'grpc_interop': [
+        'credentials/ca.pem',
+        'credentials/server1.key',
+        'credentials/server1.pem',
+    ],
+    'grpc_protoc_plugin': [
+        'test.proto',
+    ],
+    'grpc_test': [
+        'credentials/ca.pem',
+        'credentials/server1.key',
+        'credentials/server1.pem',
+    ],
+}
+
+_SETUP_REQUIRES = (
+    'pytest>=2.6',
+    'pytest-cov>=2.0',
+    'pytest-xdist>=1.11',
+    'pytest-timeout>=0.5',
+)
+
+_INSTALL_REQUIRES = (
+    'oauth2client>=1.4.7',
+    'grpcio>=0.11.0b0',
+    # TODO(issue 3321): Unpin protobuf dependency.
+    'protobuf==3.0.0a3',
+)
+
+_COMMAND_CLASS = {
+    'test': commands.RunTests,
+    'build_proto_modules': commands.BuildProtoModules,
+    'build_py': commands.BuildPy,
+}
+
+setuptools.setup(
+    name='grpcio_test',
+    version='0.11.0b0',
+    packages=_PACKAGES,
+    package_dir=_PACKAGE_DIRECTORIES,
+    package_data=_PACKAGE_DATA,
+    install_requires=_INSTALL_REQUIRES + _SETUP_REQUIRES,
+    setup_requires=_SETUP_REQUIRES,
+    cmdclass=_COMMAND_CLASS,
+)

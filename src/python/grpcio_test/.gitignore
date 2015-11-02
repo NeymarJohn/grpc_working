@@ -5,5 +5,8 @@ dist/
 *.egg
 *.egg/
 *.eggs/
-doc/
-_grpcio_metadata.py
+*_pb2.py
+.coverage
+.coverage.*
+.cache/
+nosetests.xml

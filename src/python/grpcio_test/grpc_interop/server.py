@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,16 +27,49 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -ex
+"""The Python implementation of the GRPC interoperability test server."""
 
-# change to grpc repo root
-cd $(dirname $0)/../..
+import argparse
+import logging
+import time
 
-ROOT=`pwd`
-GRPCIO_TEST=$ROOT/src/python/grpcio_test
-export LD_LIBRARY_PATH=$ROOT/libs/$CONFIG
-export DYLD_LIBRARY_PATH=$ROOT/libs/$CONFIG
-export PATH=$ROOT/bins/$CONFIG:$ROOT/bins/$CONFIG/protobuf:$PATH
-source "python"$PYVER"_virtual_environment"/bin/activate
+from grpc.beta import implementations
 
-"python"$PYVER $GRPCIO_TEST/setup.py test -a "-n8 --cov=grpc --junitxml=./report.xml --timeout=300 -v --boxed --timeout_method=thread"
+from grpc_interop import methods
+from grpc_interop import resources
+from grpc_interop import test_pb2
+
+_ONE_DAY_IN_SECONDS = 60 * 60 * 24
+
+
+def serve():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+      '--port', help='the port on which to serve', type=int)
+  parser.add_argument(
+      '--use_tls', help='require a secure connection',
+      default=False, type=resources.parse_bool)
+  args = parser.parse_args()
+
+  server = test_pb2.beta_create_TestService_server(methods.TestService())
+  if args.use_tls:
+    private_key = resources.private_key()
+    certificate_chain = resources.certificate_chain()
+    credentials = implementations.ssl_server_credentials(
+        [(private_key, certificate_chain)])
+    server.add_secure_port('[::]:{}'.format(args.port), credentials)
+  else:
+    server.add_insecure_port('[::]:{}'.format(args.port))
+
+  server.start()
+  logging.info('Server serving.')
+  try:
+    while True:
+      time.sleep(_ONE_DAY_IN_SECONDS)
+  except BaseException as e:
+    logging.info('Caught exception "%s"; stopping server...', e)
+    server.stop()
+    logging.info('Server stopped; exiting.')
+
+if __name__ == '__main__':
+  serve()
