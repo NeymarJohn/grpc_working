@@ -1,3 +1,4 @@
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -31,23 +32,72 @@
 // of unary/streaming requests/responses.
 syntax = "proto3";
 
-import "test/proto/benchmarks/stats.proto";
-
 package grpc.testing;
 
+enum PayloadType {
+  // Compressable text format.
+  COMPRESSABLE = 0;
+
+  // Uncompressable binary format.
+  UNCOMPRESSABLE = 1;
+
+  // Randomly chosen from all other formats defined in this enum.
+  RANDOM = 2;
+}
+
+message StatsRequest {
+  // run number
+  int32 test_num = 1;
+}
+
+message ServerStats {
+  // wall clock time
+  double time_elapsed = 1;
+
+  // user time used by the server process and threads
+  double time_user = 2;
+
+  // server time used by the server process and all threads
+  double time_system = 3;
+}
+
+message Payload {
+  // The type of data in body.
+  PayloadType type = 1;
+  // Primary contents of payload.
+  bytes body = 2;
+}
+
+message HistogramData {
+  repeated uint32 bucket = 1;
+  double min_seen = 2;
+  double max_seen = 3;
+  double sum = 4;
+  double sum_of_squares = 5;
+  double count = 6;
+}
+
 enum ClientType {
-  SYNC_CLIENT = 0;
+  SYNCHRONOUS_CLIENT = 0;
   ASYNC_CLIENT = 1;
 }
 
 enum ServerType {
-  SYNC_SERVER = 0;
+  SYNCHRONOUS_SERVER = 0;
   ASYNC_SERVER = 1;
 }
 
 enum RpcType {
   UNARY = 0;
   STREAMING = 1;
+}
+
+enum LoadType {
+  CLOSED_LOOP = 0;
+  POISSON = 1;
+  UNIFORM = 2;
+  DETERMINISTIC = 3;
+  PARETO = 4;
 }
 
 message PoissonParams {
@@ -68,23 +118,19 @@ message ParetoParams {
   double alpha = 2;
 }
 
-message ClosedLoopParams {
-}
-
 message LoadParams {
   oneof load {
-    ClosedLoopParams closed_loop = 1;
-    PoissonParams poisson = 2;
-    UniformParams uniform = 3;
-    DeterministicParams determ = 4;
-    ParetoParams pareto = 5;
+    PoissonParams poisson = 1;
+    UniformParams uniform = 2;
+    DeterministicParams determ = 3;
+    ParetoParams pareto = 4;
   };
 }
 
 message ClientConfig {
   repeated string server_targets = 1;
   ClientType client_type = 2;
-  bool use_tls = 3;
+  bool enable_ssl = 3;
   int32 outstanding_rpcs_per_channel = 4;
   int32 client_channels = 5;
   int32 payload_size = 6;
@@ -92,16 +138,12 @@ message ClientConfig {
   int32 async_client_threads = 7;
   RpcType rpc_type = 8;
   string host = 9;
+  LoadType load_type = 10;
   LoadParams load_params = 11;
-}
-
-message ClientStatus {
-  ClientStats stats = 1;
 }
 
 // Request current stats
 message Mark {
-  bool reset = 1;
 }
 
 message ClientArgs {
@@ -111,12 +153,22 @@ message ClientArgs {
   }
 }
 
+message ClientStats {
+  HistogramData latencies = 1;
+  double time_elapsed = 2;
+  double time_user = 3;
+  double time_system = 4;
+}
+
+message ClientStatus {
+  ClientStats stats = 1;
+}
+
 message ServerConfig {
   ServerType server_type = 1;
   int32 threads = 2;
-  bool use_tls = 3;
+  bool enable_ssl = 3;
   string host = 4;
-  int32 port = 5;
 }
 
 message ServerArgs {
@@ -129,4 +181,38 @@ message ServerArgs {
 message ServerStatus {
   ServerStats stats = 1;
   int32 port = 2;
+}
+
+message SimpleRequest {
+  // Desired payload type in the response from the server.
+  // If response_type is RANDOM, server randomly chooses one from other formats.
+  PayloadType response_type = 1;
+
+  // Desired payload size in the response from the server.
+  // If response_type is COMPRESSABLE, this denotes the size before compression.
+  int32 response_size = 2;
+
+  // Optional input payload sent along with the request.
+  Payload payload = 3;
+}
+
+message SimpleResponse {
+  Payload payload = 1;
+}
+
+service TestService {
+  // One request followed by one response.
+  // The server returns the client payload as-is.
+  rpc UnaryCall(SimpleRequest) returns (SimpleResponse);
+
+  // One request followed by one response.
+  // The server returns the client payload as-is.
+  rpc StreamingCall(stream SimpleRequest) returns (stream SimpleResponse);
+}
+
+service Worker {
+  // Start test with specified workload
+  rpc RunTest(stream ClientArgs) returns (stream ClientStatus);
+  // Start test with specified workload
+  rpc RunServer(stream ServerArgs) returns (stream ServerStatus);
 }
