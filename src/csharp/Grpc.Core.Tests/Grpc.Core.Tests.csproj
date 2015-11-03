@@ -88,7 +88,6 @@
     <Compile Include="CompressionTest.cs" />
     <Compile Include="ContextPropagationTest.cs" />
     <Compile Include="MetadataTest.cs" />
-    <Compile Include="PerformanceTest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -31,42 +31,46 @@
  *
  */
 
-#include "src/core/iomgr/exec_ctx.h"
+#include "src/core/transport/byte_stream.h"
+
+#include <stdlib.h>
 
 #include <grpc/support/log.h>
 
-#include "src/core/profiling/timers.h"
-
-int grpc_exec_ctx_flush(grpc_exec_ctx *exec_ctx) {
-  int did_something = 0;
-  GPR_TIMER_BEGIN("grpc_exec_ctx_flush", 0);
-  while (!grpc_closure_list_empty(exec_ctx->closure_list)) {
-    grpc_closure *c = exec_ctx->closure_list.head;
-    exec_ctx->closure_list.head = exec_ctx->closure_list.tail = NULL;
-    while (c != NULL) {
-      int success = (int)(c->final_data & 1);
-      grpc_closure *next = (grpc_closure *)(c->final_data & ~(gpr_uintptr)1);
-      did_something++;
-      GPR_TIMER_BEGIN("grpc_exec_ctx_flush.cb", 0);
-      c->cb(exec_ctx, c->cb_arg, success);
-      GPR_TIMER_END("grpc_exec_ctx_flush.cb", 0);
-      c = next;
-    }
-  }
-  GPR_TIMER_END("grpc_exec_ctx_flush", 0);
-  return did_something;
+int grpc_byte_stream_next(grpc_exec_ctx *exec_ctx,
+                          grpc_byte_stream *byte_stream, gpr_slice *slice,
+                          size_t max_size_hint, grpc_closure *on_complete) {
+  return byte_stream->next(exec_ctx, byte_stream, slice, max_size_hint,
+                           on_complete);
 }
 
-void grpc_exec_ctx_finish(grpc_exec_ctx *exec_ctx) {
-  grpc_exec_ctx_flush(exec_ctx);
+void grpc_byte_stream_destroy(grpc_byte_stream *byte_stream) {
+  byte_stream->destroy(byte_stream);
 }
 
-void grpc_exec_ctx_enqueue(grpc_exec_ctx *exec_ctx, grpc_closure *closure,
-                           int success) {
-  grpc_closure_list_add(&exec_ctx->closure_list, closure, success);
+/* slice_buffer_stream */
+
+static int slice_buffer_stream_next(grpc_exec_ctx *exec_ctx,
+                                    grpc_byte_stream *byte_stream,
+                                    gpr_slice *slice, size_t max_size_hint,
+                                    grpc_closure *on_complete) {
+  grpc_slice_buffer_stream *stream = (grpc_slice_buffer_stream *)byte_stream;
+  GPR_ASSERT(stream->cursor < stream->backing_buffer->count);
+  *slice = gpr_slice_ref(stream->backing_buffer->slices[stream->cursor]);
+  stream->cursor++;
+  return 1;
 }
 
-void grpc_exec_ctx_enqueue_list(grpc_exec_ctx *exec_ctx,
-                                grpc_closure_list *list) {
-  grpc_closure_list_move(list, &exec_ctx->closure_list);
+static void slice_buffer_stream_destroy(grpc_byte_stream *byte_stream) {}
+
+void grpc_slice_buffer_stream_init(grpc_slice_buffer_stream *stream,
+                                   gpr_slice_buffer *slice_buffer,
+                                   gpr_uint32 flags) {
+  GPR_ASSERT(slice_buffer->length <= GPR_UINT32_MAX);
+  stream->base.length = (gpr_uint32)slice_buffer->length;
+  stream->base.flags = flags;
+  stream->base.next = slice_buffer_stream_next;
+  stream->base.destroy = slice_buffer_stream_destroy;
+  stream->backing_buffer = slice_buffer;
+  stream->cursor = 0;
 }
