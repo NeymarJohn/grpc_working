@@ -34,36 +34,22 @@
 #ifndef TEST_QPS_SERVER_H
 #define TEST_QPS_SERVER_H
 
-#include <grpc/support/cpu.h>
-
-#include "test/core/util/port.h"
 #include "test/cpp/qps/timer.h"
-#include "test/proto/messages.grpc.pb.h"
-#include "test/proto/benchmarks/control.grpc.pb.h"
+#include "test/proto/qpstest.grpc.pb.h"
 
 namespace grpc {
 namespace testing {
 
 class Server {
  public:
-  explicit Server(const ServerConfig& config) : timer_(new Timer) {
-    if (config.port()) {
-      port_ = config.port();
-    } else {
-      port_ = grpc_pick_unused_port_or_die();
-    }
-  }
+  Server() : timer_(new Timer) {}
   virtual ~Server() {}
 
-  ServerStats Mark(bool reset) {
-    Timer::Result timer_result;
-    if (reset) {
-      std::unique_ptr<Timer> timer(new Timer);
-      timer.swap(timer_);
-      timer_result = timer->Mark();
-    } else {
-      timer_result = timer_->Mark();
-    }
+  ServerStats Mark() {
+    std::unique_ptr<Timer> timer(new Timer);
+    timer.swap(timer_);
+
+    auto timer_result = timer->Mark();
 
     ServerStats stats;
     stats.set_time_elapsed(timer_result.wall);
@@ -84,15 +70,13 @@ class Server {
     return true;
   }
 
-  int Port() const {return port_;}
-  int Cores() const {return gpr_cpu_num_cores();}
  private:
-  int port_;
   std::unique_ptr<Timer> timer_;
 };
 
-std::unique_ptr<Server> CreateSynchronousServer(const ServerConfig& config);
-std::unique_ptr<Server> CreateAsyncServer(const ServerConfig& config);
+std::unique_ptr<Server> CreateSynchronousServer(const ServerConfig& config,
+                                                int port);
+std::unique_ptr<Server> CreateAsyncServer(const ServerConfig& config, int port);
 
 }  // namespace testing
 }  // namespace grpc

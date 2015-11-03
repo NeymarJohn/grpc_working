@@ -44,7 +44,7 @@ class Timer {
     double system;
   };
 
-  Result Mark() const;
+  Result Mark();
 
   static double Now();
 

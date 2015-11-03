@@ -40,8 +40,8 @@
 #include "test/cpp/qps/histogram.h"
 #include "test/cpp/qps/interarrival.h"
 #include "test/cpp/qps/timer.h"
+#include "test/proto/qpstest.grpc.pb.h"
 #include "test/cpp/util/create_test_channel.h"
-#include "test/proto/benchmarks/services.grpc.pb.h"
 
 namespace grpc {
 
@@ -80,31 +80,22 @@ class Client {
   }
   virtual ~Client() {}
 
-  ClientStats Mark(bool reset) {
+  ClientStats Mark() {
     Histogram latencies;
-    Timer::Result timer_result;
-
     // avoid std::vector for old compilers that expect a copy constructor
-    if (reset) {
-      Histogram* to_merge = new Histogram[threads_.size()];
-      for (size_t i = 0; i < threads_.size(); i++) {
-	threads_[i]->BeginSwap(&to_merge[i]);
-      }
-      std::unique_ptr<Timer> timer(new Timer);
-      timer_.swap(timer);
-      for (size_t i = 0; i < threads_.size(); i++) {
-	threads_[i]->EndSwap();
-	latencies.Merge(to_merge[i]);
-      }
-      delete[] to_merge;
-      timer_result = timer->Mark();
-    } else {
-      // merge snapshots of each thread histogram
-      for (size_t i = 0; i < threads_.size(); i++) {
-	threads_[i]->MergeStatsInto(&latencies);
-      }
-      timer_result = timer_->Mark();
+    Histogram* to_merge = new Histogram[threads_.size()];
+    for (size_t i = 0; i < threads_.size(); i++) {
+      threads_[i]->BeginSwap(&to_merge[i]);
     }
+    std::unique_ptr<Timer> timer(new Timer);
+    timer_.swap(timer);
+    for (size_t i = 0; i < threads_.size(); i++) {
+      threads_[i]->EndSwap();
+      latencies.Merge(&to_merge[i]);
+    }
+    delete[] to_merge;
+
+    auto timer_result = timer->Mark();
 
     ClientStats stats;
     latencies.FillProto(stats.mutable_latencies());
@@ -131,15 +122,15 @@ class Client {
       // We have to use a 2-phase init like this with a default
       // constructor followed by an initializer function to make
       // old compilers happy with using this in std::vector
-      channel_ = CreateTestChannel(target, config.use_tls());
-      stub_ = BenchmarkService::NewStub(channel_);
+      channel_ = CreateTestChannel(target, config.enable_ssl());
+      stub_ = TestService::NewStub(channel_);
     }
     Channel* get_channel() { return channel_.get(); }
-    BenchmarkService::Stub* get_stub() { return stub_.get(); }
+    TestService::Stub* get_stub() { return stub_.get(); }
 
    private:
     std::shared_ptr<Channel> channel_;
-    std::unique_ptr<BenchmarkService::Stub> stub_;
+    std::unique_ptr<TestService::Stub> stub_;
   };
   std::vector<ClientChannelInfo> channels_;
 
@@ -155,34 +146,37 @@ class Client {
 
   void SetupLoadTest(const ClientConfig& config, size_t num_threads) {
     // Set up the load distribution based on the number of threads
-    const auto& load = config.load_params();
-
-    std::unique_ptr<RandomDist> random_dist;
-    if (load.has_poisson()) {
-      random_dist.reset(new ExpDist(load.poisson().offered_load() /
-				    num_threads));
-    } else if (load.has_uniform()) {
-      random_dist.reset(new UniformDist(load.uniform().interarrival_lo() *
-					num_threads,
-					load.uniform().interarrival_hi() *
-					num_threads));
-    } else if (load.has_determ()) {
-      random_dist.reset(new DetDist(num_threads / load.determ().offered_load()));
-    } else if (load.has_pareto()) {
-      random_dist.reset(new ParetoDist(load.pareto().interarrival_base() * num_threads,
-				       load.pareto().alpha()));
-    } else if (load.has_closed_loop()) {
-      // Closed-loop doesn't use random dist at all
-    } else { // invalid load type
-      GPR_ASSERT(false);
-    }
-
-    // Set closed_loop_ based on whether or not random_dist is set
-    if (!random_dist) {
+    if (config.load_type() == CLOSED_LOOP) {
       closed_loop_ = true;
     } else {
       closed_loop_ = false;
-      // set up interarrival timer according to random dist
+
+      std::unique_ptr<RandomDist> random_dist;
+      const auto& load = config.load_params();
+      switch (config.load_type()) {
+        case POISSON:
+          random_dist.reset(
+              new ExpDist(load.poisson().offered_load() / num_threads));
+          break;
+        case UNIFORM:
+          random_dist.reset(
+              new UniformDist(load.uniform().interarrival_lo() * num_threads,
+                              load.uniform().interarrival_hi() * num_threads));
+          break;
+        case DETERMINISTIC:
+          random_dist.reset(
+              new DetDist(num_threads / load.determ().offered_load()));
+          break;
+        case PARETO:
+          random_dist.reset(
+              new ParetoDist(load.pareto().interarrival_base() * num_threads,
+                             load.pareto().alpha()));
+          break;
+        default:
+          GPR_ASSERT(false);
+          break;
+      }
+
       interarrival_timer_.init(*random_dist, num_threads);
       for (size_t i = 0; i < num_threads; i++) {
         next_time_.push_back(
@@ -210,7 +204,7 @@ class Client {
    public:
     Thread(Client* client, size_t idx)
         : done_(false),
-          new_stats_(nullptr),
+          new_(nullptr),
           client_(client),
           idx_(idx),
           impl_(&Thread::ThreadFunc, this) {}
@@ -225,19 +219,14 @@ class Client {
 
     void BeginSwap(Histogram* n) {
       std::lock_guard<std::mutex> g(mu_);
-      new_stats_ = n;
+      new_ = n;
     }
 
     void EndSwap() {
       std::unique_lock<std::mutex> g(mu_);
-      while (new_stats_ != nullptr) {
+      while (new_ != nullptr) {
         cv_.wait(g);
       };
-    }
-
-    void MergeStatsInto(Histogram* hist) {
-      std::unique_lock<std::mutex> g(mu_);
-      hist->Merge(histogram_);
     }
 
    private:
@@ -257,21 +246,21 @@ class Client {
         if (done_) {
           return;
         }
-        // check if we're resetting stats, swap out the histogram if so
-        if (new_stats_) {
-          new_stats_->Swap(&histogram_);
-          new_stats_ = nullptr;
+        // check if we're marking, swap out the histogram if so
+        if (new_) {
+          new_->Swap(&histogram_);
+          new_ = nullptr;
           cv_.notify_one();
         }
       }
     }
 
-    BenchmarkService::Stub* stub_;
+    TestService::Stub* stub_;
     ClientConfig config_;
     std::mutex mu_;
     std::condition_variable cv_;
     bool done_;
-    Histogram* new_stats_;
+    Histogram* new_;
     Histogram histogram_;
     Client* client_;
     size_t idx_;

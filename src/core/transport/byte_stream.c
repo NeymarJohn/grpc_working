@@ -31,60 +31,46 @@
  *
  */
 
-#include <signal.h>
+#include "src/core/transport/byte_stream.h"
 
-#include <set>
+#include <stdlib.h>
 
 #include <grpc/support/log.h>
 
-#include "test/cpp/qps/driver.h"
-#include "test/cpp/qps/report.h"
-#include "test/cpp/util/benchmark_config.h"
-
-extern "C" {
-#include "src/core/iomgr/pollset_posix.h"
+int grpc_byte_stream_next(grpc_exec_ctx *exec_ctx,
+                          grpc_byte_stream *byte_stream, gpr_slice *slice,
+                          size_t max_size_hint, grpc_closure *on_complete) {
+  return byte_stream->next(exec_ctx, byte_stream, slice, max_size_hint,
+                           on_complete);
 }
 
-namespace grpc {
-namespace testing {
-
-static const int WARMUP = 5;
-static const int BENCHMARK = 5;
-
-static void RunQPS() {
-  gpr_log(GPR_INFO, "Running QPS test");
-
-  ClientConfig client_config;
-  client_config.set_client_type(ASYNC_CLIENT);
-  client_config.set_enable_ssl(false);
-  client_config.set_outstanding_rpcs_per_channel(1000);
-  client_config.set_client_channels(8);
-  client_config.set_payload_size(1);
-  client_config.set_async_client_threads(8);
-  client_config.set_rpc_type(UNARY);
-
-  ServerConfig server_config;
-  server_config.set_server_type(ASYNC_SERVER);
-  server_config.set_enable_ssl(false);
-  server_config.set_threads(4);
-
-  const auto result =
-      RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
-
-  GetReporter()->ReportQPSPerCore(*result);
-  GetReporter()->ReportLatency(*result);
+void grpc_byte_stream_destroy(grpc_byte_stream *byte_stream) {
+  byte_stream->destroy(byte_stream);
 }
 
-}  // namespace testing
-}  // namespace grpc
+/* slice_buffer_stream */
 
-int main(int argc, char** argv) {
-  grpc::testing::InitBenchmark(&argc, &argv, true);
+static int slice_buffer_stream_next(grpc_exec_ctx *exec_ctx,
+                                    grpc_byte_stream *byte_stream,
+                                    gpr_slice *slice, size_t max_size_hint,
+                                    grpc_closure *on_complete) {
+  grpc_slice_buffer_stream *stream = (grpc_slice_buffer_stream *)byte_stream;
+  GPR_ASSERT(stream->cursor < stream->backing_buffer->count);
+  *slice = gpr_slice_ref(stream->backing_buffer->slices[stream->cursor]);
+  stream->cursor++;
+  return 1;
+}
 
-  grpc_platform_become_multipoller = grpc_poll_become_multipoller;
+static void slice_buffer_stream_destroy(grpc_byte_stream *byte_stream) {}
 
-  signal(SIGPIPE, SIG_IGN);
-  grpc::testing::RunQPS();
-
-  return 0;
+void grpc_slice_buffer_stream_init(grpc_slice_buffer_stream *stream,
+                                   gpr_slice_buffer *slice_buffer,
+                                   gpr_uint32 flags) {
+  GPR_ASSERT(slice_buffer->length <= GPR_UINT32_MAX);
+  stream->base.length = (gpr_uint32)slice_buffer->length;
+  stream->base.flags = flags;
+  stream->base.next = slice_buffer_stream_next;
+  stream->base.destroy = slice_buffer_stream_destroy;
+  stream->backing_buffer = slice_buffer;
+  stream->cursor = 0;
 }
