@@ -1,5 +1,3 @@
-#region Copyright notice and license
-
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -29,32 +27,36 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#endregion
+// An integration test service that covers all the method signature permutations
+// of unary/streaming requests/responses.
+syntax = "proto3";
 
-using System;
-using System.IO;
-using System.Threading;
-using Grpc.Core.Internal;
+package grpc.testing;
 
-namespace Grpc.Core.Profiling
-{
-    // Allows declaring Begin and End of a profiler scope with a using statement.
-    // declared as struct for better performance.
-    internal struct ProfilerScope : IDisposable
-    {
-        readonly IProfiler profiler;
-        readonly string tag;
+message ServerStats {
+  // wall clock time
+  double time_elapsed = 1;
 
-        public ProfilerScope(IProfiler profiler, string tag)
-        {
-            this.profiler = profiler;
-            this.tag = tag;
-            this.profiler.Begin(this.tag);
-        }
-            
-        public void Dispose()
-        {
-            profiler.End(tag);
-        }
-    }
+  // user time used by the server process and threads
+  double time_user = 2;
+
+  // server time used by the server process and all threads
+  double time_system = 3;
 }
+
+message HistogramData {
+  repeated uint32 bucket = 1;
+  double min_seen = 2;
+  double max_seen = 3;
+  double sum = 4;
+  double sum_of_squares = 5;
+  double count = 6;
+}
+
+message ClientStats {
+  HistogramData latencies = 1;
+  double time_elapsed = 2;
+  double time_user = 3;
+  double time_system = 4;
+}
+

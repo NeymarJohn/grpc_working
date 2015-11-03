@@ -31,30 +31,20 @@
  *
  */
 
-#ifndef QPS_WORKER_H
-#define QPS_WORKER_H
+#import <GRPCClient/GRPCCall+Tests.h>
 
-#include <memory>
+#import "InteropTests.h"
 
-namespace grpc {
+static NSString * const kRemoteSSLHost = @"grpc-test.sandbox.google.com";
 
-class Server;
+/** Tests in InteropTests.m, sending the RPCs to a remote SSL server. */
+@interface InteropTestsRemote : InteropTests
+@end
 
-namespace testing {
+@implementation InteropTestsRemote
 
-class WorkerServiceImpl;
++ (NSString *)host {
+  return kRemoteSSLHost;
+}
 
-class QpsWorker {
- public:
-  explicit QpsWorker(int driver_port);
-  ~QpsWorker();
-
- private:
-  std::unique_ptr<WorkerServiceImpl> impl_;
-  std::unique_ptr<Server> server_;
-};
-
-}  // namespace testing
-}  // namespace grpc
-
-#endif
+@end

@@ -102,9 +102,6 @@ namespace Grpc.Core.Internal
         /* Realtime clock */
         Realtime,
 
-        /* Precise clock good for performance profiling. */
-        Precise,
-
         /* Timespan - the distance between two time points */
         Timespan
     }
