@@ -31,64 +31,46 @@
  *
  */
 
-/* Posix implementation for gpr threads. */
+#include "src/core/transport/byte_stream.h"
 
-#include <grpc/support/port_platform.h>
-
-#ifdef GPR_POSIX_SYNC
-
-#include <pthread.h>
 #include <stdlib.h>
-#include <string.h>
-#include <grpc/support/alloc.h>
+
 #include <grpc/support/log.h>
-#include <grpc/support/thd.h>
-#include <grpc/support/useful.h>
 
-struct thd_arg {
-  void (*body)(void *arg); /* body of a thread */
-  void *arg;               /* argument to a thread */
-};
-
-/* Body of every thread started via gpr_thd_new. */
-static void *thread_body(void *v) {
-  struct thd_arg a = *(struct thd_arg *)v;
-  free(v);
-  (*a.body)(a.arg);
-  return NULL;
+int grpc_byte_stream_next(grpc_exec_ctx *exec_ctx,
+                          grpc_byte_stream *byte_stream, gpr_slice *slice,
+                          size_t max_size_hint, grpc_closure *on_complete) {
+  return byte_stream->next(exec_ctx, byte_stream, slice, max_size_hint,
+                           on_complete);
 }
 
-int gpr_thd_new(gpr_thd_id *t, void (*thd_body)(void *arg), void *arg,
-                const gpr_thd_options *options) {
-  int thread_started;
-  pthread_attr_t attr;
-  pthread_t p;
-  /* don't use gpr_malloc as we may cause an infinite recursion with
-   * the profiling code */
-  struct thd_arg *a = malloc(sizeof(*a));
-  GPR_ASSERT(a != NULL);
-  a->body = thd_body;
-  a->arg = arg;
-
-  GPR_ASSERT(pthread_attr_init(&attr) == 0);
-  if (gpr_thd_options_is_detached(options)) {
-    GPR_ASSERT(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) ==
-               0);
-  } else {
-    GPR_ASSERT(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE) ==
-               0);
-  }
-  thread_started = (pthread_create(&p, &attr, &thread_body, a) == 0);
-  GPR_ASSERT(pthread_attr_destroy(&attr) == 0);
-  if (!thread_started) {
-    free(a);
-  }
-  *t = (gpr_thd_id)p;
-  return thread_started;
+void grpc_byte_stream_destroy(grpc_byte_stream *byte_stream) {
+  byte_stream->destroy(byte_stream);
 }
 
-gpr_thd_id gpr_thd_currentid(void) { return (gpr_thd_id)pthread_self(); }
+/* slice_buffer_stream */
 
-void gpr_thd_join(gpr_thd_id t) { pthread_join((pthread_t)t, NULL); }
+static int slice_buffer_stream_next(grpc_exec_ctx *exec_ctx,
+                                    grpc_byte_stream *byte_stream,
+                                    gpr_slice *slice, size_t max_size_hint,
+                                    grpc_closure *on_complete) {
+  grpc_slice_buffer_stream *stream = (grpc_slice_buffer_stream *)byte_stream;
+  GPR_ASSERT(stream->cursor < stream->backing_buffer->count);
+  *slice = gpr_slice_ref(stream->backing_buffer->slices[stream->cursor]);
+  stream->cursor++;
+  return 1;
+}
 
-#endif /* GPR_POSIX_SYNC */
+static void slice_buffer_stream_destroy(grpc_byte_stream *byte_stream) {}
+
+void grpc_slice_buffer_stream_init(grpc_slice_buffer_stream *stream,
+                                   gpr_slice_buffer *slice_buffer,
+                                   gpr_uint32 flags) {
+  GPR_ASSERT(slice_buffer->length <= GPR_UINT32_MAX);
+  stream->base.length = (gpr_uint32)slice_buffer->length;
+  stream->base.flags = flags;
+  stream->base.next = slice_buffer_stream_next;
+  stream->base.destroy = slice_buffer_stream_destroy;
+  stream->backing_buffer = slice_buffer;
+  stream->cursor = 0;
+}

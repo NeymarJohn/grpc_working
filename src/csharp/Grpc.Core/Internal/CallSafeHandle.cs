@@ -34,7 +34,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Grpc.Core;
 using Grpc.Core.Utils;
-using Grpc.Core.Profiling;
 
 namespace Grpc.Core.Internal
 {
@@ -132,11 +131,8 @@ namespace Grpc.Core.Internal
 
         public void StartUnary(BatchContextSafeHandle ctx, byte[] payload, MetadataArraySafeHandle metadataArray, WriteFlags writeFlags)
         {
-            using (Profilers.ForCurrentThread().NewScope("CallSafeHandle.StartUnary"))
-            {
-                grpcsharp_call_start_unary(this, ctx, payload, new UIntPtr((ulong)payload.Length), metadataArray, writeFlags)
-                    .CheckOk();
-            }
+            grpcsharp_call_start_unary(this, ctx, payload, new UIntPtr((ulong)payload.Length), metadataArray, writeFlags)
+                .CheckOk();
         }
 
         public void StartClientStreaming(UnaryResponseClientHandler callback, MetadataArraySafeHandle metadataArray)
