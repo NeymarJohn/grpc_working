@@ -39,6 +39,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import xml.etree.cElementTree as ET
 
 
 _DEFAULT_MAX_JOBS = 16 * multiprocessing.cpu_count()
@@ -189,12 +190,14 @@ class JobResult(object):
 class Job(object):
   """Manages one job."""
 
-  def __init__(self, spec, bin_hash, newline_on_success, travis, add_env):
+  def __init__(self, spec, bin_hash, newline_on_success, travis, add_env, xml_report):
     self._spec = spec
     self._bin_hash = bin_hash
     self._newline_on_success = newline_on_success
     self._travis = travis
     self._add_env = add_env.copy()
+    self._xml_test = ET.SubElement(xml_report, 'testcase',
+                                   name=self._spec.shortname) if xml_report is not None else None
     self._retries = 0
     self._timeout_retries = 0
     self._suppress_failure_message = False
@@ -226,12 +229,15 @@ class Job(object):
       self._tempfile.seek(0)
       stdout = self._tempfile.read()
       filtered_stdout = _filter_stdout(stdout)
-      # TODO: looks like jenkins master is slow because parsing the junit 
-      # results XMLs is not implemented efficiently. This is an experiment to 
-      # workaround the issue by making sure results.xml file is small enough.
+      # TODO: looks like jenkins master is slow because parsing the junit results XMLs is not
+      # implemented efficiently. This is an experiment to workaround the issue by making sure
+      # results.xml file is small enough.
       filtered_stdout = filtered_stdout[-128:]
       self.result.message = filtered_stdout
       self.result.elapsed_time = elapsed
+      if self._xml_test is not None:
+        self._xml_test.set('time', str(elapsed))
+        ET.SubElement(self._xml_test, 'system-out').text = filtered_stdout
       if self._process.returncode != 0:
         if self._retries < self._spec.flake_retries:
           message('FLAKE', '%s [ret=%d, pid=%d]' % (
@@ -250,6 +256,8 @@ class Job(object):
           self.result.state = 'FAILED'
           self.result.num_failures += 1
           self.result.returncode = self._process.returncode
+          if self._xml_test is not None:
+            ET.SubElement(self._xml_test, 'failure', message='Failure')
       else:
         self._state = _SUCCESS
         message('PASSED', '%s [time=%.1fsec; retries=%d;%d]' % (
@@ -277,6 +285,9 @@ class Job(object):
         self.kill()
         self.result.state = 'TIMEOUT'
         self.result.num_failures += 1
+        if self._xml_test is not None:
+          ET.SubElement(self._xml_test, 'system-out').text = filtered_stdout
+          ET.SubElement(self._xml_test, 'error', message='Timeout')
     return self._state
 
   def kill(self):
@@ -294,7 +305,7 @@ class Jobset(object):
   """Manages one run of jobs."""
 
   def __init__(self, check_cancelled, maxjobs, newline_on_success, travis,
-               stop_on_failure, add_env, cache):
+               stop_on_failure, add_env, cache, xml_report):
     self._running = set()
     self._check_cancelled = check_cancelled
     self._cancelled = False
@@ -306,6 +317,7 @@ class Jobset(object):
     self._cache = cache
     self._stop_on_failure = stop_on_failure
     self._hashes = {}
+    self._xml_report = xml_report
     self._add_env = add_env
     self.resultset = {}
     
@@ -337,7 +349,8 @@ class Jobset(object):
                 bin_hash,
                 self._newline_on_success,
                 self._travis,
-                self._add_env)
+                self._add_env,
+                self._xml_report)
       self._running.add(job)
       self.resultset[job.GetSpec().shortname] = []
     return True
@@ -411,11 +424,13 @@ def run(cmdlines,
         infinite_runs=False,
         stop_on_failure=False,
         cache=None,
+        xml_report=None,
         add_env={}):
   js = Jobset(check_cancelled,
               maxjobs if maxjobs is not None else _DEFAULT_MAX_JOBS,
               newline_on_success, travis, stop_on_failure, add_env,
-              cache if cache is not None else NoCache())
+              cache if cache is not None else NoCache(),
+              xml_report)
   for cmdline in cmdlines:
     if not js.start(cmdline):
       break
