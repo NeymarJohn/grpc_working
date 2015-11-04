@@ -37,24 +37,22 @@
 #include <memory>
 
 #include "test/cpp/qps/histogram.h"
-#include "test/proto/benchmarks/control.grpc.pb.h"
+#include "test/cpp/qps/qpstest.grpc.pb.h"
 
 namespace grpc {
 namespace testing {
 class ResourceUsage {
  public:
-  ResourceUsage(double w, double u, double s, int c)
-      : wall_time_(w), user_time_(u), system_time_(s), cores_(c) {}
+  ResourceUsage(double w, double u, double s)
+      : wall_time_(w), user_time_(u), system_time_(s) {}
   double wall_time() const { return wall_time_; }
   double user_time() const { return user_time_; }
   double system_time() const { return system_time_; }
-  int cores() const { return cores_; }
 
  private:
   double wall_time_;
   double user_time_;
   double system_time_;
-  int cores_;
 };
 
 struct ScenarioResult {

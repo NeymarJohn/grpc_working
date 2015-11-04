@@ -86,13 +86,13 @@ end
 # creates SSL Credentials from the test certificates.
 def test_creds
   certs = load_test_certs
-  GRPC::Core::Credentials.new(certs[0])
+  GRPC::Core::ChannelCredentials.new(certs[0])
 end
 
 # creates SSL Credentials from the production certificates.
 def prod_creds
   cert_text = load_prod_cert
-  GRPC::Core::Credentials.new(cert_text)
+  GRPC::Core::ChannelCredentials.new(cert_text)
 end
 
 # creates the SSL Credentials.
@@ -255,12 +255,6 @@ class NamedTests
   def per_rpc_creds
     auth_creds = Google::Auth.get_application_default(@args.oauth_scope)
     kw = auth_creds.updater_proc.call({})
-
-    # TODO(jtattermusch): downcase the metadata keys here to make sure
-    # they are not rejected by C core. This is a hotfix that should
-    # be addressed by introducing auto-downcasing logic.
-    kw = Hash[ kw.each_pair.map { |k, v|  [k.downcase, v] }]
-
     resp = perform_large_unary(fill_username: true,
                                fill_oauth_scope: true,
                                **kw)
@@ -430,13 +424,12 @@ def parse_args
     test_case_list = test_cases.join(',')
     opts.on('--test_case CODE', test_cases, {}, 'select a test_case',
             "  (#{test_case_list})") { |v| args['test_case'] = v }
-    opts.on('--use_tls USE_TLS', ['false', 'true'],
-            'require a secure connection?') do |v|
-      args['secure'] = v == 'true'
+    opts.on('-s', '--use_tls', 'require a secure connection?') do |v|
+      args['secure'] = v
     end
-    opts.on('--use_test_ca USE_TEST_CA', ['false', 'true'],
+    opts.on('-t', '--use_test_ca',
             'if secure, use the test certificate?') do |v|
-      args['use_test_ca'] = v == 'true'
+      args['use_test_ca'] = v
     end
   end.parse!
   _check_args(args)
