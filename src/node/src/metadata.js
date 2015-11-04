@@ -33,15 +33,6 @@
 
 /**
  * Metadata module
- *
- * This module defines the Metadata class, which represents header and trailer
- * metadata for gRPC calls. Here is an example of how to use it:
- *
- * var metadata = new metadata_module.Metadata();
- * metadata.set('key1', 'value1');
- * metadata.add('key1', 'value2');
- * metadata.get('key1') // returns ['value1', 'value2']
- *
  * @module
  */
 
@@ -182,9 +173,7 @@ Metadata.prototype._getCoreRepresentation = function() {
 Metadata._fromCoreRepresentation = function(metadata) {
   var newMetadata = new Metadata();
   if (metadata) {
-    _.forOwn(metadata, function(value, key) {
-      newMetadata._internal_repr[key] = _.clone(value);
-    });
+    newMetadata._internal_repr = _.cloneDeep(metadata);
   }
   return newMetadata;
 };

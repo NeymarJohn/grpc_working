@@ -44,8 +44,7 @@ typedef struct grpc_cq_completion {
   void *tag;
   /** done callback - called when this queue element is no longer
       needed by the completion queue */
-  void (*done)(grpc_exec_ctx *exec_ctx, void *done_arg,
-               struct grpc_cq_completion *c);
+  void (*done)(void *done_arg, struct grpc_cq_completion *c);
   void *done_arg;
   /** next pointer; low bit is used to indicate success or not */
   gpr_uintptr next;
@@ -72,18 +71,13 @@ void grpc_cq_internal_unref(grpc_completion_queue *cc);
 void grpc_cq_begin_op(grpc_completion_queue *cc);
 
 /* Queue a GRPC_OP_COMPLETED operation */
-void grpc_cq_end_op(grpc_exec_ctx *exec_ctx, grpc_completion_queue *cc,
-                    void *tag, int success,
-                    void (*done)(grpc_exec_ctx *exec_ctx, void *done_arg,
-                                 grpc_cq_completion *storage),
+void grpc_cq_end_op(grpc_completion_queue *cc, void *tag, int success,
+                    void (*done)(void *done_arg, grpc_cq_completion *storage),
                     void *done_arg, grpc_cq_completion *storage);
 
 grpc_pollset *grpc_cq_pollset(grpc_completion_queue *cc);
 
 void grpc_cq_mark_server_cq(grpc_completion_queue *cc);
 int grpc_cq_is_server_cq(grpc_completion_queue *cc);
-
-void grpc_cq_global_init(void);
-void grpc_cq_global_shutdown(void);
 
 #endif /* GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H */

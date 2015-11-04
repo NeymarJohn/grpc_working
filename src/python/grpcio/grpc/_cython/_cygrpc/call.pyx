@@ -29,7 +29,6 @@
 
 cimport cpython
 
-from grpc._cython._cygrpc cimport grpc
 from grpc._cython._cygrpc cimport records
 
 
@@ -50,7 +49,7 @@ cdef class Call:
     cpython.Py_INCREF(operation_tag)
     return grpc.grpc_call_start_batch(
         self.c_call, cy_operations.c_ops, cy_operations.c_nops,
-        <cpython.PyObject *>operation_tag, NULL)
+        <cpython.PyObject *>operation_tag)
 
   def cancel(self,
              grpc.grpc_status_code error_code=grpc.GRPC_STATUS__DO_NOT_USE,
@@ -68,10 +67,9 @@ cdef class Call:
       raise TypeError("expected details to be str or bytes")
     if error_code != grpc.GRPC_STATUS__DO_NOT_USE:
       self.references.append(details)
-      return grpc.grpc_call_cancel_with_status(self.c_call, error_code, details,
-                                               NULL)
+      return grpc.grpc_call_cancel_with_status(self.c_call, error_code, details)
     else:
-      return grpc.grpc_call_cancel(self.c_call, NULL)
+      return grpc.grpc_call_cancel(self.c_call)
 
   def __dealloc__(self):
     if self.c_call != NULL:

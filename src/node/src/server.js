@@ -33,17 +33,6 @@
 
 /**
  * Server module
- *
- * This module contains all the server code for Node gRPC: both the Server
- * class itself and the method handler code for all types of methods.
- *
- * For example, to create a Server, add a service, and start it:
- *
- * var server = new server_module.Server();
- * server.addProtoService(protobuf_service_descriptor, service_implementation);
- * server.bind('address:port', server_credential);
- * server.start();
- *
  * @module
  */
 
@@ -51,7 +40,7 @@
 
 var _ = require('lodash');
 
-var grpc = require('bindings')('grpc_node');
+var grpc = require('bindings')('grpc.node');
 
 var common = require('./common');
 
@@ -608,6 +597,10 @@ function Server(options) {
       throw new Error('Server is already running');
     }
     this.started = true;
+    console.log('Server starting');
+    _.each(handlers, function(handler, handler_name) {
+      console.log('Serving', handler_name);
+    });
     server.start();
     /**
      * Handles the SERVER_RPC_NEW event. If there is a handler associated with
@@ -636,7 +629,7 @@ function Server(options) {
             (new Metadata())._getCoreRepresentation();
         batch[grpc.opType.SEND_STATUS_FROM_SERVER] = {
           code: grpc.status.UNIMPLEMENTED,
-          details: '',
+          details: 'This method is not available on this server.',
           metadata: {}
         };
         batch[grpc.opType.RECV_CLOSE_ON_SERVER] = true;
@@ -757,8 +750,8 @@ Server.prototype.addProtoService = function(service, implementation) {
  * Binds the server to the given port, with SSL enabled if creds is given
  * @param {string} port The port that the server should bind on, in the format
  *     "address:port"
- * @param {ServerCredentials=} creds Server credential object to be used for
- *     SSL. Pass an insecure credentials object for an insecure port.
+ * @param {boolean=} creds Server credential object to be used for SSL. Pass
+ *     nothing for an insecure port
  */
 Server.prototype.bind = function(port, creds) {
   if (this.started) {

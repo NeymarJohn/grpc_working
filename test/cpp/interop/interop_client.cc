@@ -46,7 +46,7 @@
 #include <grpc++/client_context.h>
 #include <grpc++/security/credentials.h>
 
-#include "src/core/transport/byte_stream.h"
+#include "src/core/transport/stream_op.h"
 #include "test/cpp/interop/client_helper.h"
 #include "test/proto/test.grpc.pb.h"
 #include "test/proto/empty.grpc.pb.h"
@@ -82,46 +82,8 @@ CompressionType GetInteropCompressionTypeFromCompressionAlgorithm(
 }
 }  // namespace
 
-InteropClient::ServiceStub::ServiceStub(std::shared_ptr<Channel> channel,
-                                        bool new_stub_every_call)
-    : channel_(channel), new_stub_every_call_(new_stub_every_call) {
-  // If new_stub_every_call is false, then this is our chance to initialize
-  // stub_. (see Get())
-  if (!new_stub_every_call) {
-    stub_ = TestService::NewStub(channel);
-  }
-}
-
-TestService::Stub* InteropClient::ServiceStub::Get() {
-  if (new_stub_every_call_) {
-    stub_ = TestService::NewStub(channel_);
-  }
-
-  return stub_.get();
-}
-
-void InteropClient::ServiceStub::Reset(std::shared_ptr<Channel> channel) {
-  channel_ = channel;
-
-  // Update stub_ as well. Note: If new_stub_every_call_ is true, we can reset
-  // the stub_ since the next call to Get() will create a new stub
-  if (new_stub_every_call_) {
-    stub_.reset();
-  } else {
-    stub_ = TestService::NewStub(channel);
-  }
-}
-
-void InteropClient::Reset(std::shared_ptr<Channel> channel) {
-  serviceStub_.Reset(channel);
-}
-
 InteropClient::InteropClient(std::shared_ptr<Channel> channel)
-    : serviceStub_(channel, true) {}
-
-InteropClient::InteropClient(std::shared_ptr<Channel> channel,
-                             bool new_stub_every_test_case)
-    : serviceStub_(channel, new_stub_every_test_case) {}
+    : channel_(channel) {}
 
 void InteropClient::AssertOkOrPrintErrorStatus(const Status& s) {
   if (s.ok()) {
@@ -134,12 +96,13 @@ void InteropClient::AssertOkOrPrintErrorStatus(const Status& s) {
 
 void InteropClient::DoEmpty() {
   gpr_log(GPR_INFO, "Sending an empty rpc...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   Empty request = Empty::default_instance();
   Empty response = Empty::default_instance();
   ClientContext context;
 
-  Status s = serviceStub_.Get()->EmptyCall(&context, request, &response);
+  Status s = stub->EmptyCall(&context, request, &response);
   AssertOkOrPrintErrorStatus(s);
 
   gpr_log(GPR_INFO, "Empty rpc done.");
@@ -148,6 +111,8 @@ void InteropClient::DoEmpty() {
 // Shared code to set large payload, make rpc and check response payload.
 void InteropClient::PerformLargeUnary(SimpleRequest* request,
                                       SimpleResponse* response) {
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
+
   ClientContext context;
   InteropClientContextInspector inspector(context);
   // If the request doesn't already specify the response type, default to
@@ -156,7 +121,7 @@ void InteropClient::PerformLargeUnary(SimpleRequest* request,
   grpc::string payload(kLargeRequestSize, '\0');
   request->mutable_payload()->set_body(payload.c_str(), kLargeRequestSize);
 
-  Status s = serviceStub_.Get()->UnaryCall(&context, *request, response);
+  Status s = stub->UnaryCall(&context, *request, response);
 
   // Compression related checks.
   GPR_ASSERT(request->response_compression() ==
@@ -222,39 +187,45 @@ void InteropClient::DoOauth2AuthToken(const grpc::string& username,
   SimpleResponse response;
   request.set_fill_username(true);
   request.set_fill_oauth_scope(true);
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
 
-  Status s = serviceStub_.Get()->UnaryCall(&context, request, &response);
+  Status s = stub->UnaryCall(&context, request, &response);
 
   AssertOkOrPrintErrorStatus(s);
   GPR_ASSERT(!response.username().empty());
   GPR_ASSERT(!response.oauth_scope().empty());
-  GPR_ASSERT(username == response.username());
+  GPR_ASSERT(username.find(response.username()) != grpc::string::npos);
   const char* oauth_scope_str = response.oauth_scope().c_str();
   GPR_ASSERT(oauth_scope.find(oauth_scope_str) != grpc::string::npos);
   gpr_log(GPR_INFO, "Unary with oauth2 access token credentials done.");
 }
 
-void InteropClient::DoPerRpcCreds(const grpc::string& json_key) {
-  gpr_log(GPR_INFO, "Sending a unary rpc with per-rpc JWT access token ...");
+void InteropClient::DoPerRpcCreds(const grpc::string& username,
+                                  const grpc::string& oauth_scope) {
+  gpr_log(GPR_INFO,
+          "Sending a unary rpc with per-rpc raw oauth2 access token ...");
   SimpleRequest request;
   SimpleResponse response;
   request.set_fill_username(true);
+  request.set_fill_oauth_scope(true);
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
-  std::chrono::seconds token_lifetime = std::chrono::hours(1);
-  std::shared_ptr<Credentials> creds =
-      ServiceAccountJWTAccessCredentials(json_key, token_lifetime.count());
-
+  grpc::string access_token = GetOauth2AccessToken();
+  std::shared_ptr<Credentials> creds = AccessTokenCredentials(access_token);
   context.set_credentials(creds);
 
-  Status s = serviceStub_.Get()->UnaryCall(&context, request, &response);
+  Status s = stub->UnaryCall(&context, request, &response);
 
   AssertOkOrPrintErrorStatus(s);
   GPR_ASSERT(!response.username().empty());
-  GPR_ASSERT(json_key.find(response.username()) != grpc::string::npos);
-  gpr_log(GPR_INFO, "Unary with per-rpc JWT access token done.");
+  GPR_ASSERT(!response.oauth_scope().empty());
+  GPR_ASSERT(username.find(response.username()) != grpc::string::npos);
+  const char* oauth_scope_str = response.oauth_scope().c_str();
+  GPR_ASSERT(oauth_scope.find(oauth_scope_str) != grpc::string::npos);
+  gpr_log(GPR_INFO, "Unary with per-rpc oauth2 access token done.");
 }
 
 void InteropClient::DoJwtTokenCreds(const grpc::string& username) {
@@ -302,13 +273,14 @@ void InteropClient::DoLargeCompressedUnary() {
 
 void InteropClient::DoRequestStreaming() {
   gpr_log(GPR_INFO, "Sending request steaming rpc ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   StreamingInputCallRequest request;
   StreamingInputCallResponse response;
 
   std::unique_ptr<ClientWriter<StreamingInputCallRequest>> stream(
-      serviceStub_.Get()->StreamingInputCall(&context, &response));
+      stub->StreamingInputCall(&context, &response));
 
   int aggregated_payload_size = 0;
   for (unsigned int i = 0; i < request_stream_sizes.size(); ++i) {
@@ -327,6 +299,7 @@ void InteropClient::DoRequestStreaming() {
 
 void InteropClient::DoResponseStreaming() {
   gpr_log(GPR_INFO, "Receiving response steaming rpc ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   StreamingOutputCallRequest request;
@@ -336,7 +309,7 @@ void InteropClient::DoResponseStreaming() {
   }
   StreamingOutputCallResponse response;
   std::unique_ptr<ClientReader<StreamingOutputCallResponse>> stream(
-      serviceStub_.Get()->StreamingOutputCall(&context, request));
+      stub->StreamingOutputCall(&context, request));
 
   unsigned int i = 0;
   while (stream->Read(&response)) {
@@ -351,6 +324,8 @@ void InteropClient::DoResponseStreaming() {
 }
 
 void InteropClient::DoResponseCompressedStreaming() {
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
+
   const CompressionType compression_types[] = {NONE, GZIP, DEFLATE};
   const PayloadType payload_types[] = {COMPRESSABLE, UNCOMPRESSABLE, RANDOM};
   for (size_t i = 0; i < GPR_ARRAY_SIZE(payload_types); i++) {
@@ -377,7 +352,7 @@ void InteropClient::DoResponseCompressedStreaming() {
       StreamingOutputCallResponse response;
 
       std::unique_ptr<ClientReader<StreamingOutputCallResponse>> stream(
-          serviceStub_.Get()->StreamingOutputCall(&context, request));
+          stub->StreamingOutputCall(&context, request));
 
       size_t k = 0;
       while (stream->Read(&response)) {
@@ -430,6 +405,7 @@ void InteropClient::DoResponseCompressedStreaming() {
 
 void InteropClient::DoResponseStreamingWithSlowConsumer() {
   gpr_log(GPR_INFO, "Receiving response steaming rpc with slow consumer ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   StreamingOutputCallRequest request;
@@ -440,7 +416,7 @@ void InteropClient::DoResponseStreamingWithSlowConsumer() {
   }
   StreamingOutputCallResponse response;
   std::unique_ptr<ClientReader<StreamingOutputCallResponse>> stream(
-      serviceStub_.Get()->StreamingOutputCall(&context, request));
+      stub->StreamingOutputCall(&context, request));
 
   int i = 0;
   while (stream->Read(&response)) {
@@ -459,11 +435,12 @@ void InteropClient::DoResponseStreamingWithSlowConsumer() {
 
 void InteropClient::DoHalfDuplex() {
   gpr_log(GPR_INFO, "Sending half-duplex streaming rpc ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   std::unique_ptr<ClientReaderWriter<StreamingOutputCallRequest,
                                      StreamingOutputCallResponse>>
-      stream(serviceStub_.Get()->HalfDuplexCall(&context));
+      stream(stub->HalfDuplexCall(&context));
 
   StreamingOutputCallRequest request;
   ResponseParameters* response_parameter = request.add_response_parameters();
@@ -488,11 +465,12 @@ void InteropClient::DoHalfDuplex() {
 
 void InteropClient::DoPingPong() {
   gpr_log(GPR_INFO, "Sending Ping Pong streaming rpc ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   std::unique_ptr<ClientReaderWriter<StreamingOutputCallRequest,
                                      StreamingOutputCallResponse>>
-      stream(serviceStub_.Get()->FullDuplexCall(&context));
+      stream(stub->FullDuplexCall(&context));
 
   StreamingOutputCallRequest request;
   request.set_response_type(PayloadType::COMPRESSABLE);
@@ -517,13 +495,14 @@ void InteropClient::DoPingPong() {
 
 void InteropClient::DoCancelAfterBegin() {
   gpr_log(GPR_INFO, "Sending request steaming rpc ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   StreamingInputCallRequest request;
   StreamingInputCallResponse response;
 
   std::unique_ptr<ClientWriter<StreamingInputCallRequest>> stream(
-      serviceStub_.Get()->StreamingInputCall(&context, &response));
+      stub->StreamingInputCall(&context, &response));
 
   gpr_log(GPR_INFO, "Trying to cancel...");
   context.TryCancel();
@@ -534,11 +513,12 @@ void InteropClient::DoCancelAfterBegin() {
 
 void InteropClient::DoCancelAfterFirstResponse() {
   gpr_log(GPR_INFO, "Sending Ping Pong streaming rpc ...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   std::unique_ptr<ClientReaderWriter<StreamingOutputCallRequest,
                                      StreamingOutputCallResponse>>
-      stream(serviceStub_.Get()->FullDuplexCall(&context));
+      stream(stub->FullDuplexCall(&context));
 
   StreamingOutputCallRequest request;
   request.set_response_type(PayloadType::COMPRESSABLE);
@@ -558,6 +538,7 @@ void InteropClient::DoCancelAfterFirstResponse() {
 
 void InteropClient::DoTimeoutOnSleepingServer() {
   gpr_log(GPR_INFO, "Sending Ping Pong streaming rpc with a short deadline...");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   std::chrono::system_clock::time_point deadline =
@@ -565,7 +546,7 @@ void InteropClient::DoTimeoutOnSleepingServer() {
   context.set_deadline(deadline);
   std::unique_ptr<ClientReaderWriter<StreamingOutputCallRequest,
                                      StreamingOutputCallResponse>>
-      stream(serviceStub_.Get()->FullDuplexCall(&context));
+      stream(stub->FullDuplexCall(&context));
 
   StreamingOutputCallRequest request;
   request.mutable_payload()->set_body(grpc::string(27182, '\0'));
@@ -576,23 +557,9 @@ void InteropClient::DoTimeoutOnSleepingServer() {
   gpr_log(GPR_INFO, "Pingpong streaming timeout done.");
 }
 
-void InteropClient::DoEmptyStream() {
-  gpr_log(GPR_INFO, "Starting empty_stream.");
-
-  ClientContext context;
-  std::unique_ptr<ClientReaderWriter<StreamingOutputCallRequest,
-                                     StreamingOutputCallResponse>>
-      stream(serviceStub_.Get()->FullDuplexCall(&context));
-  stream->WritesDone();
-  StreamingOutputCallResponse response;
-  GPR_ASSERT(stream->Read(&response) == false);
-  Status s = stream->Finish();
-  AssertOkOrPrintErrorStatus(s);
-  gpr_log(GPR_INFO, "empty_stream done.");
-}
-
 void InteropClient::DoStatusWithMessage() {
   gpr_log(GPR_INFO, "Sending RPC with a request for status code 2 and message");
+  std::unique_ptr<TestService::Stub> stub(TestService::NewStub(channel_));
 
   ClientContext context;
   SimpleRequest request;
@@ -602,7 +569,7 @@ void InteropClient::DoStatusWithMessage() {
   grpc::string test_msg = "This is a test message";
   requested_status->set_message(test_msg);
 
-  Status s = serviceStub_.Get()->UnaryCall(&context, request, &response);
+  Status s = stub->UnaryCall(&context, request, &response);
 
   GPR_ASSERT(s.error_code() == grpc::StatusCode::UNKNOWN);
   GPR_ASSERT(s.error_message() == test_msg);

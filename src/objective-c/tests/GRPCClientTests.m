@@ -42,6 +42,9 @@
 #import <RxLibrary/GRXWriteable.h>
 #import <RxLibrary/GRXWriter+Immediate.h>
 
+// These are a few tests similar to InteropTests, but which use the generic gRPC client (GRPCCall)
+// rather than a generated proto library on top of it.
+
 static NSString * const kHostAddress = @"localhost:5050";
 static NSString * const kPackage = @"grpc.testing";
 static NSString * const kService = @"TestService";
@@ -50,10 +53,11 @@ static ProtoMethod *kInexistentMethod;
 static ProtoMethod *kEmptyCallMethod;
 static ProtoMethod *kUnaryCallMethod;
 
-/** Observer class for testing that responseMetadata is KVO-compliant */
+// This is an observer class for testing that responseMetadata is KVO-compliant
+
 @interface PassthroughObserver : NSObject
-- (instancetype) initWithCallback:(void (^)(NSString*, id, NSDictionary*))callback
-    NS_DESIGNATED_INITIALIZER;
+
+- (instancetype) initWithCallback:(void (^)(NSString*, id, NSDictionary*))callback;
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change
                        context:(void *)context;
@@ -63,38 +67,23 @@ static ProtoMethod *kUnaryCallMethod;
   void (^_callback)(NSString*, id, NSDictionary*);
 }
 
-- (instancetype)init {
-  return [self initWithCallback:nil];
-}
-
 - (instancetype)initWithCallback:(void (^)(NSString *, id, NSDictionary *))callback {
-  if (!callback) {
-    return nil;
-  }
-  if ((self = [super init])) {
+  self = [super init];
+  if (self) {
     _callback = callback;
   }
   return self;
+  
 }
 
-- (void)observeValueForKeyPath:(NSString *)keyPath
-                      ofObject:(id)object
-                        change:(NSDictionary *)change
-                       context:(void *)context {
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
   _callback(keyPath, object, change);
   [object removeObserver:self forKeyPath:keyPath];
 }
 
 @end
 
-# pragma mark Tests
-
-/**
- * A few tests similar to InteropTests, but which use the generic gRPC client (GRPCCall) rather than
- * a generated proto library on top of it. Its RPCs are sent to a local cleartext server.
- *
- * TODO(jcanizales): Run them also against a local SSL server and against a remote server.
- */
 @interface GRPCClientTests : XCTestCase
 @end
 
@@ -191,7 +180,6 @@ static ProtoMethod *kUnaryCallMethod;
   [self waitForExpectationsWithTimeout:8 handler:nil];
 }
 
-// TODO(jcanizales): Activate this test against the remote server.
 - (void)testMetadata {
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"RPC unauthorized."];
 

@@ -39,7 +39,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core.Internal;
 using Grpc.Core.Logging;
-using Grpc.Core.Profiling;
 using Grpc.Core.Utils;
 
 namespace Grpc.Core.Internal
@@ -88,9 +87,6 @@ namespace Grpc.Core.Internal
         /// </summary>
         public TResponse UnaryCall(TRequest msg)
         {
-            var profiler = Profilers.ForCurrentThread();
-
-            using (profiler.NewScope("AsyncCall.UnaryCall"))
             using (CompletionQueueSafeHandle cq = CompletionQueueSafeHandle.Create())
             {
                 byte[] payload = UnsafeSerialize(msg);
@@ -108,26 +104,24 @@ namespace Grpc.Core.Internal
                 }
 
                 using (var metadataArray = MetadataArraySafeHandle.Create(details.Options.Headers))
-                using (var ctx = BatchContextSafeHandle.Create())
                 {
-                    call.StartUnary(ctx, payload, metadataArray, GetWriteFlagsForCall());
-
-                    var ev = cq.Pluck(ctx.Handle);
-
-                    bool success = (ev.success != 0);
-                    try
+                    using (var ctx = BatchContextSafeHandle.Create())
                     {
-                        using (profiler.NewScope("AsyncCall.UnaryCall.HandleBatch"))
+                        call.StartUnary(ctx, payload, metadataArray, GetWriteFlagsForCall());
+                        var ev = cq.Pluck(ctx.Handle);
+
+                        bool success = (ev.success != 0);
+                        try
                         {
                             HandleUnaryResponse(success, ctx.GetReceivedStatusOnClient(), ctx.GetReceivedMessage(), ctx.GetReceivedInitialMetadata());
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Error(e, "Exception occured while invoking completion delegate.");
+                        catch (Exception e)
+                        {
+                            Logger.Error(e, "Exception occured while invoking completion delegate.");
+                        }
                     }
                 }
-                    
+
                 // Once the blocking call returns, the result should be available synchronously.
                 // Note that GetAwaiter().GetResult() doesn't wrap exceptions in AggregateException.
                 return unaryResponseTcs.Task.GetAwaiter().GetResult();
@@ -335,36 +329,24 @@ namespace Grpc.Core.Internal
 
         private void Initialize(CompletionQueueSafeHandle cq)
         {
-            using (Profilers.ForCurrentThread().NewScope("AsyncCall.Initialize"))
-            { 
-                var call = CreateNativeCall(cq);
-
-                details.Channel.AddCallReference(this);
-                InitializeInternal(call);
-                RegisterCancellationCallback();
-            }
+            var call = CreateNativeCall(cq);
+            details.Channel.AddCallReference(this);
+            InitializeInternal(call);
+            RegisterCancellationCallback();
         }
 
         private INativeCall CreateNativeCall(CompletionQueueSafeHandle cq)
         {
-            using (Profilers.ForCurrentThread().NewScope("AsyncCall.CreateNativeCall"))
-            { 
-                if (injectedNativeCall != null)
-                {
-                    return injectedNativeCall;  // allows injecting a mock INativeCall in tests.
-                }
-
-                var parentCall = details.Options.PropagationToken != null ? details.Options.PropagationToken.ParentCall : CallSafeHandle.NullInstance;
-
-                var credentials = details.Options.Credentials;
-                using (var nativeCredentials = credentials != null ? credentials.ToNativeCredentials() : null)
-                {
-                    var result = details.Channel.Handle.CreateCall(environment.CompletionRegistry,
-                                 parentCall, ContextPropagationToken.DefaultMask, cq,
-                                 details.Method, details.Host, Timespec.FromDateTime(details.Options.Deadline.Value), nativeCredentials);
-                    return result;
-                }
+            if (injectedNativeCall != null)
+            {
+                return injectedNativeCall;  // allows injecting a mock INativeCall in tests.
             }
+
+            var parentCall = details.Options.PropagationToken != null ? details.Options.PropagationToken.ParentCall : CallSafeHandle.NullInstance;
+
+            return details.Channel.Handle.CreateCall(environment.CompletionRegistry,
+                parentCall, ContextPropagationToken.DefaultMask, cq,
+                details.Method, details.Host, Timespec.FromDateTime(details.Options.Deadline.Value));
         }
 
         // Make sure that once cancellationToken for this call is cancelled, Cancel() will be called.
@@ -399,37 +381,33 @@ namespace Grpc.Core.Internal
         /// </summary>
         private void HandleUnaryResponse(bool success, ClientSideStatus receivedStatus, byte[] receivedMessage, Metadata responseHeaders)
         {
-            using (Profilers.ForCurrentThread().NewScope("AsyncCall.HandleUnaryResponse"))
+            TResponse msg = default(TResponse);
+            var deserializeException = success ? TryDeserialize(receivedMessage, out msg) : null;
+
+            lock (myLock)
             {
-                TResponse msg = default(TResponse);
-                var deserializeException = success ? TryDeserialize(receivedMessage, out msg) : null;
+                finished = true;
 
-                lock (myLock)
+                if (deserializeException != null && receivedStatus.Status.StatusCode == StatusCode.OK)
                 {
-                    finished = true;
-
-                    if (deserializeException != null && receivedStatus.Status.StatusCode == StatusCode.OK)
-                    {
-                        receivedStatus = new ClientSideStatus(DeserializeResponseFailureStatus, receivedStatus.Trailers);
-                    }
-                    finishedStatus = receivedStatus;
-
-                    ReleaseResourcesIfPossible();
-
+                    receivedStatus = new ClientSideStatus(DeserializeResponseFailureStatus, receivedStatus.Trailers);
                 }
+                finishedStatus = receivedStatus;
 
-                responseHeadersTcs.SetResult(responseHeaders);
-
-                var status = receivedStatus.Status;
-
-                if (!success || status.StatusCode != StatusCode.OK)
-                {
-                    unaryResponseTcs.SetException(new RpcException(status));
-                    return;
-                }
-
-                unaryResponseTcs.SetResult(msg);
+                ReleaseResourcesIfPossible();
             }
+
+            responseHeadersTcs.SetResult(responseHeaders);
+
+            var status = receivedStatus.Status;
+
+            if (!success || status.StatusCode != StatusCode.OK)
+            {
+                unaryResponseTcs.SetException(new RpcException(status));
+                return;
+            }
+
+            unaryResponseTcs.SetResult(msg);
         }
 
         /// <summary>

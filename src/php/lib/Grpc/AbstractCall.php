@@ -31,79 +31,65 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-
 namespace Grpc;
 
-abstract class AbstractCall
-{
-    protected $call;
-    protected $deserialize;
-    protected $metadata;
+abstract class AbstractCall {
 
-    /**
-     * Create a new Call wrapper object.
-     *
-     * @param Channel         $channel     The channel to communicate on
-     * @param string          $method      The method to call on the
-     *                                     remote server
-     * @param callback        $deserialize A callback function to deserialize
-     *                                     the response
-     * @param (optional) long $timeout     Timeout in microseconds
-     */
-    public function __construct(Channel $channel,
-                                $method,
-                                $deserialize,
-                                $timeout = false)
-    {
-        if ($timeout) {
-            $now = Timeval::now();
-            $delta = new Timeval($timeout);
-            $deadline = $now->add($delta);
-        } else {
-            $deadline = Timeval::infFuture();
-        }
-        $this->call = new Call($channel, $method, $deadline);
-        $this->deserialize = $deserialize;
-        $this->metadata = null;
+  protected $call;
+  protected $deserialize;
+  protected $metadata;
+
+  /**
+   * Create a new Call wrapper object.
+   * @param Channel $channel The channel to communicate on
+   * @param string $method The method to call on the remote server
+   * @param callback $deserialize A callback function to deserialize
+   * the response
+   * @param (optional) long $timeout Timeout in microseconds
+   */
+  public function __construct(Channel $channel, $method, $deserialize, $timeout = false) {
+    if ($timeout) {
+      $now = Timeval::now();
+      $delta = new Timeval($timeout);
+      $deadline = $now->add($delta);
+    } else {
+      $deadline = Timeval::infFuture();
     }
+    $this->call = new Call($channel, $method, $deadline);
+    $this->deserialize = $deserialize;
+    $this->metadata = null;
+  }
 
-    /**
-     * @return The metadata sent by the server.
-     */
-    public function getMetadata()
-    {
-        return $this->metadata;
+  /**
+   * @return The metadata sent by the server.
+   */
+  public function getMetadata() {
+    return $this->metadata;
+  }
+
+  /**
+   * @return string The URI of the endpoint.
+   */
+  public function getPeer() {
+    return $this->call->getPeer();
+  }
+
+  /**
+   * Cancels the call
+   */
+  public function cancel() {
+    $this->call->cancel();
+  }
+
+  /**
+   * Deserialize a response value to an object.
+   * @param string $value The binary value to deserialize
+   * @return The deserialized value
+   */
+  protected function deserializeResponse($value) {
+    if ($value === null) {
+      return null;
     }
-
-    /**
-     * @return string The URI of the endpoint.
-     */
-    public function getPeer()
-    {
-        return $this->call->getPeer();
-    }
-
-    /**
-     * Cancels the call.
-     */
-    public function cancel()
-    {
-        $this->call->cancel();
-    }
-
-    /**
-     * Deserialize a response value to an object.
-     *
-     * @param string $value The binary value to deserialize
-     *
-     * @return The deserialized value
-     */
-    protected function deserializeResponse($value)
-    {
-        if ($value === null) {
-            return;
-        }
-
-        return call_user_func($this->deserialize, $value);
-    }
+    return call_user_func($this->deserialize, $value);
+  }
 }

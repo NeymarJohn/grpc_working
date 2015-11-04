@@ -78,20 +78,21 @@
 
 #pragma mark Tests
 
+static NSString * const kRemoteSSLHost = @"grpc-test.sandbox.google.com";
+
 @implementation InteropTests {
   RMTTestService *_service;
 }
 
 + (NSString *)host {
-  return nil;
+  return kRemoteSSLHost;
 }
 
 - (void)setUp {
-  _service = self.class.host ? [RMTTestService serviceWithHost:self.class.host] : nil;
+  _service = [[RMTTestService alloc] initWithHost:self.class.host];
 }
 
 - (void)testEmptyUnaryRPC {
-  XCTAssertNotNil(self.class.host);
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"EmptyUnary"];
 
   RMTEmpty *request = [RMTEmpty message];
@@ -109,7 +110,6 @@
 }
 
 - (void)testLargeUnaryRPC {
-  XCTAssertNotNil(self.class.host);
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"LargeUnary"];
 
   RMTSimpleRequest *request = [RMTSimpleRequest message];
@@ -132,7 +132,6 @@
 }
 
 - (void)testClientStreamingRPC {
-  XCTAssertNotNil(self.class.host);
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"ClientStreaming"];
 
   RMTStreamingInputCallRequest *request1 = [RMTStreamingInputCallRequest message];
@@ -165,7 +164,6 @@
 }
 
 - (void)testServerStreamingRPC {
-  XCTAssertNotNil(self.class.host);
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"ServerStreaming"];
 
   NSArray *expectedSizes = @[@31415, @9, @2653, @58979];
@@ -202,7 +200,6 @@
 }
 
 - (void)testPingPongRPC {
-  XCTAssertNotNil(self.class.host);
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"PingPong"];
 
   NSArray *requests = @[@27182, @8, @1828, @45904];
@@ -246,7 +243,6 @@
 }
 
 - (void)testEmptyStreamRPC {
-  XCTAssertNotNil(self.class.host);
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"EmptyStream"];
   [_service fullDuplexCallWithRequestsWriter:[GRXWriter emptyWriter]
                                 eventHandler:^(BOOL done,
@@ -260,7 +256,6 @@
 }
 
 - (void)testCancelAfterBeginRPC {
-  XCTAssertNotNil(self.class.host);
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"CancelAfterBegin"];
 
   // A buffered pipe to which we never write any value acts as a writer that just hangs.
@@ -278,19 +273,18 @@
 }
 
 - (void)testCancelAfterFirstResponseRPC {
-  XCTAssertNotNil(self.class.host);
   __weak XCTestExpectation *expectation = [self expectationWithDescription:@"CancelAfterFirstResponse"];
-
+  
   // A buffered pipe to which we write a single value but never close
   GRXBufferedPipe *requestsBuffer = [[GRXBufferedPipe alloc] init];
-
+  
   __block BOOL receivedResponse = NO;
-
+  
   id request = [RMTStreamingOutputCallRequest messageWithPayloadSize:@21782
                                                requestedResponseSize:@31415];
-
+  
   [requestsBuffer writeValue:request];
-
+  
   __block ProtoRPC *call =
       [_service RPCToFullDuplexCallWithRequestsWriter:requestsBuffer
                                          eventHandler:^(BOOL done,

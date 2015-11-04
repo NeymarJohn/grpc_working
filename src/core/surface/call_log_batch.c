@@ -37,6 +37,8 @@
 #include <grpc/support/alloc.h>
 #include <grpc/support/string_util.h>
 
+int grpc_trace_batch = 0;
+
 static void add_metadata(gpr_strvec *b, const grpc_metadata *md, size_t count) {
   size_t i;
   for (i = 0; i < count; i++) {
@@ -110,6 +112,9 @@ void grpc_call_log_batch(char *file, int line, gpr_log_severity severity,
                          void *tag) {
   char *tmp;
   size_t i;
+  gpr_log(file, line, severity,
+          "grpc_call_start_batch(call=%p, ops=%p, nops=%d, tag=%p)", call, ops,
+          nops, tag);
   for (i = 0; i < nops; i++) {
     tmp = grpc_op_string(&ops[i]);
     gpr_log(file, line, severity, "ops[%d]: %s", i, tmp);
