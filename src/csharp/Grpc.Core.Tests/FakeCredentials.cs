@@ -57,7 +57,7 @@ namespace Grpc.Core.Tests
             get { return composable; }
         }
 
-        internal override ChannelCredentialsSafeHandle ToNativeCredentials()
+        internal override CredentialsSafeHandle ToNativeCredentials()
         {
             return null;
         }
@@ -65,7 +65,7 @@ namespace Grpc.Core.Tests
 
     internal class FakeCallCredentials : CallCredentials
     {
-        internal override CallCredentialsSafeHandle ToNativeCredentials()
+        internal override CredentialsSafeHandle ToNativeCredentials()
         {
             return null;
         }
