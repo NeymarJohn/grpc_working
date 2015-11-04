@@ -14649,8 +14649,16 @@
       "test/cpp/qps/stats.h", 
       "test/cpp/qps/timer.h", 
       "test/cpp/util/benchmark_config.h", 
-      "test/proto/qpstest.grpc.pb.h", 
-      "test/proto/qpstest.pb.h"
+      "test/proto/benchmarks/control.grpc.pb.h", 
+      "test/proto/benchmarks/control.pb.h", 
+      "test/proto/benchmarks/payloads.grpc.pb.h", 
+      "test/proto/benchmarks/payloads.pb.h", 
+      "test/proto/benchmarks/services.grpc.pb.h", 
+      "test/proto/benchmarks/services.pb.h", 
+      "test/proto/benchmarks/stats.grpc.pb.h", 
+      "test/proto/benchmarks/stats.pb.h", 
+      "test/proto/messages.grpc.pb.h", 
+      "test/proto/messages.pb.h"
     ], 
     "language": "c++", 
     "name": "qps", 
