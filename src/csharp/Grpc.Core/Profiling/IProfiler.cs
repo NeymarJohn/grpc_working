@@ -1,3 +1,5 @@
+#region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,33 +29,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-syntax = "proto3";
+#endregion
 
-package grpc.testing;
+using System;
+using System.IO;
+using System.Threading;
+using Grpc.Core.Internal;
 
-message ServerStats {
-  // wall clock time
-  double time_elapsed = 1;
-
-  // user time used by the server process and threads
-  double time_user = 2;
-
-  // server time used by the server process and all threads
-  double time_system = 3;
-}
-
-message HistogramData {
-  repeated uint32 bucket = 1;
-  double min_seen = 2;
-  double max_seen = 3;
-  double sum = 4;
-  double sum_of_squares = 5;
-  double count = 6;
-}
-
-message ClientStats {
-  HistogramData latencies = 1;
-  double time_elapsed = 2;
-  double time_user = 3;
-  double time_system = 4;
+namespace Grpc.Core.Profiling
+{
+    internal interface IProfiler 
+    {
+        void Begin(string tag);
+        void End(string tag);
+        void Mark(string tag);
+    }
 }

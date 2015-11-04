@@ -1,3 +1,5 @@
+#region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,29 +29,59 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-syntax = "proto3";
+#endregion
 
-package grpc.testing;
+using System;
+using System.IO;
+using System.Threading;
+using Grpc.Core.Internal;
 
-message ByteBufferParams {
-  int32 req_size = 1;
-  int32 resp_size = 2;
-}
+namespace Grpc.Core.Profiling
+{
+    internal struct ProfilerEntry
+    {
+        public enum Type {
+            BEGIN,
+            END,
+            MARK
+        }
 
-message SimpleProtoParams {
-  int32 req_size = 1;
-  int32 resp_size = 2;
-}
+        public ProfilerEntry(Timespec timespec, Type type, string tag)
+        {
+            this.timespec = timespec;
+            this.type = type;
+            this.tag = tag;
+        }
 
-message ComplexProtoParams {
-  // TODO (vpai): Fill this in once the details of complex, representative
-  //              protos are decided
-}
+        public Timespec timespec;
+        public Type type;
+        public string tag;
 
-message PayloadConfig {
-  oneof payload {
-    ByteBufferParams bytebuf_params = 1;
-    SimpleProtoParams simple_params = 2;
-    ComplexProtoParams complex_params = 3;
-  }
+        public override string ToString()
+        {
+            // mimic the output format used by C core.
+            return string.Format(
+                "{{\"t\": {0}.{1}, \"thd\":\"unknown\", \"type\": \"{2}\", \"tag\": \"{3}\", " +
+                "\"file\": \"unknown\", \"line\": 0, \"imp\": 0}}",
+                timespec.TimevalSeconds, timespec.TimevalNanos.ToString("D9"),
+                GetTypeAbbreviation(type), tag);
+        }
+
+        internal static string GetTypeAbbreviation(Type type)
+        {
+            switch (type)
+            {
+                case Type.BEGIN:
+                    return "{";
+
+                case Type.END:
+                    return "}";
+                
+                case Type.MARK:
+                    return ".";
+                default:
+                    throw new ArgumentException("Unknown type");
+            }
+        }
+    }
 }
