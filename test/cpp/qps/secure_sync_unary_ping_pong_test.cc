@@ -41,37 +41,39 @@
 #include "test/cpp/qps/report.h"
 #include "test/cpp/util/benchmark_config.h"
 
-extern "C" {
-#include "src/core/iomgr/pollset_posix.h"
-}
-
 namespace grpc {
 namespace testing {
 
 static const int WARMUP = 5;
-static const int BENCHMARK = 5;
+static const int BENCHMARK = 10;
 
-static void RunQPS() {
-  gpr_log(GPR_INFO, "Running QPS test");
+static void RunSynchronousUnaryPingPong() {
+  gpr_log(GPR_INFO, "Running Synchronous Unary Ping Pong");
 
   ClientConfig client_config;
-  client_config.set_client_type(ASYNC_CLIENT);
-  client_config.set_enable_ssl(false);
-  client_config.set_outstanding_rpcs_per_channel(1000);
-  client_config.set_client_channels(8);
-  client_config.set_payload_size(1);
-  client_config.set_async_client_threads(8);
+  client_config.set_client_type(SYNC_CLIENT);
+  client_config.set_outstanding_rpcs_per_channel(1);
+  client_config.set_client_channels(1);
+  client_config.mutable_payload_config()
+      ->mutable_simple_params()
+      ->set_resp_size(1);
   client_config.set_rpc_type(UNARY);
+  client_config.mutable_load_params()->mutable_closed_loop();
 
   ServerConfig server_config;
-  server_config.set_server_type(ASYNC_SERVER);
-  server_config.set_enable_ssl(false);
-  server_config.set_threads(4);
+  server_config.set_server_type(SYNC_SERVER);
+
+  // Set up security params
+  SecurityParams security;
+  security.set_use_test_ca(true);
+  security.set_server_host_override("foo.test.google.fr");
+  client_config.mutable_security_params()->CopyFrom(security);
+  server_config.mutable_security_params()->CopyFrom(security);
 
   const auto result =
       RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
 
-  GetReporter()->ReportQPSPerCore(*result);
+  GetReporter()->ReportQPS(*result);
   GetReporter()->ReportLatency(*result);
 }
 
@@ -81,10 +83,8 @@ static void RunQPS() {
 int main(int argc, char** argv) {
   grpc::testing::InitBenchmark(&argc, &argv, true);
 
-  grpc_platform_become_multipoller = grpc_poll_become_multipoller;
-
   signal(SIGPIPE, SIG_IGN);
-  grpc::testing::RunQPS();
+  grpc::testing::RunSynchronousUnaryPingPong();
 
   return 0;
 }

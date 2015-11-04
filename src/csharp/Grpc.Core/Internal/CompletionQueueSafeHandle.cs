@@ -31,7 +31,6 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Grpc.Core.Profiling;
 
 namespace Grpc.Core.Internal
 {
@@ -71,10 +70,7 @@ namespace Grpc.Core.Internal
 
         public CompletionQueueEvent Pluck(IntPtr tag)
         {
-            using (Profilers.ForCurrentThread().NewScope("CompletionQueueSafeHandle.Pluck"))
-            {
-                return grpcsharp_completion_queue_pluck(this, tag);
-            }
+            return grpcsharp_completion_queue_pluck(this, tag);
         }
 
         public void Shutdown()
