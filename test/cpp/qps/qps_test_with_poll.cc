@@ -31,55 +31,60 @@
  *
  */
 
-#ifndef TEST_QPS_HISTOGRAM_H
-#define TEST_QPS_HISTOGRAM_H
+#include <signal.h>
 
-#include <grpc/support/histogram.h>
-#include "test/proto/qpstest.grpc.pb.h"
+#include <set>
+
+#include <grpc/support/log.h>
+
+#include "test/cpp/qps/driver.h"
+#include "test/cpp/qps/report.h"
+#include "test/cpp/util/benchmark_config.h"
+
+extern "C" {
+#include "src/core/iomgr/pollset_posix.h"
+}
 
 namespace grpc {
 namespace testing {
 
-class Histogram {
- public:
-  Histogram() : impl_(gpr_histogram_create(0.01, 60e9)) {}
-  ~Histogram() {
-    if (impl_) gpr_histogram_destroy(impl_);
-  }
-  Histogram(Histogram&& other) : impl_(other.impl_) { other.impl_ = nullptr; }
+static const int WARMUP = 5;
+static const int BENCHMARK = 5;
 
-  void Merge(Histogram* h) { gpr_histogram_merge(impl_, h->impl_); }
-  void Add(double value) { gpr_histogram_add(impl_, value); }
-  double Percentile(double pctile) const {
-    return gpr_histogram_percentile(impl_, pctile);
-  }
-  double Count() const { return gpr_histogram_count(impl_); }
-  void Swap(Histogram* other) { std::swap(impl_, other->impl_); }
-  void FillProto(HistogramData* p) {
-    size_t n;
-    const auto* data = gpr_histogram_get_contents(impl_, &n);
-    for (size_t i = 0; i < n; i++) {
-      p->add_bucket(data[i]);
-    }
-    p->set_min_seen(gpr_histogram_minimum(impl_));
-    p->set_max_seen(gpr_histogram_maximum(impl_));
-    p->set_sum(gpr_histogram_sum(impl_));
-    p->set_sum_of_squares(gpr_histogram_sum_of_squares(impl_));
-    p->set_count(gpr_histogram_count(impl_));
-  }
-  void MergeProto(const HistogramData& p) {
-    gpr_histogram_merge_contents(impl_, &*p.bucket().begin(), p.bucket_size(),
-                                 p.min_seen(), p.max_seen(), p.sum(),
-                                 p.sum_of_squares(), p.count());
-  }
+static void RunQPS() {
+  gpr_log(GPR_INFO, "Running QPS test");
 
- private:
-  Histogram(const Histogram&);
-  Histogram& operator=(const Histogram&);
+  ClientConfig client_config;
+  client_config.set_client_type(ASYNC_CLIENT);
+  client_config.set_enable_ssl(false);
+  client_config.set_outstanding_rpcs_per_channel(1000);
+  client_config.set_client_channels(8);
+  client_config.set_payload_size(1);
+  client_config.set_async_client_threads(8);
+  client_config.set_rpc_type(UNARY);
 
-  gpr_histogram* impl_;
-};
-}
+  ServerConfig server_config;
+  server_config.set_server_type(ASYNC_SERVER);
+  server_config.set_enable_ssl(false);
+  server_config.set_threads(4);
+
+  const auto result =
+      RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
+
+  GetReporter()->ReportQPSPerCore(*result);
+  GetReporter()->ReportLatency(*result);
 }
 
-#endif /* TEST_QPS_HISTOGRAM_H */
+}  // namespace testing
+}  // namespace grpc
+
+int main(int argc, char** argv) {
+  grpc::testing::InitBenchmark(&argc, &argv, true);
+
+  grpc_platform_become_multipoller = grpc_poll_become_multipoller;
+
+  signal(SIGPIPE, SIG_IGN);
+  grpc::testing::RunQPS();
+
+  return 0;
+}

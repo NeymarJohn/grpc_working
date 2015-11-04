@@ -1,3 +1,5 @@
+#region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,29 +29,32 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// An integration test service that covers all the method signature permutations
-// of unary/streaming requests/responses.
-syntax = "proto3";
+#endregion
 
-import "test/proto/messages.proto";
-import "test/proto/benchmarks/control.proto";
+using System;
+using System.IO;
+using System.Threading;
+using Grpc.Core.Internal;
 
-package grpc.testing;
+namespace Grpc.Core.Profiling
+{
+    // Allows declaring Begin and End of a profiler scope with a using statement.
+    // declared as struct for better performance.
+    internal struct ProfilerScope : IDisposable
+    {
+        readonly IProfiler profiler;
+        readonly string tag;
 
-service BenchmarkService {
-  // One request followed by one response.
-  // The server returns the client payload as-is.
-  rpc UnaryCall(SimpleRequest) returns (SimpleResponse);
-
-  // One request followed by one response.
-  // The server returns the client payload as-is.
-  rpc StreamingCall(stream SimpleRequest) returns (stream SimpleResponse);
-}
-
-service WorkerService {
-  // Start server with specified workload
-  rpc RunServer(stream ServerArgs) returns (stream ServerStatus);
-
-  // Start client with specified workload
-  rpc RunClient(stream ClientArgs) returns (stream ClientStatus);
+        public ProfilerScope(IProfiler profiler, string tag)
+        {
+            this.profiler = profiler;
+            this.tag = tag;
+            this.profiler.Begin(this.tag);
+        }
+            
+        public void Dispose()
+        {
+            profiler.End(tag);
+        }
+    }
 }
