@@ -29,7 +29,7 @@
 
 syntax = "proto3";
 
-import "test/proto/benchmarks/control.proto";
+import "test/proto/qpstest.proto";
 
 package grpc.testing;
 
