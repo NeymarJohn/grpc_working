@@ -1367,6 +1367,22 @@
   {
     "deps": [
       "gpr", 
+      "grpc", 
+      "grpc++"
+    ], 
+    "headers": [
+      "src/core/client_config/lb_policies/protos/load_balancer.grpc.pb.h", 
+      "src/core/client_config/lb_policies/protos/load_balancer.pb.h"
+    ], 
+    "language": "c++", 
+    "name": "grpclb_api_test", 
+    "src": [
+      "test/cpp/grpclb/grpclb_api_test.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
       "gpr_test_util", 
       "grpc", 
       "grpc++", 
@@ -1410,25 +1426,6 @@
     "name": "interop_test", 
     "src": [
       "test/cpp/interop/interop_test.cc"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "grpc", 
-      "grpc++", 
-      "grpc++_test_config"
-    ], 
-    "headers": [
-      "test/cpp/util/metrics_server.h", 
-      "test/proto/metrics.grpc.pb.h", 
-      "test/proto/metrics.pb.h"
-    ], 
-    "language": "c++", 
-    "name": "metrics_client", 
-    "src": [
-      "test/cpp/interop/metrics_client.cc", 
-      "test/cpp/util/metrics_server.h"
     ]
   }, 
   {
@@ -1699,13 +1696,10 @@
       "test/cpp/interop/client_helper.h", 
       "test/cpp/interop/interop_client.h", 
       "test/cpp/interop/stress_interop_client.h", 
-      "test/cpp/util/metrics_server.h", 
       "test/proto/empty.grpc.pb.h", 
       "test/proto/empty.pb.h", 
       "test/proto/messages.grpc.pb.h", 
       "test/proto/messages.pb.h", 
-      "test/proto/metrics.grpc.pb.h", 
-      "test/proto/metrics.pb.h", 
       "test/proto/test.grpc.pb.h", 
       "test/proto/test.pb.h"
     ], 
@@ -1717,9 +1711,7 @@
       "test/cpp/interop/interop_client.h", 
       "test/cpp/interop/stress_interop_client.cc", 
       "test/cpp/interop/stress_interop_client.h", 
-      "test/cpp/interop/stress_test.cc", 
-      "test/cpp/util/metrics_server.cc", 
-      "test/cpp/util/metrics_server.h"
+      "test/cpp/interop/stress_test.cc"
     ]
   }, 
   {
@@ -13307,6 +13299,12 @@
       "src/core/channel/noop_filter.h", 
       "src/core/client_config/client_config.h", 
       "src/core/client_config/connector.h", 
+      "src/core/client_config/lb_policies/load_balancer.pb.h", 
+      "src/core/client_config/lb_policies/load_balancer_api.h", 
+      "src/core/client_config/lb_policies/nanopb/pb.h", 
+      "src/core/client_config/lb_policies/nanopb/pb_common.h", 
+      "src/core/client_config/lb_policies/nanopb/pb_decode.h", 
+      "src/core/client_config/lb_policies/nanopb/pb_encode.h", 
       "src/core/client_config/lb_policies/pick_first.h", 
       "src/core/client_config/lb_policies/round_robin.h", 
       "src/core/client_config/lb_policy.h", 
@@ -13463,6 +13461,17 @@
       "src/core/client_config/client_config.h", 
       "src/core/client_config/connector.c", 
       "src/core/client_config/connector.h", 
+      "src/core/client_config/lb_policies/load_balancer.pb.c", 
+      "src/core/client_config/lb_policies/load_balancer.pb.h", 
+      "src/core/client_config/lb_policies/load_balancer_api.c", 
+      "src/core/client_config/lb_policies/load_balancer_api.h", 
+      "src/core/client_config/lb_policies/nanopb/pb.h", 
+      "src/core/client_config/lb_policies/nanopb/pb_common.c", 
+      "src/core/client_config/lb_policies/nanopb/pb_common.h", 
+      "src/core/client_config/lb_policies/nanopb/pb_decode.c", 
+      "src/core/client_config/lb_policies/nanopb/pb_decode.h", 
+      "src/core/client_config/lb_policies/nanopb/pb_encode.c", 
+      "src/core/client_config/lb_policies/nanopb/pb_encode.h", 
       "src/core/client_config/lb_policies/pick_first.c", 
       "src/core/client_config/lb_policies/pick_first.h", 
       "src/core/client_config/lb_policies/round_robin.c", 
@@ -13816,6 +13825,12 @@
       "src/core/channel/noop_filter.h", 
       "src/core/client_config/client_config.h", 
       "src/core/client_config/connector.h", 
+      "src/core/client_config/lb_policies/load_balancer.pb.h", 
+      "src/core/client_config/lb_policies/load_balancer_api.h", 
+      "src/core/client_config/lb_policies/nanopb/pb.h", 
+      "src/core/client_config/lb_policies/nanopb/pb_common.h", 
+      "src/core/client_config/lb_policies/nanopb/pb_decode.h", 
+      "src/core/client_config/lb_policies/nanopb/pb_encode.h", 
       "src/core/client_config/lb_policies/pick_first.h", 
       "src/core/client_config/lb_policies/round_robin.h", 
       "src/core/client_config/lb_policy.h", 
@@ -13958,6 +13973,17 @@
       "src/core/client_config/client_config.h", 
       "src/core/client_config/connector.c", 
       "src/core/client_config/connector.h", 
+      "src/core/client_config/lb_policies/load_balancer.pb.c", 
+      "src/core/client_config/lb_policies/load_balancer.pb.h", 
+      "src/core/client_config/lb_policies/load_balancer_api.c", 
+      "src/core/client_config/lb_policies/load_balancer_api.h", 
+      "src/core/client_config/lb_policies/nanopb/pb.h", 
+      "src/core/client_config/lb_policies/nanopb/pb_common.c", 
+      "src/core/client_config/lb_policies/nanopb/pb_common.h", 
+      "src/core/client_config/lb_policies/nanopb/pb_decode.c", 
+      "src/core/client_config/lb_policies/nanopb/pb_decode.h", 
+      "src/core/client_config/lb_policies/nanopb/pb_encode.c", 
+      "src/core/client_config/lb_policies/nanopb/pb_encode.h", 
       "src/core/client_config/lb_policies/pick_first.c", 
       "src/core/client_config/lb_policies/pick_first.h", 
       "src/core/client_config/lb_policies/round_robin.c", 
