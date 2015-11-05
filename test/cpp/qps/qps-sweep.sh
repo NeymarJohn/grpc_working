@@ -37,21 +37,17 @@ fi
 
 bins=`find . .. ../.. ../../.. -name bins | head -1`
 
-for secure in true false
+for channels in 1 2 4 8
 do
-  for channels in 1 2 4 8
+  for client in SYNCHRONOUS_CLIENT ASYNC_CLIENT
   do
-    for client in SYNC_CLIENT ASYNC_CLIENT
+    for server in SYNCHRONOUS_SERVER ASYNC_SERVER
     do
-      for server in SYNC_SERVER ASYNC_SERVER
+      for rpc in UNARY STREAMING
       do
-        for rpc in UNARY STREAMING
-        do
-          echo "Test $rpc $client $server, $channels channels, secure=$secure"
-          "$bins"/opt/qps_driver --rpc_type=$rpc \
-              --client_type=$client --server_type=$server \
-	      --secure_test=$secure
-	done
+        echo "Test $rpc $client $server , $channels channels"
+        "$bins"/opt/qps_driver --rpc_type=$rpc \
+          --client_type=$client --server_type=$server
       done
     done
   done
