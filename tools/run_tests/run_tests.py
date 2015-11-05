@@ -844,7 +844,6 @@ def _build_and_run(
                  for _ in range(0, args.antagonists)]
   port_server_port = 32767
   _start_port_server(port_server_port)
-  resultset = None
   try:
     infinite_runs = runs_per_test == 0
     one_run = set(
@@ -890,7 +889,7 @@ def _build_and_run(
   finally:
     for antagonist in antagonists:
       antagonist.kill()
-    if xml_report and resultset:
+    if xml_report:
       report_utils.render_xml_report(resultset, xml_report)
 
   number_failures, _ = jobset.run(
