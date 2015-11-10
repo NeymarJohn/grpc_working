@@ -145,8 +145,7 @@ static void test_many_additions(void) {
   for (i = 0; i < 1000000; i++) {
     gpr_asprintf(&key, "K:%d", i);
     gpr_asprintf(&value, "VALUE:%d", i);
-    GPR_ASSERT(grpc_chttp2_hptbl_add(
-        &tbl, grpc_mdelem_from_strings(mdctx, key, value)));
+    grpc_chttp2_hptbl_add(&tbl, grpc_mdelem_from_strings(mdctx, key, value));
     assert_index(&tbl, 1 + GRPC_CHTTP2_LAST_STATIC_ENTRY, key, value);
     gpr_free(key);
     gpr_free(value);
@@ -174,7 +173,7 @@ static grpc_chttp2_hptbl_find_result find_simple(grpc_chttp2_hptbl *tbl,
 
 static void test_find(void) {
   grpc_chttp2_hptbl tbl;
-  gpr_uint32 i;
+  int i;
   char buffer[32];
   grpc_mdctx *mdctx;
   grpc_chttp2_hptbl_find_result r;
@@ -183,12 +182,9 @@ static void test_find(void) {
 
   mdctx = grpc_mdctx_create();
   grpc_chttp2_hptbl_init(&tbl, mdctx);
-  GPR_ASSERT(grpc_chttp2_hptbl_add(
-      &tbl, grpc_mdelem_from_strings(mdctx, "abc", "xyz")));
-  GPR_ASSERT(grpc_chttp2_hptbl_add(
-      &tbl, grpc_mdelem_from_strings(mdctx, "abc", "123")));
-  GPR_ASSERT(
-      grpc_chttp2_hptbl_add(&tbl, grpc_mdelem_from_strings(mdctx, "x", "1")));
+  grpc_chttp2_hptbl_add(&tbl, grpc_mdelem_from_strings(mdctx, "abc", "xyz"));
+  grpc_chttp2_hptbl_add(&tbl, grpc_mdelem_from_strings(mdctx, "abc", "123"));
+  grpc_chttp2_hptbl_add(&tbl, grpc_mdelem_from_strings(mdctx, "x", "1"));
 
   r = find_simple(&tbl, "abc", "123");
   GPR_ASSERT(r.index == 2 + GRPC_CHTTP2_LAST_STATIC_ENTRY);
@@ -237,8 +233,8 @@ static void test_find(void) {
   /* overflow the string buffer, check find still works */
   for (i = 0; i < 10000; i++) {
     gpr_ltoa(i, buffer);
-    GPR_ASSERT(grpc_chttp2_hptbl_add(
-        &tbl, grpc_mdelem_from_strings(mdctx, "test", buffer)));
+    grpc_chttp2_hptbl_add(&tbl,
+                          grpc_mdelem_from_strings(mdctx, "test", buffer));
   }
 
   r = find_simple(&tbl, "abc", "123");
@@ -254,7 +250,7 @@ static void test_find(void) {
   GPR_ASSERT(r.has_value == 1);
 
   for (i = 0; i < tbl.num_ents; i++) {
-    gpr_uint32 expect = 9999 - i;
+    int expect = 9999 - i;
     gpr_ltoa(expect, buffer);
 
     r = find_simple(&tbl, "test", buffer);
