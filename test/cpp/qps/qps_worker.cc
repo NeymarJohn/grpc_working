@@ -52,17 +52,17 @@
 #include <grpc++/security/server_credentials.h>
 
 #include "test/core/util/grpc_profiler.h"
+#include "test/proto/qpstest.pb.h"
 #include "test/cpp/qps/client.h"
 #include "test/cpp/qps/server.h"
 #include "test/cpp/util/create_test_channel.h"
-#include "test/proto/benchmarks/services.pb.h"
 
 namespace grpc {
 namespace testing {
 
-static std::unique_ptr<Client> CreateClient(const ClientConfig& config) {
+std::unique_ptr<Client> CreateClient(const ClientConfig& config) {
   switch (config.client_type()) {
-    case ClientType::SYNC_CLIENT:
+    case ClientType::SYNCHRONOUS_CLIENT:
       return (config.rpc_type() == RpcType::UNARY)
                  ? CreateSynchronousUnaryClient(config)
                  : CreateSynchronousStreamingClient(config);
@@ -76,29 +76,26 @@ static std::unique_ptr<Client> CreateClient(const ClientConfig& config) {
   abort();
 }
 
-static void LimitCores(int cores) {}
-
-static std::unique_ptr<Server> CreateServer(const ServerConfig& config) {
-  if (config.core_limit() > 0) {
-    LimitCores(config.core_limit());
-  }
+std::unique_ptr<Server> CreateServer(const ServerConfig& config,
+                                     int server_port) {
   switch (config.server_type()) {
-    case ServerType::SYNC_SERVER:
-      return CreateSynchronousServer(config);
+    case ServerType::SYNCHRONOUS_SERVER:
+      return CreateSynchronousServer(config, server_port);
     case ServerType::ASYNC_SERVER:
-      return CreateAsyncServer(config);
+      return CreateAsyncServer(config, server_port);
     default:
       abort();
   }
   abort();
 }
 
-class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
+class WorkerImpl GRPC_FINAL : public Worker::Service {
  public:
-  explicit WorkerServiceImpl() : acquired_(false) {}
+  explicit WorkerImpl(int server_port)
+      : server_port_(server_port), acquired_(false) {}
 
-  Status RunClient(ServerContext* ctx,
-                   ServerReaderWriter<ClientStatus, ClientArgs>* stream)
+  Status RunTest(ServerContext* ctx,
+                 ServerReaderWriter<ClientStatus, ClientArgs>* stream)
       GRPC_OVERRIDE {
     InstanceGuard g(this);
     if (!g.Acquired()) {
@@ -106,7 +103,7 @@ class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
     }
 
     grpc_profiler_start("qps_client.prof");
-    Status ret = RunClientBody(ctx, stream);
+    Status ret = RunTestBody(ctx, stream);
     grpc_profiler_stop();
     return ret;
   }
@@ -129,7 +126,7 @@ class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
   // Protect against multiple clients using this worker at once.
   class InstanceGuard {
    public:
-    InstanceGuard(WorkerServiceImpl* impl)
+    InstanceGuard(WorkerImpl* impl)
         : impl_(impl), acquired_(impl->TryAcquireInstance()) {}
     ~InstanceGuard() {
       if (acquired_) {
@@ -140,7 +137,7 @@ class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
     bool Acquired() const { return acquired_; }
 
    private:
-    WorkerServiceImpl* const impl_;
+    WorkerImpl* const impl_;
     const bool acquired_;
   };
 
@@ -157,8 +154,8 @@ class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
     acquired_ = false;
   }
 
-  Status RunClientBody(ServerContext* ctx,
-                       ServerReaderWriter<ClientStatus, ClientArgs>* stream) {
+  Status RunTestBody(ServerContext* ctx,
+                     ServerReaderWriter<ClientStatus, ClientArgs>* stream) {
     ClientArgs args;
     if (!stream->Read(&args)) {
       return Status(StatusCode::INVALID_ARGUMENT, "");
@@ -178,7 +175,7 @@ class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
       if (!args.has_mark()) {
         return Status(StatusCode::INVALID_ARGUMENT, "");
       }
-      *status.mutable_stats() = client->Mark(args.mark().reset());
+      *status.mutable_stats() = client->Mark();
       stream->Write(status);
     }
 
@@ -194,13 +191,12 @@ class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
     if (!args.has_setup()) {
       return Status(StatusCode::INVALID_ARGUMENT, "");
     }
-    auto server = CreateServer(args.setup());
+    auto server = CreateServer(args.setup(), server_port_);
     if (!server) {
       return Status(StatusCode::INVALID_ARGUMENT, "");
     }
     ServerStatus status;
-    status.set_port(server->port());
-    status.set_cores(server->cores());
+    status.set_port(server_port_);
     if (!stream->Write(status)) {
       return Status(StatusCode::UNKNOWN, "");
     }
@@ -208,19 +204,21 @@ class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
       if (!args.has_mark()) {
         return Status(StatusCode::INVALID_ARGUMENT, "");
       }
-      *status.mutable_stats() = server->Mark(args.mark().reset());
+      *status.mutable_stats() = server->Mark();
       stream->Write(status);
     }
 
     return Status::OK;
   }
 
+  const int server_port_;
+
   std::mutex mu_;
   bool acquired_;
 };
 
-QpsWorker::QpsWorker(int driver_port) {
-  impl_.reset(new WorkerServiceImpl());
+QpsWorker::QpsWorker(int driver_port, int server_port) {
+  impl_.reset(new WorkerImpl(server_port));
 
   char* server_address = NULL;
   gpr_join_host_port(&server_address, "::", driver_port);

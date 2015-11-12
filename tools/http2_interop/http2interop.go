@@ -2,37 +2,14 @@ package http2interop
 
 import (
 	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"io"
-	"net"
-	"testing"
-	"time"
+	"log"
 )
 
 const (
 	Preface = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
 )
-
-var (
-	defaultTimeout = 1 * time.Second
-)
-
-type HTTP2InteropCtx struct {
-	// Inputs
-	ServerHost             string
-	ServerPort             int
-	UseTLS                 bool
-	UseTestCa              bool
-	ServerHostnameOverride string
-
-	T *testing.T
-
-	// Derived
-	serverSpec string
-	authority  string
-	rootCAs    *x509.CertPool
-}
 
 func parseFrame(r io.Reader) (Frame, error) {
 	fh := FrameHeader{}
@@ -72,8 +49,22 @@ func streamFrame(w io.Writer, f Frame) error {
 	return nil
 }
 
-func testClientShortSettings(ctx *HTTP2InteropCtx, length int) error {
-	c, err := connect(ctx)
+func getHttp2Conn(addr string) (*tls.Conn, error) {
+	config := &tls.Config{
+		InsecureSkipVerify: true,
+		NextProtos:         []string{"h2"},
+	}
+
+	conn, err := tls.Dial("tcp", addr, config)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
+}
+
+func testClientShortSettings(addr string, length int) error {
+	c, err := getHttp2Conn(addr)
 	if err != nil {
 		return err
 	}
@@ -91,22 +82,22 @@ func testClientShortSettings(ctx *HTTP2InteropCtx, length int) error {
 		Data: make([]byte, length),
 	}
 	if err := streamFrame(c, sf); err != nil {
-		ctx.T.Log("Unable to stream frame", sf)
 		return err
 	}
 
 	for {
-		if _, err := parseFrame(c); err != nil {
-			ctx.T.Log("Unable to parse frame")
+		frame, err := parseFrame(c)
+		if err != nil {
 			return err
 		}
+		log.Println(frame)
 	}
 
 	return nil
 }
 
-func testClientPrefaceWithStreamId(ctx *HTTP2InteropCtx) error {
-	c, err := connect(ctx)
+func testClientPrefaceWithStreamId(addr string) error {
+	c, err := getHttp2Conn(addr)
 	if err != nil {
 		return err
 	}
@@ -128,16 +119,18 @@ func testClientPrefaceWithStreamId(ctx *HTTP2InteropCtx) error {
 	}
 
 	for {
-		if _, err := parseFrame(c); err != nil {
+		frame, err := parseFrame(c)
+		if err != nil {
 			return err
 		}
+		log.Println(frame)
 	}
 
 	return nil
 }
 
-func testUnknownFrameType(ctx *HTTP2InteropCtx) error {
-	c, err := connect(ctx)
+func testUnknownFrameType(addr string) error {
+	c, err := getHttp2Conn(addr)
 	if err != nil {
 		return err
 	}
@@ -150,7 +143,6 @@ func testUnknownFrameType(ctx *HTTP2InteropCtx) error {
 	// Send some settings, which are part of the client preface
 	sf := &SettingsFrame{}
 	if err := streamFrame(c, sf); err != nil {
-		ctx.T.Log("Unable to stream frame", sf)
 		return err
 	}
 
@@ -162,7 +154,6 @@ func testUnknownFrameType(ctx *HTTP2InteropCtx) error {
 			},
 		}
 		if err := streamFrame(c, fh); err != nil {
-			ctx.T.Log("Unable to stream frame", fh)
 			return err
 		}
 	}
@@ -171,14 +162,12 @@ func testUnknownFrameType(ctx *HTTP2InteropCtx) error {
 		Data: []byte("01234567"),
 	}
 	if err := streamFrame(c, pf); err != nil {
-		ctx.T.Log("Unable to stream frame", sf)
 		return err
 	}
 
 	for {
 		frame, err := parseFrame(c)
 		if err != nil {
-			ctx.T.Log("Unable to parse frame")
 			return err
 		}
 		if npf, ok := frame.(*PingFrame); !ok {
@@ -194,8 +183,8 @@ func testUnknownFrameType(ctx *HTTP2InteropCtx) error {
 	return nil
 }
 
-func testShortPreface(ctx *HTTP2InteropCtx, prefacePrefix string) error {
-	c, err := connect(ctx)
+func testShortPreface(addr string, prefacePrefix string) error {
+	c, err := getHttp2Conn(addr)
 	if err != nil {
 		return err
 	}
@@ -212,87 +201,45 @@ func testShortPreface(ctx *HTTP2InteropCtx, prefacePrefix string) error {
 	return err
 }
 
-func testTLSMaxVersion(ctx *HTTP2InteropCtx, version uint16) error {
-	config := buildTlsConfig(ctx)
-	config.MaxVersion = version
-	conn, err := connectWithTls(ctx, config)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-	conn.SetDeadline(time.Now().Add(defaultTimeout))
-
-	buf := make([]byte, 256)
-	if n, err := conn.Read(buf); err != nil {
-		if n != 0 {
-			return fmt.Errorf("Expected no bytes to be read, but was %d", n)
-		}
-		return err
-	}
-	return nil
-}
-
-func testTLSApplicationProtocol(ctx *HTTP2InteropCtx) error {
-	config := buildTlsConfig(ctx)
-	config.NextProtos = []string{"h2c"}
-	conn, err := connectWithTls(ctx, config)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-	conn.SetDeadline(time.Now().Add(defaultTimeout))
-
-	buf := make([]byte, 256)
-	if n, err := conn.Read(buf); err != nil {
-		if n != 0 {
-			return fmt.Errorf("Expected no bytes to be read, but was %d", n)
-		}
-		return err
-	}
-	return nil
-}
-
-func connect(ctx *HTTP2InteropCtx) (net.Conn, error) {
-	var conn net.Conn
-	var err error
-	if !ctx.UseTLS {
-		conn, err = connectWithoutTls(ctx)
-	} else {
-		config := buildTlsConfig(ctx)
-		conn, err = connectWithTls(ctx, config)
-	}
-	if err != nil {
-		return nil, err
-	}
-	conn.SetDeadline(time.Now().Add(defaultTimeout))
-
-	return conn, nil
-}
-
-func buildTlsConfig(ctx *HTTP2InteropCtx) *tls.Config {
-	return &tls.Config{
-		RootCAs:    ctx.rootCAs,
-		NextProtos: []string{"h2"},
-		ServerName: ctx.authority,
-		MinVersion: tls.VersionTLS12,
-		// TODO(carl-mastrangelo): remove this once all test certificates have been updated.
+func testTLSMaxVersion(addr string, version uint16) error {
+	config := &tls.Config{
 		InsecureSkipVerify: true,
+		NextProtos:         []string{"h2"},
+		MaxVersion:         version,
 	}
+	conn, err := tls.Dial("tcp", addr, config)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	buf := make([]byte, 256)
+	if n, err := conn.Read(buf); err != nil {
+		if n != 0 {
+			return fmt.Errorf("Expected no bytes to be read, but was %d", n)
+		}
+		return err
+	}
+	return nil
 }
 
-func connectWithoutTls(ctx *HTTP2InteropCtx) (net.Conn, error) {
-	conn, err := net.DialTimeout("tcp", ctx.serverSpec, defaultTimeout)
-	if err != nil {
-		return nil, err
+func testTLSApplicationProtocol(addr string) error {
+	config := &tls.Config{
+		InsecureSkipVerify: true,
+		NextProtos:         []string{"h2c"},
 	}
-	return conn, nil
-}
-
-func connectWithTls(ctx *HTTP2InteropCtx, config *tls.Config) (*tls.Conn, error) {
-	conn, err := connectWithoutTls(ctx)
+	conn, err := tls.Dial("tcp", addr, config)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	defer conn.Close()
 
-	return tls.Client(conn, config), nil
+	buf := make([]byte, 256)
+	if n, err := conn.Read(buf); err != nil {
+		if n != 0 {
+			return fmt.Errorf("Expected no bytes to be read, but was %d", n)
+		}
+		return err
+	}
+	return nil
 }

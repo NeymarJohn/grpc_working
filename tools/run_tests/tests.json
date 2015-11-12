@@ -1467,6 +1467,24 @@
     "ci_platforms": [
       "linux", 
       "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c++", 
+    "name": "grpclb_api_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
       "posix"
     ], 
     "exclude_configs": [], 
@@ -1531,22 +1549,6 @@
       "mac", 
       "posix", 
       "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c++", 
-    "name": "secure_sync_unary_ping_pong_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix"
     ]
   }, 
   {

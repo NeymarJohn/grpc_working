@@ -31,6 +31,8 @@
  *
  */
 
+#include <signal.h>
+
 #include <set>
 
 #include <grpc/support/log.h>
@@ -49,14 +51,17 @@ static void RunSynchronousUnaryPingPong() {
   gpr_log(GPR_INFO, "Running Synchronous Unary Ping Pong");
 
   ClientConfig client_config;
-  client_config.set_client_type(SYNC_CLIENT);
+  client_config.set_client_type(SYNCHRONOUS_CLIENT);
+  client_config.set_enable_ssl(false);
   client_config.set_outstanding_rpcs_per_channel(1);
   client_config.set_client_channels(1);
+  client_config.set_payload_size(1);
   client_config.set_rpc_type(UNARY);
-  client_config.mutable_load_params()->mutable_closed_loop();
 
   ServerConfig server_config;
-  server_config.set_server_type(SYNC_SERVER);
+  server_config.set_server_type(SYNCHRONOUS_SERVER);
+  server_config.set_enable_ssl(false);
+  server_config.set_threads(1);
 
   const auto result =
       RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
@@ -71,6 +76,7 @@ static void RunSynchronousUnaryPingPong() {
 int main(int argc, char** argv) {
   grpc::testing::InitBenchmark(&argc, &argv, true);
 
+  signal(SIGPIPE, SIG_IGN);
   grpc::testing::RunSynchronousUnaryPingPong();
 
   return 0;

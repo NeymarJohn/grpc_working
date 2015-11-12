@@ -1367,6 +1367,22 @@
   {
     "deps": [
       "gpr", 
+      "grpc", 
+      "grpc++"
+    ], 
+    "headers": [
+      "src/core/client_config/lb_policies/proto/load_balancer.grpc.pb.h", 
+      "src/core/client_config/lb_policies/proto/load_balancer.pb.h"
+    ], 
+    "language": "c++", 
+    "name": "grpclb_api_test", 
+    "src": [
+      "test/cpp/grpclb/grpclb_api_test.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
       "gpr_test_util", 
       "grpc", 
       "grpc++", 
@@ -1585,23 +1601,6 @@
     "name": "secure_auth_context_test", 
     "src": [
       "test/cpp/common/secure_auth_context_test.cc"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc++", 
-      "grpc++_test_util", 
-      "grpc_test_util", 
-      "qps"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "secure_sync_unary_ping_pong_test", 
-    "src": [
-      "test/cpp/qps/secure_sync_unary_ping_pong_test.cc"
     ]
   }, 
   {
@@ -13300,6 +13299,7 @@
       "src/core/channel/noop_filter.h", 
       "src/core/client_config/client_config.h", 
       "src/core/client_config/connector.h", 
+      "src/core/client_config/lb_policies/load_balancer_api.h", 
       "src/core/client_config/lb_policies/pick_first.h", 
       "src/core/client_config/lb_policies/round_robin.h", 
       "src/core/client_config/lb_policy.h", 
@@ -13361,6 +13361,7 @@
       "src/core/json/json_common.h", 
       "src/core/json/json_reader.h", 
       "src/core/json/json_writer.h", 
+      "src/core/proto/load_balancer.pb.h", 
       "src/core/security/auth_filters.h", 
       "src/core/security/base64.h", 
       "src/core/security/credentials.h", 
@@ -13411,7 +13412,11 @@
       "src/core/tsi/fake_transport_security.h", 
       "src/core/tsi/ssl_transport_security.h", 
       "src/core/tsi/transport_security.h", 
-      "src/core/tsi/transport_security_interface.h"
+      "src/core/tsi/transport_security_interface.h", 
+      "third_party/nanopb/pb.h", 
+      "third_party/nanopb/pb_common.h", 
+      "third_party/nanopb/pb_decode.h", 
+      "third_party/nanopb/pb_encode.h"
     ], 
     "language": "c", 
     "name": "grpc", 
@@ -13456,6 +13461,8 @@
       "src/core/client_config/client_config.h", 
       "src/core/client_config/connector.c", 
       "src/core/client_config/connector.h", 
+      "src/core/client_config/lb_policies/load_balancer_api.c", 
+      "src/core/client_config/lb_policies/load_balancer_api.h", 
       "src/core/client_config/lb_policies/pick_first.c", 
       "src/core/client_config/lb_policies/pick_first.h", 
       "src/core/client_config/lb_policies/round_robin.c", 
@@ -13583,6 +13590,8 @@
       "src/core/json/json_string.c", 
       "src/core/json/json_writer.c", 
       "src/core/json/json_writer.h", 
+      "src/core/proto/load_balancer.pb.c", 
+      "src/core/proto/load_balancer.pb.h", 
       "src/core/security/auth_filters.h", 
       "src/core/security/base64.c", 
       "src/core/security/base64.h", 
@@ -13698,7 +13707,14 @@
       "src/core/tsi/ssl_transport_security.h", 
       "src/core/tsi/transport_security.c", 
       "src/core/tsi/transport_security.h", 
-      "src/core/tsi/transport_security_interface.h"
+      "src/core/tsi/transport_security_interface.h", 
+      "third_party/nanopb/pb.h", 
+      "third_party/nanopb/pb_common.c", 
+      "third_party/nanopb/pb_common.h", 
+      "third_party/nanopb/pb_decode.c", 
+      "third_party/nanopb/pb_decode.h", 
+      "third_party/nanopb/pb_encode.c", 
+      "third_party/nanopb/pb_encode.h"
     ]
   }, 
   {
@@ -13809,6 +13825,7 @@
       "src/core/channel/noop_filter.h", 
       "src/core/client_config/client_config.h", 
       "src/core/client_config/connector.h", 
+      "src/core/client_config/lb_policies/load_balancer_api.h", 
       "src/core/client_config/lb_policies/pick_first.h", 
       "src/core/client_config/lb_policies/round_robin.h", 
       "src/core/client_config/lb_policy.h", 
@@ -13870,6 +13887,7 @@
       "src/core/json/json_common.h", 
       "src/core/json/json_reader.h", 
       "src/core/json/json_writer.h", 
+      "src/core/proto/load_balancer.pb.h", 
       "src/core/statistics/census_interface.h", 
       "src/core/statistics/census_rpc_stats.h", 
       "src/core/surface/api_trace.h", 
@@ -13907,7 +13925,11 @@
       "src/core/transport/metadata.h", 
       "src/core/transport/stream_op.h", 
       "src/core/transport/transport.h", 
-      "src/core/transport/transport_impl.h"
+      "src/core/transport/transport_impl.h", 
+      "third_party/nanopb/pb.h", 
+      "third_party/nanopb/pb_common.h", 
+      "third_party/nanopb/pb_decode.h", 
+      "third_party/nanopb/pb_encode.h"
     ], 
     "language": "c", 
     "name": "grpc_unsecure", 
@@ -13951,6 +13973,8 @@
       "src/core/client_config/client_config.h", 
       "src/core/client_config/connector.c", 
       "src/core/client_config/connector.h", 
+      "src/core/client_config/lb_policies/load_balancer_api.c", 
+      "src/core/client_config/lb_policies/load_balancer_api.h", 
       "src/core/client_config/lb_policies/pick_first.c", 
       "src/core/client_config/lb_policies/pick_first.h", 
       "src/core/client_config/lb_policies/round_robin.c", 
@@ -14077,6 +14101,8 @@
       "src/core/json/json_string.c", 
       "src/core/json/json_writer.c", 
       "src/core/json/json_writer.h", 
+      "src/core/proto/load_balancer.pb.c", 
+      "src/core/proto/load_balancer.pb.h", 
       "src/core/statistics/census_interface.h", 
       "src/core/statistics/census_rpc_stats.h", 
       "src/core/surface/api_trace.c", 
@@ -14160,7 +14186,14 @@
       "src/core/transport/transport.c", 
       "src/core/transport/transport.h", 
       "src/core/transport/transport_impl.h", 
-      "src/core/transport/transport_op_string.c"
+      "src/core/transport/transport_op_string.c", 
+      "third_party/nanopb/pb.h", 
+      "third_party/nanopb/pb_common.c", 
+      "third_party/nanopb/pb_common.h", 
+      "third_party/nanopb/pb_decode.c", 
+      "third_party/nanopb/pb_decode.h", 
+      "third_party/nanopb/pb_encode.c", 
+      "third_party/nanopb/pb_encode.h"
     ]
   }, 
   {
@@ -14666,16 +14699,8 @@
       "test/cpp/qps/stats.h", 
       "test/cpp/qps/timer.h", 
       "test/cpp/util/benchmark_config.h", 
-      "test/proto/benchmarks/control.grpc.pb.h", 
-      "test/proto/benchmarks/control.pb.h", 
-      "test/proto/benchmarks/payloads.grpc.pb.h", 
-      "test/proto/benchmarks/payloads.pb.h", 
-      "test/proto/benchmarks/services.grpc.pb.h", 
-      "test/proto/benchmarks/services.pb.h", 
-      "test/proto/benchmarks/stats.grpc.pb.h", 
-      "test/proto/benchmarks/stats.pb.h", 
-      "test/proto/messages.grpc.pb.h", 
-      "test/proto/messages.pb.h"
+      "test/proto/qpstest.grpc.pb.h", 
+      "test/proto/qpstest.pb.h"
     ], 
     "language": "c++", 
     "name": "qps", 
