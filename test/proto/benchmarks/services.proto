@@ -1,4 +1,3 @@
-
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -32,24 +31,25 @@
 // of unary/streaming requests/responses.
 syntax = "proto3";
 
+import "test/proto/messages.proto";
+import "test/proto/benchmarks/control.proto";
+
 package grpc.testing;
 
-message GaugeResponse {
-  string name = 1;
-  oneof value {
-    int64 long_value = 2;
-    double double_vale = 3;
-    string string_value = 4;
-  }
+service BenchmarkService {
+  // One request followed by one response.
+  // The server returns the client payload as-is.
+  rpc UnaryCall(SimpleRequest) returns (SimpleResponse);
+
+  // One request followed by one response.
+  // The server returns the client payload as-is.
+  rpc StreamingCall(stream SimpleRequest) returns (stream SimpleResponse);
 }
 
-message GaugeRequest {
-  string name = 1;
-}
+service WorkerService {
+  // Start server with specified workload
+  rpc RunServer(stream ServerArgs) returns (stream ServerStatus);
 
-message EmptyMessage {}
-
-service MetricsService {
-  rpc GetAllGauges(EmptyMessage) returns (stream GaugeResponse);
-  rpc GetGauge(GaugeRequest) returns (GaugeResponse);
+  // Start client with specified workload
+  rpc RunClient(stream ClientArgs) returns (stream ClientStatus);
 }
