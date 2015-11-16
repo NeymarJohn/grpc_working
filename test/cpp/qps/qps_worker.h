@@ -42,15 +42,15 @@ class Server;
 
 namespace testing {
 
-class WorkerServiceImpl;
+class WorkerImpl;
 
 class QpsWorker {
  public:
-  explicit QpsWorker(int driver_port);
+  QpsWorker(int driver_port, int server_port);
   ~QpsWorker();
 
  private:
-  std::unique_ptr<WorkerServiceImpl> impl_;
+  std::unique_ptr<WorkerImpl> impl_;
   std::unique_ptr<Server> server_;
 };
 

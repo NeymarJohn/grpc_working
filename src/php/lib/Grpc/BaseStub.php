@@ -51,7 +51,6 @@ class BaseStub
      * @param $opts array
      *  - 'update_metadata': (optional) a callback function which takes in a
      * metadata array, and returns an updated metadata array
-     *  - 'grpc.primary_user_agent': (optional) a user-agent string
      */
     public function __construct($hostname, $opts)
     {
@@ -65,12 +64,7 @@ class BaseStub
         }
         $package_config = json_decode(
             file_get_contents(dirname(__FILE__).'/../../composer.json'), true);
-        if (!empty($opts['grpc.primary_user_agent'])) {
-            $opts['grpc.primary_user_agent'] .= ' ';
-        } else {
-            $opts['grpc.primary_user_agent'] = '';
-        }
-        $opts['grpc.primary_user_agent'] .=
+        $opts['grpc.primary_user_agent'] =
             'grpc-php/'.$package_config['version'];
         $this->channel = new Channel($hostname, $opts);
     }

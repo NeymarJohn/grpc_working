@@ -1415,6 +1415,25 @@
   {
     "deps": [
       "gpr", 
+      "grpc", 
+      "grpc++", 
+      "grpc++_test_config"
+    ], 
+    "headers": [
+      "test/cpp/util/metrics_server.h", 
+      "test/proto/metrics.grpc.pb.h", 
+      "test/proto/metrics.pb.h"
+    ], 
+    "language": "c++", 
+    "name": "metrics_client", 
+    "src": [
+      "test/cpp/interop/metrics_client.cc", 
+      "test/cpp/util/metrics_server.h"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
       "gpr_test_util", 
       "grpc", 
       "grpc++", 
@@ -1594,23 +1613,6 @@
       "grpc", 
       "grpc++", 
       "grpc++_test_util", 
-      "grpc_test_util", 
-      "qps"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "secure_sync_unary_ping_pong_test", 
-    "src": [
-      "test/cpp/qps/secure_sync_unary_ping_pong_test.cc"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc++", 
-      "grpc++_test_util", 
       "grpc_test_util"
     ], 
     "headers": [], 
@@ -1697,10 +1699,13 @@
       "test/cpp/interop/client_helper.h", 
       "test/cpp/interop/interop_client.h", 
       "test/cpp/interop/stress_interop_client.h", 
+      "test/cpp/util/metrics_server.h", 
       "test/proto/empty.grpc.pb.h", 
       "test/proto/empty.pb.h", 
       "test/proto/messages.grpc.pb.h", 
       "test/proto/messages.pb.h", 
+      "test/proto/metrics.grpc.pb.h", 
+      "test/proto/metrics.pb.h", 
       "test/proto/test.grpc.pb.h", 
       "test/proto/test.pb.h"
     ], 
@@ -1712,7 +1717,9 @@
       "test/cpp/interop/interop_client.h", 
       "test/cpp/interop/stress_interop_client.cc", 
       "test/cpp/interop/stress_interop_client.h", 
-      "test/cpp/interop/stress_test.cc"
+      "test/cpp/interop/stress_test.cc", 
+      "test/cpp/util/metrics_server.cc", 
+      "test/cpp/util/metrics_server.h"
     ]
   }, 
   {
@@ -14666,16 +14673,8 @@
       "test/cpp/qps/stats.h", 
       "test/cpp/qps/timer.h", 
       "test/cpp/util/benchmark_config.h", 
-      "test/proto/benchmarks/control.grpc.pb.h", 
-      "test/proto/benchmarks/control.pb.h", 
-      "test/proto/benchmarks/payloads.grpc.pb.h", 
-      "test/proto/benchmarks/payloads.pb.h", 
-      "test/proto/benchmarks/services.grpc.pb.h", 
-      "test/proto/benchmarks/services.pb.h", 
-      "test/proto/benchmarks/stats.grpc.pb.h", 
-      "test/proto/benchmarks/stats.pb.h", 
-      "test/proto/messages.grpc.pb.h", 
-      "test/proto/messages.pb.h"
+      "test/proto/qpstest.grpc.pb.h", 
+      "test/proto/qpstest.pb.h"
     ], 
     "language": "c++", 
     "name": "qps", 
