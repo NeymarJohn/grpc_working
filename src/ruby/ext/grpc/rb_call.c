@@ -139,15 +139,7 @@ static const rb_data_type_t grpc_rb_md_ary_data_type = {
      {NULL, NULL}},
     NULL,
     NULL,
-#ifdef RUBY_TYPED_FREE_IMMEDIATELY
-    /* it is unsafe to specify RUBY_TYPED_FREE_IMMEDIATELY because
-     * grpc_rb_call_destroy
-     * touches a hash object.
-     * TODO(yugui) Directly use st_table and call the free function earlier?
-     */
-    0,
-#endif
-};
+    0};
 
 /* Describes grpc_call struct for RTypedData */
 static const rb_data_type_t grpc_call_data_type = {
@@ -156,15 +148,12 @@ static const rb_data_type_t grpc_call_data_type = {
      {NULL, NULL}},
     NULL,
     NULL,
-#ifdef RUBY_TYPED_FREE_IMMEDIATELY
     /* it is unsafe to specify RUBY_TYPED_FREE_IMMEDIATELY because
      * grpc_rb_call_destroy
      * touches a hash object.
      * TODO(yugui) Directly use st_table and call the free function earlier?
      */
-    0,
-#endif
-};
+    0};
 
 /* Error code details is a hash containing text strings describing errors */
 VALUE rb_error_code_details;

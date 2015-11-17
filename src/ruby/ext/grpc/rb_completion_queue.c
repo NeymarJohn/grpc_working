@@ -121,11 +121,9 @@ static rb_data_type_t grpc_rb_completion_queue_data_type = {
     {GRPC_RB_GC_NOT_MARKED, grpc_rb_completion_queue_destroy,
      GRPC_RB_MEMSIZE_UNAVAILABLE, {NULL, NULL}},
     NULL, NULL,
-#ifdef RUBY_TYPED_FREE_IMMEDIATELY
     /* cannot immediately free because grpc_rb_completion_queue_shutdown_drain
      * calls rb_thread_call_without_gvl. */
-    0,
-#endif
+    0
 };
 
 /* Allocates a completion queue. */
