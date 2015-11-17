@@ -92,10 +92,7 @@ static rb_data_type_t grpc_rb_credentials_data_type = {
      GRPC_RB_MEMSIZE_UNAVAILABLE, {NULL, NULL}},
     NULL,
     NULL,
-#ifdef RUBY_TYPED_FREE_IMMEDIATELY
-    RUBY_TYPED_FREE_IMMEDIATELY
-#endif
-};
+    RUBY_TYPED_FREE_IMMEDIATELY};
 
 /* Allocates Credential instances.
    Provides safe initial defaults for the instance fields. */
