@@ -575,18 +575,6 @@ void CancelRpc(ClientContext* context, int delay_us, TestServiceImpl* service) {
   context->TryCancel();
 }
 
-TEST_P(End2endTest, CancelRpcBeforeStart) {
-  ResetStub();
-  EchoRequest request;
-  EchoResponse response;
-  ClientContext context;
-  request.set_message("hello");
-  context.TryCancel();
-  Status s = stub_->Echo(&context, request, &response);
-  EXPECT_EQ("", response.message());
-  EXPECT_EQ(grpc::StatusCode::CANCELLED, s.error_code());
-}
-
 // Client cancels request stream after sending two messages
 TEST_P(End2endTest, ClientCancelsRequestStream) {
   ResetStub();
@@ -1229,14 +1217,14 @@ TEST_P(SecureEnd2endTest, ClientAuthContext) {
 }
 
 INSTANTIATE_TEST_CASE_P(End2end, End2endTest,
-                        ::testing::Values(TestScenario(false, true),
-                                          TestScenario(false, false)));
+                        ::testing::Values(TestScenario(false, false),
+                                          TestScenario(false, true)));
 
 INSTANTIATE_TEST_CASE_P(ProxyEnd2end, ProxyEnd2endTest,
-                        ::testing::Values(TestScenario(true, true),
-                                          TestScenario(true, false),
+                        ::testing::Values(TestScenario(false, false),
                                           TestScenario(false, true),
-                                          TestScenario(false, false)));
+                                          TestScenario(true, false),
+                                          TestScenario(true, true)));
 
 INSTANTIATE_TEST_CASE_P(SecureEnd2end, SecureEnd2endTest,
                         ::testing::Values(TestScenario(false, true)));
