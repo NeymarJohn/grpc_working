@@ -46,17 +46,14 @@
       # io.js always reports versions >0 and always exports ALPN symbols.
       # Therefore, Node's major version will be truthy if and only if it
       # supports ALPN. The output of "node -v" is v[major].[minor].[patch],
-      # like "v4.1.1" in a recent version. We use cut to split by period and
-      # take the first field (resulting in "v[major]"), then use cut again
-      # to take all but the first character, removing the "v".
+      # like "v4.1.1" in a recent version. We use grep to extract just the
+      # major version. "4", would be the output for the example.
     'defines': [
-      'TSI_OPENSSL_ALPN_SUPPORT=<!(node --version | cut -d. -f1 | cut -c2-)'
+      'TSI_OPENSSL_ALPN_SUPPORT=<!(node -v | grep -oP "(?<=v)(\d+)(?=\.\d+\.\d+)")'
     ],
     'include_dirs': [
       '.',
-      'include',
-      '<(node_root_dir)/deps/openssl/openssl/include',
-      '<(node_root_dir)/deps/zlib'
+      'include'
     ],
     'conditions': [
       ['OS != "win"', {
@@ -75,15 +72,6 @@
          ]
         ]
       }],
-      ["target_arch=='ia32'", {
-          "include_dirs": [ "<(node_root_dir)/deps/openssl/config/piii" ]
-      }],
-      ["target_arch=='x64'", {
-          "include_dirs": [ "<(node_root_dir)/deps/openssl/config/k8" ]
-      }],
-      ["target_arch=='arm'", {
-          "include_dirs": [ "<(node_root_dir)/deps/openssl/config/arm" ]
-      }]
     ]
   },
   'targets': [
@@ -135,13 +123,6 @@
         'src/core/support/time_win32.c',
         'src/core/support/tls_pthread.c',
       ],
-      "conditions": [
-        ['OS == "mac"', {
-          'xcode_settings': {
-            'MACOSX_DEPLOYMENT_TARGET': '10.9'
-          }
-        }]
-      ],
     },
     {
       'target_name': 'grpc',
@@ -177,7 +158,6 @@
         'src/core/channel/channel_args.c',
         'src/core/channel/channel_stack.c',
         'src/core/channel/client_channel.c',
-        'src/core/channel/client_uchannel.c',
         'src/core/channel/compress_filter.c',
         'src/core/channel/connected_channel.c',
         'src/core/channel/http_client_filter.c',
@@ -211,7 +191,6 @@
         'src/core/iomgr/endpoint_pair_posix.c',
         'src/core/iomgr/endpoint_pair_windows.c',
         'src/core/iomgr/exec_ctx.c',
-        'src/core/iomgr/executor.c',
         'src/core/iomgr/fd_posix.c',
         'src/core/iomgr/iocp_windows.c',
         'src/core/iomgr/iomgr.c',
@@ -300,13 +279,6 @@
         'src/core/census/operation.c',
         'src/core/census/tracing.c',
       ],
-      "conditions": [
-        ['OS == "mac"', {
-          'xcode_settings': {
-            'MACOSX_DEPLOYMENT_TARGET': '10.9'
-          }
-        }]
-      ],
     },
     {
       'include_dirs': [
@@ -346,12 +318,11 @@
         "src/node/ext/node_grpc.cc",
         "src/node/ext/server.cc",
         "src/node/ext/server_credentials.cc",
-        "src/node/ext/timeval.cc",
+        "src/node/ext/timeval.cc"
       ],
       "dependencies": [
-        "grpc",
-        "gpr",
+        "grpc"
       ]
-    },
+    }
   ]
 }

@@ -1,4 +1,3 @@
-[![Gem](https://img.shields.io/gem/v/grpc.svg)](https://rubygems.org/gems/grpc/)
 gRPC Ruby
 =========
 

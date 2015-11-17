@@ -34,12 +34,8 @@ if [ "$CONFIG" != "gcov" ] ; then exit ; fi
 
 root=$(readlink -f $(dirname $0)/../..)
 out=$root/reports/c_cxx_coverage
-tmp1=$(mktemp)
-tmp2=$(mktemp)
+tmp=$(mktemp)
 cd $root
-lcov --capture --directory . --output-file $tmp1
-lcov --extract $tmp1 "$root/src/*" "$root/include/*" --output-file $tmp2
-genhtml $tmp2 --output-directory $out
-rm $tmp2
-rm $tmp1
-
+lcov --capture --directory . --output-file $tmp
+genhtml $tmp --output-directory $out
+rm $tmp

@@ -31,7 +31,6 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Grpc.Core.Profiling;
 
 namespace Grpc.Core.Internal
 {
@@ -67,17 +66,14 @@ namespace Grpc.Core.Internal
             
         public static MetadataArraySafeHandle Create(Metadata metadata)
         {
-            using (Profilers.ForCurrentThread().NewScope("MetadataArraySafeHandle.Create"))
+            // TODO(jtattermusch): we might wanna check that the metadata is readonly 
+            var metadataArray = grpcsharp_metadata_array_create(new UIntPtr((ulong)metadata.Count));
+            for (int i = 0; i < metadata.Count; i++)
             {
-                // TODO(jtattermusch): we might wanna check that the metadata is readonly 
-                var metadataArray = grpcsharp_metadata_array_create(new UIntPtr((ulong)metadata.Count));
-                for (int i = 0; i < metadata.Count; i++)
-                {
-                    var valueBytes = metadata[i].GetSerializedValueUnsafe();
-                    grpcsharp_metadata_array_add(metadataArray, metadata[i].Key, valueBytes, new UIntPtr((ulong)valueBytes.Length));
-                }
-                return metadataArray;
+                var valueBytes = metadata[i].GetSerializedValueUnsafe();
+                grpcsharp_metadata_array_add(metadataArray, metadata[i].Key, valueBytes, new UIntPtr((ulong)valueBytes.Length));
             }
+            return metadataArray;
         }
 
         /// <summary>
