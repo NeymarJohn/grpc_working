@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -27,11 +26,38 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# This script is invoked by Jenkins and runs interop test suite.
-set -ex
 
-# Enter the gRPC repo root
-cd $(dirname $0)/../..
+"""Buildgen transitive dependencies
 
-tools/run_tests/run_interop_tests.py -l all -s all --cloud_to_prod --cloud_to_prod_auth --use_docker --http2_interop -t -j 12 $@ || true
+This takes the list of libs, node_modules, and targets from our
+yaml dictionary, and adds to each the transitive closure
+of the list of dependencies.
+
+"""
+
+def get_lib(libs, name):
+  return next(lib for lib in libs if lib['name']==name)
+
+def transitive_deps(lib, libs):
+  if 'deps' in lib:
+    # Recursively call transitive_deps on each dependency, and take the union
+    return set.union(set(lib['deps']),
+                     *[set(transitive_deps(get_lib(libs, dep), libs))
+                       for dep in lib['deps']])
+  else:
+    return set()
+
+def mako_plugin(dictionary):
+  """The exported plugin code for transitive_dependencies.
+
+  Each item in libs, node_modules, and targets can have a deps list.
+  We add a transitive_deps property to each with the transitive closure
+  of those dependency lists.
+  """
+  libs = dictionary.get('libs')
+  node_modules = dictionary.get('node_modules')
+  targets = dictionary.get('targets')
+
+  for target_list in (libs, node_modules, targets):
+    for target in target_list:
+      target['transitive_deps'] = transitive_deps(target, libs)

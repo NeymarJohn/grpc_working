@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,10 +28,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# This script is invoked by Jenkins and runs interop test suite.
-set -ex
+# Builds http2 interop client in a base image.
+set -e
 
-# Enter the gRPC repo root
-cd $(dirname $0)/../..
+mkdir -p /var/local/git
+git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
 
-tools/run_tests/run_interop_tests.py -l all -s all --cloud_to_prod --cloud_to_prod_auth --use_docker --http2_interop -t -j 12 $@ || true
+# copy service account keys if available
+cp -r /var/local/jenkins/service_account $HOME || true
+
+# compile the tests
+(cd /var/local/git/grpc/tools/http2_interop && go test -c)
+

@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -27,11 +26,11 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# This script is invoked by Jenkins and runs interop test suite.
-set -ex
 
-# Enter the gRPC repo root
-cd $(dirname $0)/../..
+FROM golang:1.4
 
-tools/run_tests/run_interop_tests.py -l all -s all --cloud_to_prod --cloud_to_prod_auth --use_docker --http2_interop -t -j 12 $@ || true
+# Using login shell removes Go from path, so we add it.
+RUN ln -s /usr/src/go/bin/go /usr/local/bin
+
+# Define the default command.
+CMD ["bash"]
