@@ -230,6 +230,7 @@ int *perform_request(servers_fixture *f, grpc_channel *client,
   grpc_call *c;
   int s_idx;
   int *s_valid;
+  gpr_timespec deadline;
   grpc_op ops[6];
   grpc_op *op;
   int was_cancelled;
@@ -268,9 +269,9 @@ int *perform_request(servers_fixture *f, grpc_channel *client,
     }
     memset(s_valid, 0, f->num_servers * sizeof(int));
 
+    deadline = n_millis_time(1000);
     c = grpc_channel_create_call(client, NULL, GRPC_PROPAGATE_DEFAULTS, f->cq,
-                                 "/foo", "foo.test.google.fr", gpr_inf_future(GPR_CLOCK_REALTIME),
-                                 NULL);
+                                 "/foo", "foo.test.google.fr", deadline, NULL);
     GPR_ASSERT(c);
     completed_client = 0;
 
@@ -303,7 +304,7 @@ int *perform_request(servers_fixture *f, grpc_channel *client,
                grpc_call_start_batch(c, ops, (size_t)(op - ops), tag(1), NULL));
 
     s_idx = -1;
-    while ((ev = grpc_completion_queue_next(f->cq, n_millis_time(s_idx == -1 ? 3000 : 200), NULL))
+    while ((ev = grpc_completion_queue_next(f->cq, n_millis_time(300), NULL))
                .type != GRPC_QUEUE_TIMEOUT) {
       GPR_ASSERT(ev.type == GRPC_OP_COMPLETE);
       read_tag = ((int)(gpr_intptr)ev.tag);
@@ -370,7 +371,6 @@ int *perform_request(servers_fixture *f, grpc_channel *client,
                                      &f->request_metadata_recv[s_idx], f->cq,
                                      f->cq, tag(1000 + (int)s_idx)));
     } else {
-      grpc_call_cancel(c, NULL);
       if (!completed_client) {
         cq_expect_completion(cqv, tag(1), 1);
         cq_verify(cqv);
