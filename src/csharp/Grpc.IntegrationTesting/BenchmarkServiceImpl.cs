@@ -1,3 +1,5 @@
+#region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,44 +29,48 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-syntax = "proto3";
+#endregion
 
-package grpc.testing;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Google.Protobuf;
+using Grpc.Core;
+using Grpc.Core.Utils;
 
-message ServerStats {
-  // wall clock time change since last reset
-  double time_elapsed = 1;
+namespace Grpc.Testing
+{
+    /// <summary>
+    /// Implementation of BenchmarkService server
+    /// </summary>
+    public class BenchmarkServiceImpl : BenchmarkService.IBenchmarkService
+    {
+        private readonly int responseSize;
 
-  // change in user time used by the server since last reset
-  double time_user = 2;
+        public BenchmarkServiceImpl(int responseSize)
+        {
+            this.responseSize = responseSize;
+        }
 
-  // change in server time used by the server process and all threads since
-  // last reset
-  double time_system = 3;
-}
+        public Task<SimpleResponse> UnaryCall(SimpleRequest request, ServerCallContext context)
+        {
+            var response = new SimpleResponse { Payload = CreateZerosPayload(responseSize) };
+            return Task.FromResult(response);
+        }
 
-// Histogram params based on grpc/support/histogram.c
-message HistogramParams {
-  double resolution = 1;  // first bucket is [0, 1 + resolution)
-  double max_possible = 2;  // use enough buckets to allow this value
-}
+        public async Task StreamingCall(IAsyncStreamReader<SimpleRequest> requestStream, IServerStreamWriter<SimpleResponse> responseStream, ServerCallContext context)
+        {
+            await requestStream.ForEachAsync(async request =>
+            {
+                var response = new SimpleResponse { Payload = CreateZerosPayload(responseSize) };
+                await responseStream.WriteAsync(response);
+            });
+        }
 
-// Histogram data based on grpc/support/histogram.c
-message HistogramData {
-  repeated uint32 bucket = 1;
-  double min_seen = 2;
-  double max_seen = 3;
-  double sum = 4;
-  double sum_of_squares = 5;
-  double count = 6;
-}
-
-message ClientStats {
-  // Latency histogram. Data points are in nanoseconds.
-  HistogramData latencies = 1;
-
-  // See ServerStats for details.
-  double time_elapsed = 2;
-  double time_user = 3;
-  double time_system = 4;
+        private static Payload CreateZerosPayload(int size)
+        {
+            return new Payload { Body = ByteString.CopyFrom(new byte[size]) };
+        }
+    }
 }
