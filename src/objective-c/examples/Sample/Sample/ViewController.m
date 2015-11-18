@@ -34,7 +34,7 @@
 #import "ViewController.h"
 
 #import <GRPCClient/GRPCCall.h>
-#import <ProtoRPC/ProtoMethod.h>
+#import <GRPCClient/GRPCMethodName.h>
 #import <RemoteTest/Messages.pbobjc.h>
 #import <RemoteTest/Test.pbrpc.h>
 #import <RxLibrary/GRXWriter+Immediate.h>
@@ -66,14 +66,14 @@
 
   // Same example call using the generic gRPC client library:
 
-  ProtoMethod *method = [[ProtoMethod alloc] initWithPackage:@"grpc.testing"
-                                                     service:@"TestService"
-                                                      method:@"UnaryCall"];
+  GRPCMethodName *method = [[GRPCMethodName alloc] initWithPackage:@"grpc.testing"
+                                                         interface:@"TestService"
+                                                            method:@"UnaryCall"];
 
-  GRXWriter *requestsWriter = [GRXWriter writerWithValue:[request data]];
+  id<GRXWriter> requestsWriter = [GRXWriter writerWithValue:[request data]];
 
   GRPCCall *call = [[GRPCCall alloc] initWithHost:kRemoteHost
-                                             path:method.HTTPPath
+                                           method:method
                                    requestsWriter:requestsWriter];
 
   id<GRXWriteable> responsesWriteable = [[GRXWriteable alloc] initWithValueHandler:^(NSData *value) {

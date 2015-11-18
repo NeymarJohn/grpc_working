@@ -41,7 +41,6 @@
 #include <grpc/support/time.h>
 #include <grpc++/create_channel.h>
 #include <grpc++/grpc++.h>
-#include <grpc++/impl/thd.h>
 
 #include "test/cpp/interop/interop_client.h"
 #include "test/cpp/interop/stress_interop_client.h"
@@ -81,6 +80,7 @@ DEFINE_string(test_cases, "",
 
 using std::make_pair;
 using std::pair;
+using std::thread;
 using std::vector;
 
 using grpc::testing::kTestCaseList;
@@ -202,7 +202,7 @@ int main(int argc, char** argv) {
 
   gpr_log(GPR_INFO, "Starting test(s)..");
 
-  vector<grpc::thread> test_threads;
+  vector<thread> test_threads;
   int thread_idx = 0;
   for (auto it = server_addresses.begin(); it != server_addresses.end(); it++) {
     StressTestInteropClient* client = new StressTestInteropClient(
@@ -210,7 +210,7 @@ int main(int argc, char** argv) {
         FLAGS_sleep_duration_ms);
 
     test_threads.emplace_back(
-        grpc::thread(&StressTestInteropClient::MainLoop, client));
+        thread(&StressTestInteropClient::MainLoop, client));
   }
 
   for (auto it = test_threads.begin(); it != test_threads.end(); it++) {
