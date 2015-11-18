@@ -1,4 +1,5 @@
-#region Copyright notice and license
+﻿#region Copyright notice and license
+
 // Copyright 2015, Google Inc.
 // All rights reserved.
 //
@@ -27,38 +28,19 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #endregion
+
 using System;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
+using Grpc.IntegrationTesting;
 
-namespace Grpc.Core.Internal
+namespace Grpc.IntegrationTesting
 {
-    /// <summary>
-    /// grpc_call_credentials from <c>grpc/grpc_security.h</c>
-    /// </summary>
-    internal class CallCredentialsSafeHandle : SafeHandleZeroIsInvalid
+    class Program
     {
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern CallCredentialsSafeHandle grpcsharp_composite_call_credentials_create(CallCredentialsSafeHandle creds1, CallCredentialsSafeHandle creds2);
-
-        [DllImport("grpc_csharp_ext.dll")]
-        static extern void grpcsharp_call_credentials_release(IntPtr credentials);
-
-        private CallCredentialsSafeHandle()
+        public static void Main(string[] args)
         {
-        }
-
-        public static CallCredentialsSafeHandle CreateComposite(CallCredentialsSafeHandle creds1, CallCredentialsSafeHandle creds2)
-        {
-            return grpcsharp_composite_call_credentials_create(creds1, creds2);
-        }
-
-        protected override bool ReleaseHandle()
-        {
-            grpcsharp_call_credentials_release(handle);
-            return true;
+            QpsWorker.Run(args);
         }
     }
 }

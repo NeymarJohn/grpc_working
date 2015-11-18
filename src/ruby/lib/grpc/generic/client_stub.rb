@@ -51,9 +51,7 @@ module GRPC
       end
       kw['grpc.primary_user_agent'] = "grpc-ruby/#{VERSION}"
       return Core::Channel.new(host, kw) if creds.nil?
-      unless creds.is_a?(Core::ChannelCredentials)
-        fail(TypeError, '!ChannelCredentials')
-      end
+      fail(TypeError, '!Credentials') unless creds.is_a?(Core::Credentials)
       Core::Channel.new(host, kw, creds)
     end
 
@@ -108,7 +106,7 @@ module GRPC
     # @param q [Core::CompletionQueue] used to wait for events
     # @param channel_override [Core::Channel] a pre-created channel
     # @param timeout [Number] the default timeout to use in requests
-    # @param creds [Core::ChannelCredentials] the channel credentials
+    # @param creds [Core::Credentials] the channel
     # @param update_metadata a func that updates metadata as described above
     # @param kw [KeywordArgs]the channel arguments
     def initialize(host, q,
