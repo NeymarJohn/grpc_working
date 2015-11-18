@@ -35,7 +35,6 @@
 #define GRPCXX_SUPPORT_TIME_H
 
 #include <grpc++/support/config.h>
-#include <grpc/support/time.h>
 
 namespace grpc {
 
