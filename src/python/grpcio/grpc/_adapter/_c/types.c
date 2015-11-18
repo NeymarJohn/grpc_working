@@ -40,8 +40,7 @@
 int pygrpc_module_add_types(PyObject *module) {
   int i;
   PyTypeObject *types[] = {
-      &pygrpc_CallCredentials_type,
-      &pygrpc_ChannelCredentials_type,
+      &pygrpc_ClientCredentials_type,
       &pygrpc_ServerCredentials_type,
       &pygrpc_CompletionQueue_type,
       &pygrpc_Call_type,
