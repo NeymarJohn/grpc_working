@@ -42,10 +42,7 @@ namespace testing {
 
 class Histogram {
  public:
-  // TODO: look into making histogram params not hardcoded for C++
-  Histogram()
-      : impl_(gpr_histogram_create(default_resolution(),
-                                   default_max_possible())) {}
+  Histogram() : impl_(gpr_histogram_create(0.01, 60e9)) {}
   ~Histogram() {
     if (impl_) gpr_histogram_destroy(impl_);
   }
@@ -75,9 +72,6 @@ class Histogram {
                                  p.min_seen(), p.max_seen(), p.sum(),
                                  p.sum_of_squares(), p.count());
   }
-
-  static double default_resolution() { return 0.01; }
-  static double default_max_possible() { return 60e9; }
 
  private:
   Histogram(const Histogram&);
