@@ -67,6 +67,7 @@ typedef void (*grpc_security_check_cb)(grpc_exec_ctx *exec_ctx, void *user_data,
 typedef void (*grpc_security_handshake_done_cb)(grpc_exec_ctx *exec_ctx,
                                                 void *user_data,
                                                 grpc_security_status status,
+                                                grpc_endpoint *wrapped_endpoint,
                                                 grpc_endpoint *secure_endpoint);
 
 typedef struct {
@@ -77,7 +78,6 @@ typedef struct {
   grpc_security_status (*check_peer)(grpc_security_connector *sc, tsi_peer peer,
                                      grpc_security_check_cb cb,
                                      void *user_data);
-  void (*shutdown)(grpc_exec_ctx *exec_ctx, grpc_security_connector *sc);
 } grpc_security_connector_vtable;
 
 struct grpc_security_connector {
@@ -115,8 +115,6 @@ void grpc_security_connector_do_handshake(grpc_exec_ctx *exec_ctx,
                                           grpc_security_handshake_done_cb cb,
                                           void *user_data);
 
-void grpc_security_connector_shutdown(grpc_exec_ctx *exec_ctx,
-                                      grpc_security_connector *connector);
 /* Check the peer.
    Implementations can choose to check the peer either synchronously or
    asynchronously. In the first case, a successful call will return
@@ -147,7 +145,7 @@ typedef struct grpc_channel_security_connector grpc_channel_security_connector;
 
 struct grpc_channel_security_connector {
   grpc_security_connector base; /* requires is_client_side to be non 0. */
-  grpc_call_credentials *request_metadata_creds;
+  grpc_credentials *request_metadata_creds;
   grpc_security_status (*check_call_host)(grpc_exec_ctx *exec_ctx,
                                           grpc_channel_security_connector *sc,
                                           const char *host,
@@ -169,8 +167,7 @@ grpc_security_status grpc_channel_security_connector_check_call_host(
 /* For TESTING ONLY!
    Creates a fake connector that emulates real channel security.  */
 grpc_channel_security_connector *grpc_fake_channel_security_connector_create(
-    grpc_call_credentials *request_metadata_creds,
-    int call_host_check_is_async);
+    grpc_credentials *request_metadata_creds, int call_host_check_is_async);
 
 /* For TESTING ONLY!
    Creates a fake connector that emulates real server security.  */
@@ -200,9 +197,9 @@ typedef struct {
   specific error code otherwise.
 */
 grpc_security_status grpc_ssl_channel_security_connector_create(
-    grpc_call_credentials *request_metadata_creds,
-    const grpc_ssl_config *config, const char *target_name,
-    const char *overridden_target_name, grpc_channel_security_connector **sc);
+    grpc_credentials *request_metadata_creds, const grpc_ssl_config *config,
+    const char *target_name, const char *overridden_target_name,
+    grpc_channel_security_connector **sc);
 
 /* Gets the default ssl roots. */
 size_t grpc_get_default_ssl_roots(const unsigned char **pem_root_certs);

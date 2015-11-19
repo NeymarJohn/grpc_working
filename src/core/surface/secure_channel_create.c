@@ -86,6 +86,7 @@ static void connector_unref(grpc_exec_ctx *exec_ctx, grpc_connector *con) {
 
 static void on_secure_handshake_done(grpc_exec_ctx *exec_ctx, void *arg,
                                      grpc_security_status status,
+                                     grpc_endpoint *wrapped_endpoint,
                                      grpc_endpoint *secure_endpoint) {
   connector *c = arg;
   grpc_closure *notify;
@@ -94,11 +95,13 @@ static void on_secure_handshake_done(grpc_exec_ctx *exec_ctx, void *arg,
     memset(c->result, 0, sizeof(*c->result));
     gpr_mu_unlock(&c->mu);
   } else if (status != GRPC_SECURITY_OK) {
+    GPR_ASSERT(c->connecting_endpoint == wrapped_endpoint);
     gpr_log(GPR_ERROR, "Secure handshake failed with error %d.", status);
     memset(c->result, 0, sizeof(*c->result));
     c->connecting_endpoint = NULL;
     gpr_mu_unlock(&c->mu);
   } else {
+    GPR_ASSERT(c->connecting_endpoint == wrapped_endpoint);
     c->connecting_endpoint = NULL;
     gpr_mu_unlock(&c->mu);
     c->result->transport = grpc_create_chttp2_transport(
@@ -227,7 +230,7 @@ static const grpc_subchannel_factory_vtable subchannel_factory_vtable = {
    Asynchronously: - resolve target
                    - connect to it (trying alternatives as presented)
                    - perform handshakes */
-grpc_channel *grpc_secure_channel_create(grpc_channel_credentials *creds,
+grpc_channel *grpc_secure_channel_create(grpc_credentials *creds,
                                          const char *target,
                                          const grpc_channel_args *args,
                                          void *reserved) {
@@ -258,9 +261,9 @@ grpc_channel *grpc_secure_channel_create(grpc_channel_credentials *creds,
         "Security connector exists in channel args.");
   }
 
-  if (grpc_channel_credentials_create_security_connector(
-          creds, target, args, &security_connector, &new_args_from_connector) !=
-      GRPC_SECURITY_OK) {
+  if (grpc_credentials_create_security_connector(
+          creds, target, args, NULL, &security_connector,
+          &new_args_from_connector) != GRPC_SECURITY_OK) {
     grpc_exec_ctx_finish(&exec_ctx);
     return grpc_lame_client_channel_create(
         target, GRPC_STATUS_INVALID_ARGUMENT,

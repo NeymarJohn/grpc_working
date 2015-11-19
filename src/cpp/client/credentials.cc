@@ -35,8 +35,6 @@
 
 namespace grpc {
 
-ChannelCredentials::~ChannelCredentials() {}
-
-CallCredentials::~CallCredentials() {}
+Credentials::~Credentials() {}
 
 }  // namespace grpc
