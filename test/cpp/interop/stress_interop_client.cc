@@ -89,9 +89,9 @@ StressTestInteropClient::StressTestInteropClient(
       test_duration_secs_(test_duration_secs),
       sleep_duration_ms_(sleep_duration_ms) {
   // TODO(sreek): This will change once we add support for other tests
-  // that won't work with InsecureChannelCredentials()
+  // that won't work with InsecureCredentials()
   std::shared_ptr<Channel> channel(
-      CreateChannel(server_address, InsecureChannelCredentials()));
+      CreateChannel(server_address, InsecureCredentials()));
   interop_client_.reset(new InteropClient(channel, false));
 }
 
