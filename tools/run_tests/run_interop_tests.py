@@ -37,6 +37,7 @@ import jobset
 import multiprocessing
 import os
 import report_utils
+import subprocess
 import sys
 import tempfile
 import time
@@ -685,9 +686,9 @@ try:
   else:
     jobset.message('SUCCESS', 'All tests passed', do_newline=True)
 
-  report_utils.render_junit_xml_report(resultset, 'report.xml')
+  report_utils.render_xml_report(resultset, 'report.xml')
   
-  report_utils.render_interop_html_report(
+  report_utils.render_html_report(
       set([str(l) for l in languages]), servers, _TEST_CASES, _AUTH_TEST_CASES, 
       _HTTP2_TEST_CASES, resultset, num_failures,
       args.cloud_to_prod_auth or args.cloud_to_prod, args.http2_interop)
