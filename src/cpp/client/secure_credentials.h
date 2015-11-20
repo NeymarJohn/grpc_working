@@ -80,7 +80,7 @@ class SecureCallCredentials GRPC_FINAL : public CallCredentials {
 class MetadataCredentialsPluginWrapper GRPC_FINAL {
  public:
   static void Destroy(void* wrapper);
-  static void GetMetadata(void* wrapper, grpc_auth_metadata_context context,
+  static void GetMetadata(void* wrapper, const char* service_url,
                           grpc_credentials_plugin_metadata_cb cb,
                           void* user_data);
 
@@ -88,7 +88,7 @@ class MetadataCredentialsPluginWrapper GRPC_FINAL {
       std::unique_ptr<MetadataCredentialsPlugin> plugin);
 
  private:
-  void InvokePlugin(grpc_auth_metadata_context context,
+  void InvokePlugin(const char* service_url,
                     grpc_credentials_plugin_metadata_cb cb, void* user_data);
   std::unique_ptr<ThreadPoolInterface> thread_pool_;
   std::unique_ptr<MetadataCredentialsPlugin> plugin_;

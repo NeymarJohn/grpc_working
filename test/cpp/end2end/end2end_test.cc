@@ -119,13 +119,10 @@ class TestMetadataCredentialsPlugin : public MetadataCredentialsPlugin {
 
   bool IsBlocking() const GRPC_OVERRIDE { return is_blocking_; }
 
-  Status GetMetadata(grpc::string_ref service_url, grpc::string_ref method_name,
-                     const grpc::AuthContext& channel_auth_context,
+  Status GetMetadata(grpc::string_ref service_url,
                      std::multimap<grpc::string, grpc::string>* metadata)
       GRPC_OVERRIDE {
     EXPECT_GT(service_url.length(), 0UL);
-    EXPECT_GT(method_name.length(), 0UL);
-    EXPECT_TRUE(channel_auth_context.IsPeerAuthenticated());
     EXPECT_TRUE(metadata != nullptr);
     if (is_successful_) {
       metadata->insert(std::make_pair(kMetadataKey, metadata_value_));
@@ -1191,14 +1188,14 @@ TEST_P(SecureEnd2endTest, ClientAuthContext) {
 }
 
 INSTANTIATE_TEST_CASE_P(End2end, End2endTest,
-                        ::testing::Values(TestScenario(false, true),
-                                          TestScenario(false, false)));
+                        ::testing::Values(TestScenario(false, false),
+                                          TestScenario(false, true)));
 
 INSTANTIATE_TEST_CASE_P(ProxyEnd2end, ProxyEnd2endTest,
-                        ::testing::Values(TestScenario(true, true),
-                                          TestScenario(true, false),
+                        ::testing::Values(TestScenario(false, false),
                                           TestScenario(false, true),
-                                          TestScenario(false, false)));
+                                          TestScenario(true, false),
+                                          TestScenario(true, true)));
 
 INSTANTIATE_TEST_CASE_P(SecureEnd2end, SecureEnd2endTest,
                         ::testing::Values(TestScenario(false, true)));
