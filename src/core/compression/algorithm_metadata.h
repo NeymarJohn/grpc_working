@@ -31,46 +31,23 @@
  *
  */
 
-#include <set>
+#ifndef GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H
+#define GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H
 
-#include <grpc/support/log.h>
+#include <grpc/compression.h>
+#include "src/core/transport/metadata.h"
 
-#include "test/cpp/qps/driver.h"
-#include "test/cpp/qps/report.h"
-#include "test/cpp/util/benchmark_config.h"
+/** Return compression algorithm based metadata value */
+grpc_mdstr *grpc_compression_algorithm_mdstr(
+    grpc_compression_algorithm algorithm);
 
-namespace grpc {
-namespace testing {
+/** Return compression algorithm based metadata element (grpc-encoding: xxx) */
+grpc_mdelem *grpc_compression_encoding_mdelem(
+    grpc_compression_algorithm algorithm);
 
-static const int WARMUP = 5;
-static const int BENCHMARK = 10;
+/** Find compression algorithm based on passed in mdstr - returns
+ * GRPC_COMPRESS_ALGORITHM_COUNT on failure */
+grpc_compression_algorithm grpc_compression_algorithm_from_mdstr(
+    grpc_mdstr *str);
 
-static void RunSynchronousStreamingPingPong() {
-  gpr_log(GPR_INFO, "Running Synchronous Streaming Ping Pong");
-
-  ClientConfig client_config;
-  client_config.set_client_type(SYNC_CLIENT);
-  client_config.set_outstanding_rpcs_per_channel(1);
-  client_config.set_client_channels(1);
-  client_config.set_rpc_type(STREAMING);
-  client_config.mutable_load_params()->mutable_closed_loop();
-
-  ServerConfig server_config;
-  server_config.set_server_type(SYNC_SERVER);
-
-  const auto result =
-      RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
-
-  GetReporter()->ReportQPS(*result);
-  GetReporter()->ReportLatency(*result);
-}
-}  // namespace testing
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  grpc::testing::InitBenchmark(&argc, &argv, true);
-
-  grpc::testing::RunSynchronousStreamingPingPong();
-
-  return 0;
-}
+#endif /* GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H */

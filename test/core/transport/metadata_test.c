@@ -35,11 +35,13 @@
 
 #include <stdio.h>
 
-#include "src/core/support/string.h"
-#include "src/core/transport/chttp2/bin_encoder.h"
+#include <grpc/grpc.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/string_util.h>
+
+#include "src/core/support/string.h"
+#include "src/core/transport/chttp2/bin_encoder.h"
 #include "test/core/util/test_config.h"
 
 #define LOG_TEST(x) gpr_log(GPR_INFO, "%s", x)
@@ -270,6 +272,7 @@ static void test_base64_and_huffman_works(void) {
 
 int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
+  grpc_init();
   test_no_op();
   test_create_string();
   test_create_metadata();
@@ -279,5 +282,6 @@ int main(int argc, char **argv) {
   test_things_stick_around();
   test_slices_work();
   test_base64_and_huffman_works();
+  grpc_shutdown();
   return 0;
 }

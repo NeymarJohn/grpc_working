@@ -35,6 +35,7 @@
 
 #include <stdarg.h>
 
+#include <grpc/grpc.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/slice.h>
@@ -151,8 +152,7 @@ static void test_vectors(grpc_slice_split_mode mode) {
   grpc_chttp2_hpack_parser_destroy(&parser);
 
   grpc_chttp2_hpack_parser_init(&parser, mdctx);
-  grpc_chttp2_hptbl_set_max_bytes(&parser.table, 256);
-  grpc_chttp2_hptbl_set_current_table_size(&parser.table, 256);
+  parser.table.max_bytes = 256;
   /* D.5.1 */
   test_vector(&parser, mode,
               "4803 3330 3258 0770 7269 7661 7465 611d"
@@ -185,8 +185,7 @@ static void test_vectors(grpc_slice_split_mode mode) {
   grpc_chttp2_hpack_parser_destroy(&parser);
 
   grpc_chttp2_hpack_parser_init(&parser, mdctx);
-  grpc_chttp2_hptbl_set_max_bytes(&parser.table, 256);
-  grpc_chttp2_hptbl_set_current_table_size(&parser.table, 256);
+  parser.table.max_bytes = 256;
   /* D.6.1 */
   test_vector(&parser, mode,
               "4882 6402 5885 aec3 771a 4b61 96d0 7abe"
@@ -219,7 +218,9 @@ static void test_vectors(grpc_slice_split_mode mode) {
 
 int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
+  grpc_init();
   test_vectors(GRPC_SLICE_SPLIT_MERGE_ALL);
   test_vectors(GRPC_SLICE_SPLIT_ONE_BYTE);
+  grpc_shutdown();
   return 0;
 }

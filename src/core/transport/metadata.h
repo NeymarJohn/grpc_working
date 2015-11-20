@@ -59,7 +59,13 @@
 
    grpc_mdelem instances MAY live longer than their refcount implies, and are
    garbage collected periodically, meaning cached data can easily outlive a
-   single request. */
+   single request.
+
+   STATIC METADATA: in static_metadata.h we declare a set of static metadata.
+   These mdelems and mdstrs are available via pre-declared code generated macros
+   and are available to code anywhere between grpc_init() and grpc_shutdown().
+   They are not refcounted, but can be passed to _ref and _unref functions
+   declared here - in which case those functions are effectively no-ops. */
 
 /* Forward declarations */
 typedef struct grpc_mdctx grpc_mdctx;
@@ -86,6 +92,8 @@ grpc_mdctx *grpc_mdctx_create(void);
 grpc_mdctx *grpc_mdctx_create_with_seed(gpr_uint32 seed);
 void grpc_mdctx_ref(grpc_mdctx *mdctx);
 void grpc_mdctx_unref(grpc_mdctx *mdctx);
+
+void grpc_mdctx_drop_caches(grpc_mdctx *mdctx);
 
 /* Test only accessors to internal state - only for testing this code - do not
    rely on it outside of metadata_test.c */
@@ -155,6 +163,28 @@ int grpc_mdstr_is_legal_header(grpc_mdstr *s);
 int grpc_mdstr_is_legal_nonbin_header(grpc_mdstr *s);
 int grpc_mdstr_is_bin_suffixed(grpc_mdstr *s);
 
+/* Gross layering hack (that we seem to need):
+ * metadata context keeps a cache of algorithm bitset to
+ * 'accept-encoding: algorithm1,algorithm2' in order to accelerate sending
+ * compression metadata */
+grpc_mdelem *grpc_accept_encoding_mdelem_from_compression_algorithms(
+    grpc_mdctx *ctx, gpr_uint32 algorithm_mask);
+
+/* Cache-slots
+ * A metadata context can cache (on behalf of its owner) some small set of
+ * metadata elements. */
+typedef enum {
+  GRPC_MDELEM_CACHED_USER_AGENT = 0,
+  GRPC_MDELEM_CACHE_SLOT_COUNT
+} grpc_mdelem_cache_slot;
+void grpc_mdctx_set_mdelem_cache(grpc_mdctx *ctx, grpc_mdelem_cache_slot slot,
+                                 grpc_mdelem *elem);
+grpc_mdelem *grpc_mdelem_from_cache(grpc_mdctx *ctx,
+                                    grpc_mdelem_cache_slot slot);
+
 #define GRPC_MDSTR_KV_HASH(k_hash, v_hash) (GPR_ROTL((k_hash), 2) ^ (v_hash))
+
+void grpc_mdctx_global_init(void);
+void grpc_mdctx_global_shutdown(void);
 
 #endif /* GRPC_INTERNAL_CORE_TRANSPORT_METADATA_H */
