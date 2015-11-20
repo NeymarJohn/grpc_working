@@ -31,38 +31,23 @@
  *
  */
 
-#include <grpc++/security/credentials.h>
+#ifndef GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H
+#define GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H
 
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
-#include <grpc++/channel.h>
-#include <grpc++/support/channel_arguments.h>
-#include <grpc++/support/config.h>
-#include "src/cpp/client/create_channel_internal.h"
+#include <grpc/compression.h>
+#include "src/core/transport/metadata.h"
 
-namespace grpc {
+/** Return compression algorithm based metadata value */
+grpc_mdstr *grpc_compression_algorithm_mdstr(
+    grpc_compression_algorithm algorithm);
 
-namespace {
-class InsecureChannelCredentialsImpl GRPC_FINAL : public ChannelCredentials {
- public:
-  std::shared_ptr<grpc::Channel> CreateChannel(
-      const string& target, const grpc::ChannelArguments& args) GRPC_OVERRIDE {
-    grpc_channel_args channel_args;
-    args.SetChannelArgs(&channel_args);
-    return CreateChannelInternal(
-        "",
-        grpc_insecure_channel_create(target.c_str(), &channel_args, nullptr));
-  }
+/** Return compression algorithm based metadata element (grpc-encoding: xxx) */
+grpc_mdelem *grpc_compression_encoding_mdelem(
+    grpc_compression_algorithm algorithm);
 
-  SecureChannelCredentials* AsSecureCredentials() GRPC_OVERRIDE {
-    return nullptr;
-  }
-};
-}  // namespace
+/** Find compression algorithm based on passed in mdstr - returns
+ * GRPC_COMPRESS_ALGORITHM_COUNT on failure */
+grpc_compression_algorithm grpc_compression_algorithm_from_mdstr(
+    grpc_mdstr *str);
 
-std::shared_ptr<ChannelCredentials> InsecureChannelCredentials() {
-  return std::shared_ptr<ChannelCredentials>(
-      new InsecureChannelCredentialsImpl());
-}
-
-}  // namespace grpc
+#endif /* GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H */
