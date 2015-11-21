@@ -32,21 +32,21 @@ syntax = "proto3";
 package grpc.testing;
 
 message ServerStats {
-  // wall clock time change in seconds since last reset
+  // wall clock time change since last reset
   double time_elapsed = 1;
 
-  // change in user time (in seconds) used by the server since last reset
+  // change in user time used by the server since last reset
   double time_user = 2;
 
-  // change in server time (in seconds) used by the server process and all
-  // threads since last reset
+  // change in server time used by the server process and all threads since
+  // last reset
   double time_system = 3;
 }
 
 // Histogram params based on grpc/support/histogram.c
 message HistogramParams {
-  double resolution = 1;    // first bucket is [0, 1 + resolution)
-  double max_possible = 2;  // use enough buckets to allow this value
+  double resolution = 1;   // first bucket is [0, 1 + resolution)
+  double max_possible = 2; // use enough buckets to allow this value
 }
 
 // Histogram data based on grpc/support/histogram.c
