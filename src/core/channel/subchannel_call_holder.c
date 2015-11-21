@@ -44,6 +44,7 @@
 
 static void subchannel_ready(grpc_exec_ctx *exec_ctx, void *holder,
                              int success);
+static void call_ready(grpc_exec_ctx *exec_ctx, void *holder, int success);
 static void retry_ops(grpc_exec_ctx *exec_ctx, void *retry_ops_args,
                       int success);
 
@@ -62,7 +63,7 @@ void grpc_subchannel_call_holder_init(
   holder->pick_subchannel = pick_subchannel;
   holder->pick_subchannel_arg = pick_subchannel_arg;
   gpr_mu_init(&holder->mu);
-  holder->connected_subchannel = NULL;
+  holder->subchannel = NULL;
   holder->waiting_ops = NULL;
   holder->waiting_ops_count = 0;
   holder->waiting_ops_capacity = 0;
@@ -124,9 +125,13 @@ retry:
         case GRPC_SUBCHANNEL_CALL_HOLDER_NOT_CREATING:
           fail_locked(exec_ctx, holder);
           break;
+        case GRPC_SUBCHANNEL_CALL_HOLDER_CREATING_CALL:
+          grpc_subchannel_cancel_create_call(exec_ctx, holder->subchannel,
+                                             &holder->subchannel_call);
+          break;
         case GRPC_SUBCHANNEL_CALL_HOLDER_PICKING_SUBCHANNEL:
           holder->pick_subchannel(exec_ctx, holder->pick_subchannel_arg, NULL,
-                                  &holder->connected_subchannel, NULL);
+                                  &holder->subchannel, NULL);
           break;
       }
       gpr_mu_unlock(&holder->mu);
@@ -137,25 +142,28 @@ retry:
   }
   /* if we don't have a subchannel, try to get one */
   if (holder->creation_phase == GRPC_SUBCHANNEL_CALL_HOLDER_NOT_CREATING &&
-      holder->connected_subchannel == NULL &&
-      op->send_initial_metadata != NULL) {
+      holder->subchannel == NULL && op->send_initial_metadata != NULL) {
     holder->creation_phase = GRPC_SUBCHANNEL_CALL_HOLDER_PICKING_SUBCHANNEL;
     grpc_closure_init(&holder->next_step, subchannel_ready, holder);
-    if (holder->pick_subchannel(
-            exec_ctx, holder->pick_subchannel_arg, op->send_initial_metadata,
-            &holder->connected_subchannel, &holder->next_step)) {
+    if (holder->pick_subchannel(exec_ctx, holder->pick_subchannel_arg,
+                                op->send_initial_metadata, &holder->subchannel,
+                                &holder->next_step)) {
       holder->creation_phase = GRPC_SUBCHANNEL_CALL_HOLDER_NOT_CREATING;
     }
   }
   /* if we've got a subchannel, then let's ask it to create a call */
   if (holder->creation_phase == GRPC_SUBCHANNEL_CALL_HOLDER_NOT_CREATING &&
-      holder->connected_subchannel != NULL) {
-    gpr_atm_rel_store(
-        &holder->subchannel_call,
-        grpc_connected_subchannel_create_call(
-            exec_ctx, holder->connected_subchannel, holder->pollset));
-    retry_waiting_locked(exec_ctx, holder);
-    goto retry;
+      holder->subchannel != NULL) {
+    holder->creation_phase = GRPC_SUBCHANNEL_CALL_HOLDER_CREATING_CALL;
+    grpc_closure_init(&holder->next_step, call_ready, holder);
+    if (grpc_subchannel_create_call(exec_ctx, holder->subchannel,
+                                    holder->pollset, &holder->subchannel_call,
+                                    &holder->next_step)) {
+      /* got one immediately - continue the op (and any waiting ops) */
+      holder->creation_phase = GRPC_SUBCHANNEL_CALL_HOLDER_NOT_CREATING;
+      retry_waiting_locked(exec_ctx, holder);
+      goto retry;
+    }
   }
   /* nothing to be done but wait */
   add_waiting_locked(holder, op);
@@ -171,17 +179,36 @@ static void subchannel_ready(grpc_exec_ctx *exec_ctx, void *arg, int success) {
              GRPC_SUBCHANNEL_CALL_HOLDER_PICKING_SUBCHANNEL);
   call = GET_CALL(holder);
   GPR_ASSERT(call == NULL || call == CANCELLED_CALL);
-  if (holder->connected_subchannel == NULL) {
+  if (holder->subchannel == NULL) {
     holder->creation_phase = GRPC_SUBCHANNEL_CALL_HOLDER_NOT_CREATING;
     fail_locked(exec_ctx, holder);
   } else {
-    gpr_atm_rel_store(
-        &holder->subchannel_call,
-        grpc_connected_subchannel_create_call(
-            exec_ctx, holder->connected_subchannel, holder->pollset));
-    retry_waiting_locked(exec_ctx, holder);
+    grpc_closure_init(&holder->next_step, call_ready, holder);
+    if (grpc_subchannel_create_call(exec_ctx, holder->subchannel,
+                                    holder->pollset, &holder->subchannel_call,
+                                    &holder->next_step)) {
+      holder->creation_phase = GRPC_SUBCHANNEL_CALL_HOLDER_NOT_CREATING;
+      /* got one immediately - continue the op (and any waiting ops) */
+      retry_waiting_locked(exec_ctx, holder);
+    }
   }
   gpr_mu_unlock(&holder->mu);
+}
+
+static void call_ready(grpc_exec_ctx *exec_ctx, void *arg, int success) {
+  grpc_subchannel_call_holder *holder = arg;
+  GPR_TIMER_BEGIN("call_ready", 0);
+  gpr_mu_lock(&holder->mu);
+  GPR_ASSERT(holder->creation_phase ==
+             GRPC_SUBCHANNEL_CALL_HOLDER_CREATING_CALL);
+  holder->creation_phase = GRPC_SUBCHANNEL_CALL_HOLDER_NOT_CREATING;
+  if (GET_CALL(holder) != NULL) {
+    retry_waiting_locked(exec_ctx, holder);
+  } else {
+    fail_locked(exec_ctx, holder);
+  }
+  gpr_mu_unlock(&holder->mu);
+  GPR_TIMER_END("call_ready", 0);
 }
 
 typedef struct {

@@ -31,23 +31,23 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H
-#define GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H
+#include "src/core/client_config/initial_connect_string.h"
 
-#include <grpc/compression.h>
-#include "src/core/transport/metadata.h"
+#include <stddef.h>
 
-/** Return compression algorithm based metadata value */
-grpc_mdstr *grpc_compression_algorithm_mdstr(
-    grpc_compression_algorithm algorithm);
+extern void grpc_set_default_initial_connect_string(struct sockaddr **addr,
+                                                    size_t *addr_len,
+                                                    gpr_slice *initial_str);
 
-/** Return compression algorithm based metadata element (grpc-encoding: xxx) */
-grpc_mdelem *grpc_compression_encoding_mdelem(
-    grpc_compression_algorithm algorithm);
+static grpc_set_initial_connect_string_func g_set_initial_connect_string_func =
+    grpc_set_default_initial_connect_string;
 
-/** Find compression algorithm based on passed in mdstr - returns
- * GRPC_COMPRESS_ALGORITHM_COUNT on failure */
-grpc_compression_algorithm grpc_compression_algorithm_from_mdstr(
-    grpc_mdstr *str);
+void grpc_test_set_initial_connect_string_function(
+    grpc_set_initial_connect_string_func func) {
+  g_set_initial_connect_string_func = func;
+}
 
-#endif /* GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H */
+void grpc_set_initial_connect_string(struct sockaddr **addr, size_t *addr_len,
+                                     gpr_slice *initial_str) {
+  g_set_initial_connect_string_func(addr, addr_len, initial_str);
+}
