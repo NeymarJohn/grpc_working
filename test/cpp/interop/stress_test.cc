@@ -234,9 +234,9 @@ int main(int argc, char** argv) {
       bool is_already_created;
       grpc::string metricName =
           "/stress_test/qps/thread/" + std::to_string(thread_idx);
-      test_threads.emplace_back(
-          grpc::thread(&StressTestInteropClient::MainLoop, client,
-                 metrics_service.CreateGauge(metricName, &is_already_created)));
+      test_threads.emplace_back(grpc::thread(
+          &StressTestInteropClient::MainLoop, client,
+          metrics_service.CreateGauge(metricName, &is_already_created)));
 
       // The Gauge should not have been already created
       GPR_ASSERT(!is_already_created);
