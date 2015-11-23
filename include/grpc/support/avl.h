@@ -31,64 +31,38 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_THD_NO_CXX11_H
-#define GRPCXX_IMPL_THD_NO_CXX11_H
+#ifndef GRPC_SUPPORT_AVL_H
+#define GRPC_SUPPORT_AVL_H
 
-#include <grpc/support/thd.h>
+#include <grpc/support/sync.h>
 
-namespace grpc {
+typedef struct gpr_avl_node {
+  gpr_refcount refs;
+  void *key;
+  void *value;
+  struct gpr_avl_node *left;
+  struct gpr_avl_node *right;
+  long height;
+} gpr_avl_node;
 
-class thread {
- public:
-  template <class T>
-  thread(void (T::*fptr)(), T *obj) {
-    func_ = new thread_function<T>(fptr, obj);
-    joined_ = false;
-    start();
-  }
-  ~thread() {
-    if (!joined_) std::terminate();
-    delete func_;
-  }
-  void join() {
-    gpr_thd_join(thd_);
-    joined_ = true;
-  }
+typedef struct gpr_avl_vtable {
+  void (*destroy_key)(void *key);
+  void *(*copy_key)(void *key);
+  long (*compare_keys)(void *key1, void *key2);
+  void (*destroy_value)(void *value);
+  void *(*copy_value)(void *value);
+} gpr_avl_vtable;
 
- private:
-  void start() {
-    gpr_thd_options options = gpr_thd_options_default();
-    gpr_thd_options_set_joinable(&options);
-    gpr_thd_new(&thd_, thread_func, (void *)func_, &options);
-  }
-  static void thread_func(void *arg) {
-    thread_function_base *func = (thread_function_base *)arg;
-    func->call();
-  }
-  class thread_function_base {
-   public:
-    virtual ~thread_function_base() {}
-    virtual void call() = 0;
-  };
-  template <class T>
-  class thread_function : public thread_function_base {
-   public:
-    thread_function(void (T::*fptr)(), T *obj) : fptr_(fptr), obj_(obj) {}
-    virtual void call() { (obj_->*fptr_)(); }
+typedef struct gpr_avl {
+  const gpr_avl_vtable *vtable;
+  gpr_avl_node *root;
+} gpr_avl;
 
-   private:
-    void (T::*fptr_)();
-    T *obj_;
-  };
-  thread_function_base *func_;
-  gpr_thd_id thd_;
-  bool joined_;
+gpr_avl gpr_avl_create(const gpr_avl_vtable *vtable);
+gpr_avl gpr_avl_ref(gpr_avl avl);
+void gpr_avl_unref(gpr_avl avl);
+gpr_avl gpr_avl_add(gpr_avl avl, void *key, void *value);
+gpr_avl gpr_avl_remove(gpr_avl avl, void *key);
+void *gpr_avl_get(gpr_avl avl, void *key);
 
-  // Disallow copy and assign.
-  thread(const thread &);
-  void operator=(const thread &);
-};
-
-}  // namespace grpc
-
-#endif  // GRPCXX_IMPL_THD_NO_CXX11_H
+#endif
