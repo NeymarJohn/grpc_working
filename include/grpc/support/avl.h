@@ -31,23 +31,37 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H
-#define GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H
+#ifndef GRPC_SUPPORT_AVL_H
+#define GRPC_SUPPORT_AVL_H
 
-#include <grpc/compression.h>
-#include "src/core/transport/metadata.h"
+#include <grpc/support/sync.h>
 
-/** Return compression algorithm based metadata value */
-grpc_mdstr *grpc_compression_algorithm_mdstr(
-    grpc_compression_algorithm algorithm);
+typedef struct gpr_avl_node {
+  gpr_refcount refs;
+  void *key;
+  void *value;
+  struct gpr_avl_node *left;
+  struct gpr_avl_node *right;
+  long height;
+} gpr_avl_node;
 
-/** Return compression algorithm based metadata element (grpc-encoding: xxx) */
-grpc_mdelem *grpc_compression_encoding_mdelem(
-    grpc_compression_algorithm algorithm);
+typedef struct gpr_avl_vtable {
+  void (*destroy_key)(void *key);
+  void *(*copy_key)(void *key);
+  long (*compare_keys)(void *key1, void *key2);
+  void (*destroy_value)(void *value);
+  void *(*copy_value)(void *value);
+} gpr_avl_vtable;
 
-/** Find compression algorithm based on passed in mdstr - returns
- * GRPC_COMPRESS_ALGORITHM_COUNT on failure */
-grpc_compression_algorithm grpc_compression_algorithm_from_mdstr(
-    grpc_mdstr *str);
+typedef struct gpr_avl {
+  const gpr_avl_vtable *vtable;
+  gpr_avl_node *root;
+} gpr_avl;
 
-#endif /* GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H */
+gpr_avl gpr_avl_create(const gpr_avl_vtable *vtable);
+void gpr_avl_destroy(gpr_avl avl);
+gpr_avl gpr_avl_add(gpr_avl avl, void *key, void *value);
+gpr_avl gpr_avl_remove(gpr_avl avl, void *key);
+void *gpr_avl_get(gpr_avl avl, void *key);
+
+#endif

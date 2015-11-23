@@ -87,6 +87,8 @@ struct grpc_subchannel {
   /** address to connect to */
   struct sockaddr *addr;
   size_t addr_len;
+  /** metadata context */
+  grpc_mdctx *mdctx;
   /** master channel - the grpc_channel instance that ultimately owns
       this channel_data via its channel stack.
       We occasionally use this to bump the refcount on the master channel
@@ -265,6 +267,7 @@ static void subchannel_destroy(grpc_exec_ctx *exec_ctx, grpc_subchannel *c) {
   gpr_free((void *)c->filters);
   grpc_channel_args_destroy(c->args);
   gpr_free(c->addr);
+  grpc_mdctx_unref(c->mdctx);
   grpc_connectivity_state_destroy(exec_ctx, &c->state_tracker);
   grpc_connector_unref(exec_ctx, c->connector);
   gpr_free(c);
@@ -303,9 +306,11 @@ grpc_subchannel *grpc_subchannel_create(grpc_connector *connector,
   memcpy(c->addr, args->addr, args->addr_len);
   c->addr_len = args->addr_len;
   c->args = grpc_channel_args_copy(args->args);
+  c->mdctx = args->mdctx;
   c->master = args->master;
   c->pollset_set = grpc_client_channel_get_connecting_pollset_set(parent_elem);
   c->random = random_seed();
+  grpc_mdctx_ref(c->mdctx);
   grpc_closure_init(&c->connected, subchannel_connected, c);
   grpc_connectivity_state_init(&c->state_tracker, GRPC_CHANNEL_IDLE,
                                "subchannel");
@@ -619,7 +624,7 @@ static void publish_transport(grpc_exec_ctx *exec_ctx, grpc_subchannel *c) {
   con->refs = 0;
   con->subchannel = c;
   grpc_channel_stack_init(exec_ctx, filters, num_filters, c->master, c->args,
-                          stk);
+                          c->mdctx, stk);
   grpc_connected_channel_bind_transport(stk, c->connecting_result.transport);
   gpr_free((void *)c->connecting_result.filters);
   memset(&c->connecting_result, 0, sizeof(c->connecting_result));
@@ -864,6 +869,10 @@ static grpc_subchannel_call *create_call(grpc_exec_ctx *exec_ctx,
                        NULL, NULL, callstk);
   grpc_call_stack_set_pollset(exec_ctx, callstk, pollset);
   return call;
+}
+
+grpc_mdctx *grpc_subchannel_get_mdctx(grpc_subchannel *subchannel) {
+  return subchannel->mdctx;
 }
 
 grpc_channel *grpc_subchannel_get_master(grpc_subchannel *subchannel) {
