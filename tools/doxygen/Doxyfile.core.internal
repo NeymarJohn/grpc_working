@@ -809,6 +809,7 @@ src/core/client_config/subchannel_factory.h \
 src/core/client_config/subchannel_factory_decorators/add_channel_arg.h \
 src/core/client_config/subchannel_factory_decorators/merge_channel_args.h \
 src/core/client_config/uri_parser.h \
+src/core/compression/algorithm_metadata.h \
 src/core/compression/message_compress.h \
 src/core/debug/trace.h \
 src/core/httpcli/format_request.h \
@@ -891,6 +892,7 @@ src/core/transport/chttp2_transport.h \
 src/core/transport/connectivity_state.h \
 src/core/transport/metadata.h \
 src/core/transport/metadata_batch.h \
+src/core/transport/static_metadata.h \
 src/core/transport/transport.h \
 src/core/transport/transport_impl.h \
 src/core/census/aggregation.h \
@@ -1039,6 +1041,7 @@ src/core/transport/chttp2_transport.c \
 src/core/transport/connectivity_state.c \
 src/core/transport/metadata.c \
 src/core/transport/metadata_batch.c \
+src/core/transport/static_metadata.c \
 src/core/transport/transport.c \
 src/core/transport/transport_op_string.c \
 src/core/census/context.c \
@@ -1050,7 +1053,6 @@ include/grpc/support/atm.h \
 include/grpc/support/atm_gcc_atomic.h \
 include/grpc/support/atm_gcc_sync.h \
 include/grpc/support/atm_win32.h \
-include/grpc/support/avl.h \
 include/grpc/support/cmdline.h \
 include/grpc/support/cpu.h \
 include/grpc/support/histogram.h \
@@ -1086,7 +1088,6 @@ src/core/support/time_precise.h \
 src/core/profiling/basic_timers.c \
 src/core/profiling/stap_timers.c \
 src/core/support/alloc.c \
-src/core/support/avl.c \
 src/core/support/cmdline.c \
 src/core/support/cpu_iphone.c \
 src/core/support/cpu_linux.c \
