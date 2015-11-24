@@ -251,7 +251,6 @@
     <ClInclude Include="..\..\..\include\grpc++\impl\rpc_method.h" />
     <ClInclude Include="..\..\..\include\grpc++\impl\rpc_service_method.h" />
     <ClInclude Include="..\..\..\include\grpc++\impl\serialization_traits.h" />
-    <ClInclude Include="..\..\..\include\grpc++\impl\server_builder_option.h" />
     <ClInclude Include="..\..\..\include\grpc++\impl\service_type.h" />
     <ClInclude Include="..\..\..\include\grpc++\impl\sync.h" />
     <ClInclude Include="..\..\..\include\grpc++\impl\sync_cxx11.h" />
@@ -292,6 +291,8 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\cpp\client\channel.cc">
     </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\client\channel_arguments.cc">
+    </ClCompile>
     <ClCompile Include="..\..\..\src\cpp\client\client_context.cc">
     </ClCompile>
     <ClCompile Include="..\..\..\src\cpp\client\create_channel.cc">
@@ -305,8 +306,6 @@
     <ClCompile Include="..\..\..\src\cpp\client\insecure_credentials.cc">
     </ClCompile>
     <ClCompile Include="..\..\..\src\cpp\common\call.cc">
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\cpp\common\channel_arguments.cc">
     </ClCompile>
     <ClCompile Include="..\..\..\src\cpp\common\completion_queue.cc">
     </ClCompile>
