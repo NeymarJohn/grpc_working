@@ -31,30 +31,23 @@
  *
  */
 
-'use strict';
+#include "src/core/client_config/initial_connect_string.h"
 
-var worker_service_impl = require('./worker_service_impl');
+#include <stddef.h>
 
-var grpc = require('../../../');
-var serviceProto = grpc.load({
-  root: __dirname + '/../../..',
-  file: 'test/proto/benchmarks/services.proto'}).grpc.testing;
+extern void grpc_set_default_initial_connect_string(struct sockaddr **addr,
+                                                    size_t *addr_len,
+                                                    gpr_slice *initial_str);
 
-function runServer(port) {
-  var server_creds;
-  // Need to actually populate server_creds
-  var server = new grpc.Server();
-  server.addProtoService(serviceProto.WorkerService.service,
-                         worker_service_impl);
-  server.bind('0.0.0.0:' + port, server_creds);
-  server.start();
-  return server;
+static grpc_set_initial_connect_string_func g_set_initial_connect_string_func =
+    grpc_set_default_initial_connect_string;
+
+void grpc_test_set_initial_connect_string_function(
+    grpc_set_initial_connect_string_func func) {
+  g_set_initial_connect_string_func = func;
 }
 
-if (require.main === module) {
-  var parseArgs = require('minimist');
-  var argv = parseArgs(process.argv, {
-    string: ['driver_port']
-  });
-  runServer(argv.driver_port);
+void grpc_set_initial_connect_string(struct sockaddr **addr, size_t *addr_len,
+                                     gpr_slice *initial_str) {
+  g_set_initial_connect_string_func(addr, addr_len, initial_str);
 }
