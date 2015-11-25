@@ -37,6 +37,7 @@ void grpc_lb_policy_init(grpc_lb_policy *policy,
                          const grpc_lb_policy_vtable *vtable) {
   policy->vtable = vtable;
   gpr_ref_init(&policy->refs, 1);
+  grpc_pollset_set_init(&policy->interested_parties);
 }
 
 #ifdef GRPC_LB_POLICY_REFCOUNT_DEBUG
@@ -68,12 +69,18 @@ void grpc_lb_policy_shutdown(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy) {
   policy->vtable->shutdown(exec_ctx, policy);
 }
 
-void grpc_lb_policy_pick(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy,
-                         grpc_pollset *pollset,
-                         grpc_metadata_batch *initial_metadata,
-                         grpc_subchannel **target, grpc_closure *on_complete) {
-  policy->vtable->pick(exec_ctx, policy, pollset, initial_metadata, target,
-                       on_complete);
+int grpc_lb_policy_pick(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy,
+                        grpc_pollset *pollset,
+                        grpc_metadata_batch *initial_metadata,
+                        grpc_connected_subchannel **target,
+                        grpc_closure *on_complete) {
+  return policy->vtable->pick(exec_ctx, policy, pollset, initial_metadata,
+                              target, on_complete);
+}
+
+void grpc_lb_policy_cancel_pick(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy,
+                                grpc_connected_subchannel **target) {
+  policy->vtable->cancel_pick(exec_ctx, policy, target);
 }
 
 void grpc_lb_policy_broadcast(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy,
