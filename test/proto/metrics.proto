@@ -43,10 +43,11 @@ message GaugeResponse {
   }
 }
 
-message GaugeRequest { string name = 1; }
-
-message EmptyMessage {
+message GaugeRequest {
+  string name = 1;
 }
+
+message EmptyMessage {}
 
 service MetricsService {
   rpc GetAllGauges(EmptyMessage) returns (stream GaugeResponse);

@@ -20,7 +20,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{4A48E5A5-2E69-ED6D-063C-C297180A54D0}</ProjectGuid>
+    <ProjectGuid>{56745EF7-1739-0B07-30D1-24975F6AC1A6}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(VisualStudioVersion)' == '10.0'" Label="Configuration">
@@ -55,13 +55,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <TargetName>set_initial_connect_string_test</TargetName>
+    <TargetName>h2_uchannel_default_host_test</TargetName>
     <Linkage-grpc_dependencies_zlib>static</Linkage-grpc_dependencies_zlib>
     <Configuration-grpc_dependencies_zlib>Debug</Configuration-grpc_dependencies_zlib>
     <Configuration-grpc_dependencies_openssl>Debug</Configuration-grpc_dependencies_openssl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <TargetName>set_initial_connect_string_test</TargetName>
+    <TargetName>h2_uchannel_default_host_test</TargetName>
     <Linkage-grpc_dependencies_zlib>static</Linkage-grpc_dependencies_zlib>
     <Configuration-grpc_dependencies_zlib>Debug</Configuration-grpc_dependencies_zlib>
     <Configuration-grpc_dependencies_openssl>Debug</Configuration-grpc_dependencies_openssl>
@@ -143,12 +143,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\test\core\client_config\set_initial_connect_string_test.c">
+    <ClCompile Include="..\..\..\..\vsprojects\dummy.c">
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\vsprojects\vcxproj\.\test_tcp_server\test_tcp_server.vcxproj">
-      <Project>{E3110C46-A148-FF65-08FD-3324829BE7FE}</Project>
+    <ProjectReference Include="..\..\..\..\vsprojects\vcxproj\test\end2end_fixture_h2_uchannel\end2end_fixture_h2_uchannel.vcxproj">
+      <Project>{CE17F95F-4FD3-41C3-E1B9-9B85F1FE7D4A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\vsprojects\vcxproj\test\end2end_test_default_host\end2end_test_default_host.vcxproj">
+      <Project>{AD4F70A8-9D60-52C3-8229-71EC6D08B034}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\vsprojects\vcxproj\test\end2end_certs\end2end_certs.vcxproj">
+      <Project>{80EA2691-C037-6DD3-D3AB-21510BF0E64B}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\vsprojects\vcxproj\.\grpc_test_util\grpc_test_util.vcxproj">
       <Project>{17BCAFC0-5FDC-4C94-AEB9-95F3E220614B}</Project>
