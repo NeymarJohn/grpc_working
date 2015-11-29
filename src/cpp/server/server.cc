@@ -51,22 +51,6 @@
 
 namespace grpc {
 
-class DefaultGlobalCallbacks GRPC_FINAL : public Server::GlobalCallbacks {
- public:
-  void PreSynchronousRequest(ServerContext* context) GRPC_OVERRIDE {}
-  void PostSynchronousRequest(ServerContext* context) GRPC_OVERRIDE {}
-};
-
-static Server::GlobalCallbacks* g_callbacks = nullptr;
-static gpr_once g_once_init_callbacks = GPR_ONCE_INIT;
-
-static void InitGlobalCallbacks() {
-  if (g_callbacks == nullptr) {
-    static DefaultGlobalCallbacks default_global_callbacks;
-    g_callbacks = &default_global_callbacks;
-  }
-}
-
 class Server::UnimplementedAsyncRequestContext {
  protected:
   UnimplementedAsyncRequestContext() : generic_stream_(&server_context_) {}
@@ -236,10 +220,8 @@ class Server::SyncRequest GRPC_FINAL : public CompletionQueueTag {
 
     void Run() {
       ctx_.BeginCompletionOp(&call_);
-      g_callbacks->PreSynchronousRequest(&ctx_);
       method_->handler()->RunHandler(MethodHandler::HandlerParameter(
           &call_, &ctx_, request_payload_, call_.max_message_size()));
-      g_callbacks->PostSynchronousRequest(&ctx_);
       request_payload_ = nullptr;
       void* ignored_tag;
       bool ignored_ok;
@@ -301,7 +283,6 @@ Server::Server(ThreadPoolInterface* thread_pool, bool thread_pool_owned,
       server_(CreateServer(max_message_size, compression_options)),
       thread_pool_(thread_pool),
       thread_pool_owned_(thread_pool_owned) {
-  gpr_once_init(&g_once_init_callbacks, InitGlobalCallbacks);
   grpc_server_register_completion_queue(server_, cq_.cq(), nullptr);
 }
 
@@ -321,12 +302,6 @@ Server::~Server() {
     delete thread_pool_;
   }
   delete sync_methods_;
-}
-
-void Server::SetGlobalCallbacks(GlobalCallbacks* callbacks) {
-  GPR_ASSERT(g_callbacks == nullptr);
-  GPR_ASSERT(callbacks != nullptr);
-  g_callbacks = callbacks;
 }
 
 bool Server::RegisterService(const grpc::string* host, RpcService* service) {
@@ -413,7 +388,6 @@ void Server::ShutdownInternal(gpr_timespec deadline) {
     shutdown_ = true;
     grpc_server_shutdown_and_notify(server_, cq_.cq(), new ShutdownRequest());
     cq_.Shutdown();
-    lock.unlock();
     // Spin, eating requests until the completion queue is completely shutdown.
     // If the deadline expires then cancel anything that's pending and keep
     // spinning forever until the work is actually drained.
@@ -429,7 +403,6 @@ void Server::ShutdownInternal(gpr_timespec deadline) {
         SyncRequest::CallData call_data(this, request);
       }
     }
-    lock.lock();
 
     // Wait for running callbacks to finish.
     while (num_running_cb_ != 0) {
