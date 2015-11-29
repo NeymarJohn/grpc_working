@@ -48,7 +48,6 @@ typedef void (*grpc_lb_completion)(void *cb_arg, grpc_subchannel *subchannel,
 struct grpc_lb_policy {
   const grpc_lb_policy_vtable *vtable;
   gpr_refcount refs;
-  grpc_pollset_set interested_parties;
 };
 
 struct grpc_lb_policy_vtable {
@@ -59,12 +58,16 @@ struct grpc_lb_policy_vtable {
   /** implement grpc_lb_policy_pick */
   int (*pick)(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy,
               grpc_pollset *pollset, grpc_metadata_batch *initial_metadata,
-              grpc_connected_subchannel **target, grpc_closure *on_complete);
+              grpc_subchannel **target, grpc_closure *on_complete);
   void (*cancel_pick)(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy,
-                      grpc_connected_subchannel **target);
+                      grpc_subchannel **target);
 
   /** try to enter a READY connectivity state */
   void (*exit_idle)(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy);
+
+  /** broadcast a transport op to all subchannels */
+  void (*broadcast)(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy,
+                    grpc_transport_op *op);
 
   /** check the current connectivity of the lb_policy */
   grpc_connectivity_state (*check_connectivity)(grpc_exec_ctx *exec_ctx,
@@ -108,11 +111,13 @@ void grpc_lb_policy_shutdown(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy);
 int grpc_lb_policy_pick(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy,
                         grpc_pollset *pollset,
                         grpc_metadata_batch *initial_metadata,
-                        grpc_connected_subchannel **target,
-                        grpc_closure *on_complete);
+                        grpc_subchannel **target, grpc_closure *on_complete);
 
 void grpc_lb_policy_cancel_pick(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy,
-                                grpc_connected_subchannel **target);
+                                grpc_subchannel **target);
+
+void grpc_lb_policy_broadcast(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy,
+                              grpc_transport_op *op);
 
 void grpc_lb_policy_exit_idle(grpc_exec_ctx *exec_ctx, grpc_lb_policy *policy);
 
