@@ -52,7 +52,6 @@
 #include "src/core/profiling/timers.h"
 #include "src/core/surface/api_trace.h"
 #include "src/core/surface/call.h"
-#include "src/core/surface/completion_queue.h"
 #include "src/core/surface/init.h"
 #include "src/core/surface/surface_trace.h"
 #include "src/core/transport/chttp2_transport.h"
@@ -119,7 +118,6 @@ void grpc_init(void) {
       }
     }
     gpr_timers_global_init();
-    grpc_cq_global_init();
     for (i = 0; i < g_number_of_plugins; i++) {
       if (g_all_of_the_plugins[i].init != NULL) {
         g_all_of_the_plugins[i].init();
@@ -135,9 +133,8 @@ void grpc_shutdown(void) {
   GRPC_API_TRACE("grpc_shutdown(void)", 0, ());
   gpr_mu_lock(&g_init_mu);
   if (--g_initializations == 0) {
-    grpc_executor_shutdown();
-    grpc_cq_global_shutdown();
     grpc_iomgr_shutdown();
+    grpc_executor_shutdown();
     census_shutdown();
     gpr_timers_global_destroy();
     grpc_tracer_shutdown();
