@@ -51,18 +51,16 @@
 typedef struct grpc_channel_element grpc_channel_element;
 typedef struct grpc_call_element grpc_call_element;
 
-typedef struct grpc_channel_stack grpc_channel_stack;
-typedef struct grpc_call_stack grpc_call_stack;
-
 typedef struct {
-  grpc_channel_stack *channel_stack;
+  grpc_channel *master;
   const grpc_channel_args *channel_args;
+  grpc_mdctx *metadata_context;
   int is_first;
   int is_last;
 } grpc_channel_element_args;
 
 typedef struct {
-  grpc_call_stack *call_stack;
+  grpc_stream_refcount *refcount;
   const void *server_transport_data;
   grpc_call_context_element *context;
 } grpc_call_element_args;
@@ -147,24 +145,23 @@ struct grpc_call_element {
 
 /* A channel stack tracks a set of related filters for one channel, and
    guarantees they live within a single malloc() allocation */
-struct grpc_channel_stack {
-  grpc_stream_refcount refcount;
+typedef struct {
   size_t count;
   /* Memory required for a call stack (computed at channel stack
      initialization) */
   size_t call_stack_size;
-};
+} grpc_channel_stack;
 
 /* A call stack tracks a set of related filters for one call, and guarantees
    they live within a single malloc() allocation */
-struct grpc_call_stack {
+typedef struct {
   /* shared refcount for this channel stack.
      MUST be the first element: the underlying code calls destroy
      with the address of the refcount, but higher layers prefer to think
      about the address of the call stack itself. */
   grpc_stream_refcount refcount;
   size_t count;
-};
+} grpc_call_stack;
 
 /* Get a channel element given a channel stack and its index */
 grpc_channel_element *grpc_channel_stack_element(grpc_channel_stack *stack,
@@ -179,11 +176,11 @@ grpc_call_element *grpc_call_stack_element(grpc_call_stack *stack, size_t i);
 size_t grpc_channel_stack_size(const grpc_channel_filter **filters,
                                size_t filter_count);
 /* Initialize a channel stack given some filters */
-void grpc_channel_stack_init(grpc_exec_ctx *exec_ctx, int initial_refs,
-                             grpc_iomgr_cb_func destroy, void *destroy_arg,
+void grpc_channel_stack_init(grpc_exec_ctx *exec_ctx,
                              const grpc_channel_filter **filters,
-                             size_t filter_count, const grpc_channel_args *args,
-                             const char *name,
+                             size_t filter_count, grpc_channel *master,
+                             const grpc_channel_args *args,
+                             grpc_mdctx *metadata_context,
                              grpc_channel_stack *stack);
 /* Destroy a channel stack */
 void grpc_channel_stack_destroy(grpc_exec_ctx *exec_ctx,
@@ -204,23 +201,14 @@ void grpc_call_stack_set_pollset(grpc_exec_ctx *exec_ctx,
                                  grpc_pollset *pollset);
 
 #ifdef GRPC_STREAM_REFCOUNT_DEBUG
-#define GRPC_CALL_STACK_REF(call_stack, reason) \
+#define grpc_call_stack_ref(call_stack, reason) \
   grpc_stream_ref(&(call_stack)->refcount, reason)
-#define GRPC_CALL_STACK_UNREF(exec_ctx, call_stack, reason) \
+#define grpc_call_stack_unref(exec_ctx, call_stack, reason) \
   grpc_stream_unref(exec_ctx, &(call_stack)->refcount, reason)
-#define GRPC_CHANNEL_STACK_REF(channel_stack, reason) \
-  grpc_stream_ref(&(channel_stack)->refcount, reason)
-#define GRPC_CHANNEL_STACK_UNREF(exec_ctx, channel_stack, reason) \
-  grpc_stream_unref(exec_ctx, &(channel_stack)->refcount, reason)
 #else
-#define GRPC_CALL_STACK_REF(call_stack, reason) \
-  grpc_stream_ref(&(call_stack)->refcount)
-#define GRPC_CALL_STACK_UNREF(exec_ctx, call_stack, reason) \
+#define grpc_call_stack_ref(call_stack) grpc_stream_ref(&(call_stack)->refcount)
+#define grpc_call_stack_unref(exec_ctx, call_stack) \
   grpc_stream_unref(exec_ctx, &(call_stack)->refcount)
-#define GRPC_CHANNEL_STACK_REF(channel_stack, reason) \
-  grpc_stream_ref(&(channel_stack)->refcount)
-#define GRPC_CHANNEL_STACK_UNREF(exec_ctx, channel_stack, reason) \
-  grpc_stream_unref(exec_ctx, &(channel_stack)->refcount)
 #endif
 
 /* Destroy a call stack */
