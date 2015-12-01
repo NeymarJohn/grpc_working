@@ -49,7 +49,6 @@
 #include "src/core/transport/chttp2/internal.h"
 #include "src/core/transport/chttp2/status_conversion.h"
 #include "src/core/transport/chttp2/timeout_encoding.h"
-#include "src/core/transport/static_metadata.h"
 #include "src/core/transport/transport_impl.h"
 
 #define DEFAULT_WINDOW 65535
@@ -156,6 +155,9 @@ static void destruct_transport(grpc_exec_ctx *exec_ctx,
   grpc_chttp2_hpack_parser_destroy(&t->parsing.hpack_parser);
   grpc_chttp2_goaway_parser_destroy(&t->parsing.goaway_parser);
 
+  GRPC_MDSTR_UNREF(t->parsing.str_grpc_timeout);
+  GRPC_MDELEM_UNREF(t->parsing.elem_grpc_status_ok);
+
   for (i = 0; i < STREAM_LIST_COUNT; i++) {
     GPR_ASSERT(t->lists[i].head == NULL);
     GPR_ASSERT(t->lists[i].tail == NULL);
@@ -180,6 +182,8 @@ static void destruct_transport(grpc_exec_ctx *exec_ctx,
     ping->prev->next = ping->next;
     gpr_free(ping);
   }
+
+  grpc_mdctx_unref(t->metadata_context);
 
   gpr_free(t->peer_string);
   gpr_free(t);
@@ -215,7 +219,8 @@ static void ref_transport(grpc_chttp2_transport *t) { gpr_ref(&t->refs); }
 
 static void init_transport(grpc_exec_ctx *exec_ctx, grpc_chttp2_transport *t,
                            const grpc_channel_args *channel_args,
-                           grpc_endpoint *ep, gpr_uint8 is_client) {
+                           grpc_endpoint *ep, grpc_mdctx *mdctx,
+                           gpr_uint8 is_client) {
   size_t i;
   int j;
 
@@ -231,7 +236,9 @@ static void init_transport(grpc_exec_ctx *exec_ctx, grpc_chttp2_transport *t,
   /* ref is dropped at transport close() */
   gpr_ref_init(&t->shutdown_ep_refs, 1);
   gpr_mu_init(&t->mu);
+  grpc_mdctx_ref(mdctx);
   t->peer_string = grpc_endpoint_get_peer(ep);
+  t->metadata_context = mdctx;
   t->endpoint_reading = 1;
   t->global.next_stream_id = is_client ? 1 : 2;
   t->global.is_client = is_client;
@@ -242,6 +249,10 @@ static void init_transport(grpc_exec_ctx *exec_ctx, grpc_chttp2_transport *t,
   t->global.ping_counter = 1;
   t->global.pings.next = t->global.pings.prev = &t->global.pings;
   t->parsing.is_client = is_client;
+  t->parsing.str_grpc_timeout =
+      grpc_mdstr_from_string(t->metadata_context, "grpc-timeout");
+  t->parsing.elem_grpc_status_ok =
+      grpc_mdelem_from_strings(t->metadata_context, "grpc-status", "0");
   t->parsing.deframe_state =
       is_client ? GRPC_DTS_FH_0 : GRPC_DTS_CLIENT_PREFIX_0;
   t->writing.is_client = is_client;
@@ -252,12 +263,12 @@ static void init_transport(grpc_exec_ctx *exec_ctx, grpc_chttp2_transport *t,
   gpr_slice_buffer_init(&t->global.qbuf);
 
   gpr_slice_buffer_init(&t->writing.outbuf);
-  grpc_chttp2_hpack_compressor_init(&t->writing.hpack_compressor);
+  grpc_chttp2_hpack_compressor_init(&t->writing.hpack_compressor, mdctx);
   grpc_closure_init(&t->writing_action, writing_action, t);
 
   gpr_slice_buffer_init(&t->parsing.qbuf);
   grpc_chttp2_goaway_parser_init(&t->parsing.goaway_parser);
-  grpc_chttp2_hpack_parser_init(&t->parsing.hpack_parser);
+  grpc_chttp2_hpack_parser_init(&t->parsing.hpack_parser, t->metadata_context);
 
   grpc_closure_init(&t->writing.done_cb, grpc_chttp2_terminate_writing,
                     &t->writing);
@@ -751,10 +762,11 @@ void grpc_chttp2_complete_closure_step(grpc_exec_ctx *exec_ctx,
 static int contains_non_ok_status(
     grpc_chttp2_transport_global *transport_global,
     grpc_metadata_batch *batch) {
+  grpc_mdelem *ok_elem =
+      TRANSPORT_FROM_GLOBAL(transport_global)->parsing.elem_grpc_status_ok;
   grpc_linked_mdelem *l;
   for (l = batch->list.head; l; l = l->next) {
-    if (l->md->key == GRPC_MDSTR_GRPC_STATUS &&
-        l->md != GRPC_MDELEM_GRPC_STATUS_0) {
+    if (l->md->key == ok_elem->key && l->md != ok_elem) {
       return 1;
     }
   }
@@ -910,7 +922,7 @@ static void perform_transport_op(grpc_exec_ctx *exec_ctx, grpc_transport *gt,
 
   grpc_exec_ctx_enqueue(exec_ctx, op->on_consumed, 1);
 
-  if (op->on_connectivity_state_change != NULL) {
+  if (op->on_connectivity_state_change) {
     grpc_connectivity_state_notify_on_state_change(
         exec_ctx, &t->channel_callback.state_tracker, op->connectivity_state,
         op->on_connectivity_state_change);
@@ -1066,18 +1078,19 @@ void grpc_chttp2_fake_status(grpc_exec_ctx *exec_ctx,
      about the metadata yet */
   if (!stream_global->published_trailing_metadata ||
       stream_global->recv_trailing_metadata_finished != NULL) {
+    grpc_mdctx *mdctx =
+        TRANSPORT_FROM_GLOBAL(transport_global)->metadata_context;
     char status_string[GPR_LTOA_MIN_BUFSIZE];
     gpr_ltoa(status, status_string);
     grpc_chttp2_incoming_metadata_buffer_add(
         &stream_global->received_trailing_metadata,
-        grpc_mdelem_from_metadata_strings(
-            GRPC_MDSTR_GRPC_STATUS, grpc_mdstr_from_string(status_string)));
+        grpc_mdelem_from_strings(mdctx, "grpc-status", status_string));
     if (slice) {
       grpc_chttp2_incoming_metadata_buffer_add(
           &stream_global->received_trailing_metadata,
           grpc_mdelem_from_metadata_strings(
-              GRPC_MDSTR_GRPC_MESSAGE,
-              grpc_mdstr_from_slice(gpr_slice_ref(*slice))));
+              mdctx, grpc_mdstr_from_string(mdctx, "grpc-message"),
+              grpc_mdstr_from_slice(mdctx, gpr_slice_ref(*slice))));
     }
     stream_global->published_trailing_metadata = 1;
     grpc_chttp2_list_add_check_read_ops(transport_global, stream_global);
@@ -1628,9 +1641,9 @@ static const grpc_transport_vtable vtable = {
 
 grpc_transport *grpc_create_chttp2_transport(
     grpc_exec_ctx *exec_ctx, const grpc_channel_args *channel_args,
-    grpc_endpoint *ep, int is_client) {
+    grpc_endpoint *ep, grpc_mdctx *mdctx, int is_client) {
   grpc_chttp2_transport *t = gpr_malloc(sizeof(grpc_chttp2_transport));
-  init_transport(exec_ctx, t, channel_args, ep, is_client != 0);
+  init_transport(exec_ctx, t, channel_args, ep, mdctx, is_client != 0);
   return &t->base;
 }
 
