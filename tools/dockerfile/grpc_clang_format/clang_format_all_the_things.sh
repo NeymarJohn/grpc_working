@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 # directories to run against
 DIRS="src/core src/cpp test/core test/cpp include"
 
