@@ -187,8 +187,9 @@ std::shared_ptr<CallCredentials> GoogleIAMCredentials(
 /// Combines a channel credentials and a call credentials into a composite
 /// channel credentials.
 std::shared_ptr<ChannelCredentials> CompositeChannelCredentials(
-    const std::shared_ptr<ChannelCredentials>& channel_creds,
-    const std::shared_ptr<CallCredentials>& call_creds);
+      const std::shared_ptr<ChannelCredentials>& channel_creds,
+      const std::shared_ptr<CallCredentials>& call_creds);
+
 
 /// Combines two call credentials objects into a composite call credentials.
 std::shared_ptr<CallCredentials> CompositeCallCredentials(
@@ -216,7 +217,8 @@ class MetadataCredentialsPlugin {
   // The channel_auth_context contains (among other things), the identity of
   // the server.
   virtual Status GetMetadata(
-      grpc::string_ref service_url, grpc::string_ref method_name,
+      grpc::string_ref service_url,
+      grpc::string_ref method_name,
       const AuthContext& channel_auth_context,
       std::multimap<grpc::string, grpc::string>* metadata) = 0;
 };
