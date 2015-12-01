@@ -34,7 +34,7 @@
 #ifndef GRPC_INTERNAL_CORE_SECURITY_CREDENTIALS_H
 #define GRPC_INTERNAL_CORE_SECURITY_CREDENTIALS_H
 
-#include "src/core/transport/stream_op.h"
+#include "src/core/transport/metadata_batch.h"
 #include <grpc/grpc.h>
 #include <grpc/grpc_security.h>
 #include <grpc/support/sync.h>
@@ -59,6 +59,7 @@ typedef enum {
   "FakeTransportSecurity"
 
 #define GRPC_CALL_CREDENTIALS_TYPE_OAUTH2 "Oauth2"
+#define GRPC_CALL_CREDENTIALS_TYPE_METADATA_PLUGIN "Plugin"
 #define GRPC_CALL_CREDENTIALS_TYPE_JWT "Jwt"
 #define GRPC_CALL_CREDENTIALS_TYPE_IAM "Iam"
 #define GRPC_CALL_CREDENTIALS_TYPE_COMPOSITE "Composite"
@@ -161,7 +162,7 @@ typedef struct {
   void (*destruct)(grpc_call_credentials *c);
   void (*get_request_metadata)(grpc_exec_ctx *exec_ctx,
                                grpc_call_credentials *c, grpc_pollset *pollset,
-                               grpc_auth_metadata_context context,
+                               const char *service_url,
                                grpc_credentials_metadata_cb cb,
                                void *user_data);
 } grpc_call_credentials_vtable;
@@ -177,7 +178,7 @@ void grpc_call_credentials_unref(grpc_call_credentials *creds);
 void grpc_call_credentials_get_request_metadata(grpc_exec_ctx *exec_ctx,
                                                 grpc_call_credentials *creds,
                                                 grpc_pollset *pollset,
-                                                grpc_auth_metadata_context context,
+                                                const char *service_url,
                                                 grpc_credentials_metadata_cb cb,
                                                 void *user_data);
 
@@ -186,7 +187,8 @@ typedef struct {
   size_t num_creds;
 } grpc_call_credentials_array;
 
-const grpc_call_credentials_array *grpc_composite_call_credentials_get_credentials(
+const grpc_call_credentials_array *
+grpc_composite_call_credentials_get_credentials(
     grpc_call_credentials *composite_creds);
 
 /* Returns creds if creds is of the specified type or the inner creds of the
