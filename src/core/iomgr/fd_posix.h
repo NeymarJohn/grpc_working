@@ -62,7 +62,6 @@ struct grpc_fd {
   gpr_mu mu;
   int shutdown;
   int closed;
-  int released;
 
   /* The watcher list.
 
@@ -112,7 +111,7 @@ grpc_fd *grpc_fd_create(int fd, const char *name);
    notify_on_write.
    MUST NOT be called with a pollset lock taken */
 void grpc_fd_orphan(grpc_exec_ctx *exec_ctx, grpc_fd *fd, grpc_closure *on_done,
-                    int release_fd, const char *reason);
+                    const char *reason);
 
 /* Begin polling on an fd.
    Registers that the given pollset is interested in this fd - so that if read
@@ -169,6 +168,7 @@ void grpc_fd_become_readable(grpc_exec_ctx *exec_ctx, grpc_fd *fd);
 void grpc_fd_become_writable(grpc_exec_ctx *exec_ctx, grpc_fd *fd);
 
 /* Reference counting for fds */
+/*#define GRPC_FD_REF_COUNT_DEBUG*/
 #ifdef GRPC_FD_REF_COUNT_DEBUG
 void grpc_fd_ref(grpc_fd *fd, const char *reason, const char *file, int line);
 void grpc_fd_unref(grpc_fd *fd, const char *reason, const char *file, int line);

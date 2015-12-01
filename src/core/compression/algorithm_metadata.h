@@ -31,30 +31,23 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H
+#define GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H
 
-#ifdef GPR_WINSOCK_SOCKET
+#include <grpc/compression.h>
+#include "src/core/transport/metadata.h"
 
-#include "src/core/iomgr/pollset_set.h"
+/** Return compression algorithm based metadata value */
+grpc_mdstr *grpc_compression_algorithm_mdstr(
+    grpc_compression_algorithm algorithm);
 
-void grpc_pollset_set_init(grpc_pollset_set* pollset_set) {}
+/** Return compression algorithm based metadata element (grpc-encoding: xxx) */
+grpc_mdelem *grpc_compression_encoding_mdelem(
+    grpc_compression_algorithm algorithm);
 
-void grpc_pollset_set_destroy(grpc_pollset_set* pollset_set) {}
+/** Find compression algorithm based on passed in mdstr - returns
+ * GRPC_COMPRESS_ALGORITHM_COUNT on failure */
+grpc_compression_algorithm grpc_compression_algorithm_from_mdstr(
+    grpc_mdstr *str);
 
-void grpc_pollset_set_add_pollset(grpc_exec_ctx* exec_ctx,
-                                  grpc_pollset_set* pollset_set,
-                                  grpc_pollset* pollset) {}
-
-void grpc_pollset_set_del_pollset(grpc_exec_ctx* exec_ctx,
-                                  grpc_pollset_set* pollset_set,
-                                  grpc_pollset* pollset) {}
-
-void grpc_pollset_set_add_pollset_set(grpc_exec_ctx *exec_ctx,
-	                                    grpc_pollset_set *bag,
-	                                    grpc_pollset_set *item) {}
-
-void grpc_pollset_set_del_pollset_set(grpc_exec_ctx *exec_ctx,
-	                                    grpc_pollset_set *bag,
-	                                    grpc_pollset_set *item) {}
-
-#endif /* GPR_WINSOCK_SOCKET */
+#endif /* GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H */
