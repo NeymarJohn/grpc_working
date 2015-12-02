@@ -43,7 +43,6 @@
 
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
 #include <grpc/support/useful.h>
 
 #define CLOSURE_NOT_READY ((grpc_closure *)0)
@@ -159,10 +158,7 @@ void grpc_fd_global_shutdown(void) {
 
 grpc_fd *grpc_fd_create(int fd, const char *name) {
   grpc_fd *r = alloc_fd(fd);
-  char *name2;
-  gpr_asprintf(&name2, "%s fd=%d", name, fd);
-  grpc_iomgr_register_object(&r->iomgr_object, name2);
-  gpr_free(name2);
+  grpc_iomgr_register_object(&r->iomgr_object, name);
 #ifdef GRPC_FD_REF_COUNT_DEBUG
   gpr_log(GPR_DEBUG, "FD %d %p create %s", fd, r, name);
 #endif
