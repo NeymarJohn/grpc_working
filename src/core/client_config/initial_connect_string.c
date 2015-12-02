@@ -31,21 +31,23 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_SERVER_BUILDER_OPTION_H
-#define GRPCXX_IMPL_SERVER_BUILDER_OPTION_H
+#include "src/core/client_config/initial_connect_string.h"
 
-#include <grpc++/support/channel_arguments.h>
+#include <stddef.h>
 
-namespace grpc {
+extern void grpc_set_default_initial_connect_string(struct sockaddr **addr,
+                                                    size_t *addr_len,
+                                                    gpr_slice *initial_str);
 
-/// Interface to pass an option to a \a ServerBuilder.
-class ServerBuilderOption {
- public:
-  virtual ~ServerBuilderOption() {}
-  /// Alter the \a ChannelArguments used to create the gRPC server.
-  virtual void UpdateArguments(ChannelArguments* args) = 0;
-};
+static grpc_set_initial_connect_string_func g_set_initial_connect_string_func =
+    grpc_set_default_initial_connect_string;
 
-}  // namespace grpc
+void grpc_test_set_initial_connect_string_function(
+    grpc_set_initial_connect_string_func func) {
+  g_set_initial_connect_string_func = func;
+}
 
-#endif  // GRPCXX_IMPL_SERVER_BUILDER_OPTION_H
+void grpc_set_initial_connect_string(struct sockaddr **addr, size_t *addr_len,
+                                     gpr_slice *initial_str) {
+  g_set_initial_connect_string_func(addr, addr_len, initial_str);
+}
