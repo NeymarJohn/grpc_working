@@ -31,23 +31,33 @@
  *
  */
 
-#include "src/core/client_config/initial_connect_string.h"
+'use strict';
 
-#include <stddef.h>
+var worker_service_impl = require('./worker_service_impl');
 
-extern void grpc_set_default_initial_connect_string(struct sockaddr **addr,
-                                                    size_t *addr_len,
-                                                    gpr_slice *initial_str);
+var grpc = require('../../../');
+var serviceProto = grpc.load({
+  root: __dirname + '/../../..',
+  file: 'test/proto/benchmarks/services.proto'}).grpc.testing;
 
-static grpc_set_initial_connect_string_func g_set_initial_connect_string_func =
-    grpc_set_default_initial_connect_string;
-
-void grpc_test_set_initial_connect_string_function(
-    grpc_set_initial_connect_string_func func) {
-  g_set_initial_connect_string_func = func;
+function runServer(port) {
+  var server_creds = grpc.ServerCredentials.createInsecure();
+  var server = new grpc.Server();
+  server.addProtoService(serviceProto.WorkerService.service,
+                         worker_service_impl);
+  var address = '0.0.0.0:' + port;
+  server.bind(address, server_creds);
+  server.start();
+  return server;
 }
 
-void grpc_set_initial_connect_string(struct sockaddr **addr, size_t *addr_len,
-                                     gpr_slice *initial_str) {
-  g_set_initial_connect_string_func(addr, addr_len, initial_str);
+if (require.main === module) {
+  Error.stackTraceLimit = Infinity;
+  var parseArgs = require('minimist');
+  var argv = parseArgs(process.argv, {
+    string: ['driver_port']
+  });
+  runServer(argv.driver_port);
 }
+
+exports.runServer = runServer;
