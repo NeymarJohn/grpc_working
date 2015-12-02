@@ -31,37 +31,23 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#ifndef GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H
+#define GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H
 
-#include "src/core/iomgr/pollset.h"
+#include <grpc/compression.h>
+#include "src/core/transport/metadata.h"
 
-/* A grpc_pollset_set is a set of pollsets that are interested in an
-   action. Adding a pollset to a pollset_set automatically adds any
-   fd's (etc) that have been registered with the set_set to that pollset.
-   Registering fd's automatically adds them to all current pollsets. */
+/** Return compression algorithm based metadata value */
+grpc_mdstr *grpc_compression_algorithm_mdstr(
+    grpc_compression_algorithm algorithm);
 
-#ifdef GPR_POSIX_SOCKET
-#include "src/core/iomgr/pollset_set_posix.h"
-#endif
+/** Return compression algorithm based metadata element (grpc-encoding: xxx) */
+grpc_mdelem *grpc_compression_encoding_mdelem(
+    grpc_compression_algorithm algorithm);
 
-#ifdef GPR_WIN32
-#include "src/core/iomgr/pollset_set_windows.h"
-#endif
+/** Find compression algorithm based on passed in mdstr - returns
+ * GRPC_COMPRESS_ALGORITHM_COUNT on failure */
+grpc_compression_algorithm grpc_compression_algorithm_from_mdstr(
+    grpc_mdstr *str);
 
-void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_add_pollset(grpc_exec_ctx *exec_ctx,
-                                  grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
-void grpc_pollset_set_del_pollset(grpc_exec_ctx *exec_ctx,
-                                  grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
-void grpc_pollset_set_add_pollset_set(grpc_exec_ctx *exec_ctx,
-                                      grpc_pollset_set *bag,
-                                      grpc_pollset_set *item);
-void grpc_pollset_set_del_pollset_set(grpc_exec_ctx *exec_ctx,
-                                      grpc_pollset_set *bag,
-                                      grpc_pollset_set *item);
-
-#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */
+#endif /* GRPC_INTERNAL_CORE_COMPRESSION_ALGORITHM_METADATA_H */
