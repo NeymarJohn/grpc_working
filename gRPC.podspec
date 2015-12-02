@@ -36,7 +36,7 @@
 
 Pod::Spec.new do |s|
   s.name     = 'gRPC'
-  version = '0.11.2'
+  version = '0.12.0'
   s.version  = version
   s.summary  = 'gRPC client library for iOS/OSX'
   s.homepage = 'http://www.grpc.io'
@@ -185,7 +185,6 @@ Pod::Spec.new do |s|
                       'src/core/client_config/subchannel_factory_decorators/add_channel_arg.h',
                       'src/core/client_config/subchannel_factory_decorators/merge_channel_args.h',
                       'src/core/client_config/uri_parser.h',
-                      'src/core/compression/algorithm_metadata.h',
                       'src/core/compression/message_compress.h',
                       'src/core/debug/trace.h',
                       'src/core/httpcli/format_request.h',
@@ -268,7 +267,6 @@ Pod::Spec.new do |s|
                       'src/core/transport/connectivity_state.h',
                       'src/core/transport/metadata.h',
                       'src/core/transport/metadata_batch.h',
-                      'src/core/transport/static_metadata.h',
                       'src/core/transport/transport.h',
                       'src/core/transport/transport_impl.h',
                       'src/core/census/aggregation.h',
@@ -426,7 +424,6 @@ Pod::Spec.new do |s|
                       'src/core/transport/connectivity_state.c',
                       'src/core/transport/metadata.c',
                       'src/core/transport/metadata_batch.c',
-                      'src/core/transport/static_metadata.c',
                       'src/core/transport/transport.c',
                       'src/core/transport/transport_op_string.c',
                       'src/core/census/context.c',
@@ -487,7 +484,6 @@ Pod::Spec.new do |s|
                               'src/core/client_config/subchannel_factory_decorators/add_channel_arg.h',
                               'src/core/client_config/subchannel_factory_decorators/merge_channel_args.h',
                               'src/core/client_config/uri_parser.h',
-                              'src/core/compression/algorithm_metadata.h',
                               'src/core/compression/message_compress.h',
                               'src/core/debug/trace.h',
                               'src/core/httpcli/format_request.h',
@@ -570,7 +566,6 @@ Pod::Spec.new do |s|
                               'src/core/transport/connectivity_state.h',
                               'src/core/transport/metadata.h',
                               'src/core/transport/metadata_batch.h',
-                              'src/core/transport/static_metadata.h',
                               'src/core/transport/transport.h',
                               'src/core/transport/transport_impl.h',
                               'src/core/census/aggregation.h',
@@ -589,7 +584,7 @@ Pod::Spec.new do |s|
 
     ss.requires_arc = false
     ss.libraries = 'z'
-    ss.dependency 'OpenSSL', '~> 1.0.200'
+    ss.dependency 'OpenSSL', '~> 1.0.204.1'
 
     # ss.compiler_flags = '-GCC_WARN_INHIBIT_ALL_WARNINGS', '-w'
   end

@@ -8109,6 +8109,21 @@
     "deps": [
       "end2end_certs", 
       "end2end_fixture_h2_uchannel", 
+      "end2end_test_channel_connectivity", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "h2_uchannel_channel_connectivity_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_h2_uchannel", 
       "end2end_test_compressed_payload", 
       "gpr", 
       "gpr_test_util", 
@@ -8118,6 +8133,36 @@
     "headers": [], 
     "language": "c", 
     "name": "h2_uchannel_compressed_payload_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_h2_uchannel", 
+      "end2end_test_default_host", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "h2_uchannel_default_host_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_h2_uchannel", 
+      "end2end_test_disappearing_server", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "h2_uchannel_disappearing_server_test", 
     "src": []
   }, 
   {
@@ -8403,6 +8448,21 @@
     "headers": [], 
     "language": "c", 
     "name": "h2_uchannel_shutdown_finishes_tags_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_certs", 
+      "end2end_fixture_h2_uchannel", 
+      "end2end_test_simple_delayed_request", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "h2_uchannel_simple_delayed_request_test", 
     "src": []
   }, 
   {
@@ -12792,6 +12852,20 @@
   {
     "deps": [
       "end2end_fixture_h2_uchannel", 
+      "end2end_test_channel_connectivity", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "h2_uchannel_channel_connectivity_nosec_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_fixture_h2_uchannel", 
       "end2end_test_compressed_payload", 
       "gpr", 
       "gpr_test_util", 
@@ -12801,6 +12875,34 @@
     "headers": [], 
     "language": "c", 
     "name": "h2_uchannel_compressed_payload_nosec_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_fixture_h2_uchannel", 
+      "end2end_test_default_host", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "h2_uchannel_default_host_nosec_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_fixture_h2_uchannel", 
+      "end2end_test_disappearing_server", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "h2_uchannel_disappearing_server_nosec_test", 
     "src": []
   }, 
   {
@@ -13067,6 +13169,20 @@
     "headers": [], 
     "language": "c", 
     "name": "h2_uchannel_shutdown_finishes_tags_nosec_test", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "end2end_fixture_h2_uchannel", 
+      "end2end_test_simple_delayed_request", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "h2_uchannel_simple_delayed_request_nosec_test", 
     "src": []
   }, 
   {
@@ -14264,7 +14380,6 @@
       "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h", 
       "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h", 
       "src/core/client_config/uri_parser.h", 
-      "src/core/compression/algorithm_metadata.h", 
       "src/core/compression/message_compress.h", 
       "src/core/debug/trace.h", 
       "src/core/httpcli/format_request.h", 
@@ -14356,7 +14471,6 @@
       "src/core/transport/connectivity_state.h", 
       "src/core/transport/metadata.h", 
       "src/core/transport/metadata_batch.h", 
-      "src/core/transport/static_metadata.h", 
       "src/core/transport/transport.h", 
       "src/core/transport/transport_impl.h", 
       "src/core/tsi/fake_transport_security.h", 
@@ -14443,7 +14557,6 @@
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 
-      "src/core/compression/algorithm_metadata.h", 
       "src/core/compression/message_compress.c", 
       "src/core/compression/message_compress.h", 
       "src/core/debug/trace.c", 
@@ -14645,8 +14758,6 @@
       "src/core/transport/metadata.h", 
       "src/core/transport/metadata_batch.c", 
       "src/core/transport/metadata_batch.h", 
-      "src/core/transport/static_metadata.c", 
-      "src/core/transport/static_metadata.h", 
       "src/core/transport/transport.c", 
       "src/core/transport/transport.h", 
       "src/core/transport/transport_impl.h", 
@@ -14785,7 +14896,6 @@
       "src/core/client_config/subchannel_factory_decorators/add_channel_arg.h", 
       "src/core/client_config/subchannel_factory_decorators/merge_channel_args.h", 
       "src/core/client_config/uri_parser.h", 
-      "src/core/compression/algorithm_metadata.h", 
       "src/core/compression/message_compress.h", 
       "src/core/debug/trace.h", 
       "src/core/httpcli/format_request.h", 
@@ -14868,7 +14978,6 @@
       "src/core/transport/connectivity_state.h", 
       "src/core/transport/metadata.h", 
       "src/core/transport/metadata_batch.h", 
-      "src/core/transport/static_metadata.h", 
       "src/core/transport/transport.h", 
       "src/core/transport/transport_impl.h"
     ], 
@@ -14950,7 +15059,6 @@
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 
-      "src/core/compression/algorithm_metadata.h", 
       "src/core/compression/message_compress.c", 
       "src/core/compression/message_compress.h", 
       "src/core/debug/trace.c", 
@@ -15126,8 +15234,6 @@
       "src/core/transport/metadata.h", 
       "src/core/transport/metadata_batch.c", 
       "src/core/transport/metadata_batch.h", 
-      "src/core/transport/static_metadata.c", 
-      "src/core/transport/static_metadata.h", 
       "src/core/transport/transport.c", 
       "src/core/transport/transport.h", 
       "src/core/transport/transport_impl.h", 
