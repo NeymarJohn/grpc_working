@@ -624,10 +624,15 @@ build_configs = set(cfg.build_config for cfg in run_configs)
 if args.travis:
   _FORCE_ENVIRON_FOR_WRAPPERS = {'GRPC_TRACE': 'api'}
 
-languages = set(_LANGUAGES[l]
-                for l in itertools.chain.from_iterable(
-                      _LANGUAGES.iterkeys() if x == 'all' else [x]
-                      for x in args.language))
+if 'all' in args.language:
+  lang_list = _LANGUAGES.keys()  
+else:
+  lang_list = args.language
+# We don't support code coverage on ObjC
+if 'gcov' in args.config and 'objc' in lang_list:
+  lang_list.remove('objc')
+
+languages = set(_LANGUAGES[l] for l in lang_list)
 
 if len(build_configs) > 1:
   for language in languages:
@@ -840,6 +845,7 @@ def _calculate_num_runs_failures(list_of_results):
       num_failures += jobresult.num_failures
   return num_runs, num_failures
 
+
 def _build_and_run(
     check_cancelled, newline_on_success, cache, xml_report=None):
   """Do one pass of building & running tests."""
@@ -856,6 +862,7 @@ def _build_and_run(
   port_server_port = 32767
   _start_port_server(port_server_port)
   resultset = None
+  num_test_failures = 0
   try:
     infinite_runs = runs_per_test == 0
     one_run = set(
@@ -879,7 +886,7 @@ def _build_and_run(
                      else itertools.repeat(massaged_one_run, runs_per_test))
     all_runs = itertools.chain.from_iterable(runs_sequence)
 
-    number_failures, resultset = jobset.run(
+    num_test_failures, resultset = jobset.run(
         all_runs, check_cancelled, newline_on_success=newline_on_success,
         travis=args.travis, infinite_runs=infinite_runs, maxjobs=args.jobs,
         stop_on_failure=args.stop_on_failure,
@@ -896,8 +903,6 @@ def _build_and_run(
               do_newline=True)
         else:
           jobset.message('PASSED', k, do_newline=True)
-    if number_failures:
-      return 2
   finally:
     for antagonist in antagonists:
       antagonist.kill()
@@ -907,8 +912,8 @@ def _build_and_run(
   number_failures, _ = jobset.run(
       post_tests_steps, maxjobs=1, stop_on_failure=True,
       newline_on_success=newline_on_success, travis=args.travis)
-  if number_failures:
-    return 3
+  if num_test_failures or number_failures:
+    return 2
 
   if cache: cache.save()
 
