@@ -38,8 +38,12 @@ namespace grpc {
 Alarm::Alarm(CompletionQueue* cq, gpr_timespec deadline, void* tag)
     : alarm_(grpc_alarm_create(cq->cq(), deadline, tag)) {}
 
-Alarm::~Alarm() { grpc_alarm_destroy(alarm_); }
+Alarm::~Alarm() {
+  grpc_alarm_destroy(alarm_);
+}
 
-void Alarm::Cancel() { grpc_alarm_cancel(alarm_); }
+void Alarm::Cancel() {
+  grpc_alarm_cancel(alarm_);
+}
 
 }  // namespace grpc
