@@ -34,7 +34,7 @@
 #ifndef GRPC_INTERNAL_CORE_SECURITY_CREDENTIALS_H
 #define GRPC_INTERNAL_CORE_SECURITY_CREDENTIALS_H
 
-#include "src/core/transport/metadata_batch.h"
+#include "src/core/transport/stream_op.h"
 #include <grpc/grpc.h>
 #include <grpc/grpc_security.h>
 #include <grpc/support/sync.h>
@@ -174,18 +174,19 @@ struct grpc_call_credentials {
 
 grpc_call_credentials *grpc_call_credentials_ref(grpc_call_credentials *creds);
 void grpc_call_credentials_unref(grpc_call_credentials *creds);
-void grpc_call_credentials_get_request_metadata(
-    grpc_exec_ctx *exec_ctx, grpc_call_credentials *creds,
-    grpc_pollset *pollset, grpc_auth_metadata_context context,
-    grpc_credentials_metadata_cb cb, void *user_data);
+void grpc_call_credentials_get_request_metadata(grpc_exec_ctx *exec_ctx,
+                                                grpc_call_credentials *creds,
+                                                grpc_pollset *pollset,
+                                                grpc_auth_metadata_context context,
+                                                grpc_credentials_metadata_cb cb,
+                                                void *user_data);
 
 typedef struct {
   grpc_call_credentials **creds_array;
   size_t num_creds;
 } grpc_call_credentials_array;
 
-const grpc_call_credentials_array *
-grpc_composite_call_credentials_get_credentials(
+const grpc_call_credentials_array *grpc_composite_call_credentials_get_credentials(
     grpc_call_credentials *composite_creds);
 
 /* Returns creds if creds is of the specified type or the inner creds of the
