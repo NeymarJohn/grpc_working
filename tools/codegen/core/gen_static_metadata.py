@@ -50,7 +50,6 @@ CONFIG = [
     'host',
     'grpc-message',
     'grpc-status',
-    ':census',
     '',
     ('grpc-status', '0'),
     ('grpc-status', '1'),
