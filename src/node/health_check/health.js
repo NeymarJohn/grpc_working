@@ -37,8 +37,7 @@ var grpc = require('../');
 
 var _ = require('lodash');
 
-var health_proto = grpc.load(__dirname +
-    '/../../proto/grpc/health/v1alpha/health.proto');
+var health_proto = grpc.load(__dirname + '/health.proto');
 
 var HealthClient = health_proto.grpc.health.v1alpha.Health;
 

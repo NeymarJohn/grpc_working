@@ -34,8 +34,7 @@
 'use strict';
 
 var grpc = require('../..');
-var math = grpc.load(__dirname + '/../../../proto/math/math.proto').math;
-
+var math = grpc.load(__dirname + '/math.proto').math;
 
 /**
  * Server function for division. Provides the /Math/DivMany and /Math/Div
