@@ -173,7 +173,7 @@ namespace Grpc.Core
                 {
                     throw new OperationCanceledException("Channel has reached FatalFailure state.");
                 }
-                await WaitForStateChangedAsync(currentState, deadline).ConfigureAwait(false);
+                await WaitForStateChangedAsync(currentState, deadline);
                 currentState = handle.CheckConnectivityState(false);
             }
         }
@@ -198,7 +198,7 @@ namespace Grpc.Core
 
             handle.Dispose();
 
-            await Task.Run(() => GrpcEnvironment.Release()).ConfigureAwait(false);
+            await Task.Run(() => GrpcEnvironment.Release());
         }
 
         internal ChannelSafeHandle Handle
