@@ -40,8 +40,7 @@ namespace Grpc.Core.Profiling
 {
     internal struct ProfilerEntry
     {
-        public enum Type
-        {
+        public enum Type {
             BEGIN,
             END,
             MARK

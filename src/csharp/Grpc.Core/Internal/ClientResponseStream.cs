@@ -70,12 +70,12 @@ namespace Grpc.Core.Internal
             }
             var taskSource = new AsyncCompletionTaskSource<TResponse>();
             call.StartReadMessage(taskSource.CompletionDelegate);
-            var result = await taskSource.Task.ConfigureAwait(false);
+            var result = await taskSource.Task;
             this.current = result;
 
             if (result == null)
             {
-                await call.StreamingCallFinishedTask.ConfigureAwait(false);
+                await call.StreamingCallFinishedTask;
                 return false;
             }
             return true;
