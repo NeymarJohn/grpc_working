@@ -50,7 +50,7 @@ using grpc::testing::GaugeResponse;
 using grpc::testing::MetricsService;
 using grpc::testing::MetricsServiceImpl;
 
-void PrintMetrics(grpc::string& server_address) {
+void PrintMetrics(const grpc::string& server_address) {
   gpr_log(GPR_INFO, "creating a channel to %s", server_address.c_str());
   std::shared_ptr<grpc::Channel> channel(
       grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials()));
@@ -72,7 +72,8 @@ void PrintMetrics(grpc::string& server_address) {
               gauge_response.name().c_str(), gauge_response.long_value());
       overall_qps += gauge_response.long_value();
     } else {
-      gpr_log(GPR_INFO, "Gauge %s is not a long value", gauge_response.name().c_str());
+      gpr_log(GPR_INFO, "Gauge %s is not a long value",
+              gauge_response.name().c_str());
     }
   }
 
