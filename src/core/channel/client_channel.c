@@ -55,6 +55,8 @@
 typedef grpc_subchannel_call_holder call_data;
 
 typedef struct client_channel_channel_data {
+  /** metadata context for this channel */
+  grpc_mdctx *mdctx;
   /** resolver for this channel */
   grpc_resolver *resolver;
   /** have we started resolving this channel */
@@ -243,7 +245,7 @@ static void cc_start_transport_op(grpc_exec_ctx *exec_ctx,
   grpc_exec_ctx_enqueue(exec_ctx, op->on_consumed, 1);
 
   GPR_ASSERT(op->set_accept_stream == NULL);
-  GPR_ASSERT(op->bind_pollset == NULL || op->send_ping != NULL);
+  GPR_ASSERT(op->bind_pollset == NULL);
 
   gpr_mu_lock(&chand->mu_config);
   if (op->on_connectivity_state_change != NULL) {
@@ -257,16 +259,6 @@ static void cc_start_transport_op(grpc_exec_ctx *exec_ctx,
   lb_policy = chand->lb_policy;
   if (lb_policy) {
     GRPC_LB_POLICY_REF(lb_policy, "broadcast");
-  }
-
-  if (op->send_ping != NULL) {
-    if (lb_policy == NULL) {
-      grpc_exec_ctx_enqueue(exec_ctx, op->send_ping, 0);
-    } else {
-      grpc_lb_policy_ping_one(exec_ctx, lb_policy, op->bind_pollset, op->send_ping);
-      op->bind_pollset = NULL;
-    }
-    op->send_ping = NULL;
   }
 
   if (op->disconnect && chand->resolver != NULL) {
@@ -395,6 +387,7 @@ static void init_channel_elem(grpc_exec_ctx *exec_ctx,
   GPR_ASSERT(elem->filter == &grpc_client_channel_filter);
 
   gpr_mu_init(&chand->mu_config);
+  chand->mdctx = args->metadata_context;
   chand->master = args->master;
   grpc_pollset_set_init(&chand->pollset_set);
   grpc_closure_init(&chand->on_config_changed, cc_on_config_changed, chand);

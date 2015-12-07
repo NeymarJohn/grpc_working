@@ -194,7 +194,6 @@ void grpc_pollset_init(grpc_pollset *pollset) {
   pollset->in_flight_cbs = 0;
   pollset->shutting_down = 0;
   pollset->called_shutdown = 0;
-  pollset->kicked_without_pollers = 0;
   pollset->idle_jobs.head = pollset->idle_jobs.tail = NULL;
   pollset->local_wakeup_cache = NULL;
   pollset->kicked_without_pollers = 0;
@@ -613,9 +612,7 @@ static void basic_pollset_maybe_work_and_unlock(grpc_exec_ctx *exec_ctx,
   GPR_TIMER_END("poll", 0);
 
   if (r < 0) {
-    if (errno != EINTR) {
-      gpr_log(GPR_ERROR, "poll() failed: %s", strerror(errno));
-    }
+    gpr_log(GPR_ERROR, "poll() failed: %s", strerror(errno));
     if (fd) {
       grpc_fd_end_poll(exec_ctx, &fd_watcher, 0, 0);
     }

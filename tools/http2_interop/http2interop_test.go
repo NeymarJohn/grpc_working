@@ -3,9 +3,9 @@ package http2interop
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -68,32 +68,19 @@ func (ctx *HTTP2InteropCtx) Close() error {
 	return nil
 }
 
-func TestSoonClientShortSettings(t *testing.T) {
-	defer Report(t)
-	if *testCase != "framing" {
-		t.SkipNow()
-	}
-	ctx := InteropCtx(t)
-	for i := 1; i <= 5; i++ {
-		err := testClientShortSettings(ctx, i)
-		matchError(t, err, "EOF")
-	}
-}
-
-func TestSoonShortPreface(t *testing.T) {
-	defer Report(t)
+func TestShortPreface(t *testing.T) {
 	if *testCase != "framing" {
 		t.SkipNow()
 	}
 	ctx := InteropCtx(t)
 	for i := 0; i < len(Preface)-1; i++ {
-		err := testShortPreface(ctx, Preface[:i]+"X")
-		matchError(t, err, "EOF")
+		if err := testShortPreface(ctx, Preface[:i]+"X"); err != io.EOF {
+			t.Error("Expected an EOF but was", err)
+		}
 	}
 }
 
-func TestSoonUnknownFrameType(t *testing.T) {
-	defer Report(t)
+func TestUnknownFrameType(t *testing.T) {
 	if *testCase != "framing" {
 		t.SkipNow()
 	}
@@ -103,28 +90,16 @@ func TestSoonUnknownFrameType(t *testing.T) {
 	}
 }
 
-func TestSoonClientPrefaceWithStreamId(t *testing.T) {
-	defer Report(t)
-	if *testCase != "framing" {
-		t.SkipNow()
-	}
-	ctx := InteropCtx(t)
-	err := testClientPrefaceWithStreamId(ctx)
-	matchError(t, err, "EOF")
-}
-
-func TestSoonTLSApplicationProtocol(t *testing.T) {
-	defer Report(t)
+func TestTLSApplicationProtocol(t *testing.T) {
 	if *testCase != "tls" {
 		t.SkipNow()
 	}
 	ctx := InteropCtx(t)
 	err := testTLSApplicationProtocol(ctx)
-	matchError(t, err, "EOF", "broken pipe")
+	matchError(t, err, "EOF")
 }
 
-func TestSoonTLSMaxVersion(t *testing.T) {
-	defer Report(t)
+func TestTLSMaxVersion(t *testing.T) {
 	if *testCase != "tls" {
 		t.SkipNow()
 	}
@@ -135,14 +110,22 @@ func TestSoonTLSMaxVersion(t *testing.T) {
 	matchError(t, err, "EOF", "server selected unsupported protocol")
 }
 
-func TestSoonTLSBadCipherSuites(t *testing.T) {
-	defer Report(t)
+func TestTLSBadCipherSuites(t *testing.T) {
 	if *testCase != "tls" {
 		t.SkipNow()
 	}
 	ctx := InteropCtx(t)
 	err := testTLSBadCipherSuites(ctx)
 	matchError(t, err, "EOF", "Got goaway frame")
+}
+
+func TestClientPrefaceWithStreamId(t *testing.T) {
+	if *testCase != "framing" {
+		t.SkipNow()
+	}
+	ctx := InteropCtx(t)
+	err := testClientPrefaceWithStreamId(ctx)
+	matchError(t, err, "EOF")
 }
 
 func matchError(t *testing.T, err error, matches ...string) {
@@ -159,25 +142,5 @@ func matchError(t *testing.T, err error, matches ...string) {
 
 func TestMain(m *testing.M) {
 	flag.Parse()
-	m.Run()
-	var fatal bool
-	var any bool
-	for _, ci := range allCaseInfos.Cases {
-		if ci.Skipped {
-			continue
-		}
-		any = true
-		if !ci.Passed && ci.Fatal {
-			fatal = true
-		}
-	}
-
-	if err := json.NewEncoder(os.Stderr).Encode(&allCaseInfos); err != nil {
-		fmt.Println("Failed to encode", err)
-	}
-	var code int
-	if !any || fatal {
-		code = 1
-	}
-	os.Exit(code)
+	os.Exit(m.Run())
 }
