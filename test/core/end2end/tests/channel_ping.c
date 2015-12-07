@@ -31,49 +31,47 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#include "test/core/end2end/end2end_tests.h"
 
-#ifdef GPR_POSIX_SOCKET
-
-#include "src/core/iomgr/endpoint_pair.h"
-
-#include <errno.h>
-#include <fcntl.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include "src/core/iomgr/tcp_posix.h"
-#include "src/core/support/string.h"
-#include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
+#include <grpc/support/sync.h>
+#include <grpc/support/thd.h>
+#include <grpc/support/time.h>
 
-static void create_sockets(int sv[2]) {
-  int flags;
-  GPR_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == 0);
-  flags = fcntl(sv[0], F_GETFL, 0);
-  GPR_ASSERT(fcntl(sv[0], F_SETFL, flags | O_NONBLOCK) == 0);
-  flags = fcntl(sv[1], F_GETFL, 0);
-  GPR_ASSERT(fcntl(sv[1], F_SETFL, flags | O_NONBLOCK) == 0);
+#include "test/core/end2end/cq_verifier.h"
+
+static void *tag(gpr_intptr t) { return (void *)t; }
+
+static void test_ping(grpc_end2end_test_config config) {
+  grpc_end2end_test_fixture f = config.create_fixture(NULL, NULL);
+  cq_verifier *cqv = cq_verifier_create(f.cq);
+  int i;
+
+  config.init_client(&f, NULL);
+  config.init_server(&f, NULL);
+
+  for (i = 1; i <= 5; i++) {
+    grpc_channel_ping(f.client, f.cq, tag(i), NULL);
+    cq_expect_completion(cqv, tag(i), 1);
+    cq_verify(cqv);
+  }
+
+  grpc_server_shutdown_and_notify(f.server, f.cq, tag(0xdead));
+  cq_expect_completion(cqv, tag(0xdead), 1);
+  cq_verify(cqv);
+
+  /* cleanup server */
+  grpc_server_destroy(f.server);
+
+  grpc_channel_destroy(f.client);
+  grpc_completion_queue_shutdown(f.cq);
+  grpc_completion_queue_destroy(f.cq);
+  config.tear_down_data(&f);
+
+  cq_verifier_destroy(cqv);
 }
 
-grpc_endpoint_pair grpc_iomgr_create_endpoint_pair(const char *name,
-                                                   size_t read_slice_size) {
-  int sv[2];
-  grpc_endpoint_pair p;
-  char *final_name;
-  create_sockets(sv);
-
-  gpr_asprintf(&final_name, "%s:client", name);
-  p.client = grpc_tcp_create(grpc_fd_create(sv[1], final_name), read_slice_size,
-                             "socketpair-server");
-  gpr_free(final_name);
-  gpr_asprintf(&final_name, "%s:server", name);
-  p.server = grpc_tcp_create(grpc_fd_create(sv[0], final_name), read_slice_size,
-                             "socketpair-client");
-  gpr_free(final_name);
-  return p;
+void grpc_end2end_tests(grpc_end2end_test_config config) {
+  GPR_ASSERT(config.feature_mask & FEATURE_MASK_SUPPORTS_DELAYED_CONNECTION);
+  test_ping(config);
 }
-
-#endif

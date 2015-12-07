@@ -31,49 +31,46 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#include "src/core/surface/channel.h"
 
-#ifdef GPR_POSIX_SOCKET
-
-#include "src/core/iomgr/endpoint_pair.h"
-
-#include <errno.h>
-#include <fcntl.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 
-#include "src/core/iomgr/tcp_posix.h"
-#include "src/core/support/string.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
 
-static void create_sockets(int sv[2]) {
-  int flags;
-  GPR_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == 0);
-  flags = fcntl(sv[0], F_GETFL, 0);
-  GPR_ASSERT(fcntl(sv[0], F_SETFL, flags | O_NONBLOCK) == 0);
-  flags = fcntl(sv[1], F_GETFL, 0);
-  GPR_ASSERT(fcntl(sv[1], F_SETFL, flags | O_NONBLOCK) == 0);
+#include "src/core/surface/api_trace.h"
+#include "src/core/surface/completion_queue.h"
+
+typedef struct {
+  grpc_closure closure;
+  void *tag;
+  grpc_completion_queue *cq;
+  grpc_cq_completion completion_storage;
+} ping_result;
+
+static void ping_destroy(grpc_exec_ctx *exec_ctx, void *arg, grpc_cq_completion *storage) {
+  gpr_free(arg);
 }
 
-grpc_endpoint_pair grpc_iomgr_create_endpoint_pair(const char *name,
-                                                   size_t read_slice_size) {
-  int sv[2];
-  grpc_endpoint_pair p;
-  char *final_name;
-  create_sockets(sv);
-
-  gpr_asprintf(&final_name, "%s:client", name);
-  p.client = grpc_tcp_create(grpc_fd_create(sv[1], final_name), read_slice_size,
-                             "socketpair-server");
-  gpr_free(final_name);
-  gpr_asprintf(&final_name, "%s:server", name);
-  p.server = grpc_tcp_create(grpc_fd_create(sv[0], final_name), read_slice_size,
-                             "socketpair-client");
-  gpr_free(final_name);
-  return p;
+static void ping_done(grpc_exec_ctx *exec_ctx, void *arg, int success) {
+  ping_result *pr = arg;
+  grpc_cq_end_op(exec_ctx, pr->cq, pr->tag, success, ping_destroy, pr, &pr->completion_storage);
 }
 
-#endif
+void grpc_channel_ping(
+    grpc_channel *channel, grpc_completion_queue *cq, void *tag, void *reserved) {
+  grpc_transport_op op;
+  ping_result *pr = gpr_malloc(sizeof(*pr));
+  grpc_channel_element *top_elem = grpc_channel_stack_element(
+      grpc_channel_get_channel_stack(channel), 0);
+  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
+  memset(&op, 0, sizeof(op));
+  pr->tag = tag;
+  pr->cq = cq;
+  grpc_closure_init(&pr->closure, ping_done, pr);
+  op.send_ping = &pr->closure;
+  op.bind_pollset = grpc_cq_pollset(cq);
+  grpc_cq_begin_op(cq);
+  top_elem->filter->start_transport_op(&exec_ctx, top_elem, &op);
+  grpc_exec_ctx_finish(&exec_ctx);
+}
