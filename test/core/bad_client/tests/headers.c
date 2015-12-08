@@ -96,6 +96,26 @@ int main(int argc, char **argv) {
                            0);
   GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
                            "\x00\x00\x05\x01\x24\x00\x00\x00\x01"
+                           "",
+                           GRPC_BAD_CLIENT_DISCONNECT);
+  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
+                           "\x00\x00\x05\x01\x24\x00\x00\x00\x01"
+                           "\x00",
+                           GRPC_BAD_CLIENT_DISCONNECT);
+  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
+                           "\x00\x00\x05\x01\x24\x00\x00\x00\x01"
+                           "\x00\x00",
+                           GRPC_BAD_CLIENT_DISCONNECT);
+  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
+                           "\x00\x00\x05\x01\x24\x00\x00\x00\x01"
+                           "\x00\x00\x00",
+                           GRPC_BAD_CLIENT_DISCONNECT);
+  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
+                           "\x00\x00\x05\x01\x24\x00\x00\x00\x01"
+                           "\x00\x00\x00\x00",
+                           GRPC_BAD_CLIENT_DISCONNECT);
+  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
+                           "\x00\x00\x05\x01\x24\x00\x00\x00\x01"
                            "\x00\x00\x00\x00\x00",
                            GRPC_BAD_CLIENT_DISCONNECT);
 
@@ -157,6 +177,34 @@ int main(int argc, char **argv) {
                            0);
   GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
                            "\x00\x00\x08\x01\x04\x00\x00\x00\x01"
+                           "\xff",
+                           GRPC_BAD_CLIENT_DISCONNECT);
+  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
+                           "\x00\x00\x08\x01\x04\x00\x00\x00\x01"
+                           "\xff\x80",
+                           GRPC_BAD_CLIENT_DISCONNECT);
+  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
+                           "\x00\x00\x08\x01\x04\x00\x00\x00\x01"
+                           "\xff\x80\x80",
+                           GRPC_BAD_CLIENT_DISCONNECT);
+  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
+                           "\x00\x00\x08\x01\x04\x00\x00\x00\x01"
+                           "\xff\x80\x80\x80",
+                           GRPC_BAD_CLIENT_DISCONNECT);
+  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
+                           "\x00\x00\x08\x01\x04\x00\x00\x00\x01"
+                           "\xff\x80\x80\x80\x80",
+                           GRPC_BAD_CLIENT_DISCONNECT);
+  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
+                           "\x00\x00\x08\x01\x04\x00\x00\x00\x01"
+                           "\xff\x80\x80\x80\x80\x80",
+                           GRPC_BAD_CLIENT_DISCONNECT);
+  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
+                           "\x00\x00\x08\x01\x04\x00\x00\x00\x01"
+                           "\xff\x80\x80\x80\x80\x80\x80",
+                           GRPC_BAD_CLIENT_DISCONNECT);
+  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
+                           "\x00\x00\x08\x01\x04\x00\x00\x00\x01"
                            "\xff\x80\x80\x80\x80\x80\x80\x00",
                            0);
   /* end of headers mid-opcode */
@@ -194,12 +242,6 @@ int main(int argc, char **argv) {
                            PFX_STR 
                            "\x00\x00\x00\x09\x04\x00\x00\x00\x01",
                            0);
-
-  /* an invalid header found with fuzzing */
-  GRPC_RUN_BAD_CLIENT_TEST(verifier,
-                           PFX_STR 
-                           "\x00\x00\x00\x01\x39\x67\xed\x1d\x64",
-                           GRPC_BAD_CLIENT_DISCONNECT);
 
   return 0;
 }
