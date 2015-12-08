@@ -783,22 +783,6 @@
     "ci_platforms": [
       "linux", 
       "mac", 
-      "posix"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "httpscli_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
       "posix", 
       "windows"
     ], 
@@ -15492,6 +15476,24 @@
     "flaky": false, 
     "language": "c", 
     "name": "initial_settings_frame_bad_client_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "unknown_frame_bad_client_test", 
     "platforms": [
       "linux", 
       "mac", 
