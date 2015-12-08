@@ -31,37 +31,48 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#include "src/core/surface/channel.h"
 
-#include "src/core/iomgr/pollset.h"
+#include <string.h>
 
-/* A grpc_pollset_set is a set of pollsets that are interested in an
-   action. Adding a pollset to a pollset_set automatically adds any
-   fd's (etc) that have been registered with the set_set to that pollset.
-   Registering fd's automatically adds them to all current pollsets. */
+#include <grpc/support/alloc.h>
+#include <grpc/support/log.h>
 
-#ifdef GPR_POSIX_SOCKET
-#include "src/core/iomgr/pollset_set_posix.h"
-#endif
+#include "src/core/surface/api_trace.h"
+#include "src/core/surface/completion_queue.h"
 
-#ifdef GPR_WIN32
-#include "src/core/iomgr/pollset_set_windows.h"
-#endif
+typedef struct {
+  grpc_closure closure;
+  void *tag;
+  grpc_completion_queue *cq;
+  grpc_cq_completion completion_storage;
+} ping_result;
 
-void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_add_pollset(grpc_exec_ctx *exec_ctx,
-                                  grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
-void grpc_pollset_set_del_pollset(grpc_exec_ctx *exec_ctx,
-                                  grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
-void grpc_pollset_set_add_pollset_set(grpc_exec_ctx *exec_ctx,
-                                      grpc_pollset_set *bag,
-                                      grpc_pollset_set *item);
-void grpc_pollset_set_del_pollset_set(grpc_exec_ctx *exec_ctx,
-                                      grpc_pollset_set *bag,
-                                      grpc_pollset_set *item);
+static void ping_destroy(grpc_exec_ctx *exec_ctx, void *arg,
+                         grpc_cq_completion *storage) {
+  gpr_free(arg);
+}
 
-#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */
+static void ping_done(grpc_exec_ctx *exec_ctx, void *arg, int success) {
+  ping_result *pr = arg;
+  grpc_cq_end_op(exec_ctx, pr->cq, pr->tag, success, ping_destroy, pr,
+                 &pr->completion_storage);
+}
+
+void grpc_channel_ping(grpc_channel *channel, grpc_completion_queue *cq,
+                       void *tag, void *reserved) {
+  grpc_transport_op op;
+  ping_result *pr = gpr_malloc(sizeof(*pr));
+  grpc_channel_element *top_elem =
+      grpc_channel_stack_element(grpc_channel_get_channel_stack(channel), 0);
+  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
+  memset(&op, 0, sizeof(op));
+  pr->tag = tag;
+  pr->cq = cq;
+  grpc_closure_init(&pr->closure, ping_done, pr);
+  op.send_ping = &pr->closure;
+  op.bind_pollset = grpc_cq_pollset(cq);
+  grpc_cq_begin_op(cq);
+  top_elem->filter->start_transport_op(&exec_ctx, top_elem, &op);
+  grpc_exec_ctx_finish(&exec_ctx);
+}
