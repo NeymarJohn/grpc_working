@@ -1217,16 +1217,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-- name: grpc_invalid_channel_args_test
-  build: test
-  language: c
-  src:
-  - test/core/surface/invalid_channel_args_test.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_json_token_test
   build: test
   language: c
@@ -1335,16 +1325,6 @@ targets:
   - mac
   - linux
   - posix
-- name: init_test
-  build: test
-  language: c
-  src:
-  - test/core/surface/init_test.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
 - name: invalid_call_argument_test
   build: test
   language: c
@@ -1423,6 +1403,16 @@ targets:
   language: c
   src:
   - test/core/compression/message_compress_test.c
+  deps:
+  - grpc_test_util
+  - grpc
+  - gpr_test_util
+  - gpr
+- name: multi_init_test
+  build: test
+  language: c
+  src:
+  - test/core/surface/multi_init_test.c
   deps:
   - grpc_test_util
   - grpc
