@@ -66,7 +66,7 @@ END2END_FIXTURES = {
     'h2_ssl+poll': default_secure_fixture_options._replace(platforms=['linux']),
     'h2_ssl_proxy': default_secure_fixture_options._replace(includes_proxy=True,
                                                             ci_mac=False),
-    'h2_uchannel': default_unsecure_fixture_options._replace(fullstack=False),
+    'h2_uchannel': default_unsecure_fixture_options,
     'h2_uds+poll': uds_fixture_options._replace(platforms=['linux']),
     'h2_uds': uds_fixture_options,
 }
@@ -89,7 +89,6 @@ END2END_TESTS = {
     'cancel_with_status': default_test_options,
     'census_simple_request': default_test_options,
     'channel_connectivity': connectivity_test_options._replace(proxyable=False),
-    'channel_ping': connectivity_test_options._replace(proxyable=False),
     'compressed_payload': default_test_options._replace(proxyable=False),
     'default_host': default_test_options._replace(needs_fullstack=True,
                                                   needs_dns=True),

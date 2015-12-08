@@ -96,7 +96,9 @@ static void zookeeper_maybe_finish_next_locked(grpc_exec_ctx *exec_ctx,
 
 static void zookeeper_shutdown(grpc_exec_ctx *exec_ctx, grpc_resolver *r);
 static void zookeeper_channel_saw_error(grpc_exec_ctx *exec_ctx,
-                                        grpc_resolver *r);
+                                        grpc_resolver *r,
+                                        struct sockaddr *failing_address,
+                                        int failing_address_len);
 static void zookeeper_next(grpc_exec_ctx *exec_ctx, grpc_resolver *r,
                            grpc_client_config **target_config,
                            grpc_closure *on_complete);
@@ -123,7 +125,8 @@ static void zookeeper_shutdown(grpc_exec_ctx *exec_ctx,
 }
 
 static void zookeeper_channel_saw_error(grpc_exec_ctx *exec_ctx,
-                                        grpc_resolver *resolver) {
+                                        grpc_resolver *resolver,
+                                        struct sockaddr *sa, int len) {
   zookeeper_resolver *r = (zookeeper_resolver *)resolver;
   gpr_mu_lock(&r->mu);
   if (r->resolving == 0) {
