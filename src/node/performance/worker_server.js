@@ -31,28 +31,33 @@
  *
  */
 
-#include "test/core/bad_client/bad_client.h"
-#include "src/core/surface/server.h"
+'use strict';
 
-#define PFX_STR                      \
-  "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n" \
-  "\x00\x00\x00\x04\x00\x00\x00\x00\x00"
+var worker_service_impl = require('./worker_service_impl');
 
-static void verifier(grpc_server *server, grpc_completion_queue *cq) {
-  while (grpc_server_has_open_connections(server)) {
-    GPR_ASSERT(grpc_completion_queue_next(
-                   cq, GRPC_TIMEOUT_MILLIS_TO_DEADLINE(20), NULL)
-                   .type == GRPC_QUEUE_TIMEOUT);
-  }
+var grpc = require('../../../');
+var serviceProto = grpc.load({
+  root: __dirname + '/../../..',
+  file: 'test/proto/benchmarks/services.proto'}).grpc.testing;
+
+function runServer(port) {
+  var server_creds = grpc.ServerCredentials.createInsecure();
+  var server = new grpc.Server();
+  server.addProtoService(serviceProto.WorkerService.service,
+                         worker_service_impl);
+  var address = '0.0.0.0:' + port;
+  server.bind(address, server_creds);
+  server.start();
+  return server;
 }
 
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-
-  /* test adding prioritization data */
-  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
-                           "\x00\x00\x00\x88\x00\x00\x00\x00\x01",
-                           GRPC_BAD_CLIENT_DISCONNECT);
-
-  return 0;
+if (require.main === module) {
+  Error.stackTraceLimit = Infinity;
+  var parseArgs = require('minimist');
+  var argv = parseArgs(process.argv, {
+    string: ['driver_port']
+  });
+  runServer(argv.driver_port);
 }
+
+exports.runServer = runServer;
