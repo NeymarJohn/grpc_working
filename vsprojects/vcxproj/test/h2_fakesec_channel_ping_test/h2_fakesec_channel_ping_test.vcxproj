@@ -20,7 +20,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{76FF907D-F894-E38B-0C0B-606245E197F9}</ProjectGuid>
+    <ProjectGuid>{967825BB-799F-1489-AF72-29AC63B39CE2}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(VisualStudioVersion)' == '10.0'" Label="Configuration">
@@ -55,13 +55,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <TargetName>h2_uchannel_simple_delayed_request_test</TargetName>
+    <TargetName>h2_fakesec_channel_ping_test</TargetName>
     <Linkage-grpc_dependencies_zlib>static</Linkage-grpc_dependencies_zlib>
     <Configuration-grpc_dependencies_zlib>Debug</Configuration-grpc_dependencies_zlib>
     <Configuration-grpc_dependencies_openssl>Debug</Configuration-grpc_dependencies_openssl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <TargetName>h2_uchannel_simple_delayed_request_test</TargetName>
+    <TargetName>h2_fakesec_channel_ping_test</TargetName>
     <Linkage-grpc_dependencies_zlib>static</Linkage-grpc_dependencies_zlib>
     <Configuration-grpc_dependencies_zlib>Debug</Configuration-grpc_dependencies_zlib>
     <Configuration-grpc_dependencies_openssl>Debug</Configuration-grpc_dependencies_openssl>
@@ -147,11 +147,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\vsprojects\vcxproj\test\end2end_fixture_h2_uchannel\end2end_fixture_h2_uchannel.vcxproj">
-      <Project>{CE17F95F-4FD3-41C3-E1B9-9B85F1FE7D4A}</Project>
+    <ProjectReference Include="..\..\..\..\vsprojects\vcxproj\test\end2end_fixture_h2_fakesec\end2end_fixture_h2_fakesec.vcxproj">
+      <Project>{096ABF91-FEC8-9AC9-B877-C683BFD51984}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\vsprojects\vcxproj\test\end2end_test_simple_delayed_request\end2end_test_simple_delayed_request.vcxproj">
-      <Project>{48406867-D147-4FF7-4283-65B9F32EF83D}</Project>
+    <ProjectReference Include="..\..\..\..\vsprojects\vcxproj\test\end2end_test_channel_ping\end2end_test_channel_ping.vcxproj">
+      <Project>{FFCD85F4-AF1E-D0BA-2F2B-28EFE4C543DB}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\vsprojects\vcxproj\test\end2end_certs\end2end_certs.vcxproj">
       <Project>{80EA2691-C037-6DD3-D3AB-21510BF0E64B}</Project>

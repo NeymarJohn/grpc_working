@@ -313,6 +313,7 @@ filegroups:
   - src/core/surface/channel.c
   - src/core/surface/channel_connectivity.c
   - src/core/surface/channel_create.c
+  - src/core/surface/channel_ping.c
   - src/core/surface/completion_queue.c
   - src/core/surface/event_string.c
   - src/core/surface/init.c
@@ -1325,16 +1326,6 @@ targets:
   - mac
   - linux
   - posix
-- name: init_test
-  build: test
-  language: c
-  src:
-  - test/core/surface/init_test.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
 - name: json_rewrite
   build: test
   run: false
@@ -1403,6 +1394,16 @@ targets:
   language: c
   src:
   - test/core/compression/message_compress_test.c
+  deps:
+  - grpc_test_util
+  - grpc
+  - gpr_test_util
+  - gpr
+- name: multi_init_test
+  build: test
+  language: c
+  src:
+  - test/core/surface/multi_init_test.c
   deps:
   - grpc_test_util
   - grpc
