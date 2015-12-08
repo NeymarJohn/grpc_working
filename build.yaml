@@ -1217,6 +1217,16 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
+- name: grpc_invalid_channel_args_test
+  build: test
+  language: c
+  src:
+  - test/core/surface/invalid_channel_args_test.c
+  deps:
+  - grpc_test_util
+  - grpc
+  - gpr_test_util
+  - gpr
 - name: grpc_json_token_test
   build: test
   language: c
@@ -1325,6 +1335,16 @@ targets:
   - mac
   - linux
   - posix
+- name: invalid_call_argument_test
+  build: test
+  language: c
+  src:
+  - test/core/end2end/invalid_call_argument_test.c
+  deps:
+  - grpc_test_util
+  - grpc
+  - gpr_test_util
+  - gpr
 - name: json_rewrite
   build: test
   run: false
