@@ -643,24 +643,6 @@
     "ci_platforms": [
       "linux", 
       "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "grpc_invalid_channel_args_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ], 
     "exclude_configs": [], 
@@ -807,6 +789,24 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
+    "name": "init_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
     "name": "invalid_call_argument_test", 
     "platforms": [
       "linux", 
@@ -898,24 +898,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "message_compress_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "multi_init_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -1929,6 +1911,24 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
+    "name": "h2_compress_channel_ping_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
     "name": "h2_compress_compressed_payload_test", 
     "platforms": [
       "linux", 
@@ -2549,6 +2549,23 @@
     "flaky": false, 
     "language": "c", 
     "name": "h2_fakesec_channel_connectivity_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "h2_fakesec_channel_ping_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -3189,6 +3206,24 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
+    "name": "h2_full_channel_ping_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
     "name": "h2_full_compressed_payload_test", 
     "platforms": [
       "linux", 
@@ -3768,6 +3803,18 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
+    "name": "h2_full+poll_channel_ping_test", 
+    "platforms": [
+      "linux"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
     "name": "h2_full+poll_compressed_payload_test", 
     "platforms": [
       "linux"
@@ -4241,6 +4288,23 @@
     "flaky": false, 
     "language": "c", 
     "name": "h2_oauth2_channel_connectivity_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "h2_oauth2_channel_ping_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -7054,6 +7118,24 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
+    "name": "h2_ssl_channel_ping_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
     "name": "h2_ssl_compressed_payload_test", 
     "platforms": [
       "linux", 
@@ -7622,6 +7704,18 @@
     "flaky": false, 
     "language": "c", 
     "name": "h2_ssl+poll_channel_connectivity_test", 
+    "platforms": [
+      "linux"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "h2_ssl+poll_channel_ping_test", 
     "platforms": [
       "linux"
     ]
@@ -8643,61 +8737,7 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
-    "name": "h2_uchannel_channel_connectivity_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
     "name": "h2_uchannel_compressed_payload_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "h2_uchannel_default_host_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "h2_uchannel_disappearing_server_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -9057,24 +9097,6 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
-    "name": "h2_uchannel_simple_delayed_request_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
     "name": "h2_uchannel_simple_request_test", 
     "platforms": [
       "linux", 
@@ -9271,6 +9293,22 @@
     "flaky": false, 
     "language": "c", 
     "name": "h2_uds_channel_connectivity_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "h2_uds_channel_ping_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -9800,6 +9838,18 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
+    "name": "h2_uds+poll_channel_ping_test", 
+    "platforms": [
+      "linux"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
     "name": "h2_uds+poll_compressed_payload_test", 
     "platforms": [
       "linux"
@@ -10254,6 +10304,24 @@
     "flaky": false, 
     "language": "c", 
     "name": "h2_compress_channel_connectivity_nosec_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "h2_compress_channel_ping_nosec_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -10901,6 +10969,24 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
+    "name": "h2_full_channel_ping_nosec_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
     "name": "h2_full_compressed_payload_nosec_test", 
     "platforms": [
       "linux", 
@@ -11457,6 +11543,18 @@
     "flaky": false, 
     "language": "c", 
     "name": "h2_full+poll_channel_connectivity_nosec_test", 
+    "platforms": [
+      "linux"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "h2_full+poll_channel_ping_nosec_test", 
     "platforms": [
       "linux"
     ]
@@ -14037,61 +14135,7 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
-    "name": "h2_uchannel_channel_connectivity_nosec_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
     "name": "h2_uchannel_compressed_payload_nosec_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "h2_uchannel_default_host_nosec_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "h2_uchannel_disappearing_server_nosec_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -14451,24 +14495,6 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
-    "name": "h2_uchannel_simple_delayed_request_nosec_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
     "name": "h2_uchannel_simple_request_nosec_test", 
     "platforms": [
       "linux", 
@@ -14649,6 +14675,22 @@
     "flaky": false, 
     "language": "c", 
     "name": "h2_uds_channel_connectivity_nosec_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "h2_uds_channel_ping_nosec_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -15155,6 +15197,18 @@
     "flaky": false, 
     "language": "c", 
     "name": "h2_uds+poll_channel_connectivity_nosec_test", 
+    "platforms": [
+      "linux"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "h2_uds+poll_channel_ping_nosec_test", 
     "platforms": [
       "linux"
     ]
