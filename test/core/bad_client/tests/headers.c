@@ -96,22 +96,6 @@ int main(int argc, char **argv) {
                            0);
   GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
                            "\x00\x00\x05\x01\x24\x00\x00\x00\x01"
-                           "\x00",
-                           GRPC_BAD_CLIENT_DISCONNECT);
-  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
-                           "\x00\x00\x05\x01\x24\x00\x00\x00\x01"
-                           "\x00\x00",
-                           GRPC_BAD_CLIENT_DISCONNECT);
-  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
-                           "\x00\x00\x05\x01\x24\x00\x00\x00\x01"
-                           "\x00\x00\x00",
-                           GRPC_BAD_CLIENT_DISCONNECT);
-  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
-                           "\x00\x00\x05\x01\x24\x00\x00\x00\x01"
-                           "\x00\x00\x00\x00",
-                           GRPC_BAD_CLIENT_DISCONNECT);
-  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
-                           "\x00\x00\x05\x01\x24\x00\x00\x00\x01"
                            "\x00\x00\x00\x00\x00",
                            GRPC_BAD_CLIENT_DISCONNECT);
 
@@ -122,24 +106,24 @@ int main(int argc, char **argv) {
                            0);
   GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
                            "\x00\x00\x04\x01\x04\x00\x00\x00\x01"
-                           "\x7f\x7f\x01""a",
+                           "\x7f\x7f\x01a",
                            0);
   GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
                            "\x00\x00\x04\x01\x04\x00\x00\x00\x01"
-                           "\x0f\x7f\x01""a",
+                           "\x0f\x7f\x01a",
                            0);
   GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
                            "\x00\x00\x04\x01\x04\x00\x00\x00\x01"
-                           "\x1f\x7f\x01""a",
+                           "\x1f\x7f\x01a",
                            0);
   /* test nvr, not indexed in static table */
   GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
                            "\x00\x00\x03\x01\x04\x00\x00\x00\x01"
-                           "\x01\x01""a",
+                           "\x01\x01a",
                            GRPC_BAD_CLIENT_DISCONNECT);
   GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
                            "\x00\x00\x03\x01\x04\x00\x00\x00\x01"
-                           "\x11\x01""a",
+                           "\x11\x01a",
                            GRPC_BAD_CLIENT_DISCONNECT);
   /* illegal op code */
   GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
