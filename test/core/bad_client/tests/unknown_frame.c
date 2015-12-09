@@ -31,33 +31,28 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "test/core/util/test_config.h"
+#include "test/core/bad_client/bad_client.h"
+#include "src/core/surface/server.h"
 
-static void test(int rounds) {
-  int i;
-  for (i = 0; i < rounds; i++) {
-    grpc_init();
-  }
-  for (i = 0; i < rounds; i++) {
-    grpc_shutdown();
-  }
-}
+#define PFX_STR                      \
+  "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n" \
+  "\x00\x00\x00\x04\x00\x00\x00\x00\x00"
 
-static void test_mixed() {
-  grpc_init();
-  grpc_init();
-  grpc_shutdown();
-  grpc_init();
-  grpc_shutdown();
-  grpc_shutdown();
+static void verifier(grpc_server *server, grpc_completion_queue *cq) {
+  while (grpc_server_has_open_connections(server)) {
+    GPR_ASSERT(grpc_completion_queue_next(
+                   cq, GRPC_TIMEOUT_MILLIS_TO_DEADLINE(20), NULL)
+                   .type == GRPC_QUEUE_TIMEOUT);
+  }
 }
 
 int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
-  test(1);
-  test(2);
-  test(3);
-  test_mixed();
+
+  /* test adding prioritization data */
+  GRPC_RUN_BAD_CLIENT_TEST(verifier, PFX_STR
+                           "\x00\x00\x00\x88\x00\x00\x00\x00\x01",
+                           GRPC_BAD_CLIENT_DISCONNECT);
+
   return 0;
 }
