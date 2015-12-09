@@ -54,7 +54,8 @@ const char *grpc_connectivity_state_name(grpc_connectivity_state state) {
     case GRPC_CHANNEL_FATAL_FAILURE:
       return "FATAL_FAILURE";
   }
-  GPR_UNREACHABLE_CODE(return "UNKNOWN");
+  abort();
+  return "UNKNOWN";
 }
 
 void grpc_connectivity_state_init(grpc_connectivity_state_tracker *tracker,

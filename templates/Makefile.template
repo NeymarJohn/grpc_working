@@ -1003,27 +1003,27 @@
 
   buildtests: buildtests_c buildtests_cxx buildtests_zookeeper
 
-  buildtests_c: privatelibs_c <%text>\</%text>
+  buildtests_c: privatelibs_c\
   % for tgt in targets:
   % if tgt.build == 'test' and not tgt.language == 'c++' and not tgt.get('external_deps', None):
-    $(BINDIR)/$(CONFIG)/${tgt.name} <%text>\</%text>
+   $(BINDIR)/$(CONFIG)/${tgt.name}\
   % endif
   % endfor
 
 
-  buildtests_cxx: buildtests_zookeeper privatelibs_cxx <%text>\</%text>
+  buildtests_cxx: buildtests_zookeeper privatelibs_cxx\
   % for tgt in targets:
   % if tgt.build == 'test' and tgt.language == 'c++' and not tgt.get('external_deps', None):
-    $(BINDIR)/$(CONFIG)/${tgt.name} <%text>\</%text>
+   $(BINDIR)/$(CONFIG)/${tgt.name}\
   % endif
   % endfor
 
 
   ifeq ($(HAS_ZOOKEEPER),true)
-  buildtests_zookeeper: privatelibs_zookeeper <%text>\</%text>
+  buildtests_zookeeper: privatelibs_zookeeper\
   % for tgt in targets:
   % if tgt.build == 'test' and tgt.language == 'c++' and 'zookeeper' in tgt.get('external_deps', []):
-   $(BINDIR)/$(CONFIG)/${tgt.name} <%text>\</%text>
+   $(BINDIR)/$(CONFIG)/${tgt.name}\
   % endif
   % endfor
 
