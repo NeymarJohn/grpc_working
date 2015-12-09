@@ -811,14 +811,6 @@ libs:
   - winsock
   - global
 targets:
-- name: alloc_test
-  build: test
-  language: c
-  src:
-  - test/core/support/alloc_test.c
-  deps:
-  - gpr_test_util
-  - gpr
 - name: alpn_test
   build: test
   language: c
@@ -1236,6 +1228,16 @@ targets:
   language: c
   src:
   - test/core/security/fetch_oauth2.c
+  deps:
+  - grpc_test_util
+  - grpc
+  - gpr_test_util
+  - gpr
+- name: grpc_invalid_channel_args_test
+  build: test
+  language: c
+  src:
+  - test/core/surface/invalid_channel_args_test.c
   deps:
   - grpc_test_util
   - grpc
