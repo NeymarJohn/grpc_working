@@ -36,7 +36,6 @@ import threading  # pylint: disable=unused-import
 
 # cardinality and face are referenced from specification in this module.
 from grpc._adapter import _intermediary_low
-from grpc._adapter import _low
 from grpc._adapter import _types
 from grpc.beta import _connectivity_channel
 from grpc.beta import _server
@@ -49,7 +48,7 @@ _CHANNEL_SUBSCRIPTION_CALLBACK_ERROR_LOG_MESSAGE = (
     'Exception calling channel subscription callback!')
 
 
-class ChannelCredentials(object):
+class ClientCredentials(object):
   """A value encapsulating the data required to create a secure Channel.
 
   This class and its instances have no supported interface - it exists to define
@@ -57,12 +56,13 @@ class ChannelCredentials(object):
   functions.
   """
 
-  def __init__(self, low_credentials):
+  def __init__(self, low_credentials, intermediary_low_credentials):
     self._low_credentials = low_credentials
+    self._intermediary_low_credentials = intermediary_low_credentials
 
 
-def ssl_channel_credentials(root_certificates, private_key, certificate_chain):
-  """Creates a ChannelCredentials for use with an SSL-enabled Channel.
+def ssl_client_credentials(root_certificates, private_key, certificate_chain):
+  """Creates a ClientCredentials for use with an SSL-enabled Channel.
 
   Args:
     root_certificates: The PEM-encoded root certificates or None to ask for
@@ -73,73 +73,12 @@ def ssl_channel_credentials(root_certificates, private_key, certificate_chain):
       certificate chain should be used.
 
   Returns:
-    A ChannelCredentials for use with an SSL-enabled Channel.
+    A ClientCredentials for use with an SSL-enabled Channel.
   """
-  return ChannelCredentials(_low.channel_credentials_ssl(
-      root_certificates, private_key, certificate_chain))
-
-
-class CallCredentials(object):
-  """A value encapsulating data asserting an identity over an *established*
-  channel. May be composed with ChannelCredentials to always assert identity for
-  every call over that channel.
-
-  This class and its instances have no supported interface - it exists to define
-  the type of its instances and its instances exist to be passed to other
-  functions.
-  """
-
-  def __init__(self, low_credentials):
-    self._low_credentials = low_credentials
-
-
-def metadata_call_credentials(metadata_plugin, name=None):
-  """Construct CallCredentials from an interfaces.GRPCAuthMetadataPlugin.
-
-  Args:
-    metadata_plugin: An interfaces.GRPCAuthMetadataPlugin to use in constructing
-      the CallCredentials object.
-
-  Returns:
-    A CallCredentials object for use in a GRPCCallOptions object.
-  """
-  if name is None:
-    name = metadata_plugin.__name__
-  return CallCredentials(
-      _low.call_credentials_metadata_plugin(metadata_plugin, name))
-
-def composite_call_credentials(call_credentials, additional_call_credentials):
-  """Compose two CallCredentials to make a new one.
-
-  Args:
-    call_credentials: A CallCredentials object.
-    additional_call_credentials: Another CallCredentials object to compose on
-      top of call_credentials.
-
-  Returns:
-    A CallCredentials object for use in a GRPCCallOptions object.
-  """
-  return CallCredentials(
-      _low.call_credentials_composite(
-          call_credentials._low_credentials,
-          additional_call_credentials._low_credentials))
-
-def composite_channel_credentials(channel_credentials,
-                                 additional_call_credentials):
-  """Compose ChannelCredentials on top of client credentials to make a new one.
-
-  Args:
-    channel_credentials: A ChannelCredentials object.
-    additional_call_credentials: A CallCredentials object to compose on
-      top of channel_credentials.
-
-  Returns:
-    A ChannelCredentials object for use in a GRPCCallOptions object.
-  """
-  return ChannelCredentials(
-      _low.channel_credentials_composite(
-          channel_credentials._low_credentials,
-          additional_call_credentials._low_credentials))
+  intermediary_low_credentials = _intermediary_low.ClientCredentials(
+      root_certificates, private_key, certificate_chain)
+  return ClientCredentials(
+      intermediary_low_credentials._internal, intermediary_low_credentials)  # pylint: disable=protected-access
 
 
 class Channel(object):
@@ -196,19 +135,19 @@ def insecure_channel(host, port):
   return Channel(intermediary_low_channel._internal, intermediary_low_channel)  # pylint: disable=protected-access
 
 
-def secure_channel(host, port, channel_credentials):
+def secure_channel(host, port, client_credentials):
   """Creates a secure Channel to a remote host.
 
   Args:
     host: The name of the remote host to which to connect.
     port: The port of the remote host to which to connect.
-    channel_credentials: A ChannelCredentials.
+    client_credentials: A ClientCredentials.
 
   Returns:
     A secure Channel to the remote host through which RPCs may be conducted.
   """
   intermediary_low_channel = _intermediary_low.Channel(
-      '%s:%d' % (host, port), channel_credentials._low_credentials)
+      '%s:%d' % (host, port), client_credentials._intermediary_low_credentials)
   return Channel(intermediary_low_channel._internal, intermediary_low_channel)  # pylint: disable=protected-access
 
 
@@ -312,8 +251,9 @@ class ServerCredentials(object):
   functions.
   """
 
-  def __init__(self, low_credentials):
+  def __init__(self, low_credentials, intermediary_low_credentials):
     self._low_credentials = low_credentials
+    self._intermediary_low_credentials = intermediary_low_credentials
 
 
 def ssl_server_credentials(
@@ -342,9 +282,11 @@ def ssl_server_credentials(
     raise ValueError(
         'Illegal to require client auth without providing root certificates!')
   else:
-    return ServerCredentials(_low.server_credentials_ssl(
+    intermediary_low_credentials = _intermediary_low.ServerCredentials(
         root_certificates, private_key_certificate_chain_pairs,
-        require_client_auth))
+        require_client_auth)
+    return ServerCredentials(
+        intermediary_low_credentials._internal, intermediary_low_credentials)  # pylint: disable=protected-access
 
 
 class ServerOptions(object):

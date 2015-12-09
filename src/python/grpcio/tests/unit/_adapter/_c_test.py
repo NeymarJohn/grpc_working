@@ -27,22 +27,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import collections
+import time
+import unittest
 
-from grpc.beta import interfaces
-
-class AuthMetadataContext(collections.namedtuple(
-    'AuthMetadataContext', [
-        'service_url',
-        'method_name'
-    ]), interfaces.GRPCAuthMetadataContext):
-  pass
+from grpc._adapter import _c
+from grpc._adapter import _types
 
 
-class AuthMetadataPluginCallback(interfaces.GRPCAuthMetadataContext):
+class CTypeSmokeTest(unittest.TestCase):
 
-  def __init__(self, callback):
-    self._callback = callback
+  def testCompletionQueueUpDown(self):
+    completion_queue = _c.CompletionQueue()
+    del completion_queue
 
-  def __call__(self, metadata, error):
-    self._callback(metadata, error)
+  def testServerUpDown(self):
+    completion_queue = _c.CompletionQueue()
+    serv = _c.Server(completion_queue, [])
+    del serv
+    del completion_queue
+
+  def testChannelUpDown(self):
+    channel = _c.Channel('[::]:0', [])
+    del channel
+
+
+if __name__ == '__main__':
+  unittest.main(verbosity=2)

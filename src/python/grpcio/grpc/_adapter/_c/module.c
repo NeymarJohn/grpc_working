@@ -31,48 +31,37 @@
  *
  */
 
+#include <stdlib.h>
+
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 #include <grpc/grpc.h>
-#include <grpc/support/log.h>
-#include "test/core/util/test_config.h"
 
-static int g_flag;
+#include "grpc/_adapter/_c/types.h"
 
-static void test(int rounds) {
-  int i;
-  for (i = 0; i < rounds; i++) {
-    grpc_init();
+static PyMethodDef c_methods[] = {
+    {NULL}
+};
+
+PyMODINIT_FUNC init_c(void) {
+  PyObject *module;
+
+  module = Py_InitModule3("_c", c_methods,
+                          "Wrappings of C structures and functions.");
+
+  if (pygrpc_module_add_types(module) < 0) {
+    return;
   }
-  for (i = 0; i < rounds; i++) {
-    grpc_shutdown();
+
+  if (PyModule_AddStringConstant(
+          module, "PRIMARY_USER_AGENT_KEY",
+          GRPC_ARG_PRIMARY_USER_AGENT_STRING) < 0) {
+    return;
   }
-}
 
-static void test_mixed(void) {
+  /* GRPC maintains an internal counter of how many times it has been
+     initialized and handles multiple pairs of grpc_init()/grpc_shutdown()
+     invocations accordingly. */
   grpc_init();
-  grpc_init();
-  grpc_shutdown();
-  grpc_init();
-  grpc_shutdown();
-  grpc_shutdown();
-}
-
-static void plugin_init(void) { g_flag = 1; }
-static void plugin_destroy(void) { g_flag = 2; }
-
-static void test_plugin() {
-  grpc_register_plugin(plugin_init, plugin_destroy);
-  grpc_init();
-  GPR_ASSERT(g_flag == 1);
-  grpc_shutdown();
-  GPR_ASSERT(g_flag == 2);
-}
-
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  test(1);
-  test(2);
-  test(3);
-  test_mixed();
-  test_plugin();
-  return 0;
+  atexit(&grpc_shutdown);
 }

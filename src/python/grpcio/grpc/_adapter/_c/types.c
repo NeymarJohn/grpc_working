@@ -31,33 +31,31 @@
  *
  */
 
-'use strict';
+#include "grpc/_adapter/_c/types.h"
 
-var worker_service_impl = require('./worker_service_impl');
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include <grpc/grpc.h>
 
-var grpc = require('../../../');
-var serviceProto = grpc.load({
-  root: __dirname + '/../../..',
-  file: 'test/proto/benchmarks/services.proto'}).grpc.testing;
-
-function runServer(port) {
-  var server_creds = grpc.ServerCredentials.createInsecure();
-  var server = new grpc.Server();
-  server.addProtoService(serviceProto.WorkerService.service,
-                         worker_service_impl);
-  var address = '0.0.0.0:' + port;
-  server.bind(address, server_creds);
-  server.start();
-  return server;
+int pygrpc_module_add_types(PyObject *module) {
+  int i;
+  PyTypeObject *types[] = {
+      &pygrpc_CallCredentials_type,
+      &pygrpc_ChannelCredentials_type,
+      &pygrpc_ServerCredentials_type,
+      &pygrpc_CompletionQueue_type,
+      &pygrpc_Call_type,
+      &pygrpc_Channel_type,
+      &pygrpc_Server_type
+  };
+  for (i = 0; i < sizeof(types)/sizeof(PyTypeObject *); ++i) {
+    if (PyType_Ready(types[i]) < 0) {
+      return -1;
+    }
+  }
+  for (i = 0; i < sizeof(types)/sizeof(PyTypeObject *); ++i) {
+    Py_INCREF(types[i]);
+    PyModule_AddObject(module, types[i]->tp_name, (PyObject *)types[i]);
+  }
+  return 0;
 }
-
-if (require.main === module) {
-  Error.stackTraceLimit = Infinity;
-  var parseArgs = require('minimist');
-  var argv = parseArgs(process.argv, {
-    string: ['driver_port']
-  });
-  runServer(argv.driver_port);
-}
-
-exports.runServer = runServer;

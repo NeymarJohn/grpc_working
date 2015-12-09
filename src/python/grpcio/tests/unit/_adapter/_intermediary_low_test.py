@@ -115,7 +115,6 @@ class EchoTest(unittest.TestCase):
 
   def tearDown(self):
     self.server.stop()
-    self.server.cancel_all_calls()
     self.server_completion_queue.stop()
     self.client_completion_queue.stop()
     self.server_completion_queue_thread.join()
@@ -287,6 +286,11 @@ class EchoTest(unittest.TestCase):
                         set((server_trailing_metadata_key,
                              server_trailing_binary_metadata_key,)))
 
+    server_timeout_none_event = self.server_completion_queue.get(0)
+    self.assertIsNone(server_timeout_none_event)
+    client_timeout_none_event = self.client_completion_queue.get(0)
+    self.assertIsNone(client_timeout_none_event)
+
     self.assertSequenceEqual(test_data, server_data)
     self.assertSequenceEqual(test_data, client_data)
 
@@ -331,7 +335,6 @@ class CancellationTest(unittest.TestCase):
 
   def tearDown(self):
     self.server.stop()
-    self.server.cancel_all_calls()
     self.server_completion_queue.stop()
     self.client_completion_queue.stop()
     self.server_completion_queue_thread.join()
@@ -407,8 +410,13 @@ class CancellationTest(unittest.TestCase):
 
     finish_event = self.client_events.get()
     self.assertEqual(_low.Event.Kind.FINISH, finish_event.kind)
-    self.assertEqual(_low.Status(_low.Code.CANCELLED, 'Cancelled'),
+    self.assertEqual(_low.Status(_low.Code.CANCELLED, 'Cancelled'), 
                                  finish_event.status)
+
+    server_timeout_none_event = self.server_completion_queue.get(0)
+    self.assertIsNone(server_timeout_none_event)
+    client_timeout_none_event = self.client_completion_queue.get(0)
+    self.assertIsNone(client_timeout_none_event)
 
     self.assertSequenceEqual(test_data, server_data)
     self.assertSequenceEqual(test_data, client_data)
