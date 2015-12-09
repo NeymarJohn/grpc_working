@@ -101,24 +101,6 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
-    "name": "chttp2_varint_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
     "name": "compression_test", 
     "platforms": [
       "linux", 
@@ -15494,6 +15476,24 @@
     "flaky": false, 
     "language": "c", 
     "name": "initial_settings_frame_bad_client_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "simple_request_bad_client_test", 
     "platforms": [
       "linux", 
       "mac", 
