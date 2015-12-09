@@ -31,31 +31,48 @@
  *
  */
 
-#include "grpc/_adapter/_c/types.h"
-
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
 #include <grpc/grpc.h>
+#include <grpc/support/log.h>
+#include "test/core/util/test_config.h"
 
-int pygrpc_module_add_types(PyObject *module) {
+static int g_flag;
+
+static void test(int rounds) {
   int i;
-  PyTypeObject *types[] = {
-      &pygrpc_CallCredentials_type,
-      &pygrpc_ChannelCredentials_type,
-      &pygrpc_ServerCredentials_type,
-      &pygrpc_CompletionQueue_type,
-      &pygrpc_Call_type,
-      &pygrpc_Channel_type,
-      &pygrpc_Server_type
-  };
-  for (i = 0; i < sizeof(types)/sizeof(PyTypeObject *); ++i) {
-    if (PyType_Ready(types[i]) < 0) {
-      return -1;
-    }
+  for (i = 0; i < rounds; i++) {
+    grpc_init();
   }
-  for (i = 0; i < sizeof(types)/sizeof(PyTypeObject *); ++i) {
-    Py_INCREF(types[i]);
-    PyModule_AddObject(module, types[i]->tp_name, (PyObject *)types[i]);
+  for (i = 0; i < rounds; i++) {
+    grpc_shutdown();
   }
+}
+
+static void test_mixed(void) {
+  grpc_init();
+  grpc_init();
+  grpc_shutdown();
+  grpc_init();
+  grpc_shutdown();
+  grpc_shutdown();
+}
+
+static void plugin_init(void) { g_flag = 1; }
+static void plugin_destroy(void) { g_flag = 2; }
+
+static void test_plugin() {
+  grpc_register_plugin(plugin_init, plugin_destroy);
+  grpc_init();
+  GPR_ASSERT(g_flag == 1);
+  grpc_shutdown();
+  GPR_ASSERT(g_flag == 2);
+}
+
+int main(int argc, char **argv) {
+  grpc_test_init(argc, argv);
+  test(1);
+  test(2);
+  test(3);
+  test_mixed();
+  test_plugin();
   return 0;
 }
