@@ -31,16 +31,19 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_DECORATORS_MERGE_CHANNEL_ARGS_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_DECORATORS_MERGE_CHANNEL_ARGS_H
+#include <grpc/grpc.h>
+#include <grpc/support/log.h>
+#include "test/core/util/test_config.h"
 
-#include "src/core/client_config/subchannel_factory.h"
+void test_unparsable_target(void) {
+  int port = grpc_server_add_insecure_http2_port(NULL, "[");
+  GPR_ASSERT(port == 0);
+}
 
-/** Takes a subchannel factory, returns a new one that mutates incoming
-    channel_args by adding a new argument; ownership of input, args is retained
-    by the caller. */
-grpc_subchannel_factory *grpc_subchannel_factory_merge_channel_args(
-    grpc_subchannel_factory *input, const grpc_channel_args *args);
-
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_FACTORY_DECORATORS_MERGE_CHANNEL_ARGS_H \
-        */
+int main(int argc, char **argv) {
+  grpc_test_init(argc, argv);
+  grpc_init();
+  test_unparsable_target();
+  grpc_shutdown();
+  return 0;
+}
