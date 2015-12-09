@@ -31,33 +31,33 @@
  *
  */
 
-'use strict';
+#include <grpc/grpc.h>
+#include "test/core/util/test_config.h"
 
-var worker_service_impl = require('./worker_service_impl');
-
-var grpc = require('../../../');
-var serviceProto = grpc.load({
-  root: __dirname + '/../../..',
-  file: 'test/proto/benchmarks/services.proto'}).grpc.testing;
-
-function runServer(port) {
-  var server_creds = grpc.ServerCredentials.createInsecure();
-  var server = new grpc.Server();
-  server.addProtoService(serviceProto.WorkerService.service,
-                         worker_service_impl);
-  var address = '0.0.0.0:' + port;
-  server.bind(address, server_creds);
-  server.start();
-  return server;
+static void test(int rounds) {
+  int i;
+  for (i = 0; i < rounds; i++) {
+    grpc_init();
+  }
+  for (i = 0; i < rounds; i++) {
+    grpc_shutdown();
+  }
 }
 
-if (require.main === module) {
-  Error.stackTraceLimit = Infinity;
-  var parseArgs = require('minimist');
-  var argv = parseArgs(process.argv, {
-    string: ['driver_port']
-  });
-  runServer(argv.driver_port);
+static void test_mixed() {
+  grpc_init();
+  grpc_init();
+  grpc_shutdown();
+  grpc_init();
+  grpc_shutdown();
+  grpc_shutdown();
 }
 
-exports.runServer = runServer;
+int main(int argc, char **argv) {
+  grpc_test_init(argc, argv);
+  test(1);
+  test(2);
+  test(3);
+  test_mixed();
+  return 0;
+}
