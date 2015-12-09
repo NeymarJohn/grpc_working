@@ -34,33 +34,13 @@
 #include <grpc/support/alloc.h>
 
 #include <stdlib.h>
-#include <grpc/support/log.h>
 #include <grpc/support/port_platform.h>
 #include "src/core/profiling/timers.h"
-
-static void *(*malloc_fn)(size_t size) = malloc;
-static void *(*realloc_fn)(void *ptr, size_t size) = realloc;
-static void (*free_fn)(void *ptr) = free;
-
-void gpr_set_malloc(void *(*custom_malloc)(size_t size)) {
-  GPR_ASSERT(custom_malloc != NULL);
-  malloc_fn = custom_malloc;
-}
-
-void gpr_set_realloc(void *(*custom_realloc)(void *ptr, size_t size)) {
-  GPR_ASSERT(custom_realloc != NULL);
-  realloc_fn = custom_realloc;
-}
-
-void gpr_set_free(void (*custom_free)(void *ptr)) {
-  GPR_ASSERT(custom_free != NULL);
-  free_fn = custom_free;
-}
 
 void *gpr_malloc(size_t size) {
   void *p;
   GPR_TIMER_BEGIN("gpr_malloc", 0);
-  p = malloc_fn(size);
+  p = malloc(size);
   if (!p) {
     abort();
   }
@@ -70,13 +50,13 @@ void *gpr_malloc(size_t size) {
 
 void gpr_free(void *p) {
   GPR_TIMER_BEGIN("gpr_free", 0);
-  free_fn(p);
+  free(p);
   GPR_TIMER_END("gpr_free", 0);
 }
 
 void *gpr_realloc(void *p, size_t size) {
   GPR_TIMER_BEGIN("gpr_realloc", 0);
-  p = realloc_fn(p, size);
+  p = realloc(p, size);
   if (!p) {
     abort();
   }
