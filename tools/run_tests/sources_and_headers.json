@@ -585,6 +585,20 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "grpc_invalid_channel_args_test", 
+    "src": [
+      "test/core/surface/invalid_channel_args_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "grpc_json_token_test", 
     "src": [
       "test/core/security/json_token_test.c"
@@ -1047,20 +1061,6 @@
     "name": "timers_test", 
     "src": [
       "test/core/profiling/timers_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "transport_connectivity_state_test", 
-    "src": [
-      "test/core/transport/connectivity_state_test.c"
     ]
   }, 
   {
