@@ -27,30 +27,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Test-appropriate entry points into the gRPC Python Beta API."""
+import time
+import unittest
 
-from grpc._adapter import _intermediary_low
-from grpc.beta import implementations
+from grpc._adapter import _c
+from grpc._adapter import _types
 
 
-def not_really_secure_channel(
-    host, port, client_credentials, server_host_override):
-  """Creates an insecure Channel to a remote host.
+class CTypeSmokeTest(unittest.TestCase):
 
-  Args:
-    host: The name of the remote host to which to connect.
-    port: The port of the remote host to which to connect.
-    client_credentials: The implementations.ClientCredentials with which to
-      connect.
-    server_host_override: The target name used for SSL host name checking.
+  def testCompletionQueueUpDown(self):
+    completion_queue = _c.CompletionQueue()
+    del completion_queue
 
-  Returns:
-    An implementations.Channel to the remote host through which RPCs may be
-      conducted.
-  """
-  hostport = '%s:%d' % (host, port)
-  intermediary_low_channel = _intermediary_low.Channel(
-      hostport, client_credentials._intermediary_low_credentials,
-      server_host_override=server_host_override)
-  return implementations.Channel(
-      intermediary_low_channel._internal, intermediary_low_channel)
+  def testServerUpDown(self):
+    completion_queue = _c.CompletionQueue()
+    serv = _c.Server(completion_queue, [])
+    del serv
+    del completion_queue
+
+  def testChannelUpDown(self):
+    channel = _c.Channel('[::]:0', [])
+    del channel
+
+
+if __name__ == '__main__':
+  unittest.main(verbosity=2)
