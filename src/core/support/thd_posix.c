@@ -53,7 +53,7 @@ struct thd_arg {
 /* Body of every thread started via gpr_thd_new. */
 static void *thread_body(void *v) {
   struct thd_arg a = *(struct thd_arg *)v;
-  free(v);
+  gpr_free(v);
   (*a.body)(a.arg);
   return NULL;
 }
@@ -63,10 +63,7 @@ int gpr_thd_new(gpr_thd_id *t, void (*thd_body)(void *arg), void *arg,
   int thread_started;
   pthread_attr_t attr;
   pthread_t p;
-  /* don't use gpr_malloc as we may cause an infinite recursion with
-   * the profiling code */
-  struct thd_arg *a = malloc(sizeof(*a));
-  GPR_ASSERT(a != NULL);
+  struct thd_arg *a = gpr_malloc(sizeof(*a));
   a->body = thd_body;
   a->arg = arg;
 
@@ -81,7 +78,7 @@ int gpr_thd_new(gpr_thd_id *t, void (*thd_body)(void *arg), void *arg,
   thread_started = (pthread_create(&p, &attr, &thread_body, a) == 0);
   GPR_ASSERT(pthread_attr_destroy(&attr) == 0);
   if (!thread_started) {
-    free(a);
+    gpr_free(a);
   }
   *t = (gpr_thd_id)p;
   return thread_started;
