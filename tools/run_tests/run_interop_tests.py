@@ -37,7 +37,6 @@ import jobset
 import multiprocessing
 import os
 import report_utils
-import subprocess
 import sys
 import tempfile
 import time
@@ -53,6 +52,11 @@ _DEFAULT_SERVER_PORT=8080
 # supported by C core SslCredentials instead.
 _SSL_CERT_ENV = { 'SSL_CERT_FILE':'/usr/local/share/grpc/roots.pem' }
 
+_SKIP_COMPRESSION = ['large_compressed_unary',
+                     'server_compressed_streaming']
+
+_SKIP_ADVANCED = ['custom_metadata', 'status_code_and_message',
+                  'unimplemented_method']
 
 class CXXLanguage:
 
@@ -74,7 +78,10 @@ class CXXLanguage:
     return {}
 
   def unimplemented_test_cases(self):
-    return []
+    return _SKIP_ADVANCED + _SKIP_COMPRESSION
+
+  def unimplemented_test_cases_server(self):
+    return _SKIP_ADVANCED + _SKIP_COMPRESSION
 
   def __str__(self):
     return 'c++'
@@ -100,7 +107,11 @@ class CSharpLanguage:
     return {}
 
   def unimplemented_test_cases(self):
-    return []
+    # TODO: status_code_and_message doesn't work against node_server
+    return _SKIP_COMPRESSION + ['status_code_and_message']
+
+  def unimplemented_test_cases_server(self):
+    return _SKIP_COMPRESSION
 
   def __str__(self):
     return 'csharp'
@@ -126,7 +137,10 @@ class JavaLanguage:
     return {}
 
   def unimplemented_test_cases(self):
-    return []
+    return _SKIP_ADVANCED + _SKIP_COMPRESSION
+
+  def unimplemented_test_cases_server(self):
+    return _SKIP_ADVANCED + _SKIP_COMPRESSION
 
   def __str__(self):
     return 'java'
@@ -153,7 +167,10 @@ class GoLanguage:
     return {}
 
   def unimplemented_test_cases(self):
-    return []
+    return _SKIP_ADVANCED + _SKIP_COMPRESSION
+
+  def unimplemented_test_cases_server(self):
+    return _SKIP_ADVANCED + _SKIP_COMPRESSION
 
   def __str__(self):
     return 'go'
@@ -181,6 +198,9 @@ class Http2Client:
   def unimplemented_test_cases(self):
     return _TEST_CASES
 
+  def unimplemented_test_cases_server(self):
+    return []
+
   def __str__(self):
     return 'http2'
 
@@ -204,7 +224,10 @@ class NodeLanguage:
     return {}
 
   def unimplemented_test_cases(self):
-    return []
+    return _SKIP_COMPRESSION
+
+  def unimplemented_test_cases_server(self):
+    return _SKIP_COMPRESSION
 
   def __str__(self):
     return 'node'
@@ -226,6 +249,9 @@ class PHPLanguage:
     return {}
 
   def unimplemented_test_cases(self):
+    return _SKIP_ADVANCED + _SKIP_COMPRESSION
+
+  def unimplemented_test_cases_server(self):
     return []
 
   def __str__(self):
@@ -252,7 +278,10 @@ class RubyLanguage:
     return {}
 
   def unimplemented_test_cases(self):
-    return []
+    return _SKIP_ADVANCED + _SKIP_COMPRESSION
+
+  def unimplemented_test_cases_server(self):
+    return _SKIP_ADVANCED + _SKIP_COMPRESSION
 
   def __str__(self):
     return 'ruby'
@@ -290,7 +319,11 @@ class PythonLanguage:
     return {'LD_LIBRARY_PATH': '{}/libs/opt'.format(DOCKER_WORKDIR_ROOT)}
 
   def unimplemented_test_cases(self):
-    return ['jwt_token_creds', 'per_rpc_creds']
+    return _SKIP_ADVANCED + _SKIP_COMPRESSION + ['jwt_token_creds',
+                                                 'per_rpc_creds']
+
+  def unimplemented_test_cases_server(self):
+    return _SKIP_ADVANCED + _SKIP_COMPRESSION
 
   def __str__(self):
     return 'python'
@@ -313,12 +346,14 @@ _SERVERS = ['c++', 'node', 'csharp', 'java', 'go', 'ruby', 'python']
 _TEST_CASES = ['large_unary', 'empty_unary', 'ping_pong',
                'empty_stream', 'client_streaming', 'server_streaming',
                'cancel_after_begin', 'cancel_after_first_response',
-               'timeout_on_sleeping_server']
+               'timeout_on_sleeping_server', 'custom_metadata',
+               'status_code_and_message', 'unimplemented_method',
+               'large_compressed_unary', 'server_compressed_streaming']
 
 _AUTH_TEST_CASES = ['compute_engine_creds', 'jwt_token_creds',
                     'oauth2_auth_token', 'per_rpc_creds']
 
-_HTTP2_TEST_CASES = ["tls"]
+_HTTP2_TEST_CASES = ["tls", "framing"]
 
 DOCKER_WORKDIR_ROOT = '/var/local/git/grpc'
 
@@ -636,9 +671,10 @@ try:
     for language in languages:
       for test_case in _TEST_CASES:
         if not test_case in language.unimplemented_test_cases():
-          test_job = cloud_to_prod_jobspec(language, test_case,
-                                           docker_image=docker_images.get(str(language)))
-          jobs.append(test_job)
+          if not test_case in _SKIP_ADVANCED + _SKIP_COMPRESSION:
+            test_job = cloud_to_prod_jobspec(language, test_case,
+                                             docker_image=docker_images.get(str(language)))
+            jobs.append(test_job)
 
     # TODO(carl-mastrangelo): Currently prod TLS terminators aren't spec compliant. Reenable
     # this once a better solution is in place.
@@ -665,22 +701,27 @@ try:
 
   for server_name, server_address in server_addresses.iteritems():
     (server_host, server_port) = server_address
+    server_language = _LANGUAGES.get(server_name, None)
+    skip_server = []  # test cases unimplemented by server
+    if server_language:
+      skip_server = server_language.unimplemented_test_cases_server()
     for language in languages:
       for test_case in _TEST_CASES:
         if not test_case in language.unimplemented_test_cases():
-          test_job = cloud_to_cloud_jobspec(language,
-                                            test_case,
-                                            server_name,
-                                            server_host,
-                                            server_port,
-                                            docker_image=docker_images.get(str(language)))
-          jobs.append(test_job)
+          if not test_case in skip_server:
+            test_job = cloud_to_cloud_jobspec(language,
+                                              test_case,
+                                              server_name,
+                                              server_host,
+                                              server_port,
+                                              docker_image=docker_images.get(str(language)))
+            jobs.append(test_job)
 
     if args.http2_interop:
       for test_case in _HTTP2_TEST_CASES:
         if server_name == "go":
           # TODO(carl-mastrangelo): Reenable after https://github.com/grpc/grpc-go/issues/434
-          continue
+          continue 
         test_job = cloud_to_cloud_jobspec(http2Interop,
                                           test_case,
                                           server_name,
@@ -702,10 +743,10 @@ try:
   else:
     jobset.message('SUCCESS', 'All tests passed', do_newline=True)
 
-  report_utils.render_xml_report(resultset, 'report.xml')
+  report_utils.render_junit_xml_report(resultset, 'report.xml')
 
-  report_utils.render_html_report(
-      set([str(l) for l in languages]), servers, _TEST_CASES, _AUTH_TEST_CASES,
+  report_utils.render_interop_html_report(
+      set([str(l) for l in languages]), servers, _TEST_CASES, _AUTH_TEST_CASES, 
       _HTTP2_TEST_CASES, resultset, num_failures,
       args.cloud_to_prod_auth or args.cloud_to_prod, args.http2_interop)
 
