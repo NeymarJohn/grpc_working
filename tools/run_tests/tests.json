@@ -11,24 +11,6 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
-    "name": "alloc_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
     "name": "alpn_test", 
     "platforms": [
       "linux", 
@@ -48,24 +30,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "bin_encoder_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "channel_create_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -120,24 +84,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "chttp2_stream_map_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "chttp2_varint_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -697,24 +643,6 @@
     "ci_platforms": [
       "linux", 
       "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "grpc_invalid_channel_args_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ], 
     "exclude_configs": [], 
@@ -861,24 +789,6 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
-    "name": "init_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
     "name": "invalid_call_argument_test", 
     "platforms": [
       "linux", 
@@ -970,6 +880,24 @@
     "flaky": false, 
     "language": "c", 
     "name": "message_compress_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "multi_init_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -15548,42 +15476,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "initial_settings_frame_bad_client_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "simple_request_bad_client_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "unknown_frame_bad_client_test", 
     "platforms": [
       "linux", 
       "mac", 
