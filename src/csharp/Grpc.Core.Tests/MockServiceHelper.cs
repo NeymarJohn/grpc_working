@@ -32,7 +32,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -53,7 +52,6 @@ namespace Grpc.Core.Tests
 
         readonly string host;
         readonly ServerServiceDefinition serviceDefinition;
-        readonly IEnumerable<ChannelOption> channelOptions;
 
         readonly Method<string, string> unaryMethod;
         readonly Method<string, string> clientStreamingMethod;
@@ -68,10 +66,9 @@ namespace Grpc.Core.Tests
         Server server;
         Channel channel;
 
-        public MockServiceHelper(string host = null, Marshaller<string> marshaller = null, IEnumerable<ChannelOption> channelOptions = null)
+        public MockServiceHelper(string host = null, Marshaller<string> marshaller = null)
         {
             this.host = host ?? "localhost";
-            this.channelOptions = channelOptions;
             marshaller = marshaller ?? Marshallers.StringMarshaller;
 
             unaryMethod = new Method<string, string>(
@@ -157,7 +154,7 @@ namespace Grpc.Core.Tests
         {
             if (channel == null)
             {
-                channel = new Channel(Host, GetServer().Ports.Single().BoundPort, ChannelCredentials.Insecure, channelOptions);
+                channel = new Channel(Host, GetServer().Ports.Single().BoundPort, ChannelCredentials.Insecure);
             }
             return channel;
         }
