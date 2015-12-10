@@ -11,6 +11,24 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
+    "name": "alloc_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
     "name": "alpn_test", 
     "platforms": [
       "linux", 
@@ -668,6 +686,24 @@
     "flaky": false, 
     "language": "c", 
     "name": "grpc_credentials_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "grpc_invalid_channel_args_test", 
     "platforms": [
       "linux", 
       "mac", 
