@@ -31,43 +31,19 @@
  *
  */
 
-#ifndef NET_GRPC_PHP_GRPC_CALL_H_
-#define NET_GRPC_PHP_GRPC_CALL_H_
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <php.h>
-#include <php_ini.h>
-#include <ext/standard/info.h>
-#include "php_grpc.h"
-
 #include <grpc/grpc.h>
+#include <grpc/support/log.h>
+#include "test/core/util/test_config.h"
 
-/* Class entry for the Call PHP class */
-extern zend_class_entry *grpc_ce_call;
+void test_unparsable_target(void) {
+  int port = grpc_server_add_insecure_http2_port(NULL, "[");
+  GPR_ASSERT(port == 0);
+}
 
-/* Wrapper struct for grpc_call that can be associated with a PHP object */
-typedef struct wrapped_grpc_call {
-  zend_object std;
-
-  bool owned;
-  grpc_call *wrapped;
-} wrapped_grpc_call;
-
-/* Initializes the Call PHP class */
-void grpc_init_call(TSRMLS_D);
-
-/* Creates a Call object that wraps the given grpc_call struct */
-zval *grpc_php_wrap_call(grpc_call *wrapped, bool owned);
-
-/* Creates and returns a PHP associative array of metadata from a C array of
- * call metadata */
-zval *grpc_parse_metadata_array(grpc_metadata_array *metadata_array);
-
-/* Populates a grpc_metadata_array with the data in a PHP array object.
-   Returns true on success and false on failure */
-bool create_metadata_array(zval *array, grpc_metadata_array *metadata);
-
-#endif /* NET_GRPC_PHP_GRPC_CHANNEL_H_ */
+int main(int argc, char **argv) {
+  grpc_test_init(argc, argv);
+  grpc_init();
+  test_unparsable_target();
+  grpc_shutdown();
+  return 0;
+}
