@@ -31,49 +31,38 @@
  *
  */
 
-#include "src/core/surface/channel.h"
-
-#include <string.h>
-
-#include <grpc/support/alloc.h>
+#include <grpc/grpc.h>
 #include <grpc/support/log.h>
+#include "test/core/util/test_config.h"
 
-#include "src/core/surface/api_trace.h"
-#include "src/core/surface/completion_queue.h"
-
-typedef struct {
-  grpc_closure closure;
-  void *tag;
-  grpc_completion_queue *cq;
-  grpc_cq_completion completion_storage;
-} ping_result;
-
-static void ping_destroy(grpc_exec_ctx *exec_ctx, void *arg,
-                         grpc_cq_completion *storage) {
-  gpr_free(arg);
+void test_register_method_fail(void) {
+  grpc_server *server = grpc_server_create(NULL, NULL);
+  void *method;
+  void *method_old;
+  method = grpc_server_register_method(server, NULL, NULL);
+  GPR_ASSERT(method == NULL);
+  method_old = grpc_server_register_method(server, "m", "h");
+  GPR_ASSERT(method_old != NULL);
+  method = grpc_server_register_method(server, "m", "h");
+  GPR_ASSERT(method == NULL);
+  grpc_server_destroy(server);
 }
 
-static void ping_done(grpc_exec_ctx *exec_ctx, void *arg, int success) {
-  ping_result *pr = arg;
-  grpc_cq_end_op(exec_ctx, pr->cq, pr->tag, success, ping_destroy, pr,
-                 &pr->completion_storage);
+void test_request_call_on_no_server_cq(void) {
+  grpc_completion_queue *cc = grpc_completion_queue_create(NULL);
+  GPR_ASSERT(GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE ==
+             grpc_server_request_call(NULL, NULL, NULL, NULL, cc, cc, NULL));
+  GPR_ASSERT(GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE ==
+             grpc_server_request_registered_call(NULL, NULL, NULL, NULL, NULL,
+                                                 NULL, cc, cc, NULL));
+  grpc_completion_queue_destroy(cc);
 }
 
-void grpc_channel_ping(grpc_channel *channel, grpc_completion_queue *cq,
-                       void *tag, void *reserved) {
-  grpc_transport_op op;
-  ping_result *pr = gpr_malloc(sizeof(*pr));
-  grpc_channel_element *top_elem =
-      grpc_channel_stack_element(grpc_channel_get_channel_stack(channel), 0);
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-  GPR_ASSERT(reserved == NULL);
-  memset(&op, 0, sizeof(op));
-  pr->tag = tag;
-  pr->cq = cq;
-  grpc_closure_init(&pr->closure, ping_done, pr);
-  op.send_ping = &pr->closure;
-  op.bind_pollset = grpc_cq_pollset(cq);
-  grpc_cq_begin_op(cq);
-  top_elem->filter->start_transport_op(&exec_ctx, top_elem, &op);
-  grpc_exec_ctx_finish(&exec_ctx);
+int main(int argc, char **argv) {
+  grpc_test_init(argc, argv);
+  grpc_init();
+  test_register_method_fail();
+  test_request_call_on_no_server_cq();
+  grpc_shutdown();
+  return 0;
 }

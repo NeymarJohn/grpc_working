@@ -49,6 +49,7 @@ typedef struct {
 } call_data;
 
 typedef struct {
+  grpc_channel *master;
   grpc_status_code error_code;
   const char *error_message;
 } channel_data;
@@ -83,7 +84,8 @@ static void lame_start_transport_stream_op(grpc_exec_ctx *exec_ctx,
 }
 
 static char *lame_get_peer(grpc_exec_ctx *exec_ctx, grpc_call_element *elem) {
-  return NULL;
+  channel_data *chand = elem->channel_data;
+  return grpc_channel_get_target(chand->master);
 }
 
 static void lame_start_transport_op(grpc_exec_ctx *exec_ctx,
@@ -109,8 +111,10 @@ static void destroy_call_elem(grpc_exec_ctx *exec_ctx,
 static void init_channel_elem(grpc_exec_ctx *exec_ctx,
                               grpc_channel_element *elem,
                               grpc_channel_element_args *args) {
+  channel_data *chand = elem->channel_data;
   GPR_ASSERT(args->is_first);
   GPR_ASSERT(args->is_last);
+  chand->master = args->master;
 }
 
 static void destroy_channel_elem(grpc_exec_ctx *exec_ctx,
