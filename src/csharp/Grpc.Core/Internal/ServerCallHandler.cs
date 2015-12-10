@@ -78,13 +78,13 @@ namespace Grpc.Core.Internal
             var context = HandlerUtils.NewContext(newRpc, asyncCall.Peer, responseStream, asyncCall.CancellationToken);
             try
             {
-                Preconditions.CheckArgument(await requestStream.MoveNext().ConfigureAwait(false));
+                Preconditions.CheckArgument(await requestStream.MoveNext());
                 var request = requestStream.Current;
                 // TODO(jtattermusch): we need to read the full stream so that native callhandle gets deallocated.
-                Preconditions.CheckArgument(!await requestStream.MoveNext().ConfigureAwait(false));
-                var result = await handler(request, context).ConfigureAwait(false);
+                Preconditions.CheckArgument(!await requestStream.MoveNext());
+                var result = await handler(request, context);
                 status = context.Status;
-                await responseStream.WriteAsync(result).ConfigureAwait(false);
+                await responseStream.WriteAsync(result);
             } 
             catch (Exception e)
             {
@@ -93,13 +93,13 @@ namespace Grpc.Core.Internal
             }
             try
             {
-                await responseStream.WriteStatusAsync(status, context.ResponseTrailers).ConfigureAwait(false);
+                await responseStream.WriteStatusAsync(status, context.ResponseTrailers);
             }
             catch (OperationCanceledException)
             {
                 // Call has been already cancelled.
             }
-            await finishedTask.ConfigureAwait(false);
+            await finishedTask;
         }
     }
 
@@ -134,11 +134,11 @@ namespace Grpc.Core.Internal
             var context = HandlerUtils.NewContext(newRpc, asyncCall.Peer, responseStream, asyncCall.CancellationToken);
             try
             {
-                Preconditions.CheckArgument(await requestStream.MoveNext().ConfigureAwait(false));
+                Preconditions.CheckArgument(await requestStream.MoveNext());
                 var request = requestStream.Current;
                 // TODO(jtattermusch): we need to read the full stream so that native callhandle gets deallocated.
-                Preconditions.CheckArgument(!await requestStream.MoveNext().ConfigureAwait(false));
-                await handler(request, responseStream, context).ConfigureAwait(false);
+                Preconditions.CheckArgument(!await requestStream.MoveNext());
+                await handler(request, responseStream, context);
                 status = context.Status;
             }
             catch (Exception e)
@@ -149,13 +149,13 @@ namespace Grpc.Core.Internal
 
             try
             {
-                await responseStream.WriteStatusAsync(status, context.ResponseTrailers).ConfigureAwait(false);
+                await responseStream.WriteStatusAsync(status, context.ResponseTrailers);
             }
             catch (OperationCanceledException)
             {
                 // Call has been already cancelled.
             }
-            await finishedTask.ConfigureAwait(false);
+            await finishedTask;
         }
     }
 
@@ -190,11 +190,11 @@ namespace Grpc.Core.Internal
             var context = HandlerUtils.NewContext(newRpc, asyncCall.Peer, responseStream, asyncCall.CancellationToken);
             try
             {
-                var result = await handler(requestStream, context).ConfigureAwait(false);
+                var result = await handler(requestStream, context);
                 status = context.Status;
                 try
                 {
-                    await responseStream.WriteAsync(result).ConfigureAwait(false);
+                    await responseStream.WriteAsync(result);
                 }
                 catch (OperationCanceledException)
                 {
@@ -209,13 +209,13 @@ namespace Grpc.Core.Internal
 
             try
             {
-                await responseStream.WriteStatusAsync(status, context.ResponseTrailers).ConfigureAwait(false);
+                await responseStream.WriteStatusAsync(status, context.ResponseTrailers);
             }
             catch (OperationCanceledException)
             {
                 // Call has been already cancelled.
             }
-            await finishedTask.ConfigureAwait(false);
+            await finishedTask;
         }
     }
 
@@ -250,7 +250,7 @@ namespace Grpc.Core.Internal
             var context = HandlerUtils.NewContext(newRpc, asyncCall.Peer, responseStream, asyncCall.CancellationToken);
             try
             {
-                await handler(requestStream, responseStream, context).ConfigureAwait(false);
+                await handler(requestStream, responseStream, context);
                 status = context.Status;
             }
             catch (Exception e)
@@ -260,13 +260,13 @@ namespace Grpc.Core.Internal
             }
             try
             {
-                await responseStream.WriteStatusAsync(status, context.ResponseTrailers).ConfigureAwait(false);
+                await responseStream.WriteStatusAsync(status, context.ResponseTrailers);
             }
             catch (OperationCanceledException)
             {
                 // Call has been already cancelled.
             }
-            await finishedTask.ConfigureAwait(false);
+            await finishedTask;
         }
     }
 
@@ -284,8 +284,8 @@ namespace Grpc.Core.Internal
             var finishedTask = asyncCall.ServerSideCallAsync();
             var responseStream = new ServerResponseStream<byte[], byte[]>(asyncCall);
 
-            await responseStream.WriteStatusAsync(new Status(StatusCode.Unimplemented, ""), Metadata.Empty).ConfigureAwait(false);
-            await finishedTask.ConfigureAwait(false);
+            await responseStream.WriteStatusAsync(new Status(StatusCode.Unimplemented, "No such method."), Metadata.Empty);
+            await finishedTask;
         }
     }
 

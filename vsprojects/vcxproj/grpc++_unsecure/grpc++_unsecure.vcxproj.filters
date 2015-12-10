@@ -7,6 +7,9 @@
     <ClCompile Include="..\..\..\src\cpp\client\channel.cc">
       <Filter>src\cpp\client</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\client\channel_arguments.cc">
+      <Filter>src\cpp\client</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\src\cpp\client\client_context.cc">
       <Filter>src\cpp\client</Filter>
     </ClCompile>
@@ -26,9 +29,6 @@
       <Filter>src\cpp\client</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\cpp\common\call.cc">
-      <Filter>src\cpp\common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\cpp\common\channel_arguments.cc">
       <Filter>src\cpp\common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\cpp\common\completion_queue.cc">
@@ -124,9 +124,6 @@
       <Filter>include\grpc++\impl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\grpc++\impl\serialization_traits.h">
-      <Filter>include\grpc++\impl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\grpc++\impl\server_builder_option.h">
       <Filter>include\grpc++\impl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\grpc++\impl\service_type.h">

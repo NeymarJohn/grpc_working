@@ -34,18 +34,10 @@ set -ex
 cd $(dirname $0)/../..
 
 ROOT=`pwd`
-GRPCIO=$ROOT/src/python/grpcio
+GRPCIO_TEST=$ROOT/src/python/grpcio_test
 export LD_LIBRARY_PATH=$ROOT/libs/$CONFIG
 export DYLD_LIBRARY_PATH=$ROOT/libs/$CONFIG
 export PATH=$ROOT/bins/$CONFIG:$ROOT/bins/$CONFIG/protobuf:$PATH
-export CFLAGS="-I$ROOT/include -std=c89"
-export LDFLAGS="-L$ROOT/libs/$CONFIG"
-export GRPC_PYTHON_BUILD_WITH_CYTHON=1
-export GRPC_PYTHON_ENABLE_CYTHON_TRACING=1
+source "python"$PYVER"_virtual_environment"/bin/activate
 
-cd $GRPCIO
-tox
-
-mkdir -p $ROOT/reports
-rm -rf $ROOT/reports/python-coverage
-(mv -T $GRPCIO/htmlcov $ROOT/reports/python-coverage) || true
+"python"$PYVER $GRPCIO_TEST/setup.py test -a "-n8 --cov=grpc --junitxml=./report.xml --timeout=300 -v --boxed --timeout_method=thread"
