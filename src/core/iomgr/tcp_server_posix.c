@@ -411,6 +411,7 @@ static grpc_tcp_listener *add_socket_to_server(grpc_tcp_server *s, int fd,
 
 grpc_tcp_listener *grpc_tcp_server_add_port(grpc_tcp_server *s,
                                             const void *addr, size_t addr_len) {
+  int allocated_port = -1;
   grpc_tcp_listener *sp;
   grpc_tcp_listener *sp2 = NULL;
   int fd;
@@ -463,13 +464,14 @@ grpc_tcp_listener *grpc_tcp_server_add_port(grpc_tcp_server *s,
     addr_len = sizeof(wild6);
     fd = grpc_create_dualstack_socket(addr, SOCK_STREAM, 0, &dsmode);
     sp = add_socket_to_server(s, fd, addr, addr_len);
+    allocated_port = sp->port;
     if (fd >= 0 && dsmode == GRPC_DSMODE_DUALSTACK) {
       goto done;
     }
 
     /* If we didn't get a dualstack socket, also listen on 0.0.0.0. */
-    if (port == 0 && sp != NULL) {
-      grpc_sockaddr_set_port((struct sockaddr *)&wild4, sp->port);
+    if (port == 0 && allocated_port > 0) {
+      grpc_sockaddr_set_port((struct sockaddr *)&wild4, allocated_port);
       sp2 = sp;
     }
     addr = (struct sockaddr *)&wild4;
@@ -486,8 +488,8 @@ grpc_tcp_listener *grpc_tcp_server_add_port(grpc_tcp_server *s,
     addr_len = sizeof(addr4_copy);
   }
   sp = add_socket_to_server(s, fd, addr, addr_len);
-  if (sp != NULL) sp->sibling = sp2;
-  if (sp2 != NULL) sp2->is_sibling = 1;
+  sp->sibling = sp2;
+  if (sp2) sp2->is_sibling = 1;
 
 done:
   gpr_free(allocated_addr);
