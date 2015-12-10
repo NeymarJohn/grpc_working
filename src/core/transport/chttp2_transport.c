@@ -134,11 +134,6 @@ static void connectivity_state_set(
 static void check_read_ops(grpc_exec_ctx *exec_ctx,
                            grpc_chttp2_transport_global *transport_global);
 
-static void incoming_byte_stream_update_flow_control(
-    grpc_chttp2_transport_global *transport_global,
-    grpc_chttp2_stream_global *stream_global, size_t max_size_hint,
-    size_t have_already);
-
 /*
  * CONSTRUCTION/DESTRUCTION/REFCOUNTING
  */
@@ -534,7 +529,7 @@ static void destroy_stream(grpc_exec_ctx *exec_ctx, grpc_transport *gt,
 
   while (
       (bs = grpc_chttp2_incoming_frame_queue_pop(&s->global.incoming_frames))) {
-    grpc_byte_stream_destroy(exec_ctx, bs);
+    grpc_byte_stream_destroy(bs);
   }
 
   GPR_ASSERT(s->global.send_initial_metadata_finished == NULL);
@@ -863,9 +858,6 @@ static void perform_stream_op_locked(
     GPR_ASSERT(stream_global->recv_message_ready == NULL);
     stream_global->recv_message_ready = op->recv_message_ready;
     stream_global->recv_message = op->recv_message;
-    if (stream_global->incoming_frames.head != NULL) {
-      incoming_byte_stream_update_flow_control(transport_global, stream_global, 5, 0);
-    }
     grpc_chttp2_list_add_check_read_ops(transport_global, stream_global);
   }
 
@@ -1000,7 +992,7 @@ static void check_read_ops(grpc_exec_ctx *exec_ctx,
       while (stream_global->seen_error &&
              (bs = grpc_chttp2_incoming_frame_queue_pop(
                   &stream_global->incoming_frames)) != NULL) {
-        grpc_byte_stream_destroy(exec_ctx, bs);
+        grpc_byte_stream_destroy(bs);
       }
       if (stream_global->incoming_frames.head == NULL) {
         grpc_chttp2_incoming_metadata_buffer_publish(
@@ -1482,7 +1474,7 @@ static void incoming_byte_stream_unref(grpc_chttp2_incoming_byte_stream *bs) {
   }
 }
 
-static void incoming_byte_stream_destroy(grpc_exec_ctx *exec_ctx, grpc_byte_stream *byte_stream) {
+static void incoming_byte_stream_destroy(grpc_byte_stream *byte_stream) {
   incoming_byte_stream_unref((grpc_chttp2_incoming_byte_stream *)byte_stream);
 }
 
@@ -1529,6 +1521,13 @@ grpc_chttp2_incoming_byte_stream *grpc_chttp2_incoming_byte_stream_create(
     add_to_queue->tail->next_message = incoming_byte_stream;
   }
   add_to_queue->tail = incoming_byte_stream;
+  if (frame_size == 0) {
+    lock(TRANSPORT_FROM_PARSING(transport_parsing));
+    incoming_byte_stream_update_flow_control(
+        &TRANSPORT_FROM_PARSING(transport_parsing)->global,
+        &STREAM_FROM_PARSING(stream_parsing)->global, 0, 0);
+    unlock(exec_ctx, TRANSPORT_FROM_PARSING(transport_parsing));
+  }
   return incoming_byte_stream;
 }
 
