@@ -62,13 +62,11 @@ struct gpr_cmdline {
   void (*extra_arg)(void *user_data, const char *arg);
   void *extra_arg_user_data;
 
-  int (*state)(gpr_cmdline *cl, char *arg);
+  void (*state)(gpr_cmdline *cl, char *arg);
   arg *cur_arg;
-
-  int survive_failure;
 };
 
-static int normal_state(gpr_cmdline *cl, char *arg);
+static void normal_state(gpr_cmdline *cl, char *arg);
 
 gpr_cmdline *gpr_cmdline_create(const char *description) {
   gpr_cmdline *cl = gpr_malloc(sizeof(gpr_cmdline));
@@ -78,10 +76,6 @@ gpr_cmdline *gpr_cmdline_create(const char *description) {
   cl->state = normal_state;
 
   return cl;
-}
-
-void gpr_cmdline_set_survive_failure(gpr_cmdline *cl) {
-  cl->survive_failure = 1;
 }
 
 void gpr_cmdline_destroy(gpr_cmdline *cl) {
@@ -191,22 +185,16 @@ char *gpr_cmdline_usage_string(gpr_cmdline *cl, const char *argv0) {
   return tmp;
 }
 
-static int print_usage_and_die(gpr_cmdline *cl) {
+static void print_usage_and_die(gpr_cmdline *cl) {
   char *usage = gpr_cmdline_usage_string(cl, cl->argv0);
   fprintf(stderr, "%s", usage);
   gpr_free(usage);
-  if (!cl->survive_failure) {
-    exit(1);
-  }
-  return 0;
+  exit(1);
 }
 
-static int extra_state(gpr_cmdline *cl, char *str) {
-  if (!cl->extra_arg) {
-    return print_usage_and_die(cl);
-  }
+static void extra_state(gpr_cmdline *cl, char *str) {
+  if (!cl->extra_arg) print_usage_and_die(cl);
   cl->extra_arg(cl->extra_arg_user_data, str);
-  return 1;
 }
 
 static arg *find_arg(gpr_cmdline *cl, char *name) {
@@ -220,13 +208,13 @@ static arg *find_arg(gpr_cmdline *cl, char *name) {
 
   if (!a) {
     fprintf(stderr, "Unknown argument: %s\n", name);
-    return NULL;
+    print_usage_and_die(cl);
   }
 
   return a;
 }
 
-static int value_state(gpr_cmdline *cl, char *str) {
+static void value_state(gpr_cmdline *cl, char *str) {
   long intval;
   char *end;
 
@@ -238,7 +226,7 @@ static int value_state(gpr_cmdline *cl, char *str) {
       if (*end || intval < INT_MIN || intval > INT_MAX) {
         fprintf(stderr, "expected integer, got '%s' for %s\n", str,
                 cl->cur_arg->name);
-        return print_usage_and_die(cl);
+        print_usage_and_die(cl);
       }
       *(int *)cl->cur_arg->value = (int)intval;
       break;
@@ -250,7 +238,7 @@ static int value_state(gpr_cmdline *cl, char *str) {
       } else {
         fprintf(stderr, "expected boolean, got '%s' for %s\n", str,
                 cl->cur_arg->name);
-        return print_usage_and_die(cl);
+        print_usage_and_die(cl);
       }
       break;
     case ARGTYPE_STRING:
@@ -259,18 +247,16 @@ static int value_state(gpr_cmdline *cl, char *str) {
   }
 
   cl->state = normal_state;
-  return 1;
 }
 
-static int normal_state(gpr_cmdline *cl, char *str) {
+static void normal_state(gpr_cmdline *cl, char *str) {
   char *eq = NULL;
   char *tmp = NULL;
   char *arg_name = NULL;
-  int r = 1;
 
   if (0 == strcmp(str, "-help") || 0 == strcmp(str, "--help") ||
       0 == strcmp(str, "-h")) {
-    return print_usage_and_die(cl);
+    print_usage_and_die(cl);
   }
 
   cl->cur_arg = NULL;
@@ -280,7 +266,7 @@ static int normal_state(gpr_cmdline *cl, char *str) {
       if (str[2] == 0) {
         /* handle '--' to move to just extra args */
         cl->state = extra_state;
-        return 1;
+        return;
       }
       str += 2;
     } else {
@@ -291,15 +277,12 @@ static int normal_state(gpr_cmdline *cl, char *str) {
       /* str is of the form '--no-foo' - it's a flag disable */
       str += 3;
       cl->cur_arg = find_arg(cl, str);
-      if (cl->cur_arg == NULL) {
-        return print_usage_and_die(cl);
-      }
       if (cl->cur_arg->type != ARGTYPE_BOOL) {
         fprintf(stderr, "%s is not a flag argument\n", str);
-        return print_usage_and_die(cl);
+        print_usage_and_die(cl);
       }
       *(int *)cl->cur_arg->value = 0;
-      return 1; /* early out */
+      return; /* early out */
     }
     eq = strchr(str, '=');
     if (eq != NULL) {
@@ -311,12 +294,9 @@ static int normal_state(gpr_cmdline *cl, char *str) {
       arg_name = str;
     }
     cl->cur_arg = find_arg(cl, arg_name);
-    if (cl->cur_arg == NULL) {
-      return print_usage_and_die(cl);
-    }
     if (eq != NULL) {
       /* str was of the type --foo=value, parse the value */
-      r = value_state(cl, eq + 1);
+      value_state(cl, eq + 1);
     } else if (cl->cur_arg->type != ARGTYPE_BOOL) {
       /* flag types don't have a '--foo value' variant, other types do */
       cl->state = value_state;
@@ -325,23 +305,19 @@ static int normal_state(gpr_cmdline *cl, char *str) {
       *(int *)cl->cur_arg->value = 1;
     }
   } else {
-    r = extra_state(cl, str);
+    extra_state(cl, str);
   }
 
   gpr_free(tmp);
-  return r;
 }
 
-int gpr_cmdline_parse(gpr_cmdline *cl, int argc, char **argv) {
+void gpr_cmdline_parse(gpr_cmdline *cl, int argc, char **argv) {
   int i;
 
   GPR_ASSERT(argc >= 1);
   cl->argv0 = argv[0];
 
   for (i = 1; i < argc; i++) {
-    if (!cl->state(cl, argv[i])) {
-      return 0;
-    }
+    cl->state(cl, argv[i]);
   }
-  return 1;
 }

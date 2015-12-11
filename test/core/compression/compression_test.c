@@ -35,7 +35,6 @@
 #include <string.h>
 
 #include <grpc/compression.h>
-#include <grpc/grpc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/useful.h>
 
@@ -72,9 +71,7 @@ static void test_compression_algorithm_parse(void) {
 }
 
 int main(int argc, char **argv) {
-  grpc_init();
   test_compression_algorithm_parse();
-  grpc_shutdown();
 
   return 0;
 }

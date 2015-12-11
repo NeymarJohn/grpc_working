@@ -43,23 +43,11 @@ import time
 _DEFAULT_MAX_JOBS = 16 * multiprocessing.cpu_count()
 _MAX_RESULT_SIZE = 8192
 
-def platform_string():
-  if platform.system() == 'Windows':
-    return 'windows'
-  elif platform.system()[:7] == 'MSYS_NT':
-    return 'windows'
-  elif platform.system() == 'Darwin':
-    return 'mac'
-  elif platform.system() == 'Linux':
-    return 'linux'
-  else:
-    return 'posix'
-
 
 # setup a signal handler so that signal.pause registers 'something'
 # when a child finishes
 # not using futures and threading to avoid a dependency on subprocess32
-if platform_string() == 'windows':
+if platform.system() == 'Windows':
   pass
 else:
   have_alarm = False
@@ -111,7 +99,7 @@ def message(tag, msg, explanatory_text=None, do_newline=False):
   message.old_tag = tag
   message.old_msg = msg
   try:
-    if platform_string() == 'windows' or not sys.stdout.isatty():
+    if platform.system() == 'Windows' or not sys.stdout.isatty():
       if explanatory_text:
         print explanatory_text
       print '%s: %s' % (tag, msg)
@@ -178,9 +166,6 @@ class JobSpec(object):
 
   def __cmp__(self, other):
     return self.identity() == other.identity()
-    
-  def __repr__(self):
-    return 'JobSpec(shortname=%s, cmdline=%s)' % (self.shortname, self.cmdline)
 
 
 class JobResult(object):
@@ -317,13 +302,9 @@ class Jobset(object):
     self._hashes = {}
     self._add_env = add_env
     self.resultset = {}
-    self._remaining = None
-
-  def set_remaining(self, remaining):
-    self._remaining = remaining
-
+    
   def get_num_failures(self):
-    return self._failures
+    return self._failures  
 
   def start(self, spec):
     """Start a job. Return True on success, False on failure."""
@@ -376,10 +357,9 @@ class Jobset(object):
         self._running.remove(job)
       if dead: return
       if (not self._travis):
-        rstr = '' if self._remaining is None else '%d queued, ' % self._remaining
-        message('WAITING', '%s%d jobs running, %d complete, %d failed' % (
-            rstr, len(self._running), self._completed, self._failures))
-      if platform_string() == 'windows':
+        message('WAITING', '%d jobs running, %d complete, %d failed' % (
+            len(self._running), self._completed, self._failures))
+      if platform.system() == 'Windows':
         time.sleep(0.1)
       else:
         global have_alarm
@@ -417,17 +397,6 @@ class NoCache(object):
     pass
 
 
-def tag_remaining(xs):
-  staging = []
-  for x in xs:
-    staging.append(x)
-    if len(staging) > 1000:
-      yield (staging.pop(0), None)
-  n = len(staging)
-  for i, x in enumerate(staging):
-    yield (x, n - i - 1)
-
-
 def run(cmdlines,
         check_cancelled=_never_cancelled,
         maxjobs=None,
@@ -441,11 +410,8 @@ def run(cmdlines,
               maxjobs if maxjobs is not None else _DEFAULT_MAX_JOBS,
               newline_on_success, travis, stop_on_failure, add_env,
               cache if cache is not None else NoCache())
-  for cmdline, remaining in tag_remaining(cmdlines):
+  for cmdline in cmdlines:
     if not js.start(cmdline):
       break
-    if remaining is not None:
-      js.set_remaining(remaining)
-  js.finish()
+  js.finish()  
   return js.get_num_failures(), js.resultset
-

@@ -83,24 +83,17 @@ static void con_start_transport_op(grpc_exec_ctx *exec_ctx,
 
 /* Constructor for call_data */
 static void init_call_elem(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
-                           grpc_call_element_args *args) {
+                           const void *server_transport_data,
+                           grpc_transport_stream_op *initial_op) {
   call_data *calld = elem->call_data;
   channel_data *chand = elem->channel_data;
   int r;
 
   GPR_ASSERT(elem->filter == &grpc_connected_channel_filter);
-  r = grpc_transport_init_stream(
-      exec_ctx, chand->transport, TRANSPORT_STREAM_FROM_CALL_DATA(calld),
-      &args->call_stack->refcount, args->server_transport_data);
+  r = grpc_transport_init_stream(exec_ctx, chand->transport,
+                                 TRANSPORT_STREAM_FROM_CALL_DATA(calld),
+                                 server_transport_data, initial_op);
   GPR_ASSERT(r == 0);
-}
-
-static void set_pollset(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
-                        grpc_pollset *pollset) {
-  call_data *calld = elem->call_data;
-  channel_data *chand = elem->channel_data;
-  grpc_transport_set_pollset(exec_ctx, chand->transport,
-                             TRANSPORT_STREAM_FROM_CALL_DATA(calld), pollset);
 }
 
 /* Destructor for call_data */
@@ -115,10 +108,11 @@ static void destroy_call_elem(grpc_exec_ctx *exec_ctx,
 
 /* Constructor for channel_data */
 static void init_channel_elem(grpc_exec_ctx *exec_ctx,
-                              grpc_channel_element *elem,
-                              grpc_channel_element_args *args) {
+                              grpc_channel_element *elem, grpc_channel *master,
+                              const grpc_channel_args *args, grpc_mdctx *mdctx,
+                              int is_first, int is_last) {
   channel_data *cd = (channel_data *)elem->channel_data;
-  GPR_ASSERT(args->is_last);
+  GPR_ASSERT(is_last);
   GPR_ASSERT(elem->filter == &grpc_connected_channel_filter);
   cd->transport = NULL;
 }
@@ -138,8 +132,8 @@ static char *con_get_peer(grpc_exec_ctx *exec_ctx, grpc_call_element *elem) {
 
 const grpc_channel_filter grpc_connected_channel_filter = {
     con_start_transport_stream_op, con_start_transport_op, sizeof(call_data),
-    init_call_elem, set_pollset, destroy_call_elem, sizeof(channel_data),
-    init_channel_elem, destroy_channel_elem, con_get_peer, "connected",
+    init_call_elem, destroy_call_elem, sizeof(channel_data), init_channel_elem,
+    destroy_channel_elem, con_get_peer, "connected",
 };
 
 void grpc_connected_channel_bind_transport(grpc_channel_stack *channel_stack,
@@ -159,9 +153,4 @@ void grpc_connected_channel_bind_transport(grpc_channel_stack *channel_stack,
      the last call element, and the last call element MUST be the connected
      channel. */
   channel_stack->call_stack_size += grpc_transport_stream_size(transport);
-}
-
-grpc_stream *grpc_connected_channel_get_stream(grpc_call_element *elem) {
-  call_data *calld = elem->call_data;
-  return TRANSPORT_STREAM_FROM_CALL_DATA(calld);
 }
