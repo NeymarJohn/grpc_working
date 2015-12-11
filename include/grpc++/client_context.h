@@ -37,7 +37,7 @@
 /// side.
 /// - Control call settings such as compression and authentication.
 /// - Initial and trailing metadata coming from the server.
-/// - Get performance metrics (ie, census).
+/// - Get performace metrics (ie, census).
 ///
 /// Context settings are only relevant to the call they are invoked with, that
 /// is to say, they aren't sticky. Some of these settings, such as the
@@ -268,7 +268,7 @@ class ClientContext {
   /// \return The call's peer URI.
   grpc::string peer() const;
 
-  /// Get and set census context
+  /// Get and set census context.
   void set_census_context(struct census_context* ccp) { census_context_ = ccp; }
   struct census_context* census_context() const {
     return census_context_;

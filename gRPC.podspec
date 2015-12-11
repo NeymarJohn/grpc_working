@@ -165,6 +165,7 @@ Pod::Spec.new do |s|
                       'src/core/channel/context.h',
                       'src/core/channel/http_client_filter.h',
                       'src/core/channel/http_server_filter.h',
+                      'src/core/channel/noop_filter.h',
                       'src/core/channel/subchannel_call_holder.h',
                       'src/core/client_config/client_config.h',
                       'src/core/client_config/connector.h',
@@ -181,6 +182,8 @@ Pod::Spec.new do |s|
                       'src/core/client_config/resolvers/sockaddr_resolver.h',
                       'src/core/client_config/subchannel.h',
                       'src/core/client_config/subchannel_factory.h',
+                      'src/core/client_config/subchannel_factory_decorators/add_channel_arg.h',
+                      'src/core/client_config/subchannel_factory_decorators/merge_channel_args.h',
                       'src/core/client_config/uri_parser.h',
                       'src/core/compression/algorithm_metadata.h',
                       'src/core/compression/message_compress.h',
@@ -309,6 +312,7 @@ Pod::Spec.new do |s|
                       'src/core/channel/connected_channel.c',
                       'src/core/channel/http_client_filter.c',
                       'src/core/channel/http_server_filter.c',
+                      'src/core/channel/noop_filter.c',
                       'src/core/channel/subchannel_call_holder.c',
                       'src/core/client_config/client_config.c',
                       'src/core/client_config/connector.c',
@@ -326,6 +330,8 @@ Pod::Spec.new do |s|
                       'src/core/client_config/resolvers/sockaddr_resolver.c',
                       'src/core/client_config/subchannel.c',
                       'src/core/client_config/subchannel_factory.c',
+                      'src/core/client_config/subchannel_factory_decorators/add_channel_arg.c',
+                      'src/core/client_config/subchannel_factory_decorators/merge_channel_args.c',
                       'src/core/client_config/uri_parser.c',
                       'src/core/compression/algorithm.c',
                       'src/core/compression/message_compress.c',
@@ -461,6 +467,7 @@ Pod::Spec.new do |s|
                               'src/core/channel/context.h',
                               'src/core/channel/http_client_filter.h',
                               'src/core/channel/http_server_filter.h',
+                              'src/core/channel/noop_filter.h',
                               'src/core/channel/subchannel_call_holder.h',
                               'src/core/client_config/client_config.h',
                               'src/core/client_config/connector.h',
@@ -477,6 +484,8 @@ Pod::Spec.new do |s|
                               'src/core/client_config/resolvers/sockaddr_resolver.h',
                               'src/core/client_config/subchannel.h',
                               'src/core/client_config/subchannel_factory.h',
+                              'src/core/client_config/subchannel_factory_decorators/add_channel_arg.h',
+                              'src/core/client_config/subchannel_factory_decorators/merge_channel_args.h',
                               'src/core/client_config/uri_parser.h',
                               'src/core/compression/algorithm_metadata.h',
                               'src/core/compression/message_compress.h',
@@ -580,7 +589,7 @@ Pod::Spec.new do |s|
 
     ss.requires_arc = false
     ss.libraries = 'z'
-    ss.dependency 'BoringSSL', '~> 1.0'
+    ss.dependency 'OpenSSL', '~> 1.0.204.1'
 
     # ss.compiler_flags = '-GCC_WARN_INHIBIT_ALL_WARNINGS', '-w'
   end

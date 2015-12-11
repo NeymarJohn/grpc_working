@@ -40,6 +40,7 @@
 #include <grpc/support/log.h>
 #include <grpc/support/string_util.h>
 
+#include "src/core/census/context.h"
 #include "src/core/client_config/resolver_registry.h"
 #include "src/core/iomgr/iomgr.h"
 #include "src/core/support/string.h"
@@ -113,7 +114,7 @@ grpc_channel *grpc_channel_create_from_filters(
         }
       } else if (0 == strcmp(args->args[i].key, GRPC_ARG_DEFAULT_AUTHORITY)) {
         if (args->args[i].type != GRPC_ARG_STRING) {
-          gpr_log(GPR_ERROR, "%s ignored: it must be a string",
+          gpr_log(GPR_ERROR, "%s: must be an string",
                   GRPC_ARG_DEFAULT_AUTHORITY);
         } else {
           if (channel->default_authority) {
@@ -126,14 +127,13 @@ grpc_channel *grpc_channel_create_from_filters(
       } else if (0 ==
                  strcmp(args->args[i].key, GRPC_SSL_TARGET_NAME_OVERRIDE_ARG)) {
         if (args->args[i].type != GRPC_ARG_STRING) {
-          gpr_log(GPR_ERROR, "%s ignored: it must be a string",
+          gpr_log(GPR_ERROR, "%s: must be an string",
                   GRPC_SSL_TARGET_NAME_OVERRIDE_ARG);
         } else {
           if (channel->default_authority) {
             /* other ways of setting this (notably ssl) take precedence */
-            gpr_log(GPR_ERROR,
-                    "%s ignored: default host already set some other way",
-                    GRPC_SSL_TARGET_NAME_OVERRIDE_ARG);
+            gpr_log(GPR_ERROR, "%s: default host already set some other way",
+                    GRPC_ARG_DEFAULT_AUTHORITY);
           } else {
             channel->default_authority = grpc_mdelem_from_strings(
                 ":authority", args->args[i].value.string);
@@ -168,7 +168,7 @@ static grpc_call *grpc_channel_create_call_internal(
     grpc_channel *channel, grpc_call *parent_call, gpr_uint32 propagation_mask,
     grpc_completion_queue *cq, grpc_mdelem *path_mdelem,
     grpc_mdelem *authority_mdelem, gpr_timespec deadline) {
-  grpc_mdelem *send_metadata[2];
+  grpc_mdelem *send_metadata[3];
   size_t num_metadata = 0;
 
   GPR_ASSERT(channel->is_client);
@@ -180,6 +180,16 @@ static grpc_call *grpc_channel_create_call_internal(
     send_metadata[num_metadata++] = GRPC_MDELEM_REF(channel->default_authority);
   }
 
+  if (propagation_mask & GRPC_PROPAGATE_CENSUS_TRACING_CONTEXT) {
+    char buf[GRPC_CENSUS_MAX_ON_THE_WIRE_TAG_BYTES];
+    size_t len = census_context_serialize(
+        census_context_current(), buf, GRPC_CENSUS_MAX_ON_THE_WIRE_TAG_BYTES);
+    if (len > 0) {
+      grpc_mdelem *census_mdelem = grpc_mdelem_from_metadata_strings(
+          GRPC_MDSTR_CENSUS, grpc_mdstr_from_buffer((gpr_uint8 *)buf, len));
+      send_metadata[num_metadata++] = census_mdelem;
+    }
+  }
   return grpc_call_create(channel, parent_call, propagation_mask, cq, NULL,
                           send_metadata, num_metadata, deadline);
 }

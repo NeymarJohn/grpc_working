@@ -728,7 +728,6 @@ static int finish_indexed_field(grpc_chttp2_hpack_parser *p,
 /* parse an indexed field with index < 127 */
 static int parse_indexed_field(grpc_chttp2_hpack_parser *p,
                                const gpr_uint8 *cur, const gpr_uint8 *end) {
-  p->dynamic_table_update_allowed = 0;
   p->index = (*cur) & 0x7f;
   return finish_indexed_field(p, cur + 1, end);
 }
@@ -738,7 +737,6 @@ static int parse_indexed_field_x(grpc_chttp2_hpack_parser *p,
                                  const gpr_uint8 *cur, const gpr_uint8 *end) {
   static const grpc_chttp2_hpack_parser_state and_then[] = {
       finish_indexed_field};
-  p->dynamic_table_update_allowed = 0;
   p->next_state = and_then;
   p->index = 0x7f;
   p->parsing.value = &p->index;
@@ -750,7 +748,6 @@ static int parse_indexed_field_x(grpc_chttp2_hpack_parser *p,
 static int finish_lithdr_incidx(grpc_chttp2_hpack_parser *p,
                                 const gpr_uint8 *cur, const gpr_uint8 *end) {
   grpc_mdelem *md = grpc_chttp2_hptbl_lookup(&p->table, p->index);
-  GPR_ASSERT(md != NULL); /* handled in string parsing */
   return on_hdr(p, grpc_mdelem_from_metadata_strings(GRPC_MDSTR_REF(md->key),
                                                      take_string(p, &p->value)),
                 1) &&
@@ -771,7 +768,6 @@ static int parse_lithdr_incidx(grpc_chttp2_hpack_parser *p,
                                const gpr_uint8 *cur, const gpr_uint8 *end) {
   static const grpc_chttp2_hpack_parser_state and_then[] = {
       parse_value_string_with_indexed_key, finish_lithdr_incidx};
-  p->dynamic_table_update_allowed = 0;
   p->next_state = and_then;
   p->index = (*cur) & 0x3f;
   return parse_string_prefix(p, cur + 1, end);
@@ -783,7 +779,6 @@ static int parse_lithdr_incidx_x(grpc_chttp2_hpack_parser *p,
   static const grpc_chttp2_hpack_parser_state and_then[] = {
       parse_string_prefix, parse_value_string_with_indexed_key,
       finish_lithdr_incidx};
-  p->dynamic_table_update_allowed = 0;
   p->next_state = and_then;
   p->index = 0x3f;
   p->parsing.value = &p->index;
@@ -796,7 +791,6 @@ static int parse_lithdr_incidx_v(grpc_chttp2_hpack_parser *p,
   static const grpc_chttp2_hpack_parser_state and_then[] = {
       parse_key_string, parse_string_prefix,
       parse_value_string_with_literal_key, finish_lithdr_incidx_v};
-  p->dynamic_table_update_allowed = 0;
   p->next_state = and_then;
   return parse_string_prefix(p, cur + 1, end);
 }
@@ -805,7 +799,6 @@ static int parse_lithdr_incidx_v(grpc_chttp2_hpack_parser *p,
 static int finish_lithdr_notidx(grpc_chttp2_hpack_parser *p,
                                 const gpr_uint8 *cur, const gpr_uint8 *end) {
   grpc_mdelem *md = grpc_chttp2_hptbl_lookup(&p->table, p->index);
-  GPR_ASSERT(md != NULL); /* handled in string parsing */
   return on_hdr(p, grpc_mdelem_from_metadata_strings(GRPC_MDSTR_REF(md->key),
                                                      take_string(p, &p->value)),
                 0) &&
@@ -826,7 +819,6 @@ static int parse_lithdr_notidx(grpc_chttp2_hpack_parser *p,
                                const gpr_uint8 *cur, const gpr_uint8 *end) {
   static const grpc_chttp2_hpack_parser_state and_then[] = {
       parse_value_string_with_indexed_key, finish_lithdr_notidx};
-  p->dynamic_table_update_allowed = 0;
   p->next_state = and_then;
   p->index = (*cur) & 0xf;
   return parse_string_prefix(p, cur + 1, end);
@@ -838,7 +830,6 @@ static int parse_lithdr_notidx_x(grpc_chttp2_hpack_parser *p,
   static const grpc_chttp2_hpack_parser_state and_then[] = {
       parse_string_prefix, parse_value_string_with_indexed_key,
       finish_lithdr_notidx};
-  p->dynamic_table_update_allowed = 0;
   p->next_state = and_then;
   p->index = 0xf;
   p->parsing.value = &p->index;
@@ -851,7 +842,6 @@ static int parse_lithdr_notidx_v(grpc_chttp2_hpack_parser *p,
   static const grpc_chttp2_hpack_parser_state and_then[] = {
       parse_key_string, parse_string_prefix,
       parse_value_string_with_literal_key, finish_lithdr_notidx_v};
-  p->dynamic_table_update_allowed = 0;
   p->next_state = and_then;
   return parse_string_prefix(p, cur + 1, end);
 }
@@ -860,7 +850,6 @@ static int parse_lithdr_notidx_v(grpc_chttp2_hpack_parser *p,
 static int finish_lithdr_nvridx(grpc_chttp2_hpack_parser *p,
                                 const gpr_uint8 *cur, const gpr_uint8 *end) {
   grpc_mdelem *md = grpc_chttp2_hptbl_lookup(&p->table, p->index);
-  GPR_ASSERT(md != NULL); /* handled in string parsing */
   return on_hdr(p, grpc_mdelem_from_metadata_strings(GRPC_MDSTR_REF(md->key),
                                                      take_string(p, &p->value)),
                 0) &&
@@ -881,7 +870,6 @@ static int parse_lithdr_nvridx(grpc_chttp2_hpack_parser *p,
                                const gpr_uint8 *cur, const gpr_uint8 *end) {
   static const grpc_chttp2_hpack_parser_state and_then[] = {
       parse_value_string_with_indexed_key, finish_lithdr_nvridx};
-  p->dynamic_table_update_allowed = 0;
   p->next_state = and_then;
   p->index = (*cur) & 0xf;
   return parse_string_prefix(p, cur + 1, end);
@@ -893,7 +881,6 @@ static int parse_lithdr_nvridx_x(grpc_chttp2_hpack_parser *p,
   static const grpc_chttp2_hpack_parser_state and_then[] = {
       parse_string_prefix, parse_value_string_with_indexed_key,
       finish_lithdr_nvridx};
-  p->dynamic_table_update_allowed = 0;
   p->next_state = and_then;
   p->index = 0xf;
   p->parsing.value = &p->index;
@@ -906,7 +893,6 @@ static int parse_lithdr_nvridx_v(grpc_chttp2_hpack_parser *p,
   static const grpc_chttp2_hpack_parser_state and_then[] = {
       parse_key_string, parse_string_prefix,
       parse_value_string_with_literal_key, finish_lithdr_nvridx_v};
-  p->dynamic_table_update_allowed = 0;
   p->next_state = and_then;
   return parse_string_prefix(p, cur + 1, end);
 }
@@ -922,10 +908,6 @@ static int finish_max_tbl_size(grpc_chttp2_hpack_parser *p,
 /* parse a max table size change, max size < 15 */
 static int parse_max_tbl_size(grpc_chttp2_hpack_parser *p, const gpr_uint8 *cur,
                               const gpr_uint8 *end) {
-  if (p->dynamic_table_update_allowed == 0) {
-    return 0;
-  }
-  p->dynamic_table_update_allowed--;
   p->index = (*cur) & 0x1f;
   return finish_max_tbl_size(p, cur + 1, end);
 }
@@ -935,10 +917,6 @@ static int parse_max_tbl_size_x(grpc_chttp2_hpack_parser *p,
                                 const gpr_uint8 *cur, const gpr_uint8 *end) {
   static const grpc_chttp2_hpack_parser_state and_then[] = {
       finish_max_tbl_size};
-  if (p->dynamic_table_update_allowed == 0) {
-    return 0;
-  }
-  p->dynamic_table_update_allowed--;
   p->next_state = and_then;
   p->index = 0x1f;
   p->parsing.value = &p->index;
@@ -1066,7 +1044,7 @@ static int parse_value4(grpc_chttp2_hpack_parser *p, const gpr_uint8 *cur,
 error:
   gpr_log(GPR_ERROR,
           "integer overflow in hpack integer decoding: have 0x%08x, "
-          "got byte 0x%02x on byte 5",
+          "got byte 0x%02x",
           *p->parsing.value, *cur);
   return parse_error(p, cur, end);
 }
@@ -1091,8 +1069,7 @@ static int parse_value5up(grpc_chttp2_hpack_parser *p, const gpr_uint8 *cur,
 
   gpr_log(GPR_ERROR,
           "integer overflow in hpack integer decoding: have 0x%08x, "
-          "got byte 0x%02x sometime after byte 5",
-          *p->parsing.value, *cur);
+          "got byte 0x%02x sometime after byte 4");
   return parse_error(p, cur, end);
 }
 
@@ -1323,10 +1300,7 @@ static is_binary_header is_binary_literal_header(grpc_chttp2_hpack_parser *p) {
 
 static is_binary_header is_binary_indexed_header(grpc_chttp2_hpack_parser *p) {
   grpc_mdelem *elem = grpc_chttp2_hptbl_lookup(&p->table, p->index);
-  if (!elem) {
-    gpr_log(GPR_ERROR, "Invalid HPACK index received: %d", p->index);
-    return ERROR_HEADER;
-  }
+  if (!elem) return ERROR_HEADER;
   return grpc_is_binary_header(
              (const char *)GPR_SLICE_START_PTR(elem->key->slice),
              GPR_SLICE_LENGTH(elem->key->slice))
@@ -1364,7 +1338,15 @@ static int parse_value_string_with_literal_key(grpc_chttp2_hpack_parser *p,
 /* PUBLIC INTERFACE */
 
 static void on_header_not_set(void *user_data, grpc_mdelem *md) {
-  GPR_UNREACHABLE_CODE(return );
+  char *keyhex = gpr_dump_slice(md->key->slice, GPR_DUMP_HEX | GPR_DUMP_ASCII);
+  char *valuehex =
+      gpr_dump_slice(md->value->slice, GPR_DUMP_HEX | GPR_DUMP_ASCII);
+  gpr_log(GPR_ERROR, "on_header callback not set; key=%s value=%s", keyhex,
+          valuehex);
+  gpr_free(keyhex);
+  gpr_free(valuehex);
+  GRPC_MDELEM_UNREF(md);
+  abort();
 }
 
 void grpc_chttp2_hpack_parser_init(grpc_chttp2_hpack_parser *p) {
@@ -1377,7 +1359,6 @@ void grpc_chttp2_hpack_parser_init(grpc_chttp2_hpack_parser *p) {
   p->value.str = NULL;
   p->value.capacity = 0;
   p->value.length = 0;
-  p->dynamic_table_update_allowed = 2;
   grpc_chttp2_hptbl_init(&p->table);
 }
 
@@ -1419,25 +1400,20 @@ grpc_chttp2_parse_error grpc_chttp2_header_parser_parse(
       GPR_TIMER_END("grpc_chttp2_hpack_parser_parse", 0);
       return GRPC_CHTTP2_CONNECTION_ERROR;
     }
-    /* need to check for null stream: this can occur if we receive an invalid
-       stream id on a header */
-    if (stream_parsing != NULL) {
-      if (parser->is_boundary) {
-        stream_parsing
-            ->got_metadata_on_parse[stream_parsing->header_frames_received] = 1;
-        stream_parsing->header_frames_received++;
-        grpc_chttp2_list_add_parsing_seen_stream(transport_parsing,
-                                                 stream_parsing);
-      }
-      if (parser->is_eof) {
-        stream_parsing->received_close = 1;
-      }
+    if (parser->is_boundary) {
+      stream_parsing
+          ->got_metadata_on_parse[stream_parsing->header_frames_received] = 1;
+      stream_parsing->header_frames_received++;
+      grpc_chttp2_list_add_parsing_seen_stream(transport_parsing,
+                                               stream_parsing);
+    }
+    if (parser->is_eof) {
+      stream_parsing->received_close = 1;
     }
     parser->on_header = on_header_not_set;
     parser->on_header_user_data = NULL;
     parser->is_boundary = 0xde;
     parser->is_eof = 0xde;
-    parser->dynamic_table_update_allowed = 2;
   }
   GPR_TIMER_END("grpc_chttp2_hpack_parser_parse", 0);
   return GRPC_CHTTP2_PARSE_OK;

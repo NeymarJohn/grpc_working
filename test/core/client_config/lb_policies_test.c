@@ -42,9 +42,8 @@
 #include <grpc/support/string_util.h>
 
 #include "src/core/channel/channel_stack.h"
-#include "src/core/channel/client_channel.h"
-#include "src/core/client_config/lb_policy_registry.h"
 #include "src/core/surface/channel.h"
+#include "src/core/channel/client_channel.h"
 #include "src/core/support/string.h"
 #include "src/core/surface/server.h"
 #include "test/core/util/test_config.h"
@@ -136,9 +135,8 @@ static void kill_server(const servers_fixture *f, size_t i) {
   gpr_log(GPR_INFO, "KILLING SERVER %d", i);
   GPR_ASSERT(f->servers[i] != NULL);
   grpc_server_shutdown_and_notify(f->servers[i], f->cq, tag(10000));
-  GPR_ASSERT(
-      grpc_completion_queue_pluck(f->cq, tag(10000), n_millis_time(5000), NULL)
-          .type == GRPC_OP_COMPLETE);
+  GPR_ASSERT(grpc_completion_queue_pluck(f->cq, tag(10000), n_millis_time(5000),
+                                         NULL).type == GRPC_OP_COMPLETE);
   grpc_server_destroy(f->servers[i]);
   f->servers[i] = NULL;
 }
@@ -204,8 +202,8 @@ static void teardown_servers(servers_fixture *f) {
     if (f->servers[i] == NULL) continue;
     grpc_server_shutdown_and_notify(f->servers[i], f->cq, tag(10000));
     GPR_ASSERT(grpc_completion_queue_pluck(f->cq, tag(10000),
-                                           n_millis_time(5000), NULL)
-                   .type == GRPC_OP_COMPLETE);
+                                           n_millis_time(5000),
+                                           NULL).type == GRPC_OP_COMPLETE);
     grpc_server_destroy(f->servers[i]);
   }
   grpc_completion_queue_shutdown(f->cq);
@@ -305,8 +303,8 @@ int *perform_request(servers_fixture *f, grpc_channel *client,
 
     s_idx = -1;
     while ((ev = grpc_completion_queue_next(
-                f->cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1), NULL))
-               .type != GRPC_QUEUE_TIMEOUT) {
+                f->cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1), NULL)).type !=
+           GRPC_QUEUE_TIMEOUT) {
       GPR_ASSERT(ev.type == GRPC_OP_COMPLETE);
       read_tag = ((int)(gpr_intptr)ev.tag);
       gpr_log(GPR_DEBUG, "EVENT: success:%d, type:%d, tag:%d iter:%d",
@@ -716,9 +714,6 @@ int main(int argc, char **argv) {
 
   grpc_test_init(argc, argv);
   grpc_init();
-
-  GPR_ASSERT(grpc_lb_policy_create("this-lb-policy-does-not-exist", NULL) == NULL);
-  GPR_ASSERT(grpc_lb_policy_create(NULL, NULL) == NULL);
 
   /* everything is fine, all servers stay up the whole time and life's peachy */
   spec = test_spec_create(NUM_ITERS, NUM_SERVERS);

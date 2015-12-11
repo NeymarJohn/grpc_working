@@ -43,6 +43,7 @@
 #include <grpc/support/time.h>
 
 #include "src/core/channel/channel_stack.h"
+#include "src/core/channel/noop_filter.h"
 #include "src/core/statistics/census_interface.h"
 #include "src/core/statistics/census_rpc_stats.h"
 #include "src/core/transport/static_metadata.h"
@@ -59,7 +60,9 @@ typedef struct call_data {
   grpc_closure finish_recv;
 } call_data;
 
-typedef struct channel_data { gpr_uint8 unused; } channel_data;
+typedef struct channel_data {
+  gpr_uint8 unused;
+} channel_data;
 
 static void extract_and_annotate_method_tag(grpc_metadata_batch *md,
                                             call_data *calld,

@@ -70,7 +70,7 @@ typedef struct {
   int success;
 } completed_request;
 
-#define MAX_SEND_EXTRA_METADATA_COUNT 3
+#define MAX_SEND_EXTRA_METADATA_COUNT 4
 
 /* Status data for a request can come from several sources; this
    enumerates them all, and acts as a priority sorting for which
@@ -1270,7 +1270,6 @@ static grpc_call_error call_start_batch(grpc_exec_ctx *exec_ctx,
         }
         if (call->receiving_message) {
           error = GRPC_CALL_ERROR_TOO_MANY_OPERATIONS;
-          goto done_with_error;
         }
         call->receiving_message = 1;
         bctl->recv_message = 1;

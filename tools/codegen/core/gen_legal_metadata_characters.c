@@ -72,6 +72,7 @@ int main(void) {
 
   clear();
   for (i = 32; i <= 126; i++) {
+    if (i == ',') continue;
     legal(i);
   }
   dump();
