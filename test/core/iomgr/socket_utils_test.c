@@ -31,49 +31,32 @@
  *
  */
 
-'use strict';
+#include <grpc/support/port_platform.h>
+#include "src/core/iomgr/socket_utils_posix.h"
 
-var _ = require('lodash');
+#include <errno.h>
+#include <string.h>
 
-/**
- * This class represents a queue of callbacks that must happen sequentially, each
- * with a specific delay after the previous event.
- */
-function AsyncDelayQueue() {
-  this.queue = [];
+#include <grpc/support/log.h>
+#include "test/core/util/test_config.h"
 
-  this.callback_pending = false;
+int main(int argc, char **argv) {
+  int sock;
+  grpc_test_init(argc, argv);
+
+  sock = socket(PF_INET, SOCK_STREAM, 0);
+  GPR_ASSERT(sock > 0);
+
+  GPR_ASSERT(grpc_set_socket_nonblocking(sock, 1));
+  GPR_ASSERT(grpc_set_socket_nonblocking(sock, 0));
+  GPR_ASSERT(grpc_set_socket_cloexec(sock, 1));
+  GPR_ASSERT(grpc_set_socket_cloexec(sock, 0));
+  GPR_ASSERT(grpc_set_socket_reuse_addr(sock, 1));
+  GPR_ASSERT(grpc_set_socket_reuse_addr(sock, 0));
+  GPR_ASSERT(grpc_set_socket_low_latency(sock, 1));
+  GPR_ASSERT(grpc_set_socket_low_latency(sock, 0));
+
+  close(sock);
+
+  return 0;
 }
-
-/**
- * Run the next callback after its corresponding delay, if there are any
- * remaining.
- */
-AsyncDelayQueue.prototype.runNext = function() {
-  var next = this.queue.shift();
-  var continueCallback = _.bind(this.runNext, this);
-  if (next) {
-    this.callback_pending = true;
-    setTimeout(function() {
-      next.callback(continueCallback);
-    }, next.delay);
-  } else {
-    this.callback_pending = false;
-  }
-};
-
-/**
- * Add a callback to be called with a specific delay after now or after the
- * current last item in the queue or current pending callback, whichever is
- * latest.
- * @param {function(function())} callback The callback
- * @param {Number} The delay to apply, in milliseconds
- */
-AsyncDelayQueue.prototype.add = function(callback, delay) {
-  this.queue.push({callback: callback, delay: delay});
-  if (!this.callback_pending) {
-    this.runNext();
-  }
-};
-
-module.exports = AsyncDelayQueue;
