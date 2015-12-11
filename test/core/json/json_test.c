@@ -160,7 +160,7 @@ static void test_pairs() {
 }
 
 static void test_atypical() {
-  char *scratchpad = gpr_strdup("[[],[],[]]");
+  char *scratchpad = gpr_strdup("[[],[]]");
   grpc_json *json = grpc_json_parse_string(scratchpad);
   grpc_json *brother;
 
@@ -168,8 +168,7 @@ static void test_atypical() {
   GPR_ASSERT(json->child);
   brother = json->child->next;
   grpc_json_destroy(json->child);
-  GPR_ASSERT(json->child == brother);
-  grpc_json_destroy(json->child->next);
+  json->child = brother;
   grpc_json_destroy(json);
   gpr_free(scratchpad);
 }

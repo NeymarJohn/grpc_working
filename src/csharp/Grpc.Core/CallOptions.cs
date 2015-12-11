@@ -184,7 +184,6 @@ namespace Grpc.Core
                 {
                     Preconditions.CheckArgument(!newOptions.cancellationToken.CanBeCanceled,
                         "Cannot propagate cancellation token from parent call. The cancellation token has already been set to a non-default value.");
-                    newOptions.cancellationToken = propagationToken.ParentCancellationToken;
                 }
             }
                 
