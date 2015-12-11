@@ -31,15 +31,32 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
-#define GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
+#include <grpc/support/port_platform.h>
+#include "src/core/iomgr/socket_utils_posix.h"
 
-#include <grpc/census.h>
+#include <errno.h>
+#include <string.h>
 
-/* census_context is the in-memory representation of information needed to
- * maintain tracing, RPC statistics and resource usage information. */
-struct census_context {
-  census_tag_set *tags;  /* Opaque data structure for census tags. */
-};
+#include <grpc/support/log.h>
+#include "test/core/util/test_config.h"
 
-#endif /* GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H */
+int main(int argc, char **argv) {
+  int sock;
+  grpc_test_init(argc, argv);
+
+  sock = socket(PF_INET, SOCK_STREAM, 0);
+  GPR_ASSERT(sock > 0);
+
+  GPR_ASSERT(grpc_set_socket_nonblocking(sock, 1));
+  GPR_ASSERT(grpc_set_socket_nonblocking(sock, 0));
+  GPR_ASSERT(grpc_set_socket_cloexec(sock, 1));
+  GPR_ASSERT(grpc_set_socket_cloexec(sock, 0));
+  GPR_ASSERT(grpc_set_socket_reuse_addr(sock, 1));
+  GPR_ASSERT(grpc_set_socket_reuse_addr(sock, 0));
+  GPR_ASSERT(grpc_set_socket_low_latency(sock, 1));
+  GPR_ASSERT(grpc_set_socket_low_latency(sock, 0));
+
+  close(sock);
+
+  return 0;
+}
