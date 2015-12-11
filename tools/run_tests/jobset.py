@@ -317,13 +317,9 @@ class Jobset(object):
     self._hashes = {}
     self._add_env = add_env
     self.resultset = {}
-    self._remaining = None
-
-  def set_remaining(self, remaining):
-    self._remaining = remaining
-
+    
   def get_num_failures(self):
-    return self._failures
+    return self._failures  
 
   def start(self, spec):
     """Start a job. Return True on success, False on failure."""
@@ -376,9 +372,8 @@ class Jobset(object):
         self._running.remove(job)
       if dead: return
       if (not self._travis):
-        rstr = '' if self._remaining is None else '%d queued, ' % self._remaining
-        message('WAITING', '%s%d jobs running, %d complete, %d failed' % (
-            rstr, len(self._running), self._completed, self._failures))
+        message('WAITING', '%d jobs running, %d complete, %d failed' % (
+            len(self._running), self._completed, self._failures))
       if platform_string() == 'windows':
         time.sleep(0.1)
       else:
@@ -417,17 +412,6 @@ class NoCache(object):
     pass
 
 
-def tag_remaining(xs):
-  staging = []
-  for x in xs:
-    staging.append(x)
-    if len(staging) > 1000:
-      yield (staging.pop(0), None)
-  n = len(staging)
-  for i, x in enumerate(staging):
-    yield (x, n - i - 1)
-
-
 def run(cmdlines,
         check_cancelled=_never_cancelled,
         maxjobs=None,
@@ -441,11 +425,8 @@ def run(cmdlines,
               maxjobs if maxjobs is not None else _DEFAULT_MAX_JOBS,
               newline_on_success, travis, stop_on_failure, add_env,
               cache if cache is not None else NoCache())
-  for cmdline, remaining in tag_remaining(cmdlines):
+  for cmdline in cmdlines:
     if not js.start(cmdline):
       break
-    if remaining is not None:
-      js.set_remaining(remaining)
-  js.finish()
+  js.finish()  
   return js.get_num_failures(), js.resultset
-
