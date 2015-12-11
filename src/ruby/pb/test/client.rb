@@ -93,6 +93,13 @@ def load_test_certs
   files.map { |f| File.open(File.join(data_dir, f)).read }
 end
 
+# loads the certificates used to access the test server securely.
+def load_prod_cert
+  fail 'could not find a production cert' if ENV['SSL_CERT_FILE'].nil?
+  GRPC.logger.info("loading prod certs from #{ENV['SSL_CERT_FILE']}")
+  File.open(ENV['SSL_CERT_FILE']).read
+end
+
 # creates SSL Credentials from the test certificates.
 def test_creds
   certs = load_test_certs
@@ -101,7 +108,8 @@ end
 
 # creates SSL Credentials from the production certificates.
 def prod_creds
-  GRPC::Core::ChannelCredentials.new()
+  cert_text = load_prod_cert
+  GRPC::Core::ChannelCredentials.new(cert_text)
 end
 
 # creates the SSL Credentials.
