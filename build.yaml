@@ -307,6 +307,7 @@ filegroups:
   - src/core/surface/channel.c
   - src/core/surface/channel_connectivity.c
   - src/core/surface/channel_create.c
+  - src/core/surface/channel_ping.c
   - src/core/surface/completion_queue.c
   - src/core/surface/event_string.c
   - src/core/surface/init.c
@@ -1530,6 +1531,16 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
+- name: server_test
+  build: test
+  language: c
+  src:
+  - test/core/surface/server_test.c
+  deps:
+  - grpc_test_util
+  - grpc
+  - gpr_test_util
+  - gpr
 - name: set_initial_connect_string_test
   build: test
   language: c
@@ -1561,6 +1572,20 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
+- name: socket_utils_test
+  build: test
+  language: c
+  src:
+  - test/core/iomgr/socket_utils_test.c
+  deps:
+  - grpc_test_util
+  - grpc
+  - gpr_test_util
+  - gpr
+  platforms:
+  - mac
+  - linux
+  - posix
 - name: tcp_client_posix_test
   build: test
   language: c
