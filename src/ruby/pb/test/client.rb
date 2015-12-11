@@ -132,8 +132,7 @@ def create_stub(opts)
     if wants_creds.include?(opts.test_case)
       unless opts.oauth_scope.nil?
         auth_creds = Google::Auth.get_application_default(opts.oauth_scope)
-        call_creds = GRPC::Core::CallCredentials.new(auth_creds.updater_proc)
-        stub_opts[:creds] = stub_opts[:creds].compose call_creds
+        stub_opts[:update_metadata] = auth_creds.updater_proc
       end
     end
 
@@ -142,14 +141,12 @@ def create_stub(opts)
       kw = auth_creds.updater_proc.call({})  # gives as an auth token
 
       # use a metadata update proc that just adds the auth token.
-      call_creds = GRPC::Core::CallCredentials.new(proc { |md| md.merge(kw) })
-      stub_opts[:creds] = stub_opts[:creds].compose call_creds
+      stub_opts[:update_metadata] = proc { |md| md.merge(kw) }
     end
 
     if opts.test_case == 'jwt_token_creds'  # don't use a scope
       auth_creds = Google::Auth.get_application_default
-      call_creds = GRPC::Core::CallCredentials.new(auth_creds.updater_proc)
-      stub_opts[:creds] = stub_opts[:creds].compose call_creds
+      stub_opts[:update_metadata] = auth_creds.updater_proc
     end
 
     GRPC.logger.info("... connecting securely to #{address}")
@@ -163,7 +160,7 @@ end
 # produces a string of null chars (\0) of length l.
 def nulls(l)
   fail 'requires #{l} to be +ve' if l < 0
-  [].pack('x' * l).force_encoding('utf-8')
+  [].pack('x' * l).force_encoding('ascii-8bit')
 end
 
 # a PingPongPlayer implements the ping pong bidi test.
