@@ -1500,16 +1500,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-- name: secure_channel_create_test
-  build: test
-  language: c
-  src:
-  - test/core/surface/secure_channel_create_test.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
 - name: secure_endpoint_test
   build: test
   language: c
@@ -1537,16 +1527,6 @@ targets:
   - test/core/client_config/set_initial_connect_string_test.c
   deps:
   - test_tcp_server
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-- name: sockaddr_resolver_test
-  build: test
-  language: c
-  src:
-  - test/core/client_config/resolvers/sockaddr_resolver_test.c
-  deps:
   - grpc_test_util
   - grpc
   - gpr_test_util

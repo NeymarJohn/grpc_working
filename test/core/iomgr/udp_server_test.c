@@ -43,8 +43,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifdef GRPC_NEED_UDP
-
 #define LOG_TEST(x) gpr_log(GPR_INFO, "%s", #x)
 
 static grpc_pollset g_pollset;
@@ -197,9 +195,3 @@ int main(int argc, char **argv) {
   grpc_iomgr_shutdown();
   return 0;
 }
-
-#else
-
-int main(int argc, char **argv) { return 0; }
-
-#endif

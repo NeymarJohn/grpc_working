@@ -1071,24 +1071,6 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
-    "name": "secure_channel_create_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
     "name": "secure_endpoint_test", 
     "platforms": [
       "linux", 
@@ -1126,24 +1108,6 @@
     "flaky": false, 
     "language": "c", 
     "name": "set_initial_connect_string_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "sockaddr_resolver_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -16274,24 +16238,6 @@
     "name": "h2_uds+poll_trailing_metadata_nosec_test", 
     "platforms": [
       "linux"
-    ]
-  }, 
-  {
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "badreq_bad_client_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
     ]
   }, 
   {
