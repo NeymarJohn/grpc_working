@@ -31,36 +31,32 @@
  *
  */
 
-#ifndef GRPC_RB_CALL_H_
-#define GRPC_RB_CALL_H_
+#include <grpc/support/port_platform.h>
+#include "src/core/iomgr/socket_utils_posix.h"
 
-#include <ruby/ruby.h>
+#include <errno.h>
+#include <string.h>
 
-#include <grpc/grpc.h>
+#include <grpc/support/log.h>
+#include "test/core/util/test_config.h"
 
-/* Gets the wrapped call from a VALUE. */
-grpc_call* grpc_rb_get_wrapped_call(VALUE v);
+int main(int argc, char **argv) {
+  int sock;
+  grpc_test_init(argc, argv);
 
-/* Gets the VALUE corresponding to given grpc_call. */
-VALUE grpc_rb_wrap_call(grpc_call* c);
+  sock = socket(PF_INET, SOCK_STREAM, 0);
+  GPR_ASSERT(sock > 0);
 
-/* Provides the details of an call error */
-const char* grpc_call_error_detail_of(grpc_call_error err);
+  GPR_ASSERT(grpc_set_socket_nonblocking(sock, 1));
+  GPR_ASSERT(grpc_set_socket_nonblocking(sock, 0));
+  GPR_ASSERT(grpc_set_socket_cloexec(sock, 1));
+  GPR_ASSERT(grpc_set_socket_cloexec(sock, 0));
+  GPR_ASSERT(grpc_set_socket_reuse_addr(sock, 1));
+  GPR_ASSERT(grpc_set_socket_reuse_addr(sock, 0));
+  GPR_ASSERT(grpc_set_socket_low_latency(sock, 1));
+  GPR_ASSERT(grpc_set_socket_low_latency(sock, 0));
 
-/* Converts a metadata array to a hash. */
-VALUE grpc_rb_md_ary_to_h(grpc_metadata_array *md_ary);
+  close(sock);
 
-/* grpc_rb_md_ary_convert converts a ruby metadata hash into
-   a grpc_metadata_array.
-*/
-void grpc_rb_md_ary_convert(VALUE md_ary_hash,
-                            grpc_metadata_array *md_ary);
-
-/* grpc_rb_eCallError is the ruby class of the exception thrown during call
-   operations. */
-extern VALUE grpc_rb_eCallError;
-
-/* Initializes the Call class. */
-void Init_grpc_call();
-
-#endif /* GRPC_RB_CALL_H_ */
+  return 0;
+}

@@ -31,36 +31,38 @@
  *
  */
 
-#ifndef GRPC_RB_CALL_H_
-#define GRPC_RB_CALL_H_
-
-#include <ruby/ruby.h>
-
 #include <grpc/grpc.h>
+#include <grpc/support/log.h>
+#include "test/core/util/test_config.h"
 
-/* Gets the wrapped call from a VALUE. */
-grpc_call* grpc_rb_get_wrapped_call(VALUE v);
+void test_register_method_fail(void) {
+  grpc_server *server = grpc_server_create(NULL, NULL);
+  void *method;
+  void *method_old;
+  method = grpc_server_register_method(server, NULL, NULL);
+  GPR_ASSERT(method == NULL);
+  method_old = grpc_server_register_method(server, "m", "h");
+  GPR_ASSERT(method_old != NULL);
+  method = grpc_server_register_method(server, "m", "h");
+  GPR_ASSERT(method == NULL);
+  grpc_server_destroy(server);
+}
 
-/* Gets the VALUE corresponding to given grpc_call. */
-VALUE grpc_rb_wrap_call(grpc_call* c);
+void test_request_call_on_no_server_cq(void) {
+  grpc_completion_queue *cc = grpc_completion_queue_create(NULL);
+  GPR_ASSERT(GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE ==
+             grpc_server_request_call(NULL, NULL, NULL, NULL, cc, cc, NULL));
+  GPR_ASSERT(GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE ==
+             grpc_server_request_registered_call(NULL, NULL, NULL, NULL, NULL,
+                                                 NULL, cc, cc, NULL));
+  grpc_completion_queue_destroy(cc);
+}
 
-/* Provides the details of an call error */
-const char* grpc_call_error_detail_of(grpc_call_error err);
-
-/* Converts a metadata array to a hash. */
-VALUE grpc_rb_md_ary_to_h(grpc_metadata_array *md_ary);
-
-/* grpc_rb_md_ary_convert converts a ruby metadata hash into
-   a grpc_metadata_array.
-*/
-void grpc_rb_md_ary_convert(VALUE md_ary_hash,
-                            grpc_metadata_array *md_ary);
-
-/* grpc_rb_eCallError is the ruby class of the exception thrown during call
-   operations. */
-extern VALUE grpc_rb_eCallError;
-
-/* Initializes the Call class. */
-void Init_grpc_call();
-
-#endif /* GRPC_RB_CALL_H_ */
+int main(int argc, char **argv) {
+  grpc_test_init(argc, argv);
+  grpc_init();
+  test_register_method_fail();
+  test_request_call_on_no_server_cq();
+  grpc_shutdown();
+  return 0;
+}

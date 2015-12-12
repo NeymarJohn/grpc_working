@@ -31,45 +31,16 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef GRPC_RB_CALL_CREDENTIALS_H_
+#define GRPC_RB_CALL_CREDENTIALS_H_
 
-#include <grpc/support/alloc.h>
-#include <grpc/support/useful.h>
-#include <grpc/support/log.h>
-#include "test/core/util/test_config.h"
+#include <ruby/ruby.h>
 
-#include "src/core/json/json_reader.h"
-#include "src/core/json/json_writer.h"
+#include <grpc/grpc_security.h>
 
-static int g_string_clear_once = 0;
+/* Initializes the ruby CallCredentials class. */
+void Init_grpc_call_credentials();
 
-static void string_clear(void *userdata) {
-  GPR_ASSERT(!g_string_clear_once);
-  g_string_clear_once = 1;
-}
+grpc_call_credentials* grpc_rb_get_wrapped_call_credentials(VALUE v);
 
-static gpr_uint32 read_char(void *userdata) {
-  return GRPC_JSON_READ_CHAR_ERROR;
-}
-
-static grpc_json_reader_vtable reader_vtable = {
-  string_clear, NULL, NULL, read_char, NULL, NULL,
-  NULL, NULL, NULL, NULL, NULL, NULL
-};
-
-static void read_error() {
-  grpc_json_reader reader;
-  grpc_json_reader_status status;
-  grpc_json_reader_init(&reader, &reader_vtable, NULL);
-
-  status = grpc_json_reader_run(&reader);
-  GPR_ASSERT(status == GRPC_JSON_READ_ERROR);
-}
-
-int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
-  read_error();
-  gpr_log(GPR_INFO, "json_stream_error success");
-  return 0;
-}
+#endif /* GRPC_RB_CALL_CREDENTIALS_H_ */
