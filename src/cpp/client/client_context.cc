@@ -45,29 +45,17 @@
 
 namespace grpc {
 
-class DefaultGlobalCallbacks GRPC_FINAL : public ClientContext::GlobalCallbacks {
- public:
-  void DefaultConstructor(ClientContext* context) GRPC_OVERRIDE {}
-  void Destructor(ClientContext* context) GRPC_OVERRIDE {}
-};
-
-static DefaultGlobalCallbacks g_default_callbacks;
-static ClientContext::GlobalCallbacks* g_callbacks = &g_default_callbacks;
-
 ClientContext::ClientContext()
     : initial_metadata_received_(false),
       call_(nullptr),
       call_canceled_(false),
       deadline_(gpr_inf_future(GPR_CLOCK_REALTIME)),
-      propagate_from_call_(nullptr) {
-  g_callbacks->DefaultConstructor(this);
-}
+      propagate_from_call_(nullptr) {}
 
 ClientContext::~ClientContext() {
   if (call_) {
     grpc_call_destroy(call_);
   }
-  g_callbacks->Destructor(this);
 }
 
 std::unique_ptr<ClientContext> ClientContext::FromServerContext(
@@ -134,13 +122,6 @@ grpc::string ClientContext::peer() const {
     gpr_free(c_peer);
   }
   return peer;
-}
-
-void ClientContext::SetGlobalCallbacks(GlobalCallbacks* callbacks) {
-  GPR_ASSERT(g_callbacks == &g_default_callbacks);
-  GPR_ASSERT(callbacks != NULL);
-  GPR_ASSERT(callbacks != &g_default_callbacks);
-  g_callbacks = callbacks;
 }
 
 }  // namespace grpc
