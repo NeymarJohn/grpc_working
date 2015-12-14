@@ -31,27 +31,51 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_BAD_CLIENT_BAD_CLIENT_H
-#define GRPC_TEST_CORE_BAD_CLIENT_BAD_CLIENT_H
+#include <string.h>
 
 #include <grpc/grpc.h>
-#include "test/core/util/test_config.h"
+#include <grpc/grpc_security.h>
+#include <grpc/support/log.h>
+#include <grpc/support/useful.h>
 
-typedef void (*grpc_bad_client_server_side_validator)(
-    grpc_server *server, grpc_completion_queue *cq);
+#include "test/core/bad_ssl/server.h"
+#include "test/core/end2end/data/ssl_test_data.h"
 
-#define GRPC_BAD_CLIENT_DISCONNECT 1
+static const char *const fake_versions[] = {"not-h2"};
 
-/* Test runner.
+int grpc_chttp2_is_alpn_version_supported(const char *version, size_t size) {
+  size_t i;
+  for (i = 0; i < GPR_ARRAY_SIZE(fake_versions); i++) {
+    if (!strncmp(version, fake_versions[i], size)) return 1;
+  }
+  return 0;
+}
 
-   Create a server, and send client_payload to it as bytes from a client.
-   Execute validator in a separate thread to assert that the bytes are
-   handled as expected. */
-void grpc_run_bad_client_test(grpc_bad_client_server_side_validator validator,
-                              const char *client_payload,
-                              size_t client_payload_length, gpr_uint32 flags);
+size_t grpc_chttp2_num_alpn_versions(void) {
+  return GPR_ARRAY_SIZE(fake_versions);
+}
 
-#define GRPC_RUN_BAD_CLIENT_TEST(validator, payload, flags) \
-  grpc_run_bad_client_test(validator, payload, sizeof(payload) - 1, flags)
+const char *grpc_chttp2_get_alpn_version_index(size_t i) {
+  GPR_ASSERT(i < GPR_ARRAY_SIZE(fake_versions));
+  return fake_versions[i];
+}
 
-#endif /* GRPC_TEST_CORE_BAD_CLIENT_BAD_CLIENT_H */
+int main(int argc, char **argv) {
+  const char *addr = bad_ssl_addr(argc, argv);
+  grpc_ssl_pem_key_cert_pair pem_key_cert_pair = {test_server1_key,
+                                                  test_server1_cert};
+  grpc_server_credentials *ssl_creds;
+  grpc_server *server;
+
+  grpc_init();
+  ssl_creds =
+      grpc_ssl_server_credentials_create(NULL, &pem_key_cert_pair, 1, 0, NULL);
+  server = grpc_server_create(NULL, NULL);
+  GPR_ASSERT(grpc_server_add_secure_http2_port(server, addr, ssl_creds));
+  grpc_server_credentials_release(ssl_creds);
+
+  bad_ssl_run(server);
+  grpc_shutdown();
+
+  return 0;
+}

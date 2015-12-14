@@ -40,48 +40,58 @@ default_test_options = TestOptions(False)
 
 # maps test names to options
 BAD_CLIENT_TESTS = {
-    'badreq': default_test_options,
-    'connection_prefix': default_test_options,
-    'headers': default_test_options,
-    'initial_settings_frame': default_test_options,
-    'simple_request': default_test_options,
-    'unknown_frame': default_test_options,
+  'cert': default_test_options,
+  'alpn': default_test_options,
 }
 
 def main():
   json = {
-      '#': 'generated with test/bad_client/gen_build_json.py',
+      '#': 'generated with test/bad_ssl/gen_build_json.py',
       'libs': [
           {
-            'name': 'bad_client_test',
-            'build': 'private',
-            'language': 'c',
-            'src': [
-              'test/core/bad_client/bad_client.c'
-            ],
-            'headers': [
-              'test/core/bad_client/bad_client.h'
-            ],
-            'vs_proj_dir': 'test',
-            'deps': [
-              'grpc_test_util_unsecure',
-              'grpc_unsecure',
-              'gpr_test_util',
-              'gpr'
-            ]
-          }],
+              'name': 'bad_ssl_test_server',
+              'build': 'private',
+              'language': 'c',
+              'src': ['test/core/bad_ssl/server.c'],
+              'headers': ['test/core/bad_ssl/server.h'],
+              'vs_proj_dir': 'test',
+              'platforms': ['linux', 'posix', 'mac'],
+              'deps': [
+                  'grpc_test_util',
+                  'grpc',
+                  'gpr_test_util',
+                  'gpr'
+              ]
+          }
+      ],
       'targets': [
           {
-              'name': '%s_bad_client_test' % t,
+              'name': 'bad_ssl_%s_server' % t,
               'build': 'test',
               'language': 'c',
-              'secure': 'no',
-              'src': ['test/core/bad_client/tests/%s.c' % t],
+              'run': False,
+              'src': ['test/core/bad_ssl/servers/%s.c' % t],
               'vs_proj_dir': 'test',
+              'platforms': ['linux', 'posix', 'mac'],
               'deps': [
-                  'bad_client_test',
-                  'grpc_test_util_unsecure',
-                  'grpc_unsecure',
+                  'bad_ssl_test_server',
+                  'grpc_test_util',
+                  'grpc',
+                  'gpr_test_util',
+                  'gpr'
+              ]
+          }
+      for t in sorted(BAD_CLIENT_TESTS.keys())] + [
+          {
+              'name': 'bad_ssl_%s_test' % t,
+              'build': 'test',
+              'language': 'c',
+              'src': ['test/core/bad_ssl/bad_ssl_test.c'],
+              'vs_proj_dir': 'test',
+              'platforms': ['linux', 'posix', 'mac'],
+              'deps': [
+                  'grpc_test_util',
+                  'grpc',
                   'gpr_test_util',
                   'gpr'
               ]
