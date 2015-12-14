@@ -31,26 +31,12 @@
  *
  */
 
-#include "src/core/transport/chttp2/alpn.h"
-#include <grpc/support/log.h>
-#include <grpc/support/useful.h>
+#ifndef GRPC_TEST_CORE_BAD_SSL_SERVER_H
+#define GRPC_TEST_CORE_BAD_SSL_SERVER_H
 
-/* in order of preference */
-static const char *const supported_versions[] = {"not-h2"};
+#include <grpc/grpc.h>
 
-int grpc_chttp2_is_alpn_version_supported(const char *version, size_t size) {
-  size_t i;
-  for (i = 0; i < GPR_ARRAY_SIZE(supported_versions); i++) {
-    if (!strncmp(version, supported_versions[i], size)) return 1;
-  }
-  return 0;
-}
+const char *bad_ssl_addr(int argc, char **argv);
+void bad_ssl_run(grpc_server *server);
 
-size_t grpc_chttp2_num_alpn_versions(void) {
-  return GPR_ARRAY_SIZE(supported_versions);
-}
-
-const char *grpc_chttp2_get_alpn_version_index(size_t i) {
-  GPR_ASSERT(i < GPR_ARRAY_SIZE(supported_versions));
-  return supported_versions[i];
-}
+#endif /* GRPC_TEST_CORE_BAD_SSL_SERVER_H */

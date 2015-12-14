@@ -31,26 +31,49 @@
  *
  */
 
-#include "src/core/transport/chttp2/alpn.h"
+#include <string.h>
+
+#include <grpc/grpc.h>
+#include <grpc/grpc_security.h>
 #include <grpc/support/log.h>
 #include <grpc/support/useful.h>
 
-/* in order of preference */
-static const char *const supported_versions[] = {"not-h2"};
+#include "src/core/support/file.h"
 
-int grpc_chttp2_is_alpn_version_supported(const char *version, size_t size) {
-  size_t i;
-  for (i = 0; i < GPR_ARRAY_SIZE(supported_versions); i++) {
-    if (!strncmp(version, supported_versions[i], size)) return 1;
-  }
+#include "test/core/bad_ssl/server.h"
+#include "test/core/end2end/data/ssl_test_data.h"
+
+/* This server will present an untrusted cert to the connecting client,
+ * causing the SSL handshake to fail */
+
+int main(int argc, char **argv) {
+  const char *addr = bad_ssl_addr(argc, argv);
+  grpc_ssl_pem_key_cert_pair pem_key_cert_pair;
+  grpc_server_credentials *ssl_creds;
+  grpc_server *server;
+  gpr_slice cert_slice, key_slice;
+  int ok;
+
+  grpc_init();
+
+  cert_slice = gpr_load_file("src/core/tsi/test_creds/badserver.pem", 1, &ok);
+  GPR_ASSERT(ok);
+  key_slice = gpr_load_file("src/core/tsi/test_creds/badserver.key", 1, &ok);
+  GPR_ASSERT(ok);
+  pem_key_cert_pair.private_key = (const char *)GPR_SLICE_START_PTR(key_slice);
+  pem_key_cert_pair.cert_chain = (const char *)GPR_SLICE_START_PTR(cert_slice);
+
+  ssl_creds =
+      grpc_ssl_server_credentials_create(NULL, &pem_key_cert_pair, 1, 0, NULL);
+  server = grpc_server_create(NULL, NULL);
+  GPR_ASSERT(grpc_server_add_secure_http2_port(server, addr, ssl_creds));
+  grpc_server_credentials_release(ssl_creds);
+
+  gpr_slice_unref(cert_slice);
+  gpr_slice_unref(key_slice);
+
+  bad_ssl_run(server);
+  grpc_shutdown();
+
   return 0;
-}
-
-size_t grpc_chttp2_num_alpn_versions(void) {
-  return GPR_ARRAY_SIZE(supported_versions);
-}
-
-const char *grpc_chttp2_get_alpn_version_index(size_t i) {
-  GPR_ASSERT(i < GPR_ARRAY_SIZE(supported_versions));
-  return supported_versions[i];
 }
