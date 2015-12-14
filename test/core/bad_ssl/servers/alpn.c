@@ -31,49 +31,56 @@
  *
  */
 
-#include "src/core/surface/channel.h"
-
 #include <string.h>
 
-#include <grpc/support/alloc.h>
+#include <grpc/grpc.h>
+#include <grpc/grpc_security.h>
 #include <grpc/support/log.h>
+#include <grpc/support/useful.h>
 
-#include "src/core/surface/api_trace.h"
-#include "src/core/surface/completion_queue.h"
+#include "src/core/transport/chttp2/alpn.h"
+#include "test/core/bad_ssl/server.h"
+#include "test/core/end2end/data/ssl_test_data.h"
 
-typedef struct {
-  grpc_closure closure;
-  void *tag;
-  grpc_completion_queue *cq;
-  grpc_cq_completion completion_storage;
-} ping_result;
+/* This test starts a server that is configured to advertise (via alpn and npn)
+ * a protocol that the connecting client does not support. It does this by
+ * overriding the functions declared in alpn.c from the core library. */
 
-static void ping_destroy(grpc_exec_ctx *exec_ctx, void *arg,
-                         grpc_cq_completion *storage) {
-  gpr_free(arg);
+static const char *const fake_versions[] = {"not-h2"};
+
+int grpc_chttp2_is_alpn_version_supported(const char *version, size_t size) {
+  size_t i;
+  for (i = 0; i < GPR_ARRAY_SIZE(fake_versions); i++) {
+    if (!strncmp(version, fake_versions[i], size)) return 1;
+  }
+  return 0;
 }
 
-static void ping_done(grpc_exec_ctx *exec_ctx, void *arg, int success) {
-  ping_result *pr = arg;
-  grpc_cq_end_op(exec_ctx, pr->cq, pr->tag, success, ping_destroy, pr,
-                 &pr->completion_storage);
+size_t grpc_chttp2_num_alpn_versions(void) {
+  return GPR_ARRAY_SIZE(fake_versions);
 }
 
-void grpc_channel_ping(grpc_channel *channel, grpc_completion_queue *cq,
-                       void *tag, void *reserved) {
-  grpc_transport_op op;
-  ping_result *pr = gpr_malloc(sizeof(*pr));
-  grpc_channel_element *top_elem =
-      grpc_channel_stack_element(grpc_channel_get_channel_stack(channel), 0);
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-  GPR_ASSERT(reserved == NULL);
-  memset(&op, 0, sizeof(op));
-  pr->tag = tag;
-  pr->cq = cq;
-  grpc_closure_init(&pr->closure, ping_done, pr);
-  op.send_ping = &pr->closure;
-  op.bind_pollset = grpc_cq_pollset(cq);
-  grpc_cq_begin_op(cq);
-  top_elem->filter->start_transport_op(&exec_ctx, top_elem, &op);
-  grpc_exec_ctx_finish(&exec_ctx);
+const char *grpc_chttp2_get_alpn_version_index(size_t i) {
+  GPR_ASSERT(i < GPR_ARRAY_SIZE(fake_versions));
+  return fake_versions[i];
+}
+
+int main(int argc, char **argv) {
+  const char *addr = bad_ssl_addr(argc, argv);
+  grpc_ssl_pem_key_cert_pair pem_key_cert_pair = {test_server1_key,
+                                                  test_server1_cert};
+  grpc_server_credentials *ssl_creds;
+  grpc_server *server;
+
+  grpc_init();
+  ssl_creds =
+      grpc_ssl_server_credentials_create(NULL, &pem_key_cert_pair, 1, 0, NULL);
+  server = grpc_server_create(NULL, NULL);
+  GPR_ASSERT(grpc_server_add_secure_http2_port(server, addr, ssl_creds));
+  grpc_server_credentials_release(ssl_creds);
+
+  bad_ssl_run(server);
+  grpc_shutdown();
+
+  return 0;
 }

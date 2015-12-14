@@ -31,49 +31,12 @@
  *
  */
 
-#include "src/core/surface/channel.h"
+#ifndef GRPC_TEST_CORE_BAD_SSL_SERVER_H
+#define GRPC_TEST_CORE_BAD_SSL_SERVER_H
 
-#include <string.h>
+#include <grpc/grpc.h>
 
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
+const char *bad_ssl_addr(int argc, char **argv);
+void bad_ssl_run(grpc_server *server);
 
-#include "src/core/surface/api_trace.h"
-#include "src/core/surface/completion_queue.h"
-
-typedef struct {
-  grpc_closure closure;
-  void *tag;
-  grpc_completion_queue *cq;
-  grpc_cq_completion completion_storage;
-} ping_result;
-
-static void ping_destroy(grpc_exec_ctx *exec_ctx, void *arg,
-                         grpc_cq_completion *storage) {
-  gpr_free(arg);
-}
-
-static void ping_done(grpc_exec_ctx *exec_ctx, void *arg, int success) {
-  ping_result *pr = arg;
-  grpc_cq_end_op(exec_ctx, pr->cq, pr->tag, success, ping_destroy, pr,
-                 &pr->completion_storage);
-}
-
-void grpc_channel_ping(grpc_channel *channel, grpc_completion_queue *cq,
-                       void *tag, void *reserved) {
-  grpc_transport_op op;
-  ping_result *pr = gpr_malloc(sizeof(*pr));
-  grpc_channel_element *top_elem =
-      grpc_channel_stack_element(grpc_channel_get_channel_stack(channel), 0);
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-  GPR_ASSERT(reserved == NULL);
-  memset(&op, 0, sizeof(op));
-  pr->tag = tag;
-  pr->cq = cq;
-  grpc_closure_init(&pr->closure, ping_done, pr);
-  op.send_ping = &pr->closure;
-  op.bind_pollset = grpc_cq_pollset(cq);
-  grpc_cq_begin_op(cq);
-  top_elem->filter->start_transport_op(&exec_ctx, top_elem, &op);
-  grpc_exec_ctx_finish(&exec_ctx);
-}
+#endif /* GRPC_TEST_CORE_BAD_SSL_SERVER_H */

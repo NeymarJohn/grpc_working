@@ -31,49 +31,49 @@
  *
  */
 
-#include "src/core/surface/channel.h"
-
 #include <string.h>
 
-#include <grpc/support/alloc.h>
+#include <grpc/grpc.h>
+#include <grpc/grpc_security.h>
 #include <grpc/support/log.h>
+#include <grpc/support/useful.h>
 
-#include "src/core/surface/api_trace.h"
-#include "src/core/surface/completion_queue.h"
+#include "src/core/support/file.h"
 
-typedef struct {
-  grpc_closure closure;
-  void *tag;
-  grpc_completion_queue *cq;
-  grpc_cq_completion completion_storage;
-} ping_result;
+#include "test/core/bad_ssl/server.h"
+#include "test/core/end2end/data/ssl_test_data.h"
 
-static void ping_destroy(grpc_exec_ctx *exec_ctx, void *arg,
-                         grpc_cq_completion *storage) {
-  gpr_free(arg);
-}
+/* This server will present an untrusted cert to the connecting client,
+ * causing the SSL handshake to fail */
 
-static void ping_done(grpc_exec_ctx *exec_ctx, void *arg, int success) {
-  ping_result *pr = arg;
-  grpc_cq_end_op(exec_ctx, pr->cq, pr->tag, success, ping_destroy, pr,
-                 &pr->completion_storage);
-}
+int main(int argc, char **argv) {
+  const char *addr = bad_ssl_addr(argc, argv);
+  grpc_ssl_pem_key_cert_pair pem_key_cert_pair;
+  grpc_server_credentials *ssl_creds;
+  grpc_server *server;
+  gpr_slice cert_slice, key_slice;
+  int ok;
 
-void grpc_channel_ping(grpc_channel *channel, grpc_completion_queue *cq,
-                       void *tag, void *reserved) {
-  grpc_transport_op op;
-  ping_result *pr = gpr_malloc(sizeof(*pr));
-  grpc_channel_element *top_elem =
-      grpc_channel_stack_element(grpc_channel_get_channel_stack(channel), 0);
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-  GPR_ASSERT(reserved == NULL);
-  memset(&op, 0, sizeof(op));
-  pr->tag = tag;
-  pr->cq = cq;
-  grpc_closure_init(&pr->closure, ping_done, pr);
-  op.send_ping = &pr->closure;
-  op.bind_pollset = grpc_cq_pollset(cq);
-  grpc_cq_begin_op(cq);
-  top_elem->filter->start_transport_op(&exec_ctx, top_elem, &op);
-  grpc_exec_ctx_finish(&exec_ctx);
+  grpc_init();
+
+  cert_slice = gpr_load_file("src/core/tsi/test_creds/badserver.pem", 1, &ok);
+  GPR_ASSERT(ok);
+  key_slice = gpr_load_file("src/core/tsi/test_creds/badserver.key", 1, &ok);
+  GPR_ASSERT(ok);
+  pem_key_cert_pair.private_key = (const char *)GPR_SLICE_START_PTR(key_slice);
+  pem_key_cert_pair.cert_chain = (const char *)GPR_SLICE_START_PTR(cert_slice);
+
+  ssl_creds =
+      grpc_ssl_server_credentials_create(NULL, &pem_key_cert_pair, 1, 0, NULL);
+  server = grpc_server_create(NULL, NULL);
+  GPR_ASSERT(grpc_server_add_secure_http2_port(server, addr, ssl_creds));
+  grpc_server_credentials_release(ssl_creds);
+
+  gpr_slice_unref(cert_slice);
+  gpr_slice_unref(key_slice);
+
+  bad_ssl_run(server);
+  grpc_shutdown();
+
+  return 0;
 }

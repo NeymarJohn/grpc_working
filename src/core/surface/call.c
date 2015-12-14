@@ -1119,7 +1119,7 @@ static grpc_call_error call_start_batch(grpc_exec_ctx *exec_ctx,
     GRPC_CALL_INTERNAL_REF(call, "completion");
     bctl->success = 1;
     if (!is_notify_tag_closure) {
-      grpc_cq_begin_op(call->cq, notify_tag);
+      grpc_cq_begin_op(call->cq);
     }
     gpr_mu_unlock(&call->mu);
     post_batch_completion(exec_ctx, bctl);
@@ -1333,7 +1333,7 @@ static grpc_call_error call_start_batch(grpc_exec_ctx *exec_ctx,
 
   GRPC_CALL_INTERNAL_REF(call, "completion");
   if (!is_notify_tag_closure) {
-    grpc_cq_begin_op(call->cq, notify_tag);
+    grpc_cq_begin_op(call->cq);
   }
   gpr_ref_init(&bctl->steps_to_complete, num_completion_callbacks_needed);
 
