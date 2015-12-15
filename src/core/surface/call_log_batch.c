@@ -116,3 +116,4 @@ void grpc_call_log_batch(char *file, int line, gpr_log_severity severity,
     gpr_free(tmp);
   }
 }
+
