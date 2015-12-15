@@ -34,8 +34,6 @@ set -ex
 # Enter the gRPC repo root
 cd $(dirname $0)/../..
 
-tools/profiling/latency_profile/run_latency_profile.sh
-
 config=opt
 
 make CONFIG=$config qps_worker qps_driver -j8
