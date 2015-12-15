@@ -41,16 +41,17 @@
 /* length of a value that needs varint tail encoding (it's bigger than can be
    bitpacked into the opcode byte) - returned value includes the length of the
    opcode byte */
-uint32_t grpc_chttp2_hpack_varint_length(uint32_t tail_value);
+gpr_uint32 grpc_chttp2_hpack_varint_length(gpr_uint32 tail_value);
 
-void grpc_chttp2_hpack_write_varint_tail(uint32_t tail_value, uint8_t* target,
-                                         uint32_t tail_length);
+void grpc_chttp2_hpack_write_varint_tail(gpr_uint32 tail_value,
+                                         gpr_uint8* target,
+                                         gpr_uint32 tail_length);
 
 /* maximum value that can be bitpacked with the opcode if the opcode has a
    prefix
    of length prefix_bits */
 #define GRPC_CHTTP2_MAX_IN_PREFIX(prefix_bits) \
-  ((uint32_t)((1 << (8 - (prefix_bits))) - 1))
+  ((gpr_uint32)((1 << (8 - (prefix_bits))) - 1))
 
 /* length required to bitpack a value */
 #define GRPC_CHTTP2_VARINT_LENGTH(n, prefix_bits) \
@@ -61,12 +62,12 @@ void grpc_chttp2_hpack_write_varint_tail(uint32_t tail_value, uint8_t* target,
 
 #define GRPC_CHTTP2_WRITE_VARINT(n, prefix_bits, prefix_or, target, length)   \
   do {                                                                        \
-    uint8_t* tgt = target;                                                    \
+    gpr_uint8* tgt = target;                                                  \
     if ((length) == 1u) {                                                     \
-      (tgt)[0] = (uint8_t)((prefix_or) | (n));                                \
+      (tgt)[0] = (gpr_uint8)((prefix_or) | (n));                              \
     } else {                                                                  \
       (tgt)[0] =                                                              \
-          (prefix_or) | (uint8_t)GRPC_CHTTP2_MAX_IN_PREFIX(prefix_bits);      \
+          (prefix_or) | (gpr_uint8)GRPC_CHTTP2_MAX_IN_PREFIX(prefix_bits);    \
       grpc_chttp2_hpack_write_varint_tail(                                    \
           (n)-GRPC_CHTTP2_MAX_IN_PREFIX(prefix_bits), (tgt) + 1, (length)-1); \
     }                                                                         \

@@ -42,8 +42,8 @@
 /* Structure of a census op id. Define as structure because 64bit integer is not
    available on every platform for C89. */
 typedef struct census_op_id {
-  uint32_t upper;
-  uint32_t lower;
+  gpr_uint32 upper;
+  gpr_uint32 lower;
 } census_op_id;
 
 typedef struct census_rpc_stats census_rpc_stats;
