@@ -31,29 +31,56 @@
  *
  */
 
-#include "test/core/bad_client/bad_client.h"
-#include "src/core/surface/server.h"
+#include <string.h>
 
-#define PFX_STR                      \
-  "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n" \
-  "\x00\x00\x00\x04\x00\x00\x00\x00\x00"
+#include <grpc/grpc.h>
+#include <grpc/grpc_security.h>
+#include <grpc/support/log.h>
+#include <grpc/support/useful.h>
 
-static void verifier(grpc_server *server, grpc_completion_queue *cq,
-                     void *registered_method) {
-  while (grpc_server_has_open_connections(server)) {
-    GPR_ASSERT(grpc_completion_queue_next(cq,
-                                          GRPC_TIMEOUT_MILLIS_TO_DEADLINE(20),
-                                          NULL).type == GRPC_QUEUE_TIMEOUT);
+#include "src/core/transport/chttp2/alpn.h"
+#include "test/core/bad_ssl/server.h"
+#include "test/core/end2end/data/ssl_test_data.h"
+
+/* This test starts a server that is configured to advertise (via alpn and npn)
+ * a protocol that the connecting client does not support. It does this by
+ * overriding the functions declared in alpn.c from the core library. */
+
+static const char *const fake_versions[] = {"not-h2"};
+
+int grpc_chttp2_is_alpn_version_supported(const char *version, size_t size) {
+  size_t i;
+  for (i = 0; i < GPR_ARRAY_SIZE(fake_versions); i++) {
+    if (!strncmp(version, fake_versions[i], size)) return 1;
   }
+  return 0;
+}
+
+size_t grpc_chttp2_num_alpn_versions(void) {
+  return GPR_ARRAY_SIZE(fake_versions);
+}
+
+const char *grpc_chttp2_get_alpn_version_index(size_t i) {
+  GPR_ASSERT(i < GPR_ARRAY_SIZE(fake_versions));
+  return fake_versions[i];
 }
 
 int main(int argc, char **argv) {
-  grpc_test_init(argc, argv);
+  const char *addr = bad_ssl_addr(argc, argv);
+  grpc_ssl_pem_key_cert_pair pem_key_cert_pair = {test_server1_key,
+                                                  test_server1_cert};
+  grpc_server_credentials *ssl_creds;
+  grpc_server *server;
 
-  /* test adding prioritization data */
-  GRPC_RUN_BAD_CLIENT_TEST(verifier,
-                           PFX_STR "\x00\x00\x00\x88\x00\x00\x00\x00\x01",
-                           GRPC_BAD_CLIENT_DISCONNECT);
+  grpc_init();
+  ssl_creds =
+      grpc_ssl_server_credentials_create(NULL, &pem_key_cert_pair, 1, 0, NULL);
+  server = grpc_server_create(NULL, NULL);
+  GPR_ASSERT(grpc_server_add_secure_http2_port(server, addr, ssl_creds));
+  grpc_server_credentials_release(ssl_creds);
+
+  bad_ssl_run(server);
+  grpc_shutdown();
 
   return 0;
 }

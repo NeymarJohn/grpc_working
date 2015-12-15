@@ -31,31 +31,49 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_BAD_CLIENT_BAD_CLIENT_H
-#define GRPC_TEST_CORE_BAD_CLIENT_BAD_CLIENT_H
+#include <string.h>
 
 #include <grpc/grpc.h>
-#include "test/core/util/test_config.h"
+#include <grpc/grpc_security.h>
+#include <grpc/support/log.h>
+#include <grpc/support/useful.h>
 
-#define GRPC_BAD_CLIENT_REGISTERED_METHOD "/registered/bar"
-#define GRPC_BAD_CLIENT_REGISTERED_HOST "localhost"
+#include "src/core/support/file.h"
 
-typedef void (*grpc_bad_client_server_side_validator)(grpc_server *server,
-                                                      grpc_completion_queue *cq,
-                                                      void *registered_method);
+#include "test/core/bad_ssl/server.h"
+#include "test/core/end2end/data/ssl_test_data.h"
 
-#define GRPC_BAD_CLIENT_DISCONNECT 1
+/* This server will present an untrusted cert to the connecting client,
+ * causing the SSL handshake to fail */
 
-/* Test runner.
+int main(int argc, char **argv) {
+  const char *addr = bad_ssl_addr(argc, argv);
+  grpc_ssl_pem_key_cert_pair pem_key_cert_pair;
+  grpc_server_credentials *ssl_creds;
+  grpc_server *server;
+  gpr_slice cert_slice, key_slice;
+  int ok;
 
-   Create a server, and send client_payload to it as bytes from a client.
-   Execute validator in a separate thread to assert that the bytes are
-   handled as expected. */
-void grpc_run_bad_client_test(grpc_bad_client_server_side_validator validator,
-                              const char *client_payload,
-                              size_t client_payload_length, gpr_uint32 flags);
+  grpc_init();
 
-#define GRPC_RUN_BAD_CLIENT_TEST(validator, payload, flags) \
-  grpc_run_bad_client_test(validator, payload, sizeof(payload) - 1, flags)
+  cert_slice = gpr_load_file("src/core/tsi/test_creds/badserver.pem", 1, &ok);
+  GPR_ASSERT(ok);
+  key_slice = gpr_load_file("src/core/tsi/test_creds/badserver.key", 1, &ok);
+  GPR_ASSERT(ok);
+  pem_key_cert_pair.private_key = (const char *)GPR_SLICE_START_PTR(key_slice);
+  pem_key_cert_pair.cert_chain = (const char *)GPR_SLICE_START_PTR(cert_slice);
 
-#endif /* GRPC_TEST_CORE_BAD_CLIENT_BAD_CLIENT_H */
+  ssl_creds =
+      grpc_ssl_server_credentials_create(NULL, &pem_key_cert_pair, 1, 0, NULL);
+  server = grpc_server_create(NULL, NULL);
+  GPR_ASSERT(grpc_server_add_secure_http2_port(server, addr, ssl_creds));
+  grpc_server_credentials_release(ssl_creds);
+
+  gpr_slice_unref(cert_slice);
+  gpr_slice_unref(key_slice);
+
+  bad_ssl_run(server);
+  grpc_shutdown();
+
+  return 0;
+}
