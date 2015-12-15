@@ -1123,6 +1123,12 @@ void grpc_chttp2_mark_stream_closed(
   }
   if (close_writes && !stream_global->write_closed) {
     stream_global->write_closed = 1;
+    grpc_chttp2_complete_closure_step(
+        exec_ctx, &stream_global->send_initial_metadata_finished, 0);
+    grpc_chttp2_complete_closure_step(
+        exec_ctx, &stream_global->send_trailing_metadata_finished, 0);
+    grpc_chttp2_complete_closure_step(exec_ctx,
+                                      &stream_global->send_message_finished, 0);
   }
   if (stream_global->read_closed && stream_global->write_closed) {
     if (stream_global->id != 0 &&
