@@ -127,8 +127,6 @@ static void crash_handler(int signum, siginfo_t *info, void *data) {
     backtrace_symbols_fd(addrlist, addrlen, STDERR_FILENO);
   }
 
-  /* try to get a core dump for SIGTERM */
-  if (signum == SIGTERM) signum = SIGQUIT;
   raise(signum);
 }
 
@@ -147,8 +145,6 @@ static void install_crash_handler() {
   GPR_ASSERT(sigaction(SIGABRT, &sa, NULL) == 0);
   GPR_ASSERT(sigaction(SIGBUS, &sa, NULL) == 0);
   GPR_ASSERT(sigaction(SIGSEGV, &sa, NULL) == 0);
-  GPR_ASSERT(sigaction(SIGTERM, &sa, NULL) == 0);
-  GPR_ASSERT(sigaction(SIGQUIT, &sa, NULL) == 0);
 }
 #else
 static void install_crash_handler() {}

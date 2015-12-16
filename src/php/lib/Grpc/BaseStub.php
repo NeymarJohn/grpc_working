@@ -159,6 +159,25 @@ class BaseStub
     }
 
     /**
+     * extract $timeout from $metadata.
+     *
+     * @param $metadata The metadata map
+     *
+     * @return list($metadata_copy, $timeout)
+     */
+    private function _extract_timeout_from_metadata($metadata)
+    {
+        $timeout = false;
+        $metadata_copy = $metadata;
+        if (isset($metadata['timeout'])) {
+            $timeout = $metadata['timeout'];
+            unset($metadata_copy['timeout']);
+        }
+
+        return [$metadata_copy, $timeout];
+    }
+
+    /**
      * validate and normalize the metadata array.
      *
      * @param $metadata The metadata map
@@ -197,23 +216,25 @@ class BaseStub
      */
     public function _simpleRequest($method,
                                    $argument,
-                                   $deserialize,
+                                   callable $deserialize,
                                    $metadata = [],
                                    $options = [])
     {
+        list($actual_metadata, $timeout) =
+            $this->_extract_timeout_from_metadata($metadata);
         $call = new UnaryCall($this->channel,
                               $method,
                               $deserialize,
-                              $options);
+                              $timeout);
         $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
         if (is_callable($this->update_metadata)) {
-            $metadata = call_user_func($this->update_metadata,
-                                        $metadata,
+            $actual_metadata = call_user_func($this->update_metadata,
+                                        $actual_metadata,
                                         $jwt_aud_uri);
         }
-        $metadata = $this->_validate_and_normalize_metadata(
-            $metadata);
-        $call->start($argument, $metadata, $options);
+        $actual_metadata = $this->_validate_and_normalize_metadata(
+            $actual_metadata);
+        $call->start($argument, $actual_metadata, $options);
 
         return $call;
     }
@@ -232,22 +253,23 @@ class BaseStub
      */
     public function _clientStreamRequest($method,
                                          callable $deserialize,
-                                         $metadata = [],
-                                         $options = [])
+                                         $metadata = [])
     {
+        list($actual_metadata, $timeout) =
+            $this->_extract_timeout_from_metadata($metadata);
         $call = new ClientStreamingCall($this->channel,
                                         $method,
                                         $deserialize,
-                                        $options);
+                                        $timeout);
         $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
         if (is_callable($this->update_metadata)) {
-            $metadata = call_user_func($this->update_metadata,
-                                        $metadata,
+            $actual_metadata = call_user_func($this->update_metadata,
+                                        $actual_metadata,
                                         $jwt_aud_uri);
         }
-        $metadata = $this->_validate_and_normalize_metadata(
-            $metadata);
-        $call->start($metadata);
+        $actual_metadata = $this->_validate_and_normalize_metadata(
+            $actual_metadata);
+        $call->start($actual_metadata);
 
         return $call;
     }
@@ -269,19 +291,21 @@ class BaseStub
                                          $metadata = [],
                                          $options = [])
     {
+        list($actual_metadata, $timeout) =
+            $this->_extract_timeout_from_metadata($metadata);
         $call = new ServerStreamingCall($this->channel,
                                         $method,
                                         $deserialize,
-                                        $options);
+                                        $timeout);
         $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
         if (is_callable($this->update_metadata)) {
-            $metadata = call_user_func($this->update_metadata,
-                                        $metadata,
+            $actual_metadata = call_user_func($this->update_metadata,
+                                        $actual_metadata,
                                         $jwt_aud_uri);
         }
-        $metadata = $this->_validate_and_normalize_metadata(
-            $metadata);
-        $call->start($argument, $metadata, $options);
+        $actual_metadata = $this->_validate_and_normalize_metadata(
+            $actual_metadata);
+        $call->start($argument, $actual_metadata, $options);
 
         return $call;
     }
@@ -297,22 +321,23 @@ class BaseStub
      */
     public function _bidiRequest($method,
                                  callable $deserialize,
-                                 $metadata = [],
-                                 $options = [])
+                                 $metadata = [])
     {
+        list($actual_metadata, $timeout) =
+            $this->_extract_timeout_from_metadata($metadata);
         $call = new BidiStreamingCall($this->channel,
                                       $method,
                                       $deserialize,
-                                      $options);
+                                      $timeout);
         $jwt_aud_uri = $this->_get_jwt_aud_uri($method);
         if (is_callable($this->update_metadata)) {
-            $metadata = call_user_func($this->update_metadata,
-                                        $metadata,
+            $actual_metadata = call_user_func($this->update_metadata,
+                                        $actual_metadata,
                                         $jwt_aud_uri);
         }
-        $metadata = $this->_validate_and_normalize_metadata(
-            $metadata);
-        $call->start($metadata);
+        $actual_metadata = $this->_validate_and_normalize_metadata(
+            $actual_metadata);
+        $call->start($actual_metadata);
 
         return $call;
     }

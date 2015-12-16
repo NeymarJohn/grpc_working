@@ -62,8 +62,6 @@ cdef class CompletionQueue:
     cdef grpc.grpc_event event
 
     # Poll within a critical section
-    # TODO consider making queue polling contention a hard error to enable
-    # easier bug discovery
     with self.poll_condition:
       while self.is_polling:
         self.poll_condition.wait(float(deadline) - time.time())
@@ -76,12 +74,10 @@ cdef class CompletionQueue:
       self.poll_condition.notify()
 
     if event.type == grpc.GRPC_QUEUE_TIMEOUT:
-      return records.Event(
-          event.type, False, None, None, None, None, False, None)
+      return records.Event(event.type, False, None, None, None, None, None)
     elif event.type == grpc.GRPC_QUEUE_SHUTDOWN:
       self.is_shutdown = True
-      return records.Event(
-          event.type, True, None, None, None, None, False, None)
+      return records.Event(event.type, True, None, None, None, None, None)
     else:
       if event.tag != NULL:
         tag = <records.OperationTag>event.tag
@@ -101,8 +97,7 @@ cdef class CompletionQueue:
           operation_call.references.extend(tag.references)
       return records.Event(
           event.type, event.success, user_tag, operation_call,
-          request_call_details, request_metadata, tag.is_new_request,
-          batch_operations)
+          request_call_details, request_metadata, batch_operations)
 
   def shutdown(self):
     grpc.grpc_completion_queue_shutdown(self.c_completion_queue)

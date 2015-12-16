@@ -38,7 +38,6 @@
 
 #include <grpc/support/port_platform.h>
 
-#ifdef GRPC_NEED_UDP
 #ifdef GPR_POSIX_SOCKET
 
 #include "src/core/iomgr/udp_server.h"
@@ -180,7 +179,7 @@ static void deactivated_all_ports(grpc_exec_ctx *exec_ctx, grpc_udp_server *s) {
       }
       sp->destroyed_closure.cb = destroyed_port;
       sp->destroyed_closure.cb_arg = s;
-      grpc_fd_orphan(exec_ctx, sp->emfd, &sp->destroyed_closure, NULL,
+      grpc_fd_orphan(exec_ctx, sp->emfd, &sp->destroyed_closure,
                      "udp_listener_shutdown");
     }
     gpr_mu_unlock(&s->mu);
@@ -435,5 +434,4 @@ void grpc_udp_server_write(server_port *sp, const char *buffer, size_t buf_len,
   }
 }
 
-#endif
 #endif

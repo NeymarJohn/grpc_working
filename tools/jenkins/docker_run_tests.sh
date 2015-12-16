@@ -48,9 +48,7 @@ rvm use ruby-2.1
 
 mkdir -p reports
 
-exit_code=0
-
-$RUN_TESTS_COMMAND || exit_code=$?
+$RUN_TESTS_COMMAND
 
 cd reports
 echo '<html><head></head><body>' > index.html
@@ -63,5 +61,3 @@ echo '</body></html>' >> index.html
 cd ..
 
 zip -r reports.zip reports
-
-exit $exit_code

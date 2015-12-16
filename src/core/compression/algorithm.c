@@ -37,9 +37,7 @@
 #include <grpc/compression.h>
 #include <grpc/support/useful.h>
 
-#include "src/core/compression/algorithm_metadata.h"
 #include "src/core/surface/api_trace.h"
-#include "src/core/transport/static_metadata.h"
 
 int grpc_compression_algorithm_parse(const char *name, size_t name_length,
                                      grpc_compression_algorithm *algorithm) {
@@ -74,55 +72,17 @@ int grpc_compression_algorithm_name(grpc_compression_algorithm algorithm,
   switch (algorithm) {
     case GRPC_COMPRESS_NONE:
       *name = "identity";
-      return 1;
+      break;
     case GRPC_COMPRESS_DEFLATE:
       *name = "deflate";
-      return 1;
+      break;
     case GRPC_COMPRESS_GZIP:
       *name = "gzip";
-      return 1;
-    case GRPC_COMPRESS_ALGORITHMS_COUNT:
+      break;
+    default:
       return 0;
   }
-  return 0;
-}
-
-grpc_compression_algorithm grpc_compression_algorithm_from_mdstr(
-    grpc_mdstr *str) {
-  if (str == GRPC_MDSTR_IDENTITY) return GRPC_COMPRESS_NONE;
-  if (str == GRPC_MDSTR_DEFLATE) return GRPC_COMPRESS_DEFLATE;
-  if (str == GRPC_MDSTR_GZIP) return GRPC_COMPRESS_GZIP;
-  return GRPC_COMPRESS_ALGORITHMS_COUNT;
-}
-
-grpc_mdstr *grpc_compression_algorithm_mdstr(
-    grpc_compression_algorithm algorithm) {
-  switch (algorithm) {
-    case GRPC_COMPRESS_NONE:
-      return GRPC_MDSTR_IDENTITY;
-    case GRPC_COMPRESS_DEFLATE:
-      return GRPC_MDSTR_DEFLATE;
-    case GRPC_COMPRESS_GZIP:
-      return GRPC_MDSTR_GZIP;
-    case GRPC_COMPRESS_ALGORITHMS_COUNT:
-      return NULL;
-  }
-  return NULL;
-}
-
-grpc_mdelem *grpc_compression_encoding_mdelem(
-    grpc_compression_algorithm algorithm) {
-  switch (algorithm) {
-    case GRPC_COMPRESS_NONE:
-      return GRPC_MDELEM_GRPC_ENCODING_IDENTITY;
-    case GRPC_COMPRESS_DEFLATE:
-      return GRPC_MDELEM_GRPC_ENCODING_DEFLATE;
-    case GRPC_COMPRESS_GZIP:
-      return GRPC_MDELEM_GRPC_ENCODING_GZIP;
-    default:
-      break;
-  }
-  return NULL;
+  return 1;
 }
 
 /* TODO(dgq): Add the ability to specify parameters to the individual
@@ -139,9 +99,25 @@ grpc_compression_algorithm grpc_compression_algorithm_for_level(
     case GRPC_COMPRESS_LEVEL_HIGH:
       return GRPC_COMPRESS_DEFLATE;
     default:
-      break;
+      /* we shouldn't be making it here */
+      abort();
+      return GRPC_COMPRESS_NONE;
   }
-  GPR_UNREACHABLE_CODE(return GRPC_COMPRESS_NONE);
+}
+
+grpc_compression_level grpc_compression_level_for_algorithm(
+    grpc_compression_algorithm algorithm) {
+  grpc_compression_level clevel;
+  GRPC_API_TRACE("grpc_compression_level_for_algorithm(algorithm=%d)", 1,
+                 ((int)algorithm));
+  for (clevel = GRPC_COMPRESS_LEVEL_NONE; clevel < GRPC_COMPRESS_LEVEL_COUNT;
+       ++clevel) {
+    if (grpc_compression_algorithm_for_level(clevel) == algorithm) {
+      return clevel;
+    }
+  }
+  abort();
+  return GRPC_COMPRESS_LEVEL_NONE;
 }
 
 void grpc_compression_options_init(grpc_compression_options *opts) {
