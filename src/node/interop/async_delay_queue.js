@@ -31,31 +31,49 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_BAD_CLIENT_BAD_CLIENT_H
-#define GRPC_TEST_CORE_BAD_CLIENT_BAD_CLIENT_H
+'use strict';
 
-#include <grpc/grpc.h>
-#include "test/core/util/test_config.h"
+var _ = require('lodash');
 
-#define GRPC_BAD_CLIENT_REGISTERED_METHOD "/registered/bar"
-#define GRPC_BAD_CLIENT_REGISTERED_HOST "localhost"
+/**
+ * This class represents a queue of callbacks that must happen sequentially, each
+ * with a specific delay after the previous event.
+ */
+function AsyncDelayQueue() {
+  this.queue = [];
 
-typedef void (*grpc_bad_client_server_side_validator)(grpc_server *server,
-                                                      grpc_completion_queue *cq,
-                                                      void *registered_method);
+  this.callback_pending = false;
+}
 
-#define GRPC_BAD_CLIENT_DISCONNECT 1
+/**
+ * Run the next callback after its corresponding delay, if there are any
+ * remaining.
+ */
+AsyncDelayQueue.prototype.runNext = function() {
+  var next = this.queue.shift();
+  var continueCallback = _.bind(this.runNext, this);
+  if (next) {
+    this.callback_pending = true;
+    setTimeout(function() {
+      next.callback(continueCallback);
+    }, next.delay);
+  } else {
+    this.callback_pending = false;
+  }
+};
 
-/* Test runner.
+/**
+ * Add a callback to be called with a specific delay after now or after the
+ * current last item in the queue or current pending callback, whichever is
+ * latest.
+ * @param {function(function())} callback The callback
+ * @param {Number} The delay to apply, in milliseconds
+ */
+AsyncDelayQueue.prototype.add = function(callback, delay) {
+  this.queue.push({callback: callback, delay: delay});
+  if (!this.callback_pending) {
+    this.runNext();
+  }
+};
 
-   Create a server, and send client_payload to it as bytes from a client.
-   Execute validator in a separate thread to assert that the bytes are
-   handled as expected. */
-void grpc_run_bad_client_test(grpc_bad_client_server_side_validator validator,
-                              const char *client_payload,
-                              size_t client_payload_length, gpr_uint32 flags);
-
-#define GRPC_RUN_BAD_CLIENT_TEST(validator, payload, flags) \
-  grpc_run_bad_client_test(validator, payload, sizeof(payload) - 1, flags)
-
-#endif /* GRPC_TEST_CORE_BAD_CLIENT_BAD_CLIENT_H */
+module.exports = AsyncDelayQueue;
