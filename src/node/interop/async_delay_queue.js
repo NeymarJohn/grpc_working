@@ -1,4 +1,3 @@
-<?php
 /*
  *
  * Copyright 2015, Google Inc.
@@ -31,20 +30,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-require_once dirname(__FILE__).'/AbstractGeneratedCodeTest.php';
 
-class GeneratedCodeTest extends AbstractGeneratedCodeTest
-{
-    public function setUp()
-    {
-        self::$client = new math\MathClient(
-            getenv('GRPC_TEST_HOST'), [
-                'credentials' => Grpc\ChannelCredentials::createInsecure(),
-            ]);
-    }
+'use strict';
 
-    public function tearDown()
-    {
-        self::$client->close();
-    }
+var _ = require('lodash');
+
+/**
+ * This class represents a queue of callbacks that must happen sequentially, each
+ * with a specific delay after the previous event.
+ */
+function AsyncDelayQueue() {
+  this.queue = [];
+
+  this.callback_pending = false;
 }
+
+/**
+ * Run the next callback after its corresponding delay, if there are any
+ * remaining.
+ */
+AsyncDelayQueue.prototype.runNext = function() {
+  var next = this.queue.shift();
+  var continueCallback = _.bind(this.runNext, this);
+  if (next) {
+    this.callback_pending = true;
+    setTimeout(function() {
+      next.callback(continueCallback);
+    }, next.delay);
+  } else {
+    this.callback_pending = false;
+  }
+};
+
+/**
+ * Add a callback to be called with a specific delay after now or after the
+ * current last item in the queue or current pending callback, whichever is
+ * latest.
+ * @param {function(function())} callback The callback
+ * @param {Number} The delay to apply, in milliseconds
+ */
+AsyncDelayQueue.prototype.add = function(callback, delay) {
+  this.queue.push({callback: callback, delay: delay});
+  if (!this.callback_pending) {
+    this.runNext();
+  }
+};
+
+module.exports = AsyncDelayQueue;
