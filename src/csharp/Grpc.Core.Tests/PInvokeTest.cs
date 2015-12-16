@@ -59,8 +59,6 @@ namespace Grpc.Core.Tests
         [Test]
         public void CompletionQueueCreateDestroyBenchmark()
         {
-            GrpcEnvironment.AddRef();  // completion queue requires gRPC environment being initialized.
-
             BenchmarkUtil.RunBenchmark(
                 10, 10,
                 () =>
@@ -68,8 +66,6 @@ namespace Grpc.Core.Tests
                     CompletionQueueSafeHandle cq = CompletionQueueSafeHandle.Create();
                     cq.Dispose();
                 });
-
-            GrpcEnvironment.Release();
         }
 
         /// <summary>

@@ -36,7 +36,6 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
-var AsyncDelayQueue = require('./async_delay_queue');
 var grpc = require('..');
 var testProto = grpc.load({
   root: __dirname + '/../../..',
@@ -156,7 +155,6 @@ function handleStreamingInput(call, callback) {
  */
 function handleStreamingOutput(call) {
   echoHeader(call);
-  var delay_queue = new AsyncDelayQueue();
   var req = call.request;
   if (req.response_status) {
     var status = req.response_status;
@@ -165,15 +163,9 @@ function handleStreamingOutput(call) {
     return;
   }
   _.each(req.response_parameters, function(resp_param) {
-    delay_queue.add(function(next) {
-      call.write({payload: getPayload(req.response_type, resp_param.size)});
-      next();
-    }, resp_param.interval_us);
+    call.write({payload: getPayload(req.response_type, resp_param.size)});
   });
-  delay_queue.add(function(next) {
-    call.end(getEchoTrailer(call));
-    next();
-  });
+  call.end(getEchoTrailer(call));
 }
 
 /**
@@ -183,7 +175,6 @@ function handleStreamingOutput(call) {
  */
 function handleFullDuplex(call) {
   echoHeader(call);
-  var delay_queue = new AsyncDelayQueue();
   call.on('data', function(value) {
     if (value.response_status) {
       var status = value.response_status;
@@ -192,17 +183,11 @@ function handleFullDuplex(call) {
       return;
     }
     _.each(value.response_parameters, function(resp_param) {
-      delay_queue.add(function(next) {
-        call.write({payload: getPayload(value.response_type, resp_param.size)});
-        next();
-      }, resp_param.interval_us);
+      call.write({payload: getPayload(value.response_type, resp_param.size)});
     });
   });
   call.on('end', function() {
-    delay_queue.add(function(next) {
-      call.end(getEchoTrailer(call));
-      next();
-    });
+    call.end(getEchoTrailer(call));
   });
 }
 
