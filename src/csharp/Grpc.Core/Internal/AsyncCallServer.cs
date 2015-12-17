@@ -58,7 +58,7 @@ namespace Grpc.Core.Internal
 
         public void Initialize(CallSafeHandle call)
         {
-            call.Initialize(environment.CompletionRegistry, environment.CompletionQueue);
+            call.SetCompletionRegistry(environment.CompletionRegistry);
 
             server.AddCallReference(this);
             InitializeInternal(call);
