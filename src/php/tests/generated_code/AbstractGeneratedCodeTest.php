@@ -41,6 +41,7 @@ abstract class AbstractGeneratedCodeTest extends PHPUnit_Framework_TestCase
      * running on $GRPC_TEST_HOST.
      */
     protected static $client;
+    protected static $timeout;
 
     public function testWaitForNotReady()
     {
@@ -92,7 +93,7 @@ abstract class AbstractGeneratedCodeTest extends PHPUnit_Framework_TestCase
     public function testTimeout()
     {
         $div_arg = new math\DivArgs();
-        $call = self::$client->Div($div_arg, [], ['timeout' => 100]);
+        $call = self::$client->Div($div_arg, ['timeout' => 100]);
         list($response, $status) = $call->wait();
         $this->assertSame(\Grpc\STATUS_DEADLINE_EXCEEDED, $status->code);
     }
@@ -111,9 +112,7 @@ abstract class AbstractGeneratedCodeTest extends PHPUnit_Framework_TestCase
      */
     public function testInvalidMethodName()
     {
-        $invalid_client = new DummyInvalidClient('host', [
-            'credentials' => Grpc\ChannelCredentials::createInsecure(),
-        ]);
+        $invalid_client = new DummyInvalidClient('host', []);
         $div_arg = new math\DivArgs();
         $invalid_client->InvalidUnaryCall($div_arg);
     }

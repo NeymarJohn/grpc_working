@@ -36,15 +36,14 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <grpc/support/port_platform.h>
 #include "src/core/support/string.h"
 
-static gpr_int64 round_up(gpr_int64 x, gpr_int64 divisor) {
+static int round_up(int x, int divisor) {
   return (x / divisor + (x % divisor != 0)) * divisor;
 }
 
 /* round an integer up to the next value with three significant figures */
-static gpr_int64 round_up_to_three_sig_figs(gpr_int64 x) {
+static int round_up_to_three_sig_figs(int x) {
   if (x < 1000) return x;
   if (x < 10000) return round_up(x, 10);
   if (x < 100000) return round_up(x, 100);
@@ -58,13 +57,13 @@ static gpr_int64 round_up_to_three_sig_figs(gpr_int64 x) {
 /* encode our minimum viable timeout value */
 static void enc_tiny(char *buffer) { memcpy(buffer, "1n", 3); }
 
-static void enc_ext(char *buffer, gpr_int64 value, char ext) {
-  int n = gpr_int64toa(value, buffer);
+static void enc_ext(char *buffer, long value, char ext) {
+  int n = gpr_ltoa(value, buffer);
   buffer[n] = ext;
   buffer[n + 1] = 0;
 }
 
-static void enc_seconds(char *buffer, gpr_int64 sec) {
+static void enc_seconds(char *buffer, long sec) {
   if (sec % 3600 == 0) {
     enc_ext(buffer, sec / 3600, 'H');
   } else if (sec % 60 == 0) {
@@ -74,7 +73,7 @@ static void enc_seconds(char *buffer, gpr_int64 sec) {
   }
 }
 
-static void enc_nanos(char *buffer, gpr_int64 x) {
+static void enc_nanos(char *buffer, int x) {
   x = round_up_to_three_sig_figs(x);
   if (x < 100000) {
     if (x % 1000 == 0) {
@@ -98,7 +97,7 @@ static void enc_nanos(char *buffer, gpr_int64 x) {
   }
 }
 
-static void enc_micros(char *buffer, gpr_int64 x) {
+static void enc_micros(char *buffer, int x) {
   x = round_up_to_three_sig_figs(x);
   if (x < 100000) {
     if (x % 1000 == 0) {
@@ -124,7 +123,7 @@ void grpc_chttp2_encode_timeout(gpr_timespec timeout, char *buffer) {
     enc_nanos(buffer, timeout.tv_nsec);
   } else if (timeout.tv_sec < 1000 && timeout.tv_nsec != 0) {
     enc_micros(buffer,
-               (gpr_int64)(timeout.tv_sec * 1000000) +
+               (int)(timeout.tv_sec * 1000000) +
                    (timeout.tv_nsec / 1000 + (timeout.tv_nsec % 1000 != 0)));
   } else {
     enc_seconds(buffer, timeout.tv_sec + (timeout.tv_nsec != 0));

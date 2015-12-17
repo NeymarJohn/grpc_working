@@ -48,8 +48,6 @@ module GRPC
         return false
       when 'TERM'
         return false
-      when nil
-        return true
       end
     end
     true

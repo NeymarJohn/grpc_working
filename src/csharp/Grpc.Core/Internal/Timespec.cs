@@ -63,18 +63,20 @@ namespace Grpc.Core.Internal
         [DllImport("grpc_csharp_ext.dll")]
         static extern int gprsharp_sizeof_timespec();
 
-        public Timespec(long tv_sec, int tv_nsec) : this(tv_sec, tv_nsec, GPRClockType.Realtime)
+        public Timespec(IntPtr tv_sec, int tv_nsec) : this(tv_sec, tv_nsec, GPRClockType.Realtime)
         {
         }
 
-        public Timespec(long tv_sec, int tv_nsec, GPRClockType clock_type)
+        public Timespec(IntPtr tv_sec, int tv_nsec, GPRClockType clock_type)
         {
             this.tv_sec = tv_sec;
             this.tv_nsec = tv_nsec;
             this.clock_type = clock_type;
         }
 
-        private long tv_sec;
+        // NOTE: on linux 64bit  sizeof(gpr_timespec) = 16, on windows 32bit sizeof(gpr_timespec) = 8
+        // so IntPtr seems to have the right size to work on both.
+        private System.IntPtr tv_sec;
         private int tv_nsec;
         private GPRClockType clock_type;
 
@@ -114,7 +116,7 @@ namespace Grpc.Core.Internal
         /// <summary>
         /// Seconds since unix epoch.
         /// </summary>
-        public long TimevalSeconds
+        public IntPtr TimevalSeconds
         {
             get
             {
@@ -174,18 +176,18 @@ namespace Grpc.Core.Internal
             {
                 // convert nanos to ticks, round up to the nearest tick
                 long ticksFromNanos = tv_nsec / NanosPerTick + ((tv_nsec % NanosPerTick != 0) ? 1 : 0);
-                long ticksTotal = checked(tv_sec * TicksPerSecond + ticksFromNanos);
+                long ticksTotal = checked(tv_sec.ToInt64() * TicksPerSecond + ticksFromNanos);
                 return UnixEpoch.AddTicks(ticksTotal);
             }
             catch (OverflowException)
             {
                 // ticks out of long range
-                return tv_sec > 0 ? DateTime.MaxValue : DateTime.MinValue;
+                return tv_sec.ToInt64() > 0 ? DateTime.MaxValue : DateTime.MinValue;
             }
             catch (ArgumentOutOfRangeException)
             {
                 // resulting date time would be larger than MaxValue
-                return tv_sec > 0 ? DateTime.MaxValue : DateTime.MinValue;
+                return tv_sec.ToInt64() > 0 ? DateTime.MaxValue : DateTime.MinValue;
             }
         }
             
@@ -224,7 +226,12 @@ namespace Grpc.Core.Internal
                     seconds--;
                     nanos += (int)NanosPerSecond;
                 }
-                return new Timespec(seconds, nanos);
+                // new IntPtr possibly throws OverflowException
+                return new Timespec(new IntPtr(seconds), nanos);
+            }
+            catch (OverflowException)
+            {
+                return dateTime > UnixEpoch ? Timespec.InfFuture : Timespec.InfPast;
             }
             catch (ArgumentOutOfRangeException)
             {

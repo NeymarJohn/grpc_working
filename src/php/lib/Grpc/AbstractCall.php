@@ -43,20 +43,19 @@ abstract class AbstractCall
     /**
      * Create a new Call wrapper object.
      *
-     * @param Channel  $channel     The channel to communicate on
-     * @param string   $method      The method to call on the
-     *                              remote server
-     * @param callback $deserialize A callback function to deserialize
-     *                              the response
-     * @param array    $options     Call options (optional)
+     * @param Channel         $channel     The channel to communicate on
+     * @param string          $method      The method to call on the
+     *                                     remote server
+     * @param callback        $deserialize A callback function to deserialize
+     *                                     the response
+     * @param (optional) long $timeout     Timeout in microseconds
      */
     public function __construct(Channel $channel,
                                 $method,
                                 $deserialize,
-                                $options = [])
+                                $timeout = false)
     {
-        if (isset($options['timeout']) &&
-            is_numeric($timeout = $options['timeout'])) {
+        if ($timeout) {
             $now = Timeval::now();
             $delta = new Timeval($timeout);
             $deadline = $now->add($delta);
@@ -66,13 +65,6 @@ abstract class AbstractCall
         $this->call = new Call($channel, $method, $deadline);
         $this->deserialize = $deserialize;
         $this->metadata = null;
-        if (isset($options['call_credentials_callback']) &&
-            is_callable($call_credentials_callback =
-                        $options['call_credentials_callback'])) {
-            $call_credentials = CallCredentials::createFromPlugin(
-                $call_credentials_callback);
-            $this->call->setCredentials($call_credentials);
-        }
     }
 
     /**
@@ -113,16 +105,5 @@ abstract class AbstractCall
         }
 
         return call_user_func($this->deserialize, $value);
-    }
-
-    /**
-     * Set the CallCredentials for the underlying Call.
-     *
-     * @param CallCredentials $call_credentials The CallCredentials
-     *                                          object
-     */
-    public function setCallCredentials($call_credentials)
-    {
-        $this->call->setCredentials($call_credentials);
     }
 }

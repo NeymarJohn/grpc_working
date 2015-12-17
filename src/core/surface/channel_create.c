@@ -37,8 +37,6 @@
 #include <string.h>
 
 #include <grpc/support/alloc.h>
-#include <grpc/support/slice.h>
-#include <grpc/support/slice_buffer.h>
 
 #include "src/core/census/grpc_filter.h"
 #include "src/core/channel/channel_args.h"
@@ -58,10 +56,10 @@ typedef struct {
   grpc_closure *notify;
   grpc_connect_in_args args;
   grpc_connect_out_args *result;
-  grpc_closure initial_string_sent;
-  gpr_slice_buffer initial_string_buffer;
 
   grpc_endpoint *tcp;
+
+  grpc_mdctx *mdctx;
 
   grpc_closure connected;
 } connector;
@@ -74,14 +72,9 @@ static void connector_ref(grpc_connector *con) {
 static void connector_unref(grpc_exec_ctx *exec_ctx, grpc_connector *con) {
   connector *c = (connector *)con;
   if (gpr_unref(&c->refs)) {
-    /* c->initial_string_buffer does not need to be destroyed */
+    grpc_mdctx_unref(c->mdctx);
     gpr_free(c);
   }
-}
-
-static void on_initial_connect_string_sent(grpc_exec_ctx *exec_ctx, void *arg,
-                                           int success) {
-  connector_unref(exec_ctx, arg);
 }
 
 static void connected(grpc_exec_ctx *exec_ctx, void *arg, int success) {
@@ -89,18 +82,8 @@ static void connected(grpc_exec_ctx *exec_ctx, void *arg, int success) {
   grpc_closure *notify;
   grpc_endpoint *tcp = c->tcp;
   if (tcp != NULL) {
-    if (!GPR_SLICE_IS_EMPTY(c->args.initial_connect_string)) {
-      grpc_closure_init(&c->initial_string_sent, on_initial_connect_string_sent,
-                        c);
-      gpr_slice_buffer_init(&c->initial_string_buffer);
-      gpr_slice_buffer_add(&c->initial_string_buffer,
-                           c->args.initial_connect_string);
-      connector_ref(arg);
-      grpc_endpoint_write(exec_ctx, tcp, &c->initial_string_buffer,
-                          &c->initial_string_sent);
-    }
-    c->result->transport =
-        grpc_create_chttp2_transport(exec_ctx, c->args.channel_args, tcp, 1);
+    c->result->transport = grpc_create_chttp2_transport(
+        exec_ctx, c->args.channel_args, tcp, c->mdctx, 1);
     grpc_chttp2_transport_start_reading(exec_ctx, c->result->transport, NULL,
                                         0);
     GPR_ASSERT(c->result->transport);
@@ -140,6 +123,7 @@ static const grpc_connector_vtable connector_vtable = {
 typedef struct {
   grpc_subchannel_factory base;
   gpr_refcount refs;
+  grpc_mdctx *mdctx;
   grpc_channel_args *merge_args;
   grpc_channel *master;
 } subchannel_factory;
@@ -155,6 +139,7 @@ static void subchannel_factory_unref(grpc_exec_ctx *exec_ctx,
   if (gpr_unref(&f->refs)) {
     GRPC_CHANNEL_INTERNAL_UNREF(exec_ctx, f->master, "subchannel_factory");
     grpc_channel_args_destroy(f->merge_args);
+    grpc_mdctx_unref(f->mdctx);
     gpr_free(f);
   }
 }
@@ -169,8 +154,12 @@ static grpc_subchannel *subchannel_factory_create_subchannel(
   grpc_subchannel *s;
   memset(c, 0, sizeof(*c));
   c->base.vtable = &connector_vtable;
+  c->mdctx = f->mdctx;
+  grpc_mdctx_ref(c->mdctx);
   gpr_ref_init(&c->refs, 1);
+  args->mdctx = f->mdctx;
   args->args = final_args;
+  args->master = f->master;
   s = grpc_subchannel_create(&c->base, args);
   grpc_connector_unref(exec_ctx, &c->base);
   grpc_channel_args_destroy(final_args);
@@ -193,6 +182,7 @@ grpc_channel *grpc_insecure_channel_create(const char *target,
   const grpc_channel_filter *filters[MAX_FILTERS];
   grpc_resolver *resolver;
   subchannel_factory *f;
+  grpc_mdctx *mdctx = grpc_mdctx_create();
   grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
   size_t n = 0;
   GRPC_API_TRACE(
@@ -206,20 +196,19 @@ grpc_channel *grpc_insecure_channel_create(const char *target,
   filters[n++] = &grpc_client_channel_filter;
   GPR_ASSERT(n <= MAX_FILTERS);
 
-  channel =
-      grpc_channel_create_from_filters(&exec_ctx, target, filters, n, args, 1);
+  channel = grpc_channel_create_from_filters(&exec_ctx, target, filters, n,
+                                             args, mdctx, 1);
 
   f = gpr_malloc(sizeof(*f));
   f->base.vtable = &subchannel_factory_vtable;
   gpr_ref_init(&f->refs, 1);
+  grpc_mdctx_ref(mdctx);
+  f->mdctx = mdctx;
   f->merge_args = grpc_channel_args_copy(args);
   f->master = channel;
   GRPC_CHANNEL_INTERNAL_REF(f->master, "subchannel_factory");
   resolver = grpc_resolver_create(target, &f->base);
   if (!resolver) {
-    GRPC_CHANNEL_INTERNAL_UNREF(&exec_ctx, f->master, "subchannel_factory");
-    grpc_subchannel_factory_unref(&exec_ctx, &f->base);
-    grpc_exec_ctx_finish(&exec_ctx);
     return NULL;
   }
 
