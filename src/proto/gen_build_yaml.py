@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python2.7
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -27,34 +27,33 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# This script is invoked by Jenkins and runs portability tests based on
-# env variable setting.
-#
-# Setting up rvm environment BEFORE we set -ex.
-[[ -s /etc/profile.d/rvm.sh ]] && . /etc/profile.d/rvm.sh
-# To prevent cygwin bash complaining about empty lines ending with \r
-# we set the igncr option. The option doesn't exist on Linux, so we fallback
-# to just 'set -ex' there.
-# NOTE: No empty lines should appear in this file before igncr is set!
-set -ex -o igncr || set -ex
 
-echo "building $scenario"
 
-parts=($(echo $scenario | tr '_' ' '))  # split scenario into parts
+"""Generates the appropriate build.json data for all the proto files."""
+import yaml
+import collections
+import os
+import re
+import sys
 
-curr_platform=${parts[0]}  # variable named 'platform' breaks the windows build
-curr_arch=${parts[1]}
-curr_compiler=${parts[2]}
+def main():
+  deps = {}
+  for root, dirs, files in os.walk(os.path.dirname(sys.argv[0])):
+    for f in files:
+      if f[-6:] != '.proto': continue
+      look_at = os.path.join(root, f)
+      with open(look_at) as inp:
+        for line in inp:
+          imp = re.search(r'import "([^"]*)"', line)
+          if not imp: continue
+          if look_at[:-6] not in deps: deps[look_at[:-6]] = []
+          deps[look_at[:-6]].append(imp.group(1)[:-6])
 
-config='dbg'
-maybe_build_only='--build_only'
+  json = {
+    'proto_deps': deps
+  }
 
-if [ "$curr_platform" == "windows" ]
-then
-  win_arch="windows_${curr_arch}"
-  python tools/run_tests/run_tests.py -t -l $language -c $config --arch ${win_arch} --compiler ${curr_compiler} ${maybe_build_only} -x report.xml $@
-else
-  echo "Unsupported scenario."
-  exit 1
-fi
+  print yaml.dump(json)
+
+if __name__ == '__main__':
+  main()
