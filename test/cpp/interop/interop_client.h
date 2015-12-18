@@ -44,11 +44,6 @@
 namespace grpc {
 namespace testing {
 
-// Function pointer for custom checks.
-using CheckerFn =
-    std::function<void(const InteropClientContextInspector&,
-                       const SimpleRequest*, const SimpleResponse*)>;
-
 class InteropClient {
  public:
   explicit InteropClient(std::shared_ptr<Channel> channel);
@@ -105,10 +100,6 @@ class InteropClient {
   };
 
   void PerformLargeUnary(SimpleRequest* request, SimpleResponse* response);
-
-  /// Run \a custom_check_fn as an additional check.
-  void PerformLargeUnary(SimpleRequest* request, SimpleResponse* response,
-                         CheckerFn custom_checks_fn);
   void AssertOkOrPrintErrorStatus(const Status& s);
   ServiceStub serviceStub_;
 };
