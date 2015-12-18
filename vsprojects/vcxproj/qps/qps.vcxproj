@@ -20,7 +20,6 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8423B0C5-2428-CA10-82EF-7B5C1F3D8011}</ProjectGuid>
-    <IgnoreWarnIntDirInTempDetected>true</IgnoreWarnIntDirInTempDetected>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(VisualStudioVersion)' == '10.0'" Label="Configuration">
@@ -71,7 +70,6 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
-      <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -89,7 +87,6 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
-      <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -109,7 +106,6 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
-      <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -131,7 +127,6 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
-      <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -155,53 +150,53 @@
     <ClInclude Include="..\..\..\test\cpp\util\benchmark_config.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\test\proto\messages.pb.cc">
+    <ClCompile Include="..\..\..\src\proto\grpc\testing\messages.pb.cc">
     </ClCompile>
-    <ClInclude Include="..\..\..\test\proto\messages.pb.h">
+    <ClInclude Include="..\..\..\src\proto\grpc\testing\messages.pb.h">
     </ClInclude>
-    <ClCompile Include="..\..\..\test\proto\messages.grpc.pb.cc">
+    <ClCompile Include="..\..\..\src\proto\grpc\testing\messages.grpc.pb.cc">
     </ClCompile>
-    <ClInclude Include="..\..\..\test\proto\messages.grpc.pb.h">
+    <ClInclude Include="..\..\..\src\proto\grpc\testing\messages.grpc.pb.h">
     </ClInclude>
-    <ClCompile Include="..\..\..\test\proto\benchmarks\control.pb.cc">
+    <ClCompile Include="..\..\..\src\proto\grpc\testing\control.pb.cc">
     </ClCompile>
-    <ClInclude Include="..\..\..\test\proto\benchmarks\control.pb.h">
+    <ClInclude Include="..\..\..\src\proto\grpc\testing\control.pb.h">
     </ClInclude>
-    <ClCompile Include="..\..\..\test\proto\benchmarks\control.grpc.pb.cc">
+    <ClCompile Include="..\..\..\src\proto\grpc\testing\control.grpc.pb.cc">
     </ClCompile>
-    <ClInclude Include="..\..\..\test\proto\benchmarks\control.grpc.pb.h">
+    <ClInclude Include="..\..\..\src\proto\grpc\testing\control.grpc.pb.h">
     </ClInclude>
-    <ClCompile Include="..\..\..\test\proto\benchmarks\payloads.pb.cc">
+    <ClCompile Include="..\..\..\src\proto\grpc\testing\payloads.pb.cc">
     </ClCompile>
-    <ClInclude Include="..\..\..\test\proto\benchmarks\payloads.pb.h">
+    <ClInclude Include="..\..\..\src\proto\grpc\testing\payloads.pb.h">
     </ClInclude>
-    <ClCompile Include="..\..\..\test\proto\benchmarks\payloads.grpc.pb.cc">
+    <ClCompile Include="..\..\..\src\proto\grpc\testing\payloads.grpc.pb.cc">
     </ClCompile>
-    <ClInclude Include="..\..\..\test\proto\benchmarks\payloads.grpc.pb.h">
+    <ClInclude Include="..\..\..\src\proto\grpc\testing\payloads.grpc.pb.h">
     </ClInclude>
-    <ClCompile Include="..\..\..\test\proto\benchmarks\services.pb.cc">
+    <ClCompile Include="..\..\..\src\proto\grpc\testing\services.pb.cc">
     </ClCompile>
-    <ClInclude Include="..\..\..\test\proto\benchmarks\services.pb.h">
+    <ClInclude Include="..\..\..\src\proto\grpc\testing\services.pb.h">
     </ClInclude>
-    <ClCompile Include="..\..\..\test\proto\benchmarks\services.grpc.pb.cc">
+    <ClCompile Include="..\..\..\src\proto\grpc\testing\services.grpc.pb.cc">
     </ClCompile>
-    <ClInclude Include="..\..\..\test\proto\benchmarks\services.grpc.pb.h">
+    <ClInclude Include="..\..\..\src\proto\grpc\testing\services.grpc.pb.h">
     </ClInclude>
-    <ClCompile Include="..\..\..\test\proto\benchmarks\stats.pb.cc">
+    <ClCompile Include="..\..\..\src\proto\grpc\testing\stats.pb.cc">
     </ClCompile>
-    <ClInclude Include="..\..\..\test\proto\benchmarks\stats.pb.h">
+    <ClInclude Include="..\..\..\src\proto\grpc\testing\stats.pb.h">
     </ClInclude>
-    <ClCompile Include="..\..\..\test\proto\benchmarks\stats.grpc.pb.cc">
+    <ClCompile Include="..\..\..\src\proto\grpc\testing\stats.grpc.pb.cc">
     </ClCompile>
-    <ClInclude Include="..\..\..\test\proto\benchmarks\stats.grpc.pb.h">
+    <ClInclude Include="..\..\..\src\proto\grpc\testing\stats.grpc.pb.h">
     </ClInclude>
-    <ClCompile Include="..\..\..\test\cpp\qps\perf_db.pb.cc">
+    <ClCompile Include="..\..\..\src\proto\grpc\testing\perf_db.pb.cc">
     </ClCompile>
-    <ClInclude Include="..\..\..\test\cpp\qps\perf_db.pb.h">
+    <ClInclude Include="..\..\..\src\proto\grpc\testing\perf_db.pb.h">
     </ClInclude>
-    <ClCompile Include="..\..\..\test\cpp\qps\perf_db.grpc.pb.cc">
+    <ClCompile Include="..\..\..\src\proto\grpc\testing\perf_db.grpc.pb.cc">
     </ClCompile>
-    <ClInclude Include="..\..\..\test\cpp\qps\perf_db.grpc.pb.h">
+    <ClInclude Include="..\..\..\src\proto\grpc\testing\perf_db.grpc.pb.h">
     </ClInclude>
     <ClCompile Include="..\..\..\test\cpp\qps\client_async.cc">
     </ClCompile>
