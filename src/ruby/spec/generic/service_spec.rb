@@ -241,7 +241,7 @@ describe GenericService do
     end
 
     describe 'the generated instances' do
-      it 'can be instanciated with just a hostname and credentials' do
+      it 'can be instanciated with just a hostname' do
         s = Class.new do
           include GenericService
           rpc :AnRpc, GoodMsg, GoodMsg
@@ -250,10 +250,7 @@ describe GenericService do
           rpc :ABidiStreamer, stream(GoodMsg), stream(GoodMsg)
         end
         client_class = s.rpc_stub_class
-        blk = proc do
-          client_class.new('fakehostname', :this_channel_is_insecure)
-        end
-        expect(&blk).not_to raise_error
+        expect { client_class.new('fakehostname') }.not_to raise_error
       end
 
       it 'has the methods defined in the service' do
@@ -265,7 +262,7 @@ describe GenericService do
           rpc :ABidiStreamer, stream(GoodMsg), stream(GoodMsg)
         end
         client_class = s.rpc_stub_class
-        o = client_class.new('fakehostname', :this_channel_is_insecure)
+        o = client_class.new('fakehostname')
         expect(o.methods).to include(:an_rpc)
         expect(o.methods).to include(:a_bidi_streamer)
         expect(o.methods).to include(:a_client_streamer)
