@@ -41,7 +41,7 @@
    A minimal wrapper that should be implementable across many compilers,
    and implementable efficiently across most modern compilers.
 
-   Thread locals have type intptr_t.
+   Thread locals have type gpr_intptr.
 
    Declaring a thread local variable 'foo':
      GPR_TLS_DECL(foo);
