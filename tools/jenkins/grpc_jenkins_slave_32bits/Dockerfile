@@ -43,7 +43,6 @@ RUN apt-get update && apt-get install -y \
   gcc \
   gcc-multilib \
   git \
-  golang \
   gyp \
   lcov \
   libc6 \
@@ -52,7 +51,6 @@ RUN apt-get update && apt-get install -y \
   libgtest-dev \
   libtool \
   make \
-  perl \
   strace \
   python-dev \
   python-setuptools \
