@@ -152,7 +152,6 @@ struct grpc_chttp2_incoming_byte_stream {
   grpc_byte_stream base;
   gpr_refcount refs;
   struct grpc_chttp2_incoming_byte_stream *next_message;
-  int failed;
 
   grpc_chttp2_transport *transport;
   grpc_chttp2_stream *stream;
@@ -566,9 +565,6 @@ void grpc_chttp2_list_add_stalled_by_transport(
 int grpc_chttp2_list_pop_stalled_by_transport(
     grpc_chttp2_transport_global *transport_global,
     grpc_chttp2_stream_global **stream_global);
-void grpc_chttp2_list_remove_stalled_by_transport(
-    grpc_chttp2_transport_global *transport_global,
-    grpc_chttp2_stream_global *stream_global);
 
 void grpc_chttp2_list_add_unannounced_incoming_window_available(
     grpc_chttp2_transport_global *transport_global,
@@ -752,8 +748,7 @@ void grpc_chttp2_incoming_byte_stream_push(grpc_exec_ctx *exec_ctx,
                                            grpc_chttp2_incoming_byte_stream *bs,
                                            gpr_slice slice);
 void grpc_chttp2_incoming_byte_stream_finished(
-    grpc_exec_ctx *exec_ctx, grpc_chttp2_incoming_byte_stream *bs, int success,
-    int from_parsing_thread);
+    grpc_exec_ctx *exec_ctx, grpc_chttp2_incoming_byte_stream *bs);
 
 void grpc_chttp2_ack_ping(grpc_exec_ctx *exec_ctx,
                           grpc_chttp2_transport_parsing *parsing,
