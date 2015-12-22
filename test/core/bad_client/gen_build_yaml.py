@@ -64,7 +64,7 @@ def main():
             'headers': [
               'test/core/bad_client/bad_client.h'
             ],
-            'vs_proj_dir': 'test/bad_client',
+            'vs_proj_dir': 'test',
             'deps': [
               'grpc_test_util_unsecure',
               'grpc_unsecure',
