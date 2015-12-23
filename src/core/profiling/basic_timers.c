@@ -52,7 +52,7 @@ typedef struct gpr_timer_entry {
   const char *file;
   short line;
   char type;
-  uint8_t important;
+  gpr_uint8 important;
   int thd;
 } gpr_timer_entry;
 
