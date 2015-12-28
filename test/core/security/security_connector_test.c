@@ -60,39 +60,8 @@ static int check_transport_security_type(const grpc_auth_context *ctx) {
   return 1;
 }
 
-static int check_peer_property(const tsi_peer *peer,
-                               const tsi_peer_property *expected) {
-  size_t i;
-  for (i = 0; i < peer->property_count; i++) {
-    const tsi_peer_property *prop = &peer->properties[i];
-    if ((strcmp(prop->name, expected->name) == 0) &&
-        (prop->value.length == expected->value.length) &&
-        (memcmp(prop->value.data, expected->value.data,
-                expected->value.length) == 0)) {
-      return 1;
-    }
-  }
-  return 0; /* Not found... */
-}
-
-static int check_ssl_peer_equivalence(const tsi_peer *original,
-                                      const tsi_peer *reconstructed) {
-  /* The reconstructed peer only has CN and SAN properties. */
-  size_t i;
-  for (i = 0; i < original->property_count; i++) {
-    const tsi_peer_property *prop = &original->properties[i];
-    if ((strcmp(prop->name, TSI_X509_SUBJECT_COMMON_NAME_PEER_PROPERTY) == 0) ||
-        (strcmp(prop->name, TSI_X509_SUBJECT_ALTERNATIVE_NAME_PEER_PROPERTY) ==
-         0)) {
-      if (!check_peer_property(reconstructed, prop)) return 0;
-    }
-  }
-  return 1;
-}
-
 static void test_unauthenticated_ssl_peer(void) {
   tsi_peer peer;
-  tsi_peer rpeer;
   grpc_auth_context *ctx;
   GPR_ASSERT(tsi_construct_peer(1, &peer) == TSI_OK);
   GPR_ASSERT(tsi_construct_string_peer_property_from_cstring(
@@ -103,10 +72,6 @@ static void test_unauthenticated_ssl_peer(void) {
   GPR_ASSERT(!grpc_auth_context_peer_is_authenticated(ctx));
   GPR_ASSERT(check_transport_security_type(ctx));
 
-  rpeer = tsi_shallow_peer_from_ssl_auth_context(ctx);
-  GPR_ASSERT(check_ssl_peer_equivalence(&peer, &rpeer));
-
-  tsi_shallow_peer_destruct(&rpeer);
   tsi_peer_destruct(&peer);
   GRPC_AUTH_CONTEXT_UNREF(ctx, "test");
 }
@@ -163,7 +128,6 @@ static int check_x509_cn(const grpc_auth_context *ctx,
 
 static void test_cn_only_ssl_peer_to_auth_context(void) {
   tsi_peer peer;
-  tsi_peer rpeer;
   grpc_auth_context *ctx;
   const char *expected_cn = "cn1";
   GPR_ASSERT(tsi_construct_peer(2, &peer) == TSI_OK);
@@ -180,17 +144,12 @@ static void test_cn_only_ssl_peer_to_auth_context(void) {
   GPR_ASSERT(check_transport_security_type(ctx));
   GPR_ASSERT(check_x509_cn(ctx, expected_cn));
 
-  rpeer = tsi_shallow_peer_from_ssl_auth_context(ctx);
-  GPR_ASSERT(check_ssl_peer_equivalence(&peer, &rpeer));
-
-  tsi_shallow_peer_destruct(&rpeer);
   tsi_peer_destruct(&peer);
   GRPC_AUTH_CONTEXT_UNREF(ctx, "test");
 }
 
 static void test_cn_and_one_san_ssl_peer_to_auth_context(void) {
   tsi_peer peer;
-  tsi_peer rpeer;
   grpc_auth_context *ctx;
   const char *expected_cn = "cn1";
   const char *expected_san = "san1";
@@ -212,17 +171,12 @@ static void test_cn_and_one_san_ssl_peer_to_auth_context(void) {
   GPR_ASSERT(check_transport_security_type(ctx));
   GPR_ASSERT(check_x509_cn(ctx, expected_cn));
 
-  rpeer = tsi_shallow_peer_from_ssl_auth_context(ctx);
-  GPR_ASSERT(check_ssl_peer_equivalence(&peer, &rpeer));
-
-  tsi_shallow_peer_destruct(&rpeer);
   tsi_peer_destruct(&peer);
   GRPC_AUTH_CONTEXT_UNREF(ctx, "test");
 }
 
 static void test_cn_and_multiple_sans_ssl_peer_to_auth_context(void) {
   tsi_peer peer;
-  tsi_peer rpeer;
   grpc_auth_context *ctx;
   const char *expected_cn = "cn1";
   const char *expected_sans[] = {"san1", "san2", "san3"};
@@ -248,10 +202,6 @@ static void test_cn_and_multiple_sans_ssl_peer_to_auth_context(void) {
   GPR_ASSERT(check_transport_security_type(ctx));
   GPR_ASSERT(check_x509_cn(ctx, expected_cn));
 
-  rpeer = tsi_shallow_peer_from_ssl_auth_context(ctx);
-  GPR_ASSERT(check_ssl_peer_equivalence(&peer, &rpeer));
-
-  tsi_shallow_peer_destruct(&rpeer);
   tsi_peer_destruct(&peer);
   GRPC_AUTH_CONTEXT_UNREF(ctx, "test");
 }
@@ -259,7 +209,6 @@ static void test_cn_and_multiple_sans_ssl_peer_to_auth_context(void) {
 static void test_cn_and_multiple_sans_and_others_ssl_peer_to_auth_context(
     void) {
   tsi_peer peer;
-  tsi_peer rpeer;
   grpc_auth_context *ctx;
   const char *expected_cn = "cn1";
   const char *expected_sans[] = {"san1", "san2", "san3"};
@@ -289,15 +238,9 @@ static void test_cn_and_multiple_sans_and_others_ssl_peer_to_auth_context(
   GPR_ASSERT(check_transport_security_type(ctx));
   GPR_ASSERT(check_x509_cn(ctx, expected_cn));
 
-  rpeer = tsi_shallow_peer_from_ssl_auth_context(ctx);
-  GPR_ASSERT(check_ssl_peer_equivalence(&peer, &rpeer));
-
-  tsi_shallow_peer_destruct(&rpeer);
   tsi_peer_destruct(&peer);
   GRPC_AUTH_CONTEXT_UNREF(ctx, "test");
 }
-
-/* TODO(jboeuf): Unit-test tsi_shallow_peer_from_auth_context. */
 
 int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
