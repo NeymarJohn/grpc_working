@@ -28,67 +28,59 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# This script is invoked by run_tests.py to accommodate "test under docker"
-# scenario. You should never need to call this script on your own.
+# This script is invoked by run_interop_tests.py to build the docker image
+# for interop testing. You should never need to call this script on your own.
 
-set -ex
+set -x
+
+# Params:
+#  INTEROP_IMAGE - name of tag of the final interop image
+#  BASE_NAME - base name used to locate the base Dockerfile and build script
+#  TTY_FLAG - optional -t flag to make docker allocate tty
+#  BUILD_INTEROP_DOCKER_EXTRA_ARGS - optional args to be passed to the
+#    docker run command
 
 cd `dirname $0`/../..
-git_root=`pwd`
-cd -
+GRPC_ROOT=`pwd`
+MOUNT_ARGS="-v $GRPC_ROOT:/var/local/jenkins/grpc:ro"
 
-# Ensure existence of ccache directory
 mkdir -p /tmp/ccache
 
-# Ensure existence of the home directory for XDG caches (e.g. what pip uses for
-# its cache location now that --download-cache is deprecated).
-mkdir -p /tmp/xdg-cache-home
+# Mount service account dir if available.
+# If service_directory does not contain the service account JSON file,
+# some of the tests will fail.
+if [ -e $HOME/service_account ]
+then
+  MOUNT_ARGS+=" -v $HOME/service_account:/var/local/jenkins/service_account:ro"
+fi
+
+# Use image name based on Dockerfile checksum
+BASE_IMAGE=${BASE_NAME}_base:`sha1sum tools/jenkins/$BASE_NAME/Dockerfile | cut -f1 -d\ `
+
+# Make sure base docker image has been built. Should be instantaneous if so.
+docker build -t $BASE_IMAGE --force-rm=true tools/jenkins/$BASE_NAME || exit $?
 
 # Create a local branch so the child Docker script won't complain
 git branch -f jenkins-docker
 
-# Use image name based on Dockerfile checksum
-DOCKER_IMAGE_NAME=grpc_jenkins_slave${docker_suffix}_`sha1sum tools/jenkins/grpc_jenkins_slave/Dockerfile | cut -f1 -d\ `
+CONTAINER_NAME="build_${BASE_NAME}_$(uuidgen)"
 
-# Make sure docker image has been built. Should be instantaneous if so.
-docker build -t $DOCKER_IMAGE_NAME tools/jenkins/grpc_jenkins_slave$docker_suffix
-
-# Choose random name for docker container
-CONTAINER_NAME="run_tests_$(uuidgen)"
-
-# Run tests inside docker
-docker run \
-  -e "RUN_TESTS_COMMAND=$RUN_TESTS_COMMAND" \
-  -e "config=$config" \
-  -e "arch=$arch" \
+# Prepare image for interop tests, commit it on success.
+(docker run \
   -e CCACHE_DIR=/tmp/ccache \
-  -e XDG_CACHE_HOME=/tmp/xdg-cache-home \
   -e THIS_IS_REALLY_NEEDED='see https://github.com/docker/docker/issues/14203 for why docker is awful' \
   -i $TTY_FLAG \
-  -v "$git_root:/var/local/jenkins/grpc" \
+  $MOUNT_ARGS \
+  $BUILD_INTEROP_DOCKER_EXTRA_ARGS \
   -v /tmp/ccache:/tmp/ccache \
-  -v /tmp/npm-cache:/tmp/npm-cache \
-  -v /tmp/xdg-cache-home:/tmp/xdg-cache-home \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v $(which docker):/bin/docker \
-  -w /var/local/git/grpc \
   --name=$CONTAINER_NAME \
-  $DOCKER_IMAGE_NAME \
-  bash -l /var/local/jenkins/grpc/tools/jenkins/docker_run_tests.sh || DOCKER_FAILED="true"
+  $BASE_IMAGE \
+  bash -l /var/local/jenkins/grpc/tools/jenkins/$BASE_NAME/build_interop_stress.sh \
+  && docker commit $CONTAINER_NAME $INTEROP_IMAGE \
+  && echo "Successfully built image $INTEROP_IMAGE")
+EXITCODE=$?
 
-if [ "$XML_REPORT" != "" ]
-then
-  docker cp "$CONTAINER_NAME:/var/local/git/grpc/$XML_REPORT" $git_root
-fi
+# remove intermediate container, possibly killing it first
+docker rm -f $CONTAINER_NAME
 
-docker cp "$CONTAINER_NAME:/var/local/git/grpc/reports.zip" $git_root || true
-unzip -o $git_root/reports.zip -d $git_root || true
-rm -f reports.zip
-
-# remove the container, possibly killing it first
-docker rm -f $CONTAINER_NAME || true
-
-if [ "$DOCKER_FAILED" != "" ] && [ "$XML_REPORT" == "" ]
-then
-  exit 1
-fi
+exit $EXITCODE
