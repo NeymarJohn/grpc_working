@@ -40,7 +40,10 @@
 
 /* --- status enum. --- */
 
-typedef enum { GRPC_SECURITY_OK = 0, GRPC_SECURITY_ERROR } grpc_security_status;
+typedef enum {
+  GRPC_SECURITY_OK = 0,
+  GRPC_SECURITY_ERROR
+} grpc_security_status;
 
 /* --- URL schemes. --- */
 

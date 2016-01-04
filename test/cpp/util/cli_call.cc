@@ -46,7 +46,7 @@
 namespace grpc {
 namespace testing {
 namespace {
-void* tag(int i) { return (void*)(intptr_t)i; }
+void* tag(int i) { return (void*)(gpr_intptr)i; }
 }  // namespace
 
 Status CliCall::Call(std::shared_ptr<grpc::Channel> channel,
