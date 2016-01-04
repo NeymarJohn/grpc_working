@@ -64,12 +64,9 @@
 namespace grpc {
 namespace testing {
 
-class SynchronousClient :
-      public ClientImpl<BenchmarkService::Stub, SimpleRequest>  {
+class SynchronousClient : public Client {
  public:
-  SynchronousClient(const ClientConfig& config) :
-      ClientImpl<BenchmarkService::Stub,
-                 SimpleRequest>(config, BenchmarkService::NewStub) {
+  SynchronousClient(const ClientConfig& config) : Client(config) {
     num_threads_ =
         config.outstanding_rpcs_per_channel() * config.client_channels();
     responses_.resize(num_threads_);
