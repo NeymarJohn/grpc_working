@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,11 +39,11 @@ static void *fake_malloc(size_t size) { return (void *)size; }
 
 static void *fake_realloc(void *addr, size_t size) { return (void *)size; }
 
-static void fake_free(void *addr) { *((intptr_t *)addr) = 0xdeadd00d; }
+static void fake_free(void *addr) { *((gpr_intptr *)addr) = 0xdeadd00d; }
 
 static void test_custom_allocs() {
   const gpr_allocation_functions default_fns = gpr_get_allocation_functions();
-  intptr_t addr_to_free = 0;
+  gpr_intptr addr_to_free = 0;
   int *i;
   gpr_allocation_functions fns = {fake_malloc, fake_realloc, fake_free};
 
