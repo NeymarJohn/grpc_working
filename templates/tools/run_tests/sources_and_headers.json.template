@@ -31,6 +31,5 @@
                      tgt.get('headers', []) + 
                      proto_headers(tgt.src)),
                  "deps": sorted(tgt.get('deps', []))}
-                for tgt in (targets + libs)
-                if not tgt.boringssl],
+                for tgt in (targets + libs)],
                sort_keys=True, indent=2)}
