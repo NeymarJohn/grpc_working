@@ -37,5 +37,3 @@ cdef class CompletionQueue:
   cdef bint is_polling
   cdef bint is_shutting_down
   cdef bint is_shutdown
-
-  cdef _interpret_event(self, grpc.grpc_event event)
