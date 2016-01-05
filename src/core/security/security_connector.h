@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,10 @@
 
 /* --- status enum. --- */
 
-typedef enum { GRPC_SECURITY_OK = 0, GRPC_SECURITY_ERROR } grpc_security_status;
+typedef enum {
+  GRPC_SECURITY_OK = 0,
+  GRPC_SECURITY_ERROR
+} grpc_security_status;
 
 /* --- URL schemes. --- */
 
