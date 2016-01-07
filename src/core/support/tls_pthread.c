@@ -37,7 +37,7 @@
 
 #include <grpc/support/tls.h>
 
-intptr_t gpr_tls_set(struct gpr_pthread_thread_local *tls, intptr_t value) {
+gpr_intptr gpr_tls_set(struct gpr_pthread_thread_local *tls, gpr_intptr value) {
   GPR_ASSERT(0 == pthread_setspecific(tls->key, (void *)value));
   return value;
 }
