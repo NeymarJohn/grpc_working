@@ -39,12 +39,12 @@
 #include <grpc/support/port_platform.h>
 #include "src/core/support/string.h"
 
-static int64_t round_up(int64_t x, int64_t divisor) {
+static gpr_int64 round_up(gpr_int64 x, gpr_int64 divisor) {
   return (x / divisor + (x % divisor != 0)) * divisor;
 }
 
 /* round an integer up to the next value with three significant figures */
-static int64_t round_up_to_three_sig_figs(int64_t x) {
+static gpr_int64 round_up_to_three_sig_figs(gpr_int64 x) {
   if (x < 1000) return x;
   if (x < 10000) return round_up(x, 10);
   if (x < 100000) return round_up(x, 100);
@@ -58,13 +58,13 @@ static int64_t round_up_to_three_sig_figs(int64_t x) {
 /* encode our minimum viable timeout value */
 static void enc_tiny(char *buffer) { memcpy(buffer, "1n", 3); }
 
-static void enc_ext(char *buffer, int64_t value, char ext) {
-  int n = int64_ttoa(value, buffer);
+static void enc_ext(char *buffer, gpr_int64 value, char ext) {
+  int n = gpr_int64toa(value, buffer);
   buffer[n] = ext;
   buffer[n + 1] = 0;
 }
 
-static void enc_seconds(char *buffer, int64_t sec) {
+static void enc_seconds(char *buffer, gpr_int64 sec) {
   if (sec % 3600 == 0) {
     enc_ext(buffer, sec / 3600, 'H');
   } else if (sec % 60 == 0) {
@@ -74,7 +74,7 @@ static void enc_seconds(char *buffer, int64_t sec) {
   }
 }
 
-static void enc_nanos(char *buffer, int64_t x) {
+static void enc_nanos(char *buffer, gpr_int64 x) {
   x = round_up_to_three_sig_figs(x);
   if (x < 100000) {
     if (x % 1000 == 0) {
@@ -98,7 +98,7 @@ static void enc_nanos(char *buffer, int64_t x) {
   }
 }
 
-static void enc_micros(char *buffer, int64_t x) {
+static void enc_micros(char *buffer, gpr_int64 x) {
   x = round_up_to_three_sig_figs(x);
   if (x < 100000) {
     if (x % 1000 == 0) {
@@ -124,7 +124,7 @@ void grpc_chttp2_encode_timeout(gpr_timespec timeout, char *buffer) {
     enc_nanos(buffer, timeout.tv_nsec);
   } else if (timeout.tv_sec < 1000 && timeout.tv_nsec != 0) {
     enc_micros(buffer,
-               (int64_t)(timeout.tv_sec * 1000000) +
+               (gpr_int64)(timeout.tv_sec * 1000000) +
                    (timeout.tv_nsec / 1000 + (timeout.tv_nsec % 1000 != 0)));
   } else {
     enc_seconds(buffer, timeout.tv_sec + (timeout.tv_nsec != 0));
@@ -137,15 +137,15 @@ static int is_all_whitespace(const char *p) {
 }
 
 int grpc_chttp2_decode_timeout(const char *buffer, gpr_timespec *timeout) {
-  uint32_t x = 0;
-  const uint8_t *p = (const uint8_t *)buffer;
+  gpr_uint32 x = 0;
+  const gpr_uint8 *p = (const gpr_uint8 *)buffer;
   int have_digit = 0;
   /* skip whitespace */
   for (; *p == ' '; p++)
     ;
   /* decode numeric part */
   for (; *p >= '0' && *p <= '9'; p++) {
-    uint32_t xp = x * 10u + (uint32_t)*p - (uint32_t)'0';
+    gpr_uint32 xp = x * 10u + (gpr_uint32)*p - (gpr_uint32)'0';
     have_digit = 1;
     if (xp < x) {
       *timeout = gpr_inf_future(GPR_CLOCK_REALTIME);

@@ -47,12 +47,12 @@ struct grpc_byte_stream;
 typedef struct grpc_byte_stream grpc_byte_stream;
 
 struct grpc_byte_stream {
-  uint32_t length;
-  uint32_t flags;
+  gpr_uint32 length;
+  gpr_uint32 flags;
   int (*next)(grpc_exec_ctx *exec_ctx, grpc_byte_stream *byte_stream,
               gpr_slice *slice, size_t max_size_hint,
               grpc_closure *on_complete);
-  void (*destroy)(grpc_exec_ctx *exec_ctx, grpc_byte_stream *byte_stream);
+  void (*destroy)(grpc_byte_stream *byte_stream);
 };
 
 /* returns 1 if the bytes are available immediately (in which case
@@ -72,8 +72,7 @@ int grpc_byte_stream_next(grpc_exec_ctx *exec_ctx,
                           grpc_byte_stream *byte_stream, gpr_slice *slice,
                           size_t max_size_hint, grpc_closure *on_complete);
 
-void grpc_byte_stream_destroy(grpc_exec_ctx *exec_ctx,
-                              grpc_byte_stream *byte_stream);
+void grpc_byte_stream_destroy(grpc_byte_stream *byte_stream);
 
 /* grpc_byte_stream that wraps a slice buffer */
 typedef struct grpc_slice_buffer_stream {
@@ -84,6 +83,6 @@ typedef struct grpc_slice_buffer_stream {
 
 void grpc_slice_buffer_stream_init(grpc_slice_buffer_stream *stream,
                                    gpr_slice_buffer *slice_buffer,
-                                   uint32_t flags);
+                                   gpr_uint32 flags);
 
 #endif /* GRPC_INTERNAL_CORE_TRANSPORT_BYTE_STREAM_H */
