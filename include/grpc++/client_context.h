@@ -137,10 +137,10 @@ class PropagationOptions {
     return *this;
   }
 
-  gpr_uint32 c_bitmask() const { return propagate_; }
+  uint32_t c_bitmask() const { return propagate_; }
 
  private:
-  gpr_uint32 propagate_;
+  uint32_t propagate_;
 };
 
 namespace testing {
@@ -244,7 +244,7 @@ class ClientContext {
   /// client’s identity, role, or whether it is authorized to make a particular
   /// call.
   ///
-  /// \see  http://www.grpc.io/docs/guides/auth.html
+  /// \see  https://github.com/grpc/grpc/blob/master/doc/grpc-auth-support.md
   void set_credentials(const std::shared_ptr<CallCredentials>& creds) {
     creds_ = creds;
   }
