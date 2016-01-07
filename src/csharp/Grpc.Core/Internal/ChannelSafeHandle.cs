@@ -92,7 +92,7 @@ namespace Grpc.Core.Internal
                 {
                     result.SetCredentials(credentials);
                 }
-                result.Initialize(registry, cq);
+                result.SetCompletionRegistry(registry);
                 return result;
             }
         }

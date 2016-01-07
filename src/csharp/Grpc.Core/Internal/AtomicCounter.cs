@@ -40,39 +40,14 @@ namespace Grpc.Core.Internal
     {
         long counter = 0;
 
-        public AtomicCounter(long initialCount = 0)
+        public void Increment()
         {
-            this.counter = initialCount;
+            Interlocked.Increment(ref counter);
         }
 
-        public long Increment()
+        public void Decrement()
         {
-            return Interlocked.Increment(ref counter);
-        }
-
-        public void IncrementIfNonzero(ref bool success)
-        {
-            long origValue = counter;
-            while (true)
-            {
-                if (origValue == 0)
-                {
-                    success = false;
-                    return;
-                }
-                long result = Interlocked.CompareExchange(ref counter, origValue + 1, origValue);
-                if (result == origValue)
-                {
-                    success = true;
-                    return;
-                };
-                origValue = result;
-            }
-        }
-
-        public long Decrement()
-        {
-            return Interlocked.Decrement(ref counter);
+            Interlocked.Decrement(ref counter);
         }
 
         public long Count

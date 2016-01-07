@@ -316,6 +316,7 @@ filegroups:
   - src/core/surface/server.c
   - src/core/surface/server_chttp2.c
   - src/core/surface/server_create.c
+  - src/core/surface/validate_metadata.c
   - src/core/surface/version.c
   - src/core/transport/byte_stream.c
   - src/core/transport/chttp2/alpn.c
@@ -479,7 +480,6 @@ libs:
   - src/core/security/security_context.h
   - src/core/tsi/fake_transport_security.h
   - src/core/tsi/ssl_transport_security.h
-  - src/core/tsi/ssl_types.h
   - src/core/tsi/transport_security.h
   - src/core/tsi/transport_security_interface.h
   src:
@@ -2415,14 +2415,6 @@ targets:
   - zookeeper
   platforms:
   - linux
-- name: public_headers_must_be_c89
-  build: test
-  language: c89
-  src:
-  - test/core/surface/public_headers_must_be_c89.c
-  deps:
-  - grpc
-  - gpr
 vspackages:
 - linkage: static
   name: grpc.dependencies.zlib
@@ -2474,7 +2466,3 @@ node_modules:
   - src/node/ext/server.cc
   - src/node/ext/server_credentials.cc
   - src/node/ext/timeval.cc
-python_dependencies:
-  deps:
-  - grpc
-  - gpr
