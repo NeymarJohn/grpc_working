@@ -137,10 +137,10 @@ class PropagationOptions {
     return *this;
   }
 
-  uint32_t c_bitmask() const { return propagate_; }
+  gpr_uint32 c_bitmask() const { return propagate_; }
 
  private:
-  uint32_t propagate_;
+  gpr_uint32 propagate_;
 };
 
 namespace testing {
