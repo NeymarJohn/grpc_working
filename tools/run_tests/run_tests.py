@@ -53,7 +53,6 @@ import jobset
 import report_utils
 import watch_dirs
 
-
 ROOT = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '../..'))
 os.chdir(ROOT)
 
@@ -686,30 +685,23 @@ if args.use_docker:
   sys.exit(0)
 
 # update submodules if necessary
-need_to_regenerate_projects = False
-for spec in args.update_submodules:
-  spec = spec.split(':', 1)
-  if len(spec) == 1:
-    submodule = spec[0]
-    branch = 'master'
-  elif len(spec) == 2:
-    submodule = spec[0]
-    branch = spec[1]
-  cwd = 'third_party/%s' % submodule
-  def git(cmd, cwd=cwd):
-    print 'in %s: git %s' % (cwd, cmd)
-    subprocess.check_call('git %s' % cmd, cwd=cwd, shell=True)
-  git('fetch')
-  git('checkout %s' % branch)
-  git('pull origin %s' % branch)
-  if os.path.exists('src/%s/gen_build_yaml.py' % submodule):
-    need_to_regenerate_projects = True
-if need_to_regenerate_projects:
-  if jobset.platform_string() == 'linux':
-    subprocess.check_call('tools/buildgen/generate_projects.sh', shell=True)
-  else:
-    print 'WARNING: may need to regenerate projects, but since we are not on'
-    print '         Linux this step is being skipped. Compilation MAY fail.'
+if args.update_submodules:
+  for spec in args.update_submodules:
+    spec = spec.split(':', 1)
+    if len(spec) == 1:
+      submodule = spec[0]
+      branch = 'master'
+    elif len(spec) == 2:
+      submodule = spec[0]
+      branch = spec[1]
+    cwd = 'third_party/%s' % submodule
+    def git(cmd, cwd=cwd):
+      print 'in %s: git %s' % (cwd, cmd)
+      subprocess.check_call('git %s' % cmd, cwd=cwd, shell=True)
+    git('fetch')
+    git('checkout %s' % branch)
+    git('pull origin %s' % branch)
+  subprocess.check_call('tools/buildgen/generate_projects.sh', shell=True)
 
 
 # grab config
@@ -970,7 +962,7 @@ def _build_and_run(
       newline_on_success=newline_on_success, travis=args.travis)
   if num_failures:
     return 1
-
+    
   if build_only:
     return 0
 
