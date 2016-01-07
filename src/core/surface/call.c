@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 #include <string.h>
 
 #include <grpc/compression.h>
-#include <grpc/grpc.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/string_util.h>
@@ -361,7 +360,7 @@ static void destroy_call(grpc_exec_ctx *exec_ctx, void *call, int success) {
         &c->metadata_batch[1 /* is_receiving */][i /* is_initial */]);
   }
   if (c->receiving_stream != NULL) {
-    grpc_byte_stream_destroy(c->receiving_stream);
+    grpc_byte_stream_destroy(exec_ctx, c->receiving_stream);
   }
   grpc_call_stack_destroy(exec_ctx, CALL_STACK_FROM_CALL(c));
   GRPC_CHANNEL_INTERNAL_UNREF(exec_ctx, c->channel, "call");
@@ -563,16 +562,12 @@ static int prepare_application_metadata(grpc_call *call, int count,
     GPR_ASSERT(sizeof(grpc_linked_mdelem) == sizeof(md->internal_data));
     l->md = grpc_mdelem_from_string_and_buffer(
         md->key, (const gpr_uint8 *)md->value, md->value_length);
-    if (!grpc_header_key_is_legal(grpc_mdstr_as_c_string(l->md->key),
-                                  GRPC_MDSTR_LENGTH(l->md->key))) {
+    if (!grpc_mdstr_is_legal_header(l->md->key)) {
       gpr_log(GPR_ERROR, "attempt to send invalid metadata key: %s",
               grpc_mdstr_as_c_string(l->md->key));
       return 0;
-    } else if (!grpc_is_binary_header(grpc_mdstr_as_c_string(l->md->key),
-                                      GRPC_MDSTR_LENGTH(l->md->key)) &&
-               !grpc_header_nonbin_value_is_legal(
-                   grpc_mdstr_as_c_string(l->md->value),
-                   GRPC_MDSTR_LENGTH(l->md->value))) {
+    } else if (!grpc_mdstr_is_bin_suffixed(l->md->key) &&
+               !grpc_mdstr_is_legal_nonbin_header(l->md->value)) {
       gpr_log(GPR_ERROR, "attempt to send invalid metadata value");
       return 0;
     }
@@ -956,7 +951,7 @@ static void continue_receiving_slices(grpc_exec_ctx *exec_ctx,
                        (*call->receiving_buffer)->data.raw.slice_buffer.length;
     if (remaining == 0) {
       call->receiving_message = 0;
-      grpc_byte_stream_destroy(call->receiving_stream);
+      grpc_byte_stream_destroy(exec_ctx, call->receiving_stream);
       call->receiving_stream = NULL;
       if (gpr_unref(&bctl->steps_to_complete)) {
         post_batch_completion(exec_ctx, bctl);
@@ -979,11 +974,19 @@ static void receiving_slice_ready(grpc_exec_ctx *exec_ctx, void *bctlp,
   batch_control *bctl = bctlp;
   grpc_call *call = bctl->call;
 
-  GPR_ASSERT(success);
-  gpr_slice_buffer_add(&(*call->receiving_buffer)->data.raw.slice_buffer,
-                       call->receiving_slice);
-
-  continue_receiving_slices(exec_ctx, bctl);
+  if (success) {
+    gpr_slice_buffer_add(&(*call->receiving_buffer)->data.raw.slice_buffer,
+                         call->receiving_slice);
+    continue_receiving_slices(exec_ctx, bctl);
+  } else {
+    grpc_byte_stream_destroy(exec_ctx, call->receiving_stream);
+    call->receiving_stream = NULL;
+    grpc_byte_buffer_destroy(*call->receiving_buffer);
+    *call->receiving_buffer = NULL;
+    if (gpr_unref(&bctl->steps_to_complete)) {
+      post_batch_completion(exec_ctx, bctl);
+    }
+  }
 }
 
 static void finish_batch(grpc_exec_ctx *exec_ctx, void *bctlp, int success) {
@@ -1065,6 +1068,7 @@ static void receiving_stream_ready(grpc_exec_ctx *exec_ctx, void *bctlp,
 
   if (call->receiving_stream == NULL) {
     *call->receiving_buffer = NULL;
+    call->receiving_message = 0;
     if (gpr_unref(&bctl->steps_to_complete)) {
       post_batch_completion(exec_ctx, bctl);
     }
@@ -1072,9 +1076,10 @@ static void receiving_stream_ready(grpc_exec_ctx *exec_ctx, void *bctlp,
              grpc_channel_get_max_message_length(call->channel)) {
     cancel_with_status(exec_ctx, call, GRPC_STATUS_INTERNAL,
                        "Max message size exceeded");
-    grpc_byte_stream_destroy(call->receiving_stream);
+    grpc_byte_stream_destroy(exec_ctx, call->receiving_stream);
     call->receiving_stream = NULL;
     *call->receiving_buffer = NULL;
+    call->receiving_message = 0;
     if (gpr_unref(&bctl->steps_to_complete)) {
       post_batch_completion(exec_ctx, bctl);
     }
@@ -1362,7 +1367,7 @@ done_with_error:
   }
   if (bctl->send_message) {
     call->sending_message = 0;
-    grpc_byte_stream_destroy(&call->sending_stream.base);
+    grpc_byte_stream_destroy(exec_ctx, &call->sending_stream.base);
   }
   if (bctl->send_final_op) {
     call->sent_final_op = 0;

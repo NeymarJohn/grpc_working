@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -8,9 +8,9 @@
  * met:
  *
  *     * Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
+ * notice, this list of conditions and the following disclaimser.
  *     * Redistributions in binary form must reproduce the above
- * copyright notice, this list of conditions and the following disclaimer
+ * copyright notice, this list of conditions and the following disclaimser
  * in the documentation and/or other materials provided with the
  * distribution.
  *     * Neither the name of Google Inc. nor the names of its
@@ -38,6 +38,7 @@
 
 #include "src/core/httpcli/httpcli.h"
 #include "src/core/security/base64.h"
+#include "src/core/tsi/ssl_types.h"
 
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
@@ -443,7 +444,7 @@ static BIGNUM *bignum_from_base64(const char *b64) {
     return NULL;
   }
   result =
-      BN_bin2bn(GPR_SLICE_START_PTR(bin), (int)GPR_SLICE_LENGTH(bin), NULL);
+      BN_bin2bn(GPR_SLICE_START_PTR(bin), TSI_SIZE_AS_SIZE(GPR_SLICE_LENGTH(bin)), NULL);
   gpr_slice_unref(bin);
   return result;
 }
