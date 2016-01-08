@@ -102,8 +102,7 @@ TEST_F(StringRefTest, Iterator) {
   string_ref s(kTestString);
   size_t i = 0;
   for (auto it = s.cbegin(); it != s.cend(); ++it) {
-    auto val = kTestString[i++];
-    EXPECT_EQ(val, *it);
+    EXPECT_EQ(kTestString[i++], *it);
   }
   EXPECT_EQ(strlen(kTestString), i);
 }
@@ -112,8 +111,7 @@ TEST_F(StringRefTest, ReverseIterator) {
   string_ref s(kTestString);
   size_t i = strlen(kTestString);
   for (auto rit = s.crbegin(); rit != s.crend(); ++rit) {
-    auto val = kTestString[--i];
-    EXPECT_EQ(val, *rit);
+    EXPECT_EQ(kTestString[--i], *rit);
   }
   EXPECT_EQ(0U, i);
 }
