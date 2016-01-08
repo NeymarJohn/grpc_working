@@ -688,6 +688,8 @@ gpr_slice grpc_mdstr_as_base64_encoded_and_huffman_compressed(grpc_mdstr *gs) {
   gpr_mu_unlock(&shard->mu);
   return slice;
 }
+<<<<<<< HEAD
+=======
 
 static int conforms_to(grpc_mdstr *s, const uint8_t *legal_bits) {
   const uint8_t *p = GPR_SLICE_START_PTR(s->slice);
@@ -722,3 +724,4 @@ int grpc_mdstr_is_bin_suffixed(grpc_mdstr *s) {
   return grpc_is_binary_header((const char *)GPR_SLICE_START_PTR(s->slice),
                                GPR_SLICE_LENGTH(s->slice));
 }
+>>>>>>> master

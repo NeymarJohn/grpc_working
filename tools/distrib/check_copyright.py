@@ -143,4 +143,3 @@ for filename in subprocess.check_output('git ls-tree -r --name-only -r HEAD',
     ok = False
 
 sys.exit(0 if ok else 1)
-
