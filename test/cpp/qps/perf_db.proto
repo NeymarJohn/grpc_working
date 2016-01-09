@@ -29,14 +29,15 @@
 
 syntax = "proto3";
 
-import "src/proto/grpc/testing/control.proto";
+import "test/proto/benchmarks/control.proto";
 
 package grpc.testing;
 
 service PerfDbTransfer {
   // Sends client info
   rpc RecordSingleClientData(SingleUserRecordRequest)
-      returns (SingleUserRecordReply) {}
+      returns (SingleUserRecordReply) {
+  }
 }
 
 // Metrics to be stored
@@ -66,4 +67,5 @@ message SingleUserRecordRequest {
 }
 
 // Reply to request for storing single user's data
-message SingleUserRecordReply {}
+message SingleUserRecordReply {
+}
