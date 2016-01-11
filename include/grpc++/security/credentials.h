@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ class SecureCallCredentials;
 /// It can make various assertions, e.g., about the client’s identity, role
 /// for all the calls on that channel.
 ///
-/// \see http://www.grpc.io/docs/guides/auth.html
+/// \see https://github.com/grpc/grpc/blob/master/doc/grpc-auth-support.md
 class ChannelCredentials : public GrpcLibrary {
  public:
   ~ChannelCredentials() GRPC_OVERRIDE;
@@ -80,7 +80,7 @@ class ChannelCredentials : public GrpcLibrary {
 /// A call credentials object encapsulates the state needed by a client to
 /// authenticate with a server for a given call on a channel.
 ///
-/// \see http://www.grpc.io/docs/guides/auth.html
+/// \see https://github.com/grpc/grpc/blob/master/doc/grpc-auth-support.md
 class CallCredentials : public GrpcLibrary {
  public:
   ~CallCredentials() GRPC_OVERRIDE;

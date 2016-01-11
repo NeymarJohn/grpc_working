@@ -47,7 +47,7 @@ typedef struct census_window_stats_sum cws_sum;
 /* Each interval is composed of a number of buckets, which hold a count of
    entries and a single statistic */
 typedef struct census_window_stats_bucket {
-  int64_t count;
+  gpr_int64 count;
   void *statistic;
 } cws_bucket;
 
@@ -59,11 +59,11 @@ typedef struct census_window_stats_interval_stats {
   /* Index of the bucket containing the smallest time interval. */
   int bottom_bucket;
   /* The smallest time storable in the current window. */
-  int64_t bottom;
+  gpr_int64 bottom;
   /* The largest time storable in the current window + 1ns */
-  int64_t top;
+  gpr_int64 top;
   /* The width of each bucket in ns. */
-  int64_t width;
+  gpr_int64 width;
 } cws_interval_stats;
 
 typedef struct census_window_stats {
@@ -76,7 +76,7 @@ typedef struct census_window_stats {
   /* Stats for each interval. */
   cws_interval_stats *interval_stats;
   /* The time the newset stat was recorded. */
-  int64_t newest_time;
+  gpr_int64 newest_time;
 } window_stats;
 
 /* Calculate an actual bucket index from a logical index 'IDX'. Other
@@ -87,9 +87,10 @@ typedef struct census_window_stats {
 /* The maximum seconds value we can have in a valid timespec. More than this
    will result in overflow in timespec_to_ns(). This works out to ~292 years.
    TODO: consider using doubles instead of int64. */
-static int64_t max_seconds = (GPR_INT64_MAX - GPR_NS_PER_SEC) / GPR_NS_PER_SEC;
+static gpr_int64 max_seconds =
+    (GPR_INT64_MAX - GPR_NS_PER_SEC) / GPR_NS_PER_SEC;
 
-static int64_t timespec_to_ns(const gpr_timespec ts) {
+static gpr_int64 timespec_to_ns(const gpr_timespec ts) {
   if (ts.tv_sec > max_seconds) {
     return GPR_INT64_MAX - 1;
   }
@@ -122,7 +123,7 @@ window_stats *census_window_stats_create(int nintervals,
   GPR_ASSERT(nintervals > 0 && granularity > 2 && intervals != NULL &&
              stat_info != NULL);
   for (i = 0; i < nintervals; i++) {
-    int64_t ns = timespec_to_ns(intervals[i]);
+    gpr_int64 ns = timespec_to_ns(intervals[i]);
     GPR_ASSERT(intervals[i].tv_sec >= 0 && intervals[i].tv_nsec >= 0 &&
                intervals[i].tv_nsec < GPR_NS_PER_SEC && ns >= 100 &&
                granularity * 10 <= ns);
@@ -135,7 +136,7 @@ window_stats *census_window_stats_create(int nintervals,
   ret->interval_stats =
       (cws_interval_stats *)gpr_malloc(nintervals * sizeof(cws_interval_stats));
   for (i = 0; i < nintervals; i++) {
-    int64_t size_ns = timespec_to_ns(intervals[i]);
+    gpr_int64 size_ns = timespec_to_ns(intervals[i]);
     cws_interval_stats *is = ret->interval_stats + i;
     cws_bucket *buckets = is->buckets =
         (cws_bucket *)gpr_malloc(ret->nbuckets * sizeof(cws_bucket));
@@ -168,7 +169,7 @@ window_stats *census_window_stats_create(int nintervals,
 /* When we try adding a measurement above the current interval range, we
    need to "shift" the buckets sufficiently to cover the new range. */
 static void cws_shift_buckets(const window_stats *wstats,
-                              cws_interval_stats *is, int64_t when_ns) {
+                              cws_interval_stats *is, gpr_int64 when_ns) {
   int i;
   /* number of bucket time widths to "shift" */
   int shift;
@@ -193,7 +194,7 @@ static void cws_shift_buckets(const window_stats *wstats,
 void census_window_stats_add(window_stats *wstats, const gpr_timespec when,
                              const void *stat_value) {
   int i;
-  int64_t when_ns = timespec_to_ns(when);
+  gpr_int64 when_ns = timespec_to_ns(when);
   GPR_ASSERT(wstats->interval_stats != NULL);
   for (i = 0; i < wstats->nintervals; i++) {
     cws_interval_stats *is = wstats->interval_stats + i;
@@ -234,7 +235,7 @@ static void cws_add_proportion_to_sum(double p, cws_sum *sum,
 void census_window_stats_get_sums(const window_stats *wstats,
                                   const gpr_timespec when, cws_sum sums[]) {
   int i;
-  int64_t when_ns = timespec_to_ns(when);
+  gpr_int64 when_ns = timespec_to_ns(when);
   GPR_ASSERT(wstats->interval_stats != NULL);
   for (i = 0; i < wstats->nintervals; i++) {
     int when_bucket;
@@ -263,7 +264,7 @@ void census_window_stats_get_sums(const window_stats *wstats,
     when_bucket = (when_ns - is->bottom) / is->width;
     new_bucket = (wstats->newest_time - is->bottom) / is->width;
     if (new_bucket == when_bucket) {
-      int64_t bottom_bucket_time = is->bottom + when_bucket * is->width;
+      gpr_int64 bottom_bucket_time = is->bottom + when_bucket * is->width;
       if (when_ns < wstats->newest_time) {
         last_proportion = (double)(when_ns - bottom_bucket_time) /
                           (double)(wstats->newest_time - bottom_bucket_time);
