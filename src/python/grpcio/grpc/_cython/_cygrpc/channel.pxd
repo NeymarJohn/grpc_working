@@ -27,13 +27,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from grpc._cython._cygrpc cimport grpc
 
-cdef class CompletionQueue:
 
-  cdef grpc_completion_queue *c_completion_queue
-  cdef object poll_condition
-  cdef bint is_polling
-  cdef bint is_shutting_down
-  cdef bint is_shutdown
+cdef class Channel:
 
-  cdef _interpret_event(self, grpc_event event)
+  cdef grpc.grpc_channel *c_channel
+  cdef list references

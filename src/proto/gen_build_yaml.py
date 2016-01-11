@@ -1,3 +1,4 @@
+#!/usr/bin/env python2.7
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,15 +29,31 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-cdef class Server:
+"""Generates the appropriate build.json data for all the proto files."""
+import yaml
+import collections
+import os
+import re
+import sys
 
-  cdef grpc_server *c_server
-  cdef bint is_started  # start has been called
-  cdef bint is_shutting_down  # shutdown has been called
-  cdef bint is_shutdown  # notification of complete shutdown received
-  # used at dealloc when user forgets to shutdown
-  cdef CompletionQueue backup_shutdown_queue
-  cdef list references
-  cdef list registered_completion_queues
+def main():
+  deps = {}
+  for root, dirs, files in os.walk(os.path.dirname(sys.argv[0])):
+    for f in files:
+      if f[-6:] != '.proto': continue
+      look_at = os.path.join(root, f)
+      with open(look_at) as inp:
+        for line in inp:
+          imp = re.search(r'import "([^"]*)"', line)
+          if not imp: continue
+          if look_at[:-6] not in deps: deps[look_at[:-6]] = []
+          deps[look_at[:-6]].append(imp.group(1)[:-6])
 
-  cdef notify_shutdown_complete(self)
+  json = {
+    'proto_deps': deps
+  }
+
+  print yaml.dump(json)
+
+if __name__ == '__main__':
+  main()
