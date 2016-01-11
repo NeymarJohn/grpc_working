@@ -33,7 +33,6 @@
 
 #include "src/core/security/base64.h"
 
-#include <stdint.h>
 #include <string.h>
 
 #include <grpc/support/alloc.h>
@@ -42,7 +41,7 @@
 
 /* --- Constants. --- */
 
-static const int8_t base64_bytes[] = {
+static const char base64_bytes[] = {
     -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
     -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
     -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
