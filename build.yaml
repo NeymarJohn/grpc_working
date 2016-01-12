@@ -797,9 +797,8 @@ libs:
   src:
   - src/csharp/ext/grpc_csharp_ext.c
   deps:
-  - grpc
   - gpr
-  deps_linkage: static
+  - grpc
   dll: only
   vs_config_type: DynamicLibrary
   vs_packages:
@@ -2431,8 +2430,7 @@ vspackages:
   props: false
   redist: true
   version: 1.2.8.10
-- linkage: static
-  name: grpc.dependencies.openssl
+- name: grpc.dependencies.openssl
   props: true
   redist: true
   version: 1.0.204.1
@@ -2477,3 +2475,8 @@ node_modules:
   - src/node/ext/server.cc
   - src/node/ext/server_credentials.cc
   - src/node/ext/timeval.cc
+python_dependencies:
+  deps:
+  - grpc
+  - gpr
+  - boringssl

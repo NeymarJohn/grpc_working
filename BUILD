@@ -969,8 +969,8 @@ cc_library(
     ".",
   ],
   deps = [
-    ":grpc",
     ":gpr",
+    ":grpc",
   ],
 )
 

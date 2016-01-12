@@ -7,7 +7,7 @@
   # This file can be regenerated from the template by running
   # tools/buildgen/generate_projects.sh
 
-  # Copyright 2015, Google Inc.
+  # Copyright 2015-2016, Google Inc.
   # All rights reserved.
   #
   # Redistribution and use in source and binary forms, with or without
@@ -1645,18 +1645,11 @@
     if lib.language == 'c++':
       lib_deps += ' $(PROTOBUF_DEP)'
       mingw_lib_deps += ' $(PROTOBUF_DEP)'
-    if lib.get('deps_linkage', None) == 'static':
-      for dep in lib.get('deps', []):
-        lib_archive = '$(LIBDIR)/$(CONFIG)/lib' + dep + '.a'
-        common = common + ' ' + lib_archive
-        lib_deps = lib_deps + ' ' + lib_archive
-        mingw_lib_deps = mingw_lib_deps + ' ' + lib_archive
-    else:
-      for dep in lib.get('deps', []):
-        libs = libs + ' -l' + dep
-        lib_deps = lib_deps + ' $(LIBDIR)/$(CONFIG)/lib' + dep + '.$(SHARED_EXT)'
-        mingw_libs = mingw_libs + ' -l' + dep + '-imp'
-        mingw_lib_deps = mingw_lib_deps + ' $(LIBDIR)/$(CONFIG)/' + dep + '.$(SHARED_EXT)'
+    for dep in lib.get('deps', []):
+      libs = libs + ' -l' + dep
+      lib_deps = lib_deps + ' $(LIBDIR)/$(CONFIG)/lib' + dep + '.$(SHARED_EXT)'
+      mingw_libs = mingw_libs + ' -l' + dep + '-imp'
+      mingw_lib_deps = mingw_lib_deps + ' $(LIBDIR)/$(CONFIG)/' + dep + '.$(SHARED_EXT)'
 
     security = lib.get('secure', 'check')
     if security == True:
