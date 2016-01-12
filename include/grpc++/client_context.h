@@ -76,13 +76,13 @@ template <class R>
 class ClientReader;
 template <class W>
 class ClientWriter;
-template <class W, class R>
+template <class R, class W>
 class ClientReaderWriter;
 template <class R>
 class ClientAsyncReader;
 template <class W>
 class ClientAsyncWriter;
-template <class W, class R>
+template <class R, class W>
 class ClientAsyncReaderWriter;
 template <class R>
 class ClientAsyncResponseReader;
@@ -304,13 +304,13 @@ class ClientContext {
   friend class ::grpc::ClientReader;
   template <class W>
   friend class ::grpc::ClientWriter;
-  template <class W, class R>
+  template <class R, class W>
   friend class ::grpc::ClientReaderWriter;
   template <class R>
   friend class ::grpc::ClientAsyncReader;
   template <class W>
   friend class ::grpc::ClientAsyncWriter;
-  template <class W, class R>
+  template <class R, class W>
   friend class ::grpc::ClientAsyncReaderWriter;
   template <class R>
   friend class ::grpc::ClientAsyncResponseReader;
