@@ -1,4 +1,4 @@
-# Copyright 2015, Google Inc.
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,56 +27,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# A work-in-progress Dockerfile that allows running gRPC test suites
-# inside a docker container.
+include "grpc/_cython/_cygrpc/grpc.pxi"
 
-FROM debian:jessie
-
-# Install Git.
-RUN apt-get update && apt-get install -y \
-  autoconf \
-  autotools-dev \
-  build-essential \
-  bzip2 \
-  ccache \
-  curl \
-  gcc \
-  gcc-multilib \
-  git \
-  gyp \
-  libc6 \
-  libc6-dbg \
-  libc6-dev \
-  libgtest-dev \
-  libssl-dev \
-  libtool \
-  make \
-  strace \
-  python-dev \
-  python-pip \
-  python-setuptools \
-  python-yaml \
-  telnet \
-  unzip \
-  wget \
-  zip && apt-get clean
-
-# Prepare ccache
-RUN ln -s /usr/bin/ccache /usr/local/bin/gcc
-RUN ln -s /usr/bin/ccache /usr/local/bin/g++
-RUN ln -s /usr/bin/ccache /usr/local/bin/cc
-RUN ln -s /usr/bin/ccache /usr/local/bin/c++
-RUN ln -s /usr/bin/ccache /usr/local/bin/clang
-RUN ln -s /usr/bin/ccache /usr/local/bin/clang++
-
-
-#####################
-# Python dependencies
-
-# Install Python requisites
-RUN /bin/bash -l -c "pip install --upgrade pip"
-RUN /bin/bash -l -c "pip install virtualenv"
-RUN /bin/bash -l -c "pip install tox"
-
-# Define the default command.
-CMD ["bash"]
+include "grpc/_cython/_cygrpc/call.pxd.pxi"
+include "grpc/_cython/_cygrpc/channel.pxd.pxi"
+include "grpc/_cython/_cygrpc/credentials.pxd.pxi"
+include "grpc/_cython/_cygrpc/completion_queue.pxd.pxi"
+include "grpc/_cython/_cygrpc/records.pxd.pxi"
+include "grpc/_cython/_cygrpc/server.pxd.pxi"
