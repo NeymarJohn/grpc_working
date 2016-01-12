@@ -27,15 +27,19 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from grpc._cython._cygrpc cimport grpc
+from grpc._cython._cygrpc cimport call
+from grpc._cython._cygrpc cimport server
+
 
 cdef class Timespec:
 
-  cdef gpr_timespec c_time
+  cdef grpc.gpr_timespec c_time
 
 
 cdef class CallDetails:
 
-  cdef grpc_call_details c_details
+  cdef grpc.grpc_call_details c_details
 
 
 cdef class OperationTag:
@@ -44,8 +48,8 @@ cdef class OperationTag:
   cdef list references
   # This allows CompletionQueue to notify the Python Server object that the
   # underlying GRPC core server has shutdown
-  cdef Server shutting_down_server
-  cdef Call operation_call
+  cdef server.Server shutting_down_server
+  cdef call.Call operation_call
   cdef CallDetails request_call_details
   cdef Metadata request_metadata
   cdef Operations batch_operations
@@ -54,12 +58,12 @@ cdef class OperationTag:
 
 cdef class Event:
 
-  cdef readonly grpc_completion_type type
+  cdef readonly grpc.grpc_completion_type type
   cdef readonly bint success
   cdef readonly object tag
 
   # For operations with calls
-  cdef readonly Call operation_call
+  cdef readonly call.Call operation_call
 
   # For Server.request_call
   cdef readonly bint is_new_request
@@ -72,45 +76,45 @@ cdef class Event:
 
 cdef class ByteBuffer:
 
-  cdef grpc_byte_buffer *c_byte_buffer
+  cdef grpc.grpc_byte_buffer *c_byte_buffer
 
 
 cdef class SslPemKeyCertPair:
 
-  cdef grpc_ssl_pem_key_cert_pair c_pair
+  cdef grpc.grpc_ssl_pem_key_cert_pair c_pair
   cdef readonly object private_key, certificate_chain
 
 
 cdef class ChannelArg:
 
-  cdef grpc_arg c_arg
+  cdef grpc.grpc_arg c_arg
   cdef readonly object key, value
 
 
 cdef class ChannelArgs:
 
-  cdef grpc_channel_args c_args
+  cdef grpc.grpc_channel_args c_args
   cdef list args
 
 
 cdef class Metadatum:
 
-  cdef grpc_metadata c_metadata
+  cdef grpc.grpc_metadata c_metadata
   cdef object _key, _value
 
 
 cdef class Metadata:
 
-  cdef grpc_metadata_array c_metadata_array
+  cdef grpc.grpc_metadata_array c_metadata_array
   cdef object metadata
 
 
 cdef class Operation:
 
-  cdef grpc_op c_op
+  cdef grpc.grpc_op c_op
   cdef ByteBuffer _received_message
   cdef Metadata _received_metadata
-  cdef grpc_status_code _received_status_code
+  cdef grpc.grpc_status_code _received_status_code
   cdef char *_received_status_details
   cdef size_t _received_status_details_capacity
   cdef int _received_cancelled
@@ -120,7 +124,7 @@ cdef class Operation:
 
 cdef class Operations:
 
-  cdef grpc_op *c_ops
+  cdef grpc.grpc_op *c_ops
   cdef size_t c_nops
   cdef list operations
 
