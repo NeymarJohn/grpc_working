@@ -77,12 +77,6 @@ typedef enum {
   GRPC_ARG_POINTER
 } grpc_arg_type;
 
-typedef struct grpc_arg_pointer_vtable {
-  void *(*copy)(void *p);
-  void (*destroy)(void *p);
-  int (*cmp)(void *p, void *q);
-} grpc_arg_pointer_vtable;
-
 /** A single argument... each argument has a key and a value
 
     A note on naming keys:
@@ -103,7 +97,8 @@ typedef struct {
     int integer;
     struct {
       void *p;
-      const grpc_arg_pointer_vtable *vtable;
+      void *(*copy)(void *p);
+      void (*destroy)(void *p);
     } pointer;
   } value;
 } grpc_arg;
