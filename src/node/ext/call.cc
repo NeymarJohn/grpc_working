@@ -95,6 +95,10 @@ Local<Value> nanErrorWithCode(const char *msg, grpc_call_error code) {
   return scope.Escape(err);
 }
 
+bool EndsWith(const char *str, const char *substr) {
+  return strcmp(str+strlen(str)-strlen(substr), substr) == 0;
+}
+
 bool CreateMetadataArray(Local<Object> metadata, grpc_metadata_array *array,
                          shared_ptr<Resources> resources) {
   HandleScope scope;
@@ -122,7 +126,7 @@ bool CreateMetadataArray(Local<Object> metadata, grpc_metadata_array *array,
       grpc_metadata *current = &array->metadata[array->count];
       current->key = **utf8_key;
       // Only allow binary headers for "-bin" keys
-      if (grpc_is_binary_header(current->key, strlen(current->key))) {
+      if (EndsWith(current->key, "-bin")) {
         if (::node::Buffer::HasInstance(value)) {
           current->value = ::node::Buffer::Data(value);
           current->value_length = ::node::Buffer::Length(value);
@@ -176,7 +180,7 @@ Local<Value> ParseMetadata(const grpc_metadata_array *metadata_array) {
     } else {
       array = Local<Array>::Cast(maybe_array.ToLocalChecked());
     }
-    if (grpc_is_binary_header(elem->key, strlen(elem->key))) {
+    if (EndsWith(elem->key, "-bin")) {
       Nan::Set(array, index_map[elem->key],
                MakeFastBuffer(
                    Nan::CopyBuffer(elem->value,
