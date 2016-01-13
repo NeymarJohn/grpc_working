@@ -353,13 +353,10 @@ static int cc_pick_subchannel(grpc_exec_ctx *exec_ctx, void *elemp,
     return 1;
   }
   if (chand->lb_policy != NULL) {
-    grpc_lb_policy *lb_policy = chand->lb_policy;
-    int r;
-    GRPC_LB_POLICY_REF(lb_policy, "cc_pick_subchannel");
-    gpr_mu_unlock(&chand->mu_config);
-    r = grpc_lb_policy_pick(exec_ctx, lb_policy, calld->pollset,
+    int r =
+        grpc_lb_policy_pick(exec_ctx, chand->lb_policy, calld->pollset,
                             initial_metadata, connected_subchannel, on_ready);
-    GRPC_LB_POLICY_UNREF(exec_ctx, lb_policy, "cc_pick_subchannel");
+    gpr_mu_unlock(&chand->mu_config);
     return r;
   }
   if (chand->resolver != NULL && !chand->started_resolving) {

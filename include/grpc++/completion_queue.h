@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,13 +49,13 @@ template <class R>
 class ClientReader;
 template <class W>
 class ClientWriter;
-template <class W, class R>
+template <class R, class W>
 class ClientReaderWriter;
 template <class R>
 class ServerReader;
 template <class W>
 class ServerWriter;
-template <class W, class R>
+template <class R, class W>
 class ServerReaderWriter;
 template <class ServiceType, class RequestType, class ResponseType>
 class RpcMethodHandler;
@@ -151,13 +151,13 @@ class CompletionQueue : public GrpcLibrary {
   friend class ::grpc::ClientReader;
   template <class W>
   friend class ::grpc::ClientWriter;
-  template <class W, class R>
+  template <class R, class W>
   friend class ::grpc::ClientReaderWriter;
   template <class R>
   friend class ::grpc::ServerReader;
   template <class W>
   friend class ::grpc::ServerWriter;
-  template <class W, class R>
+  template <class R, class W>
   friend class ::grpc::ServerReaderWriter;
   template <class ServiceType, class RequestType, class ResponseType>
   friend class RpcMethodHandler;
