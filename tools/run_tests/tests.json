@@ -1333,25 +1333,6 @@
     "ci_platforms": [
       "linux", 
       "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c", 
-    "name": "tag_set_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "args": [], 
-    "ci_platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ], 
     "exclude_configs": [], 
@@ -1866,6 +1847,25 @@
     "ci_platforms": [
       "linux", 
       "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c++", 
+    "name": "grpclb_api_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "args": [], 
+    "ci_platforms": [
+      "linux", 
+      "mac", 
       "posix"
     ], 
     "exclude_configs": [], 
@@ -2070,6 +2070,25 @@
     "flaky": false, 
     "language": "c++", 
     "name": "thread_stress_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "args": [], 
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c89", 
+    "name": "public_headers_must_be_c89", 
     "platforms": [
       "linux", 
       "mac", 

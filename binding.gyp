@@ -88,6 +88,11 @@
   },
   'targets': [
     {
+      'cflags': [
+        '-std=c99',
+        '-Wall',
+        '-Werror'
+      ],
       'target_name': 'gpr',
       'product_prefix': 'lib',
       'type': 'static_library',
@@ -145,6 +150,11 @@
       ],
     },
     {
+      'cflags': [
+        '-std=c99',
+        '-Wall',
+        '-Werror'
+      ],
       'target_name': 'grpc',
       'product_prefix': 'lib',
       'type': 'static_library',
@@ -188,6 +198,7 @@
         'src/core/client_config/connector.c',
         'src/core/client_config/default_initial_connect_string.c',
         'src/core/client_config/initial_connect_string.c',
+        'src/core/client_config/lb_policies/load_balancer_api.c',
         'src/core/client_config/lb_policies/pick_first.c',
         'src/core/client_config/lb_policies/round_robin.c',
         'src/core/client_config/lb_policy.c',
@@ -251,6 +262,7 @@
         'src/core/json/json_reader.c',
         'src/core/json/json_string.c',
         'src/core/json/json_writer.c',
+        'src/core/proto/grpc/lb/v0/load_balancer.pb.c',
         'src/core/surface/api_trace.c',
         'src/core/surface/byte_buffer.c',
         'src/core/surface/byte_buffer_reader.c',
@@ -301,8 +313,10 @@
         'src/core/census/context.c',
         'src/core/census/initialize.c',
         'src/core/census/operation.c',
-        'src/core/census/tag_set.c',
         'src/core/census/tracing.c',
+        'third_party/nanopb/pb_common.c',
+        'third_party/nanopb/pb_decode.c',
+        'third_party/nanopb/pb_encode.c',
       ],
       "conditions": [
         ['OS == "mac"', {
@@ -317,7 +331,7 @@
         "<!(node -e \"require('nan')\")"
       ],
       'cflags': [
-        '-std=c++0x',
+        '-std=c++11',
         '-Wall',
         '-pthread',
         '-g',
@@ -333,7 +347,6 @@
           'xcode_settings': {
             'MACOSX_DEPLOYMENT_TARGET': '10.9',
             'OTHER_CFLAGS': [
-              '-std=c++11',
               '-stdlib=libc++'
             ]
           }
