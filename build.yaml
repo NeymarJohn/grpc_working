@@ -316,6 +316,7 @@ filegroups:
   - src/core/surface/server.c
   - src/core/surface/server_chttp2.c
   - src/core/surface/server_create.c
+  - src/core/surface/validate_metadata.c
   - src/core/surface/version.c
   - src/core/transport/byte_stream.c
   - src/core/transport/chttp2/alpn.c
@@ -760,7 +761,6 @@ libs:
   language: c++
   headers:
   - test/cpp/qps/client.h
-  - test/cpp/qps/coresched.h
   - test/cpp/qps/driver.h
   - test/cpp/qps/histogram.h
   - test/cpp/qps/interarrival.h
@@ -780,7 +780,6 @@ libs:
   - src/proto/grpc/testing/perf_db.proto
   - test/cpp/qps/client_async.cc
   - test/cpp/qps/client_sync.cc
-  - test/cpp/qps/coresched.cc
   - test/cpp/qps/driver.cc
   - test/cpp/qps/perf_db_client.cc
   - test/cpp/qps/qps_worker.cc

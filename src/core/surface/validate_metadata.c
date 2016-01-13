@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,15 +31,43 @@
  *
  */
 
-#ifndef TEST_QPS_CORESCHED_H
-#define TEST_QPS_CORESCHED_H
+#include <stdlib.h>
+#include <string.h>
 
-#include <vector>
+#include <grpc/support/port_platform.h>
 
-namespace grpc {
-namespace testing {
-int LimitCores(std::vector<int> core_vec);
-}  // namespace testing
-}  // namespace grpc
+static int conforms_to(const char *s, size_t len, const uint8_t *legal_bits) {
+  const char *p = s;
+  const char *e = s + len;
+  for (; p != e; p++) {
+    int idx = *p;
+    int byte = idx / 8;
+    int bit = idx % 8;
+    if ((legal_bits[byte] & (1 << bit)) == 0) return 0;
+  }
+  return 1;
+}
 
-#endif  // TEST_QPS_CORESCHED_H
+int grpc_header_key_is_legal(const char *key, size_t length) {
+  static const uint8_t legal_header_bits[256 / 8] = {
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0xff, 0x03, 0x00, 0x00, 0x00,
+      0x80, 0xfe, 0xff, 0xff, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  if (length == 0) {
+    return 0;
+  }
+  return conforms_to(key, length, legal_header_bits);
+}
+
+int grpc_header_nonbin_value_is_legal(const char *value, size_t length) {
+  static const uint8_t legal_header_bits[256 / 8] = {
+      0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+      0xff, 0xff, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  return conforms_to(value, length, legal_header_bits);
+}
+
+int grpc_is_binary_header(const char *key, size_t length) {
+  if (length < 5) return 0;
+  return 0 == memcmp(key + length - 4, "-bin", 4);
+}
