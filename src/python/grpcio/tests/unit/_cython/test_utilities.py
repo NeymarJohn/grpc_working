@@ -29,7 +29,7 @@
 
 import threading
 
-from grpc._cython import cygrpc
+from grpc._cython._cygrpc import completion_queue
 
 
 class CompletionQueuePollFuture:

@@ -53,7 +53,6 @@ namespace grpc {
 
 class DefaultGlobalCallbacks GRPC_FINAL : public Server::GlobalCallbacks {
  public:
-  ~DefaultGlobalCallbacks GRPC_OVERRIDE {}
   void PreSynchronousRequest(ServerContext* context) GRPC_OVERRIDE {}
   void PostSynchronousRequest(ServerContext* context) GRPC_OVERRIDE {}
 };
