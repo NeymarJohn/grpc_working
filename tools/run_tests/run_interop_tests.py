@@ -298,8 +298,11 @@ class PythonLanguage:
 
   def client_cmd(self, args):
     return [
-        'tox -einterop_client --',
-        ' '.join(args)
+        'src/python/grpcio/.tox/py27/bin/python',
+        'src/python/grpcio/setup.py',
+        'run_interop',
+        '--client',
+        '--args=\'{}\''.format(' '.join(args))
     ]
 
   def cloud_to_prod_env(self):
@@ -307,8 +310,11 @@ class PythonLanguage:
 
   def server_cmd(self, args):
     return [
-        'tox -einterop_server --',
-        ' '.join(args) + ' --use_tls=true'
+        'src/python/grpcio/.tox/py27/bin/python',
+        'src/python/grpcio/setup.py',
+        'run_interop',
+        '--server',
+        '--args=\'{}\''.format(' '.join(args) + ' --use_tls=true')
     ]
 
   def global_env(self):
