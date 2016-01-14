@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 
 #include <grpc/support/log.h>
 #include <grpc++/channel.h>
+#include <grpc++/impl/codegen/channel_interface.h>
 #include <grpc++/client_context.h>
 #include <grpc++/completion_queue.h>
 #include <grpc++/impl/call.h>
@@ -85,6 +86,10 @@ class AsyncWriterInterface {
 
   /// Request the writing of \a msg with identifying tag \a tag.
   ///
+  /// Only one write may be outstanding at any given time. This means that
+  /// after calling Write, one must wait to receive \a tag from the completion
+  /// queue BEFORE calling Write again.
+  ///
   /// \param[in] msg The message to be written.
   /// \param[in] tag The tag identifying the operation.
   virtual void Write(const W& msg, void* tag) = 0;
@@ -99,7 +104,7 @@ class ClientAsyncReader GRPC_FINAL : public ClientAsyncReaderInterface<R> {
  public:
   /// Create a stream and write the first request out.
   template <class W>
-  ClientAsyncReader(Channel* channel, CompletionQueue* cq,
+  ClientAsyncReader(ChannelInterface* channel, CompletionQueue* cq,
                     const RpcMethod& method, ClientContext* context,
                     const W& request, void* tag)
       : context_(context), call_(channel->CreateCall(method, context, cq)) {
@@ -162,7 +167,7 @@ template <class W>
 class ClientAsyncWriter GRPC_FINAL : public ClientAsyncWriterInterface<W> {
  public:
   template <class R>
-  ClientAsyncWriter(Channel* channel, CompletionQueue* cq,
+  ClientAsyncWriter(ChannelInterface* channel, CompletionQueue* cq,
                     const RpcMethod& method, ClientContext* context,
                     R* response, void* tag)
       : context_(context), call_(channel->CreateCall(method, context, cq)) {
@@ -230,7 +235,7 @@ template <class W, class R>
 class ClientAsyncReaderWriter GRPC_FINAL
     : public ClientAsyncReaderWriterInterface<W, R> {
  public:
-  ClientAsyncReaderWriter(Channel* channel, CompletionQueue* cq,
+  ClientAsyncReaderWriter(ChannelInterface* channel, CompletionQueue* cq,
                           const RpcMethod& method, ClientContext* context,
                           void* tag)
       : context_(context), call_(channel->CreateCall(method, context, cq)) {

@@ -88,6 +88,11 @@
   },
   'targets': [
     {
+      'cflags': [
+        '-std=c99',
+        '-Wall',
+        '-Werror'
+      ],
       'target_name': 'gpr',
       'product_prefix': 'lib',
       'type': 'static_library',
@@ -145,6 +150,11 @@
       ],
     },
     {
+      'cflags': [
+        '-std=c99',
+        '-Wall',
+        '-Werror'
+      ],
       'target_name': 'grpc',
       'product_prefix': 'lib',
       'type': 'static_library',
@@ -269,7 +279,6 @@
         'src/core/surface/server.c',
         'src/core/surface/server_chttp2.c',
         'src/core/surface/server_create.c',
-        'src/core/surface/validate_metadata.c',
         'src/core/surface/version.c',
         'src/core/transport/byte_stream.c',
         'src/core/transport/chttp2/alpn.c',
@@ -317,7 +326,7 @@
         "<!(node -e \"require('nan')\")"
       ],
       'cflags': [
-        '-std=c++0x',
+        '-std=c++11',
         '-Wall',
         '-pthread',
         '-g',
@@ -333,7 +342,6 @@
           'xcode_settings': {
             'MACOSX_DEPLOYMENT_TARGET': '10.9',
             'OTHER_CFLAGS': [
-              '-std=c++11',
               '-stdlib=libc++'
             ]
           }

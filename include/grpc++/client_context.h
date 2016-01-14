@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,7 @@ struct census_context;
 namespace grpc {
 
 class Channel;
+class ChannelInterface;
 class CompletionQueue;
 class CallCredentials;
 class RpcMethod;
@@ -76,13 +77,13 @@ template <class R>
 class ClientReader;
 template <class W>
 class ClientWriter;
-template <class R, class W>
+template <class W, class R>
 class ClientReaderWriter;
 template <class R>
 class ClientAsyncReader;
 template <class W>
 class ClientAsyncWriter;
-template <class R, class W>
+template <class W, class R>
 class ClientAsyncReaderWriter;
 template <class R>
 class ClientAsyncResponseReader;
@@ -137,10 +138,10 @@ class PropagationOptions {
     return *this;
   }
 
-  gpr_uint32 c_bitmask() const { return propagate_; }
+  uint32_t c_bitmask() const { return propagate_; }
 
  private:
-  gpr_uint32 propagate_;
+  uint32_t propagate_;
 };
 
 namespace testing {
@@ -244,7 +245,7 @@ class ClientContext {
   /// client’s identity, role, or whether it is authorized to make a particular
   /// call.
   ///
-  /// \see  http://www.grpc.io/docs/guides/auth.html
+  /// \see  https://github.com/grpc/grpc/blob/master/doc/grpc-auth-support.md
   void set_credentials(const std::shared_ptr<CallCredentials>& creds) {
     creds_ = creds;
   }
@@ -304,18 +305,18 @@ class ClientContext {
   friend class ::grpc::ClientReader;
   template <class W>
   friend class ::grpc::ClientWriter;
-  template <class R, class W>
+  template <class W, class R>
   friend class ::grpc::ClientReaderWriter;
   template <class R>
   friend class ::grpc::ClientAsyncReader;
   template <class W>
   friend class ::grpc::ClientAsyncWriter;
-  template <class R, class W>
+  template <class W, class R>
   friend class ::grpc::ClientAsyncReaderWriter;
   template <class R>
   friend class ::grpc::ClientAsyncResponseReader;
   template <class InputMessage, class OutputMessage>
-  friend Status BlockingUnaryCall(Channel* channel, const RpcMethod& method,
+  friend Status BlockingUnaryCall(ChannelInterface* channel, const RpcMethod& method,
                                   ClientContext* context,
                                   const InputMessage& request,
                                   OutputMessage* result);
