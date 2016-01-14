@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,11 +75,12 @@ class Server {
   }
 
   static bool SetPayload(PayloadType type, int size, Payload* payload) {
+    PayloadType response_type = type;
     // TODO(yangg): Support UNCOMPRESSABLE payload.
     if (type != PayloadType::COMPRESSABLE) {
       return false;
     }
-    payload->set_type(type);
+    payload->set_type(response_type);
     std::unique_ptr<char[]> body(new char[size]());
     payload->set_body(body.get(), size);
     return true;

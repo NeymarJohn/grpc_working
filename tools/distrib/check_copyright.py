@@ -104,7 +104,7 @@ RE_LICENSE = dict(
 
 def load(name):
   with open(name) as f:
-    return f.read()
+    return '\n'.join(line.rstrip() for line in f.read().splitlines())
 
 def save(name, text):
   with open(name, 'w') as f:
