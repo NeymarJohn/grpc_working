@@ -69,7 +69,6 @@ struct census_context;
 namespace grpc {
 
 class Channel;
-class ChannelInterface;
 class CompletionQueue;
 class CallCredentials;
 class RpcMethod;
@@ -245,7 +244,7 @@ class ClientContext {
   /// client’s identity, role, or whether it is authorized to make a particular
   /// call.
   ///
-  /// \see  http://www.grpc.io/docs/guides/auth.html
+  /// \see  https://github.com/grpc/grpc/blob/master/doc/grpc-auth-support.md
   void set_credentials(const std::shared_ptr<CallCredentials>& creds) {
     creds_ = creds;
   }
@@ -316,7 +315,7 @@ class ClientContext {
   template <class R>
   friend class ::grpc::ClientAsyncResponseReader;
   template <class InputMessage, class OutputMessage>
-  friend Status BlockingUnaryCall(ChannelInterface* channel, const RpcMethod& method,
+  friend Status BlockingUnaryCall(Channel* channel, const RpcMethod& method,
                                   ClientContext* context,
                                   const InputMessage& request,
                                   OutputMessage* result);

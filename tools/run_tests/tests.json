@@ -1828,16 +1828,18 @@
     "ci_platforms": [
       "linux", 
       "mac", 
-      "posix"
+      "posix", 
+      "windows"
     ], 
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c++", 
-    "name": "generic_async_streaming_ping_pong_test", 
+    "name": "generic_end2end_test", 
     "platforms": [
       "linux", 
       "mac", 
-      "posix"
+      "posix", 
+      "windows"
     ]
   }, 
   {
@@ -1851,7 +1853,7 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c++", 
-    "name": "generic_end2end_test", 
+    "name": "grpclb_api_test", 
     "platforms": [
       "linux", 
       "mac", 
