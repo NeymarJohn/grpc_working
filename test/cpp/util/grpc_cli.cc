@@ -41,9 +41,8 @@
           body: "hello world"
         }
     b. under grpc/ run
-        protoc --proto_path=src/proto/grpc/testing/ \
-        --encode=grpc.testing.SimpleRequest
-  src/proto/grpc/testing/messages.proto \
+        protoc --proto_path=test/proto/ \
+        --encode=grpc.testing.SimpleRequest test/proto/messages.proto \
         < input.txt > input.bin
   2. Start a server
     make interop_server && bins/opt/interop_server --port=50051
@@ -52,8 +51,8 @@
     /grpc.testing.TestService/UnaryCall --enable_ssl=false \
     --input_binary_file=input.bin --output_binary_file=output.bin
   4. Decode response
-    protoc --proto_path=src/proto/grpc/testing/ \
-    --decode=grpc.testing.SimpleResponse src/proto/grpc/testing/messages.proto \
+    protoc --proto_path=test/proto/ \
+    --decode=grpc.testing.SimpleResponse test/proto/messages.proto \
     < output.bin > output.txt
   5. Now the text form of response should be in output.txt
   Optionally, metadata can be passed to server via flag --metadata, e.g.

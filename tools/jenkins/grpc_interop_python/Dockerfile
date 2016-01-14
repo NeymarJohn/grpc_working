@@ -48,7 +48,6 @@ RUN apt-get update && apt-get install -y \
   libc6-dbg \
   libc6-dev \
   libgtest-dev \
-  libssl-dev \
   libtool \
   make \
   strace \
