@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,6 @@ void ByteBuffer::Dump(std::vector<Slice>* slices) const {
   while (grpc_byte_buffer_reader_next(&reader, &s)) {
     slices->push_back(Slice(s, Slice::STEAL_REF));
   }
-  grpc_byte_buffer_reader_destroy(&reader);
 }
 
 size_t ByteBuffer::Length() const {
@@ -80,12 +79,13 @@ size_t ByteBuffer::Length() const {
   }
 }
 
-ByteBuffer::ByteBuffer(const ByteBuffer& buf)
-    : buffer_(grpc_byte_buffer_copy(buf.buffer_)) {}
+ByteBuffer::ByteBuffer(const ByteBuffer& buf):
+    buffer_(grpc_byte_buffer_copy(buf.buffer_)) {
+}
 
 ByteBuffer& ByteBuffer::operator=(const ByteBuffer& buf) {
-  Clear();                                       // first remove existing data
-  buffer_ = grpc_byte_buffer_copy(buf.buffer_);  // then copy
+  Clear(); // first remove existing data
+  buffer_ = grpc_byte_buffer_copy(buf.buffer_); // then copy
   return *this;
 }
 
