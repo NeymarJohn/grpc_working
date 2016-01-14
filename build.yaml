@@ -32,6 +32,7 @@ filegroups:
   - include/grpc++/grpc++.h
   - include/grpc++/impl/call.h
   - include/grpc++/impl/client_unary_call.h
+  - include/grpc++/impl/codegen/channel_interface.h
   - include/grpc++/impl/grpc_library.h
   - include/grpc++/impl/proto_utils.h
   - include/grpc++/impl/rpc_method.h
@@ -316,6 +317,7 @@ filegroups:
   - src/core/surface/server.c
   - src/core/surface/server_chttp2.c
   - src/core/surface/server_create.c
+  - src/core/surface/validate_metadata.c
   - src/core/surface/version.c
   - src/core/transport/byte_stream.c
   - src/core/transport/chttp2/alpn.c
@@ -2043,18 +2045,6 @@ targets:
   secure: false
   vs_config_type: Application
   vs_project_guid: '{069E9D05-B78B-4751-9252-D21EBAE7DE8E}'
-- name: hybrid_end2end_test
-  build: test
-  language: c++
-  src:
-  - test/cpp/end2end/hybrid_end2end_test.cc
-  deps:
-  - grpc++_test_util
-  - grpc_test_util
-  - grpc++
-  - grpc
-  - gpr_test_util
-  - gpr
 - name: interop_client
   build: test
   run: false
