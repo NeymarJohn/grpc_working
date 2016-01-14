@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -47,12 +47,13 @@ describe 'Health protobuf code generation' do
       end
 
       it 'should have the same content as created by code generation' do
-        root_dir = File.join(File.dirname(__FILE__), '..', '..', '..', '..')
-        pb_dir = File.join(root_dir, 'proto')
+        root_dir = File.dirname(
+          File.dirname(File.dirname(File.dirname(__FILE__))))
+        pb_dir = File.join(root_dir, 'pb')
 
         # Get the current content
-        service_path = File.join(root_dir, 'ruby', 'pb', 'grpc',
-                                 'health', 'v1alpha', 'health_services.rb')
+        service_path = File.join(pb_dir, 'grpc', 'health', 'v1alpha',
+                                 'health_services.rb')
         want = nil
         File.open(service_path) { |f| want = f.read }
 
@@ -187,7 +188,7 @@ describe Grpc::Health::Checker do
       @server = GRPC::Core::Server.new(@server_queue, nil)
       server_port = @server.add_http2_port(server_host, :this_port_is_insecure)
       @host = "localhost:#{server_port}"
-      @ch = GRPC::Core::Channel.new(@host, nil, :this_channel_is_insecure)
+      @ch = GRPC::Core::Channel.new(@host, nil)
       @client_opts = { channel_override: @ch }
       server_opts = {
         server_override: @server,
@@ -207,7 +208,7 @@ describe Grpc::Health::Checker do
       t = Thread.new { @srv.run }
       @srv.wait_till_running
 
-      stub = CheckerStub.new(@host, :this_channel_is_insecure, **@client_opts)
+      stub = CheckerStub.new(@host, **@client_opts)
       got = stub.check(HCReq.new)
       want = HCResp.new(status: ServingStatus::NOT_SERVING)
       expect(got).to eq(want)
@@ -220,7 +221,7 @@ describe Grpc::Health::Checker do
       t = Thread.new { @srv.run }
       @srv.wait_till_running
       blk = proc do
-        stub = CheckerStub.new(@host, :this_channel_is_insecure, **@client_opts)
+        stub = CheckerStub.new(@host, **@client_opts)
         stub.check(HCReq.new(host: 'unknown', service: 'unknown'))
       end
       expected_msg = /#{StatusCodes::NOT_FOUND}/
