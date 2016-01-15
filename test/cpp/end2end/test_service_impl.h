@@ -30,63 +30,56 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#ifndef GRPC_TEST_CPP_END2END_TEST_SERVICE_IMPL_H
+#define GRPC_TEST_CPP_END2END_TEST_SERVICE_IMPL_H
 
-#ifndef GRPCXX_IMPL_RPC_SERVICE_METHOD_H
-#define GRPCXX_IMPL_RPC_SERVICE_METHOD_H
-
-#include <climits>
-#include <functional>
-#include <map>
 #include <memory>
-#include <vector>
+#include <mutex>
 
-#include <grpc++/impl/rpc_method.h>
-#include <grpc++/support/config.h>
-#include <grpc++/support/status.h>
+#include <grpc++/server_context.h>
+#include <grpc/grpc.h>
+
+#include "src/proto/grpc/testing/echo.grpc.pb.h"
 
 namespace grpc {
-class ServerContext;
-class StreamContextInterface;
+namespace testing {
 
-// Base class for running an RPC handler.
-class MethodHandler {
+const char* const kServerCancelAfterReads = "cancel_after_reads";
+
+class TestServiceImpl : public ::grpc::testing::EchoTestService::Service {
  public:
-  virtual ~MethodHandler() {}
-  struct HandlerParameter {
-    HandlerParameter(Call* c, ServerContext* context, grpc_byte_buffer* req,
-                     int max_size)
-        : call(c),
-          server_context(context),
-          request(req),
-          max_message_size(max_size) {}
-    Call* call;
-    ServerContext* server_context;
-    // Handler required to grpc_byte_buffer_destroy this
-    grpc_byte_buffer* request;
-    int max_message_size;
-  };
-  virtual void RunHandler(const HandlerParameter& param) = 0;
-};
+  TestServiceImpl() : signal_client_(false), host_() {}
+  explicit TestServiceImpl(const grpc::string& host)
+      : signal_client_(false), host_(new grpc::string(host)) {}
 
-// Server side rpc method class
-class RpcServiceMethod : public RpcMethod {
- public:
-  // Takes ownership of the handler
-  RpcServiceMethod(const char* name, RpcMethod::RpcType type,
-                   MethodHandler* handler)
-      : RpcMethod(name, type), server_tag_(nullptr), handler_(handler) {}
+  Status Echo(ServerContext* context, const EchoRequest* request,
+              EchoResponse* response) GRPC_OVERRIDE;
 
-  void set_server_tag(void* tag) { server_tag_ = tag; }
-  void* server_tag() const { return server_tag_; }
-  // if MethodHandler is nullptr, then this is an async method
-  MethodHandler* handler() const { return handler_.get(); }
-  void ResetHandler() { handler_.reset(); }
+  // Unimplemented is left unimplemented to test the returned error.
+
+  Status RequestStream(ServerContext* context,
+                       ServerReader<EchoRequest>* reader,
+                       EchoResponse* response) GRPC_OVERRIDE;
+
+  Status ResponseStream(ServerContext* context, const EchoRequest* request,
+                        ServerWriter<EchoResponse>* writer) GRPC_OVERRIDE;
+
+  Status BidiStream(ServerContext* context,
+                    ServerReaderWriter<EchoResponse, EchoRequest>* stream)
+      GRPC_OVERRIDE;
+
+  bool signal_client() {
+    std::unique_lock<std::mutex> lock(mu_);
+    return signal_client_;
+  }
 
  private:
-  void* server_tag_;
-  std::unique_ptr<MethodHandler> handler_;
+  bool signal_client_;
+  std::mutex mu_;
+  std::unique_ptr<grpc::string> host_;
 };
 
+}  // namespace testing
 }  // namespace grpc
 
-#endif  // GRPCXX_IMPL_RPC_SERVICE_METHOD_H
+#endif  // GRPC_TEST_CPP_END2END_TEST_SERVICE_IMPL_H

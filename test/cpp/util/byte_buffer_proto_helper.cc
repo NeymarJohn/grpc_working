@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,27 +31,30 @@
  *
  */
 
-#include <grpc/census.h>
+#include "test/cpp/util/byte_buffer_proto_helper.h"
 
-static int features_enabled = CENSUS_FEATURE_NONE;
+namespace grpc {
+namespace testing {
 
-int census_initialize(int features) {
-  if (features_enabled != CENSUS_FEATURE_NONE) {
-    return 1;
+bool ParseFromByteBuffer(ByteBuffer* buffer, grpc::protobuf::Message* message) {
+  std::vector<Slice> slices;
+  buffer->Dump(&slices);
+  grpc::string buf;
+  buf.reserve(buffer->Length());
+  for (auto s = slices.begin(); s != slices.end(); s++) {
+    buf.append(reinterpret_cast<const char*>(s->begin()), s->size());
   }
-  if (features != CENSUS_FEATURE_NONE) {
-    return 1;
-  } else {
-    features_enabled = features;
-    return 0;
-  }
+  return message->ParseFromString(buf);
 }
 
-void census_shutdown(void) { features_enabled = CENSUS_FEATURE_NONE; }
-
-int census_supported(void) {
-  /* TODO(aveitch): improve this as we implement features... */
-  return CENSUS_FEATURE_NONE;
+std::unique_ptr<ByteBuffer> SerializeToByteBuffer(
+    grpc::protobuf::Message* message) {
+  grpc::string buf;
+  message->SerializeToString(&buf);
+  gpr_slice s = gpr_slice_from_copied_string(buf.c_str());
+  Slice slice(s, Slice::STEAL_REF);
+  return std::unique_ptr<ByteBuffer>(new ByteBuffer(&slice, 1));
 }
 
-int census_enabled(void) { return features_enabled; }
+}  // namespace testing
+}  // namespace grpc

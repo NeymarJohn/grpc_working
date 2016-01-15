@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,27 +31,23 @@
  *
  */
 
-#include <grpc/census.h>
+#ifndef GRPC_TEST_CPP_UTIL_BYTE_BUFFER_PROTO_HELPER_H
+#define GRPC_TEST_CPP_UTIL_BYTE_BUFFER_PROTO_HELPER_H
 
-static int features_enabled = CENSUS_FEATURE_NONE;
+#include <memory>
 
-int census_initialize(int features) {
-  if (features_enabled != CENSUS_FEATURE_NONE) {
-    return 1;
-  }
-  if (features != CENSUS_FEATURE_NONE) {
-    return 1;
-  } else {
-    features_enabled = features;
-    return 0;
-  }
-}
+#include <grpc++/support/byte_buffer.h>
+#include <grpc++/support/config_protobuf.h>
 
-void census_shutdown(void) { features_enabled = CENSUS_FEATURE_NONE; }
+namespace grpc {
+namespace testing {
 
-int census_supported(void) {
-  /* TODO(aveitch): improve this as we implement features... */
-  return CENSUS_FEATURE_NONE;
-}
+bool ParseFromByteBuffer(ByteBuffer* buffer, grpc::protobuf::Message* message);
 
-int census_enabled(void) { return features_enabled; }
+std::unique_ptr<ByteBuffer> SerializeToByteBuffer(
+    grpc::protobuf::Message* message);
+
+}  // namespace testing
+}  // namespace grpc
+
+#endif  // GRPC_TEST_CPP_UTIL_BYTE_BUFFER_PROTO_HELPER_H
