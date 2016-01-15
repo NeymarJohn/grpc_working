@@ -1870,7 +1870,7 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c++", 
-    "name": "hybrid_end2end_test", 
+    "name": "grpclb_api_test", 
     "platforms": [
       "linux", 
       "mac", 
