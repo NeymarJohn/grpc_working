@@ -1098,20 +1098,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "tag_set_test", 
-    "src": [
-      "test/core/census/tag_set_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "tcp_client_posix_test", 
     "src": [
       "test/core/iomgr/tcp_client_posix_test.c"
@@ -1518,6 +1504,23 @@
       "grpc", 
       "grpc++", 
       "grpc++_test_util", 
+      "grpc_test_util", 
+      "qps"
+    ], 
+    "headers": [], 
+    "language": "c++", 
+    "name": "generic_async_streaming_ping_pong_test", 
+    "src": [
+      "test/cpp/qps/generic_async_streaming_ping_pong_test.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc++", 
+      "grpc++_test_util", 
       "grpc_test_util"
     ], 
     "headers": [], 
@@ -1597,6 +1600,22 @@
     "name": "grpc_ruby_plugin", 
     "src": [
       "src/compiler/ruby_plugin.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc++", 
+      "grpc++_test_util", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c++", 
+    "name": "hybrid_end2end_test", 
+    "src": [
+      "test/cpp/end2end/hybrid_end2end_test.cc"
     ]
   }, 
   {
@@ -3020,7 +3039,6 @@
       "src/core/census/initialize.c", 
       "src/core/census/operation.c", 
       "src/core/census/rpc_metric_id.h", 
-      "src/core/census/tag_set.c", 
       "src/core/census/tracing.c", 
       "src/core/channel/channel_args.c", 
       "src/core/channel/channel_args.h", 
@@ -3227,6 +3245,7 @@
       "src/core/surface/server_chttp2.c", 
       "src/core/surface/server_create.c", 
       "src/core/surface/surface_trace.h", 
+      "src/core/surface/validate_metadata.c", 
       "src/core/surface/version.c", 
       "src/core/transport/byte_stream.c", 
       "src/core/transport/byte_stream.h", 
@@ -3518,7 +3537,6 @@
       "src/core/census/initialize.c", 
       "src/core/census/operation.c", 
       "src/core/census/rpc_metric_id.h", 
-      "src/core/census/tag_set.c", 
       "src/core/census/tracing.c", 
       "src/core/channel/channel_args.c", 
       "src/core/channel/channel_args.h", 
@@ -3699,6 +3717,7 @@
       "src/core/surface/server_chttp2.c", 
       "src/core/surface/server_create.c", 
       "src/core/surface/surface_trace.h", 
+      "src/core/surface/validate_metadata.c", 
       "src/core/surface/version.c", 
       "src/core/transport/byte_stream.c", 
       "src/core/transport/byte_stream.h", 
@@ -3826,6 +3845,7 @@
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
       "include/grpc++/impl/grpc_library.h", 
+      "include/grpc++/impl/method_handler_impl.h", 
       "include/grpc++/impl/proto_utils.h", 
       "include/grpc++/impl/rpc_method.h", 
       "include/grpc++/impl/rpc_service_method.h", 
@@ -3880,6 +3900,7 @@
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
       "include/grpc++/impl/grpc_library.h", 
+      "include/grpc++/impl/method_handler_impl.h", 
       "include/grpc++/impl/proto_utils.h", 
       "include/grpc++/impl/rpc_method.h", 
       "include/grpc++/impl/rpc_service_method.h", 
@@ -3978,6 +3999,8 @@
       "src/proto/grpc/testing/echo.pb.h", 
       "src/proto/grpc/testing/echo_messages.grpc.pb.h", 
       "src/proto/grpc/testing/echo_messages.pb.h", 
+      "test/cpp/end2end/test_service_impl.h", 
+      "test/cpp/util/byte_buffer_proto_helper.h", 
       "test/cpp/util/cli_call.h", 
       "test/cpp/util/create_test_channel.h", 
       "test/cpp/util/string_ref_helper.h", 
@@ -3986,6 +4009,10 @@
     "language": "c++", 
     "name": "grpc++_test_util", 
     "src": [
+      "test/cpp/end2end/test_service_impl.cc", 
+      "test/cpp/end2end/test_service_impl.h", 
+      "test/cpp/util/byte_buffer_proto_helper.cc", 
+      "test/cpp/util/byte_buffer_proto_helper.h", 
       "test/cpp/util/cli_call.cc", 
       "test/cpp/util/cli_call.h", 
       "test/cpp/util/create_test_channel.cc", 
@@ -4012,6 +4039,7 @@
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
       "include/grpc++/impl/grpc_library.h", 
+      "include/grpc++/impl/method_handler_impl.h", 
       "include/grpc++/impl/proto_utils.h", 
       "include/grpc++/impl/rpc_method.h", 
       "include/grpc++/impl/rpc_service_method.h", 
@@ -4063,6 +4091,7 @@
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
       "include/grpc++/impl/grpc_library.h", 
+      "include/grpc++/impl/method_handler_impl.h", 
       "include/grpc++/impl/proto_utils.h", 
       "include/grpc++/impl/rpc_method.h", 
       "include/grpc++/impl/rpc_service_method.h", 

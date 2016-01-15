@@ -875,7 +875,6 @@ set_initial_connect_string_test: $(BINDIR)/$(CONFIG)/set_initial_connect_string_
 sockaddr_resolver_test: $(BINDIR)/$(CONFIG)/sockaddr_resolver_test
 sockaddr_utils_test: $(BINDIR)/$(CONFIG)/sockaddr_utils_test
 socket_utils_test: $(BINDIR)/$(CONFIG)/socket_utils_test
-tag_set_test: $(BINDIR)/$(CONFIG)/tag_set_test
 tcp_client_posix_test: $(BINDIR)/$(CONFIG)/tcp_client_posix_test
 tcp_posix_test: $(BINDIR)/$(CONFIG)/tcp_posix_test
 tcp_server_posix_test: $(BINDIR)/$(CONFIG)/tcp_server_posix_test
@@ -904,6 +903,7 @@ cxx_slice_test: $(BINDIR)/$(CONFIG)/cxx_slice_test
 cxx_string_ref_test: $(BINDIR)/$(CONFIG)/cxx_string_ref_test
 cxx_time_test: $(BINDIR)/$(CONFIG)/cxx_time_test
 end2end_test: $(BINDIR)/$(CONFIG)/end2end_test
+generic_async_streaming_ping_pong_test: $(BINDIR)/$(CONFIG)/generic_async_streaming_ping_pong_test
 generic_end2end_test: $(BINDIR)/$(CONFIG)/generic_end2end_test
 grpc_cli: $(BINDIR)/$(CONFIG)/grpc_cli
 grpc_cpp_plugin: $(BINDIR)/$(CONFIG)/grpc_cpp_plugin
@@ -911,6 +911,7 @@ grpc_csharp_plugin: $(BINDIR)/$(CONFIG)/grpc_csharp_plugin
 grpc_objective_c_plugin: $(BINDIR)/$(CONFIG)/grpc_objective_c_plugin
 grpc_python_plugin: $(BINDIR)/$(CONFIG)/grpc_python_plugin
 grpc_ruby_plugin: $(BINDIR)/$(CONFIG)/grpc_ruby_plugin
+hybrid_end2end_test: $(BINDIR)/$(CONFIG)/hybrid_end2end_test
 interop_client: $(BINDIR)/$(CONFIG)/interop_client
 interop_server: $(BINDIR)/$(CONFIG)/interop_server
 interop_test: $(BINDIR)/$(CONFIG)/interop_test
@@ -1182,7 +1183,6 @@ buildtests_c: privatelibs_c \
   $(BINDIR)/$(CONFIG)/sockaddr_resolver_test \
   $(BINDIR)/$(CONFIG)/sockaddr_utils_test \
   $(BINDIR)/$(CONFIG)/socket_utils_test \
-  $(BINDIR)/$(CONFIG)/tag_set_test \
   $(BINDIR)/$(CONFIG)/tcp_client_posix_test \
   $(BINDIR)/$(CONFIG)/tcp_posix_test \
   $(BINDIR)/$(CONFIG)/tcp_server_posix_test \
@@ -1258,8 +1258,10 @@ buildtests_cxx: buildtests_zookeeper privatelibs_cxx \
   $(BINDIR)/$(CONFIG)/cxx_string_ref_test \
   $(BINDIR)/$(CONFIG)/cxx_time_test \
   $(BINDIR)/$(CONFIG)/end2end_test \
+  $(BINDIR)/$(CONFIG)/generic_async_streaming_ping_pong_test \
   $(BINDIR)/$(CONFIG)/generic_end2end_test \
   $(BINDIR)/$(CONFIG)/grpc_cli \
+  $(BINDIR)/$(CONFIG)/hybrid_end2end_test \
   $(BINDIR)/$(CONFIG)/interop_client \
   $(BINDIR)/$(CONFIG)/interop_server \
   $(BINDIR)/$(CONFIG)/interop_test \
@@ -1475,8 +1477,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/sockaddr_utils_test || ( echo test sockaddr_utils_test failed ; exit 1 )
 	$(E) "[RUN]     Testing socket_utils_test"
 	$(Q) $(BINDIR)/$(CONFIG)/socket_utils_test || ( echo test socket_utils_test failed ; exit 1 )
-	$(E) "[RUN]     Testing tag_set_test"
-	$(Q) $(BINDIR)/$(CONFIG)/tag_set_test || ( echo test tag_set_test failed ; exit 1 )
 	$(E) "[RUN]     Testing tcp_client_posix_test"
 	$(Q) $(BINDIR)/$(CONFIG)/tcp_client_posix_test || ( echo test tcp_client_posix_test failed ; exit 1 )
 	$(E) "[RUN]     Testing tcp_posix_test"
@@ -1559,8 +1559,12 @@ test_cxx: test_zookeeper buildtests_cxx
 	$(Q) $(BINDIR)/$(CONFIG)/cxx_time_test || ( echo test cxx_time_test failed ; exit 1 )
 	$(E) "[RUN]     Testing end2end_test"
 	$(Q) $(BINDIR)/$(CONFIG)/end2end_test || ( echo test end2end_test failed ; exit 1 )
+	$(E) "[RUN]     Testing generic_async_streaming_ping_pong_test"
+	$(Q) $(BINDIR)/$(CONFIG)/generic_async_streaming_ping_pong_test || ( echo test generic_async_streaming_ping_pong_test failed ; exit 1 )
 	$(E) "[RUN]     Testing generic_end2end_test"
 	$(Q) $(BINDIR)/$(CONFIG)/generic_end2end_test || ( echo test generic_end2end_test failed ; exit 1 )
+	$(E) "[RUN]     Testing hybrid_end2end_test"
+	$(Q) $(BINDIR)/$(CONFIG)/hybrid_end2end_test || ( echo test hybrid_end2end_test failed ; exit 1 )
 	$(E) "[RUN]     Testing interop_test"
 	$(Q) $(BINDIR)/$(CONFIG)/interop_test || ( echo test interop_test failed ; exit 1 )
 	$(E) "[RUN]     Testing mock_test"
@@ -2422,6 +2426,7 @@ LIBGRPC_SRC = \
     src/core/surface/server.c \
     src/core/surface/server_chttp2.c \
     src/core/surface/server_create.c \
+    src/core/surface/validate_metadata.c \
     src/core/surface/version.c \
     src/core/transport/byte_stream.c \
     src/core/transport/chttp2/alpn.c \
@@ -2454,7 +2459,6 @@ LIBGRPC_SRC = \
     src/core/census/context.c \
     src/core/census/initialize.c \
     src/core/census/operation.c \
-    src/core/census/tag_set.c \
     src/core/census/tracing.c \
 
 PUBLIC_HEADERS_C += \
@@ -2725,6 +2729,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/surface/server.c \
     src/core/surface/server_chttp2.c \
     src/core/surface/server_create.c \
+    src/core/surface/validate_metadata.c \
     src/core/surface/version.c \
     src/core/transport/byte_stream.c \
     src/core/transport/chttp2/alpn.c \
@@ -2757,7 +2762,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/census/context.c \
     src/core/census/initialize.c \
     src/core/census/operation.c \
-    src/core/census/tag_set.c \
     src/core/census/tracing.c \
 
 PUBLIC_HEADERS_C += \
@@ -2984,6 +2988,7 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/impl/call.h \
     include/grpc++/impl/client_unary_call.h \
     include/grpc++/impl/grpc_library.h \
+    include/grpc++/impl/method_handler_impl.h \
     include/grpc++/impl/proto_utils.h \
     include/grpc++/impl/rpc_method.h \
     include/grpc++/impl/rpc_service_method.h \
@@ -3155,6 +3160,8 @@ LIBGRPC++_TEST_UTIL_SRC = \
     $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc \
     $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc \
     $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc \
+    test/cpp/end2end/test_service_impl.cc \
+    test/cpp/util/byte_buffer_proto_helper.cc \
     test/cpp/util/cli_call.cc \
     test/cpp/util/create_test_channel.cc \
     test/cpp/util/string_ref_helper.cc \
@@ -3203,6 +3210,8 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC++_TEST_UTIL_OBJS:.o=.dep)
 endif
 endif
+$(OBJDIR)/$(CONFIG)/test/cpp/end2end/test_service_impl.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/test/cpp/util/byte_buffer_proto_helper.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/cli_call.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/create_test_channel.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/string_ref_helper.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
@@ -3249,6 +3258,7 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/impl/call.h \
     include/grpc++/impl/client_unary_call.h \
     include/grpc++/impl/grpc_library.h \
+    include/grpc++/impl/method_handler_impl.h \
     include/grpc++/impl/proto_utils.h \
     include/grpc++/impl/rpc_method.h \
     include/grpc++/impl/rpc_service_method.h \
@@ -8281,38 +8291,6 @@ endif
 endif
 
 
-TAG_SET_TEST_SRC = \
-    test/core/census/tag_set_test.c \
-
-TAG_SET_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(TAG_SET_TEST_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/tag_set_test: openssl_dep_error
-
-else
-
-
-
-$(BINDIR)/$(CONFIG)/tag_set_test: $(TAG_SET_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(TAG_SET_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/tag_set_test
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/core/census/tag_set_test.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_tag_set_test: $(TAG_SET_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(TAG_SET_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
 TCP_CLIENT_POSIX_TEST_SRC = \
     test/core/iomgr/tcp_client_posix_test.c \
 
@@ -9363,6 +9341,49 @@ endif
 endif
 
 
+GENERIC_ASYNC_STREAMING_PING_PONG_TEST_SRC = \
+    test/cpp/qps/generic_async_streaming_ping_pong_test.cc \
+
+GENERIC_ASYNC_STREAMING_PING_PONG_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(GENERIC_ASYNC_STREAMING_PING_PONG_TEST_SRC))))
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL.
+
+$(BINDIR)/$(CONFIG)/generic_async_streaming_ping_pong_test: openssl_dep_error
+
+else
+
+
+
+
+ifeq ($(NO_PROTOBUF),true)
+
+# You can't build the protoc plugins or protobuf-enabled targets if you don't have protobuf 3.0.0+.
+
+$(BINDIR)/$(CONFIG)/generic_async_streaming_ping_pong_test: protobuf_dep_error
+
+else
+
+$(BINDIR)/$(CONFIG)/generic_async_streaming_ping_pong_test: $(PROTOBUF_DEP) $(GENERIC_ASYNC_STREAMING_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LDXX) $(LDFLAGS) $(GENERIC_ASYNC_STREAMING_PING_PONG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/generic_async_streaming_ping_pong_test
+
+endif
+
+endif
+
+$(OBJDIR)/$(CONFIG)/test/cpp/qps/generic_async_streaming_ping_pong_test.o:  $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_generic_async_streaming_ping_pong_test: $(GENERIC_ASYNC_STREAMING_PING_PONG_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GENERIC_ASYNC_STREAMING_PING_PONG_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
 GENERIC_END2END_TEST_SRC = \
     test/cpp/end2end/generic_end2end_test.cc \
 
@@ -9601,6 +9622,49 @@ deps_grpc_ruby_plugin: $(GRPC_RUBY_PLUGIN_OBJS:.o=.dep)
 
 ifneq ($(NO_DEPS),true)
 -include $(GRPC_RUBY_PLUGIN_OBJS:.o=.dep)
+endif
+
+
+HYBRID_END2END_TEST_SRC = \
+    test/cpp/end2end/hybrid_end2end_test.cc \
+
+HYBRID_END2END_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(HYBRID_END2END_TEST_SRC))))
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL.
+
+$(BINDIR)/$(CONFIG)/hybrid_end2end_test: openssl_dep_error
+
+else
+
+
+
+
+ifeq ($(NO_PROTOBUF),true)
+
+# You can't build the protoc plugins or protobuf-enabled targets if you don't have protobuf 3.0.0+.
+
+$(BINDIR)/$(CONFIG)/hybrid_end2end_test: protobuf_dep_error
+
+else
+
+$(BINDIR)/$(CONFIG)/hybrid_end2end_test: $(PROTOBUF_DEP) $(HYBRID_END2END_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LDXX) $(LDFLAGS) $(HYBRID_END2END_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/hybrid_end2end_test
+
+endif
+
+endif
+
+$(OBJDIR)/$(CONFIG)/test/cpp/end2end/hybrid_end2end_test.o:  $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_hybrid_end2end_test: $(HYBRID_END2END_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(HYBRID_END2END_TEST_OBJS:.o=.dep)
+endif
 endif
 
 
@@ -12843,6 +12907,7 @@ test/core/end2end/tests/call_creds.c: $(OPENSSL_DEP)
 test/core/security/oauth2_utils.c: $(OPENSSL_DEP)
 test/core/util/reconnect_server.c: $(OPENSSL_DEP)
 test/core/util/test_tcp_server.c: $(OPENSSL_DEP)
+test/cpp/end2end/test_service_impl.cc: $(OPENSSL_DEP)
 test/cpp/interop/client.cc: $(OPENSSL_DEP)
 test/cpp/interop/client_helper.cc: $(OPENSSL_DEP)
 test/cpp/interop/interop_client.cc: $(OPENSSL_DEP)
@@ -12858,6 +12923,7 @@ test/cpp/qps/server_async.cc: $(OPENSSL_DEP)
 test/cpp/qps/server_sync.cc: $(OPENSSL_DEP)
 test/cpp/qps/timer.cc: $(OPENSSL_DEP)
 test/cpp/util/benchmark_config.cc: $(OPENSSL_DEP)
+test/cpp/util/byte_buffer_proto_helper.cc: $(OPENSSL_DEP)
 test/cpp/util/cli_call.cc: $(OPENSSL_DEP)
 test/cpp/util/create_test_channel.cc: $(OPENSSL_DEP)
 test/cpp/util/string_ref_helper.cc: $(OPENSSL_DEP)

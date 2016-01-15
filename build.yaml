@@ -20,7 +20,6 @@ filegroups:
   - src/core/census/context.c
   - src/core/census/initialize.c
   - src/core/census/operation.c
-  - src/core/census/tag_set.c
   - src/core/census/tracing.c
 - name: grpc++_base
   public_headers:
@@ -34,6 +33,7 @@ filegroups:
   - include/grpc++/impl/call.h
   - include/grpc++/impl/client_unary_call.h
   - include/grpc++/impl/grpc_library.h
+  - include/grpc++/impl/method_handler_impl.h
   - include/grpc++/impl/proto_utils.h
   - include/grpc++/impl/rpc_method.h
   - include/grpc++/impl/rpc_service_method.h
@@ -317,6 +317,7 @@ filegroups:
   - src/core/surface/server.c
   - src/core/surface/server_chttp2.c
   - src/core/surface/server_create.c
+  - src/core/surface/validate_metadata.c
   - src/core/surface/version.c
   - src/core/transport/byte_stream.c
   - src/core/transport/chttp2/alpn.c
@@ -636,6 +637,8 @@ libs:
   build: private
   language: c++
   headers:
+  - test/cpp/end2end/test_service_impl.h
+  - test/cpp/util/byte_buffer_proto_helper.h
   - test/cpp/util/cli_call.h
   - test/cpp/util/create_test_channel.h
   - test/cpp/util/string_ref_helper.h
@@ -644,6 +647,8 @@ libs:
   - src/proto/grpc/testing/echo_messages.proto
   - src/proto/grpc/testing/echo.proto
   - src/proto/grpc/testing/duplicate/echo_duplicate.proto
+  - test/cpp/end2end/test_service_impl.cc
+  - test/cpp/util/byte_buffer_proto_helper.cc
   - test/cpp/util/cli_call.cc
   - test/cpp/util/create_test_channel.cc
   - test/cpp/util/string_ref_helper.cc
@@ -1618,16 +1623,6 @@ targets:
   - mac
   - linux
   - posix
-- name: tag_set_test
-  build: test
-  language: c
-  src:
-  - test/core/census/tag_set_test.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
 - name: tcp_client_posix_test
   build: test
   language: c
@@ -1961,6 +1956,23 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
+- name: generic_async_streaming_ping_pong_test
+  build: test
+  language: c++
+  src:
+  - test/cpp/qps/generic_async_streaming_ping_pong_test.cc
+  deps:
+  - qps
+  - grpc++_test_util
+  - grpc_test_util
+  - grpc++
+  - grpc
+  - gpr_test_util
+  - gpr
+  platforms:
+  - mac
+  - linux
+  - posix
 - name: generic_end2end_test
   build: test
   language: c++
@@ -2037,6 +2049,18 @@ targets:
   secure: false
   vs_config_type: Application
   vs_project_guid: '{069E9D05-B78B-4751-9252-D21EBAE7DE8E}'
+- name: hybrid_end2end_test
+  build: test
+  language: c++
+  src:
+  - test/cpp/end2end/hybrid_end2end_test.cc
+  deps:
+  - grpc++_test_util
+  - grpc_test_util
+  - grpc++
+  - grpc
+  - gpr_test_util
+  - gpr
 - name: interop_client
   build: test
   run: false
