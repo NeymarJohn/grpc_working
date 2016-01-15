@@ -30,8 +30,56 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#ifndef GRPC_TEST_CPP_END2END_TEST_SERVICE_IMPL_H
+#define GRPC_TEST_CPP_END2END_TEST_SERVICE_IMPL_H
 
-void grpc_rb_event_queue_thread_start();
+#include <memory>
+#include <mutex>
 
-void grpc_rb_event_queue_enqueue(void (*callback)(void*),
-                                 void *argument);
+#include <grpc++/server_context.h>
+#include <grpc/grpc.h>
+
+#include "src/proto/grpc/testing/echo.grpc.pb.h"
+
+namespace grpc {
+namespace testing {
+
+const char* const kServerCancelAfterReads = "cancel_after_reads";
+
+class TestServiceImpl : public ::grpc::testing::EchoTestService::Service {
+ public:
+  TestServiceImpl() : signal_client_(false), host_() {}
+  explicit TestServiceImpl(const grpc::string& host)
+      : signal_client_(false), host_(new grpc::string(host)) {}
+
+  Status Echo(ServerContext* context, const EchoRequest* request,
+              EchoResponse* response) GRPC_OVERRIDE;
+
+  // Unimplemented is left unimplemented to test the returned error.
+
+  Status RequestStream(ServerContext* context,
+                       ServerReader<EchoRequest>* reader,
+                       EchoResponse* response) GRPC_OVERRIDE;
+
+  Status ResponseStream(ServerContext* context, const EchoRequest* request,
+                        ServerWriter<EchoResponse>* writer) GRPC_OVERRIDE;
+
+  Status BidiStream(ServerContext* context,
+                    ServerReaderWriter<EchoResponse, EchoRequest>* stream)
+      GRPC_OVERRIDE;
+
+  bool signal_client() {
+    std::unique_lock<std::mutex> lock(mu_);
+    return signal_client_;
+  }
+
+ private:
+  bool signal_client_;
+  std::mutex mu_;
+  std::unique_ptr<grpc::string> host_;
+};
+
+}  // namespace testing
+}  // namespace grpc
+
+#endif  // GRPC_TEST_CPP_END2END_TEST_SERVICE_IMPL_H
