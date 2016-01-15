@@ -47,6 +47,15 @@ namespace Grpc.Core
     {
         const int THREAD_POOL_SIZE = 4;
 
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern void grpcsharp_init();
+
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern void grpcsharp_shutdown();
+
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern IntPtr grpcsharp_version_string();  // returns not-owned const char*
+
         static object staticLock = new object();
         static GrpcEnvironment instance;
         static int refCount;
@@ -127,6 +136,7 @@ namespace Grpc.Core
         /// </summary>
         private GrpcEnvironment()
         {
+            NativeLogRedirector.Redirect();
             GrpcNativeInit();
             completionRegistry = new CompletionRegistry(this);
             threadPool = new GrpcThreadPool(this, THREAD_POOL_SIZE);
@@ -171,18 +181,18 @@ namespace Grpc.Core
         /// </summary>
         internal static string GetCoreVersionString()
         {
-            var ptr = NativeMethods.Get().grpcsharp_version_string();  // the pointer is not owned
+            var ptr = grpcsharp_version_string();  // the pointer is not owned
             return Marshal.PtrToStringAnsi(ptr);
         }
 
         internal static void GrpcNativeInit()
         {
-            NativeMethods.Get().grpcsharp_init();
+            grpcsharp_init();
         }
 
         internal static void GrpcNativeShutdown()
         {
-            NativeMethods.Get().grpcsharp_shutdown();
+            grpcsharp_shutdown();
         }
 
         /// <summary>
