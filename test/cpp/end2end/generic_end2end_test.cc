@@ -33,25 +33,24 @@
 
 #include <memory>
 
+#include <grpc/grpc.h>
+#include <grpc/support/thd.h>
+#include <grpc/support/time.h>
+#include <grpc++/impl/proto_utils.h>
 #include <grpc++/channel.h>
 #include <grpc++/client_context.h>
 #include <grpc++/create_channel.h>
 #include <grpc++/generic/async_generic_service.h>
 #include <grpc++/generic/generic_stub.h>
-#include <grpc++/impl/proto_utils.h>
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
 #include <grpc++/support/slice.h>
-#include <grpc/grpc.h>
-#include <grpc/support/thd.h>
-#include <grpc/support/time.h>
 #include <gtest/gtest.h>
 
-#include "src/proto/grpc/testing/echo.grpc.pb.h"
 #include "test/core/util/port.h"
 #include "test/core/util/test_config.h"
-#include "test/cpp/util/byte_buffer_proto_helper.h"
+#include "src/proto/grpc/testing/echo.grpc.pb.h"
 
 using grpc::testing::EchoRequest;
 using grpc::testing::EchoResponse;
@@ -69,6 +68,26 @@ void verify_ok(CompletionQueue* cq, int i, bool expect_ok) {
   EXPECT_TRUE(cq->Next(&got_tag, &ok));
   EXPECT_EQ(expect_ok, ok);
   EXPECT_EQ(tag(i), got_tag);
+}
+
+bool ParseFromByteBuffer(ByteBuffer* buffer, grpc::protobuf::Message* message) {
+  std::vector<Slice> slices;
+  buffer->Dump(&slices);
+  grpc::string buf;
+  buf.reserve(buffer->Length());
+  for (auto s = slices.begin(); s != slices.end(); s++) {
+    buf.append(reinterpret_cast<const char*>(s->begin()), s->size());
+  }
+  return message->ParseFromString(buf);
+}
+
+std::unique_ptr<ByteBuffer> SerializeToByteBuffer(
+    grpc::protobuf::Message* message) {
+  grpc::string buf;
+  message->SerializeToString(&buf);
+  gpr_slice s = gpr_slice_from_copied_string(buf.c_str());
+  Slice slice(s, Slice::STEAL_REF);
+  return std::unique_ptr<ByteBuffer>(new ByteBuffer(&slice, 1));
 }
 
 class GenericEnd2endTest : public ::testing::Test {
@@ -115,7 +134,7 @@ class GenericEnd2endTest : public ::testing::Test {
   void client_fail(int i) { verify_ok(&cli_cq_, i, false); }
 
   void SendRpc(int num_rpcs) {
-    const grpc::string kMethodName("/grpc.cpp.test.util.EchoTestService/Echo");
+    const grpc::string kMethodName("/grpc.cpp.test.util.TestService/Echo");
     for (int i = 0; i < num_rpcs; i++) {
       EchoRequest send_request;
       EchoRequest recv_request;
@@ -174,7 +193,7 @@ class GenericEnd2endTest : public ::testing::Test {
 
   CompletionQueue cli_cq_;
   std::unique_ptr<ServerCompletionQueue> srv_cq_;
-  std::unique_ptr<grpc::testing::EchoTestService::Stub> stub_;
+  std::unique_ptr<grpc::testing::TestService::Stub> stub_;
   std::unique_ptr<grpc::GenericStub> generic_stub_;
   std::unique_ptr<Server> server_;
   AsyncGenericService generic_service_;
@@ -196,8 +215,7 @@ TEST_F(GenericEnd2endTest, SequentialRpcs) {
 TEST_F(GenericEnd2endTest, SimpleBidiStreaming) {
   ResetStub();
 
-  const grpc::string kMethodName(
-      "/grpc.cpp.test.util.EchoTestService/BidiStream");
+  const grpc::string kMethodName("/grpc.cpp.test.util.TestService/BidiStream");
   EchoRequest send_request;
   EchoRequest recv_request;
   EchoResponse send_response;

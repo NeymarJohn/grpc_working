@@ -292,9 +292,6 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\server_create.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\surface\validate_metadata.c">
-      <Filter>src\core\surface</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\version.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
@@ -389,6 +386,9 @@
       <Filter>src\core\census</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\operation.c">
+      <Filter>src\core\census</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\census\tag_set.c">
       <Filter>src\core\census</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\tracing.c">
