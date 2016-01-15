@@ -123,6 +123,7 @@ grpc::string GetHeaderIncludes(const grpc::protobuf::FileDescriptor *file,
       "\n"
       "namespace grpc {\n"
       "class CompletionQueue;\n"
+      "class Channel;\n"
       "class RpcService;\n"
       "class ServerCompletionQueue;\n"
       "class ServerContext;\n"
@@ -556,14 +557,14 @@ void PrintHeaderService(grpc::protobuf::io::Printer *printer,
       "class Stub GRPC_FINAL : public StubInterface"
       " {\n public:\n");
   printer->Indent();
-  printer->Print("Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel);\n");
+  printer->Print("Stub(const std::shared_ptr< ::grpc::Channel>& channel);\n");
   for (int i = 0; i < service->method_count(); ++i) {
     PrintHeaderClientMethod(printer, service->method(i), vars, true);
   }
   printer->Outdent();
   printer->Print("\n private:\n");
   printer->Indent();
-  printer->Print("std::shared_ptr< ::grpc::ChannelInterface> channel_;\n");
+  printer->Print("std::shared_ptr< ::grpc::Channel> channel_;\n");
   for (int i = 0; i < service->method_count(); ++i) {
     PrintHeaderClientMethod(printer, service->method(i), vars, false);
   }
@@ -574,7 +575,7 @@ void PrintHeaderService(grpc::protobuf::io::Printer *printer,
   printer->Print("};\n");
   printer->Print(
       "static std::unique_ptr<Stub> NewStub(const std::shared_ptr< "
-      "::grpc::ChannelInterface>& channel, "
+      "::grpc::Channel>& channel, "
       "const ::grpc::StubOptions& options = ::grpc::StubOptions());\n");
 
   printer->Print("\n");
@@ -701,10 +702,10 @@ grpc::string GetSourceIncludes(const grpc::protobuf::FileDescriptor *file,
     grpc::protobuf::io::Printer printer(&output_stream, '$');
     std::map<grpc::string, grpc::string> vars;
 
+    printer.Print(vars, "#include <grpc++/channel.h>\n");
     printer.Print(vars, "#include <grpc++/impl/client_unary_call.h>\n");
     printer.Print(vars, "#include <grpc++/impl/rpc_service_method.h>\n");
     printer.Print(vars, "#include <grpc++/impl/service_type.h>\n");
-    printer.Print(vars, "#include <grpc++/impl/codegen/channel_interface.h>\n");
     printer.Print(vars, "#include <grpc++/support/async_unary_call.h>\n");
     printer.Print(vars, "#include <grpc++/support/async_stream.h>\n");
     printer.Print(vars, "#include <grpc++/support/sync_stream.h>\n");
@@ -966,7 +967,7 @@ void PrintSourceService(grpc::protobuf::io::Printer *printer,
 
   printer->Print(*vars,
                  "std::unique_ptr< $ns$$Service$::Stub> $ns$$Service$::NewStub("
-                 "const std::shared_ptr< ::grpc::ChannelInterface>& channel, "
+                 "const std::shared_ptr< ::grpc::Channel>& channel, "
                  "const ::grpc::StubOptions& options) {\n"
                  "  std::unique_ptr< $ns$$Service$::Stub> stub(new "
                  "$ns$$Service$::Stub(channel));\n"
@@ -974,7 +975,7 @@ void PrintSourceService(grpc::protobuf::io::Printer *printer,
                  "}\n\n");
   printer->Print(*vars,
                  "$ns$$Service$::Stub::Stub(const std::shared_ptr< "
-                 "::grpc::ChannelInterface>& channel)\n");
+                 "::grpc::Channel>& channel)\n");
   printer->Indent();
   printer->Print(": channel_(channel)");
   for (int i = 0; i < service->method_count(); ++i) {

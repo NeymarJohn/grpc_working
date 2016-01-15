@@ -439,8 +439,8 @@ void Server::PerformOpsOnCall(CallOpSetInterface* ops, Call* call) {
   GPR_ASSERT(GRPC_CALL_OK == result);
 }
 
-ServerInterface::BaseAsyncRequest::BaseAsyncRequest(
-    ServerInterface* server, ServerContext* context,
+Server::BaseAsyncRequest::BaseAsyncRequest(
+    Server* server, ServerContext* context,
     ServerAsyncStreamingInterface* stream, CompletionQueue* call_cq, void* tag,
     bool delete_on_finalize)
     : server_(server),
@@ -453,7 +453,9 @@ ServerInterface::BaseAsyncRequest::BaseAsyncRequest(
   memset(&initial_metadata_array_, 0, sizeof(initial_metadata_array_));
 }
 
-bool ServerInterface::BaseAsyncRequest::FinalizeResult(void** tag, bool* status) {
+Server::BaseAsyncRequest::~BaseAsyncRequest() {}
+
+bool Server::BaseAsyncRequest::FinalizeResult(void** tag, bool* status) {
   if (*status) {
     for (size_t i = 0; i < initial_metadata_array_.count; i++) {
       context_->client_metadata_.insert(
@@ -467,7 +469,7 @@ bool ServerInterface::BaseAsyncRequest::FinalizeResult(void** tag, bool* status)
   grpc_metadata_array_destroy(&initial_metadata_array_);
   context_->set_call(call_);
   context_->cq_ = call_cq_;
-  Call call(call_, server_, call_cq_, server_->max_message_size());
+  Call call(call_, server_, call_cq_, server_->max_message_size_);
   if (*status && call_) {
     context_->BeginCompletionOp(&call);
   }
@@ -480,22 +482,22 @@ bool ServerInterface::BaseAsyncRequest::FinalizeResult(void** tag, bool* status)
   return true;
 }
 
-ServerInterface::RegisteredAsyncRequest::RegisteredAsyncRequest(
-    ServerInterface* server, ServerContext* context,
+Server::RegisteredAsyncRequest::RegisteredAsyncRequest(
+    Server* server, ServerContext* context,
     ServerAsyncStreamingInterface* stream, CompletionQueue* call_cq, void* tag)
     : BaseAsyncRequest(server, context, stream, call_cq, tag, true) {}
 
-void ServerInterface::RegisteredAsyncRequest::IssueRequest(
+void Server::RegisteredAsyncRequest::IssueRequest(
     void* registered_method, grpc_byte_buffer** payload,
     ServerCompletionQueue* notification_cq) {
   grpc_server_request_registered_call(
-      server_->server(), registered_method, &call_, &context_->deadline_,
+      server_->server_, registered_method, &call_, &context_->deadline_,
       &initial_metadata_array_, payload, call_cq_->cq(), notification_cq->cq(),
       this);
 }
 
-ServerInterface::GenericAsyncRequest::GenericAsyncRequest(
-    ServerInterface* server, GenericServerContext* context,
+Server::GenericAsyncRequest::GenericAsyncRequest(
+    Server* server, GenericServerContext* context,
     ServerAsyncStreamingInterface* stream, CompletionQueue* call_cq,
     ServerCompletionQueue* notification_cq, void* tag, bool delete_on_finalize)
     : BaseAsyncRequest(server, context, stream, call_cq, tag,
@@ -503,12 +505,12 @@ ServerInterface::GenericAsyncRequest::GenericAsyncRequest(
   grpc_call_details_init(&call_details_);
   GPR_ASSERT(notification_cq);
   GPR_ASSERT(call_cq);
-  grpc_server_request_call(server->server(), &call_, &call_details_,
+  grpc_server_request_call(server->server_, &call_, &call_details_,
                            &initial_metadata_array_, call_cq->cq(),
                            notification_cq->cq(), this);
 }
 
-bool ServerInterface::GenericAsyncRequest::FinalizeResult(void** tag, bool* status) {
+bool Server::GenericAsyncRequest::FinalizeResult(void** tag, bool* status) {
   // TODO(yangg) remove the copy here.
   if (*status) {
     static_cast<GenericServerContext*>(context_)->method_ =
