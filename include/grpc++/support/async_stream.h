@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,6 +84,10 @@ class AsyncWriterInterface {
   virtual ~AsyncWriterInterface() {}
 
   /// Request the writing of \a msg with identifying tag \a tag.
+  ///
+  /// Only one write may be outstanding at any given time. This means that
+  /// after calling Write, one must wait to receive \a tag from the completion
+  /// queue BEFORE calling Write again.
   ///
   /// \param[in] msg The message to be written.
   /// \param[in] tag The tag identifying the operation.
