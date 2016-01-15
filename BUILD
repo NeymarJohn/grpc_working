@@ -385,6 +385,7 @@ cc_library(
     "src/core/surface/server.c",
     "src/core/surface/server_chttp2.c",
     "src/core/surface/server_create.c",
+    "src/core/surface/validate_metadata.c",
     "src/core/surface/version.c",
     "src/core/transport/byte_stream.c",
     "src/core/transport/chttp2/alpn.c",
@@ -417,7 +418,6 @@ cc_library(
     "src/core/census/context.c",
     "src/core/census/initialize.c",
     "src/core/census/operation.c",
-    "src/core/census/tag_set.c",
     "src/core/census/tracing.c",
   ],
   hdrs = [
@@ -657,6 +657,7 @@ cc_library(
     "src/core/surface/server.c",
     "src/core/surface/server_chttp2.c",
     "src/core/surface/server_create.c",
+    "src/core/surface/validate_metadata.c",
     "src/core/surface/version.c",
     "src/core/transport/byte_stream.c",
     "src/core/transport/chttp2/alpn.c",
@@ -689,7 +690,6 @@ cc_library(
     "src/core/census/context.c",
     "src/core/census/initialize.c",
     "src/core/census/operation.c",
-    "src/core/census/tag_set.c",
     "src/core/census/tracing.c",
   ],
   hdrs = [
@@ -1192,6 +1192,7 @@ objc_library(
     "src/core/surface/server.c",
     "src/core/surface/server_chttp2.c",
     "src/core/surface/server_create.c",
+    "src/core/surface/validate_metadata.c",
     "src/core/surface/version.c",
     "src/core/transport/byte_stream.c",
     "src/core/transport/chttp2/alpn.c",
@@ -1224,7 +1225,6 @@ objc_library(
     "src/core/census/context.c",
     "src/core/census/initialize.c",
     "src/core/census/operation.c",
-    "src/core/census/tag_set.c",
     "src/core/census/tracing.c",
   ],
   hdrs = [

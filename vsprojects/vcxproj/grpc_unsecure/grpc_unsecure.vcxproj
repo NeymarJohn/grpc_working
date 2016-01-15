@@ -578,6 +578,8 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\server_create.c">
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\surface\validate_metadata.c">
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\version.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\transport\byte_stream.c">
@@ -641,8 +643,6 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\census\initialize.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\operation.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\census\tag_set.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\tracing.c">
     </ClCompile>
