@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,10 @@ of the list of dependencies.
 """
 
 def get_lib(libs, name):
-  try:
-    return next(lib for lib in libs if lib['name']==name)
-  except StopIteration:
-    return None
+  return next(lib for lib in libs if lib['name']==name)
 
 def transitive_deps(lib, libs):
-  if lib is not None and 'deps' in lib:
+  if 'deps' in lib:
     # Recursively call transitive_deps on each dependency, and take the union
     return set.union(set(lib['deps']),
                      *[set(transitive_deps(get_lib(libs, dep), libs))
@@ -61,10 +58,6 @@ def mako_plugin(dictionary):
   node_modules = dictionary.get('node_modules')
   targets = dictionary.get('targets')
 
-  for target_list in (libs, targets, node_modules):
+  for target_list in (libs, node_modules, targets):
     for target in target_list:
       target['transitive_deps'] = transitive_deps(target, libs)
-
-  python_dependencies = dictionary.get('python_dependencies')
-  python_dependencies['transitive_deps'] = (
-      transitive_deps(python_dependencies, libs))

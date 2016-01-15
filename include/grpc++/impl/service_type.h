@@ -34,7 +34,6 @@
 #ifndef GRPCXX_IMPL_SERVICE_TYPE_H
 #define GRPCXX_IMPL_SERVICE_TYPE_H
 
-#include <grpc++/impl/rpc_service_method.h>
 #include <grpc++/impl/serialization_traits.h>
 #include <grpc++/server.h>
 #include <grpc++/support/config.h>
@@ -44,9 +43,16 @@ namespace grpc {
 
 class Call;
 class CompletionQueue;
+class RpcService;
 class Server;
 class ServerCompletionQueue;
 class ServerContext;
+
+class SynchronousService {
+ public:
+  virtual ~SynchronousService() {}
+  virtual RpcService* service() = 0;
+};
 
 class ServerAsyncStreamingInterface {
  public:
@@ -59,28 +65,15 @@ class ServerAsyncStreamingInterface {
   virtual void BindCall(Call* call) = 0;
 };
 
-class Service {
+class AsynchronousService {
  public:
-  Service() : server_(nullptr) {}
-  virtual ~Service() {}
+  AsynchronousService(const char** method_names, size_t method_count)
+      : server_(nullptr),
+        method_names_(method_names),
+        method_count_(method_count),
+        request_args_(nullptr) {}
 
-  bool has_async_methods() const {
-    for (auto it = methods_.begin(); it != methods_.end(); ++it) {
-      if (*it && (*it)->handler() == nullptr) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool has_synchronous_methods() const {
-    for (auto it = methods_.begin(); it != methods_.end(); ++it) {
-      if (*it && (*it)->handler() != nullptr) {
-        return true;
-      }
-    }
-    return false;
-  }
+  ~AsynchronousService() { delete[] request_args_; }
 
  protected:
   template <class Message>
@@ -88,59 +81,41 @@ class Service {
                          ServerAsyncStreamingInterface* stream,
                          CompletionQueue* call_cq,
                          ServerCompletionQueue* notification_cq, void* tag) {
-    server_->RequestAsyncCall(methods_[index].get(), context, stream, call_cq,
+    server_->RequestAsyncCall(request_args_[index], context, stream, call_cq,
                               notification_cq, tag, request);
   }
-  void RequestAsyncClientStreaming(int index, ServerContext* context,
-                                   ServerAsyncStreamingInterface* stream,
-                                   CompletionQueue* call_cq,
-                                   ServerCompletionQueue* notification_cq,
-                                   void* tag) {
-    server_->RequestAsyncCall(methods_[index].get(), context, stream, call_cq,
+  void RequestClientStreaming(int index, ServerContext* context,
+                              ServerAsyncStreamingInterface* stream,
+                              CompletionQueue* call_cq,
+                              ServerCompletionQueue* notification_cq,
+                              void* tag) {
+    server_->RequestAsyncCall(request_args_[index], context, stream, call_cq,
                               notification_cq, tag);
   }
   template <class Message>
-  void RequestAsyncServerStreaming(int index, ServerContext* context,
-                                   Message* request,
-                                   ServerAsyncStreamingInterface* stream,
-                                   CompletionQueue* call_cq,
-                                   ServerCompletionQueue* notification_cq,
-                                   void* tag) {
-    server_->RequestAsyncCall(methods_[index].get(), context, stream, call_cq,
+  void RequestServerStreaming(int index, ServerContext* context,
+                              Message* request,
+                              ServerAsyncStreamingInterface* stream,
+                              CompletionQueue* call_cq,
+                              ServerCompletionQueue* notification_cq,
+                              void* tag) {
+    server_->RequestAsyncCall(request_args_[index], context, stream, call_cq,
                               notification_cq, tag, request);
   }
-  void RequestAsyncBidiStreaming(int index, ServerContext* context,
-                                 ServerAsyncStreamingInterface* stream,
-                                 CompletionQueue* call_cq,
-                                 ServerCompletionQueue* notification_cq,
-                                 void* tag) {
-    server_->RequestAsyncCall(methods_[index].get(), context, stream, call_cq,
+  void RequestBidiStreaming(int index, ServerContext* context,
+                            ServerAsyncStreamingInterface* stream,
+                            CompletionQueue* call_cq,
+                            ServerCompletionQueue* notification_cq, void* tag) {
+    server_->RequestAsyncCall(request_args_[index], context, stream, call_cq,
                               notification_cq, tag);
-  }
-
-  void AddMethod(RpcServiceMethod* method) { methods_.emplace_back(method); }
-
-  void MarkMethodAsync(int index) {
-    if (methods_[index].get() == nullptr) {
-      gpr_log(GPR_ERROR, "A method cannot be marked async and generic.");
-      abort();
-    }
-    methods_[index]->ResetHandler();
-  }
-
-  void MarkMethodGeneric(int index) {
-    if (methods_[index]->handler() == nullptr) {
-      gpr_log(GPR_ERROR, "A method cannot be marked async and generic.");
-      abort();
-    }
-    methods_[index].reset();
   }
 
  private:
   friend class Server;
-
   Server* server_;
-  std::vector<std::unique_ptr<RpcServiceMethod>> methods_;
+  const char** const method_names_;
+  size_t method_count_;
+  void** request_args_;
 };
 
 }  // namespace grpc

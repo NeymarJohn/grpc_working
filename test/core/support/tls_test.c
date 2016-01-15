@@ -46,7 +46,7 @@
 GPR_TLS_DECL(test_var);
 
 static void thd_body(void *arg) {
-  intptr_t i;
+  gpr_intptr i;
 
   GPR_ASSERT(gpr_tls_get(&test_var) == 0);
 
