@@ -1,5 +1,5 @@
 #region Copyright notice and license
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,11 @@ namespace Grpc.Core.Internal
     /// </summary>
     internal class CallCredentialsSafeHandle : SafeHandleZeroIsInvalid
     {
-        static readonly NativeMethods Native = NativeMethods.Get();
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern CallCredentialsSafeHandle grpcsharp_composite_call_credentials_create(CallCredentialsSafeHandle creds1, CallCredentialsSafeHandle creds2);
+
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern void grpcsharp_call_credentials_release(IntPtr credentials);
 
         private CallCredentialsSafeHandle()
         {
@@ -48,12 +52,12 @@ namespace Grpc.Core.Internal
 
         public static CallCredentialsSafeHandle CreateComposite(CallCredentialsSafeHandle creds1, CallCredentialsSafeHandle creds2)
         {
-            return Native.grpcsharp_composite_call_credentials_create(creds1, creds2);
+            return grpcsharp_composite_call_credentials_create(creds1, creds2);
         }
 
         protected override bool ReleaseHandle()
         {
-            Native.grpcsharp_call_credentials_release(handle);
+            grpcsharp_call_credentials_release(handle);
             return true;
         }
     }
