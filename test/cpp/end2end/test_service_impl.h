@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,30 +30,56 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#ifndef GRPC_TEST_CPP_END2END_TEST_SERVICE_IMPL_H
+#define GRPC_TEST_CPP_END2END_TEST_SERVICE_IMPL_H
 
-#include "test/cpp/util/subprocess.h"
+#include <memory>
+#include <mutex>
 
-#include <vector>
+#include <grpc++/server_context.h>
+#include <grpc/grpc.h>
 
-#include <grpc/support/subprocess.h>
+#include "src/proto/grpc/testing/echo.grpc.pb.h"
 
 namespace grpc {
+namespace testing {
 
-static gpr_subprocess *MakeProcess(std::initializer_list<std::string> args) {
-  std::vector<const char *> vargs;
-  for (auto it = args.begin(); it != args.end(); ++it) {
-    vargs.push_back(it->c_str());
+const char* const kServerCancelAfterReads = "cancel_after_reads";
+
+class TestServiceImpl : public ::grpc::testing::EchoTestService::Service {
+ public:
+  TestServiceImpl() : signal_client_(false), host_() {}
+  explicit TestServiceImpl(const grpc::string& host)
+      : signal_client_(false), host_(new grpc::string(host)) {}
+
+  Status Echo(ServerContext* context, const EchoRequest* request,
+              EchoResponse* response) GRPC_OVERRIDE;
+
+  // Unimplemented is left unimplemented to test the returned error.
+
+  Status RequestStream(ServerContext* context,
+                       ServerReader<EchoRequest>* reader,
+                       EchoResponse* response) GRPC_OVERRIDE;
+
+  Status ResponseStream(ServerContext* context, const EchoRequest* request,
+                        ServerWriter<EchoResponse>* writer) GRPC_OVERRIDE;
+
+  Status BidiStream(ServerContext* context,
+                    ServerReaderWriter<EchoResponse, EchoRequest>* stream)
+      GRPC_OVERRIDE;
+
+  bool signal_client() {
+    std::unique_lock<std::mutex> lock(mu_);
+    return signal_client_;
   }
-  return gpr_subprocess_create(vargs.size(), &vargs[0]);
-}
 
-SubProcess::SubProcess(std::initializer_list<std::string> args)
-    : subprocess_(MakeProcess(args)) {}
+ private:
+  bool signal_client_;
+  std::mutex mu_;
+  std::unique_ptr<grpc::string> host_;
+};
 
-SubProcess::~SubProcess() { gpr_subprocess_destroy(subprocess_); }
-
-int SubProcess::Join() { return gpr_subprocess_join(subprocess_); }
-
-void SubProcess::Interrupt() { gpr_subprocess_interrupt(subprocess_); }
-
+}  // namespace testing
 }  // namespace grpc
+
+#endif  // GRPC_TEST_CPP_END2END_TEST_SERVICE_IMPL_H

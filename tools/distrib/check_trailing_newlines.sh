@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2015-2016, Google Inc.
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,55 +28,40 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -ex
-
-readonly NANOPB_TMP_OUTPUT=$(mktemp -d)
-readonly VENV_DIR=$(mktemp -d)
-# create a virtualenv for nanopb's compiler
-pushd $VENV_DIR
-readonly VENV_NAME="nanopb-$(date '+%Y%m%d_%H%M%S_%N')"
-virtualenv $VENV_NAME
-. $VENV_NAME/bin/activate
-popd
-
-# install proto3
-pip install protobuf==3.0.0b2
-
 # change to root directory
 cd $(dirname $0)/../..
 
-# install protoc version 3
-pushd third_party/protobuf
-apt-get install -y autoconf automake libtool curl
-./autogen.sh
-./configure
-make
-make install
-ldconfig
-popd
+function find_without_newline() {
+  find . -type f -not -path './third_party/*' -and \(  \
+                             -name '*.c'               \
+                         -or -name '*.cc'              \
+                         -or -name '*.proto'           \
+                         -or -name '*.rb'              \
+                         -or -name '*.py'              \
+                         -or -name '*.cs'              \
+                         -or -name '*.sh' \) -print0   \
+                         | while IFS= read -r -d '' f; do
+    if [[ ! -z $f ]]; then
+      if [[ $(tail -c 1 "$f") != $NEWLINE ]]; then
+        echo "Error: file '$f' is missing a trailing newline character."
+        if $2; then  # fix
+          sed -i -e '$a\' $f
+          echo 'Fixed!'
+        fi
+      fi
+    fi
+  done
+}
 
-if [ ! -x "/usr/local/bin/protoc" ]; then
-  echo "Error: protoc not found in path"
-  exit 1
+if [[ $# == 1 && $1 == '--fix' ]]; then
+  ERRORS=$(find_without_newline true)
+else
+  ERRORS=$(find_without_newline false)
 fi
-readonly PROTOC_PATH='/usr/local/bin'
-# stack up and change to nanopb's proto generator directory
-pushd third_party/nanopb/generator/proto
-PATH="$PROTOC_PATH:$PATH" make
 
-# back to the root directory
-popd
-
-
-# nanopb-compile the proto to a temp location
-PATH="$PROTOC_PATH:$PATH" ./tools/codegen/core/gen_load_balancing_proto.sh \
-  src/proto/grpc/lb/v0/load_balancer.proto \
-  $NANOPB_TMP_OUTPUT
-
-# compare outputs to checked compiled code
-diff -rq $NANOPB_TMP_OUTPUT src/core/proto/grpc/lb/v0
-if [ $? != 0 ]; then
-  echo "Outputs differ: $NANOPB_TMP_OUTPUT vs src/core/proto/grpc/lb/v0"
-  exit 1
+if [[ "$ERRORS" != '' ]]; then
+  echo "$ERRORS"
+  if ! $FIX; then
+    exit 1
+  fi
 fi
-deactivate

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,29 +31,23 @@
  *
  */
 
-#include "test/cpp/util/subprocess.h"
+#ifndef GRPC_TEST_CPP_UTIL_BYTE_BUFFER_PROTO_HELPER_H
+#define GRPC_TEST_CPP_UTIL_BYTE_BUFFER_PROTO_HELPER_H
 
-#include <vector>
+#include <memory>
 
-#include <grpc/support/subprocess.h>
+#include <grpc++/support/byte_buffer.h>
+#include <grpc++/support/config_protobuf.h>
 
 namespace grpc {
+namespace testing {
 
-static gpr_subprocess *MakeProcess(std::initializer_list<std::string> args) {
-  std::vector<const char *> vargs;
-  for (auto it = args.begin(); it != args.end(); ++it) {
-    vargs.push_back(it->c_str());
-  }
-  return gpr_subprocess_create(vargs.size(), &vargs[0]);
-}
+bool ParseFromByteBuffer(ByteBuffer* buffer, grpc::protobuf::Message* message);
 
-SubProcess::SubProcess(std::initializer_list<std::string> args)
-    : subprocess_(MakeProcess(args)) {}
+std::unique_ptr<ByteBuffer> SerializeToByteBuffer(
+    grpc::protobuf::Message* message);
 
-SubProcess::~SubProcess() { gpr_subprocess_destroy(subprocess_); }
-
-int SubProcess::Join() { return gpr_subprocess_join(subprocess_); }
-
-void SubProcess::Interrupt() { gpr_subprocess_interrupt(subprocess_); }
-
+}  // namespace testing
 }  // namespace grpc
+
+#endif  // GRPC_TEST_CPP_UTIL_BYTE_BUFFER_PROTO_HELPER_H

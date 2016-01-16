@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,29 +31,30 @@
  *
  */
 
-#include "test/cpp/util/subprocess.h"
-
-#include <vector>
-
-#include <grpc/support/subprocess.h>
+#include "test/cpp/util/byte_buffer_proto_helper.h"
 
 namespace grpc {
+namespace testing {
 
-static gpr_subprocess *MakeProcess(std::initializer_list<std::string> args) {
-  std::vector<const char *> vargs;
-  for (auto it = args.begin(); it != args.end(); ++it) {
-    vargs.push_back(it->c_str());
+bool ParseFromByteBuffer(ByteBuffer* buffer, grpc::protobuf::Message* message) {
+  std::vector<Slice> slices;
+  buffer->Dump(&slices);
+  grpc::string buf;
+  buf.reserve(buffer->Length());
+  for (auto s = slices.begin(); s != slices.end(); s++) {
+    buf.append(reinterpret_cast<const char*>(s->begin()), s->size());
   }
-  return gpr_subprocess_create(vargs.size(), &vargs[0]);
+  return message->ParseFromString(buf);
 }
 
-SubProcess::SubProcess(std::initializer_list<std::string> args)
-    : subprocess_(MakeProcess(args)) {}
+std::unique_ptr<ByteBuffer> SerializeToByteBuffer(
+    grpc::protobuf::Message* message) {
+  grpc::string buf;
+  message->SerializeToString(&buf);
+  gpr_slice s = gpr_slice_from_copied_string(buf.c_str());
+  Slice slice(s, Slice::STEAL_REF);
+  return std::unique_ptr<ByteBuffer>(new ByteBuffer(&slice, 1));
+}
 
-SubProcess::~SubProcess() { gpr_subprocess_destroy(subprocess_); }
-
-int SubProcess::Join() { return gpr_subprocess_join(subprocess_); }
-
-void SubProcess::Interrupt() { gpr_subprocess_interrupt(subprocess_); }
-
+}  // namespace testing
 }  // namespace grpc
