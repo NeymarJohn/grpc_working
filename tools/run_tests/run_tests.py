@@ -114,10 +114,13 @@ class ValgrindConfig(object):
     self.args = args
     self.allow_hashing = False
 
-  def job_spec(self, cmdline, hash_targets):
+  def job_spec(self, cmdline, hash_targets, timeout_seconds=None,
+               shortname=None, environ=None):
+    if shortname is None:
+      shortname = 'valgrind %s' % cmdline[0]
     return jobset.JobSpec(cmdline=['valgrind', '--tool=%s' % self.tool] +
                           self.args + cmdline,
-                          shortname='valgrind %s' % cmdline[0],
+                          shortname=shortname,
                           hash_targets=None,
                           flake_retries=5 if args.allow_flakes else 0,
                           timeout_retries=3 if args.allow_flakes else 0)
@@ -772,10 +775,9 @@ else:
       return [jobset.JobSpec([os.getenv('MAKE', 'make'),
                               '-f', makefile,
                               '-j', '%d' % (multiprocessing.cpu_count() + 1),
-                              'EXTRA_DEFINES=GRPC_TEST_SLOWDOWN_MACHINE_FACTOR=%f' % args.slowdown,
-                              'CONFIG=%s' % cfg] +
-                             ([] if not args.travis else ['JENKINS_BUILD=1']) +
-                             targets,
+                              'EXTRA_DEFINES=GRPC_TEST_SLOWDOWN_MACHINE_FACTOR=%f' %
+                              args.slowdown,
+                              'CONFIG=%s' % cfg] + targets,
                              timeout_seconds=30*60)]
     else:
       return []
@@ -1093,4 +1095,3 @@ else:
   if BuildAndRunError.POST_TEST in errors:
     exit_code |= 4
   sys.exit(exit_code)
-

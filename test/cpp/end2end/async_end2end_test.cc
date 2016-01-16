@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,29 +33,29 @@
 
 #include <memory>
 
+#include <grpc/grpc.h>
+#include <grpc/support/thd.h>
+#include <grpc/support/time.h>
 #include <grpc++/channel.h>
 #include <grpc++/client_context.h>
 #include <grpc++/create_channel.h>
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
-#include <grpc/grpc.h>
-#include <grpc/support/thd.h>
-#include <grpc/support/time.h>
 #include <gtest/gtest.h>
 
-#include "src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.h"
-#include "src/proto/grpc/testing/echo.grpc.pb.h"
 #include "test/core/util/port.h"
 #include "test/core/util/test_config.h"
+#include "test/cpp/util/echo_duplicate.grpc.pb.h"
+#include "test/cpp/util/echo.grpc.pb.h"
 #include "test/cpp/util/string_ref_helper.h"
 
 #ifdef GPR_POSIX_SOCKET
 #include "src/core/iomgr/pollset_posix.h"
 #endif
 
-using grpc::testing::EchoRequest;
-using grpc::testing::EchoResponse;
+using grpc::cpp::test::util::EchoRequest;
+using grpc::cpp::test::util::EchoResponse;
 using std::chrono::system_clock;
 
 namespace grpc {
@@ -180,11 +180,21 @@ class AsyncEnd2endTest : public ::testing::TestWithParam<bool> {
     int port = grpc_pick_unused_port_or_die();
     server_address_ << "localhost:" << port;
 
+    // It is currently unsupported to mix sync and async services
+    // in the same server, so first test that (for coverage)
+    ServerBuilder build_bad;
+    build_bad.AddListeningPort(server_address_.str(),
+                               grpc::InsecureServerCredentials());
+    build_bad.RegisterAsyncService(&service_);
+    grpc::cpp::test::util::TestService::Service sync_service;
+    build_bad.RegisterService(&sync_service);
+    GPR_ASSERT(build_bad.BuildAndStart() == nullptr);
+
     // Setup server
     ServerBuilder builder;
     builder.AddListeningPort(server_address_.str(),
                              grpc::InsecureServerCredentials());
-    builder.RegisterService(&service_);
+    builder.RegisterAsyncService(&service_);
     cq_ = builder.AddCompletionQueue();
     server_ = builder.BuildAndStart();
   }
@@ -201,7 +211,7 @@ class AsyncEnd2endTest : public ::testing::TestWithParam<bool> {
   void ResetStub() {
     std::shared_ptr<Channel> channel =
         CreateChannel(server_address_.str(), InsecureChannelCredentials());
-    stub_ = grpc::testing::EchoTestService::NewStub(channel);
+    stub_ = grpc::cpp::test::util::TestService::NewStub(channel);
   }
 
   void SendRpc(int num_rpcs) {
@@ -239,9 +249,9 @@ class AsyncEnd2endTest : public ::testing::TestWithParam<bool> {
   }
 
   std::unique_ptr<ServerCompletionQueue> cq_;
-  std::unique_ptr<grpc::testing::EchoTestService::Stub> stub_;
+  std::unique_ptr<grpc::cpp::test::util::TestService::Stub> stub_;
   std::unique_ptr<Server> server_;
-  grpc::testing::EchoTestService::AsyncService service_;
+  grpc::cpp::test::util::TestService::AsyncService service_;
   std::ostringstream server_address_;
 };
 
@@ -751,8 +761,8 @@ TEST_P(AsyncEnd2endTest, ServerCheckDone) {
 TEST_P(AsyncEnd2endTest, UnimplementedRpc) {
   std::shared_ptr<Channel> channel =
       CreateChannel(server_address_.str(), InsecureChannelCredentials());
-  std::unique_ptr<grpc::testing::UnimplementedService::Stub> stub;
-  stub = grpc::testing::UnimplementedService::NewStub(channel);
+  std::unique_ptr<grpc::cpp::test::util::UnimplementedService::Stub> stub;
+  stub = grpc::cpp::test::util::UnimplementedService::NewStub(channel);
   EchoRequest send_request;
   EchoResponse recv_response;
   Status recv_status;
