@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,12 +77,6 @@ typedef enum {
   GRPC_ARG_POINTER
 } grpc_arg_type;
 
-typedef struct grpc_arg_pointer_vtable {
-  void *(*copy)(void *p);
-  void (*destroy)(void *p);
-  int (*cmp)(void *p, void *q);
-} grpc_arg_pointer_vtable;
-
 /** A single argument... each argument has a key and a value
 
     A note on naming keys:
@@ -103,7 +97,8 @@ typedef struct {
     int integer;
     struct {
       void *p;
-      const grpc_arg_pointer_vtable *vtable;
+      void *(*copy)(void *p);
+      void (*destroy)(void *p);
     } pointer;
   } value;
 } grpc_arg;
@@ -719,6 +714,16 @@ void grpc_server_destroy(grpc_server *server);
     Use of this function is not strictly thread-safe, but the
     thread-safety issues raised by it should not be of concern. */
 int grpc_tracer_set_enabled(const char *name, int enabled);
+
+/** Check whether a metadata key is legal (will be accepted by core) */
+int grpc_header_key_is_legal(const char *key, size_t length);
+
+/** Check whether a non-binary metadata value is legal (will be accepted by
+    core) */
+int grpc_header_nonbin_value_is_legal(const char *value, size_t length);
+
+/** Check whether a metadata key corresponds to a binary value */
+int grpc_is_binary_header(const char *key, size_t length);
 
 #ifdef __cplusplus
 }

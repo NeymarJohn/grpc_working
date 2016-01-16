@@ -807,7 +807,6 @@ src/core/client_config/resolvers/dns_resolver.h \
 src/core/client_config/resolvers/sockaddr_resolver.h \
 src/core/client_config/subchannel.h \
 src/core/client_config/subchannel_factory.h \
-src/core/client_config/subchannel_index.h \
 src/core/client_config/uri_parser.h \
 src/core/compression/algorithm_metadata.h \
 src/core/compression/message_compress.h \
@@ -946,7 +945,6 @@ src/core/client_config/resolvers/dns_resolver.c \
 src/core/client_config/resolvers/sockaddr_resolver.c \
 src/core/client_config/subchannel.c \
 src/core/client_config/subchannel_factory.c \
-src/core/client_config/subchannel_index.c \
 src/core/client_config/uri_parser.c \
 src/core/compression/algorithm.c \
 src/core/compression/message_compress.c \
@@ -1016,6 +1014,7 @@ src/core/surface/metadata_array.c \
 src/core/surface/server.c \
 src/core/surface/server_chttp2.c \
 src/core/surface/server_create.c \
+src/core/surface/validate_metadata.c \
 src/core/surface/version.c \
 src/core/transport/byte_stream.c \
 src/core/transport/chttp2/alpn.c \

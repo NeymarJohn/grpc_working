@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,52 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_INDEX_H
-#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_INDEX_H
+#include <set>
 
+#include <grpc/support/log.h>
 
+#include "test/cpp/qps/driver.h"
+#include "test/cpp/qps/report.h"
+#include "test/cpp/util/benchmark_config.h"
 
-#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_INDEX_H */
+namespace grpc {
+namespace testing {
+
+static const int WARMUP = 5;
+static const int BENCHMARK = 10;
+
+static void RunGenericAsyncStreamingPingPong() {
+  gpr_log(GPR_INFO, "Running Generic Async Streaming Ping Pong");
+
+  ClientConfig client_config;
+  client_config.set_client_type(ASYNC_CLIENT);
+  client_config.set_outstanding_rpcs_per_channel(1);
+  client_config.set_client_channels(1);
+  client_config.set_async_client_threads(1);
+  client_config.set_rpc_type(STREAMING);
+  client_config.mutable_load_params()->mutable_closed_loop();
+  auto bbuf = client_config.mutable_payload_config()->mutable_bytebuf_params();
+  bbuf->set_resp_size(0);
+  bbuf->set_req_size(0);
+
+  ServerConfig server_config;
+  server_config.set_server_type(ASYNC_SERVER);
+  server_config.set_host("localhost");
+  server_config.set_async_server_threads(1);
+
+  const auto result =
+      RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
+
+  GetReporter()->ReportQPS(*result);
+  GetReporter()->ReportLatency(*result);
+}
+
+}  // namespace testing
+}  // namespace grpc
+
+int main(int argc, char** argv) {
+  grpc::testing::InitBenchmark(&argc, &argv, true);
+
+  grpc::testing::RunGenericAsyncStreamingPingPong();
+  return 0;
+}
