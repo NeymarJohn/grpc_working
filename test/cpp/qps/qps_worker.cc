@@ -51,11 +51,11 @@
 #include <grpc/support/host_port.h>
 #include <grpc/support/log.h>
 
-#include "src/proto/grpc/testing/services.pb.h"
 #include "test/core/util/grpc_profiler.h"
 #include "test/cpp/qps/client.h"
 #include "test/cpp/qps/server.h"
 #include "test/cpp/util/create_test_channel.h"
+#include "src/proto/grpc/testing/services.pb.h"
 
 namespace grpc {
 namespace testing {
@@ -78,7 +78,12 @@ static std::unique_ptr<Client> CreateClient(const ClientConfig& config) {
   abort();
 }
 
+static void LimitCores(int cores) {}
+
 static std::unique_ptr<Server> CreateServer(const ServerConfig& config) {
+  if (config.core_limit() > 0) {
+    LimitCores(config.core_limit());
+  }
   switch (config.server_type()) {
     case ServerType::SYNC_SERVER:
       return CreateSynchronousServer(config);
