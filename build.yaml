@@ -2449,8 +2449,7 @@ vspackages:
   props: false
   redist: true
   version: 1.2.8.10
-- linkage: static
-  name: grpc.dependencies.openssl
+- name: grpc.dependencies.openssl
   props: true
   redist: true
   version: 1.0.204.1
