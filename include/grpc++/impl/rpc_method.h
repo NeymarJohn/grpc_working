@@ -36,7 +36,7 @@
 
 #include <memory>
 
-#include <grpc++/impl/codegen/channel_interface.h>
+#include <grpc++/channel.h>
 
 namespace grpc {
 
@@ -53,7 +53,7 @@ class RpcMethod {
       : name_(name), method_type_(type), channel_tag_(NULL) {}
 
   RpcMethod(const char* name, RpcType type,
-            const std::shared_ptr<ChannelInterface>& channel)
+            const std::shared_ptr<Channel>& channel)
       : name_(name),
         method_type_(type),
         channel_tag_(channel->RegisterMethod(name)) {}

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,33 +31,42 @@
  *
  */
 
-#ifndef GRPCXX_GENERIC_GENERIC_STUB_H
-#define GRPCXX_GENERIC_GENERIC_STUB_H
+#include "test/cpp/qps/limit_cores.h"
 
-#include <grpc++/support/async_stream.h>
-#include <grpc++/support/byte_buffer.h>
+#include <grpc/support/cpu.h>
+#include <grpc/support/log.h>
+#include <grpc/support/port_platform.h>
+#include <vector>
 
 namespace grpc {
+namespace testing {
 
-class CompletionQueue;
-typedef ClientAsyncReaderWriter<ByteBuffer, ByteBuffer>
-    GenericClientAsyncReaderWriter;
+#ifdef GPR_CPU_LINUX
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#include <sched.h>
+int LimitCores(std::vector<int> cores) {
+  size_t num_cores = static_cast<size_t>(gpr_cpu_num_cores());
+  if (num_cores > cores.size()) {
+    cpu_set_t *cpup = CPU_ALLOC(num_cores);
+    GPR_ASSERT(cpup);
+    size_t size = CPU_ALLOC_SIZE(num_cores);
+    CPU_ZERO_S(size, cpup);
 
-// Generic stubs provide a type-unsafe interface to call gRPC methods
-// by name.
-class GenericStub GRPC_FINAL {
- public:
-  explicit GenericStub(std::shared_ptr<Channel> channel) : channel_(channel) {}
-
-  // begin a call to a named method
-  std::unique_ptr<GenericClientAsyncReaderWriter> Call(
-      ClientContext* context, const grpc::string& method, CompletionQueue* cq,
-      void* tag);
-
- private:
-  std::shared_ptr<Channel> channel_;
-};
-
+    for (size_t i = 0; i < cores.size(); i++) {
+      CPU_SET_S(cores[i], size, cpup);
+    }
+    GPR_ASSERT(sched_setaffinity(0, size, cpup) == 0);
+    CPU_FREE(cpup);
+    return cores.size();
+  } else {
+    return num_cores;
+  }
+}
+#else
+// LimitCores is not currently supported for non-Linux platforms
+int LimitCores(std::vector<int> core_vec) { return gpr_cpu_num_cores(); }
+#endif
+}  // namespace testing
 }  // namespace grpc
-
-#endif  // GRPCXX_GENERIC_GENERIC_STUB_H

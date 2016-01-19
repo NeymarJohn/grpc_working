@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,33 +31,15 @@
  *
  */
 
-#ifndef GRPCXX_GENERIC_GENERIC_STUB_H
-#define GRPCXX_GENERIC_GENERIC_STUB_H
+#ifndef TEST_QPS_CORESCHED_H
+#define TEST_QPS_CORESCHED_H
 
-#include <grpc++/support/async_stream.h>
-#include <grpc++/support/byte_buffer.h>
+#include <vector>
 
 namespace grpc {
-
-class CompletionQueue;
-typedef ClientAsyncReaderWriter<ByteBuffer, ByteBuffer>
-    GenericClientAsyncReaderWriter;
-
-// Generic stubs provide a type-unsafe interface to call gRPC methods
-// by name.
-class GenericStub GRPC_FINAL {
- public:
-  explicit GenericStub(std::shared_ptr<Channel> channel) : channel_(channel) {}
-
-  // begin a call to a named method
-  std::unique_ptr<GenericClientAsyncReaderWriter> Call(
-      ClientContext* context, const grpc::string& method, CompletionQueue* cq,
-      void* tag);
-
- private:
-  std::shared_ptr<Channel> channel_;
-};
-
+namespace testing {
+int LimitCores(std::vector<int> core_vec);
+}  // namespace testing
 }  // namespace grpc
 
-#endif  // GRPCXX_GENERIC_GENERIC_STUB_H
+#endif  // TEST_QPS_CORESCHED_H
