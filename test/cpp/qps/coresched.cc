@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,42 @@
  *
  */
 
-// Generates a Python gRPC service interface out of Protobuf IDL.
+#include "test/cpp/qps/coresched.h"
 
-#include "src/compiler/config.h"
-#include "src/compiler/python_generator.h"
+#include <grpc/support/cpu.h>
+#include <grpc/support/log.h>
+#include <grpc/support/port_platform.h>
+#include <vector>
 
-int main(int argc, char* argv[]) {
-  grpc_python_generator::GeneratorConfiguration config;
-  config.beta_package_root = "grpc.beta";
-  grpc_python_generator::PythonGrpcGenerator generator(config);
-  return grpc::protobuf::compiler::PluginMain(argc, argv, &generator);
+namespace grpc {
+namespace testing {
+
+#ifdef GPR_CPU_LINUX
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#include <sched.h>
+int LimitCores(std::vector<int> cores) {
+  size_t num_cores = static_cast<size_t>(gpr_cpu_num_cores());
+  if (num_cores > cores.size()) {
+    cpu_set_t *cpup = CPU_ALLOC(num_cores);
+    GPR_ASSERT(cpup);
+    size_t size = CPU_ALLOC_SIZE(num_cores);
+    CPU_ZERO_S(size, cpup);
+
+    for (size_t i = 0; i < cores.size(); i++) {
+      CPU_SET_S(cores[i], size, cpup);
+    }
+    GPR_ASSERT(sched_setaffinity(0, size, cpup) == 0);
+    CPU_FREE(cpup);
+    return cores.size();
+  } else {
+    return num_cores;
+  }
 }
+#else
+// LimitCores is not currently supported for non-Linux platforms
+int LimitCores(std::vector<int> core_vec) { return gpr_cpu_num_cores(); }
+#endif
+}  // namespace testing
+}  // namespace grpc

@@ -36,16 +36,20 @@
 
 #include <condition_variable>
 #include <mutex>
+#include <vector>
 
 #include <grpc++/support/byte_buffer.h>
 #include <grpc++/support/slice.h>
+#include <grpc/support/log.h>
 
+#include "src/proto/grpc/testing/payloads.grpc.pb.h"
+#include "src/proto/grpc/testing/services.grpc.pb.h"
+
+#include "test/cpp/qps/coresched.h"
 #include "test/cpp/qps/histogram.h"
 #include "test/cpp/qps/interarrival.h"
 #include "test/cpp/qps/timer.h"
 #include "test/cpp/util/create_test_channel.h"
-#include "src/proto/grpc/testing/payloads.grpc.pb.h"
-#include "src/proto/grpc/testing/services.grpc.pb.h"
 
 namespace grpc {
 
@@ -112,7 +116,7 @@ class ClientRequestCreator<ByteBuffer> {
  public:
   ClientRequestCreator(ByteBuffer* req, const PayloadConfig& payload_config) {
     if (payload_config.has_bytebuf_params()) {
-      std::unique_ptr<char[]> buf(
+      std::unique_ptr<char> buf(
           new char[payload_config.bytebuf_params().req_size()]);
       gpr_slice s = gpr_slice_from_copied_buffer(
           buf.get(), payload_config.bytebuf_params().req_size());

@@ -85,7 +85,7 @@ for template in templates:
       os.close(tf[0])
       cmd.append(test[out])
     cmd.append(root + '/' + f)
-    jobs.append(jobset.JobSpec(cmd, shortname=out, timeout_seconds=None))
+    jobs.append(jobset.JobSpec(cmd, shortname=out))
 
 jobset.run(jobs, maxjobs=multiprocessing.cpu_count())
 

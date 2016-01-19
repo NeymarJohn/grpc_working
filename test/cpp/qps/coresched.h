@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,15 @@
  *
  */
 
-// Generates a Python gRPC service interface out of Protobuf IDL.
+#ifndef TEST_QPS_CORESCHED_H
+#define TEST_QPS_CORESCHED_H
 
-#include "src/compiler/config.h"
-#include "src/compiler/python_generator.h"
+#include <vector>
 
-int main(int argc, char* argv[]) {
-  grpc_python_generator::GeneratorConfiguration config;
-  config.beta_package_root = "grpc.beta";
-  grpc_python_generator::PythonGrpcGenerator generator(config);
-  return grpc::protobuf::compiler::PluginMain(argc, argv, &generator);
-}
+namespace grpc {
+namespace testing {
+int LimitCores(std::vector<int> core_vec);
+}  // namespace testing
+}  // namespace grpc
+
+#endif  // TEST_QPS_CORESCHED_H
