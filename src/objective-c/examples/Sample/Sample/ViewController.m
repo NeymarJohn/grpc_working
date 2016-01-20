@@ -45,7 +45,7 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
 
-  NSString * const kRemoteHost = @"grpc-test.sandbox.googleapis.com";
+  NSString * const kRemoteHost = @"grpc-test.sandbox.google.com";
 
   RMTSimpleRequest *request = [[RMTSimpleRequest alloc] init];
   request.responseSize = 10;
