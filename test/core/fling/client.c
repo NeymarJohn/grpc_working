@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -201,16 +201,13 @@ int main(int argc, char **argv) {
 
   sc.init();
 
-  gpr_timespec end_warmup = GRPC_TIMEOUT_SECONDS_TO_DEADLINE(3);
-  gpr_timespec end_profiling = GRPC_TIMEOUT_SECONDS_TO_DEADLINE(30);
-  
-  while (gpr_time_cmp(gpr_now(end_warmup.clock_type), end_warmup) < 0) {
+  for (i = 0; i < 1000; i++) {
     sc.do_one_step();
   }
 
   gpr_log(GPR_INFO, "start profiling");
   grpc_profiler_start("client.prof");
-  while (gpr_time_cmp(gpr_now(end_profiling.clock_type), end_profiling) < 0) {
+  for (i = 0; i < 100000; i++) {
     start = now();
     sc.do_one_step();
     stop = now();
