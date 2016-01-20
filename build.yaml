@@ -20,6 +20,7 @@ filegroups:
   - src/core/census/context.c
   - src/core/census/initialize.c
   - src/core/census/operation.c
+  - src/core/census/tag_set.c
   - src/core/census/tracing.c
 - name: grpc++_base
   public_headers:
@@ -1005,7 +1006,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-  cpu_cost: 2
   platforms:
   - mac
   - linux
@@ -1020,7 +1020,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-  cpu_cost: 2
   platforms:
   - mac
   - linux
@@ -1143,7 +1142,6 @@ targets:
   deps:
   - gpr_test_util
   - gpr
-  cpu_cost: 10
 - name: gpr_thd_test
   build: test
   language: c
@@ -1152,7 +1150,6 @@ targets:
   deps:
   - gpr_test_util
   - gpr
-  cpu_cost: 10
 - name: gpr_time_test
   build: test
   language: c
@@ -1623,6 +1620,16 @@ targets:
   - mac
   - linux
   - posix
+- name: tag_set_test
+  build: test
+  language: c
+  src:
+  - test/core/census/tag_set_test.c
+  deps:
+  - grpc_test_util
+  - grpc
+  - gpr_test_util
+  - gpr
 - name: tcp_client_posix_test
   build: test
   language: c

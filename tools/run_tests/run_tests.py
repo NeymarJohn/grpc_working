@@ -78,7 +78,7 @@ class SimpleConfig(object):
     self.timeout_multiplier = timeout_multiplier
 
   def job_spec(self, cmdline, hash_targets, timeout_seconds=5*60,
-               shortname=None, environ={}, cpu_cost=1.0):
+               shortname=None, environ={}):
     """Construct a jobset.JobSpec for a test under this config
 
        Args:
@@ -96,7 +96,6 @@ class SimpleConfig(object):
     return jobset.JobSpec(cmdline=cmdline,
                           shortname=shortname,
                           environ=actual_environ,
-                          cpu_cost=cpu_cost,
                           timeout_seconds=self.timeout_multiplier * timeout_seconds,
                           hash_targets=hash_targets
                               if self.allow_hashing else None,
@@ -115,12 +114,11 @@ class ValgrindConfig(object):
     self.args = args
     self.allow_hashing = False
 
-  def job_spec(self, cmdline, hash_targets, cpu_cost=1.0):
+  def job_spec(self, cmdline, hash_targets):
     return jobset.JobSpec(cmdline=['valgrind', '--tool=%s' % self.tool] +
                           self.args + cmdline,
                           shortname='valgrind %s' % cmdline[0],
                           hash_targets=None,
-                          cpu_cost=cpu_cost,
                           flake_retries=5 if args.allow_flakes else 0,
                           timeout_retries=3 if args.allow_flakes else 0)
 
@@ -159,7 +157,6 @@ class CLanguage(object):
         cmdline = [binary] + target['args']
         out.append(config.job_spec(cmdline, [binary],
                                    shortname=' '.join(cmdline),
-                                   cpu_cost=target['cpu_cost'],
                                    environ={'GRPC_DEFAULT_SSL_ROOTS_FILE_PATH':
                                             os.path.abspath(os.path.dirname(
                                                 sys.argv[0]) + '/../../src/core/tsi/test_creds/ca.pem')}))
@@ -248,7 +245,7 @@ class PhpLanguage(object):
     return [['tools/run_tests/build_php.sh']]
 
   def post_tests_steps(self):
-    return [['tools/run_tests/post_tests_php.sh']]
+    return []
 
   def makefile_name(self):
     return 'Makefile'
@@ -767,7 +764,7 @@ if platform_string() == 'windows':
                       _windows_toolset_option(args.compiler),
                       _windows_arch_option(args.arch)] +
                       extra_args,
-                      shell=True, timeout_seconds=None)
+                      shell=True, timeout_seconds=90*60)
       for target in targets]
 else:
   def make_jobspec(cfg, targets, makefile='Makefile'):
@@ -779,7 +776,7 @@ else:
                               'CONFIG=%s' % cfg] +
                              ([] if not args.travis else ['JENKINS_BUILD=1']) +
                              targets,
-                             timeout_seconds=None)]
+                             timeout_seconds=30*60)]
     else:
       return []
 make_targets = {}
@@ -804,7 +801,7 @@ if make_targets:
   make_commands = itertools.chain.from_iterable(make_jobspec(cfg, list(targets), makefile) for cfg in build_configs for (makefile, targets) in make_targets.iteritems())
   build_steps.extend(set(make_commands))
 build_steps.extend(set(
-                   jobset.JobSpec(cmdline, environ=build_step_environ(cfg), timeout_seconds=None)
+                   jobset.JobSpec(cmdline, environ=build_step_environ(cfg), timeout_seconds=10*60)
                    for cfg in build_configs
                    for l in languages
                    for cmdline in l.build_steps()))
@@ -1096,3 +1093,4 @@ else:
   if BuildAndRunError.POST_TEST in errors:
     exit_code |= 4
   sys.exit(exit_code)
+
