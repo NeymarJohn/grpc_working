@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,31 +30,56 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-
-#ifndef QPS_WORKER_H
-#define QPS_WORKER_H
+#ifndef GRPC_TEST_CPP_END2END_TEST_SERVICE_IMPL_H
+#define GRPC_TEST_CPP_END2END_TEST_SERVICE_IMPL_H
 
 #include <memory>
+#include <mutex>
+
+#include <grpc++/server_context.h>
+#include <grpc/grpc.h>
+
+#include "src/proto/grpc/testing/echo.grpc.pb.h"
 
 namespace grpc {
-
-class Server;
-
 namespace testing {
 
-class WorkerServiceImpl;
+const char* const kServerCancelAfterReads = "cancel_after_reads";
 
-class QpsWorker {
+class TestServiceImpl : public ::grpc::testing::EchoTestService::Service {
  public:
-  explicit QpsWorker(int driver_port);
-  ~QpsWorker();
+  TestServiceImpl() : signal_client_(false), host_() {}
+  explicit TestServiceImpl(const grpc::string& host)
+      : signal_client_(false), host_(new grpc::string(host)) {}
+
+  Status Echo(ServerContext* context, const EchoRequest* request,
+              EchoResponse* response) GRPC_OVERRIDE;
+
+  // Unimplemented is left unimplemented to test the returned error.
+
+  Status RequestStream(ServerContext* context,
+                       ServerReader<EchoRequest>* reader,
+                       EchoResponse* response) GRPC_OVERRIDE;
+
+  Status ResponseStream(ServerContext* context, const EchoRequest* request,
+                        ServerWriter<EchoResponse>* writer) GRPC_OVERRIDE;
+
+  Status BidiStream(ServerContext* context,
+                    ServerReaderWriter<EchoResponse, EchoRequest>* stream)
+      GRPC_OVERRIDE;
+
+  bool signal_client() {
+    std::unique_lock<std::mutex> lock(mu_);
+    return signal_client_;
+  }
 
  private:
-  std::unique_ptr<WorkerServiceImpl> impl_;
-  std::unique_ptr<Server> server_;
+  bool signal_client_;
+  std::mutex mu_;
+  std::unique_ptr<grpc::string> host_;
 };
 
 }  // namespace testing
 }  // namespace grpc
 
-#endif
+#endif  // GRPC_TEST_CPP_END2END_TEST_SERVICE_IMPL_H

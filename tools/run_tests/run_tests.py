@@ -96,7 +96,7 @@ class SimpleConfig(object):
     return jobset.JobSpec(cmdline=cmdline,
                           shortname=shortname,
                           environ=actual_environ,
-                          timeout_seconds=(self.timeout_multiplier * timeout_seconds if timeout_seconds else None),
+                          timeout_seconds=self.timeout_multiplier * timeout_seconds,
                           hash_targets=hash_targets
                               if self.allow_hashing else None,
                           flake_retries=5 if args.allow_flakes else 0,
@@ -441,10 +441,8 @@ class ObjCLanguage(object):
 class Sanity(object):
 
   def test_specs(self, config, args):
-    import yaml
-    with open('tools/run_tests/sanity_tests.yaml', 'r') as f:
-      return [config.job_spec([cmd], None, timeout_seconds=None, environ={'TEST': 'true'})
-              for cmd in yaml.load(f)]
+    return [config.job_spec(['tools/run_tests/run_sanity.sh'], None, timeout_seconds=15*60),
+            config.job_spec(['tools/run_tests/check_sources_and_headers.py'], None)]
 
   def pre_build_steps(self):
     return []
@@ -766,7 +764,7 @@ if platform_string() == 'windows':
                       _windows_toolset_option(args.compiler),
                       _windows_arch_option(args.arch)] +
                       extra_args,
-                      shell=True, timeout_seconds=None)
+                      shell=True, timeout_seconds=90*60)
       for target in targets]
 else:
   def make_jobspec(cfg, targets, makefile='Makefile'):
@@ -778,7 +776,7 @@ else:
                               'CONFIG=%s' % cfg] +
                              ([] if not args.travis else ['JENKINS_BUILD=1']) +
                              targets,
-                             timeout_seconds=None)]
+                             timeout_seconds=30*60)]
     else:
       return []
 make_targets = {}
@@ -803,7 +801,7 @@ if make_targets:
   make_commands = itertools.chain.from_iterable(make_jobspec(cfg, list(targets), makefile) for cfg in build_configs for (makefile, targets) in make_targets.iteritems())
   build_steps.extend(set(make_commands))
 build_steps.extend(set(
-                   jobset.JobSpec(cmdline, environ=build_step_environ(cfg), timeout_seconds=None)
+                   jobset.JobSpec(cmdline, environ=build_step_environ(cfg), timeout_seconds=10*60)
                    for cfg in build_configs
                    for l in languages
                    for cmdline in l.build_steps()))
