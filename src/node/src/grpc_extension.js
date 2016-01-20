@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,30 +31,10 @@
  *
  */
 
-#ifndef QPS_WORKER_H
-#define QPS_WORKER_H
+var binary = require('node-pre-gyp');
+var path = require('path');
+var binding_path = binary.find(path.resolve(
+    path.join(__dirname,'../../../package.json')));
+var binding = require(binding_path);
 
-#include <memory>
-
-namespace grpc {
-
-class Server;
-
-namespace testing {
-
-class WorkerServiceImpl;
-
-class QpsWorker {
- public:
-  explicit QpsWorker(int driver_port);
-  ~QpsWorker();
-
- private:
-  std::unique_ptr<WorkerServiceImpl> impl_;
-  std::unique_ptr<Server> server_;
-};
-
-}  // namespace testing
-}  // namespace grpc
-
-#endif
+module.exports = binding;
