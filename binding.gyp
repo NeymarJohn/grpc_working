@@ -5,7 +5,7 @@
 # This file can be regenerated from the template by running
 # tools/buildgen/generate_projects.sh
 
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -198,6 +198,7 @@
         'src/core/client_config/connector.c',
         'src/core/client_config/default_initial_connect_string.c',
         'src/core/client_config/initial_connect_string.c',
+        'src/core/client_config/lb_policies/load_balancer_api.c',
         'src/core/client_config/lb_policies/pick_first.c',
         'src/core/client_config/lb_policies/round_robin.c',
         'src/core/client_config/lb_policy.c',
@@ -261,6 +262,7 @@
         'src/core/json/json_reader.c',
         'src/core/json/json_string.c',
         'src/core/json/json_writer.c',
+        'src/core/proto/grpc/lb/v0/load_balancer.pb.c',
         'src/core/surface/api_trace.c',
         'src/core/surface/byte_buffer.c',
         'src/core/surface/byte_buffer_reader.c',
@@ -313,6 +315,9 @@
         'src/core/census/initialize.c',
         'src/core/census/operation.c',
         'src/core/census/tracing.c',
+        'third_party/nanopb/pb_common.c',
+        'third_party/nanopb/pb_decode.c',
+        'third_party/nanopb/pb_encode.c',
       ],
       "conditions": [
         ['OS == "mac"', {
@@ -366,16 +371,5 @@
         "gpr",
       ]
     },
-    {
-      "target_name": "action_after_build",
-      "type": "none",
-      "dependencies": [ "<(module_name)" ],
-      "copies": [
-        {
-          "files": [ "<(PRODUCT_DIR)/<(module_name).node"],
-          "destination": "<(module_path)"
-        }
-      ]
-    }
   ]
 }
