@@ -78,7 +78,7 @@ class SimpleConfig(object):
     self.timeout_multiplier = timeout_multiplier
 
   def job_spec(self, cmdline, hash_targets, timeout_seconds=5*60,
-               shortname=None, environ={}, cpu_cost=1.0):
+               shortname=None, environ={}):
     """Construct a jobset.JobSpec for a test under this config
 
        Args:
@@ -96,8 +96,7 @@ class SimpleConfig(object):
     return jobset.JobSpec(cmdline=cmdline,
                           shortname=shortname,
                           environ=actual_environ,
-                          cpu_cost=cpu_cost,
-                          timeout_seconds=self.timeout_multiplier * timeout_seconds,
+                          timeout_seconds=(self.timeout_multiplier * timeout_seconds if timeout_seconds else None),
                           hash_targets=hash_targets
                               if self.allow_hashing else None,
                           flake_retries=5 if args.allow_flakes else 0,
@@ -115,12 +114,11 @@ class ValgrindConfig(object):
     self.args = args
     self.allow_hashing = False
 
-  def job_spec(self, cmdline, hash_targets, cpu_cost=1.0):
+  def job_spec(self, cmdline, hash_targets):
     return jobset.JobSpec(cmdline=['valgrind', '--tool=%s' % self.tool] +
                           self.args + cmdline,
                           shortname='valgrind %s' % cmdline[0],
                           hash_targets=None,
-                          cpu_cost=cpu_cost,
                           flake_retries=5 if args.allow_flakes else 0,
                           timeout_retries=3 if args.allow_flakes else 0)
 
@@ -159,7 +157,6 @@ class CLanguage(object):
         cmdline = [binary] + target['args']
         out.append(config.job_spec(cmdline, [binary],
                                    shortname=' '.join(cmdline),
-                                   cpu_cost=target['cpu_cost'],
                                    environ={'GRPC_DEFAULT_SSL_ROOTS_FILE_PATH':
                                             os.path.abspath(os.path.dirname(
                                                 sys.argv[0]) + '/../../src/core/tsi/test_creds/ca.pem')}))
@@ -444,8 +441,10 @@ class ObjCLanguage(object):
 class Sanity(object):
 
   def test_specs(self, config, args):
-    return [config.job_spec(['tools/run_tests/run_sanity.sh'], None, timeout_seconds=15*60),
-            config.job_spec(['tools/run_tests/check_sources_and_headers.py'], None)]
+    import yaml
+    with open('tools/run_tests/sanity_tests.yaml', 'r') as f:
+      return [config.job_spec([cmd], None, timeout_seconds=None, environ={'TEST': 'true'})
+              for cmd in yaml.load(f)]
 
   def pre_build_steps(self):
     return []
@@ -603,7 +602,7 @@ argp.add_argument('-n', '--runs_per_test', default=1, type=runs_per_test_type,
         help='A positive integer or "inf". If "inf", all tests will run in an '
              'infinite loop. Especially useful in combination with "-f"')
 argp.add_argument('-r', '--regex', default='.*', type=str)
-argp.add_argument('-j', '--jobs', default=multiprocessing.cpu_count(), type=int)
+argp.add_argument('-j', '--jobs', default=2 * multiprocessing.cpu_count(), type=int)
 argp.add_argument('-s', '--slowdown', default=1.0, type=float)
 argp.add_argument('-f', '--forever',
                   default=False,
@@ -650,8 +649,6 @@ argp.add_argument('--build_only',
                   action='store_const',
                   const=True,
                   help='Perform all the build steps but dont run any tests.')
-argp.add_argument('--measure_cpu_costs', default=False, action='store_const', const=True,
-                  help='Measure the cpu costs of tests')
 argp.add_argument('--update_submodules', default=[], nargs='*',
                   help='Update some submodules before building. If any are updated, also run generate_projects. ' +
                        'Submodules are specified as SUBMODULE_NAME:BRANCH; if BRANCH is omitted, master is assumed.')
@@ -659,8 +656,6 @@ argp.add_argument('-a', '--antagonists', default=0, type=int)
 argp.add_argument('-x', '--xml_report', default=None, type=str,
         help='Generates a JUnit-compatible XML report')
 args = argp.parse_args()
-
-jobset.measure_cpu_costs = args.measure_cpu_costs
 
 if args.use_docker:
   if not args.travis:
