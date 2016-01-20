@@ -45,8 +45,7 @@ import time
 import uuid
 
 # Docker doesn't clean up after itself, so we do it on exit.
-if jobset.platform_string() == 'linux':
-  atexit.register(lambda: subprocess.call(['stty', 'echo']))
+atexit.register(lambda: subprocess.call(['stty', 'echo']))
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '../..'))
 os.chdir(ROOT)
@@ -123,7 +122,7 @@ class CSharpExtArtifact:
     if self.platform == 'windows':
       msbuild_platform = 'Win32' if self.arch == 'x86' else self.arch
       return create_jobspec(self.name,
-                            ['tools\\run_tests\\build_artifact_csharp.bat',
+                            ['vsprojects\\build_vs2013.bat',
                              'vsprojects\\grpc_csharp_ext.sln',
                              '/p:Configuration=Release',
                              '/p:PlatformToolset=v120',
