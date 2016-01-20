@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,30 +31,30 @@
  *
  */
 
-#ifndef QPS_WORKER_H
-#define QPS_WORKER_H
-
-#include <memory>
+#include "test/cpp/util/byte_buffer_proto_helper.h"
 
 namespace grpc {
-
-class Server;
-
 namespace testing {
 
-class WorkerServiceImpl;
+bool ParseFromByteBuffer(ByteBuffer* buffer, grpc::protobuf::Message* message) {
+  std::vector<Slice> slices;
+  buffer->Dump(&slices);
+  grpc::string buf;
+  buf.reserve(buffer->Length());
+  for (auto s = slices.begin(); s != slices.end(); s++) {
+    buf.append(reinterpret_cast<const char*>(s->begin()), s->size());
+  }
+  return message->ParseFromString(buf);
+}
 
-class QpsWorker {
- public:
-  explicit QpsWorker(int driver_port);
-  ~QpsWorker();
-
- private:
-  std::unique_ptr<WorkerServiceImpl> impl_;
-  std::unique_ptr<Server> server_;
-};
+std::unique_ptr<ByteBuffer> SerializeToByteBuffer(
+    grpc::protobuf::Message* message) {
+  grpc::string buf;
+  message->SerializeToString(&buf);
+  gpr_slice s = gpr_slice_from_copied_string(buf.c_str());
+  Slice slice(s, Slice::STEAL_REF);
+  return std::unique_ptr<ByteBuffer>(new ByteBuffer(&slice, 1));
+}
 
 }  // namespace testing
 }  // namespace grpc
-
-#endif

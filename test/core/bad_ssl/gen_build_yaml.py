@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.7
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,13 @@
 import collections
 import yaml
 
-TestOptions = collections.namedtuple('TestOptions', 'flaky cpu_cost')
-default_test_options = TestOptions(False, 1.0)
+TestOptions = collections.namedtuple('TestOptions', 'flaky')
+default_test_options = TestOptions(False)
 
 # maps test names to options
 BAD_CLIENT_TESTS = {
-    'cert': default_test_options._replace(cpu_cost=0.1),
-    'alpn': default_test_options._replace(cpu_cost=0.1),
+  'cert': default_test_options,
+  'alpn': default_test_options,
 }
 
 def main():
@@ -84,7 +84,6 @@ def main():
       for t in sorted(BAD_CLIENT_TESTS.keys())] + [
           {
               'name': 'bad_ssl_%s_test' % t,
-              'cpu_cost': BAD_CLIENT_TESTS[t].cpu_cost,
               'build': 'test',
               'language': 'c',
               'src': ['test/core/bad_ssl/bad_ssl_test.c'],
