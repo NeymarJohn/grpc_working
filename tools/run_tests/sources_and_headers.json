@@ -1608,6 +1608,22 @@
       "gpr_test_util", 
       "grpc", 
       "grpc++", 
+      "grpc++_test_util", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c++", 
+    "name": "hybrid_end2end_test", 
+    "src": [
+      "test/cpp/end2end/hybrid_end2end_test.cc"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc++", 
       "grpc++_test_config", 
       "grpc++_test_util", 
       "grpc_test_util", 
@@ -2058,184 +2074,6 @@
     "name": "public_headers_must_be_c89", 
     "src": [
       "test/core/surface/public_headers_must_be_c89.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "bad_client_test", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "badreq_bad_client_test", 
-    "src": [
-      "test/core/bad_client/tests/badreq.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "bad_client_test", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "connection_prefix_bad_client_test", 
-    "src": [
-      "test/core/bad_client/tests/connection_prefix.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "bad_client_test", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "headers_bad_client_test", 
-    "src": [
-      "test/core/bad_client/tests/headers.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "bad_client_test", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "initial_settings_frame_bad_client_test", 
-    "src": [
-      "test/core/bad_client/tests/initial_settings_frame.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "bad_client_test", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "server_registered_method_bad_client_test", 
-    "src": [
-      "test/core/bad_client/tests/server_registered_method.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "bad_client_test", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "simple_request_bad_client_test", 
-    "src": [
-      "test/core/bad_client/tests/simple_request.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "bad_client_test", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "unknown_frame_bad_client_test", 
-    "src": [
-      "test/core/bad_client/tests/unknown_frame.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "bad_client_test", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "window_overflow_bad_client_test", 
-    "src": [
-      "test/core/bad_client/tests/window_overflow.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "bad_ssl_test_server", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "bad_ssl_alpn_server", 
-    "src": [
-      "test/core/bad_ssl/servers/alpn.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "bad_ssl_test_server", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "bad_ssl_cert_server", 
-    "src": [
-      "test/core/bad_ssl/servers/cert.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "bad_ssl_alpn_test", 
-    "src": [
-      "test/core/bad_ssl/bad_ssl_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "bad_ssl_cert_test", 
-    "src": [
-      "test/core/bad_ssl/bad_ssl_test.c"
     ]
   }, 
   {
@@ -2722,8 +2560,189 @@
     ]
   }, 
   {
+    "deps": [
+      "bad_client_test", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "badreq_bad_client_test", 
+    "src": [
+      "test/core/bad_client/tests/badreq.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "bad_client_test", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "connection_prefix_bad_client_test", 
+    "src": [
+      "test/core/bad_client/tests/connection_prefix.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "bad_client_test", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "headers_bad_client_test", 
+    "src": [
+      "test/core/bad_client/tests/headers.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "bad_client_test", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "initial_settings_frame_bad_client_test", 
+    "src": [
+      "test/core/bad_client/tests/initial_settings_frame.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "bad_client_test", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "server_registered_method_bad_client_test", 
+    "src": [
+      "test/core/bad_client/tests/server_registered_method.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "bad_client_test", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "simple_request_bad_client_test", 
+    "src": [
+      "test/core/bad_client/tests/simple_request.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "bad_client_test", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "unknown_frame_bad_client_test", 
+    "src": [
+      "test/core/bad_client/tests/unknown_frame.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "bad_client_test", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "window_overflow_bad_client_test", 
+    "src": [
+      "test/core/bad_client/tests/window_overflow.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "bad_ssl_test_server", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "bad_ssl_alpn_server", 
+    "src": [
+      "test/core/bad_ssl/servers/alpn.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "bad_ssl_test_server", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "bad_ssl_cert_server", 
+    "src": [
+      "test/core/bad_ssl/servers/cert.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "bad_ssl_alpn_test", 
+    "src": [
+      "test/core/bad_ssl/bad_ssl_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "bad_ssl_cert_test", 
+    "src": [
+      "test/core/bad_ssl/bad_ssl_test.c"
+    ]
+  }, 
+  {
     "deps": [], 
     "headers": [
+      "include/grpc/impl/codegen/connectivity_state.h", 
+      "include/grpc/impl/codegen/port_platform.h", 
+      "include/grpc/impl/codegen/time.h", 
       "include/grpc/support/alloc.h", 
       "include/grpc/support/atm.h", 
       "include/grpc/support/atm_gcc_atomic.h", 
@@ -2766,6 +2785,9 @@
     "language": "c", 
     "name": "gpr", 
     "src": [
+      "include/grpc/impl/codegen/connectivity_state.h", 
+      "include/grpc/impl/codegen/port_platform.h", 
+      "include/grpc/impl/codegen/time.h", 
       "include/grpc/support/alloc.h", 
       "include/grpc/support/atm.h", 
       "include/grpc/support/atm_gcc_atomic.h", 
@@ -2872,6 +2894,9 @@
       "include/grpc/compression.h", 
       "include/grpc/grpc.h", 
       "include/grpc/grpc_security.h", 
+      "include/grpc/impl/codegen/connectivity_state.h", 
+      "include/grpc/impl/codegen/port_platform.h", 
+      "include/grpc/impl/codegen/time.h", 
       "include/grpc/status.h", 
       "src/core/census/aggregation.h", 
       "src/core/census/context.h", 
@@ -3013,6 +3038,9 @@
       "include/grpc/compression.h", 
       "include/grpc/grpc.h", 
       "include/grpc/grpc_security.h", 
+      "include/grpc/impl/codegen/connectivity_state.h", 
+      "include/grpc/impl/codegen/port_platform.h", 
+      "include/grpc/impl/codegen/time.h", 
       "include/grpc/status.h", 
       "src/core/census/aggregation.h", 
       "src/core/census/context.c", 
@@ -3385,6 +3413,9 @@
       "include/grpc/census.h", 
       "include/grpc/compression.h", 
       "include/grpc/grpc.h", 
+      "include/grpc/impl/codegen/connectivity_state.h", 
+      "include/grpc/impl/codegen/port_platform.h", 
+      "include/grpc/impl/codegen/time.h", 
       "include/grpc/status.h", 
       "src/core/census/aggregation.h", 
       "src/core/census/context.h", 
@@ -3511,6 +3542,9 @@
       "include/grpc/census.h", 
       "include/grpc/compression.h", 
       "include/grpc/grpc.h", 
+      "include/grpc/impl/codegen/connectivity_state.h", 
+      "include/grpc/impl/codegen/port_platform.h", 
+      "include/grpc/impl/codegen/time.h", 
       "include/grpc/status.h", 
       "src/core/census/aggregation.h", 
       "src/core/census/context.c", 
@@ -3828,7 +3862,16 @@
       "include/grpc++/grpc++.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
+      "include/grpc++/impl/codegen/call_hook.h", 
+      "include/grpc++/impl/codegen/channel_interface.h", 
+      "include/grpc++/impl/codegen/completion_queue_tag.h", 
+      "include/grpc++/impl/codegen/config.h", 
+      "include/grpc++/impl/codegen/server_interface.h", 
+      "include/grpc++/impl/codegen/status.h", 
+      "include/grpc++/impl/codegen/status_code_enum.h", 
+      "include/grpc++/impl/codegen/time.h", 
       "include/grpc++/impl/grpc_library.h", 
+      "include/grpc++/impl/method_handler_impl.h", 
       "include/grpc++/impl/proto_utils.h", 
       "include/grpc++/impl/rpc_method.h", 
       "include/grpc++/impl/rpc_service_method.h", 
@@ -3882,7 +3925,16 @@
       "include/grpc++/grpc++.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
+      "include/grpc++/impl/codegen/call_hook.h", 
+      "include/grpc++/impl/codegen/channel_interface.h", 
+      "include/grpc++/impl/codegen/completion_queue_tag.h", 
+      "include/grpc++/impl/codegen/config.h", 
+      "include/grpc++/impl/codegen/server_interface.h", 
+      "include/grpc++/impl/codegen/status.h", 
+      "include/grpc++/impl/codegen/status_code_enum.h", 
+      "include/grpc++/impl/codegen/time.h", 
       "include/grpc++/impl/grpc_library.h", 
+      "include/grpc++/impl/method_handler_impl.h", 
       "include/grpc++/impl/proto_utils.h", 
       "include/grpc++/impl/rpc_method.h", 
       "include/grpc++/impl/rpc_service_method.h", 
@@ -3981,6 +4033,8 @@
       "src/proto/grpc/testing/echo.pb.h", 
       "src/proto/grpc/testing/echo_messages.grpc.pb.h", 
       "src/proto/grpc/testing/echo_messages.pb.h", 
+      "test/cpp/end2end/test_service_impl.h", 
+      "test/cpp/util/byte_buffer_proto_helper.h", 
       "test/cpp/util/cli_call.h", 
       "test/cpp/util/create_test_channel.h", 
       "test/cpp/util/string_ref_helper.h", 
@@ -3989,6 +4043,10 @@
     "language": "c++", 
     "name": "grpc++_test_util", 
     "src": [
+      "test/cpp/end2end/test_service_impl.cc", 
+      "test/cpp/end2end/test_service_impl.h", 
+      "test/cpp/util/byte_buffer_proto_helper.cc", 
+      "test/cpp/util/byte_buffer_proto_helper.h", 
       "test/cpp/util/cli_call.cc", 
       "test/cpp/util/cli_call.h", 
       "test/cpp/util/create_test_channel.cc", 
@@ -4014,7 +4072,16 @@
       "include/grpc++/grpc++.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
+      "include/grpc++/impl/codegen/call_hook.h", 
+      "include/grpc++/impl/codegen/channel_interface.h", 
+      "include/grpc++/impl/codegen/completion_queue_tag.h", 
+      "include/grpc++/impl/codegen/config.h", 
+      "include/grpc++/impl/codegen/server_interface.h", 
+      "include/grpc++/impl/codegen/status.h", 
+      "include/grpc++/impl/codegen/status_code_enum.h", 
+      "include/grpc++/impl/codegen/time.h", 
       "include/grpc++/impl/grpc_library.h", 
+      "include/grpc++/impl/method_handler_impl.h", 
       "include/grpc++/impl/proto_utils.h", 
       "include/grpc++/impl/rpc_method.h", 
       "include/grpc++/impl/rpc_service_method.h", 
@@ -4065,7 +4132,16 @@
       "include/grpc++/grpc++.h", 
       "include/grpc++/impl/call.h", 
       "include/grpc++/impl/client_unary_call.h", 
+      "include/grpc++/impl/codegen/call_hook.h", 
+      "include/grpc++/impl/codegen/channel_interface.h", 
+      "include/grpc++/impl/codegen/completion_queue_tag.h", 
+      "include/grpc++/impl/codegen/config.h", 
+      "include/grpc++/impl/codegen/server_interface.h", 
+      "include/grpc++/impl/codegen/status.h", 
+      "include/grpc++/impl/codegen/status_code_enum.h", 
+      "include/grpc++/impl/codegen/time.h", 
       "include/grpc++/impl/grpc_library.h", 
+      "include/grpc++/impl/method_handler_impl.h", 
       "include/grpc++/impl/proto_utils.h", 
       "include/grpc++/impl/rpc_method.h", 
       "include/grpc++/impl/rpc_service_method.h", 
@@ -4135,6 +4211,7 @@
   {
     "deps": [], 
     "headers": [
+      "include/grpc++/impl/codegen/config.h", 
       "include/grpc++/support/config.h", 
       "include/grpc++/support/config_protobuf.h", 
       "src/compiler/config.h", 
@@ -4154,6 +4231,7 @@
     "language": "c++", 
     "name": "grpc_plugin_support", 
     "src": [
+      "include/grpc++/impl/codegen/config.h", 
       "include/grpc++/support/config.h", 
       "include/grpc++/support/config_protobuf.h", 
       "src/compiler/config.h", 
@@ -4336,86 +4414,6 @@
     ]
   }, 
   {
-    "deps": [], 
-    "headers": [
-      "third_party/zlib/crc32.h", 
-      "third_party/zlib/deflate.h", 
-      "third_party/zlib/gzguts.h", 
-      "third_party/zlib/inffast.h", 
-      "third_party/zlib/inffixed.h", 
-      "third_party/zlib/inflate.h", 
-      "third_party/zlib/inftrees.h", 
-      "third_party/zlib/trees.h", 
-      "third_party/zlib/zconf.h", 
-      "third_party/zlib/zlib.h", 
-      "third_party/zlib/zutil.h"
-    ], 
-    "language": "c", 
-    "name": "z", 
-    "src": [
-      "third_party/zlib/adler32.c", 
-      "third_party/zlib/compress.c", 
-      "third_party/zlib/crc32.c", 
-      "third_party/zlib/crc32.h", 
-      "third_party/zlib/deflate.c", 
-      "third_party/zlib/deflate.h", 
-      "third_party/zlib/gzclose.c", 
-      "third_party/zlib/gzguts.h", 
-      "third_party/zlib/gzlib.c", 
-      "third_party/zlib/gzread.c", 
-      "third_party/zlib/gzwrite.c", 
-      "third_party/zlib/infback.c", 
-      "third_party/zlib/inffast.c", 
-      "third_party/zlib/inffast.h", 
-      "third_party/zlib/inffixed.h", 
-      "third_party/zlib/inflate.c", 
-      "third_party/zlib/inflate.h", 
-      "third_party/zlib/inftrees.c", 
-      "third_party/zlib/inftrees.h", 
-      "third_party/zlib/trees.c", 
-      "third_party/zlib/trees.h", 
-      "third_party/zlib/uncompr.c", 
-      "third_party/zlib/zconf.h", 
-      "third_party/zlib/zlib.h", 
-      "third_party/zlib/zutil.c", 
-      "third_party/zlib/zutil.h"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [
-      "test/core/bad_client/bad_client.h"
-    ], 
-    "language": "c", 
-    "name": "bad_client_test", 
-    "src": [
-      "test/core/bad_client/bad_client.c", 
-      "test/core/bad_client/bad_client.h"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [
-      "test/core/bad_ssl/server.h"
-    ], 
-    "language": "c", 
-    "name": "bad_ssl_test_server", 
-    "src": [
-      "test/core/bad_ssl/server.c", 
-      "test/core/bad_ssl/server.h"
-    ]
-  }, 
-  {
     "deps": [
       "end2end_certs", 
       "gpr", 
@@ -4534,6 +4532,40 @@
       "test/core/end2end/data/server1_cert.c", 
       "test/core/end2end/data/server1_key.c", 
       "test/core/end2end/data/test_root_cert.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc_test_util_unsecure", 
+      "grpc_unsecure"
+    ], 
+    "headers": [
+      "test/core/bad_client/bad_client.h"
+    ], 
+    "language": "c", 
+    "name": "bad_client_test", 
+    "src": [
+      "test/core/bad_client/bad_client.c", 
+      "test/core/bad_client/bad_client.h"
+    ]
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [
+      "test/core/bad_ssl/server.h"
+    ], 
+    "language": "c", 
+    "name": "bad_ssl_test_server", 
+    "src": [
+      "test/core/bad_ssl/server.c", 
+      "test/core/bad_ssl/server.h"
     ]
   }
 ]
