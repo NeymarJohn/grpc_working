@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 #define GRPCXX_SUPPORT_ASYNC_UNARY_CALL_H
 
 #include <grpc/support/log.h>
-#include <grpc++/impl/codegen/channel_interface.h>
+#include <grpc++/channel.h>
 #include <grpc++/client_context.h>
 #include <grpc++/completion_queue.h>
 #include <grpc++/server_context.h>
@@ -58,7 +58,7 @@ class ClientAsyncResponseReader GRPC_FINAL
     : public ClientAsyncResponseReaderInterface<R> {
  public:
   template <class W>
-  ClientAsyncResponseReader(ChannelInterface* channel, CompletionQueue* cq,
+  ClientAsyncResponseReader(Channel* channel, CompletionQueue* cq,
                             const RpcMethod& method, ClientContext* context,
                             const W& request)
       : context_(context), call_(channel->CreateCall(method, context, cq)) {
