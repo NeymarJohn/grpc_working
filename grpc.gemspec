@@ -412,6 +412,5 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/census/context.c )
   s.files += %w( src/core/census/initialize.c )
   s.files += %w( src/core/census/operation.c )
-  s.files += %w( src/core/census/tag_set.c )
   s.files += %w( src/core/census/tracing.c )
 end

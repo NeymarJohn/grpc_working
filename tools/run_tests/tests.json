@@ -1407,7 +1407,6 @@
       "posix", 
       "windows"
     ], 
-    "cpu_cost": 1.0, 
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
