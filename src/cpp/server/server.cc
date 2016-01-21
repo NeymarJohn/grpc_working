@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@
 #include <grpc/support/log.h>
 #include <grpc++/completion_queue.h>
 #include <grpc++/generic/async_generic_service.h>
-#include <grpc++/impl/method_handler_impl.h>
 #include <grpc++/impl/rpc_service_method.h>
 #include <grpc++/impl/service_type.h>
 #include <grpc++/server_context.h>
@@ -297,8 +296,6 @@ Server::~Server() {
     if (started_ && !shutdown_) {
       lock.unlock();
       Shutdown();
-    } else if (!started_) {
-      cq_.Shutdown();
     }
   }
   void* got_tag;
@@ -317,31 +314,36 @@ void Server::SetGlobalCallbacks(GlobalCallbacks* callbacks) {
   g_callbacks = callbacks;
 }
 
-bool Server::RegisterService(const grpc::string* host, Service* service) {
-  bool has_async_methods = service->has_async_methods();
-  if (has_async_methods) {
-    GPR_ASSERT(service->server_ == nullptr &&
-               "Can only register an asynchronous service against one server.");
-    service->server_ = this;
-  }
-  for (auto it = service->methods_.begin(); it != service->methods_.end();
-       ++it) {
-    if (it->get() == nullptr) {  // Handled by generic service if any.
-      continue;
-    }
-    RpcServiceMethod* method = it->get();
+bool Server::RegisterService(const grpc::string* host, RpcService* service) {
+  for (int i = 0; i < service->GetMethodCount(); ++i) {
+    RpcServiceMethod* method = service->GetMethod(i);
     void* tag = grpc_server_register_method(server_, method->name(),
                                             host ? host->c_str() : nullptr);
-    if (tag == nullptr) {
+    if (!tag) {
       gpr_log(GPR_DEBUG, "Attempt to register %s multiple times",
               method->name());
       return false;
     }
-    if (method->handler() == nullptr) {
-      method->set_server_tag(tag);
-    } else {
-      sync_methods_->emplace_back(method, tag);
+    sync_methods_->emplace_back(method, tag);
+  }
+  return true;
+}
+
+bool Server::RegisterAsyncService(const grpc::string* host,
+                                  AsynchronousService* service) {
+  GPR_ASSERT(service->server_ == nullptr &&
+             "Can only register an asynchronous service against one server.");
+  service->server_ = this;
+  service->request_args_ = new void* [service->method_count_];
+  for (size_t i = 0; i < service->method_count_; ++i) {
+    void* tag = grpc_server_register_method(server_, service->method_names_[i],
+                                            host ? host->c_str() : nullptr);
+    if (!tag) {
+      gpr_log(GPR_DEBUG, "Attempt to register %s multiple times",
+              service->method_names_[i]);
+      return false;
     }
+    service->request_args_[i] = tag;
   }
   return true;
 }
@@ -437,8 +439,8 @@ void Server::PerformOpsOnCall(CallOpSetInterface* ops, Call* call) {
   GPR_ASSERT(GRPC_CALL_OK == result);
 }
 
-ServerInterface::BaseAsyncRequest::BaseAsyncRequest(
-    ServerInterface* server, ServerContext* context,
+Server::BaseAsyncRequest::BaseAsyncRequest(
+    Server* server, ServerContext* context,
     ServerAsyncStreamingInterface* stream, CompletionQueue* call_cq, void* tag,
     bool delete_on_finalize)
     : server_(server),
@@ -451,8 +453,9 @@ ServerInterface::BaseAsyncRequest::BaseAsyncRequest(
   memset(&initial_metadata_array_, 0, sizeof(initial_metadata_array_));
 }
 
-bool ServerInterface::BaseAsyncRequest::FinalizeResult(void** tag,
-                                                       bool* status) {
+Server::BaseAsyncRequest::~BaseAsyncRequest() {}
+
+bool Server::BaseAsyncRequest::FinalizeResult(void** tag, bool* status) {
   if (*status) {
     for (size_t i = 0; i < initial_metadata_array_.count; i++) {
       context_->client_metadata_.insert(
@@ -466,7 +469,7 @@ bool ServerInterface::BaseAsyncRequest::FinalizeResult(void** tag,
   grpc_metadata_array_destroy(&initial_metadata_array_);
   context_->set_call(call_);
   context_->cq_ = call_cq_;
-  Call call(call_, server_, call_cq_, server_->max_message_size());
+  Call call(call_, server_, call_cq_, server_->max_message_size_);
   if (*status && call_) {
     context_->BeginCompletionOp(&call);
   }
@@ -479,22 +482,22 @@ bool ServerInterface::BaseAsyncRequest::FinalizeResult(void** tag,
   return true;
 }
 
-ServerInterface::RegisteredAsyncRequest::RegisteredAsyncRequest(
-    ServerInterface* server, ServerContext* context,
+Server::RegisteredAsyncRequest::RegisteredAsyncRequest(
+    Server* server, ServerContext* context,
     ServerAsyncStreamingInterface* stream, CompletionQueue* call_cq, void* tag)
     : BaseAsyncRequest(server, context, stream, call_cq, tag, true) {}
 
-void ServerInterface::RegisteredAsyncRequest::IssueRequest(
+void Server::RegisteredAsyncRequest::IssueRequest(
     void* registered_method, grpc_byte_buffer** payload,
     ServerCompletionQueue* notification_cq) {
   grpc_server_request_registered_call(
-      server_->server(), registered_method, &call_, &context_->deadline_,
+      server_->server_, registered_method, &call_, &context_->deadline_,
       &initial_metadata_array_, payload, call_cq_->cq(), notification_cq->cq(),
       this);
 }
 
-ServerInterface::GenericAsyncRequest::GenericAsyncRequest(
-    ServerInterface* server, GenericServerContext* context,
+Server::GenericAsyncRequest::GenericAsyncRequest(
+    Server* server, GenericServerContext* context,
     ServerAsyncStreamingInterface* stream, CompletionQueue* call_cq,
     ServerCompletionQueue* notification_cq, void* tag, bool delete_on_finalize)
     : BaseAsyncRequest(server, context, stream, call_cq, tag,
@@ -502,13 +505,12 @@ ServerInterface::GenericAsyncRequest::GenericAsyncRequest(
   grpc_call_details_init(&call_details_);
   GPR_ASSERT(notification_cq);
   GPR_ASSERT(call_cq);
-  grpc_server_request_call(server->server(), &call_, &call_details_,
+  grpc_server_request_call(server->server_, &call_, &call_details_,
                            &initial_metadata_array_, call_cq->cq(),
                            notification_cq->cq(), this);
 }
 
-bool ServerInterface::GenericAsyncRequest::FinalizeResult(void** tag,
-                                                          bool* status) {
+bool Server::GenericAsyncRequest::FinalizeResult(void** tag, bool* status) {
   // TODO(yangg) remove the copy here.
   if (*status) {
     static_cast<GenericServerContext*>(context_)->method_ =
