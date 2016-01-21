@@ -914,7 +914,7 @@ grpc_csharp_plugin: $(BINDIR)/$(CONFIG)/grpc_csharp_plugin
 grpc_objective_c_plugin: $(BINDIR)/$(CONFIG)/grpc_objective_c_plugin
 grpc_python_plugin: $(BINDIR)/$(CONFIG)/grpc_python_plugin
 grpc_ruby_plugin: $(BINDIR)/$(CONFIG)/grpc_ruby_plugin
-hybrid_end2end_test: $(BINDIR)/$(CONFIG)/hybrid_end2end_test
+grpclb_api_test: $(BINDIR)/$(CONFIG)/grpclb_api_test
 interop_client: $(BINDIR)/$(CONFIG)/interop_client
 interop_server: $(BINDIR)/$(CONFIG)/interop_server
 interop_test: $(BINDIR)/$(CONFIG)/interop_test
@@ -1264,7 +1264,7 @@ buildtests_cxx: buildtests_zookeeper privatelibs_cxx \
   $(BINDIR)/$(CONFIG)/generic_async_streaming_ping_pong_test \
   $(BINDIR)/$(CONFIG)/generic_end2end_test \
   $(BINDIR)/$(CONFIG)/grpc_cli \
-  $(BINDIR)/$(CONFIG)/hybrid_end2end_test \
+  $(BINDIR)/$(CONFIG)/grpclb_api_test \
   $(BINDIR)/$(CONFIG)/interop_client \
   $(BINDIR)/$(CONFIG)/interop_server \
   $(BINDIR)/$(CONFIG)/interop_test \
@@ -1566,8 +1566,8 @@ test_cxx: test_zookeeper buildtests_cxx
 	$(Q) $(BINDIR)/$(CONFIG)/generic_async_streaming_ping_pong_test || ( echo test generic_async_streaming_ping_pong_test failed ; exit 1 )
 	$(E) "[RUN]     Testing generic_end2end_test"
 	$(Q) $(BINDIR)/$(CONFIG)/generic_end2end_test || ( echo test generic_end2end_test failed ; exit 1 )
-	$(E) "[RUN]     Testing hybrid_end2end_test"
-	$(Q) $(BINDIR)/$(CONFIG)/hybrid_end2end_test || ( echo test hybrid_end2end_test failed ; exit 1 )
+	$(E) "[RUN]     Testing grpclb_api_test"
+	$(Q) $(BINDIR)/$(CONFIG)/grpclb_api_test || ( echo test grpclb_api_test failed ; exit 1 )
 	$(E) "[RUN]     Testing interop_test"
 	$(Q) $(BINDIR)/$(CONFIG)/interop_test || ( echo test interop_test failed ; exit 1 )
 	$(E) "[RUN]     Testing mock_test"
@@ -1719,6 +1719,21 @@ $(LIBDIR)/$(CONFIG)/pkgconfig/grpc++_unsecure.pc:
 	$(E) "[MAKE]    Generating $@"
 	$(Q) mkdir -p $(@D)
 	$(Q) echo "$(GRPCXX_UNSECURE_PC_FILE)" | tr , '\n' >$@
+
+ifeq ($(NO_PROTOC),true)
+$(GENDIR)/src/proto/grpc/lb/v0/load_balancer.pb.cc: protoc_dep_error
+$(GENDIR)/src/proto/grpc/lb/v0/load_balancer.grpc.pb.cc: protoc_dep_error
+else
+$(GENDIR)/src/proto/grpc/lb/v0/load_balancer.pb.cc: src/proto/grpc/lb/v0/load_balancer.proto $(PROTOBUF_DEP) $(PROTOC_PLUGINS) 
+	$(E) "[PROTOC]  Generating protobuf CC file from $<"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(PROTOC) --cpp_out=$(GENDIR) $<
+
+$(GENDIR)/src/proto/grpc/lb/v0/load_balancer.grpc.pb.cc: src/proto/grpc/lb/v0/load_balancer.proto $(PROTOBUF_DEP) $(PROTOC_PLUGINS) 
+	$(E) "[GRPC]    Generating gRPC's protobuf service CC file from $<"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(PROTOC) --grpc_out=$(GENDIR) --plugin=protoc-gen-grpc=$(BINDIR)/$(CONFIG)/grpc_cpp_plugin $<
+endif
 
 ifeq ($(NO_PROTOC),true)
 $(GENDIR)/src/proto/grpc/testing/control.pb.cc: protoc_dep_error
@@ -2221,9 +2236,6 @@ LIBGPR_SRC = \
     src/core/support/tls_pthread.c \
 
 PUBLIC_HEADERS_C += \
-    include/grpc/impl/codegen/connectivity_state.h \
-    include/grpc/impl/codegen/port_platform.h \
-    include/grpc/impl/codegen/time.h \
     include/grpc/support/alloc.h \
     include/grpc/support/atm.h \
     include/grpc/support/atm_gcc_atomic.h \
@@ -2351,6 +2363,7 @@ LIBGRPC_SRC = \
     src/core/client_config/connector.c \
     src/core/client_config/default_initial_connect_string.c \
     src/core/client_config/initial_connect_string.c \
+    src/core/client_config/lb_policies/load_balancer_api.c \
     src/core/client_config/lb_policies/pick_first.c \
     src/core/client_config/lb_policies/round_robin.c \
     src/core/client_config/lb_policy.c \
@@ -2414,6 +2427,7 @@ LIBGRPC_SRC = \
     src/core/json/json_reader.c \
     src/core/json/json_string.c \
     src/core/json/json_writer.c \
+    src/core/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/surface/api_trace.c \
     src/core/surface/byte_buffer.c \
     src/core/surface/byte_buffer_reader.c \
@@ -2466,6 +2480,9 @@ LIBGRPC_SRC = \
     src/core/census/initialize.c \
     src/core/census/operation.c \
     src/core/census/tracing.c \
+    third_party/nanopb/pb_common.c \
+    third_party/nanopb/pb_decode.c \
+    third_party/nanopb/pb_encode.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/grpc_security.h \
@@ -2473,9 +2490,6 @@ PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer_reader.h \
     include/grpc/compression.h \
     include/grpc/grpc.h \
-    include/grpc/impl/codegen/connectivity_state.h \
-    include/grpc/impl/codegen/port_platform.h \
-    include/grpc/impl/codegen/time.h \
     include/grpc/status.h \
     include/grpc/census.h \
 
@@ -2657,6 +2671,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/client_config/connector.c \
     src/core/client_config/default_initial_connect_string.c \
     src/core/client_config/initial_connect_string.c \
+    src/core/client_config/lb_policies/load_balancer_api.c \
     src/core/client_config/lb_policies/pick_first.c \
     src/core/client_config/lb_policies/round_robin.c \
     src/core/client_config/lb_policy.c \
@@ -2720,6 +2735,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/json/json_reader.c \
     src/core/json/json_string.c \
     src/core/json/json_writer.c \
+    src/core/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/surface/api_trace.c \
     src/core/surface/byte_buffer.c \
     src/core/surface/byte_buffer_reader.c \
@@ -2772,15 +2788,15 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/census/initialize.c \
     src/core/census/operation.c \
     src/core/census/tracing.c \
+    third_party/nanopb/pb_common.c \
+    third_party/nanopb/pb_decode.c \
+    third_party/nanopb/pb_encode.c \
 
 PUBLIC_HEADERS_C += \
     include/grpc/byte_buffer.h \
     include/grpc/byte_buffer_reader.h \
     include/grpc/compression.h \
     include/grpc/grpc.h \
-    include/grpc/impl/codegen/connectivity_state.h \
-    include/grpc/impl/codegen/port_platform.h \
-    include/grpc/impl/codegen/time.h \
     include/grpc/status.h \
     include/grpc/census.h \
 
@@ -2999,16 +3015,7 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/grpc++.h \
     include/grpc++/impl/call.h \
     include/grpc++/impl/client_unary_call.h \
-    include/grpc++/impl/codegen/call_hook.h \
-    include/grpc++/impl/codegen/channel_interface.h \
-    include/grpc++/impl/codegen/completion_queue_tag.h \
-    include/grpc++/impl/codegen/config.h \
-    include/grpc++/impl/codegen/server_interface.h \
-    include/grpc++/impl/codegen/status.h \
-    include/grpc++/impl/codegen/status_code_enum.h \
-    include/grpc++/impl/codegen/time.h \
     include/grpc++/impl/grpc_library.h \
-    include/grpc++/impl/method_handler_impl.h \
     include/grpc++/impl/proto_utils.h \
     include/grpc++/impl/rpc_method.h \
     include/grpc++/impl/rpc_service_method.h \
@@ -3180,8 +3187,6 @@ LIBGRPC++_TEST_UTIL_SRC = \
     $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc \
     $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc \
     $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc \
-    test/cpp/end2end/test_service_impl.cc \
-    test/cpp/util/byte_buffer_proto_helper.cc \
     test/cpp/util/cli_call.cc \
     test/cpp/util/create_test_channel.cc \
     test/cpp/util/string_ref_helper.cc \
@@ -3230,8 +3235,6 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC++_TEST_UTIL_OBJS:.o=.dep)
 endif
 endif
-$(OBJDIR)/$(CONFIG)/test/cpp/end2end/test_service_impl.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/util/byte_buffer_proto_helper.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/cli_call.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/create_test_channel.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/string_ref_helper.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
@@ -3277,16 +3280,7 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/grpc++.h \
     include/grpc++/impl/call.h \
     include/grpc++/impl/client_unary_call.h \
-    include/grpc++/impl/codegen/call_hook.h \
-    include/grpc++/impl/codegen/channel_interface.h \
-    include/grpc++/impl/codegen/completion_queue_tag.h \
-    include/grpc++/impl/codegen/config.h \
-    include/grpc++/impl/codegen/server_interface.h \
-    include/grpc++/impl/codegen/status.h \
-    include/grpc++/impl/codegen/status_code_enum.h \
-    include/grpc++/impl/codegen/time.h \
     include/grpc++/impl/grpc_library.h \
-    include/grpc++/impl/method_handler_impl.h \
     include/grpc++/impl/proto_utils.h \
     include/grpc++/impl/rpc_method.h \
     include/grpc++/impl/rpc_service_method.h \
@@ -9653,15 +9647,16 @@ ifneq ($(NO_DEPS),true)
 endif
 
 
-HYBRID_END2END_TEST_SRC = \
-    test/cpp/end2end/hybrid_end2end_test.cc \
+GRPCLB_API_TEST_SRC = \
+    $(GENDIR)/src/proto/grpc/lb/v0/load_balancer.pb.cc $(GENDIR)/src/proto/grpc/lb/v0/load_balancer.grpc.pb.cc \
+    test/cpp/grpclb/grpclb_api_test.cc \
 
-HYBRID_END2END_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(HYBRID_END2END_TEST_SRC))))
+GRPCLB_API_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(GRPCLB_API_TEST_SRC))))
 ifeq ($(NO_SECURE),true)
 
 # You can't build secure targets if you don't have OpenSSL.
 
-$(BINDIR)/$(CONFIG)/hybrid_end2end_test: openssl_dep_error
+$(BINDIR)/$(CONFIG)/grpclb_api_test: openssl_dep_error
 
 else
 
@@ -9672,28 +9667,31 @@ ifeq ($(NO_PROTOBUF),true)
 
 # You can't build the protoc plugins or protobuf-enabled targets if you don't have protobuf 3.0.0+.
 
-$(BINDIR)/$(CONFIG)/hybrid_end2end_test: protobuf_dep_error
+$(BINDIR)/$(CONFIG)/grpclb_api_test: protobuf_dep_error
 
 else
 
-$(BINDIR)/$(CONFIG)/hybrid_end2end_test: $(PROTOBUF_DEP) $(HYBRID_END2END_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(BINDIR)/$(CONFIG)/grpclb_api_test: $(PROTOBUF_DEP) $(GRPCLB_API_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(HYBRID_END2END_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/hybrid_end2end_test
+	$(Q) $(LDXX) $(LDFLAGS) $(GRPCLB_API_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/grpclb_api_test
 
 endif
 
 endif
 
-$(OBJDIR)/$(CONFIG)/test/cpp/end2end/hybrid_end2end_test.o:  $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(OBJDIR)/$(CONFIG)/src/proto/grpc/lb/v0/load_balancer.o:  $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a
 
-deps_hybrid_end2end_test: $(HYBRID_END2END_TEST_OBJS:.o=.dep)
+$(OBJDIR)/$(CONFIG)/test/cpp/grpclb/grpclb_api_test.o:  $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_grpclb_api_test: $(GRPCLB_API_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(HYBRID_END2END_TEST_OBJS:.o=.dep)
+-include $(GRPCLB_API_TEST_OBJS:.o=.dep)
 endif
 endif
+$(OBJDIR)/$(CONFIG)/test/cpp/grpclb/grpclb_api_test.o: $(GENDIR)/src/proto/grpc/lb/v0/load_balancer.pb.cc $(GENDIR)/src/proto/grpc/lb/v0/load_balancer.grpc.pb.cc
 
 
 ifeq ($(NO_SECURE),true)
@@ -12935,7 +12933,6 @@ test/core/end2end/tests/call_creds.c: $(OPENSSL_DEP)
 test/core/security/oauth2_utils.c: $(OPENSSL_DEP)
 test/core/util/reconnect_server.c: $(OPENSSL_DEP)
 test/core/util/test_tcp_server.c: $(OPENSSL_DEP)
-test/cpp/end2end/test_service_impl.cc: $(OPENSSL_DEP)
 test/cpp/interop/client.cc: $(OPENSSL_DEP)
 test/cpp/interop/client_helper.cc: $(OPENSSL_DEP)
 test/cpp/interop/interop_client.cc: $(OPENSSL_DEP)
@@ -12951,7 +12948,6 @@ test/cpp/qps/server_async.cc: $(OPENSSL_DEP)
 test/cpp/qps/server_sync.cc: $(OPENSSL_DEP)
 test/cpp/qps/timer.cc: $(OPENSSL_DEP)
 test/cpp/util/benchmark_config.cc: $(OPENSSL_DEP)
-test/cpp/util/byte_buffer_proto_helper.cc: $(OPENSSL_DEP)
 test/cpp/util/cli_call.cc: $(OPENSSL_DEP)
 test/cpp/util/create_test_channel.cc: $(OPENSSL_DEP)
 test/cpp/util/string_ref_helper.cc: $(OPENSSL_DEP)
