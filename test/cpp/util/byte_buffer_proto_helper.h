@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,30 +31,23 @@
  *
  */
 
-#ifndef QPS_WORKER_H
-#define QPS_WORKER_H
+#ifndef GRPC_TEST_CPP_UTIL_BYTE_BUFFER_PROTO_HELPER_H
+#define GRPC_TEST_CPP_UTIL_BYTE_BUFFER_PROTO_HELPER_H
 
 #include <memory>
 
+#include <grpc++/support/byte_buffer.h>
+#include <grpc++/support/config_protobuf.h>
+
 namespace grpc {
-
-class Server;
-
 namespace testing {
 
-class WorkerServiceImpl;
+bool ParseFromByteBuffer(ByteBuffer* buffer, grpc::protobuf::Message* message);
 
-class QpsWorker {
- public:
-  explicit QpsWorker(int driver_port);
-  ~QpsWorker();
-
- private:
-  std::unique_ptr<WorkerServiceImpl> impl_;
-  std::unique_ptr<Server> server_;
-};
+std::unique_ptr<ByteBuffer> SerializeToByteBuffer(
+    grpc::protobuf::Message* message);
 
 }  // namespace testing
 }  // namespace grpc
 
-#endif
+#endif  // GRPC_TEST_CPP_UTIL_BYTE_BUFFER_PROTO_HELPER_H
