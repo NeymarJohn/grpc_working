@@ -32,7 +32,16 @@ filegroups:
   - include/grpc++/grpc++.h
   - include/grpc++/impl/call.h
   - include/grpc++/impl/client_unary_call.h
+  - include/grpc++/impl/codegen/call_hook.h
+  - include/grpc++/impl/codegen/channel_interface.h
+  - include/grpc++/impl/codegen/completion_queue_tag.h
+  - include/grpc++/impl/codegen/config.h
+  - include/grpc++/impl/codegen/server_interface.h
+  - include/grpc++/impl/codegen/status.h
+  - include/grpc++/impl/codegen/status_code_enum.h
+  - include/grpc++/impl/codegen/time.h
   - include/grpc++/impl/grpc_library.h
+  - include/grpc++/impl/method_handler_impl.h
   - include/grpc++/impl/proto_utils.h
   - include/grpc++/impl/rpc_method.h
   - include/grpc++/impl/rpc_service_method.h
@@ -104,6 +113,9 @@ filegroups:
   - include/grpc/byte_buffer_reader.h
   - include/grpc/compression.h
   - include/grpc/grpc.h
+  - include/grpc/impl/codegen/connectivity_state.h
+  - include/grpc/impl/codegen/port_platform.h
+  - include/grpc/impl/codegen/time.h
   - include/grpc/status.h
   headers:
   - src/core/census/grpc_filter.h
@@ -636,6 +648,8 @@ libs:
   build: private
   language: c++
   headers:
+  - test/cpp/end2end/test_service_impl.h
+  - test/cpp/util/byte_buffer_proto_helper.h
   - test/cpp/util/cli_call.h
   - test/cpp/util/create_test_channel.h
   - test/cpp/util/string_ref_helper.h
@@ -644,6 +658,8 @@ libs:
   - src/proto/grpc/testing/echo_messages.proto
   - src/proto/grpc/testing/echo.proto
   - src/proto/grpc/testing/duplicate/echo_duplicate.proto
+  - test/cpp/end2end/test_service_impl.cc
+  - test/cpp/util/byte_buffer_proto_helper.cc
   - test/cpp/util/cli_call.cc
   - test/cpp/util/create_test_channel.cc
   - test/cpp/util/string_ref_helper.cc
@@ -773,10 +789,10 @@ libs:
   - test/cpp/util/benchmark_config.h
   src:
   - src/proto/grpc/testing/messages.proto
-  - src/proto/grpc/testing/payloads.proto
-  - src/proto/grpc/testing/stats.proto
   - src/proto/grpc/testing/control.proto
+  - src/proto/grpc/testing/payloads.proto
   - src/proto/grpc/testing/services.proto
+  - src/proto/grpc/testing/stats.proto
   - src/proto/grpc/testing/perf_db.proto
   - test/cpp/qps/client_async.cc
   - test/cpp/qps/client_sync.cc
@@ -922,7 +938,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: dualstack_socket_test
-  cpu_cost: 0.1
   build: test
   language: c
   src:
@@ -997,7 +1012,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: fling_stream_test
-  cpu_cost: 2
   build: test
   language: c
   src:
@@ -1012,7 +1026,6 @@ targets:
   - linux
   - posix
 - name: fling_test
-  cpu_cost: 2
   build: test
   language: c
   src:
@@ -1121,7 +1134,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: gpr_stack_lockfree_test
-  cpu_cost: 10
   build: test
   language: c
   src:
@@ -1138,7 +1150,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: gpr_sync_test
-  cpu_cost: 10
   build: test
   language: c
   src:
@@ -1147,7 +1158,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: gpr_thd_test
-  cpu_cost: 10
   build: test
   language: c
   src:
@@ -1374,7 +1384,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: httpcli_test
-  cpu_cost: 0.5
   build: test
   language: c
   src:
@@ -1389,7 +1398,6 @@ targets:
   - linux
   - posix
 - name: httpscli_test
-  cpu_cost: 0.5
   build: test
   language: c
   src:
@@ -1471,7 +1479,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: lb_policies_test
-  cpu_cost: 0.1
   build: test
   language: c
   src:
@@ -1524,7 +1531,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: no_server_test
-  cpu_cost: 0.1
   build: test
   language: c
   src:
@@ -1585,7 +1591,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: set_initial_connect_string_test
-  cpu_cost: 0.1
   build: test
   language: c
   src:
@@ -1631,7 +1636,6 @@ targets:
   - linux
   - posix
 - name: tcp_client_posix_test
-  cpu_cost: 0.5
   build: test
   language: c
   src:
@@ -1646,7 +1650,6 @@ targets:
   - linux
   - posix
 - name: tcp_posix_test
-  cpu_cost: 0.5
   build: test
   language: c
   src:
@@ -1876,7 +1879,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: client_crash_test
-  cpu_cost: 0.1
   build: test
   language: c++
   src:
@@ -1955,7 +1957,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: end2end_test
-  cpu_cost: 0.5
   build: test
   language: c++
   src:
@@ -2060,6 +2061,18 @@ targets:
   secure: false
   vs_config_type: Application
   vs_project_guid: '{069E9D05-B78B-4751-9252-D21EBAE7DE8E}'
+- name: hybrid_end2end_test
+  build: test
+  language: c++
+  src:
+  - test/cpp/end2end/hybrid_end2end_test.cc
+  deps:
+  - grpc++_test_util
+  - grpc_test_util
+  - grpc++
+  - grpc
+  - gpr_test_util
+  - gpr
 - name: interop_client
   build: test
   run: false
@@ -2099,7 +2112,6 @@ targets:
   - linux
   - posix
 - name: interop_test
-  cpu_cost: 0.1
   build: test
   language: c++
   src:
@@ -2191,7 +2203,6 @@ targets:
   - linux
   - posix
 - name: qps_test
-  cpu_cost: 10
   build: test
   language: c++
   src:
@@ -2294,7 +2305,6 @@ targets:
   - linux
   - posix
 - name: server_crash_test
-  cpu_cost: 0.1
   build: test
   language: c++
   src:
@@ -2423,7 +2433,6 @@ targets:
   - linux
   - posix
 - name: thread_stress_test
-  cpu_cost: 100
   build: test
   language: c++
   src:
