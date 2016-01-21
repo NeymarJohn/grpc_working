@@ -10,8 +10,7 @@
                  "ci_platforms": tgt.ci_platforms,
                  "exclude_configs": tgt.get("exclude_configs", []),
                  "args": [],
-                 "flaky": tgt.flaky,
-                 "cpu_cost": tgt.get("cpu_cost", 1.0)}
+                 "flaky": tgt.flaky}
                 for tgt in targets
                 if tgt.get('run', True) and tgt.build == 'test'] +
                 tests,
