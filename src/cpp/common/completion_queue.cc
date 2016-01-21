@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 #include <grpc/grpc.h>
 #include <grpc/support/log.h>
 #include <grpc++/support/time.h>
-#include <grpc++/impl/codegen/completion_queue_tag.h>
 
 namespace grpc {
 

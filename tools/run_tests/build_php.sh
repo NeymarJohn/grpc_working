@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -44,9 +44,5 @@ cd src/php
 
 cd ext/grpc
 phpize
-if [ "$CONFIG" != "gcov" ] ; then
-  ./configure --enable-grpc=$root
-else
-  ./configure --enable-grpc=$root --enable-coverage
-fi
+./configure --enable-grpc=$root
 make

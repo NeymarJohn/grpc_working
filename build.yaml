@@ -20,6 +20,7 @@ filegroups:
   - src/core/census/context.c
   - src/core/census/initialize.c
   - src/core/census/operation.c
+  - src/core/census/tag_set.c
   - src/core/census/tracing.c
 - name: grpc++_base
   public_headers:
@@ -32,16 +33,7 @@ filegroups:
   - include/grpc++/grpc++.h
   - include/grpc++/impl/call.h
   - include/grpc++/impl/client_unary_call.h
-  - include/grpc++/impl/codegen/call_hook.h
-  - include/grpc++/impl/codegen/channel_interface.h
-  - include/grpc++/impl/codegen/completion_queue_tag.h
-  - include/grpc++/impl/codegen/config.h
-  - include/grpc++/impl/codegen/server_interface.h
-  - include/grpc++/impl/codegen/status.h
-  - include/grpc++/impl/codegen/status_code_enum.h
-  - include/grpc++/impl/codegen/time.h
   - include/grpc++/impl/grpc_library.h
-  - include/grpc++/impl/method_handler_impl.h
   - include/grpc++/impl/proto_utils.h
   - include/grpc++/impl/rpc_method.h
   - include/grpc++/impl/rpc_service_method.h
@@ -113,9 +105,6 @@ filegroups:
   - include/grpc/byte_buffer_reader.h
   - include/grpc/compression.h
   - include/grpc/grpc.h
-  - include/grpc/impl/codegen/connectivity_state.h
-  - include/grpc/impl/codegen/port_platform.h
-  - include/grpc/impl/codegen/time.h
   - include/grpc/status.h
   headers:
   - src/core/census/grpc_filter.h
@@ -381,9 +370,6 @@ libs:
   build: all
   language: c
   public_headers:
-  - include/grpc/impl/codegen/connectivity_state.h
-  - include/grpc/impl/codegen/port_platform.h
-  - include/grpc/impl/codegen/time.h
   - include/grpc/support/alloc.h
   - include/grpc/support/atm.h
   - include/grpc/support/atm_gcc_atomic.h
@@ -651,8 +637,6 @@ libs:
   build: private
   language: c++
   headers:
-  - test/cpp/end2end/test_service_impl.h
-  - test/cpp/util/byte_buffer_proto_helper.h
   - test/cpp/util/cli_call.h
   - test/cpp/util/create_test_channel.h
   - test/cpp/util/string_ref_helper.h
@@ -661,8 +645,6 @@ libs:
   - src/proto/grpc/testing/echo_messages.proto
   - src/proto/grpc/testing/echo.proto
   - src/proto/grpc/testing/duplicate/echo_duplicate.proto
-  - test/cpp/end2end/test_service_impl.cc
-  - test/cpp/util/byte_buffer_proto_helper.cc
   - test/cpp/util/cli_call.cc
   - test/cpp/util/create_test_channel.cc
   - test/cpp/util/string_ref_helper.cc
@@ -688,7 +670,6 @@ libs:
   build: protoc
   language: c++
   headers:
-  - include/grpc++/impl/codegen/config.h
   - include/grpc++/support/config.h
   - include/grpc++/support/config_protobuf.h
   - src/compiler/config.h
@@ -1639,6 +1620,16 @@ targets:
   - mac
   - linux
   - posix
+- name: tag_set_test
+  build: test
+  language: c
+  src:
+  - test/core/census/tag_set_test.c
+  deps:
+  - grpc_test_util
+  - grpc
+  - gpr_test_util
+  - gpr
 - name: tcp_client_posix_test
   build: test
   language: c
@@ -2065,18 +2056,6 @@ targets:
   secure: false
   vs_config_type: Application
   vs_project_guid: '{069E9D05-B78B-4751-9252-D21EBAE7DE8E}'
-- name: hybrid_end2end_test
-  build: test
-  language: c++
-  src:
-  - test/cpp/end2end/hybrid_end2end_test.cc
-  deps:
-  - grpc++_test_util
-  - grpc_test_util
-  - grpc++
-  - grpc
-  - gpr_test_util
-  - gpr
 - name: interop_client
   build: test
   run: false

@@ -245,7 +245,7 @@ class PhpLanguage(object):
     return [['tools/run_tests/build_php.sh']]
 
   def post_tests_steps(self):
-    return [['tools/run_tests/post_tests_php.sh']]
+    return []
 
   def makefile_name(self):
     return 'Makefile'
@@ -1093,3 +1093,4 @@ else:
   if BuildAndRunError.POST_TEST in errors:
     exit_code |= 4
   sys.exit(exit_code)
+
