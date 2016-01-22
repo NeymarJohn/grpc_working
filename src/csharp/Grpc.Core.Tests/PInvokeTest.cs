@@ -1,6 +1,6 @@
 #region Copyright notice and license
 
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -45,9 +45,13 @@ namespace Grpc.Core.Tests
 {
     public class PInvokeTest
     {
-        static readonly NativeMethods Native = NativeMethods.Get();
-
         int counter;
+
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern GRPCCallError grpcsharp_test_callback([MarshalAs(UnmanagedType.FunctionPtr)] OpCompletionDelegate callback);
+
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern IntPtr grpcsharp_test_nop(IntPtr ptr);
 
         /// <summary>
         /// (~1.26us .NET Windows)
@@ -83,7 +87,7 @@ namespace Grpc.Core.Tests
                 1000000, 10000000,
                 () =>
                 {
-                    Native.grpcsharp_test_callback(handler);
+                    grpcsharp_test_callback(handler);
                 });
             Assert.AreNotEqual(0, counter);
         }
@@ -102,7 +106,7 @@ namespace Grpc.Core.Tests
                 10000, 10000,
                 () =>
                 {
-                    Native.grpcsharp_test_callback(new OpCompletionDelegate(Handler));
+                    grpcsharp_test_callback(new OpCompletionDelegate(Handler));
                 });
             Assert.AreNotEqual(0, counter);
         }
@@ -118,7 +122,7 @@ namespace Grpc.Core.Tests
                 1000000, 100000000,
                 () =>
                 {
-                    Native.grpcsharp_test_nop(IntPtr.Zero);
+                    grpcsharp_test_nop(IntPtr.Zero);
                 });
         }
 
