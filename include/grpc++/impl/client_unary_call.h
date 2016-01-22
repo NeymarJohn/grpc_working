@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 #define GRPCXX_IMPL_CLIENT_UNARY_CALL_H
 
 #include <grpc++/impl/call.h>
+#include <grpc++/impl/codegen/channel_interface.h>
 #include <grpc++/support/config.h>
 #include <grpc++/support/status.h>
 
@@ -47,7 +48,7 @@ class RpcMethod;
 
 // Wrapper that performs a blocking unary call
 template <class InputMessage, class OutputMessage>
-Status BlockingUnaryCall(Channel* channel, const RpcMethod& method,
+Status BlockingUnaryCall(ChannelInterface* channel, const RpcMethod& method,
                          ClientContext* context, const InputMessage& request,
                          OutputMessage* result) {
   CompletionQueue cq;
