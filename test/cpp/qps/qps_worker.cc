@@ -51,11 +51,11 @@
 #include <grpc/support/host_port.h>
 #include <grpc/support/log.h>
 
-#include "src/proto/grpc/testing/services.pb.h"
 #include "test/core/util/grpc_profiler.h"
 #include "test/cpp/qps/client.h"
 #include "test/cpp/qps/server.h"
 #include "test/cpp/util/create_test_channel.h"
+#include "src/proto/grpc/testing/services.pb.h"
 
 namespace grpc {
 namespace testing {
@@ -97,8 +97,7 @@ static std::unique_ptr<Server> CreateServer(const ServerConfig& config) {
 
 class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
  public:
-  explicit WorkerServiceImpl(int server_port)
-      : acquired_(false), server_port_(server_port) {}
+  explicit WorkerServiceImpl() : acquired_(false) {}
 
   Status RunClient(ServerContext* ctx,
                    ServerReaderWriter<ClientStatus, ClientArgs>* stream)
@@ -197,9 +196,6 @@ class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
     if (!args.has_setup()) {
       return Status(StatusCode::INVALID_ARGUMENT, "");
     }
-    if (server_port_ != 0) {
-      args.mutable_setup()->set_port(server_port_);
-    }
     auto server = CreateServer(args.setup());
     if (!server) {
       return Status(StatusCode::INVALID_ARGUMENT, "");
@@ -223,11 +219,10 @@ class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
 
   std::mutex mu_;
   bool acquired_;
-  int server_port_;
 };
 
-QpsWorker::QpsWorker(int driver_port, int server_port) {
-  impl_.reset(new WorkerServiceImpl(server_port));
+QpsWorker::QpsWorker(int driver_port) {
+  impl_.reset(new WorkerServiceImpl());
 
   char* server_address = NULL;
   gpr_join_host_port(&server_address, "::", driver_port);
