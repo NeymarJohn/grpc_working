@@ -1710,26 +1710,6 @@
     "ci_platforms": [
       "linux", 
       "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "cpu_cost": 100, 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "language": "c++", 
-    "name": "async_thread_stress_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "args": [], 
-    "ci_platforms": [
-      "linux", 
-      "mac", 
       "posix"
     ], 
     "cpu_cost": 1.0, 
@@ -1972,6 +1952,26 @@
     "flaky": false, 
     "language": "c++", 
     "name": "generic_end2end_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ]
+  }, 
+  {
+    "args": [], 
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "cpu_cost": 1.0, 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c++", 
+    "name": "hybrid_end2end_test", 
     "platforms": [
       "linux", 
       "mac", 
