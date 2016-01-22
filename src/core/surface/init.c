@@ -46,7 +46,6 @@
 #include "src/core/client_config/resolver_registry.h"
 #include "src/core/client_config/resolvers/dns_resolver.h"
 #include "src/core/client_config/resolvers/sockaddr_resolver.h"
-#include "src/core/client_config/subchannel.h"
 #include "src/core/debug/trace.h"
 #include "src/core/iomgr/executor.h"
 #include "src/core/iomgr/iomgr.h"
@@ -126,7 +125,6 @@ void grpc_init(void) {
     }
     gpr_timers_global_init();
     grpc_cq_global_init();
-    grpc_subchannel_global_init();
     for (i = 0; i < g_number_of_plugins; i++) {
       if (g_all_of_the_plugins[i].init != NULL) {
         g_all_of_the_plugins[i].init();
@@ -145,7 +143,6 @@ void grpc_shutdown(void) {
     grpc_executor_shutdown();
     grpc_cq_global_shutdown();
     grpc_iomgr_shutdown();
-    grpc_subchannel_global_shutdown();
     census_shutdown();
     gpr_timers_global_destroy();
     grpc_tracer_shutdown();

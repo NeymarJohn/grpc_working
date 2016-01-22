@@ -33,9 +33,8 @@
 
 #include "src/core/client_config/connector.h"
 
-grpc_connector *grpc_connector_ref(grpc_connector* connector) {
+void grpc_connector_ref(grpc_connector* connector) {
   connector->vtable->ref(connector);
-  return connector;
 }
 
 void grpc_connector_unref(grpc_exec_ctx* exec_ctx, grpc_connector* connector) {

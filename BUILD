@@ -178,7 +178,6 @@ cc_library(
     "src/core/client_config/resolvers/sockaddr_resolver.h",
     "src/core/client_config/subchannel.h",
     "src/core/client_config/subchannel_factory.h",
-    "src/core/client_config/subchannel_index.h",
     "src/core/client_config/uri_parser.h",
     "src/core/compression/algorithm_metadata.h",
     "src/core/compression/message_compress.h",
@@ -317,7 +316,6 @@ cc_library(
     "src/core/client_config/resolvers/sockaddr_resolver.c",
     "src/core/client_config/subchannel.c",
     "src/core/client_config/subchannel_factory.c",
-    "src/core/client_config/subchannel_index.c",
     "src/core/client_config/uri_parser.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
@@ -440,6 +438,9 @@ cc_library(
     "//external:zlib",
     ":gpr",
   ],
+  copts = [
+    "-std=gnu99",
+  ],
 )
 
 
@@ -472,7 +473,6 @@ cc_library(
     "src/core/client_config/resolvers/sockaddr_resolver.h",
     "src/core/client_config/subchannel.h",
     "src/core/client_config/subchannel_factory.h",
-    "src/core/client_config/subchannel_index.h",
     "src/core/client_config/uri_parser.h",
     "src/core/compression/algorithm_metadata.h",
     "src/core/compression/message_compress.h",
@@ -591,7 +591,6 @@ cc_library(
     "src/core/client_config/resolvers/sockaddr_resolver.c",
     "src/core/client_config/subchannel.c",
     "src/core/client_config/subchannel_factory.c",
-    "src/core/client_config/subchannel_index.c",
     "src/core/client_config/uri_parser.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
@@ -710,6 +709,9 @@ cc_library(
   ],
   deps = [
     ":gpr",
+  ],
+  copts = [
+    "-std=gnu99",
   ],
 )
 
@@ -1127,7 +1129,6 @@ objc_library(
     "src/core/client_config/resolvers/sockaddr_resolver.c",
     "src/core/client_config/subchannel.c",
     "src/core/client_config/subchannel_factory.c",
-    "src/core/client_config/subchannel_index.c",
     "src/core/client_config/uri_parser.c",
     "src/core/compression/algorithm.c",
     "src/core/compression/message_compress.c",
@@ -1280,7 +1281,6 @@ objc_library(
     "src/core/client_config/resolvers/sockaddr_resolver.h",
     "src/core/client_config/subchannel.h",
     "src/core/client_config/subchannel_factory.h",
-    "src/core/client_config/subchannel_index.h",
     "src/core/client_config/uri_parser.h",
     "src/core/compression/algorithm_metadata.h",
     "src/core/compression/message_compress.h",
