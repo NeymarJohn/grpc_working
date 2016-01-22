@@ -20,8 +20,6 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B6E81D84-2ACB-41B8-8781-493A944C7817}</ProjectGuid>
-    <IgnoreWarnIntDirInTempDetected>true</IgnoreWarnIntDirInTempDetected>
-    <IntDir>$(SolutionDir)IntDir\$(MSBuildProjectName)\</IntDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(VisualStudioVersion)' == '10.0'" Label="Configuration">
@@ -52,8 +50,8 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(SolutionDir)\..\vsprojects\global.props" />
-    <Import Project="$(SolutionDir)\..\vsprojects\winsock.props" />
+    <Import Project="..\..\..\vsprojects\global.props" />
+    <Import Project="..\..\..\vsprojects\winsock.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -62,7 +60,7 @@
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <TargetName>grpc_plugin_support</TargetName>
   </PropertyGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
@@ -72,7 +70,6 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
-      <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -80,8 +77,7 @@
       <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
@@ -91,7 +87,6 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
-      <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -99,20 +94,18 @@
       <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
-      <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -122,20 +115,18 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
-      <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,47 +136,33 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\call_hook.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\channel_interface.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\completion_queue_tag.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\config.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\server_interface.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\status.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\status_code_enum.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\time.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\connectivity_state.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\port_platform.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\time.h" />
+    <ClInclude Include="..\..\..\include\grpc++\support\config.h" />
+    <ClInclude Include="..\..\..\include\grpc++\support\config_protobuf.h" />
+    <ClInclude Include="..\..\..\src\compiler\config.h" />
+    <ClInclude Include="..\..\..\src\compiler\cpp_generator.h" />
+    <ClInclude Include="..\..\..\src\compiler\cpp_generator_helpers.h" />
+    <ClInclude Include="..\..\..\src\compiler\csharp_generator.h" />
+    <ClInclude Include="..\..\..\src\compiler\csharp_generator_helpers.h" />
+    <ClInclude Include="..\..\..\src\compiler\generator_helpers.h" />
+    <ClInclude Include="..\..\..\src\compiler\objective_c_generator.h" />
+    <ClInclude Include="..\..\..\src\compiler\objective_c_generator_helpers.h" />
+    <ClInclude Include="..\..\..\src\compiler\python_generator.h" />
+    <ClInclude Include="..\..\..\src\compiler\ruby_generator.h" />
+    <ClInclude Include="..\..\..\src\compiler\ruby_generator_helpers-inl.h" />
+    <ClInclude Include="..\..\..\src\compiler\ruby_generator_map-inl.h" />
+    <ClInclude Include="..\..\..\src\compiler\ruby_generator_string-inl.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\support\config.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\support\config_protobuf.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\config.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\cpp_generator.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\cpp_generator_helpers.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\csharp_generator.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\csharp_generator_helpers.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\generator_helpers.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\objective_c_generator.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\objective_c_generator_helpers.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\python_generator.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\ruby_generator.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\ruby_generator_helpers-inl.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\ruby_generator_map-inl.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\ruby_generator_string-inl.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="$(SolutionDir)\..\src\compiler\cpp_generator.cc">
+    <ClCompile Include="..\..\..\src\compiler\cpp_generator.cc">
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\compiler\csharp_generator.cc">
+    <ClCompile Include="..\..\..\src\compiler\csharp_generator.cc">
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\compiler\objective_c_generator.cc">
+    <ClCompile Include="..\..\..\src\compiler\objective_c_generator.cc">
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\compiler\python_generator.cc">
+    <ClCompile Include="..\..\..\src\compiler\python_generator.cc">
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\compiler\ruby_generator.cc">
+    <ClCompile Include="..\..\..\src\compiler\ruby_generator.cc">
     </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

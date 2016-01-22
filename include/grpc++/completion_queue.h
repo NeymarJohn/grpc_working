@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 #ifndef GRPCXX_COMPLETION_QUEUE_H
 #define GRPCXX_COMPLETION_QUEUE_H
 
+#include <grpc/support/time.h>
 #include <grpc++/impl/grpc_library.h>
 #include <grpc++/support/status.h>
 #include <grpc++/support/time.h>
@@ -48,13 +49,13 @@ template <class R>
 class ClientReader;
 template <class W>
 class ClientWriter;
-template <class W, class R>
+template <class R, class W>
 class ClientReaderWriter;
 template <class R>
 class ServerReader;
 template <class W>
 class ServerWriter;
-template <class W, class R>
+template <class R, class W>
 class ServerReaderWriter;
 template <class ServiceType, class RequestType, class ResponseType>
 class RpcMethodHandler;
@@ -67,7 +68,6 @@ class BidiStreamingHandler;
 class UnknownMethodHandler;
 
 class Channel;
-class ChannelInterface;
 class ClientContext;
 class CompletionQueueTag;
 class CompletionQueue;
@@ -151,13 +151,13 @@ class CompletionQueue : public GrpcLibrary {
   friend class ::grpc::ClientReader;
   template <class W>
   friend class ::grpc::ClientWriter;
-  template <class W, class R>
+  template <class R, class W>
   friend class ::grpc::ClientReaderWriter;
   template <class R>
   friend class ::grpc::ServerReader;
   template <class W>
   friend class ::grpc::ServerWriter;
-  template <class W, class R>
+  template <class R, class W>
   friend class ::grpc::ServerReaderWriter;
   template <class ServiceType, class RequestType, class ResponseType>
   friend class RpcMethodHandler;
@@ -171,8 +171,7 @@ class CompletionQueue : public GrpcLibrary {
   friend class ::grpc::Server;
   friend class ::grpc::ServerContext;
   template <class InputMessage, class OutputMessage>
-  friend Status BlockingUnaryCall(ChannelInterface* channel,
-                                  const RpcMethod& method,
+  friend Status BlockingUnaryCall(Channel* channel, const RpcMethod& method,
                                   ClientContext* context,
                                   const InputMessage& request,
                                   OutputMessage* result);
@@ -187,6 +186,17 @@ class CompletionQueue : public GrpcLibrary {
   void TryPluck(CompletionQueueTag* tag);
 
   grpc_completion_queue* cq_;  // owned
+};
+
+/// An interface allowing implementors to process and filter event tags.
+class CompletionQueueTag {
+ public:
+  virtual ~CompletionQueueTag() {}
+  // Called prior to returning from Next(), return value is the status of the
+  // operation (return status is the default thing to do). If this function
+  // returns false, the tag is dropped and not returned from the completion
+  // queue
+  virtual bool FinalizeResult(void** tag, bool* status) = 0;
 };
 
 /// A specific type of completion queue used by the processing of notifications

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,16 +38,35 @@
 
 #include <grpc/grpc.h>
 #include <grpc++/impl/call.h>
-#include <grpc++/impl/codegen/channel_interface.h>
 #include <grpc++/impl/grpc_library.h>
 #include <grpc++/support/config.h>
 
 struct grpc_channel;
 
 namespace grpc {
+class CallOpSetInterface;
+class ChannelArguments;
+class CompletionQueue;
+class ChannelCredentials;
+class SecureChannelCredentials;
+
+template <class R>
+class ClientReader;
+template <class W>
+class ClientWriter;
+template <class R, class W>
+class ClientReaderWriter;
+template <class R>
+class ClientAsyncReader;
+template <class W>
+class ClientAsyncWriter;
+template <class R, class W>
+class ClientAsyncReaderWriter;
+template <class R>
+class ClientAsyncResponseReader;
+
 /// Channels represent a connection to an endpoint. Created by \a CreateChannel.
-class Channel GRPC_FINAL : public ChannelInterface,
-                           public GrpcLibrary,
+class Channel GRPC_FINAL : public GrpcLibrary,
                            public CallHook,
                            public std::enable_shared_from_this<Channel> {
  public:
@@ -55,29 +74,61 @@ class Channel GRPC_FINAL : public ChannelInterface,
 
   /// Get the current channel state. If the channel is in IDLE and
   /// \a try_to_connect is set to true, try to connect.
-  grpc_connectivity_state GetState(bool try_to_connect) GRPC_OVERRIDE;
+  grpc_connectivity_state GetState(bool try_to_connect);
+
+  /// Return the \a tag on \a cq when the channel state is changed or \a
+  /// deadline expires. \a GetState needs to called to get the current state.
+  template <typename T>
+  void NotifyOnStateChange(grpc_connectivity_state last_observed, T deadline,
+                           CompletionQueue* cq, void* tag) {
+    TimePoint<T> deadline_tp(deadline);
+    NotifyOnStateChangeImpl(last_observed, deadline_tp.raw_time(), cq, tag);
+  }
+
+  /// Blocking wait for channel state change or \a deadline expiration.
+  /// \a GetState needs to called to get the current state.
+  template <typename T>
+  bool WaitForStateChange(grpc_connectivity_state last_observed, T deadline) {
+    TimePoint<T> deadline_tp(deadline);
+    return WaitForStateChangeImpl(last_observed, deadline_tp.raw_time());
+  }
 
  private:
+  template <class R>
+  friend class ::grpc::ClientReader;
+  template <class W>
+  friend class ::grpc::ClientWriter;
+  template <class R, class W>
+  friend class ::grpc::ClientReaderWriter;
+  template <class R>
+  friend class ::grpc::ClientAsyncReader;
+  template <class W>
+  friend class ::grpc::ClientAsyncWriter;
+  template <class R, class W>
+  friend class ::grpc::ClientAsyncReaderWriter;
+  template <class R>
+  friend class ::grpc::ClientAsyncResponseReader;
   template <class InputMessage, class OutputMessage>
-  friend Status BlockingUnaryCall(ChannelInterface* channel,
-                                  const RpcMethod& method,
+  friend Status BlockingUnaryCall(Channel* channel, const RpcMethod& method,
                                   ClientContext* context,
                                   const InputMessage& request,
                                   OutputMessage* result);
+  friend class ::grpc::RpcMethod;
   friend std::shared_ptr<Channel> CreateChannelInternal(
       const grpc::string& host, grpc_channel* c_channel);
+
   Channel(const grpc::string& host, grpc_channel* c_channel);
 
   Call CreateCall(const RpcMethod& method, ClientContext* context,
-                  CompletionQueue* cq) GRPC_OVERRIDE;
-  void PerformOpsOnCall(CallOpSetInterface* ops, Call* call) GRPC_OVERRIDE;
-  void* RegisterMethod(const char* method) GRPC_OVERRIDE;
+                  CompletionQueue* cq);
+  void PerformOpsOnCall(CallOpSetInterface* ops, Call* call);
+  void* RegisterMethod(const char* method);
 
   void NotifyOnStateChangeImpl(grpc_connectivity_state last_observed,
                                gpr_timespec deadline, CompletionQueue* cq,
-                               void* tag) GRPC_OVERRIDE;
+                               void* tag);
   bool WaitForStateChangeImpl(grpc_connectivity_state last_observed,
-                              gpr_timespec deadline) GRPC_OVERRIDE;
+                              gpr_timespec deadline);
 
   const grpc::string host_;
   grpc_channel* const c_channel_;  // owned

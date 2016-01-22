@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,6 @@ class GenericServerContext GRPC_FINAL : public ServerContext {
 
  private:
   friend class Server;
-  friend class ServerInterface;
 
   grpc::string method_;
   grpc::string host_;
@@ -59,7 +58,10 @@ class GenericServerContext GRPC_FINAL : public ServerContext {
 
 class AsyncGenericService GRPC_FINAL {
  public:
-  AsyncGenericService() : server_(nullptr) {}
+  // TODO(yangg) Once we can add multiple completion queues to the server
+  // in c core, add a CompletionQueue* argument to the ctor here.
+  // TODO(yangg) support methods list.
+  AsyncGenericService(const grpc::string& methods) : server_(nullptr) {}
 
   void RequestCall(GenericServerContext* ctx,
                    GenericServerAsyncReaderWriter* reader_writer,

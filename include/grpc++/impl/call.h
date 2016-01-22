@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,6 @@
 #include <grpc/support/alloc.h>
 #include <grpc++/client_context.h>
 #include <grpc++/completion_queue.h>
-#include <grpc++/impl/codegen/call_hook.h>
-#include <grpc++/impl/codegen/completion_queue_tag.h>
 #include <grpc++/impl/serialization_traits.h>
 #include <grpc++/support/config.h>
 #include <grpc++/support/status.h>
@@ -55,7 +53,6 @@ namespace grpc {
 
 class ByteBuffer;
 class Call;
-class CallHook;
 
 void FillMetadataMap(
     grpc_metadata_array* arr,
@@ -73,7 +70,7 @@ class WriteOptions {
   inline void Clear() { flags_ = 0; }
 
   /// Returns raw flags bitset.
-  inline uint32_t flags() const { return flags_; }
+  inline gpr_uint32 flags() const { return flags_; }
 
   /// Sets flag for the disabling of compression for the next message write.
   ///
@@ -129,13 +126,13 @@ class WriteOptions {
   }
 
  private:
-  void SetBit(const uint32_t mask) { flags_ |= mask; }
+  void SetBit(const gpr_uint32 mask) { flags_ |= mask; }
 
-  void ClearBit(const uint32_t mask) { flags_ &= ~mask; }
+  void ClearBit(const gpr_uint32 mask) { flags_ &= ~mask; }
 
-  bool GetBit(const uint32_t mask) const { return (flags_ & mask) != 0; }
+  bool GetBit(const gpr_uint32 mask) const { return (flags_ & mask) != 0; }
 
-  uint32_t flags_;
+  gpr_uint32 flags_;
 };
 
 /// Default argument for CallOpSet. I is unused by the class, but can be
@@ -549,6 +546,13 @@ class SneakyCallOpSet : public CallOpSet<Op1, Op2, Op3, Op4, Op5, Op6> {
     typedef CallOpSet<Op1, Op2, Op3, Op4, Op5, Op6> Base;
     return Base::FinalizeResult(tag, status) && false;
   }
+};
+
+// Channel and Server implement this to allow them to hook performing ops
+class CallHook {
+ public:
+  virtual ~CallHook() {}
+  virtual void PerformOpsOnCall(CallOpSetInterface* ops, Call* call) = 0;
 };
 
 // Straightforward wrapping of the C call object

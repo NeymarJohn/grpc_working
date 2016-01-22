@@ -125,9 +125,6 @@ cc_library(
     "include/grpc/support/tls_msvc.h",
     "include/grpc/support/tls_pthread.h",
     "include/grpc/support/useful.h",
-    "include/grpc/impl/codegen/connectivity_state.h",
-    "include/grpc/impl/codegen/port_platform.h",
-    "include/grpc/impl/codegen/time.h",
   ],
   includes = [
     "include",
@@ -152,7 +149,6 @@ cc_library(
     "src/core/security/security_context.h",
     "src/core/tsi/fake_transport_security.h",
     "src/core/tsi/ssl_transport_security.h",
-    "src/core/tsi/ssl_types.h",
     "src/core/tsi/transport_security.h",
     "src/core/tsi/transport_security_interface.h",
     "src/core/census/grpc_filter.h",
@@ -441,9 +437,6 @@ cc_library(
     "//external:zlib",
     ":gpr",
   ],
-  copts = [
-    "-std=gnu99",
-  ],
 )
 
 
@@ -713,9 +706,6 @@ cc_library(
   deps = [
     ":gpr",
   ],
-  copts = [
-    "-std=gnu99",
-  ],
 )
 
 
@@ -794,7 +784,6 @@ cc_library(
     "include/grpc++/impl/call.h",
     "include/grpc++/impl/client_unary_call.h",
     "include/grpc++/impl/grpc_library.h",
-    "include/grpc++/impl/method_handler_impl.h",
     "include/grpc++/impl/proto_utils.h",
     "include/grpc++/impl/rpc_method.h",
     "include/grpc++/impl/rpc_service_method.h",
@@ -827,14 +816,6 @@ cc_library(
     "include/grpc++/support/stub_options.h",
     "include/grpc++/support/sync_stream.h",
     "include/grpc++/support/time.h",
-    "include/grpc++/impl/codegen/call_hook.h",
-    "include/grpc++/impl/codegen/channel_interface.h",
-    "include/grpc++/impl/codegen/completion_queue_tag.h",
-    "include/grpc++/impl/codegen/config.h",
-    "include/grpc++/impl/codegen/server_interface.h",
-    "include/grpc++/impl/codegen/status.h",
-    "include/grpc++/impl/codegen/status_code_enum.h",
-    "include/grpc++/impl/codegen/time.h",
   ],
   includes = [
     "include",
@@ -896,7 +877,6 @@ cc_library(
     "include/grpc++/impl/call.h",
     "include/grpc++/impl/client_unary_call.h",
     "include/grpc++/impl/grpc_library.h",
-    "include/grpc++/impl/method_handler_impl.h",
     "include/grpc++/impl/proto_utils.h",
     "include/grpc++/impl/rpc_method.h",
     "include/grpc++/impl/rpc_service_method.h",
@@ -929,14 +909,6 @@ cc_library(
     "include/grpc++/support/stub_options.h",
     "include/grpc++/support/sync_stream.h",
     "include/grpc++/support/time.h",
-    "include/grpc++/impl/codegen/call_hook.h",
-    "include/grpc++/impl/codegen/channel_interface.h",
-    "include/grpc++/impl/codegen/completion_queue_tag.h",
-    "include/grpc++/impl/codegen/config.h",
-    "include/grpc++/impl/codegen/server_interface.h",
-    "include/grpc++/impl/codegen/status.h",
-    "include/grpc++/impl/codegen/status_code_enum.h",
-    "include/grpc++/impl/codegen/time.h",
   ],
   includes = [
     "include",
@@ -975,17 +947,6 @@ cc_library(
     "src/compiler/ruby_generator.cc",
   ],
   hdrs = [
-    "include/grpc++/impl/codegen/call_hook.h",
-    "include/grpc++/impl/codegen/channel_interface.h",
-    "include/grpc++/impl/codegen/completion_queue_tag.h",
-    "include/grpc++/impl/codegen/config.h",
-    "include/grpc++/impl/codegen/server_interface.h",
-    "include/grpc++/impl/codegen/status.h",
-    "include/grpc++/impl/codegen/status_code_enum.h",
-    "include/grpc++/impl/codegen/time.h",
-    "include/grpc/impl/codegen/connectivity_state.h",
-    "include/grpc/impl/codegen/port_platform.h",
-    "include/grpc/impl/codegen/time.h",
   ],
   includes = [
     "include",
@@ -1009,8 +970,8 @@ cc_library(
     ".",
   ],
   deps = [
-    ":grpc",
     ":gpr",
+    ":grpc",
   ],
 )
 
@@ -1090,9 +1051,6 @@ objc_library(
     "include/grpc/support/tls_msvc.h",
     "include/grpc/support/tls_pthread.h",
     "include/grpc/support/useful.h",
-    "include/grpc/impl/codegen/connectivity_state.h",
-    "include/grpc/impl/codegen/port_platform.h",
-    "include/grpc/impl/codegen/time.h",
     "src/core/profiling/timers.h",
     "src/core/support/block_annotate.h",
     "src/core/support/env.h",
@@ -1287,7 +1245,6 @@ objc_library(
     "src/core/security/security_context.h",
     "src/core/tsi/fake_transport_security.h",
     "src/core/tsi/ssl_transport_security.h",
-    "src/core/tsi/ssl_types.h",
     "src/core/tsi/transport_security.h",
     "src/core/tsi/transport_security_interface.h",
     "src/core/census/grpc_filter.h",

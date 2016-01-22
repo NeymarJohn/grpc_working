@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,6 @@ struct census_context;
 namespace grpc {
 
 class Channel;
-class ChannelInterface;
 class CompletionQueue;
 class CallCredentials;
 class RpcMethod;
@@ -77,13 +76,13 @@ template <class R>
 class ClientReader;
 template <class W>
 class ClientWriter;
-template <class W, class R>
+template <class R, class W>
 class ClientReaderWriter;
 template <class R>
 class ClientAsyncReader;
 template <class W>
 class ClientAsyncWriter;
-template <class W, class R>
+template <class R, class W>
 class ClientAsyncReaderWriter;
 template <class R>
 class ClientAsyncResponseReader;
@@ -138,10 +137,10 @@ class PropagationOptions {
     return *this;
   }
 
-  uint32_t c_bitmask() const { return propagate_; }
+  gpr_uint32 c_bitmask() const { return propagate_; }
 
  private:
-  uint32_t propagate_;
+  gpr_uint32 propagate_;
 };
 
 namespace testing {
@@ -305,19 +304,18 @@ class ClientContext {
   friend class ::grpc::ClientReader;
   template <class W>
   friend class ::grpc::ClientWriter;
-  template <class W, class R>
+  template <class R, class W>
   friend class ::grpc::ClientReaderWriter;
   template <class R>
   friend class ::grpc::ClientAsyncReader;
   template <class W>
   friend class ::grpc::ClientAsyncWriter;
-  template <class W, class R>
+  template <class R, class W>
   friend class ::grpc::ClientAsyncReaderWriter;
   template <class R>
   friend class ::grpc::ClientAsyncResponseReader;
   template <class InputMessage, class OutputMessage>
-  friend Status BlockingUnaryCall(ChannelInterface* channel,
-                                  const RpcMethod& method,
+  friend Status BlockingUnaryCall(Channel* channel, const RpcMethod& method,
                                   ClientContext* context,
                                   const InputMessage& request,
                                   OutputMessage* result);

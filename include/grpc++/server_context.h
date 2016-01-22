@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,13 +58,13 @@ template <class W>
 class ServerAsyncWriter;
 template <class W>
 class ServerAsyncResponseWriter;
-template <class W, class R>
+template <class R, class W>
 class ServerAsyncReaderWriter;
 template <class R>
 class ServerReader;
 template <class W>
 class ServerWriter;
-template <class W, class R>
+template <class R, class W>
 class ServerReaderWriter;
 template <class ServiceType, class RequestType, class ResponseType>
 class RpcMethodHandler;
@@ -80,7 +80,6 @@ class Call;
 class CallOpBuffer;
 class CompletionQueue;
 class Server;
-class ServerInterface;
 
 namespace testing {
 class InteropServerContextInspector;
@@ -139,7 +138,6 @@ class ServerContext {
 
  private:
   friend class ::grpc::testing::InteropServerContextInspector;
-  friend class ::grpc::ServerInterface;
   friend class ::grpc::Server;
   template <class W, class R>
   friend class ::grpc::ServerAsyncReader;
@@ -147,13 +145,13 @@ class ServerContext {
   friend class ::grpc::ServerAsyncWriter;
   template <class W>
   friend class ::grpc::ServerAsyncResponseWriter;
-  template <class W, class R>
+  template <class R, class W>
   friend class ::grpc::ServerAsyncReaderWriter;
   template <class R>
   friend class ::grpc::ServerReader;
   template <class W>
   friend class ::grpc::ServerWriter;
-  template <class W, class R>
+  template <class R, class W>
   friend class ::grpc::ServerReaderWriter;
   template <class ServiceType, class RequestType, class ResponseType>
   friend class RpcMethodHandler;
