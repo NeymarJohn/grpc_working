@@ -37,12 +37,8 @@
 #include <grpc/grpc.h>
 #include "test/core/util/test_config.h"
 
-#define GRPC_BAD_CLIENT_REGISTERED_METHOD "/registered/bar"
-#define GRPC_BAD_CLIENT_REGISTERED_HOST "localhost"
-
-typedef void (*grpc_bad_client_server_side_validator)(grpc_server *server,
-                                                      grpc_completion_queue *cq,
-                                                      void *registered_method);
+typedef void (*grpc_bad_client_server_side_validator)(
+    grpc_server *server, grpc_completion_queue *cq);
 
 #define GRPC_BAD_CLIENT_DISCONNECT 1
 
@@ -53,7 +49,7 @@ typedef void (*grpc_bad_client_server_side_validator)(grpc_server *server,
    handled as expected. */
 void grpc_run_bad_client_test(grpc_bad_client_server_side_validator validator,
                               const char *client_payload,
-                              size_t client_payload_length, uint32_t flags);
+                              size_t client_payload_length, gpr_uint32 flags);
 
 #define GRPC_RUN_BAD_CLIENT_TEST(validator, payload, flags) \
   grpc_run_bad_client_test(validator, payload, sizeof(payload) - 1, flags)

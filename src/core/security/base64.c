@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@
 
 #include "src/core/security/base64.h"
 
-#include <stdint.h>
 #include <string.h>
 
 #include <grpc/support/alloc.h>
@@ -42,7 +41,7 @@
 
 /* --- Constants. --- */
 
-static const int8_t base64_bytes[] = {
+static const char base64_bytes[] = {
     -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
     -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
     -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
@@ -115,7 +114,7 @@ char *grpc_base64_encode(const void *vdata, size_t data_size, int url_safe,
   }
 
   GPR_ASSERT(current >= result);
-  GPR_ASSERT((uintptr_t)(current - result) < result_projected_size);
+  GPR_ASSERT((gpr_uintptr)(current - result) < result_projected_size);
   result[current - result] = '\0';
   return result;
 }
@@ -126,14 +125,14 @@ gpr_slice grpc_base64_decode(const char *b64, int url_safe) {
 
 static void decode_one_char(const unsigned char *codes, unsigned char *result,
                             size_t *result_offset) {
-  uint32_t packed = ((uint32_t)codes[0] << 2) | ((uint32_t)codes[1] >> 4);
+  gpr_uint32 packed = ((gpr_uint32)codes[0] << 2) | ((gpr_uint32)codes[1] >> 4);
   result[(*result_offset)++] = (unsigned char)packed;
 }
 
 static void decode_two_chars(const unsigned char *codes, unsigned char *result,
                              size_t *result_offset) {
-  uint32_t packed = ((uint32_t)codes[0] << 10) | ((uint32_t)codes[1] << 4) |
-                    ((uint32_t)codes[2] >> 2);
+  gpr_uint32 packed = ((gpr_uint32)codes[0] << 10) |
+                      ((gpr_uint32)codes[1] << 4) | ((gpr_uint32)codes[2] >> 2);
   result[(*result_offset)++] = (unsigned char)(packed >> 8);
   result[(*result_offset)++] = (unsigned char)(packed);
 }
@@ -173,8 +172,9 @@ static int decode_group(const unsigned char *codes, size_t num_codes,
     decode_two_chars(codes, result, result_offset);
   } else {
     /* No padding. */
-    uint32_t packed = ((uint32_t)codes[0] << 18) | ((uint32_t)codes[1] << 12) |
-                      ((uint32_t)codes[2] << 6) | codes[3];
+    gpr_uint32 packed = ((gpr_uint32)codes[0] << 18) |
+                        ((gpr_uint32)codes[1] << 12) |
+                        ((gpr_uint32)codes[2] << 6) | codes[3];
     result[(*result_offset)++] = (unsigned char)(packed >> 16);
     result[(*result_offset)++] = (unsigned char)(packed >> 8);
     result[(*result_offset)++] = (unsigned char)(packed);

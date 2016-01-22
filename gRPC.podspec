@@ -153,7 +153,6 @@ Pod::Spec.new do |s|
                       'src/core/security/security_context.h',
                       'src/core/tsi/fake_transport_security.h',
                       'src/core/tsi/ssl_transport_security.h',
-                      'src/core/tsi/ssl_types.h',
                       'src/core/tsi/transport_security.h',
                       'src/core/tsi/transport_security_interface.h',
                       'src/core/census/grpc_filter.h',
@@ -429,7 +428,6 @@ Pod::Spec.new do |s|
                       'src/core/census/context.c',
                       'src/core/census/initialize.c',
                       'src/core/census/operation.c',
-                      'src/core/census/tag_set.c',
                       'src/core/census/tracing.c'
 
     ss.private_header_files = 'src/core/profiling/timers.h',
@@ -453,7 +451,6 @@ Pod::Spec.new do |s|
                               'src/core/security/security_context.h',
                               'src/core/tsi/fake_transport_security.h',
                               'src/core/tsi/ssl_transport_security.h',
-                              'src/core/tsi/ssl_types.h',
                               'src/core/tsi/transport_security.h',
                               'src/core/tsi/transport_security_interface.h',
                               'src/core/census/grpc_filter.h',

@@ -1,6 +1,6 @@
 #region Copyright notice and license
 
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 // 
 // Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ namespace Grpc.Core.Internal
 
         public void Initialize(CallSafeHandle call)
         {
-            call.Initialize(environment.CompletionRegistry, environment.CompletionQueue);
+            call.SetCompletionRegistry(environment.CompletionRegistry);
 
             server.AddCallReference(this);
             InitializeInternal(call);
