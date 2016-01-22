@@ -33,7 +33,6 @@ filegroups:
   - include/grpc++/impl/call.h
   - include/grpc++/impl/client_unary_call.h
   - include/grpc++/impl/grpc_library.h
-  - include/grpc++/impl/method_handler_impl.h
   - include/grpc++/impl/proto_utils.h
   - include/grpc++/impl/rpc_method.h
   - include/grpc++/impl/rpc_service_method.h
@@ -99,16 +98,6 @@ filegroups:
   - src/cpp/util/status.cc
   - src/cpp/util/string_ref.cc
   - src/cpp/util/time.cc
-- name: grpc++_codegen
-  public_headers:
-  - include/grpc++/impl/codegen/call_hook.h
-  - include/grpc++/impl/codegen/channel_interface.h
-  - include/grpc++/impl/codegen/completion_queue_tag.h
-  - include/grpc++/impl/codegen/config.h
-  - include/grpc++/impl/codegen/server_interface.h
-  - include/grpc++/impl/codegen/status.h
-  - include/grpc++/impl/codegen/status_code_enum.h
-  - include/grpc++/impl/codegen/time.h
 - name: grpc_base
   public_headers:
   - include/grpc/byte_buffer.h
@@ -357,16 +346,6 @@ filegroups:
   - src/core/transport/static_metadata.c
   - src/core/transport/transport.c
   - src/core/transport/transport_op_string.c
-- name: grpc_base_codegen
-  public_headers:
-  - include/grpc/impl/codegen/connectivity_state.h
-  - include/grpc/impl/codegen/port_platform.h
-  - include/grpc/impl/codegen/time.h
-- name: grpc_codegen
-  public_headers:
-  - include/grpc/impl/codegen/connectivity_state.h
-  - include/grpc/impl/codegen/port_platform.h
-  - include/grpc/impl/codegen/time.h
 - name: grpc_test_util_base
   headers:
   - test/core/end2end/cq_verifier.h
@@ -471,8 +450,6 @@ libs:
   - src/core/support/time_precise.c
   - src/core/support/time_win32.c
   - src/core/support/tls_pthread.c
-  filegroups:
-  - grpc_codegen
   secure: false
   vs_project_guid: '{B23D3D1A-9438-4EDA-BEB6-9A0A03D17792}'
 - name: gpr_test_util
@@ -646,7 +623,6 @@ libs:
   dll: true
   filegroups:
   - grpc++_base
-  - grpc++_codegen
   secure: check
   vs_project_guid: '{C187A093-A0FE-489D-A40A-6E33DE0F9FEB}'
 - name: grpc++_test_config
@@ -660,8 +636,6 @@ libs:
   build: private
   language: c++
   headers:
-  - test/cpp/end2end/test_service_impl.h
-  - test/cpp/util/byte_buffer_proto_helper.h
   - test/cpp/util/cli_call.h
   - test/cpp/util/create_test_channel.h
   - test/cpp/util/string_ref_helper.h
@@ -670,8 +644,6 @@ libs:
   - src/proto/grpc/testing/echo_messages.proto
   - src/proto/grpc/testing/echo.proto
   - src/proto/grpc/testing/duplicate/echo_duplicate.proto
-  - test/cpp/end2end/test_service_impl.cc
-  - test/cpp/util/byte_buffer_proto_helper.cc
   - test/cpp/util/cli_call.cc
   - test/cpp/util/create_test_channel.cc
   - test/cpp/util/string_ref_helper.cc
@@ -691,7 +663,6 @@ libs:
   dll: true
   filegroups:
   - grpc++_base
-  - grpc++_codegen
   secure: false
   vs_project_guid: '{6EE56155-DF7C-4F6E-BFC4-F6F776BEB211}'
 - name: grpc_plugin_support
@@ -720,9 +691,6 @@ libs:
   - src/compiler/python_generator.cc
   - src/compiler/ruby_generator.cc
   deps: []
-  filegroups:
-  - grpc++_codegen
-  - grpc_codegen
   secure: false
   vs_project_guid: '{B6E81D84-2ACB-41B8-8781-493A944C7817}'
 - name: interop_client_helper
@@ -805,10 +773,10 @@ libs:
   - test/cpp/util/benchmark_config.h
   src:
   - src/proto/grpc/testing/messages.proto
-  - src/proto/grpc/testing/payloads.proto
-  - src/proto/grpc/testing/stats.proto
   - src/proto/grpc/testing/control.proto
+  - src/proto/grpc/testing/payloads.proto
   - src/proto/grpc/testing/services.proto
+  - src/proto/grpc/testing/stats.proto
   - src/proto/grpc/testing/perf_db.proto
   - test/cpp/qps/client_async.cc
   - test/cpp/qps/client_sync.cc
@@ -2092,18 +2060,6 @@ targets:
   secure: false
   vs_config_type: Application
   vs_project_guid: '{069E9D05-B78B-4751-9252-D21EBAE7DE8E}'
-- name: hybrid_end2end_test
-  build: test
-  language: c++
-  src:
-  - test/cpp/end2end/hybrid_end2end_test.cc
-  deps:
-  - grpc++_test_util
-  - grpc_test_util
-  - grpc++
-  - grpc
-  - gpr_test_util
-  - gpr
 - name: interop_client
   build: test
   run: false
@@ -2525,112 +2481,6 @@ vspackages:
   props: false
   redist: false
   version: 1.7.0.1
-configs:
-  asan:
-    CC: clang
-    CFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
-    CXX: clang++
-    CXXFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
-    LD: clang
-    LDFLAGS: -fsanitize=address
-    LDXX: clang++
-    compile_the_world: true
-    test_environ:
-      ASAN_OPTIONS: suppressions=tools/asan_suppressions.txt:detect_leaks=1:color=always
-      LSAN_OPTIONS: suppressions=tools/asan_suppressions.txt:report_objects=1
-    timeout_multiplier: 1.5
-  asan-noleaks:
-    CC: clang
-    CFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
-    CXX: clang++
-    CXXFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
-    LD: clang
-    LDFLAGS: -fsanitize=address
-    LDXX: clang++
-    compile_the_world: true
-    test_environ:
-      ASAN_OPTIONS: detect_leaks=0:color=always
-    timeout_multiplier: 1.5
-  basicprof:
-    CPPFLAGS: -O2 -DGRPC_BASIC_PROFILER -DGRPC_TIMERS_RDTSC
-    DEFINES: NDEBUG
-  dbg:
-    CPPFLAGS: -O0
-    DEFINES: _DEBUG DEBUG
-    LDFLAGS: -rdynamic
-  gcov:
-    CC: gcc
-    CFLAGS: -O0 -fprofile-arcs -ftest-coverage -Wno-return-type
-    CXX: g++
-    CXXFLAGS: -O0 -fprofile-arcs -ftest-coverage -Wno-return-type
-    DEFINES: _DEBUG DEBUG GPR_GCOV
-    LD: gcc
-    LDFLAGS: -fprofile-arcs -ftest-coverage -rdynamic
-    LDXX: g++
-  helgrind:
-    CPPFLAGS: -O0
-    DEFINES: _DEBUG DEBUG
-    LDFLAGS: -rdynamic
-    timeout_multiplier: 20
-    valgrind: --tool=helgrind
-  memcheck:
-    CPPFLAGS: -O0
-    DEFINES: _DEBUG DEBUG
-    LDFLAGS: -rdynamic
-    timeout_multiplier: 10
-    valgrind: --tool=memcheck --leak-check=full
-  msan:
-    CC: clang
-    CFLAGS: -O0 -fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer
-      -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1 -Wno-unused-command-line-argument
-      -fPIE -pie
-    CXX: clang++
-    CXXFLAGS: -O0 -fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer
-      -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1 -Wno-unused-command-line-argument
-      -fPIE -pie
-    DEFINES: NDEBUG
-    LD: clang
-    LDFLAGS: -fsanitize=memory -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1
-      -fPIE -pie $(if $(JENKINS_BUILD),-Wl$(comma)-Ttext-segment=0x7e0000000000,)
-    LDXX: clang++
-    compile_the_world: true
-    timeout_multiplier: 1.5
-  mutrace:
-    CPPFLAGS: -O0
-    DEFINES: _DEBUG DEBUG
-    LDFLAGS: -rdynamic
-  opt:
-    CPPFLAGS: -O2
-    DEFINES: NDEBUG
-    LDFLAGS: -rdynamic
-  stapprof:
-    CPPFLAGS: -O2 -DGRPC_STAP_PROFILER
-    DEFINES: NDEBUG
-  tsan:
-    CC: clang
-    CFLAGS: -O0 -fsanitize=thread -fno-omit-frame-pointer -Wno-unused-command-line-argument
-      -fPIE -pie
-    CXX: clang++
-    CXXFLAGS: -O0 -fsanitize=thread -fno-omit-frame-pointer -Wno-unused-command-line-argument
-      -fPIE -pie
-    LD: clang
-    LDFLAGS: -fsanitize=thread -fPIE -pie $(if $(JENKINS_BUILD),-Wl$(comma)-Ttext-segment=0x7e0000000000,)
-    LDXX: clang++
-    compile_the_world: true
-    test_environ:
-      TSAN_OPTIONS: suppressions=tools/tsan_suppressions.txt:halt_on_error=1:second_deadlock_stack=1
-    timeout_multiplier: 2
-  ubsan:
-    CC: clang
-    CFLAGS: -O1 -fsanitize=undefined -fno-omit-frame-pointer -Wno-unused-command-line-argument
-    CXX: clang++
-    CXXFLAGS: -O1 -fsanitize=undefined -fno-omit-frame-pointer -Wno-unused-command-line-argument
-    DEFINES: NDEBUG
-    LD: clang
-    LDFLAGS: -fsanitize=undefined
-    LDXX: clang++
-    compile_the_world: true
-    timeout_multiplier: 1.5
 node_modules:
 - deps:
   - grpc
