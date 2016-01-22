@@ -101,6 +101,9 @@ Pod::Spec.new do |s|
                       'include/grpc/support/tls_msvc.h',
                       'include/grpc/support/tls_pthread.h',
                       'include/grpc/support/useful.h',
+                      'include/grpc/impl/codegen/connectivity_state.h',
+                      'include/grpc/impl/codegen/port_platform.h',
+                      'include/grpc/impl/codegen/time.h',
                       'src/core/profiling/basic_timers.c',
                       'src/core/profiling/stap_timers.c',
                       'src/core/support/alloc.c',
@@ -429,7 +432,6 @@ Pod::Spec.new do |s|
                       'src/core/census/context.c',
                       'src/core/census/initialize.c',
                       'src/core/census/operation.c',
-                      'src/core/census/tag_set.c',
                       'src/core/census/tracing.c'
 
     ss.private_header_files = 'src/core/profiling/timers.h',
