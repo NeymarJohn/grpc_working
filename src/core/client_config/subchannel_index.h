@@ -31,47 +31,34 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_USEFUL_H
-#define GRPC_SUPPORT_USEFUL_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_INDEX_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_INDEX_H
 
-/* useful macros that don't belong anywhere else */
+#include "src/core/client_config/connector.h"
+#include "src/core/client_config/subchannel.h"
 
-#define GPR_MIN(a, b) ((a) < (b) ? (a) : (b))
-#define GPR_MAX(a, b) ((a) > (b) ? (a) : (b))
-#define GPR_CLAMP(a, min, max) ((a) < (min) ? (min) : (a) > (max) ? (max) : (a))
-/* rotl, rotr assume x is unsigned */
-#define GPR_ROTL(x, n) (((x) << (n)) | ((x) >> (sizeof(x) * 8 - (n))))
-#define GPR_ROTR(x, n) (((x) >> (n)) | ((x) << (sizeof(x) * 8 - (n))))
+typedef struct grpc_subchannel_key grpc_subchannel_key;
 
-#define GPR_ARRAY_SIZE(array) (sizeof(array) / sizeof(*(array)))
+grpc_subchannel_key *grpc_subchannel_key_create(
+    grpc_connector *con, grpc_subchannel_args *args);
 
-#define GPR_SWAP(type, a, b) \
-  do {                       \
-    type x = a;              \
-    a = b;                   \
-    b = x;                   \
-  } while (0)
+void grpc_subchannel_key_destroy(grpc_subchannel_key *key);
 
-/** Set the \a n-th bit of \a i (a mutable pointer). */
-#define GPR_BITSET(i, n) ((*(i)) |= (1u << (n)))
+grpc_subchannel *grpc_subchannel_index_find(
+    grpc_exec_ctx *exec_ctx,
+    grpc_subchannel_key *key);
 
-/** Clear the \a n-th bit of \a i (a mutable pointer). */
-#define GPR_BITCLEAR(i, n) ((*(i)) &= ~(1u << (n)))
+grpc_subchannel *grpc_subchannel_index_register(
+    grpc_exec_ctx *exec_ctx,
+    grpc_subchannel_key *key, 
+    grpc_subchannel *constructed);
 
-/** Get the \a n-th bit of \a i */
-#define GPR_BITGET(i, n) (((i) & (1u << (n))) != 0)
+void grpc_subchannel_index_unregister(
+    grpc_exec_ctx *exec_ctx,
+    grpc_subchannel_key *key,
+    grpc_subchannel *constructed);
 
-#define GPR_INTERNAL_HEXDIGIT_BITCOUNT(x)                        \
-  ((x) - (((x) >> 1) & 0x77777777) - (((x) >> 2) & 0x33333333) - \
-   (((x) >> 3) & 0x11111111))
+void grpc_subchannel_index_init(void);
+void grpc_subchannel_index_shutdown(void);
 
-/** Returns number of bits set in bitset \a i */
-#define GPR_BITCOUNT(i)                          \
-  (((GPR_INTERNAL_HEXDIGIT_BITCOUNT(i) +         \
-     (GPR_INTERNAL_HEXDIGIT_BITCOUNT(i) >> 4)) & \
-    0x0f0f0f0f) %                                \
-   255)
-
-#define GPR_ICMP(a, b) ((a) < (b) ? -1 : ((a) > (b) ? 1 : 0))
-
-#endif /* GRPC_SUPPORT_USEFUL_H */
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_INDEX_H */
