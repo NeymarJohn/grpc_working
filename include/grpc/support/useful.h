@@ -72,6 +72,4 @@
     0x0f0f0f0f) %                                \
    255)
 
-#define GPR_ICMP(a, b) ((a) < (b) ? -1 : ((a) > (b) ? 1 : 0))
-
 #endif /* GRPC_SUPPORT_USEFUL_H */
