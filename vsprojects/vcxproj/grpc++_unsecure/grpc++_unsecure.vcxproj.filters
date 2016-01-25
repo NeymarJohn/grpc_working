@@ -114,6 +114,9 @@
     <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\grpc_library.h">
       <Filter>include\grpc++\impl</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\method_handler_impl.h">
+      <Filter>include\grpc++\impl</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\proto_utils.h">
       <Filter>include\grpc++\impl</Filter>
     </ClInclude>
@@ -210,6 +213,30 @@
     <ClInclude Include="$(SolutionDir)\..\include\grpc++\support\time.h">
       <Filter>include\grpc++\support</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\call_hook.h">
+      <Filter>include\grpc++\impl\codegen</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\channel_interface.h">
+      <Filter>include\grpc++\impl\codegen</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\completion_queue_tag.h">
+      <Filter>include\grpc++\impl\codegen</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\config.h">
+      <Filter>include\grpc++\impl\codegen</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\server_interface.h">
+      <Filter>include\grpc++\impl\codegen</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\status.h">
+      <Filter>include\grpc++\impl\codegen</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\status_code_enum.h">
+      <Filter>include\grpc++\impl\codegen</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\time.h">
+      <Filter>include\grpc++\impl\codegen</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SolutionDir)\..\src\cpp\client\create_channel_internal.h">
@@ -241,6 +268,9 @@
     </Filter>
     <Filter Include="include\grpc++\impl">
       <UniqueIdentifier>{dadc0002-f2ac-451b-a9b8-33b8de10b5fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\grpc++\impl\codegen">
+      <UniqueIdentifier>{ccc364e2-3f28-8bfc-c26e-800dd6f9a9af}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\grpc++\security">
       <UniqueIdentifier>{64bf60ff-9192-bb59-dcc8-8a0021e1d016}</UniqueIdentifier>

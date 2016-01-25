@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -172,7 +172,7 @@ static grpc_subchannel *subchannel_factory_create_subchannel(
   c->base.vtable = &connector_vtable;
   gpr_ref_init(&c->refs, 1);
   args->args = final_args;
-  s = grpc_subchannel_create(exec_ctx, &c->base, args);
+  s = grpc_subchannel_create(&c->base, args);
   grpc_connector_unref(exec_ctx, &c->base);
   grpc_channel_args_destroy(final_args);
   return s;

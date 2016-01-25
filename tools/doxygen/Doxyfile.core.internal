@@ -807,7 +807,6 @@ src/core/client_config/resolvers/dns_resolver.h \
 src/core/client_config/resolvers/sockaddr_resolver.h \
 src/core/client_config/subchannel.h \
 src/core/client_config/subchannel_factory.h \
-src/core/client_config/subchannel_index.h \
 src/core/client_config/uri_parser.h \
 src/core/compression/algorithm_metadata.h \
 src/core/compression/message_compress.h \
@@ -946,7 +945,6 @@ src/core/client_config/resolvers/dns_resolver.c \
 src/core/client_config/resolvers/sockaddr_resolver.c \
 src/core/client_config/subchannel.c \
 src/core/client_config/subchannel_factory.c \
-src/core/client_config/subchannel_index.c \
 src/core/client_config/uri_parser.c \
 src/core/compression/algorithm.c \
 src/core/compression/message_compress.c \
@@ -1079,6 +1077,9 @@ include/grpc/support/tls_gcc.h \
 include/grpc/support/tls_msvc.h \
 include/grpc/support/tls_pthread.h \
 include/grpc/support/useful.h \
+include/grpc/impl/codegen/connectivity_state.h \
+include/grpc/impl/codegen/port_platform.h \
+include/grpc/impl/codegen/time.h \
 src/core/profiling/timers.h \
 src/core/support/block_annotate.h \
 src/core/support/env.h \

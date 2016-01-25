@@ -40,6 +40,7 @@
 #include <grpc/byte_buffer.h>
 #include <grpc/support/slice.h>
 #include <grpc/support/time.h>
+#include <grpc/impl/codegen/connectivity_state.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,12 +78,6 @@ typedef enum {
   GRPC_ARG_POINTER
 } grpc_arg_type;
 
-typedef struct grpc_arg_pointer_vtable {
-  void *(*copy)(void *p);
-  void (*destroy)(void *p);
-  int (*cmp)(void *p, void *q);
-} grpc_arg_pointer_vtable;
-
 /** A single argument... each argument has a key and a value
 
     A note on naming keys:
@@ -103,7 +98,8 @@ typedef struct {
     int integer;
     struct {
       void *p;
-      const grpc_arg_pointer_vtable *vtable;
+      void *(*copy)(void *p);
+      void (*destroy)(void *p);
     } pointer;
   } value;
 } grpc_arg;
@@ -159,20 +155,6 @@ typedef struct {
    channel). If this parameter is specified and the underlying is not an SSL
    channel, it will just be ignored. */
 #define GRPC_SSL_TARGET_NAME_OVERRIDE_ARG "grpc.ssl_target_name_override"
-
-/** Connectivity state of a channel. */
-typedef enum {
-  /** channel is idle */
-  GRPC_CHANNEL_IDLE,
-  /** channel is connecting */
-  GRPC_CHANNEL_CONNECTING,
-  /** channel is ready for work */
-  GRPC_CHANNEL_READY,
-  /** channel has seen a failure but expects to recover */
-  GRPC_CHANNEL_TRANSIENT_FAILURE,
-  /** channel has seen a failure that it cannot recover from */
-  GRPC_CHANNEL_FATAL_FAILURE
-} grpc_connectivity_state;
 
 /** Result of a grpc call. If the caller satisfies the prerequisites of a
     particular operation, the grpc_call_error returned will be GRPC_CALL_OK.
