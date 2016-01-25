@@ -36,7 +36,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <grpc/census.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/slice.h>
 #include <grpc/support/slice_buffer.h>
@@ -173,7 +172,7 @@ static grpc_subchannel *subchannel_factory_create_subchannel(
   c->base.vtable = &connector_vtable;
   gpr_ref_init(&c->refs, 1);
   args->args = final_args;
-  s = grpc_subchannel_create(&c->base, args);
+  s = grpc_subchannel_create(exec_ctx, &c->base, args);
   grpc_connector_unref(exec_ctx, &c->base);
   grpc_channel_args_destroy(final_args);
   return s;
@@ -201,7 +200,7 @@ grpc_channel *grpc_insecure_channel_create(const char *target,
       "grpc_insecure_channel_create(target=%p, args=%p, reserved=%p)", 3,
       (target, args, reserved));
   GPR_ASSERT(!reserved);
-  if (grpc_channel_args_is_census_enabled(args) || census_enabled()) {
+  if (grpc_channel_args_is_census_enabled(args)) {
     filters[n++] = &grpc_client_census_filter;
   }
   filters[n++] = &grpc_compress_filter;
