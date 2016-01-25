@@ -1077,9 +1077,6 @@ include/grpc/support/tls_gcc.h \
 include/grpc/support/tls_msvc.h \
 include/grpc/support/tls_pthread.h \
 include/grpc/support/useful.h \
-include/grpc/impl/codegen/connectivity_state.h \
-include/grpc/impl/codegen/port_platform.h \
-include/grpc/impl/codegen/time.h \
 src/core/profiling/timers.h \
 src/core/support/block_annotate.h \
 src/core/support/env.h \
