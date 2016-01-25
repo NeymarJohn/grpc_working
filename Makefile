@@ -2381,7 +2381,6 @@ LIBGRPC_SRC = \
     src/core/client_config/resolvers/sockaddr_resolver.c \
     src/core/client_config/subchannel.c \
     src/core/client_config/subchannel_factory.c \
-    src/core/client_config/subchannel_index.c \
     src/core/client_config/uri_parser.c \
     src/core/compression/algorithm.c \
     src/core/compression/message_compress.c \
@@ -2686,7 +2685,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/client_config/resolvers/sockaddr_resolver.c \
     src/core/client_config/subchannel.c \
     src/core/client_config/subchannel_factory.c \
-    src/core/client_config/subchannel_index.c \
     src/core/client_config/uri_parser.c \
     src/core/compression/algorithm.c \
     src/core/compression/message_compress.c \
@@ -5488,7 +5486,7 @@ LIBZ_SRC = \
 
 LIBZ_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBZ_SRC))))
 
-$(LIBZ_OBJS): CFLAGS := $(CFLAGS) -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-implicit-function-declaration -Wno-shift-negative-value -fvisibility=hidden
+$(LIBZ_OBJS): CFLAGS := $(CFLAGS) -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-implicit-function-declaration -fvisibility=hidden
 
 $(LIBDIR)/$(CONFIG)/libz.a: $(ZLIB_DEP) $(OPENSSL_DEP)  $(LIBZ_OBJS)
 	$(E) "[AR]      Creating $@"
