@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -298,8 +298,11 @@ class PythonLanguage:
 
   def client_cmd(self, args):
     return [
-        'tox -einterop_client --',
-        ' '.join(args)
+        'src/python/grpcio/.tox/py27/bin/python',
+        'src/python/grpcio/setup.py',
+        'run_interop',
+        '--client',
+        '--args=\'{}\''.format(' '.join(args))
     ]
 
   def cloud_to_prod_env(self):
@@ -307,8 +310,11 @@ class PythonLanguage:
 
   def server_cmd(self, args):
     return [
-        'tox -einterop_server --',
-        ' '.join(args) + ' --use_tls=true'
+        'src/python/grpcio/.tox/py27/bin/python',
+        'src/python/grpcio/setup.py',
+        'run_interop',
+        '--server',
+        '--args=\'{}\''.format(' '.join(args) + ' --use_tls=true')
     ]
 
   def global_env(self):
@@ -426,8 +432,8 @@ def cloud_to_prod_jobspec(language, test_case, docker_image=None, auth=False):
   """Creates jobspec for cloud-to-prod interop test"""
   container_name = None
   cmdargs = [
-      '--server_host_override=grpc-test.sandbox.googleapis.com',
-      '--server_host=grpc-test.sandbox.googleapis.com',
+      '--server_host_override=grpc-test.sandbox.google.com',
+      '--server_host=grpc-test.sandbox.google.com',
       '--server_port=443',
       '--use_tls=true',
       '--test_case=%s' % test_case]

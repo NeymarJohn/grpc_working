@@ -8,11 +8,8 @@
                  "language": tgt.language,
                  "platforms": tgt.platforms,
                  "ci_platforms": tgt.ci_platforms,
-                 "exclude_configs": tgt.get("exclude_configs", []),
-                 "args": [],
-                 "flaky": tgt.flaky,
-                 "cpu_cost": tgt.get("cpu_cost", 1.0)}
+  	       "exclude_configs": tgt.get("exclude_configs", []),
+                 "flaky": tgt.flaky}
                 for tgt in targets
-                if tgt.get('run', True) and tgt.build == 'test'] +
-                tests,
+                if tgt.get('run', True) and tgt.build == 'test'],
                sort_keys=True, indent=2)}

@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -37,11 +37,8 @@ import subprocess
 import sys
 
 import setuptools
-from setuptools.command import build_ext
 from setuptools.command import build_py
 from setuptools.command import test
-
-PYTHON_STEM = os.path.dirname(os.path.abspath(__file__))
 
 CONF_PY_ADDENDUM = """
 extensions.append('sphinx.ext.napoleon')
@@ -50,10 +47,6 @@ napoleon_numpy_docstring = True
 
 html_theme = 'sphinx_rtd_theme'
 """
-
-
-class CommandError(Exception):
-  """Simple exception class for GRPC custom commands."""
 
 
 class SphinxDocumentation(setuptools.Command):
@@ -75,7 +68,7 @@ class SphinxDocumentation(setuptools.Command):
     import sphinx.apidoc
     metadata = self.distribution.metadata
     src_dir = os.path.join(
-        PYTHON_STEM, self.distribution.package_dir[''], 'grpc')
+        os.getcwd(), self.distribution.package_dir[''], 'grpc')
     sys.path.append(src_dir)
     sphinx.apidoc.main([
         '', '--force', '--full', '-H', metadata.name, '-A', metadata.author,
@@ -108,15 +101,10 @@ class BuildProtoModules(setuptools.Command):
         'grpc_python_plugin')
 
   def run(self):
-    if not self.protoc_command:
-      raise CommandError('could not find protoc')
-    if not self.grpc_python_plugin_command:
-      raise CommandError('could not find grpc_python_plugin '
-                         '(protoc plugin for GRPC Python)')
     include_regex = re.compile(self.include)
     exclude_regex = re.compile(self.exclude) if self.exclude else None
     paths = []
-    root_directory = PYTHON_STEM
+    root_directory = os.getcwd()
     for walk_root, directories, filenames in os.walk(root_directory):
       for filename in filenames:
         path = os.path.join(walk_root, filename)
@@ -135,7 +123,7 @@ class BuildProtoModules(setuptools.Command):
       subprocess.check_output(' '.join(command), cwd=root_directory, shell=True,
                               stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
-      raise CommandError('Command:\n{}\nMessage:\n{}\nOutput:\n{}'.format(
+      raise Exception('Command:\n{}\nMessage:\n{}\nOutput:\n{}'.format(
           command, e.message, e.output))
 
 
@@ -152,7 +140,7 @@ class BuildProjectMetadata(setuptools.Command):
     pass
 
   def run(self):
-    with open(os.path.join(PYTHON_STEM, 'grpc/_grpcio_metadata.py'), 'w') as module_file:
+    with open('grpc/_grpcio_metadata.py', 'w') as module_file:
       module_file.write('__version__ = """{}"""'.format(
           self.distribution.get_version()))
 
@@ -161,38 +149,9 @@ class BuildPy(build_py.build_py):
   """Custom project build command."""
 
   def run(self):
-    try:
-      self.run_command('build_proto_modules')
-    except CommandError as error:
-      sys.stderr.write('warning: %s\n' % error.message)
+    self.run_command('build_proto_modules')
     self.run_command('build_project_metadata')
     build_py.build_py.run(self)
-
-
-class BuildExt(build_ext.build_ext):
-  """Custom build_ext command to enable compiler-specific flags."""
-
-  C_OPTIONS = {
-      'unix': ('-pthread', '-std=gnu99'),
-      'msvc': (),
-  }
-  LINK_OPTIONS = {}
-
-  def build_extensions(self):
-    compiler = self.compiler.compiler_type
-    if compiler in BuildExt.C_OPTIONS:
-      for extension in self.extensions:
-        extension.extra_compile_args += list(BuildExt.C_OPTIONS[compiler])
-    if compiler in BuildExt.LINK_OPTIONS:
-      for extension in self.extensions:
-        extension.extra_link_args += list(BuildExt.LINK_OPTIONS[compiler])
-    try:
-      build_ext.build_ext.build_extensions(self)
-    except KeyboardInterrupt:
-      raise
-    except Exception as error:
-      support.diagnose_build_ext_error(self, error)
-      raise CommandError("Failed `build_ext` step.")
 
 
 class Gather(setuptools.Command):

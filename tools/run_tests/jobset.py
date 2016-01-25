@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -33,16 +33,11 @@ import hashlib
 import multiprocessing
 import os
 import platform
-import re
 import signal
 import subprocess
 import sys
 import tempfile
 import time
-
-
-# cpu cost measurement
-measure_cpu_costs = False
 
 
 _DEFAULT_MAX_JOBS = 16 * multiprocessing.cpu_count()
@@ -151,7 +146,7 @@ class JobSpec(object):
 
   def __init__(self, cmdline, shortname=None, environ=None, hash_targets=None,
                cwd=None, shell=False, timeout_seconds=5*60, flake_retries=0,
-               timeout_retries=0, kill_handler=None, cpu_cost=1.0):
+               timeout_retries=0, kill_handler=None):
     """
     Arguments:
       cmdline: a list of arguments to pass as the command line
@@ -159,7 +154,6 @@ class JobSpec(object):
       hash_targets: which files to include in the hash representing the jobs version
                     (or empty, indicating the job should not be hashed)
       kill_handler: a handler that will be called whenever job.kill() is invoked
-      cpu_cost: number of cores per second this job needs
     """
     if environ is None:
       environ = {}
@@ -175,7 +169,6 @@ class JobSpec(object):
     self.flake_retries = flake_retries
     self.timeout_retries = timeout_retries
     self.kill_handler = kill_handler
-    self.cpu_cost = cpu_cost
 
   def identity(self):
     return '%r %r %r' % (self.cmdline, self.environ, self.hash_targets)
@@ -185,7 +178,7 @@ class JobSpec(object):
 
   def __cmp__(self, other):
     return self.identity() == other.identity()
-
+    
   def __repr__(self):
     return 'JobSpec(shortname=%s, cmdline=%s)' % (self.shortname, self.cmdline)
 
@@ -198,7 +191,7 @@ class JobResult(object):
     self.num_failures = 0
     self.retries = 0
     self.message = ''
-
+    
 
 class Job(object):
   """Manages one job."""
@@ -225,10 +218,7 @@ class Job(object):
     env.update(self._spec.environ)
     env.update(self._add_env)
     self._start = time.time()
-    cmdline = self._spec.cmdline
-    if measure_cpu_costs:
-      cmdline = ['time', '--portability'] + cmdline
-    try_start = lambda: subprocess.Popen(args=cmdline,
+    try_start = lambda: subprocess.Popen(args=self._spec.cmdline,
                                          stderr=subprocess.STDOUT,
                                          stdout=self._tempfile,
                                          cwd=self._spec.cwd,
@@ -249,11 +239,9 @@ class Job(object):
 
   def state(self, update_cache):
     """Poll current state of the job. Prints messages at completion."""
-    def stdout(self=self):
-      self._tempfile.seek(0)
-      stdout = self._tempfile.read()
-      self.result.message = stdout[-_MAX_RESULT_SIZE:]
-      return stdout
+    self._tempfile.seek(0)
+    stdout = self._tempfile.read()
+    self.result.message = stdout[-_MAX_RESULT_SIZE:]
     if self._state == _RUNNING and self._process.poll() is not None:
       elapsed = time.time() - self._start
       self.result.elapsed_time = elapsed
@@ -261,7 +249,7 @@ class Job(object):
         if self._retries < self._spec.flake_retries:
           message('FLAKE', '%s [ret=%d, pid=%d]' % (
             self._spec.shortname, self._process.returncode, self._process.pid),
-            stdout(), do_newline=True)
+            stdout, do_newline=True)
           self._retries += 1
           self.result.num_failures += 1
           self.result.retries = self._timeout_retries + self._retries
@@ -271,32 +259,21 @@ class Job(object):
           if not self._suppress_failure_message:
             message('FAILED', '%s [ret=%d, pid=%d]' % (
                 self._spec.shortname, self._process.returncode, self._process.pid),
-                stdout(), do_newline=True)
+                stdout, do_newline=True)
           self.result.state = 'FAILED'
           self.result.num_failures += 1
           self.result.returncode = self._process.returncode
       else:
         self._state = _SUCCESS
-        measurement = ''
-        if measure_cpu_costs:
-          m = re.search(r'real ([0-9.]+)\nuser ([0-9.]+)\nsys ([0-9.]+)', stdout())
-          real = float(m.group(1))
-          user = float(m.group(2))
-          sys = float(m.group(3))
-          if real > 0.5:
-            cores = (user + sys) / real
-            measurement = '; cpu_cost=%.01f; estimated=%.01f' % (cores, self._spec.cpu_cost)
-        message('PASSED', '%s [time=%.1fsec; retries=%d:%d%s]' % (
-                    self._spec.shortname, elapsed, self._retries, self._timeout_retries, measurement),
+        message('PASSED', '%s [time=%.1fsec; retries=%d;%d]' % (
+                    self._spec.shortname, elapsed, self._retries, self._timeout_retries),
             do_newline=self._newline_on_success or self._travis)
         self.result.state = 'PASSED'
         if self._bin_hash:
           update_cache.finished(self._spec.identity(), self._bin_hash)
-    elif (self._state == _RUNNING and
-          self._spec.timeout_seconds is not None and
-          time.time() - self._start > self._spec.timeout_seconds):
+    elif self._state == _RUNNING and time.time() - self._start > self._spec.timeout_seconds:
       if self._timeout_retries < self._spec.timeout_retries:
-        message('TIMEOUT_FLAKE', '%s [pid=%d]' % (self._spec.shortname, self._process.pid), stdout(), do_newline=True)
+        message('TIMEOUT_FLAKE', '%s [pid=%d]' % (self._spec.shortname, self._process.pid), stdout, do_newline=True)
         self._timeout_retries += 1
         self.result.num_failures += 1
         self.result.retries = self._timeout_retries + self._retries
@@ -305,7 +282,7 @@ class Job(object):
         self._process.terminate()
         self.start()
       else:
-        message('TIMEOUT', '%s [pid=%d]' % (self._spec.shortname, self._process.pid), stdout(), do_newline=True)
+        message('TIMEOUT', '%s [pid=%d]' % (self._spec.shortname, self._process.pid), stdout, do_newline=True)
         self.kill()
         self.result.state = 'TIMEOUT'
         self.result.num_failures += 1
@@ -320,7 +297,7 @@ class Job(object):
 
   def suppress_failure_message(self):
     self._suppress_failure_message = True
-
+    
 
 class Jobset(object):
   """Manages one run of jobs."""
@@ -348,19 +325,10 @@ class Jobset(object):
   def get_num_failures(self):
     return self._failures
 
-  def cpu_cost(self):
-    c = 0
-    for job in self._running:
-      c += job._spec.cpu_cost
-    return c
-
   def start(self, spec):
     """Start a job. Return True on success, False on failure."""
-    while True:
+    while len(self._running) >= self._maxjobs:
       if self.cancelled(): return False
-      current_cpu_cost = self.cpu_cost()
-      if current_cpu_cost == 0: break
-      if current_cpu_cost + spec.cpu_cost < self._maxjobs: break
       self.reap()
     if self.cancelled(): return False
     if spec.hash_targets:
@@ -480,3 +448,4 @@ def run(cmdlines,
       js.set_remaining(remaining)
   js.finish()
   return js.get_num_failures(), js.resultset
+

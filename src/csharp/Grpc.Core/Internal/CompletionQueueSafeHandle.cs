@@ -1,5 +1,5 @@
 #region Copyright notice and license
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Grpc.Core.Profiling;
 
-using Grpc.Core.Utils;
-
 namespace Grpc.Core.Internal
 {
     /// <summary>
@@ -42,9 +40,20 @@ namespace Grpc.Core.Internal
     /// </summary>
     internal class CompletionQueueSafeHandle : SafeHandleZeroIsInvalid
     {
-        static readonly NativeMethods Native = NativeMethods.Get();
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern CompletionQueueSafeHandle grpcsharp_completion_queue_create();
 
-        AtomicCounter shutdownRefcount = new AtomicCounter(1);
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern void grpcsharp_completion_queue_shutdown(CompletionQueueSafeHandle cq);
+
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern CompletionQueueEvent grpcsharp_completion_queue_next(CompletionQueueSafeHandle cq);
+
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern CompletionQueueEvent grpcsharp_completion_queue_pluck(CompletionQueueSafeHandle cq, IntPtr tag);
+
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern void grpcsharp_completion_queue_destroy(IntPtr cq);
 
         private CompletionQueueSafeHandle()
         {
@@ -52,79 +61,31 @@ namespace Grpc.Core.Internal
 
         public static CompletionQueueSafeHandle Create()
         {
-            return Native.grpcsharp_completion_queue_create();
-
+            return grpcsharp_completion_queue_create();
         }
 
         public CompletionQueueEvent Next()
         {
-            return Native.grpcsharp_completion_queue_next(this);
+            return grpcsharp_completion_queue_next(this);
         }
 
         public CompletionQueueEvent Pluck(IntPtr tag)
         {
             using (Profilers.ForCurrentThread().NewScope("CompletionQueueSafeHandle.Pluck"))
             {
-                return Native.grpcsharp_completion_queue_pluck(this, tag);
+                return grpcsharp_completion_queue_pluck(this, tag);
             }
-        }
-
-        /// <summary>
-        /// Creates a new usage scope for this completion queue. Once successfully created,
-        /// the completion queue won't be shutdown before scope.Dispose() is called.
-        /// </summary>
-        public UsageScope NewScope()
-        {
-            return new UsageScope(this);
         }
 
         public void Shutdown()
         {
-            DecrementShutdownRefcount();
+            grpcsharp_completion_queue_shutdown(this);
         }
 
         protected override bool ReleaseHandle()
         {
-            Native.grpcsharp_completion_queue_destroy(handle);
+            grpcsharp_completion_queue_destroy(handle);
             return true;
-        }
-
-        private void DecrementShutdownRefcount()
-        {
-            if (shutdownRefcount.Decrement() == 0)
-            {
-                Native.grpcsharp_completion_queue_shutdown(this);
-            }
-        }
-
-        private void BeginOp()
-        {
-            bool success = false;
-            shutdownRefcount.IncrementIfNonzero(ref success);
-            Preconditions.CheckState(success, "Shutdown has already been called");
-        }
-
-        private void EndOp()
-        {
-            DecrementShutdownRefcount();
-        }
-
-        // Allows declaring BeginOp and EndOp of a completion queue with a using statement.
-        // Declared as struct for better performance.
-        public struct UsageScope : IDisposable
-        {
-            readonly CompletionQueueSafeHandle cq;
-
-            public UsageScope(CompletionQueueSafeHandle cq)
-            {
-                this.cq = cq;
-                this.cq.BeginOp();
-            }
-
-            public void Dispose()
-            {
-                cq.EndOp();
-            }
         }
     }
 }

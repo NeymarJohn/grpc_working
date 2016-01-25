@@ -1,5 +1,5 @@
 #region Copyright notice and license
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,8 @@ namespace Grpc.Core.Internal
     /// </summary>
     internal class CStringSafeHandle : SafeHandleZeroIsInvalid
     {
-        static readonly NativeMethods Native = NativeMethods.Get();
+        [DllImport("grpc_csharp_ext.dll")]
+        static extern void gprsharp_free(IntPtr ptr);
 
         private CStringSafeHandle()
         {
@@ -52,7 +53,7 @@ namespace Grpc.Core.Internal
 
         protected override bool ReleaseHandle()
         {
-            Native.gprsharp_free(handle);
+            gprsharp_free(handle);
             return true;
         }
     }
