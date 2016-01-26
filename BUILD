@@ -149,6 +149,7 @@ cc_library(
     "src/core/security/security_context.h",
     "src/core/tsi/fake_transport_security.h",
     "src/core/tsi/ssl_transport_security.h",
+    "src/core/tsi/ssl_types.h",
     "src/core/tsi/transport_security.h",
     "src/core/tsi/transport_security_interface.h",
     "src/core/census/grpc_filter.h",
@@ -417,6 +418,7 @@ cc_library(
     "src/core/census/context.c",
     "src/core/census/initialize.c",
     "src/core/census/operation.c",
+    "src/core/census/tag_set.c",
     "src/core/census/tracing.c",
   ],
   hdrs = [
@@ -436,6 +438,9 @@ cc_library(
     "//external:libssl",
     "//external:zlib",
     ":gpr",
+  ],
+  copts = [
+    "-std=gnu99",
   ],
 )
 
@@ -689,6 +694,7 @@ cc_library(
     "src/core/census/context.c",
     "src/core/census/initialize.c",
     "src/core/census/operation.c",
+    "src/core/census/tag_set.c",
     "src/core/census/tracing.c",
   ],
   hdrs = [
@@ -705,6 +711,9 @@ cc_library(
   ],
   deps = [
     ":gpr",
+  ],
+  copts = [
+    "-std=gnu99",
   ],
 )
 
@@ -970,8 +979,8 @@ cc_library(
     ".",
   ],
   deps = [
-    ":gpr",
     ":grpc",
+    ":gpr",
   ],
 )
 
@@ -1224,6 +1233,7 @@ objc_library(
     "src/core/census/context.c",
     "src/core/census/initialize.c",
     "src/core/census/operation.c",
+    "src/core/census/tag_set.c",
     "src/core/census/tracing.c",
   ],
   hdrs = [
@@ -1245,6 +1255,7 @@ objc_library(
     "src/core/security/security_context.h",
     "src/core/tsi/fake_transport_security.h",
     "src/core/tsi/ssl_transport_security.h",
+    "src/core/tsi/ssl_types.h",
     "src/core/tsi/transport_security.h",
     "src/core/tsi/transport_security_interface.h",
     "src/core/census/grpc_filter.h",
