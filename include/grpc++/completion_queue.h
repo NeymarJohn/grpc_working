@@ -36,6 +36,7 @@
 #ifndef GRPCXX_COMPLETION_QUEUE_H
 #define GRPCXX_COMPLETION_QUEUE_H
 
+#include <grpc/support/time.h>
 #include <grpc++/impl/grpc_library.h>
 #include <grpc++/support/status.h>
 #include <grpc++/support/time.h>
@@ -67,7 +68,6 @@ class BidiStreamingHandler;
 class UnknownMethodHandler;
 
 class Channel;
-class ChannelInterface;
 class ClientContext;
 class CompletionQueueTag;
 class CompletionQueue;
@@ -171,8 +171,7 @@ class CompletionQueue : public GrpcLibrary {
   friend class ::grpc::Server;
   friend class ::grpc::ServerContext;
   template <class InputMessage, class OutputMessage>
-  friend Status BlockingUnaryCall(ChannelInterface* channel,
-                                  const RpcMethod& method,
+  friend Status BlockingUnaryCall(Channel* channel, const RpcMethod& method,
                                   ClientContext* context,
                                   const InputMessage& request,
                                   OutputMessage* result);
@@ -187,6 +186,17 @@ class CompletionQueue : public GrpcLibrary {
   void TryPluck(CompletionQueueTag* tag);
 
   grpc_completion_queue* cq_;  // owned
+};
+
+/// An interface allowing implementors to process and filter event tags.
+class CompletionQueueTag {
+ public:
+  virtual ~CompletionQueueTag() {}
+  // Called prior to returning from Next(), return value is the status of the
+  // operation (return status is the default thing to do). If this function
+  // returns false, the tag is dropped and not returned from the completion
+  // queue
+  virtual bool FinalizeResult(void** tag, bool* status) = 0;
 };
 
 /// A specific type of completion queue used by the processing of notifications

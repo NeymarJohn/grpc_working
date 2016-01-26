@@ -43,18 +43,16 @@
 #include <vector>
 
 #include <gflags/gflags.h>
-#include <grpc++/channel.h>
-#include <grpc++/client_context.h>
 #include <grpc++/client_context.h>
 #include <grpc++/generic/generic_stub.h>
 #include <grpc/grpc.h>
 #include <grpc/support/histogram.h>
 #include <grpc/support/log.h>
 
-#include "src/proto/grpc/testing/services.grpc.pb.h"
 #include "test/cpp/qps/client.h"
 #include "test/cpp/qps/timer.h"
 #include "test/cpp/util/create_test_channel.h"
+#include "src/proto/grpc/testing/services.grpc.pb.h"
 
 namespace grpc {
 namespace testing {
