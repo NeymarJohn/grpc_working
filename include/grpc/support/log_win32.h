@@ -42,7 +42,7 @@ extern "C" {
  * formatted error message, corresponding to the error messageid.
  * Use in conjunction with GetLastError() et al.
  */
-char *gpr_format_message(int messageid);
+char *gpr_format_message(DWORD messageid);
 
 #ifdef __cplusplus
 }
