@@ -34,16 +34,15 @@
 #ifndef GRPCXX_SUPPORT_ASYNC_STREAM_H
 #define GRPCXX_SUPPORT_ASYNC_STREAM_H
 
-#include <grpc/support/log.h>
-#include <grpc++/channel.h>
-#include <grpc++/client_context.h>
-#include <grpc++/completion_queue.h>
+#include <grpc++/impl/codegen/channel_interface.h>
 #include <grpc++/impl/call.h>
 #include <grpc++/impl/service_type.h>
 #include <grpc++/server_context.h>
-#include <grpc++/support/status.h>
+#include <grpc++/impl/codegen/status.h>
 
 namespace grpc {
+
+class CompletionQueue;
 
 /// Common interface for all client side asynchronous streaming.
 class ClientAsyncStreamingInterface {
@@ -103,7 +102,7 @@ class ClientAsyncReader GRPC_FINAL : public ClientAsyncReaderInterface<R> {
  public:
   /// Create a stream and write the first request out.
   template <class W>
-  ClientAsyncReader(Channel* channel, CompletionQueue* cq,
+  ClientAsyncReader(ChannelInterface* channel, CompletionQueue* cq,
                     const RpcMethod& method, ClientContext* context,
                     const W& request, void* tag)
       : context_(context), call_(channel->CreateCall(method, context, cq)) {
@@ -166,7 +165,7 @@ template <class W>
 class ClientAsyncWriter GRPC_FINAL : public ClientAsyncWriterInterface<W> {
  public:
   template <class R>
-  ClientAsyncWriter(Channel* channel, CompletionQueue* cq,
+  ClientAsyncWriter(ChannelInterface* channel, CompletionQueue* cq,
                     const RpcMethod& method, ClientContext* context,
                     R* response, void* tag)
       : context_(context), call_(channel->CreateCall(method, context, cq)) {
@@ -234,7 +233,7 @@ template <class W, class R>
 class ClientAsyncReaderWriter GRPC_FINAL
     : public ClientAsyncReaderWriterInterface<W, R> {
  public:
-  ClientAsyncReaderWriter(Channel* channel, CompletionQueue* cq,
+  ClientAsyncReaderWriter(ChannelInterface* channel, CompletionQueue* cq,
                           const RpcMethod& method, ClientContext* context,
                           void* tag)
       : context_(context), call_(channel->CreateCall(method, context, cq)) {

@@ -53,22 +53,24 @@
 #include <memory>
 #include <string>
 
-#include <grpc++/impl/sync.h>
-#include <grpc++/security/auth_context.h>
-#include <grpc++/support/config.h>
-#include <grpc++/support/status.h>
-#include <grpc++/support/string_ref.h>
-#include <grpc++/support/time.h>
-#include <grpc/compression.h>
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
-#include <grpc/support/time.h>
+#include <grpc++/impl/codegen/sync.h>
+#include <grpc++/impl/codegen/security/auth_context.h>
+#include <grpc++/impl/codegen/config.h>
+#include <grpc++/impl/codegen/status.h>
+#include <grpc++/impl/codegen/string_ref.h>
+#include <grpc++/impl/codegen/time.h>
+#include <grpc/impl/codegen/compression_types.h>
+#include <grpc/impl/codegen/propagation_bits.h>
+#include <grpc/impl/codegen/log.h>
+#include <grpc/impl/codegen/time.h>
 
 struct census_context;
+struct grpc_call;
 
 namespace grpc {
 
 class Channel;
+class ChannelInterface;
 class CompletionQueue;
 class CallCredentials;
 class RpcMethod;
@@ -315,7 +317,8 @@ class ClientContext {
   template <class R>
   friend class ::grpc::ClientAsyncResponseReader;
   template <class InputMessage, class OutputMessage>
-  friend Status BlockingUnaryCall(Channel* channel, const RpcMethod& method,
+  friend Status BlockingUnaryCall(ChannelInterface* channel,
+                                  const RpcMethod& method,
                                   ClientContext* context,
                                   const InputMessage& request,
                                   OutputMessage* result);
