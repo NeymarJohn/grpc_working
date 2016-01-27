@@ -1,5 +1,4 @@
-#!/bin/bash
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,27 +26,33 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+FROM debian:jessie
+
+# Install JDK 8 and Git
 #
-# Builds Go interop server and client in a base image.
-set -e
+# TODO(temiola): simplify this if/when a simpler process is available.
+#
+RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections && \
+  echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee /etc/apt/sources.list.d/webupd8team-java.list && \
+  echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list && \
+  apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886 && \
+  apt-get update && \
+  apt-get -y install \
+      git \
+      libapr1 \
+      oracle-java8-installer \
+      && \
+  apt-get clean && rm -r /var/cache/oracle-jdk8-installer/
 
-# Clone just the grpc-go source code without any dependencies.
-# We are cloning from a local git repo that contains the right revision
-# to test instead of using "go get" to download from Github directly.
-git clone --recursive /var/local/jenkins/grpc-go src/google.golang.org/grpc
+ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+ENV PATH $PATH:$JAVA_HOME/bin
 
-# copy service account keys if available
-cp -r /var/local/jenkins/service_account $HOME || true
+# Trigger download of as many Gradle artifacts as possible.
+RUN git clone --recursive --depth 1 https://github.com/grpc/grpc-java.git && \
+  cd grpc-java && \
+  ./gradlew build -PskipCodegen=true && \
+  rm -r "$(pwd)"
 
-# Get dependencies from GitHub
-# NOTE: once grpc-go dependencies change, this needs to be updated manually
-# but we don't expect this to happen any time soon.
-go get github.com/golang/protobuf/proto
-go get golang.org/x/net/context
-go get golang.org/x/net/trace
-go get golang.org/x/oauth2
-go get google.golang.org/cloud
-
-# Build the interop client and server
-(cd src/google.golang.org/grpc/interop/client && go install)
-(cd src/google.golang.org/grpc/interop/server && go install)
+# Define the default command.
+CMD ["bash"]

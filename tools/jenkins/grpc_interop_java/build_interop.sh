@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Builds C++ interop server and client in a base image.
+# Builds Java interop server and client in a base image.
 set -e
 
 mkdir -p /var/local/git
-git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
+git clone --recursive --depth 1 /var/local/jenkins/grpc-java /var/local/git/grpc-java
 
 # copy service account keys if available
 cp -r /var/local/jenkins/service_account $HOME || true
 
-cd /var/local/git/grpc
+cd /var/local/git/grpc-java
 
-make install-certs
-
-# build C++ interop client & server
-make interop_client interop_server
+./gradlew :grpc-interop-testing:installDist -PskipCodegen=true

@@ -1,5 +1,4 @@
-#!/bin/bash
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,16 +26,11 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Builds Java interop server and client in a base image.
-set -e
 
-mkdir -p /var/local/git
-git clone --recursive --depth 1 /var/local/jenkins/grpc-java /var/local/git/grpc-java
+FROM golang:1.4
 
-# copy service account keys if available
-cp -r /var/local/jenkins/service_account $HOME || true
+# Using login shell removes Go from path, so we add it.
+RUN ln -s /usr/src/go/bin/go /usr/local/bin
 
-cd /var/local/git/grpc-java
-
-./gradlew :grpc-interop-testing:installDist -PskipCodegen=true
+# Define the default command.
+CMD ["bash"]
