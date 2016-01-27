@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,14 +47,17 @@
 char *gpr_getenv(const char *name) {
   size_t size;
   char *result = NULL;
-  char *duplicated;
   errno_t err;
 
-  err = _dupenv_s(&result, &size, name);
-  if (err) return NULL;
-  duplicated = gpr_strdup(result);
-  free(result);
-  return duplicated;
+  err = getenv_s(&size, NULL, 0, name);
+  if (err || (size == 0)) return NULL;
+  result = gpr_malloc(size);
+  err = getenv_s(&size, result, size, name);
+  if (err) {
+    gpr_free(result);
+    return NULL;
+  }
+  return result;
 }
 
 void gpr_setenv(const char *name, const char *value) {
