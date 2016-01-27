@@ -41,8 +41,6 @@ from setuptools.command import build_ext
 from setuptools.command import build_py
 from setuptools.command import test
 
-import support
-
 PYTHON_STEM = os.path.dirname(os.path.abspath(__file__))
 
 CONF_PY_ADDENDUM = """
