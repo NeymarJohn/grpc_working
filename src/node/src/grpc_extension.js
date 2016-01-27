@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,35 +31,10 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+var binary = require('node-pre-gyp');
+var path = require('path');
+var binding_path = binary.find(path.resolve(
+    path.join(__dirname,'../../../package.json')));
+var binding = require(binding_path);
 
-#ifdef GPR_WIN32
-
-#include "src/core/support/env.h"
-#include "src/core/support/string.h"
-
-#include <stdlib.h>
-
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
-
-char *gpr_getenv(const char *name) {
-  size_t size;
-  char *result = NULL;
-  char *duplicated;
-  errno_t err;
-
-  err = _dupenv_s(&result, &size, name);
-  if (err) return NULL;
-  duplicated = gpr_strdup(result);
-  free(result);
-  return duplicated;
-}
-
-void gpr_setenv(const char *name, const char *value) {
-  errno_t res = _putenv_s(name, value);
-  GPR_ASSERT(res == 0);
-}
-
-#endif /* GPR_WIN32 */
+module.exports = binding;
