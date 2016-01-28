@@ -36,10 +36,9 @@
 #ifndef GRPCXX_COMPLETION_QUEUE_H
 #define GRPCXX_COMPLETION_QUEUE_H
 
-#include <grpc/support/time.h>
-#include <grpc++/impl/grpc_library.h>
-#include <grpc++/support/status.h>
-#include <grpc++/support/time.h>
+#include <grpc++/impl/codegen/grpc_library.h>
+#include <grpc++/impl/codegen/status.h>
+#include <grpc++/impl/codegen/time.h>
 
 struct grpc_completion_queue;
 
@@ -68,6 +67,7 @@ class BidiStreamingHandler;
 class UnknownMethodHandler;
 
 class Channel;
+class ChannelInterface;
 class ClientContext;
 class CompletionQueueTag;
 class CompletionQueue;
@@ -78,7 +78,7 @@ class ServerContext;
 
 /// A thin wrapper around \a grpc_completion_queue (see / \a
 /// src/core/surface/completion_queue.h).
-class CompletionQueue : public GrpcLibrary {
+class CompletionQueue : private GrpcLibrary {
  public:
   /// Default constructor. Implicitly creates a \a grpc_completion_queue
   /// instance.
@@ -90,7 +90,7 @@ class CompletionQueue : public GrpcLibrary {
   explicit CompletionQueue(grpc_completion_queue* take);
 
   /// Destructor. Destroys the owned wrapped completion queue / instance.
-  ~CompletionQueue() GRPC_OVERRIDE;
+  ~CompletionQueue();
 
   /// Tri-state return for AsyncNext: SHUTDOWN, GOT_EVENT, TIMEOUT.
   enum NextStatus {
@@ -171,7 +171,8 @@ class CompletionQueue : public GrpcLibrary {
   friend class ::grpc::Server;
   friend class ::grpc::ServerContext;
   template <class InputMessage, class OutputMessage>
-  friend Status BlockingUnaryCall(Channel* channel, const RpcMethod& method,
+  friend Status BlockingUnaryCall(ChannelInterface* channel,
+                                  const RpcMethod& method,
                                   ClientContext* context,
                                   const InputMessage& request,
                                   OutputMessage* result);
@@ -186,17 +187,6 @@ class CompletionQueue : public GrpcLibrary {
   void TryPluck(CompletionQueueTag* tag);
 
   grpc_completion_queue* cq_;  // owned
-};
-
-/// An interface allowing implementors to process and filter event tags.
-class CompletionQueueTag {
- public:
-  virtual ~CompletionQueueTag() {}
-  // Called prior to returning from Next(), return value is the status of the
-  // operation (return status is the default thing to do). If this function
-  // returns false, the tag is dropped and not returned from the completion
-  // queue
-  virtual bool FinalizeResult(void** tag, bool* status) = 0;
 };
 
 /// A specific type of completion queue used by the processing of notifications

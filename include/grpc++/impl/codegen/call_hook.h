@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,21 @@
  *
  */
 
-var binary = require('node-pre-gyp');
-var path = require('path');
-var binding_path = binary.find(path.resolve(
-    path.join(__dirname,'../../../package.json')));
-var binding = require(binding_path);
+#ifndef GRPCXX_IMPL_CODEGEN_CALL_HOOK_H
+#define GRPCXX_IMPL_CODEGEN_CALL_HOOK_H
 
-module.exports = binding;
+namespace grpc {
+
+class CallOpSetInterface;
+class Call;
+
+/// Channel and Server implement this to allow them to hook performing ops
+class CallHook {
+ public:
+  virtual ~CallHook() {}
+  virtual void PerformOpsOnCall(CallOpSetInterface* ops, Call* call) = 0;
+};
+
+}  // namespace grpc
+
+#endif  // GRPCXX_IMPL_CODEGEN_CALL_HOOK_H

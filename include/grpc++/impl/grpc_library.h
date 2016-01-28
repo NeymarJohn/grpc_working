@@ -34,16 +34,34 @@
 #ifndef GRPCXX_IMPL_GRPC_LIBRARY_H
 #define GRPCXX_IMPL_GRPC_LIBRARY_H
 
+#include <grpc++/impl/codegen/config.h>
+#include <grpc++/impl/codegen/grpc_library.h>
 #include <grpc/grpc.h>
 
 namespace grpc {
 
-class GrpcLibrary {
+namespace internal {
+class GrpcLibrary GRPC_FINAL : public GrpcLibraryInterface {
  public:
-  GrpcLibrary() { grpc_init(); }
-  virtual ~GrpcLibrary() { grpc_shutdown(); }
+  void init() GRPC_OVERRIDE { grpc_init(); }
+
+  void shutdown() GRPC_OVERRIDE { grpc_shutdown(); }
 };
 
+static GrpcLibrary g_gli;
+
+class GrpcLibraryInitializer GRPC_FINAL {
+ public:
+  GrpcLibraryInitializer() { grpc::g_glip = &g_gli; }
+
+  /// A no-op method to force the linker to reference this class, which will
+  /// take care of initializing and shutting down the gRPC runtime.
+  inline void summon() {}
+};
+
+extern GrpcLibraryInitializer g_gli_initializer;
+
+}  // namespace internal
 }  // namespace grpc
 
 #endif  // GRPCXX_IMPL_GRPC_LIBRARY_H
