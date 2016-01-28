@@ -12,10 +12,6 @@ htmlcov/
 dist/
 *.egg
 
-# Node installation output
-node_modules/
-src/node/extension_binary/
-
 # gcov coverage data
 reports
 coverage
