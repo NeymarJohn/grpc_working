@@ -48,10 +48,12 @@ curr_arch=${parts[1]}
 curr_compiler=${parts[2]}
 
 config='dbg'
+maybe_build_only='--build_only'
 
-if [ "$curr_platform" == "linux" ]
+if [ "$curr_platform" == "windows" ]
 then
-  USE_DOCKER_MAYBE="--use_docker"
+  python tools/run_tests/run_tests.py -t -l $language -c $config --arch ${curr_arch} --compiler ${curr_compiler} ${maybe_build_only} -x report.xml $@
+else
+  echo "Unsupported scenario."
+  exit 1
 fi
-
-python tools/run_tests/run_tests.py $USE_DOCKER_MAYBE -t -l $language -c $config --arch ${curr_arch} --compiler ${curr_compiler} -x report.xml -j 3 $@
