@@ -143,6 +143,15 @@ grpc_channel_credentials *grpc_google_default_credentials_create(void);
 #define GRPC_DEFAULT_SSL_ROOTS_FILE_PATH_ENV_VAR \
   "GRPC_DEFAULT_SSL_ROOTS_FILE_PATH"
 
+/* Overrides the default TLS/SSL roots.
+   The roots must be encoded as PEM and NULL-terminated.
+   This function is not thread-safe and must be called at initialization time
+   before any ssl credentials are created to have the desired side effect.
+   It also does not do any checks about the validity of the encoding.
+   If the GRPC_DEFAULT_SSL_ROOTS_FILE_PATH environment is set to a valid path,
+   it will override the roots specified in this function. */
+void grpc_override_ssl_default_roots(const char *roots_pem);
+
 /* Object that holds a private key / certificate chain pair in PEM format. */
 typedef struct {
   /* private_key is the NULL-terminated string containing the PEM encoding of
@@ -159,8 +168,9 @@ typedef struct {
      of the server root certificates. If this parameter is NULL, the
      implementation will first try to dereference the file pointed by the
      GRPC_DEFAULT_SSL_ROOTS_FILE_PATH environment variable, and if that fails,
-     get the roots from a well-known place on disk (in the grpc install
-     directory).
+     try to get the roots set by grpc_override_ssl_default_roots. Eventually,
+     if all these fail, it will try to get the roots from a well-known place on
+     disk (in the grpc install directory).
    - pem_key_cert_pair is a pointer on the object containing client's private
      key and certificate chain. This parameter can be NULL if the client does
      not have such a key/cert pair. */
