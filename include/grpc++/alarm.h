@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,15 +36,14 @@
 #ifndef GRPCXX_ALARM_H
 #define GRPCXX_ALARM_H
 
-#include <grpc++/impl/codegen/grpc_library.h>
-#include <grpc++/impl/codegen/time.h>
+#include <grpc++/completion_queue.h>
+#include <grpc++/impl/grpc_library.h>
+#include <grpc++/support/time.h>
 
 namespace grpc {
 
-class CompletionQueue;
-
 /// A thin wrapper around \a grpc_alarm (see / \a / src/core/surface/alarm.h).
-class Alarm : private GrpcLibrary {
+class Alarm : public GrpcLibrary {
  public:
   /// Create a completion queue alarm instance associated to \a cq.
   ///
