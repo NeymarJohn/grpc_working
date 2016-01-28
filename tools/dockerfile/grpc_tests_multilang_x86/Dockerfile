@@ -152,9 +152,6 @@ RUN apt-get update && apt-get install -y \
 # Zookeeper dependencies
 RUN apt-get install -y libzookeeper-mt-dev
 
-##################
-# Build profiling
-RUN apt-get install -y time
 
 RUN mkdir /var/local/jenkins
 
