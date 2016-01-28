@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
@@ -27,62 +29,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Tests for grpc.framework.foundation.logging_pool."""
 
-import threading
-import unittest
+set -e
 
-from grpc.framework.foundation import logging_pool
+export TEST=true
 
-_POOL_SIZE = 16
+cd `dirname $0`/../../..
 
+submodules=`mktemp /tmp/submXXXXXX`
+want_submodules=`mktemp /tmp/submXXXXXX`
 
-class _CallableObject(object):
+git submodule | awk '{ print $1 }' | sort > $submodules
+cat << EOF | awk '{ print $1 }' | sort > $want_submodules
+ 9f897b25800d2f54f5c442ef01a60721aeca6d87 third_party/boringssl (version_for_cocoapods_1.0-67-g9f897b2)
+ 05b155ff59114735ec8cd089f669c4c3d8f59029 third_party/gflags (v2.1.0-45-g05b155f)
+ c99458533a9b4c743ed51537e25989ea55944908 third_party/googletest (release-1.7.0)
+ d5fb408ddc281ffcadeb08699e65bb694656d0bd third_party/protobuf (v3.0.0-beta-2)
+ 50893291621658f355bc5b4d450a8d06a563053d third_party/zlib (v1.2.8)
+EOF
 
-  def __init__(self):
-    self._lock = threading.Lock()
-    self._passed_values = []
+diff -u $submodules $want_submodules
 
-  def __call__(self, value):
-    with self._lock:
-      self._passed_values.append(value)
+rm $submodules $want_submodules
 
-  def passed_values(self):
-    with self._lock:
-      return tuple(self._passed_values)
-
-
-class LoggingPoolTest(unittest.TestCase):
-
-  def testUpAndDown(self):
-    pool = logging_pool.pool(_POOL_SIZE)
-    pool.shutdown(wait=True)
-
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      self.assertIsNotNone(pool)
-
-  def testTaskExecuted(self):
-    test_list = []
-
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      pool.submit(lambda: test_list.append(object())).result()
-
-    self.assertTrue(test_list)
-
-  def testException(self):
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      raised_exception = pool.submit(lambda: 1/0).exception()
-
-    self.assertIsNotNone(raised_exception)
-
-  def testCallableObjectExecuted(self):
-    callable_object = _CallableObject()
-    passed_object = object()
-    with logging_pool.pool(_POOL_SIZE) as pool:
-      future = pool.submit(callable_object, passed_object)
-    self.assertIsNone(future.result())
-    self.assertSequenceEqual((passed_object,), callable_object.passed_values())
-
-
-if __name__ == '__main__':
-  unittest.main(verbosity=2)
