@@ -5,6 +5,7 @@ libs
 objs
 
 # Python items
+python_build/
 .coverage*
 .eggs
 .tox
@@ -56,7 +57,7 @@ out
 .ycm_extra_conf.py
 
 # XCode
-^build/
+build/
 *.pbxuser
 !default.pbxuser
 *.mode1v3
