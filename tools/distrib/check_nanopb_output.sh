@@ -1,6 +1,5 @@
-#!/usr/bin/env python2.7
-
-# Copyright 2016, Google Inc.
+#!/bin/bash
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,48 +28,59 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import collections
-import fnmatch
-import os
-import re
-import sys
-import yaml
+set -ex
+
+apt-get install -y autoconf automake libtool curl python-virtualenv
+
+readonly NANOPB_TMP_OUTPUT="${HOST_GIT_ROOT}/gens/src/proto/grpc/lb/v0"
+readonly VENV_DIR=$(mktemp -d)
+# create a virtualenv for nanopb's compiler
+pushd $VENV_DIR
+readonly VENV_NAME="nanopb-$(date '+%Y%m%d_%H%M%S_%N')"
+virtualenv $VENV_NAME
+. $VENV_NAME/bin/activate
+popd
+
+# install proto3
+pip install protobuf==3.0.0b2
+
+# change to root directory
+cd $(dirname $0)/../..
+
+# build clang-format docker image
+docker build -t grpc_clang_format tools/dockerfile/grpc_clang_format
+
+# install protoc version 3
+pushd third_party/protobuf
+./autogen.sh
+./configure
+make
+make install
+ldconfig
+popd
+
+if [ ! -x "/usr/local/bin/protoc" ]; then
+  echo "Error: protoc not found in path"
+  exit 1
+fi
+readonly PROTOC_PATH='/usr/local/bin'
+# stack up and change to nanopb's proto generator directory
+pushd third_party/nanopb/generator/proto
+PATH="$PROTOC_PATH:$PATH" make
+
+# back to the root directory
+popd
 
 
-_RE_API = r'(?:GPR_API|GRPC_API|CENSUS_API)([^;]*);'
+# nanopb-compile the proto to a temp location
+PATH="$PROTOC_PATH:$PATH" ./tools/codegen/core/gen_load_balancing_proto.sh \
+  src/proto/grpc/lb/v0/load_balancer.proto \
+  $NANOPB_TMP_OUTPUT
 
-
-def list_c_apis(filenames):
-  for filename in filenames:
-    with open(filename, 'r') as f:
-      text = f.read()
-    for m in re.finditer(_RE_API, text):
-      api_declaration = re.sub('[ \r\n\t]+', ' ', m.group(1))
-      type_and_name, args_and_close = api_declaration.split('(', 1)
-      args = args_and_close[:args_and_close.rfind(')')].strip()
-      last_space = type_and_name.rfind(' ')
-      last_star = type_and_name.rfind('*')
-      type_end = max(last_space, last_star)
-      return_type = type_and_name[0:type_end+1].strip()
-      name = type_and_name[type_end+1:].strip()
-      yield {'return_type': return_type, 'name': name, 'arguments': args}
-
-def mako_plugin(dictionary):
-  apis = []
-
-  # TODO(ctiller): find grpc library, iterate headers, append apis to dictionary
-
-  dictionary['c_apis'] = apis
-
-
-def headers_under(directory):
-  for root, dirnames, filenames in os.walk(directory):
-    for filename in fnmatch.filter(filenames, '*.h'):
-      yield os.path.join(root, filename)
-
-
-if __name__ == '__main__':
-  apis = [{'name': api.name, 'return_type': api.return_type, 'args': api.arguments}
-          for api in list_c_apis(headers_under('include/grpc'))]
-  print yaml.dump(apis)
-
+# compare outputs to checked compiled code
+diff -rq $NANOPB_TMP_OUTPUT src/core/proto/grpc/lb/v0
+if [ $? != 0 ]; then
+  echo "Outputs differ: $NANOPB_TMP_OUTPUT vs src/core/proto/grpc/lb/v0"
+  exit 1
+fi
+deactivate
