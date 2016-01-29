@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
@@ -27,8 +28,59 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-begin
-  require "grpc/#{RUBY_VERSION.sub(/\.\d$/, '')}/grpc_c"
-rescue LoadError
-  require 'grpc/grpc_c'
-end
+set -ex
+
+apt-get install -y autoconf automake libtool curl python-virtualenv
+
+readonly NANOPB_TMP_OUTPUT="${HOST_GIT_ROOT}/gens/src/proto/grpc/lb/v0"
+readonly VENV_DIR=$(mktemp -d)
+# create a virtualenv for nanopb's compiler
+pushd $VENV_DIR
+readonly VENV_NAME="nanopb-$(date '+%Y%m%d_%H%M%S_%N')"
+virtualenv $VENV_NAME
+. $VENV_NAME/bin/activate
+popd
+
+# install proto3
+pip install protobuf==3.0.0b2
+
+# change to root directory
+cd $(dirname $0)/../..
+
+# build clang-format docker image
+docker build -t grpc_clang_format tools/dockerfile/grpc_clang_format
+
+# install protoc version 3
+pushd third_party/protobuf
+./autogen.sh
+./configure
+make
+make install
+ldconfig
+popd
+
+if [ ! -x "/usr/local/bin/protoc" ]; then
+  echo "Error: protoc not found in path"
+  exit 1
+fi
+readonly PROTOC_PATH='/usr/local/bin'
+# stack up and change to nanopb's proto generator directory
+pushd third_party/nanopb/generator/proto
+PATH="$PROTOC_PATH:$PATH" make
+
+# back to the root directory
+popd
+
+
+# nanopb-compile the proto to a temp location
+PATH="$PROTOC_PATH:$PATH" ./tools/codegen/core/gen_load_balancing_proto.sh \
+  src/proto/grpc/lb/v0/load_balancer.proto \
+  $NANOPB_TMP_OUTPUT
+
+# compare outputs to checked compiled code
+diff -rq $NANOPB_TMP_OUTPUT src/core/proto/grpc/lb/v0
+if [ $? != 0 ]; then
+  echo "Outputs differ: $NANOPB_TMP_OUTPUT vs src/core/proto/grpc/lb/v0"
+  exit 1
+fi
+deactivate
