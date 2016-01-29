@@ -942,7 +942,6 @@ grpc_csharp_plugin: $(BINDIR)/$(CONFIG)/grpc_csharp_plugin
 grpc_objective_c_plugin: $(BINDIR)/$(CONFIG)/grpc_objective_c_plugin
 grpc_python_plugin: $(BINDIR)/$(CONFIG)/grpc_python_plugin
 grpc_ruby_plugin: $(BINDIR)/$(CONFIG)/grpc_ruby_plugin
-hybrid_end2end_test: $(BINDIR)/$(CONFIG)/hybrid_end2end_test
 interop_client: $(BINDIR)/$(CONFIG)/interop_client
 interop_server: $(BINDIR)/$(CONFIG)/interop_server
 interop_test: $(BINDIR)/$(CONFIG)/interop_test
@@ -1285,7 +1284,6 @@ buildtests_cxx: buildtests_zookeeper privatelibs_cxx \
   $(BINDIR)/$(CONFIG)/generic_async_streaming_ping_pong_test \
   $(BINDIR)/$(CONFIG)/generic_end2end_test \
   $(BINDIR)/$(CONFIG)/grpc_cli \
-  $(BINDIR)/$(CONFIG)/hybrid_end2end_test \
   $(BINDIR)/$(CONFIG)/interop_client \
   $(BINDIR)/$(CONFIG)/interop_server \
   $(BINDIR)/$(CONFIG)/interop_test \
@@ -1589,8 +1587,6 @@ test_cxx: test_zookeeper buildtests_cxx
 	$(Q) $(BINDIR)/$(CONFIG)/generic_async_streaming_ping_pong_test || ( echo test generic_async_streaming_ping_pong_test failed ; exit 1 )
 	$(E) "[RUN]     Testing generic_end2end_test"
 	$(Q) $(BINDIR)/$(CONFIG)/generic_end2end_test || ( echo test generic_end2end_test failed ; exit 1 )
-	$(E) "[RUN]     Testing hybrid_end2end_test"
-	$(Q) $(BINDIR)/$(CONFIG)/hybrid_end2end_test || ( echo test hybrid_end2end_test failed ; exit 1 )
 	$(E) "[RUN]     Testing interop_test"
 	$(Q) $(BINDIR)/$(CONFIG)/interop_test || ( echo test interop_test failed ; exit 1 )
 	$(E) "[RUN]     Testing mock_test"
@@ -2272,26 +2268,6 @@ PUBLIC_HEADERS_C += \
     include/grpc/support/tls_msvc.h \
     include/grpc/support/tls_pthread.h \
     include/grpc/support/useful.h \
-    include/grpc/impl/codegen/alloc.h \
-    include/grpc/impl/codegen/atm.h \
-    include/grpc/impl/codegen/atm_gcc_atomic.h \
-    include/grpc/impl/codegen/atm_gcc_sync.h \
-    include/grpc/impl/codegen/atm_win32.h \
-    include/grpc/impl/codegen/byte_buffer.h \
-    include/grpc/impl/codegen/compression_types.h \
-    include/grpc/impl/codegen/connectivity_state.h \
-    include/grpc/impl/codegen/grpc_types.h \
-    include/grpc/impl/codegen/log.h \
-    include/grpc/impl/codegen/port_platform.h \
-    include/grpc/impl/codegen/propagation_bits.h \
-    include/grpc/impl/codegen/slice.h \
-    include/grpc/impl/codegen/slice_buffer.h \
-    include/grpc/impl/codegen/status.h \
-    include/grpc/impl/codegen/sync.h \
-    include/grpc/impl/codegen/sync_generic.h \
-    include/grpc/impl/codegen/sync_posix.h \
-    include/grpc/impl/codegen/sync_win32.h \
-    include/grpc/impl/codegen/time.h \
 
 LIBGPR_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGPR_SRC))))
 
@@ -3024,7 +3000,6 @@ LIBGRPC++_SRC = \
     src/cpp/util/status.cc \
     src/cpp/util/string_ref.cc \
     src/cpp/util/time.cc \
-    src/cpp/codegen/grpc_library.cc \
 
 PUBLIC_HEADERS_CXX += \
     include/grpc++/channel.h \
@@ -3037,7 +3012,6 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/impl/call.h \
     include/grpc++/impl/client_unary_call.h \
     include/grpc++/impl/grpc_library.h \
-    include/grpc++/impl/method_handler_impl.h \
     include/grpc++/impl/proto_utils.h \
     include/grpc++/impl/rpc_method.h \
     include/grpc++/impl/rpc_service_method.h \
@@ -3070,36 +3044,6 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/support/stub_options.h \
     include/grpc++/support/sync_stream.h \
     include/grpc++/support/time.h \
-    include/grpc++/impl/codegen/async_stream.h \
-    include/grpc++/impl/codegen/async_unary_call.h \
-    include/grpc++/impl/codegen/call.h \
-    include/grpc++/impl/codegen/call_hook.h \
-    include/grpc++/impl/codegen/channel_interface.h \
-    include/grpc++/impl/codegen/client_context.h \
-    include/grpc++/impl/codegen/client_unary_call.h \
-    include/grpc++/impl/codegen/completion_queue.h \
-    include/grpc++/impl/codegen/completion_queue_tag.h \
-    include/grpc++/impl/codegen/config.h \
-    include/grpc++/impl/codegen/config_protobuf.h \
-    include/grpc++/impl/codegen/grpc_library.h \
-    include/grpc++/impl/codegen/method_handler_impl.h \
-    include/grpc++/impl/codegen/proto_utils.h \
-    include/grpc++/impl/codegen/rpc_method.h \
-    include/grpc++/impl/codegen/rpc_service_method.h \
-    include/grpc++/impl/codegen/security/auth_context.h \
-    include/grpc++/impl/codegen/serialization_traits.h \
-    include/grpc++/impl/codegen/server_context.h \
-    include/grpc++/impl/codegen/server_interface.h \
-    include/grpc++/impl/codegen/service_type.h \
-    include/grpc++/impl/codegen/status.h \
-    include/grpc++/impl/codegen/status_code_enum.h \
-    include/grpc++/impl/codegen/string_ref.h \
-    include/grpc++/impl/codegen/stub_options.h \
-    include/grpc++/impl/codegen/sync.h \
-    include/grpc++/impl/codegen/sync_cxx11.h \
-    include/grpc++/impl/codegen/sync_no_cxx11.h \
-    include/grpc++/impl/codegen/sync_stream.h \
-    include/grpc++/impl/codegen/time.h \
 
 LIBGRPC++_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC++_SRC))))
 
@@ -3239,8 +3183,6 @@ LIBGRPC++_TEST_UTIL_SRC = \
     $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc \
     $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc \
     $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc \
-    test/cpp/end2end/test_service_impl.cc \
-    test/cpp/util/byte_buffer_proto_helper.cc \
     test/cpp/util/cli_call.cc \
     test/cpp/util/create_test_channel.cc \
     test/cpp/util/string_ref_helper.cc \
@@ -3289,8 +3231,6 @@ ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC++_TEST_UTIL_OBJS:.o=.dep)
 endif
 endif
-$(OBJDIR)/$(CONFIG)/test/cpp/end2end/test_service_impl.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/util/byte_buffer_proto_helper.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/cli_call.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/create_test_channel.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/string_ref_helper.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
@@ -3325,7 +3265,6 @@ LIBGRPC++_UNSECURE_SRC = \
     src/cpp/util/status.cc \
     src/cpp/util/string_ref.cc \
     src/cpp/util/time.cc \
-    src/cpp/codegen/grpc_library.cc \
 
 PUBLIC_HEADERS_CXX += \
     include/grpc++/channel.h \
@@ -3338,7 +3277,6 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/impl/call.h \
     include/grpc++/impl/client_unary_call.h \
     include/grpc++/impl/grpc_library.h \
-    include/grpc++/impl/method_handler_impl.h \
     include/grpc++/impl/proto_utils.h \
     include/grpc++/impl/rpc_method.h \
     include/grpc++/impl/rpc_service_method.h \
@@ -3371,36 +3309,6 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/support/stub_options.h \
     include/grpc++/support/sync_stream.h \
     include/grpc++/support/time.h \
-    include/grpc++/impl/codegen/async_stream.h \
-    include/grpc++/impl/codegen/async_unary_call.h \
-    include/grpc++/impl/codegen/call.h \
-    include/grpc++/impl/codegen/call_hook.h \
-    include/grpc++/impl/codegen/channel_interface.h \
-    include/grpc++/impl/codegen/client_context.h \
-    include/grpc++/impl/codegen/client_unary_call.h \
-    include/grpc++/impl/codegen/completion_queue.h \
-    include/grpc++/impl/codegen/completion_queue_tag.h \
-    include/grpc++/impl/codegen/config.h \
-    include/grpc++/impl/codegen/config_protobuf.h \
-    include/grpc++/impl/codegen/grpc_library.h \
-    include/grpc++/impl/codegen/method_handler_impl.h \
-    include/grpc++/impl/codegen/proto_utils.h \
-    include/grpc++/impl/codegen/rpc_method.h \
-    include/grpc++/impl/codegen/rpc_service_method.h \
-    include/grpc++/impl/codegen/security/auth_context.h \
-    include/grpc++/impl/codegen/serialization_traits.h \
-    include/grpc++/impl/codegen/server_context.h \
-    include/grpc++/impl/codegen/server_interface.h \
-    include/grpc++/impl/codegen/service_type.h \
-    include/grpc++/impl/codegen/status.h \
-    include/grpc++/impl/codegen/status_code_enum.h \
-    include/grpc++/impl/codegen/string_ref.h \
-    include/grpc++/impl/codegen/stub_options.h \
-    include/grpc++/impl/codegen/sync.h \
-    include/grpc++/impl/codegen/sync_cxx11.h \
-    include/grpc++/impl/codegen/sync_no_cxx11.h \
-    include/grpc++/impl/codegen/sync_stream.h \
-    include/grpc++/impl/codegen/time.h \
 
 LIBGRPC++_UNSECURE_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC++_UNSECURE_SRC))))
 
@@ -3476,59 +3384,7 @@ LIBGRPC_PLUGIN_SUPPORT_SRC = \
     src/compiler/objective_c_generator.cc \
     src/compiler/python_generator.cc \
     src/compiler/ruby_generator.cc \
-    src/cpp/codegen/grpc_library.cc \
 
-PUBLIC_HEADERS_CXX += \
-    include/grpc++/impl/codegen/async_stream.h \
-    include/grpc++/impl/codegen/async_unary_call.h \
-    include/grpc++/impl/codegen/call.h \
-    include/grpc++/impl/codegen/call_hook.h \
-    include/grpc++/impl/codegen/channel_interface.h \
-    include/grpc++/impl/codegen/client_context.h \
-    include/grpc++/impl/codegen/client_unary_call.h \
-    include/grpc++/impl/codegen/completion_queue.h \
-    include/grpc++/impl/codegen/completion_queue_tag.h \
-    include/grpc++/impl/codegen/config.h \
-    include/grpc++/impl/codegen/config_protobuf.h \
-    include/grpc++/impl/codegen/grpc_library.h \
-    include/grpc++/impl/codegen/method_handler_impl.h \
-    include/grpc++/impl/codegen/proto_utils.h \
-    include/grpc++/impl/codegen/rpc_method.h \
-    include/grpc++/impl/codegen/rpc_service_method.h \
-    include/grpc++/impl/codegen/security/auth_context.h \
-    include/grpc++/impl/codegen/serialization_traits.h \
-    include/grpc++/impl/codegen/server_context.h \
-    include/grpc++/impl/codegen/server_interface.h \
-    include/grpc++/impl/codegen/service_type.h \
-    include/grpc++/impl/codegen/status.h \
-    include/grpc++/impl/codegen/status_code_enum.h \
-    include/grpc++/impl/codegen/string_ref.h \
-    include/grpc++/impl/codegen/stub_options.h \
-    include/grpc++/impl/codegen/sync.h \
-    include/grpc++/impl/codegen/sync_cxx11.h \
-    include/grpc++/impl/codegen/sync_no_cxx11.h \
-    include/grpc++/impl/codegen/sync_stream.h \
-    include/grpc++/impl/codegen/time.h \
-    include/grpc/impl/codegen/alloc.h \
-    include/grpc/impl/codegen/atm.h \
-    include/grpc/impl/codegen/atm_gcc_atomic.h \
-    include/grpc/impl/codegen/atm_gcc_sync.h \
-    include/grpc/impl/codegen/atm_win32.h \
-    include/grpc/impl/codegen/byte_buffer.h \
-    include/grpc/impl/codegen/compression_types.h \
-    include/grpc/impl/codegen/connectivity_state.h \
-    include/grpc/impl/codegen/grpc_types.h \
-    include/grpc/impl/codegen/log.h \
-    include/grpc/impl/codegen/port_platform.h \
-    include/grpc/impl/codegen/propagation_bits.h \
-    include/grpc/impl/codegen/slice.h \
-    include/grpc/impl/codegen/slice_buffer.h \
-    include/grpc/impl/codegen/status.h \
-    include/grpc/impl/codegen/sync.h \
-    include/grpc/impl/codegen/sync_generic.h \
-    include/grpc/impl/codegen/sync_posix.h \
-    include/grpc/impl/codegen/sync_win32.h \
-    include/grpc/impl/codegen/time.h \
 
 LIBGRPC_PLUGIN_SUPPORT_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_PLUGIN_SUPPORT_SRC))))
 
@@ -4197,8 +4053,8 @@ LIBBORINGSSL_SRC = \
 
 LIBBORINGSSL_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_SRC))))
 
-$(LIBBORINGSSL_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 $(LIBDIR)/$(CONFIG)/libboringssl.a: $(ZLIB_DEP)  $(LIBBORINGSSL_OBJS)
 	$(E) "[AR]      Creating $@"
@@ -4225,8 +4081,8 @@ LIBBORINGSSL_TEST_UTIL_SRC = \
 
 LIBBORINGSSL_TEST_UTIL_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_TEST_UTIL_SRC))))
 
-$(LIBBORINGSSL_TEST_UTIL_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_TEST_UTIL_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_TEST_UTIL_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_TEST_UTIL_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4262,8 +4118,8 @@ LIBBORINGSSL_AES_TEST_LIB_SRC = \
 
 LIBBORINGSSL_AES_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_AES_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_AES_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_AES_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_AES_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_AES_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4299,8 +4155,8 @@ LIBBORINGSSL_BASE64_TEST_LIB_SRC = \
 
 LIBBORINGSSL_BASE64_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_BASE64_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_BASE64_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_BASE64_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_BASE64_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_BASE64_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4336,8 +4192,8 @@ LIBBORINGSSL_BIO_TEST_LIB_SRC = \
 
 LIBBORINGSSL_BIO_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_BIO_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_BIO_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_BIO_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_BIO_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_BIO_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4373,8 +4229,8 @@ LIBBORINGSSL_BN_TEST_LIB_SRC = \
 
 LIBBORINGSSL_BN_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_BN_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_BN_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_BN_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_BN_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_BN_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4410,8 +4266,8 @@ LIBBORINGSSL_BYTESTRING_TEST_LIB_SRC = \
 
 LIBBORINGSSL_BYTESTRING_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_BYTESTRING_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_BYTESTRING_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_BYTESTRING_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_BYTESTRING_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_BYTESTRING_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4447,8 +4303,8 @@ LIBBORINGSSL_AEAD_TEST_LIB_SRC = \
 
 LIBBORINGSSL_AEAD_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_AEAD_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_AEAD_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_AEAD_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_AEAD_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_AEAD_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4484,8 +4340,8 @@ LIBBORINGSSL_CIPHER_TEST_LIB_SRC = \
 
 LIBBORINGSSL_CIPHER_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_CIPHER_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_CIPHER_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_CIPHER_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_CIPHER_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_CIPHER_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4521,8 +4377,8 @@ LIBBORINGSSL_CMAC_TEST_LIB_SRC = \
 
 LIBBORINGSSL_CMAC_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_CMAC_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_CMAC_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_CMAC_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_CMAC_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_CMAC_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4558,8 +4414,8 @@ LIBBORINGSSL_CONSTANT_TIME_TEST_LIB_SRC = \
 
 LIBBORINGSSL_CONSTANT_TIME_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_CONSTANT_TIME_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_CONSTANT_TIME_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_CONSTANT_TIME_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_CONSTANT_TIME_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_CONSTANT_TIME_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 $(LIBDIR)/$(CONFIG)/libboringssl_constant_time_test_lib.a: $(ZLIB_DEP)  $(LIBBORINGSSL_CONSTANT_TIME_TEST_LIB_OBJS)
 	$(E) "[AR]      Creating $@"
@@ -4584,8 +4440,8 @@ LIBBORINGSSL_ED25519_TEST_LIB_SRC = \
 
 LIBBORINGSSL_ED25519_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_ED25519_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_ED25519_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_ED25519_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_ED25519_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_ED25519_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4621,8 +4477,8 @@ LIBBORINGSSL_X25519_TEST_LIB_SRC = \
 
 LIBBORINGSSL_X25519_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_X25519_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_X25519_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_X25519_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_X25519_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_X25519_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4658,8 +4514,8 @@ LIBBORINGSSL_DH_TEST_LIB_SRC = \
 
 LIBBORINGSSL_DH_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_DH_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_DH_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_DH_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_DH_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_DH_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4695,8 +4551,8 @@ LIBBORINGSSL_DIGEST_TEST_LIB_SRC = \
 
 LIBBORINGSSL_DIGEST_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_DIGEST_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_DIGEST_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_DIGEST_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_DIGEST_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_DIGEST_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4732,8 +4588,8 @@ LIBBORINGSSL_DSA_TEST_LIB_SRC = \
 
 LIBBORINGSSL_DSA_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_DSA_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_DSA_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_DSA_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_DSA_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_DSA_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 $(LIBDIR)/$(CONFIG)/libboringssl_dsa_test_lib.a: $(ZLIB_DEP)  $(LIBBORINGSSL_DSA_TEST_LIB_OBJS)
 	$(E) "[AR]      Creating $@"
@@ -4758,8 +4614,8 @@ LIBBORINGSSL_EC_TEST_LIB_SRC = \
 
 LIBBORINGSSL_EC_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_EC_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_EC_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_EC_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_EC_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_EC_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4795,8 +4651,8 @@ LIBBORINGSSL_EXAMPLE_MUL_LIB_SRC = \
 
 LIBBORINGSSL_EXAMPLE_MUL_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_EXAMPLE_MUL_LIB_SRC))))
 
-$(LIBBORINGSSL_EXAMPLE_MUL_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_EXAMPLE_MUL_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_EXAMPLE_MUL_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_EXAMPLE_MUL_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 $(LIBDIR)/$(CONFIG)/libboringssl_example_mul_lib.a: $(ZLIB_DEP)  $(LIBBORINGSSL_EXAMPLE_MUL_LIB_OBJS)
 	$(E) "[AR]      Creating $@"
@@ -4821,8 +4677,8 @@ LIBBORINGSSL_ECDSA_TEST_LIB_SRC = \
 
 LIBBORINGSSL_ECDSA_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_ECDSA_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_ECDSA_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_ECDSA_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_ECDSA_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_ECDSA_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4858,8 +4714,8 @@ LIBBORINGSSL_ERR_TEST_LIB_SRC = \
 
 LIBBORINGSSL_ERR_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_ERR_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_ERR_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_ERR_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_ERR_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_ERR_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4895,8 +4751,8 @@ LIBBORINGSSL_EVP_EXTRA_TEST_LIB_SRC = \
 
 LIBBORINGSSL_EVP_EXTRA_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_EVP_EXTRA_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_EVP_EXTRA_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_EVP_EXTRA_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_EVP_EXTRA_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_EVP_EXTRA_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4932,8 +4788,8 @@ LIBBORINGSSL_EVP_TEST_LIB_SRC = \
 
 LIBBORINGSSL_EVP_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_EVP_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_EVP_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_EVP_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_EVP_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_EVP_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -4969,8 +4825,8 @@ LIBBORINGSSL_PBKDF_TEST_LIB_SRC = \
 
 LIBBORINGSSL_PBKDF_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_PBKDF_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_PBKDF_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_PBKDF_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_PBKDF_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_PBKDF_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -5006,8 +4862,8 @@ LIBBORINGSSL_HKDF_TEST_LIB_SRC = \
 
 LIBBORINGSSL_HKDF_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_HKDF_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_HKDF_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_HKDF_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_HKDF_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_HKDF_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 $(LIBDIR)/$(CONFIG)/libboringssl_hkdf_test_lib.a: $(ZLIB_DEP)  $(LIBBORINGSSL_HKDF_TEST_LIB_OBJS)
 	$(E) "[AR]      Creating $@"
@@ -5032,8 +4888,8 @@ LIBBORINGSSL_HMAC_TEST_LIB_SRC = \
 
 LIBBORINGSSL_HMAC_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_HMAC_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_HMAC_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_HMAC_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_HMAC_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_HMAC_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -5069,8 +4925,8 @@ LIBBORINGSSL_LHASH_TEST_LIB_SRC = \
 
 LIBBORINGSSL_LHASH_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_LHASH_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_LHASH_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_LHASH_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_LHASH_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_LHASH_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 $(LIBDIR)/$(CONFIG)/libboringssl_lhash_test_lib.a: $(ZLIB_DEP)  $(LIBBORINGSSL_LHASH_TEST_LIB_OBJS)
 	$(E) "[AR]      Creating $@"
@@ -5095,8 +4951,8 @@ LIBBORINGSSL_GCM_TEST_LIB_SRC = \
 
 LIBBORINGSSL_GCM_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_GCM_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_GCM_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_GCM_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_GCM_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_GCM_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 $(LIBDIR)/$(CONFIG)/libboringssl_gcm_test_lib.a: $(ZLIB_DEP)  $(LIBBORINGSSL_GCM_TEST_LIB_OBJS)
 	$(E) "[AR]      Creating $@"
@@ -5121,8 +4977,8 @@ LIBBORINGSSL_PKCS12_TEST_LIB_SRC = \
 
 LIBBORINGSSL_PKCS12_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_PKCS12_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_PKCS12_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_PKCS12_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_PKCS12_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_PKCS12_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -5158,8 +5014,8 @@ LIBBORINGSSL_PKCS8_TEST_LIB_SRC = \
 
 LIBBORINGSSL_PKCS8_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_PKCS8_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_PKCS8_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_PKCS8_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_PKCS8_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_PKCS8_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -5195,8 +5051,8 @@ LIBBORINGSSL_POLY1305_TEST_LIB_SRC = \
 
 LIBBORINGSSL_POLY1305_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_POLY1305_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_POLY1305_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_POLY1305_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_POLY1305_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_POLY1305_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -5232,8 +5088,8 @@ LIBBORINGSSL_REFCOUNT_TEST_LIB_SRC = \
 
 LIBBORINGSSL_REFCOUNT_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_REFCOUNT_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_REFCOUNT_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_REFCOUNT_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_REFCOUNT_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_REFCOUNT_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 $(LIBDIR)/$(CONFIG)/libboringssl_refcount_test_lib.a: $(ZLIB_DEP)  $(LIBBORINGSSL_REFCOUNT_TEST_LIB_OBJS)
 	$(E) "[AR]      Creating $@"
@@ -5258,8 +5114,8 @@ LIBBORINGSSL_RSA_TEST_LIB_SRC = \
 
 LIBBORINGSSL_RSA_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_RSA_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_RSA_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_RSA_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_RSA_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_RSA_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -5295,8 +5151,8 @@ LIBBORINGSSL_THREAD_TEST_LIB_SRC = \
 
 LIBBORINGSSL_THREAD_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_THREAD_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_THREAD_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_THREAD_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_THREAD_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_THREAD_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 $(LIBDIR)/$(CONFIG)/libboringssl_thread_test_lib.a: $(ZLIB_DEP)  $(LIBBORINGSSL_THREAD_TEST_LIB_OBJS)
 	$(E) "[AR]      Creating $@"
@@ -5321,8 +5177,8 @@ LIBBORINGSSL_PKCS7_TEST_LIB_SRC = \
 
 LIBBORINGSSL_PKCS7_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_PKCS7_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_PKCS7_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_PKCS7_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_PKCS7_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_PKCS7_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 $(LIBDIR)/$(CONFIG)/libboringssl_pkcs7_test_lib.a: $(ZLIB_DEP)  $(LIBBORINGSSL_PKCS7_TEST_LIB_OBJS)
 	$(E) "[AR]      Creating $@"
@@ -5347,8 +5203,8 @@ LIBBORINGSSL_TAB_TEST_LIB_SRC = \
 
 LIBBORINGSSL_TAB_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_TAB_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_TAB_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_TAB_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_TAB_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_TAB_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 $(LIBDIR)/$(CONFIG)/libboringssl_tab_test_lib.a: $(ZLIB_DEP)  $(LIBBORINGSSL_TAB_TEST_LIB_OBJS)
 	$(E) "[AR]      Creating $@"
@@ -5373,8 +5229,8 @@ LIBBORINGSSL_V3NAME_TEST_LIB_SRC = \
 
 LIBBORINGSSL_V3NAME_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_V3NAME_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_V3NAME_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_V3NAME_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_V3NAME_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_V3NAME_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 $(LIBDIR)/$(CONFIG)/libboringssl_v3name_test_lib.a: $(ZLIB_DEP)  $(LIBBORINGSSL_V3NAME_TEST_LIB_OBJS)
 	$(E) "[AR]      Creating $@"
@@ -5399,8 +5255,8 @@ LIBBORINGSSL_PQUEUE_TEST_LIB_SRC = \
 
 LIBBORINGSSL_PQUEUE_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_PQUEUE_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_PQUEUE_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_PQUEUE_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_PQUEUE_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_PQUEUE_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 $(LIBDIR)/$(CONFIG)/libboringssl_pqueue_test_lib.a: $(ZLIB_DEP)  $(LIBBORINGSSL_PQUEUE_TEST_LIB_OBJS)
 	$(E) "[AR]      Creating $@"
@@ -5425,8 +5281,8 @@ LIBBORINGSSL_SSL_TEST_LIB_SRC = \
 
 LIBBORINGSSL_SSL_TEST_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBBORINGSSL_SSL_TEST_LIB_SRC))))
 
-$(LIBBORINGSSL_SSL_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE
-$(LIBBORINGSSL_SSL_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value
+$(LIBBORINGSSL_SSL_TEST_LIB_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
+$(LIBBORINGSSL_SSL_TEST_LIB_OBJS): CFLAGS += -Wno-sign-conversion -Wno-conversion -Wno-unused-value -Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable -Wno-sign-compare
 
 ifeq ($(NO_PROTOBUF),true)
 
@@ -9706,49 +9562,6 @@ ifneq ($(NO_DEPS),true)
 endif
 
 
-HYBRID_END2END_TEST_SRC = \
-    test/cpp/end2end/hybrid_end2end_test.cc \
-
-HYBRID_END2END_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(HYBRID_END2END_TEST_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/hybrid_end2end_test: openssl_dep_error
-
-else
-
-
-
-
-ifeq ($(NO_PROTOBUF),true)
-
-# You can't build the protoc plugins or protobuf-enabled targets if you don't have protobuf 3.0.0+.
-
-$(BINDIR)/$(CONFIG)/hybrid_end2end_test: protobuf_dep_error
-
-else
-
-$(BINDIR)/$(CONFIG)/hybrid_end2end_test: $(PROTOBUF_DEP) $(HYBRID_END2END_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(HYBRID_END2END_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/hybrid_end2end_test
-
-endif
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/cpp/end2end/hybrid_end2end_test.o:  $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_hybrid_end2end_test: $(HYBRID_END2END_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(HYBRID_END2END_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
 ifeq ($(NO_SECURE),true)
 
 # You can't build secure targets if you don't have OpenSSL.
@@ -12988,7 +12801,6 @@ test/core/end2end/tests/call_creds.c: $(OPENSSL_DEP)
 test/core/security/oauth2_utils.c: $(OPENSSL_DEP)
 test/core/util/reconnect_server.c: $(OPENSSL_DEP)
 test/core/util/test_tcp_server.c: $(OPENSSL_DEP)
-test/cpp/end2end/test_service_impl.cc: $(OPENSSL_DEP)
 test/cpp/interop/client.cc: $(OPENSSL_DEP)
 test/cpp/interop/client_helper.cc: $(OPENSSL_DEP)
 test/cpp/interop/interop_client.cc: $(OPENSSL_DEP)
@@ -13004,7 +12816,6 @@ test/cpp/qps/server_async.cc: $(OPENSSL_DEP)
 test/cpp/qps/server_sync.cc: $(OPENSSL_DEP)
 test/cpp/qps/timer.cc: $(OPENSSL_DEP)
 test/cpp/util/benchmark_config.cc: $(OPENSSL_DEP)
-test/cpp/util/byte_buffer_proto_helper.cc: $(OPENSSL_DEP)
 test/cpp/util/cli_call.cc: $(OPENSSL_DEP)
 test/cpp/util/create_test_channel.cc: $(OPENSSL_DEP)
 test/cpp/util/string_ref_helper.cc: $(OPENSSL_DEP)

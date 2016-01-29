@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,16 @@
 #ifndef GRPC_SUPPORT_SYNC_WIN32_H
 #define GRPC_SUPPORT_SYNC_WIN32_H
 
-#include <grpc/impl/codegen/sync_win32.h>
+#include <grpc/support/sync_generic.h>
+
+typedef struct {
+  CRITICAL_SECTION cs; /* Not an SRWLock until Vista is unsupported */
+  int locked;
+} gpr_mu;
+
+typedef CONDITION_VARIABLE gpr_cv;
+
+typedef INIT_ONCE gpr_once;
+#define GPR_ONCE_INIT INIT_ONCE_STATIC_INIT
 
 #endif /* GRPC_SUPPORT_SYNC_WIN32_H */

@@ -37,7 +37,6 @@
 
 #include <grpc++/channel.h>
 #include <grpc++/client_context.h>
-#include <grpc++/completion_queue.h>
 #include <grpc++/generic/generic_stub.h>
 #include <grpc++/support/byte_buffer.h>
 #include <grpc/grpc.h>
