@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -138,12 +138,15 @@ static void tcp_ref(grpc_tcp *tcp) { gpr_ref(&tcp->refcount); }
 #endif
 
 /* Asynchronous callback from the IOCP, or the background thread. */
-static void on_read(grpc_exec_ctx *exec_ctx, void *tcpp, bool success) {
+static void on_read(grpc_exec_ctx *exec_ctx, void *tcpp, int success) {
   grpc_tcp *tcp = tcpp;
   grpc_closure *cb = tcp->read_cb;
   grpc_winsocket *socket = tcp->socket;
   gpr_slice sub;
+  gpr_slice *slice = NULL;
+  size_t nslices = 0;
   grpc_winsocket_callback_info *info = &socket->read_info;
+  int do_abort = 0;
 
   if (success) {
     if (socket->read_info.wsa_error != 0 && !tcp->shutting_down) {
@@ -184,7 +187,7 @@ static void win_read(grpc_exec_ctx *exec_ctx, grpc_endpoint *ep,
   WSABUF buffer;
 
   if (tcp->shutting_down) {
-    grpc_exec_ctx_enqueue(exec_ctx, cb, false, NULL);
+    grpc_exec_ctx_enqueue(exec_ctx, cb, 0);
     return;
   }
 
@@ -208,7 +211,7 @@ static void win_read(grpc_exec_ctx *exec_ctx, grpc_endpoint *ep,
   /* Did we get data immediately ? Yay. */
   if (info->wsa_error != WSAEWOULDBLOCK) {
     info->bytes_transfered = bytes_read;
-    grpc_exec_ctx_enqueue(exec_ctx, &tcp->on_read, true, NULL);
+    grpc_exec_ctx_enqueue(exec_ctx, &tcp->on_read, 1);
     return;
   }
 
@@ -221,7 +224,7 @@ static void win_read(grpc_exec_ctx *exec_ctx, grpc_endpoint *ep,
     int wsa_error = WSAGetLastError();
     if (wsa_error != WSA_IO_PENDING) {
       info->wsa_error = wsa_error;
-      grpc_exec_ctx_enqueue(exec_ctx, &tcp->on_read, false, NULL);
+      grpc_exec_ctx_enqueue(exec_ctx, &tcp->on_read, 0);
       return;
     }
   }
@@ -230,11 +233,12 @@ static void win_read(grpc_exec_ctx *exec_ctx, grpc_endpoint *ep,
 }
 
 /* Asynchronous callback from the IOCP, or the background thread. */
-static void on_write(grpc_exec_ctx *exec_ctx, void *tcpp, bool success) {
+static void on_write(grpc_exec_ctx *exec_ctx, void *tcpp, int success) {
   grpc_tcp *tcp = (grpc_tcp *)tcpp;
   grpc_winsocket *handle = tcp->socket;
   grpc_winsocket_callback_info *info = &handle->write_info;
   grpc_closure *cb;
+  int do_abort = 0;
 
   gpr_mu_lock(&tcp->mu);
   cb = tcp->write_cb;
@@ -273,7 +277,7 @@ static void win_write(grpc_exec_ctx *exec_ctx, grpc_endpoint *ep,
   size_t len;
 
   if (tcp->shutting_down) {
-    grpc_exec_ctx_enqueue(exec_ctx, cb, false, NULL);
+    grpc_exec_ctx_enqueue(exec_ctx, cb, 0);
     return;
   }
 
@@ -301,9 +305,9 @@ static void win_write(grpc_exec_ctx *exec_ctx, grpc_endpoint *ep,
      connection that has its send queue filled up. But if we don't, then we can
      avoid doing an async write operation at all. */
   if (info->wsa_error != WSAEWOULDBLOCK) {
-    bool ok = false;
+    int ok = 0;
     if (status == 0) {
-      ok = true;
+      ok = 1;
       GPR_ASSERT(bytes_sent == tcp->write_slices->length);
     } else {
       if (socket->read_info.wsa_error != WSAECONNRESET) {
@@ -313,7 +317,7 @@ static void win_write(grpc_exec_ctx *exec_ctx, grpc_endpoint *ep,
       }
     }
     if (allocated) gpr_free(allocated);
-    grpc_exec_ctx_enqueue(exec_ctx, cb, ok, NULL);
+    grpc_exec_ctx_enqueue(exec_ctx, cb, ok);
     return;
   }
 
@@ -330,7 +334,7 @@ static void win_write(grpc_exec_ctx *exec_ctx, grpc_endpoint *ep,
     int wsa_error = WSAGetLastError();
     if (wsa_error != WSA_IO_PENDING) {
       TCP_UNREF(tcp, "write");
-      grpc_exec_ctx_enqueue(exec_ctx, cb, false, NULL);
+      grpc_exec_ctx_enqueue(exec_ctx, cb, 0);
       return;
     }
   }
