@@ -41,7 +41,6 @@
 #include <vector>
 
 #include <gflags/gflags.h>
-#include <grpc++/channel.h>
 #include <grpc++/client_context.h>
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>

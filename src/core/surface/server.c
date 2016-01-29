@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -779,7 +779,9 @@ grpc_server *grpc_server_create_from_filters(
     const grpc_channel_filter **filters, size_t filter_count,
     const grpc_channel_args *args) {
   size_t i;
-  int census_enabled = grpc_channel_args_is_census_enabled(args);
+  /* TODO(census): restore this once we finalize census filter etc.
+     int census_enabled = grpc_channel_args_is_census_enabled(args); */
+  int census_enabled = 0;
 
   grpc_server *server = gpr_malloc(sizeof(grpc_server));
 
