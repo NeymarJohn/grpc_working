@@ -52,13 +52,6 @@ import support
 
 PYTHON_STEM = os.path.dirname(os.path.abspath(__file__))
 
-BINARIES_REPOSITORY = os.environ.get(
-    'GRPC_PYTHON_BINARIES_REPOSITORY',
-    'https://storage.googleapis.com/grpc-precompiled-binaries/python')
-
-USE_GRPC_CUSTOM_BDIST = bool(int(os.environ.get(
-    'GRPC_PYTHON_USE_CUSTOM_BDIST', '1')))
-
 CONF_PY_ADDENDUM = """
 extensions.append('sphinx.ext.napoleon')
 napoleon_google_docstring = True
@@ -74,7 +67,7 @@ class CommandError(Exception):
 
 # TODO(atash): Remove this once PyPI has better Linux bdist support. See
 # https://bitbucket.org/pypa/pypi/issues/120/binary-wheels-for-linux-are-not-supported
-def _get_grpc_custom_bdist_egg(decorated_basename, target_egg_basename):
+def _get_linux_bdist_egg(decorated_basename, target_egg_basename):
   """Returns a string path to a .egg file for Linux to install.
 
   If we can retrieve a pre-compiled egg from online, uses it. Else, emits a
@@ -85,7 +78,10 @@ def _get_grpc_custom_bdist_egg(decorated_basename, target_egg_basename):
   from six.moves.urllib import request
   decorated_path = decorated_basename + '.egg'
   try:
-    url = BINARIES_REPOSITORY + '/{target}'.format(target=decorated_path)
+    url = (
+        'https://storage.googleapis.com/grpc-precompiled-binaries/'
+        'python/{target}'
+            .format(target=decorated_path))
     egg_data = request.urlopen(url).read()
   except IOError as error:
     raise CommandError(
@@ -104,7 +100,6 @@ def _get_grpc_custom_bdist_egg(decorated_basename, target_egg_basename):
 
 
 class EggNameMixin(object):
-  """Mixin for setuptools.Command classes to enable acquiring the egg name."""
 
   def egg_name(self, with_custom):
     """
@@ -129,42 +124,39 @@ class Install(install.install, EggNameMixin):
   """
 
   user_options = install.install.user_options + [
-      # TODO(atash): remove this once PyPI has better Linux bdist support. See
+      # TODO(atash): remove this once manylinux gets on PyPI. See
       # https://bitbucket.org/pypa/pypi/issues/120/binary-wheels-for-linux-are-not-supported
-      ('use-grpc-custom-bdist', None,
-       'Whether to retrieve a binary from the gRPC binary repository instead '
-       'of building from source.'),
+      ('use-linux-bdist', None,
+       'Whether to retrieve a binary for Linux instead of building from '
+       'source.'),
   ]
 
   def initialize_options(self):
     install.install.initialize_options(self)
-    self.use_grpc_custom_bdist = USE_GRPC_CUSTOM_BDIST
+    self.use_linux_bdist = False
 
   def finalize_options(self):
     install.install.finalize_options(self)
 
   def run(self):
-    if self.use_grpc_custom_bdist:
+    if self.use_linux_bdist:
       try:
-        try:
-          egg_path = _get_grpc_custom_bdist_egg(self.egg_name(True),
-                                                self.egg_name(False))
-        except CommandError as error:
-          sys.stderr.write(
-              '\nWARNING: Failed to acquire grpcio prebuilt binary:\n'
-              '{}.\n\n'.format(error.message))
-          raise
-        try:
-          self._run_bdist_retrieval_install(egg_path)
-        except Exception as error:
-          # if anything else happens (and given how there's no way to really know
-          # what's happening in setuptools here, I mean *anything*), warn the user
-          # and fall back to building from source.
-          sys.stderr.write(
-              '{}\nWARNING: Failed to install grpcio prebuilt binary.\n\n'
-                  .format(traceback.format_exc()))
-          raise
-      except Exception:
+        egg_path = _get_linux_bdist_egg(self.egg_name(True),
+                                        self.egg_name(False))
+      except CommandError as error:
+        sys.stderr.write(
+            '\nWARNING: Failed to acquire grpcio prebuilt binary:\n'
+            '{}.\n\n'.format(error.message))
+        raise
+      try:
+        self._run_bdist_retrieval_install(egg_path)
+      except Exception as error:
+        # if anything else happens (and given how there's no way to really know
+        # what's happening in setuptools here, I mean *anything*), warn the user
+        # and fall back to building from source.
+        sys.stderr.write(
+            '{}\nWARNING: Failed to install grpcio prebuilt binary.\n\n'
+                .format(traceback.format_exc()))
         install.install.run(self)
     else:
       install.install.run(self)
@@ -328,11 +320,11 @@ class BuildExt(build_ext.build_ext):
         extension.extra_link_args += list(BuildExt.LINK_OPTIONS[compiler])
     try:
       build_ext.build_ext.build_extensions(self)
+    except KeyboardInterrupt:
+      raise
     except Exception as error:
-      formatted_exception = traceback.format_exc()
-      support.diagnose_build_ext_error(self, error, formatted_exception)
-      raise CommandError(
-          "Failed `build_ext` step:\n{}".format(formatted_exception))
+      support.diagnose_build_ext_error(self, error)
+      raise CommandError("Failed `build_ext` step.")
 
 
 class Gather(setuptools.Command):

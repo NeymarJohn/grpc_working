@@ -31,23 +31,10 @@
 # This script is invoked by build_docker_* inside a docker
 # container. You should never need to call this script on your own.
 
-set -ex
+set -e
 
-if [ "$RELATIVE_COPY_PATH" == "" ]
-then
-  mkdir -p /var/local/git
-  git clone --recursive "$EXTERNAL_GIT_ROOT" /var/local/git/grpc
-else
-  mkdir -p "/var/local/git/grpc/$RELATIVE_COPY_PATH"
-  cp -r "$EXTERNAL_GIT_ROOT/$RELATIVE_COPY_PATH"/* "/var/local/git/grpc/$RELATIVE_COPY_PATH"
-fi
-
-if [ -x "$(command -v rvm)" ]
-then
-  rvm use ruby-2.1
-fi
-
-nvm use 4 || true
+mkdir -p /var/local/git
+git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
 
 cd /var/local/git/grpc
 

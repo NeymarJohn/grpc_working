@@ -83,7 +83,7 @@ class ChannelCredentials : private GrpcLibrary {
 /// authenticate with a server for a given call on a channel.
 ///
 /// \see http://www.grpc.io/docs/guides/auth.html
-class CallCredentials : private GrpcLibrary {
+class CallCredentials {
  public:
   CallCredentials();
   ~CallCredentials();

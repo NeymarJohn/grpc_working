@@ -75,9 +75,6 @@ int grpc_chttp2_unlocking_check_writes(
 
   GRPC_CHTTP2_FLOW_MOVE_TRANSPORT("write", transport_writing, outgoing_window,
                                   transport_global, outgoing_window);
-  bool is_window_available = transport_writing->outgoing_window > 0;
-  grpc_chttp2_list_flush_writing_stalled_by_transport(transport_writing,
-                                                      is_window_available);
 
   /* for each grpc_chttp2_stream that's become writable, frame it's data
      (according to available window sizes) and add to the output buffer */
@@ -133,8 +130,8 @@ int grpc_chttp2_unlocking_check_writes(
             GRPC_CHTTP2_STREAM_REF(stream_global, "chttp2_writing");
           }
         } else {
-          grpc_chttp2_list_add_writing_stalled_by_transport(transport_writing,
-                                                            stream_writing);
+          grpc_chttp2_list_add_stalled_by_transport(transport_writing,
+                                                    stream_writing);
         }
       }
       if (stream_global->send_trailing_metadata) {
@@ -276,8 +273,8 @@ static void finalize_outbuf(grpc_exec_ctx *exec_ctx,
           stream_writing->sent_message = 1;
         }
       } else if (transport_writing->outgoing_window == 0) {
-        grpc_chttp2_list_add_writing_stalled_by_transport(transport_writing,
-                                                          stream_writing);
+        grpc_chttp2_list_add_stalled_by_transport(transport_writing,
+                                                  stream_writing);
         grpc_chttp2_list_add_written_stream(transport_writing, stream_writing);
       }
     }
@@ -315,8 +312,8 @@ static void finalize_outbuf(grpc_exec_ctx *exec_ctx,
           /* do nothing - already reffed */
         }
       } else {
-        grpc_chttp2_list_add_writing_stalled_by_transport(transport_writing,
-                                                          stream_writing);
+        grpc_chttp2_list_add_stalled_by_transport(transport_writing,
+                                                  stream_writing);
         grpc_chttp2_list_add_written_stream(transport_writing, stream_writing);
       }
     } else {
