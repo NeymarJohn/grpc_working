@@ -42,6 +42,7 @@
 #include <tuple>
 #include <vector>
 
+#include <grpc++/support/config.h>
 #include "src/compiler/config.h"
 #include "src/compiler/generator_helpers.h"
 #include "src/compiler/python_generator.h"

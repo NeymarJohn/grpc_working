@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,6 @@
 
 #ifndef GRPC_SUPPORT_CMDLINE_H
 #define GRPC_SUPPORT_CMDLINE_H
-
-#include <grpc/support/port_platform.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,31 +68,31 @@ typedef struct gpr_cmdline gpr_cmdline;
 
 /* Construct a command line parser: takes a short description of the tool
    doing the parsing */
-GPR_API gpr_cmdline *gpr_cmdline_create(const char *description);
+gpr_cmdline *gpr_cmdline_create(const char *description);
 /* Add an integer parameter, with a name (used on the command line) and some
    helpful text (used in the command usage) */
-GPR_API void gpr_cmdline_add_int(gpr_cmdline *cl, const char *name,
-                                 const char *help, int *value);
+void gpr_cmdline_add_int(gpr_cmdline *cl, const char *name, const char *help,
+                         int *value);
 /* The same, for a boolean flag */
-GPR_API void gpr_cmdline_add_flag(gpr_cmdline *cl, const char *name,
-                                  const char *help, int *value);
+void gpr_cmdline_add_flag(gpr_cmdline *cl, const char *name, const char *help,
+                          int *value);
 /* And for a string */
-GPR_API void gpr_cmdline_add_string(gpr_cmdline *cl, const char *name,
-                                    const char *help, char **value);
+void gpr_cmdline_add_string(gpr_cmdline *cl, const char *name, const char *help,
+                            char **value);
 /* Set a callback for non-named arguments */
-GPR_API void gpr_cmdline_on_extra_arg(
+void gpr_cmdline_on_extra_arg(
     gpr_cmdline *cl, const char *name, const char *help,
     void (*on_extra_arg)(void *user_data, const char *arg), void *user_data);
 /* Enable surviving failure: default behavior is to exit the process */
-GPR_API void gpr_cmdline_set_survive_failure(gpr_cmdline *cl);
+void gpr_cmdline_set_survive_failure(gpr_cmdline *cl);
 /* Parse the command line; returns 1 on success, on failure either dies
    (by default) or returns 0 if gpr_cmdline_set_survive_failure() has been
    called */
-GPR_API int gpr_cmdline_parse(gpr_cmdline *cl, int argc, char **argv);
+int gpr_cmdline_parse(gpr_cmdline *cl, int argc, char **argv);
 /* Destroy the parser */
-GPR_API void gpr_cmdline_destroy(gpr_cmdline *cl);
+void gpr_cmdline_destroy(gpr_cmdline *cl);
 /* Get a string describing usage */
-GPR_API char *gpr_cmdline_usage_string(gpr_cmdline *cl, const char *argv0);
+char *gpr_cmdline_usage_string(gpr_cmdline *cl, const char *argv0);
 
 #ifdef __cplusplus
 }
