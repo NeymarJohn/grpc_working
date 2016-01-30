@@ -1,4 +1,5 @@
-# Copyright 2015-2016, Google Inc.
+#!/usr/bin/env bash
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -26,58 +27,16 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# This script is invoked by Jenkins and triggers build of artifacts.
+#
+# To prevent cygwin bash complaining about empty lines ending with \r
+# we set the igncr option. The option doesn't exist on Linux, so we fallback
+# to just 'set -ex' there.
+# NOTE: No empty lines should appear in this file before igncr is set!
+set -ex -o igncr || set -ex
 
-# Dockerfile for running gRPC sanity tests
+curr_platform="$platform"
+unset platform  # variable named 'platform' breaks the windows build
 
-FROM debian:jessie
-
-# Install Git and basic packages.
-RUN apt-get update && apt-get install -y \
-  autoconf \
-  autotools-dev \
-  build-essential \
-  bzip2 \
-  ccache \
-  curl \
-  gcc \
-  gcc-multilib \
-  git \
-  golang \
-  gyp \
-  lcov \
-  libc6 \
-  libc6-dbg \
-  libc6-dev \
-  libgtest-dev \
-  libtool \
-  make \
-  perl \
-  strace \
-  python-dev \
-  python-setuptools \
-  python-yaml \
-  telnet \
-  unzip \
-  wget \
-  zip && apt-get clean
-
-##################
-# Sanity test dependencies
-RUN apt-get update && apt-get install -y python-pip
-RUN pip install simplejson mako
-
-##################
-# Docker "inception".
-# Note this is quite the ugly hack.
-# This makes sure that the docker binary we inject has its dependencies.
-RUN curl https://get.docker.com/ | sh
-RUN apt-get remove --purge -y docker-engine
-
-##################
-# Build profiling
-RUN apt-get install -y time
-
-RUN mkdir /var/local/jenkins
-
-# Define the default command.
-CMD ["bash"]
+python tools/run_tests/task_runner.py -f package $curr_platform

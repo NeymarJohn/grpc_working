@@ -1,4 +1,5 @@
-# Copyright 2015-2016, Google Inc.
+#!/usr/bin/env python
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,57 +28,46 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Dockerfile for running gRPC sanity tests
+"""Definition of targets to build distribution packages."""
 
-FROM debian:jessie
+import jobset
 
-# Install Git and basic packages.
-RUN apt-get update && apt-get install -y \
-  autoconf \
-  autotools-dev \
-  build-essential \
-  bzip2 \
-  ccache \
-  curl \
-  gcc \
-  gcc-multilib \
-  git \
-  golang \
-  gyp \
-  lcov \
-  libc6 \
-  libc6-dbg \
-  libc6-dev \
-  libgtest-dev \
-  libtool \
-  make \
-  perl \
-  strace \
-  python-dev \
-  python-setuptools \
-  python-yaml \
-  telnet \
-  unzip \
-  wget \
-  zip && apt-get clean
 
-##################
-# Sanity test dependencies
-RUN apt-get update && apt-get install -y python-pip
-RUN pip install simplejson mako
+def create_jobspec(name, cmdline, environ=None, cwd=None, shell=False,
+                   flake_retries=0, timeout_retries=0):
+  """Creates jobspec."""
+  jobspec = jobset.JobSpec(
+          cmdline=cmdline,
+          environ=environ,
+          cwd=cwd,
+          shortname='build_package.%s' % (name),
+          timeout_seconds=10*60,
+          flake_retries=flake_retries,
+          timeout_retries=timeout_retries,
+          shell=shell)
+  return jobspec
 
-##################
-# Docker "inception".
-# Note this is quite the ugly hack.
-# This makes sure that the docker binary we inject has its dependencies.
-RUN curl https://get.docker.com/ | sh
-RUN apt-get remove --purge -y docker-engine
 
-##################
-# Build profiling
-RUN apt-get install -y time
+class CSharpNugetTarget:
+  """Builds C# nuget packages."""
 
-RUN mkdir /var/local/jenkins
+  def __init__(self):
+    self.name = 'csharp_nuget'
+    self.labels = ['package', 'csharp', 'windows']
 
-# Define the default command.
-CMD ["bash"]
+  def pre_build_jobspecs(self):
+    return []
+
+  def build_jobspec(self):
+    return create_jobspec(self.name,
+                          ['build_packages.bat'],
+                          cwd='src\\csharp',
+                          shell=True)
+
+  def __str__(self):
+    return self.name
+
+
+def targets():
+  """Gets list of supported targets"""
+  return [CSharpNugetTarget()]

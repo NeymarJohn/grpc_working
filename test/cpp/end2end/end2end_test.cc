@@ -65,14 +65,6 @@ namespace testing {
 namespace {
 
 const char* kServerCancelAfterReads = "cancel_after_reads";
-const char* kServerTryCancelRequest = "server_try_cancel";
-typedef enum {
-  DO_NOT_CANCEL = 0,
-  CANCEL_BEFORE_PROCESSING,
-  CANCEL_DURING_PROCESSING,
-  CANCEL_AFTER_PROCESSING
-} ServerTryCancelRequestPhase;
-const int kNumResponseStreamsMsgs = 3;
 
 // When echo_deadline is requested, deadline seen in the ServerContext is set in
 // the response in seconds.
@@ -226,39 +218,8 @@ class TestServiceImpl : public ::grpc::testing::EchoTestService::Service {
   explicit TestServiceImpl(const grpc::string& host)
       : signal_client_(false), host_(new grpc::string(host)) {}
 
-  int GetIntValueFromMetadata(
-      const char* key,
-      const std::multimap<grpc::string_ref, grpc::string_ref>& metadata,
-      int default_value) {
-    if (metadata.find(key) != metadata.end()) {
-      std::istringstream iss(ToString(metadata.find(key)->second));
-      iss >> default_value;
-      gpr_log(GPR_INFO, "%s : %d", key, default_value);
-    }
-
-    return default_value;
-  }
-
-  void ServerTryCancel(ServerContext* context) {
-    EXPECT_FALSE(context->IsCancelled());
-    context->TryCancel();
-    gpr_log(GPR_INFO, "Server called TryCancel() to cancel the request");
-    EXPECT_TRUE(context->IsCancelled());
-  }
-
   Status Echo(ServerContext* context, const EchoRequest* request,
               EchoResponse* response) GRPC_OVERRIDE {
-    int server_try_cancel = GetIntValueFromMetadata(
-        kServerTryCancelRequest, context->client_metadata(), DO_NOT_CANCEL);
-    if (server_try_cancel > DO_NOT_CANCEL) {
-      // Since this is a unary RPC, by the time this server handler is called,
-      // the 'request' message is already read from the client. So the scenarios
-      // in server_try_cancel don't make much sense. Just cancel the RPC as long
-      // as server_try_cancel is not DO_NOT_CANCEL
-      ServerTryCancel(context);
-      return Status::CANCELLED;
-    }
-
     response->set_message(request->message());
     MaybeEchoDeadline(context, request, response);
     if (host_) {
@@ -320,41 +281,19 @@ class TestServiceImpl : public ::grpc::testing::EchoTestService::Service {
   Status RequestStream(ServerContext* context,
                        ServerReader<EchoRequest>* reader,
                        EchoResponse* response) GRPC_OVERRIDE {
-    // If 'server_try_cancel' is set in the metadata, the RPC is cancelled by
-    // the server by calling ServerContext::TryCancel() depending on the value:
-    //   CANCEL_BEFORE_PROCESSING: The RPC is cancelled before the server reads
-    //   any message from the client
-    //   CANCEL_DURING_PROCESSING: The RPC is cancelled while the server is
-    //   reading messages from the client
-    //   CANCEL_AFTER_PROCESSING: The RPC is cancelled after the server reads
-    //   all the messages from the client
-    int server_try_cancel = GetIntValueFromMetadata(
-        kServerTryCancelRequest, context->client_metadata(), DO_NOT_CANCEL);
-
-    // If 'cancel_after_reads' is set in the metadata AND non-zero, the server
-    // will cancel the RPC (by just returning Status::CANCELLED - doesn't call
-    // ServerContext::TryCancel()) after reading the number of records specified
-    // by the 'cancel_after_reads' value set in the metadata.
-    int cancel_after_reads = GetIntValueFromMetadata(
-        kServerCancelAfterReads, context->client_metadata(), 0);
-
     EchoRequest request;
     response->set_message("");
-
-    if (server_try_cancel == CANCEL_BEFORE_PROCESSING) {
-      ServerTryCancel(context);
-      return Status::CANCELLED;
+    int cancel_after_reads = 0;
+    const std::multimap<grpc::string_ref, grpc::string_ref>&
+        client_initial_metadata = context->client_metadata();
+    if (client_initial_metadata.find(kServerCancelAfterReads) !=
+        client_initial_metadata.end()) {
+      std::istringstream iss(ToString(
+          client_initial_metadata.find(kServerCancelAfterReads)->second));
+      iss >> cancel_after_reads;
+      gpr_log(GPR_INFO, "cancel_after_reads %d", cancel_after_reads);
     }
-
-    std::thread* server_try_cancel_thd = NULL;
-    if (server_try_cancel == CANCEL_DURING_PROCESSING) {
-      server_try_cancel_thd =
-          new std::thread(&TestServiceImpl::ServerTryCancel, this, context);
-    }
-
-    int num_msgs_read = 0;
     while (reader->Read(&request)) {
-      num_msgs_read++;
       if (cancel_after_reads == 1) {
         gpr_log(GPR_INFO, "return cancel status");
         return Status::CANCELLED;
@@ -363,64 +302,20 @@ class TestServiceImpl : public ::grpc::testing::EchoTestService::Service {
       }
       response->mutable_message()->append(request.message());
     }
-    gpr_log(GPR_INFO, "Read: %d messages", num_msgs_read);
-
-    if (server_try_cancel_thd != NULL) {
-      server_try_cancel_thd->join();
-      delete server_try_cancel_thd;
-      return Status::CANCELLED;
-    }
-
-    if (server_try_cancel == CANCEL_AFTER_PROCESSING) {
-      ServerTryCancel(context);
-      return Status::CANCELLED;
-    }
-
     return Status::OK;
   }
 
-  // Return 'kNumResponseStreamMsgs' messages.
+  // Return 3 messages.
   // TODO(yangg) make it generic by adding a parameter into EchoRequest
   Status ResponseStream(ServerContext* context, const EchoRequest* request,
                         ServerWriter<EchoResponse>* writer) GRPC_OVERRIDE {
-    // If server_try_cancel is set in the metadata, the RPC is cancelled by the
-    // server by calling ServerContext::TryCancel() depending on the value:
-    //   CANCEL_BEFORE_PROCESSING: The RPC is cancelled before the server writes
-    //   any messages to the client
-    //   CANCEL_DURING_PROCESSING: The RPC is cancelled while the server is
-    //   writing messages to the client
-    //   CANCEL_AFTER_PROCESSING: The RPC is cancelled after the server writes
-    //   all the messages to the client
-    int server_try_cancel = GetIntValueFromMetadata(
-        kServerTryCancelRequest, context->client_metadata(), DO_NOT_CANCEL);
-
-    if (server_try_cancel == CANCEL_BEFORE_PROCESSING) {
-      ServerTryCancel(context);
-      return Status::CANCELLED;
-    }
-
     EchoResponse response;
-    std::thread* server_try_cancel_thd = NULL;
-    if (server_try_cancel == CANCEL_DURING_PROCESSING) {
-      server_try_cancel_thd =
-          new std::thread(&TestServiceImpl::ServerTryCancel, this, context);
-    }
-
-    for (int i = 0; i < kNumResponseStreamsMsgs; i++) {
-      response.set_message(request->message() + std::to_string(i));
-      writer->Write(response);
-    }
-
-    if (server_try_cancel_thd != NULL) {
-      server_try_cancel_thd->join();
-      delete server_try_cancel_thd;
-      return Status::CANCELLED;
-    }
-
-    if (server_try_cancel == CANCEL_AFTER_PROCESSING) {
-      ServerTryCancel(context);
-      return Status::CANCELLED;
-    }
+    response.set_message(request->message() + "0");
+    writer->Write(response);
+    response.set_message(request->message() + "1");
+    writer->Write(response);
+    response.set_message(request->message() + "2");
+    writer->Write(response);
 
     return Status::OK;
   }
@@ -428,48 +323,13 @@ class TestServiceImpl : public ::grpc::testing::EchoTestService::Service {
   Status BidiStream(ServerContext* context,
                     ServerReaderWriter<EchoResponse, EchoRequest>* stream)
       GRPC_OVERRIDE {
-    // If server_try_cancel is set in the metadata, the RPC is cancelled by the
-    // server by calling ServerContext::TryCancel() depending on the value:
-    //   CANCEL_BEFORE_PROCESSING: The RPC is cancelled before the server reads/
-    //   writes any messages from/to the client
-    //   CANCEL_DURING_PROCESSING: The RPC is cancelled while the server is
-    //   reading/writing messages from/to the client
-    //   CANCEL_AFTER_PROCESSING: The RPC is cancelled after the server
-    //   reads/writes all messages from/to the client
-    int server_try_cancel = GetIntValueFromMetadata(
-        kServerTryCancelRequest, context->client_metadata(), DO_NOT_CANCEL);
-
     EchoRequest request;
     EchoResponse response;
-
-    if (server_try_cancel == CANCEL_BEFORE_PROCESSING) {
-      ServerTryCancel(context);
-      return Status::CANCELLED;
-    }
-
-    std::thread* server_try_cancel_thd = NULL;
-    if (server_try_cancel == CANCEL_DURING_PROCESSING) {
-      server_try_cancel_thd =
-          new std::thread(&TestServiceImpl::ServerTryCancel, this, context);
-    }
-
     while (stream->Read(&request)) {
       gpr_log(GPR_INFO, "recv msg %s", request.message().c_str());
       response.set_message(request.message());
       stream->Write(response);
     }
-
-    if (server_try_cancel_thd != NULL) {
-      server_try_cancel_thd->join();
-      delete server_try_cancel_thd;
-      return Status::CANCELLED;
-    }
-
-    if (server_try_cancel == CANCEL_AFTER_PROCESSING) {
-      ServerTryCancel(context);
-      return Status::CANCELLED;
-    }
-
     return Status::OK;
   }
 
@@ -604,301 +464,6 @@ static void SendRpc(grpc::testing::EchoTestService::Stub* stub, int num_rpcs) {
     EXPECT_EQ(response.message(), request.message());
     EXPECT_TRUE(s.ok());
   }
-}
-
-// This class is for testing scenarios where RPCs are cancelled on the server
-// by calling ServerContext::TryCancel()
-class End2endServerTryCancelTest : public End2endTest {
- protected:
-  // Helper for testing client-streaming RPCs which are cancelled on the server.
-  // Depending on the value of server_try_cancel parameter, this will test one
-  // of the following three scenarios:
-  //   CANCEL_BEFORE_PROCESSING: Rpc is cancelled by the server before reading
-  //   any messages from the client
-  //
-  //   CANCEL_DURING_PROCESSING: Rpc is cancelled by the server while reading
-  //   messages from the client
-  //
-  //   CANCEL_AFTER PROCESSING: Rpc is cancelled by server after reading all
-  //   the messages from the client
-  //
-  // NOTE: Do not call this function with server_try_cancel == DO_NOT_CANCEL.
-  void TestRequestStreamServerCancel(
-      ServerTryCancelRequestPhase server_try_cancel, int num_msgs_to_send) {
-    ResetStub();
-    EchoRequest request;
-    EchoResponse response;
-    ClientContext context;
-
-    // Send server_try_cancel value in the client metadata
-    context.AddMetadata(kServerTryCancelRequest,
-                        std::to_string(server_try_cancel));
-
-    auto stream = stub_->RequestStream(&context, &response);
-
-    int num_msgs_sent = 0;
-    while (num_msgs_sent < num_msgs_to_send) {
-      request.set_message("hello");
-      if (!stream->Write(request)) {
-        break;
-      }
-      num_msgs_sent++;
-    }
-    gpr_log(GPR_INFO, "Sent %d messages", num_msgs_sent);
-
-    stream->WritesDone();
-    Status s = stream->Finish();
-
-    // At this point, we know for sure that RPC was cancelled by the server
-    // since we passed server_try_cancel value in the metadata. Depending on the
-    // value of server_try_cancel, the RPC might have been cancelled by the
-    // server at different stages. The following validates our expectations of
-    // number of messages sent in various cancellation scenarios:
-
-    switch (server_try_cancel) {
-      case CANCEL_BEFORE_PROCESSING:
-      case CANCEL_DURING_PROCESSING:
-        // If the RPC is cancelled by server before / during messages from the
-        // client, it means that the client most likely did not get a chance to
-        // send all the messages it wanted to send. i.e num_msgs_sent <=
-        // num_msgs_to_send
-        EXPECT_LE(num_msgs_sent, num_msgs_to_send);
-        break;
-
-      case CANCEL_AFTER_PROCESSING:
-        // If the RPC was cancelled after all messages were read by the server,
-        // the client did get a chance to send all its messages
-        EXPECT_EQ(num_msgs_sent, num_msgs_to_send);
-        break;
-
-      default:
-        gpr_log(GPR_ERROR, "Invalid server_try_cancel value: %d",
-                server_try_cancel);
-        EXPECT_TRUE(server_try_cancel > DO_NOT_CANCEL &&
-                    server_try_cancel <= CANCEL_AFTER_PROCESSING);
-        break;
-    }
-
-    EXPECT_FALSE(s.ok());
-    EXPECT_EQ(grpc::StatusCode::CANCELLED, s.error_code());
-  }
-
-  // Helper for testing server-streaming RPCs which are cancelled on the server.
-  // Depending on the value of server_try_cancel parameter, this will test one
-  // of the following three scenarios:
-  //   CANCEL_BEFORE_PROCESSING: Rpc is cancelled by the server before writing
-  //   any messages to the client
-  //
-  //   CANCEL_DURING_PROCESSING: Rpc is cancelled by the server while writing
-  //   messages to the client
-  //
-  //   CANCEL_AFTER PROCESSING: Rpc is cancelled by server after writing all
-  //   the messages to the client
-  //
-  // NOTE: Do not call this function with server_try_cancel == DO_NOT_CANCEL.
-  void TestResponseStreamServerCancel(
-      ServerTryCancelRequestPhase server_try_cancel) {
-    ResetStub();
-    EchoRequest request;
-    EchoResponse response;
-    ClientContext context;
-
-    // Send server_try_cancel in the client metadata
-    context.AddMetadata(kServerTryCancelRequest,
-                        std::to_string(server_try_cancel));
-
-    request.set_message("hello");
-    auto stream = stub_->ResponseStream(&context, request);
-
-    int num_msgs_read = 0;
-    while (num_msgs_read < kNumResponseStreamsMsgs) {
-      if (!stream->Read(&response)) {
-        break;
-      }
-      EXPECT_EQ(response.message(),
-                request.message() + std::to_string(num_msgs_read));
-      num_msgs_read++;
-    }
-    gpr_log(GPR_INFO, "Read %d messages", num_msgs_read);
-
-    Status s = stream->Finish();
-
-    // Depending on the value of server_try_cancel, the RPC might have been
-    // cancelled by the server at different stages. The following validates our
-    // expectations of number of messages read in various cancellation
-    // scenarios:
-    switch (server_try_cancel) {
-      case CANCEL_BEFORE_PROCESSING:
-        // Server cancelled before sending any messages. Which means the client
-        // wouldn't have read any
-        EXPECT_EQ(num_msgs_read, 0);
-        break;
-
-      case CANCEL_DURING_PROCESSING:
-        // Server cancelled while writing messages. Client must have read less
-        // than or equal to the expected number of messages
-        EXPECT_LE(num_msgs_read, kNumResponseStreamsMsgs);
-        break;
-
-      case CANCEL_AFTER_PROCESSING:
-        // Server cancelled after writing all messages. Client must have read
-        // all messages
-        EXPECT_EQ(num_msgs_read, kNumResponseStreamsMsgs);
-        break;
-
-      default: {
-        gpr_log(GPR_ERROR, "Invalid server_try_cancel value: %d",
-                server_try_cancel);
-        EXPECT_TRUE(server_try_cancel > DO_NOT_CANCEL &&
-                    server_try_cancel <= CANCEL_AFTER_PROCESSING);
-        break;
-      }
-    }
-
-    EXPECT_FALSE(s.ok());
-    EXPECT_EQ(grpc::StatusCode::CANCELLED, s.error_code());
-  }
-
-  // Helper for testing bidirectional-streaming RPCs which are cancelled on the
-  // server. Depending on the value of server_try_cancel parameter, this will
-  // test one of the following three scenarios:
-  //   CANCEL_BEFORE_PROCESSING: Rpc is cancelled by the server before reading/
-  //   writing any messages from/to the client
-  //
-  //   CANCEL_DURING_PROCESSING: Rpc is cancelled by the server while reading/
-  //   writing messages from/to the client
-  //
-  //   CANCEL_AFTER PROCESSING: Rpc is cancelled by server after reading/writing
-  //   all the messages from/to the client
-  //
-  // NOTE: Do not call this function with server_try_cancel == DO_NOT_CANCEL.
-  void TestBidiStreamServerCancel(ServerTryCancelRequestPhase server_try_cancel,
-                                  int num_messages) {
-    ResetStub();
-    EchoRequest request;
-    EchoResponse response;
-    ClientContext context;
-
-    // Send server_try_cancel in the client metadata
-    context.AddMetadata(kServerTryCancelRequest,
-                        std::to_string(server_try_cancel));
-
-    auto stream = stub_->BidiStream(&context);
-
-    int num_msgs_read = 0;
-    int num_msgs_sent = 0;
-    while (num_msgs_sent < num_messages) {
-      request.set_message("hello " + std::to_string(num_msgs_sent));
-      if (!stream->Write(request)) {
-        break;
-      }
-      num_msgs_sent++;
-
-      if (!stream->Read(&response)) {
-        break;
-      }
-      num_msgs_read++;
-
-      EXPECT_EQ(response.message(), request.message());
-    }
-    gpr_log(GPR_INFO, "Sent %d messages", num_msgs_sent);
-    gpr_log(GPR_INFO, "Read %d messages", num_msgs_read);
-
-    stream->WritesDone();
-    Status s = stream->Finish();
-
-    // Depending on the value of server_try_cancel, the RPC might have been
-    // cancelled by the server at different stages. The following validates our
-    // expectations of number of messages read in various cancellation
-    // scenarios:
-    switch (server_try_cancel) {
-      case CANCEL_BEFORE_PROCESSING:
-        EXPECT_EQ(num_msgs_read, 0);
-        break;
-
-      case CANCEL_DURING_PROCESSING:
-        EXPECT_LE(num_msgs_sent, num_messages);
-        EXPECT_LE(num_msgs_read, num_msgs_sent);
-        break;
-
-      case CANCEL_AFTER_PROCESSING:
-        EXPECT_EQ(num_msgs_sent, num_messages);
-        EXPECT_EQ(num_msgs_read, num_msgs_sent);
-        break;
-
-      default:
-        gpr_log(GPR_ERROR, "Invalid server_try_cancel value: %d",
-                server_try_cancel);
-        EXPECT_TRUE(server_try_cancel > DO_NOT_CANCEL &&
-                    server_try_cancel <= CANCEL_AFTER_PROCESSING);
-        break;
-    }
-
-    EXPECT_FALSE(s.ok());
-    EXPECT_EQ(grpc::StatusCode::CANCELLED, s.error_code());
-  }
-};
-
-TEST_P(End2endServerTryCancelTest, RequestEchoServerCancel) {
-  ResetStub();
-  EchoRequest request;
-  EchoResponse response;
-  ClientContext context;
-
-  context.AddMetadata(kServerTryCancelRequest,
-                      std::to_string(CANCEL_BEFORE_PROCESSING));
-  Status s = stub_->Echo(&context, request, &response);
-  EXPECT_FALSE(s.ok());
-  EXPECT_EQ(grpc::StatusCode::CANCELLED, s.error_code());
-}
-
-// Server to cancel before doing reading the request
-TEST_P(End2endServerTryCancelTest, RequestStreamServerCancelBeforeReads) {
-  TestRequestStreamServerCancel(CANCEL_BEFORE_PROCESSING, 1);
-}
-
-// Server to cancel while reading a request from the stream in parallel
-TEST_P(End2endServerTryCancelTest, RequestStreamServerCancelDuringRead) {
-  TestRequestStreamServerCancel(CANCEL_DURING_PROCESSING, 10);
-}
-
-// Server to cancel after reading all the requests but before returning to the
-// client
-TEST_P(End2endServerTryCancelTest, RequestStreamServerCancelAfterReads) {
-  TestRequestStreamServerCancel(CANCEL_AFTER_PROCESSING, 4);
-}
-
-// Server to cancel before sending any response messages
-TEST_P(End2endServerTryCancelTest, ResponseStreamServerCancelBefore) {
-  TestResponseStreamServerCancel(CANCEL_BEFORE_PROCESSING);
-}
-
-// Server to cancel while writing a response to the stream in parallel
-TEST_P(End2endServerTryCancelTest, ResponseStreamServerCancelDuring) {
-  TestResponseStreamServerCancel(CANCEL_DURING_PROCESSING);
-}
-
-// Server to cancel after writing all the respones to the stream but before
-// returning to the client
-TEST_P(End2endServerTryCancelTest, ResponseStreamServerCancelAfter) {
-  TestResponseStreamServerCancel(CANCEL_AFTER_PROCESSING);
-}
-
-// Server to cancel before reading/writing any requests/responses on the stream
-TEST_P(End2endServerTryCancelTest, BidiStreamServerCancelBefore) {
-  TestBidiStreamServerCancel(CANCEL_BEFORE_PROCESSING, 2);
-}
-
-// Server to cancel while reading/writing requests/responses on the stream in
-// parallel
-TEST_P(End2endServerTryCancelTest, BidiStreamServerCancelDuring) {
-  TestBidiStreamServerCancel(CANCEL_DURING_PROCESSING, 10);
-}
-
-// Server to cancel after reading/writing all requests/responses on the stream
-// but before returning to the client
-TEST_P(End2endServerTryCancelTest, BidiStreamServerCancelAfter) {
-  TestBidiStreamServerCancel(CANCEL_AFTER_PROCESSING, 5);
 }
 
 TEST_P(End2endTest, RequestStreamOneRequest) {
@@ -1629,9 +1194,6 @@ TEST_P(SecureEnd2endTest, ClientAuthContext) {
 INSTANTIATE_TEST_CASE_P(End2end, End2endTest,
                         ::testing::Values(TestScenario(false, false),
                                           TestScenario(false, true)));
-
-INSTANTIATE_TEST_CASE_P(End2endServerTryCancel, End2endServerTryCancelTest,
-                        ::testing::Values(TestScenario(false, false)));
 
 INSTANTIATE_TEST_CASE_P(ProxyEnd2end, ProxyEnd2endTest,
                         ::testing::Values(TestScenario(false, false),
