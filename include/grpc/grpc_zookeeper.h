@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ extern "C" {
 #endif
 
 /** Register zookeeper name resolver in grpc */
-GRPC_API void grpc_zookeeper_register();
+void grpc_zookeeper_register();
 
 #ifdef __cplusplus
 }

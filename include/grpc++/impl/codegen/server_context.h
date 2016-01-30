@@ -105,6 +105,17 @@ class ServerContext {
 
   bool IsCancelled() const;
 
+  // Cancel the Call from the server. This is a best-effort API and depending on
+  // when this is called, the Call may still appear successful to the client.
+  // For example, if called on a separate thread, it might race with the
+  // server handler which might return success to the client before TryCancel()
+  // was called.
+  //
+  // It is the caller's responsibility to prevent such races and ensure that the
+  // serverhandler returns Status::CANCELLED if TryCancel() is called (unless
+  // the serverhandler is already returning an error code)
+  void TryCancel() const;
+
   const std::multimap<grpc::string_ref, grpc::string_ref>& client_metadata() {
     return client_metadata_;
   }
