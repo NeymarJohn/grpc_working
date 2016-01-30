@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
+
 # Copyright 2016, Google Inc.
 # All rights reserved.
 #
@@ -28,46 +29,50 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Definition of targets to build distribution packages."""
-
-import jobset
-
-
-def create_jobspec(name, cmdline, environ=None, cwd=None, shell=False,
-                   flake_retries=0, timeout_retries=0):
-  """Creates jobspec."""
-  jobspec = jobset.JobSpec(
-          cmdline=cmdline,
-          environ=environ,
-          cwd=cwd,
-          shortname='build_package.%s' % (name),
-          timeout_seconds=10*60,
-          flake_retries=flake_retries,
-          timeout_retries=timeout_retries,
-          shell=shell)
-  return jobspec
+import collections
+import fnmatch
+import os
+import re
+import sys
+import yaml
 
 
-class CSharpNugetTarget:
-  """Builds C# nuget packages."""
-
-  def __init__(self):
-    self.name = 'csharp_nuget'
-    self.labels = ['package', 'csharp', 'windows']
-
-  def pre_build_jobspecs(self):
-    return []
-
-  def build_jobspec(self):
-    return create_jobspec(self.name,
-                          ['build_packages.bat'],
-                          cwd='src\\csharp',
-                          shell=True)
-
-  def __str__(self):
-    return self.name
+_RE_API = r'(?:GPR_API|GRPC_API|CENSUS_API)([^;]*);'
 
 
-def targets():
-  """Gets list of supported targets"""
-  return [CSharpNugetTarget()]
+def list_c_apis(filenames):
+  for filename in filenames:
+    with open(filename, 'r') as f:
+      text = f.read()
+    for m in re.finditer(_RE_API, text):
+      api_declaration = re.sub('[ \r\n\t]+', ' ', m.group(1))
+      type_and_name, args_and_close = api_declaration.split('(', 1)
+      args = args_and_close[:args_and_close.rfind(')')].strip()
+      last_space = type_and_name.rfind(' ')
+      last_star = type_and_name.rfind('*')
+      type_end = max(last_space, last_star)
+      return_type = type_and_name[0:type_end+1].strip()
+      name = type_and_name[type_end+1:].strip()
+      yield {'return_type': return_type, 'name': name, 'arguments': args, 'header': filename}
+
+
+def headers_under(directory):
+  for root, dirnames, filenames in os.walk(directory):
+    for filename in fnmatch.filter(filenames, '*.h'):
+      yield os.path.join(root, filename)
+
+
+def mako_plugin(dictionary):
+  apis = []
+
+#  for lib in dictionary['libs']:
+#    if lib['name'] == 'grpc':
+#      apis.extend(list_c_apis(lib['public_headers']))
+  apis.extend(list_c_apis(sorted(headers_under('include/grpc'))))
+
+  dictionary['c_apis'] = apis
+
+
+if __name__ == '__main__':
+  print yaml.dump([api for api in list_c_apis(headers_under('include/grpc'))])
+

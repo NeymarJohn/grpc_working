@@ -61,6 +61,7 @@ static void RunGenericAsyncStreamingPingPong() {
 
   ServerConfig server_config;
   server_config.set_server_type(ASYNC_GENERIC_SERVER);
+  server_config.set_host("localhost");
   server_config.set_async_server_threads(1);
 
   const auto result =
