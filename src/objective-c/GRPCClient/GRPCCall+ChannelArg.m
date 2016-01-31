@@ -31,10 +31,28 @@
  *
  */
 
-#ifndef GRPC_RB_LOADER_H_
-#define GRPC_RB_LOADER_H_
+#import "GRPCCall+ChannelArg.h"
 
-/* Attempts to load the core if necessary, and return non-zero upon succes. */
-int grpc_rb_load_core();
+#import "private/GRPCHost.h"
 
-#endif /* GRPC_RB_BYTE_BUFFER_H_ */
+@implementation GRPCCall (ChannelArg)
+
++ (void)usePrimaryUserAgent:(NSString *)primaryUserAgent forHost:(NSString *)host {
+  if (!primaryUserAgent || !host) {
+    [NSException raise:NSInvalidArgumentException
+                format:@"primaryUserAgent and host must be provided."];
+  }
+  GRPCHost *hostConfig = [GRPCHost hostWithAddress:host];
+  hostConfig.primaryUserAgent = primaryUserAgent;
+}
+
++ (void)useSecondaryUserAgent:(NSString *)secondaryUserAgent forHost:(NSString *)host {
+  if (!secondaryUserAgent || !host) {
+    [NSException raise:NSInvalidArgumentException
+                format:@"secondaryUserAgent and host must be provided."];
+  }
+  GRPCHost *hostConfig = [GRPCHost hostWithAddress:host];
+  hostConfig.secondaryUserAgent = secondaryUserAgent;
+}
+
+@end

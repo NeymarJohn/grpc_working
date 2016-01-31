@@ -30,43 +30,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#import "GRPCCall.h"
 
-#include "rb_grpc_imports.generated.h"
+/**
+ * Methods to configure GRPC channel options for specific hosts.
+ */
+@interface GRPCCall (ChannelArg)
 
-#if GPR_WIN32
-#include <tchar.h>
+/**
+ * Use the provided @c primaryUserAgent at the beginning of the HTTP User Agent string for the
+ * provided @c host.
+ */
++ (void)usePrimaryUserAgent:(NSString *)primaryUserAgent forHost:(NSString *)host;
 
-int grpc_rb_load_core() {
-#if GPR_ARCH_64
-  TCHAR fname[] = _T("grpc_c.64.ruby");
-#else
-  TCHAR fname[] = _T("grpc_c.32.ruby");
-#endif
-  HMODULE module = GetModuleHandle(_T("grpc_c.so"));
-  TCHAR path[2048 + 32] = _T("");
-  LPTSTR seek_back = NULL;
-  GetModuleFileName(module, path, 2048);
+/**
+ * Use the provided @c secondaryUserAgent at the end of the HTTP User Agent string for the
+ * provided @c host.
+ */
++ (void)useSecondaryUserAgent:(NSString *)secondaryUserAgent forHost:(NSString *)host;
 
-  seek_back = _tcsrchr(path, _T('\\'));
-
-  while (seek_back) {
-    HMODULE grpc_c;
-    _tcscpy(seek_back + 1, fname);
-    grpc_c = LoadLibrary(path);
-    if (grpc_c) {
-      grpc_rb_load_imports(grpc_c);
-      return 1;
-    } else {
-      *seek_back = _T('\0');
-      seek_back = _tcsrchr(path, _T('\\'));
-    }
-  }
-
-  return 0;
-}
-
-#else
-
-int grpc_rb_load_core() { return 1; }
-
-#endif
+@end
