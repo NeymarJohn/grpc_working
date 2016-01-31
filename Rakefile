@@ -4,26 +4,17 @@ require 'rspec/core/rake_task'
 require 'rubocop/rake_task'
 require 'bundler/gem_tasks'
 
-load 'tools/distrib/docker_for_windows.rb'
-
 # Add rubocop style checking tasks
 RuboCop::RakeTask.new(:rubocop) do |task|
   task.options = ['-c', 'src/ruby/.rubocop.yml']
   task.patterns = ['src/ruby/{lib,spec}/**/*.rb']
 end
 
-spec = Gem::Specification.load('grpc.gemspec')
-
-Gem::PackageTask.new(spec) do |pkg|
-end
-
 # Add the extension compiler task
-Rake::ExtensionTask.new('grpc_c', spec) do |ext|
+Rake::ExtensionTask.new 'grpc' do |ext|
   ext.source_pattern = '**/*.{c,h}'
   ext.ext_dir = File.join('src', 'ruby', 'ext', 'grpc')
   ext.lib_dir = File.join('src', 'ruby', 'lib', 'grpc')
-  ext.cross_compile = true
-  ext.cross_platform = ['x86-mingw32', 'x64-mingw32']
 end
 
 # Define the test suites
@@ -58,29 +49,6 @@ namespace :suite do
       end
     end
   end
-end
-
-desc 'Build the gem file under rake_compiler_dock'
-task 'gem:windows' do
-  grpc_config = ENV['GRPC_CONFIG'] || 'opt'
-  V = ENV['V'] || '0'
-
-  env = 'CPPFLAGS="-D_WIN32_WINNT=0x600 -DUNICODE -D_UNICODE" '
-  env += 'LDFLAGS=-static '
-  env += 'SYSTEM=MINGW32 '
-  env += 'EMBED_ZLIB=true '
-  env += 'BUILDDIR=/tmp '
-  out = '/tmp/libs/opt/grpc-0.dll'
-
-  env_comp = 'CC=x86_64-w64-mingw32-gcc '
-  env_comp += 'LD=x86_64-w64-mingw32-gcc '
-  docker_for_windows "#{env} #{env_comp} make -j #{out} && x86_64-w64-mingw32-strip -x -S #{out} && cp #{out} grpc_c.64.ruby"
-
-  env_comp = 'CC=i686-w64-mingw32-gcc '
-  env_comp += 'LD=i686-w64-mingw32-gcc '
-  docker_for_windows "#{env} #{env_comp} make -j #{out} && i686-w64-mingw32-strip -x -S #{out} && cp #{out} grpc_c.32.ruby"
-
-  docker_for_windows "bundle && rake cross native gem RUBY_CC_VERSION=2.3.0:2.2.2:2.1.6:2.0.0 GRPC_CONFIG=#{grpc_config} V=#{V}"
 end
 
 # Define dependencies between the suites.

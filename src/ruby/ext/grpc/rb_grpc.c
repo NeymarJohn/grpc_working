@@ -297,7 +297,7 @@ VALUE sym_code = Qundef;
 VALUE sym_details = Qundef;
 VALUE sym_metadata = Qundef;
 
-void Init_grpc_c() {
+void Init_grpc() {
   grpc_init();
 
 /* TODO: find alternative to ruby_vm_at_exit that is ok in Ruby 2.0 */
