@@ -33,10 +33,6 @@
 
 #import "GRPCChannel.h"
 
-@class GRPCWrappedChannelArgs;
-
 @interface GRPCUnsecuredChannel : GRPCChannel
-- (instancetype)initWithHost:(NSString *)host;
-- (instancetype)initWithHost:(NSString *)host
-                 channelArgs:(GRPCWrappedChannelArgs *)channelArgs NS_DESIGNATED_INITIALIZER;
+- (instancetype)initWithHost:(NSString *)host NS_DESIGNATED_INITIALIZER;
 @end

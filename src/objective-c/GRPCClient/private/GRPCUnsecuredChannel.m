@@ -34,21 +34,11 @@
 #import "GRPCUnsecuredChannel.h"
 
 #include <grpc/grpc.h>
-#import "GRPCWrappedChannelArgs.h"
 
 @implementation GRPCUnsecuredChannel
 
 - (instancetype)initWithHost:(NSString *)host {
-  return [self initWithHost:host channelArgs:nil];
-}
-
-- (instancetype)initWithHost:(NSString *)host channelArgs:(GRPCWrappedChannelArgs *)channelArgs  {
-  grpc_channel_args args = (grpc_channel_args) { .num_args = 0, .args = NULL };
-  if (channelArgs) {
-    args = channelArgs.channelArgs;
-  }
-  return (self = [super
-              initWithChannel:grpc_insecure_channel_create(host.UTF8String, &args, NULL)]);
+  return (self = [super initWithChannel:grpc_insecure_channel_create(host.UTF8String, NULL, NULL)]);
 }
 
 // TODO(jcanizales): GRPCSecureChannel and GRPCUnsecuredChannel are just convenience initializers
