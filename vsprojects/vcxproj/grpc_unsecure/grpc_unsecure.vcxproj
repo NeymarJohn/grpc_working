@@ -644,8 +644,6 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\operation.c">
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\census\placeholders.c">
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\tag_set.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\tracing.c">
