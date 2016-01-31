@@ -10,20 +10,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "alarm_test", 
-    "src": [
-      "test/core/surface/alarm_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "algorithm_test", 
     "src": [
       "test/core/compression/algorithm_test.c"
@@ -2916,6 +2902,7 @@
       "src/core/support/string_win32.c", 
       "src/core/support/string_win32.h", 
       "src/core/support/subprocess_posix.c", 
+      "src/core/support/subprocess_windows.c", 
       "src/core/support/sync.c", 
       "src/core/support/sync_posix.c", 
       "src/core/support/sync_win32.c", 
@@ -3285,7 +3272,6 @@
       "src/core/security/server_secure_chttp2.c", 
       "src/core/statistics/census_interface.h", 
       "src/core/statistics/census_rpc_stats.h", 
-      "src/core/surface/alarm.c", 
       "src/core/surface/api_trace.c", 
       "src/core/surface/api_trace.h", 
       "src/core/surface/byte_buffer.c", 
@@ -3760,7 +3746,6 @@
       "src/core/json/json_writer.h", 
       "src/core/statistics/census_interface.h", 
       "src/core/statistics/census_rpc_stats.h", 
-      "src/core/surface/alarm.c", 
       "src/core/surface/api_trace.c", 
       "src/core/surface/api_trace.h", 
       "src/core/surface/byte_buffer.c", 
