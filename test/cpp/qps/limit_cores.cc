@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,18 +31,50 @@
  *
  */
 
-#include "src/core/statistics/census_interface.h"
+#include "test/cpp/qps/limit_cores.h"
 
+#include <grpc/support/cpu.h>
 #include <grpc/support/log.h>
-#include "src/core/statistics/census_rpc_stats.h"
-#include "src/core/statistics/census_tracing.h"
+#include <grpc/support/port_platform.h>
+#include <vector>
 
-void census_init(void) {
-  census_tracing_init();
-  census_stats_store_init();
-}
+namespace grpc {
+namespace testing {
 
-void census_shutdown(void) {
-  census_stats_store_shutdown();
-  census_tracing_shutdown();
+#ifdef GPR_CPU_LINUX
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#include <sched.h>
+int LimitCores(const int *cores, int cores_size) {
+  int num_cores = gpr_cpu_num_cores();
+  int cores_set = 0;
+
+  cpu_set_t *cpup = CPU_ALLOC(num_cores);
+  GPR_ASSERT(cpup);
+  size_t size = CPU_ALLOC_SIZE(num_cores);
+  CPU_ZERO_S(size, cpup);
+
+  if (cores_size > 0) {
+    for (int i = 0; i < cores_size; i++) {
+      if (cores[i] < num_cores) {
+        CPU_SET_S(cores[i], size, cpup);
+        cores_set++;
+      }
+    }
+  } else {
+    for (int i = 0; i < num_cores; i++) {
+      CPU_SET_S(i, size, cpup);
+      cores_set++;
+    }
+  }
+  GPR_ASSERT(sched_setaffinity(0, size, cpup) == 0);
+  CPU_FREE(cpup);
+  return cores_set;
 }
+#else
+// LimitCores is not currently supported for non-Linux platforms
+int LimitCores(std::vector<int> core_vec) { return gpr_cpu_num_cores(); }
+#endif
+}  // namespace testing
+}  // namespace grpc

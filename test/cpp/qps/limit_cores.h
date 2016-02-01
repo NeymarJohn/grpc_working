@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,18 +31,18 @@
  *
  */
 
-#include "src/core/statistics/census_interface.h"
+#ifndef TEST_QPS_LIMIT_CORES_H
+#define TEST_QPS_LIMIT_CORES_H
 
-#include <grpc/support/log.h>
-#include "src/core/statistics/census_rpc_stats.h"
-#include "src/core/statistics/census_tracing.h"
+#include <vector>
 
-void census_init(void) {
-  census_tracing_init();
-  census_stats_store_init();
-}
+namespace grpc {
+namespace testing {
+// LimitCores takes array and size arguments (instead of vector) for more direct
+// conversion from repeated field of protobuf. Use a cores_size of 0 to remove
+// existing limits (from an empty repeated field)
+int LimitCores(const int *cores, int cores_size);
+}  // namespace testing
+}  // namespace grpc
 
-void census_shutdown(void) {
-  census_stats_store_shutdown();
-  census_tracing_shutdown();
-}
+#endif  // TEST_QPS_LIMIT_CORES_H
