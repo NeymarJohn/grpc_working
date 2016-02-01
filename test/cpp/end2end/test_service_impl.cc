@@ -106,8 +106,7 @@ Status TestServiceImpl::Echo(ServerContext* context, const EchoRequest* request,
         gpr_time_from_micros(request->param().server_cancel_after_us(),
                              GPR_TIMESPAN)));
     return Status::CANCELLED;
-  } else if (!request->has_param() ||
-             !request->param().skip_cancelled_check()) {
+  } else {
     EXPECT_FALSE(context->IsCancelled());
   }
 
