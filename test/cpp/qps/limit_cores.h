@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,32 +31,18 @@
  *
  */
 
-/* for secure_getenv. */
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
+#ifndef TEST_QPS_LIMIT_CORES_H
+#define TEST_QPS_LIMIT_CORES_H
 
-#include <grpc/support/port_platform.h>
+#include <vector>
 
-#ifdef GPR_LINUX_ENV
+namespace grpc {
+namespace testing {
+// LimitCores takes array and size arguments (instead of vector) for more direct
+// conversion from repeated field of protobuf. Use a cores_size of 0 to remove
+// existing limits (from an empty repeated field)
+int LimitCores(const int *cores, int cores_size);
+}  // namespace testing
+}  // namespace grpc
 
-#include "src/core/support/env.h"
-
-#include <stdlib.h>
-
-#include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
-
-#include "src/core/support/string.h"
-
-char *gpr_getenv(const char *name) {
-  char *result = secure_getenv(name);
-  return result == NULL ? result : gpr_strdup(result);
-}
-
-void gpr_setenv(const char *name, const char *value) {
-  int res = setenv(name, value, 1);
-  GPR_ASSERT(res == 0);
-}
-
-#endif /* GPR_LINUX_ENV */
+#endif  // TEST_QPS_LIMIT_CORES_H
