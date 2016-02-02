@@ -31,28 +31,42 @@
  *
  */
 
-#import "GRPCCall+ChannelArg.h"
+#include "rb_grpc_imports.generated.h"
 
-#import "private/GRPCHost.h"
+#if GPR_WIN32
+#include <tchar.h>
 
-@implementation GRPCCall (ChannelArg)
+int grpc_rb_load_core() {
+#if GPR_ARCH_64
+  TCHAR fname[] = _T("grpc_c.64.ruby");
+#else
+  TCHAR fname[] = _T("grpc_c.32.ruby");
+#endif
+  HMODULE module = GetModuleHandle(_T("grpc_c.so"));
+  TCHAR path[2048 + 32] = _T("");
+  LPTSTR seek_back = NULL;
+  GetModuleFileName(module, path, 2048);
 
-+ (void)usePrimaryUserAgent:(NSString *)primaryUserAgent forHost:(NSString *)host {
-  if (!primaryUserAgent || !host) {
-    [NSException raise:NSInvalidArgumentException
-                format:@"primaryUserAgent and host must be provided."];
+  seek_back = _tcsrchr(path, _T('\\'));
+
+  while (seek_back) {
+    HMODULE grpc_c;
+    _tcscpy(seek_back + 1, fname);
+    grpc_c = LoadLibrary(path);
+    if (grpc_c) {
+      grpc_rb_load_imports(grpc_c);
+      return 1;
+    } else {
+      *seek_back = _T('\0');
+      seek_back = _tcsrchr(path, _T('\\'));
+    }
   }
-  GRPCHost *hostConfig = [GRPCHost hostWithAddress:host];
-  hostConfig.primaryUserAgent = primaryUserAgent;
+
+  return 0;
 }
 
-+ (void)useSecondaryUserAgent:(NSString *)secondaryUserAgent forHost:(NSString *)host {
-  if (!secondaryUserAgent || !host) {
-    [NSException raise:NSInvalidArgumentException
-                format:@"secondaryUserAgent and host must be provided."];
-  }
-  GRPCHost *hostConfig = [GRPCHost hostWithAddress:host];
-  hostConfig.secondaryUserAgent = secondaryUserAgent;
-}
+#else
 
-@end
+int grpc_rb_load_core() { return 1; }
+
+#endif
