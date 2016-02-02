@@ -281,6 +281,7 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/transport/transport.h )
   s.files += %w( src/core/transport/transport_impl.h )
   s.files += %w( src/core/census/aggregation.h )
+  s.files += %w( src/core/census/context.h )
   s.files += %w( src/core/census/rpc_metric_id.h )
   s.files += %w( src/core/httpcli/httpcli_security_connector.c )
   s.files += %w( src/core/security/base64.c )
@@ -434,5 +435,6 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/census/initialize.c )
   s.files += %w( src/core/census/operation.c )
   s.files += %w( src/core/census/placeholders.c )
+  s.files += %w( src/core/census/tag_set.c )
   s.files += %w( src/core/census/tracing.c )
 end

@@ -31,47 +31,17 @@
  *
  */
 
-#ifndef TEST_QPS_DRIVER_H
-#define TEST_QPS_DRIVER_H
+#ifndef GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
+#define GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
 
-#include <memory>
+#include <grpc/census.h>
 
-#include "test/cpp/qps/histogram.h"
-#include "src/proto/grpc/testing/control.grpc.pb.h"
+#define GRPC_CENSUS_MAX_ON_THE_WIRE_TAG_BYTES 2048
 
-namespace grpc {
-namespace testing {
-class ResourceUsage {
- public:
-  ResourceUsage(double w, double u, double s, int c)
-      : wall_time_(w), user_time_(u), system_time_(s), cores_(c) {}
-  double wall_time() const { return wall_time_; }
-  double user_time() const { return user_time_; }
-  double system_time() const { return system_time_; }
-  int cores() const { return cores_; }
-
- private:
-  double wall_time_;
-  double user_time_;
-  double system_time_;
-  int cores_;
+/* census_context is the in-memory representation of information needed to
+ * maintain tracing, RPC statistics and resource usage information. */
+struct census_context {
+  census_tag_set *tags; /* Opaque data structure for census tags. */
 };
 
-struct ScenarioResult {
-  Histogram latencies;
-  std::vector<ResourceUsage> client_resources;
-  std::vector<ResourceUsage> server_resources;
-  ClientConfig client_config;
-  ServerConfig server_config;
-};
-
-std::unique_ptr<ScenarioResult> RunScenario(
-    const grpc::testing::ClientConfig& client_config, size_t num_clients,
-    const grpc::testing::ServerConfig& server_config, size_t num_servers,
-    int warmup_seconds, int benchmark_seconds, int spawn_local_worker_count);
-
-void RunQuit();
-}  // namespace testing
-}  // namespace grpc
-
-#endif
+#endif /* GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H */
