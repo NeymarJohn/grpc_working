@@ -150,6 +150,3 @@ message ServerStatus {
   // Number of cores on the server. See gpr_cpu_num_cores.
   int32 cores = 3;
 }
-
-message Void {
-}
