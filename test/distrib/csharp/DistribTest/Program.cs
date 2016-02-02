@@ -1,4 +1,6 @@
-// Copyright 2015, Google Inc.
+#region Copyright notice and license
+
+// Copyright 2015-2016, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,39 +29,22 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// An integration test service that covers all the method signature permutations
-// of unary/streaming requests/responses.
-syntax = "proto3";
+#endregion
 
-import "src/proto/grpc/testing/messages.proto";
-import "src/proto/grpc/testing/control.proto";
+﻿using System;
+using Grpc.Core;
 
-package grpc.testing;
-
-service BenchmarkService {
-  // One request followed by one response.
-  // The server returns the client payload as-is.
-  rpc UnaryCall(SimpleRequest) returns (SimpleResponse);
-
-  // One request followed by one response.
-  // The server returns the client payload as-is.
-  rpc StreamingCall(stream SimpleRequest) returns (stream SimpleResponse);
-}
-
-service WorkerService {
-  // Start server with specified workload.
-  // First request sent specifies the ServerConfig followed by ServerStatus
-  // response. After that, a "Mark" can be sent anytime to request the latest
-  // stats. Closing the stream will initiate shutdown of the test server
-  // and once the shutdown has finished, the OK status is sent to terminate
-  // this RPC.
-  rpc RunServer(stream ServerArgs) returns (stream ServerStatus);
-
-  // Start client with specified workload.
-  // First request sent specifies the ClientConfig followed by ClientStatus
-  // response. After that, a "Mark" can be sent anytime to request the latest
-  // stats. Closing the stream will initiate shutdown of the test client
-  // and once the shutdown has finished, the OK status is sent to terminate
-  // this RPC.
-  rpc RunClient(stream ClientArgs) returns (stream ClientStatus);
+namespace TestGrpcPackage
+{
+    class MainClass
+    {
+        public static void Main(string[] args)
+        {
+            // This code doesn't do much but makes sure the native extension is loaded
+            // which is what we are testing here.
+            Channel c = new Channel("127.0.0.1:1000", ChannelCredentials.Insecure);
+            c.ShutdownAsync().Wait();
+            Console.WriteLine("Success!");
+        }
+    }
 }
