@@ -2929,8 +2929,7 @@
       "src/core/support/time_precise.c", 
       "src/core/support/time_precise.h", 
       "src/core/support/time_win32.c", 
-      "src/core/support/tls_pthread.c", 
-      "src/core/support/wrap_memcpy.c"
+      "src/core/support/tls_pthread.c"
     ]
   }, 
   {
@@ -2988,6 +2987,7 @@
       "src/core/client_config/resolvers/sockaddr_resolver.h", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.h", 
+      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm_metadata.h", 
       "src/core/compression/message_compress.h", 
@@ -3162,6 +3162,8 @@
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.c", 
       "src/core/client_config/subchannel_factory.h", 
+      "src/core/client_config/subchannel_index.c", 
+      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 
@@ -3504,6 +3506,7 @@
       "src/core/client_config/resolvers/sockaddr_resolver.h", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.h", 
+      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm_metadata.h", 
       "src/core/compression/message_compress.h", 
@@ -3663,6 +3666,8 @@
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.c", 
       "src/core/client_config/subchannel_factory.h", 
+      "src/core/client_config/subchannel_index.c", 
+      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 

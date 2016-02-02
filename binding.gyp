@@ -528,7 +528,6 @@
         'src/core/support/time_precise.c',
         'src/core/support/time_win32.c',
         'src/core/support/tls_pthread.c',
-        'src/core/support/wrap_memcpy.c',
       ],
       "conditions": [
         ['OS == "mac"', {
@@ -599,6 +598,7 @@
         'src/core/client_config/resolvers/sockaddr_resolver.c',
         'src/core/client_config/subchannel.c',
         'src/core/client_config/subchannel_factory.c',
+        'src/core/client_config/subchannel_index.c',
         'src/core/client_config/uri_parser.c',
         'src/core/compression/algorithm.c',
         'src/core/compression/message_compress.c',
@@ -743,11 +743,6 @@
           'dependencies': [
             "boringssl",
             "z",
-          ]
-        }],
-        ['OS=="linux"', {
-          'ldflags': [
-            '-Wl,-wrap,memcpy'
           ]
         }]
       ],
