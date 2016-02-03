@@ -96,7 +96,6 @@ cc_library(
     "src/core/support/time_precise.c",
     "src/core/support/time_win32.c",
     "src/core/support/tls_pthread.c",
-    "src/core/support/wrap_memcpy.c",
   ],
   hdrs = [
     "include/grpc/support/alloc.h",
@@ -1172,7 +1171,6 @@ objc_library(
     "src/core/support/time_precise.c",
     "src/core/support/time_win32.c",
     "src/core/support/tls_pthread.c",
-    "src/core/support/wrap_memcpy.c",
   ],
   hdrs = [
     "include/grpc/support/alloc.h",

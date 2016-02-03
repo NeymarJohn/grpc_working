@@ -511,7 +511,6 @@ libs:
   - src/core/support/time_precise.c
   - src/core/support/time_win32.c
   - src/core/support/tls_pthread.c
-  - src/core/support/wrap_memcpy.c
   filegroups:
   - grpc_codegen
   secure: false
@@ -837,7 +836,6 @@ libs:
   - test/cpp/qps/driver.h
   - test/cpp/qps/histogram.h
   - test/cpp/qps/interarrival.h
-  - test/cpp/qps/limit_cores.h
   - test/cpp/qps/perf_db_client.h
   - test/cpp/qps/qps_worker.h
   - test/cpp/qps/report.h
@@ -855,7 +853,6 @@ libs:
   - test/cpp/qps/client_async.cc
   - test/cpp/qps/client_sync.cc
   - test/cpp/qps/driver.cc
-  - test/cpp/qps/limit_cores.cc
   - test/cpp/qps/perf_db_client.cc
   - test/cpp/qps/qps_worker.cc
   - test/cpp/qps/report.cc
@@ -875,7 +872,6 @@ libs:
   deps:
   - grpc
   - gpr
-  LDFLAGS: $(if $(subst Linux,,$(SYSTEM)),,-Wl$(comma)-wrap$(comma)memcpy)
   deps_linkage: static
   dll: only
   vs_config_type: DynamicLibrary
@@ -2593,7 +2589,6 @@ configs:
   asan:
     CC: clang
     CPPFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
-      -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     LD: clang
     LDFLAGS: -fsanitize=address
@@ -2606,7 +2601,6 @@ configs:
   asan-noleaks:
     CC: clang
     CPPFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
-      -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     LD: clang
     LDFLAGS: -fsanitize=address
@@ -2646,7 +2640,7 @@ configs:
     CC: clang
     CPPFLAGS: -O0 -fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer
       -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1 -Wno-unused-command-line-argument
-      -fPIE -pie -DGPR_NO_DIRECT_SYSCALLS
+      -fPIE -pie
     CXX: clang++
     DEFINES: NDEBUG
     LD: clang
@@ -2669,7 +2663,7 @@ configs:
   tsan:
     CC: clang
     CPPFLAGS: -O0 -fsanitize=thread -fno-omit-frame-pointer -Wno-unused-command-line-argument
-      -fPIE -pie -DGPR_NO_DIRECT_SYSCALLS
+      -fPIE -pie
     CXX: clang++
     LD: clang
     LDFLAGS: -fsanitize=thread -fPIE -pie $(if $(JENKINS_BUILD),-Wl$(comma)-Ttext-segment=0x7e0000000000,)
