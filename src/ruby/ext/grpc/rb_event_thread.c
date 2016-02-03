@@ -31,8 +31,6 @@
  *
  */
 
-#include <ruby/ruby.h>
-#include "rb_grpc_imports.generated.h"
 #include "rb_event_thread.h"
 
 #include <stdbool.h>
