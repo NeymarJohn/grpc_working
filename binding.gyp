@@ -516,6 +516,7 @@
         'src/core/support/string_posix.c',
         'src/core/support/string_win32.c',
         'src/core/support/subprocess_posix.c',
+        'src/core/support/subprocess_windows.c',
         'src/core/support/sync.c',
         'src/core/support/sync_posix.c',
         'src/core/support/sync_win32.c',
@@ -527,6 +528,7 @@
         'src/core/support/time_precise.c',
         'src/core/support/time_win32.c',
         'src/core/support/tls_pthread.c',
+        'src/core/support/wrap_memcpy.c',
       ],
       "conditions": [
         ['OS == "mac"', {
@@ -648,6 +650,7 @@
         'src/core/json/json_reader.c',
         'src/core/json/json_string.c',
         'src/core/json/json_writer.c',
+        'src/core/surface/alarm.c',
         'src/core/surface/api_trace.c',
         'src/core/surface/byte_buffer.c',
         'src/core/surface/byte_buffer_reader.c',
@@ -699,6 +702,7 @@
         'src/core/census/context.c',
         'src/core/census/initialize.c',
         'src/core/census/operation.c',
+        'src/core/census/placeholders.c',
         'src/core/census/tag_set.c',
         'src/core/census/tracing.c',
       ],
@@ -739,6 +743,11 @@
           'dependencies': [
             "boringssl",
             "z",
+          ]
+        }],
+        ['OS=="linux"', {
+          'ldflags': [
+            '-Wl,-wrap,memcpy'
           ]
         }]
       ],

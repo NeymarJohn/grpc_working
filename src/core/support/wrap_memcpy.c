@@ -31,24 +31,23 @@
  *
  */
 
-#import "GRPCCall+ChannelArg.h"
+#include <string.h>
 
-#import "private/GRPCHost.h"
+/* Provide a wrapped memcpy for targets that need to be backwards
+ * compatible with older libc's.
+ *
+ * Enable by setting LDFLAGS=-Wl,-wrap,memcpy when linking.
+ */
 
-@implementation GRPCCall (ChannelArg)
-
-static NSString *_userAgentPrefix;
-
-+ (void)setUserAgentPrefix:(NSString *)userAgentPrefix {
-  @synchronized(self) {
-    _userAgentPrefix = userAgentPrefix;
-  }
+#ifdef __linux__
+#ifdef __x86_64__
+__asm__(".symver memcpy,memcpy@GLIBC_2.2.5");
+void *__wrap_memcpy(void *destination, const void *source, size_t num) {
+  return memcpy(destination, source, num);
 }
-
-+ (NSString *)useUserAgentPrefix {
-  @synchronized(self) {
-    return _userAgentPrefix;
-  }
+#else /* !__x86_64__ */
+void *__wrap_memcpy(void *destination, const void *source, size_t num) {
+  return memmove(destination, source, num);
 }
-
-@end
+#endif
+#endif

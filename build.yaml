@@ -20,6 +20,7 @@ filegroups:
   - src/core/census/context.c
   - src/core/census/initialize.c
   - src/core/census/operation.c
+  - src/core/census/placeholders.c
   - src/core/census/tag_set.c
   - src/core/census/tracing.c
 - name: grpc++_base
@@ -334,6 +335,7 @@ filegroups:
   - src/core/json/json_reader.c
   - src/core/json/json_string.c
   - src/core/json/json_writer.c
+  - src/core/surface/alarm.c
   - src/core/surface/api_trace.c
   - src/core/surface/byte_buffer.c
   - src/core/surface/byte_buffer_reader.c
@@ -497,6 +499,7 @@ libs:
   - src/core/support/string_posix.c
   - src/core/support/string_win32.c
   - src/core/support/subprocess_posix.c
+  - src/core/support/subprocess_windows.c
   - src/core/support/sync.c
   - src/core/support/sync_posix.c
   - src/core/support/sync_win32.c
@@ -508,6 +511,7 @@ libs:
   - src/core/support/time_precise.c
   - src/core/support/time_win32.c
   - src/core/support/tls_pthread.c
+  - src/core/support/wrap_memcpy.c
   filegroups:
   - grpc_codegen
   secure: false
@@ -833,6 +837,7 @@ libs:
   - test/cpp/qps/driver.h
   - test/cpp/qps/histogram.h
   - test/cpp/qps/interarrival.h
+  - test/cpp/qps/limit_cores.h
   - test/cpp/qps/perf_db_client.h
   - test/cpp/qps/qps_worker.h
   - test/cpp/qps/report.h
@@ -850,6 +855,7 @@ libs:
   - test/cpp/qps/client_async.cc
   - test/cpp/qps/client_sync.cc
   - test/cpp/qps/driver.cc
+  - test/cpp/qps/limit_cores.cc
   - test/cpp/qps/perf_db_client.cc
   - test/cpp/qps/qps_worker.cc
   - test/cpp/qps/report.cc
@@ -869,6 +875,7 @@ libs:
   deps:
   - grpc
   - gpr
+  LDFLAGS: $(if $(subst Linux,,$(SYSTEM)),,-Wl$(comma)-wrap$(comma)memcpy)
   deps_linkage: static
   dll: only
   vs_config_type: DynamicLibrary
@@ -882,6 +889,16 @@ libs:
   - winsock
   - global
 targets:
+- name: alarm_test
+  build: test
+  language: c
+  src:
+  - test/core/surface/alarm_test.c
+  deps:
+  - grpc_test_util
+  - grpc
+  - gpr_test_util
+  - gpr
 - name: algorithm_test
   build: test
   language: c
@@ -2576,6 +2593,7 @@ configs:
   asan:
     CC: clang
     CPPFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
+      -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     LD: clang
     LDFLAGS: -fsanitize=address
@@ -2588,6 +2606,7 @@ configs:
   asan-noleaks:
     CC: clang
     CPPFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
+      -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     LD: clang
     LDFLAGS: -fsanitize=address
@@ -2627,7 +2646,7 @@ configs:
     CC: clang
     CPPFLAGS: -O0 -fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer
       -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1 -Wno-unused-command-line-argument
-      -fPIE -pie
+      -fPIE -pie -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     DEFINES: NDEBUG
     LD: clang
@@ -2650,7 +2669,7 @@ configs:
   tsan:
     CC: clang
     CPPFLAGS: -O0 -fsanitize=thread -fno-omit-frame-pointer -Wno-unused-command-line-argument
-      -fPIE -pie
+      -fPIE -pie -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     LD: clang
     LDFLAGS: -fsanitize=thread -fPIE -pie $(if $(JENKINS_BUILD),-Wl$(comma)-Ttext-segment=0x7e0000000000,)

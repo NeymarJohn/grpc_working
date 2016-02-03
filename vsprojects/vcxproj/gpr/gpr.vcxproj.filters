@@ -91,6 +91,9 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\support\subprocess_posix.c">
       <Filter>src\core\support</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\support\subprocess_windows.c">
+      <Filter>src\core\support</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\support\sync.c">
       <Filter>src\core\support</Filter>
     </ClCompile>
@@ -122,6 +125,9 @@
       <Filter>src\core\support</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\support\tls_pthread.c">
+      <Filter>src\core\support</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\support\wrap_memcpy.c">
       <Filter>src\core\support</Filter>
     </ClCompile>
   </ItemGroup>
