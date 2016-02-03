@@ -34,6 +34,8 @@
 #ifndef TEST_QPS_LIMIT_CORES_H
 #define TEST_QPS_LIMIT_CORES_H
 
+#include <vector>
+
 namespace grpc {
 namespace testing {
 /// LimitCores: allow this worker to only run on the cores specified in the
