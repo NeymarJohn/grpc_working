@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,29 @@
  *
  */
 
-#import "GRPCChannel.h"
+#include "loader.h"
 
-@interface GRPCUnsecuredChannel : GRPCChannel
-- (instancetype)initWithHost:(NSString *)host NS_DESIGNATED_INITIALIZER;
-@end
+#if GPR_WIN32
+
+int pygrpc_load_core(char *path) {
+  HMODULE grpc_c;
+#ifdef GPR_ARCH_32
+  /* Close your eyes for a moment, it'll all be over soon. */
+  char *six = strrchr(path, '6');
+  *six++ = '3';
+  *six = '2';
+#endif
+  grpc_c = LoadLibraryA(path);
+  if (grpc_c) {
+    pygrpc_load_imports(grpc_c);
+    return 1;
+  }
+
+  return 0;
+}
+
+#else
+
+int pygrpc_load_core(char *path) { return 1; }
+
+#endif
