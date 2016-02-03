@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
@@ -27,19 +26,12 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Builds C# interop server and client in a base image.
-set -e
 
-mkdir -p /var/local/git
-git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
+FROM centos:6
 
-# copy service account keys if available
-cp -r /var/local/jenkins/service_account $HOME || true
+RUN yum install -y git
+RUN yum install -y python
 
-cd /var/local/git/grpc
+RUN rpm -ivh http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+RUN yum install -y python-pip
 
-# build C# interop client & server
-make CONFIG=dbg grpc_csharp_ext
-(cd src/csharp && mono /var/local/NuGet.exe restore Grpc.sln)
-(cd src/csharp && xbuild Grpc.sln)

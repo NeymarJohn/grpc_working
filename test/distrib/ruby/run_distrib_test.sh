@@ -27,19 +27,10 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Builds C# interop server and client in a base image.
-set -e
 
-mkdir -p /var/local/git
-git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
+set -ex
 
-# copy service account keys if available
-cp -r /var/local/jenkins/service_account $HOME || true
+cd $(dirname $0)
 
-cd /var/local/git/grpc
+# do something ruby-ish
 
-# build C# interop client & server
-make CONFIG=dbg grpc_csharp_ext
-(cd src/csharp && mono /var/local/NuGet.exe restore Grpc.sln)
-(cd src/csharp && xbuild Grpc.sln)
