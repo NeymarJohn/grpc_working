@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,18 +30,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#import "GRPCCall.h"
 
-/**
- * Methods to configure GRPC channel options.
- */
-@interface GRPCCall (ChannelArg)
+#import "GRPCUnsecuredChannel.h"
 
-/**
- * Use the provided @c userAgentPrefix at the beginning of the HTTP User Agent string for all calls.
- */
-+ (void)setUserAgentPrefix:(NSString *)userAgentPrefix;
+#include <grpc/grpc.h>
 
-+ (NSString *)useUserAgentPrefix;
+@implementation GRPCUnsecuredChannel
 
+- (instancetype)initWithHost:(NSString *)host {
+  return (self = [super initWithChannel:grpc_insecure_channel_create(host.UTF8String, NULL, NULL)]);
+}
+
+// TODO(jcanizales): GRPCSecureChannel and GRPCUnsecuredChannel are just convenience initializers
+// for GRPCChannel. Move them into GRPCChannel, which will make the following unnecessary.
+- (instancetype)initWithChannel:(grpc_channel *)unmanagedChannel {
+  [NSException raise:NSInternalInconsistencyException format:@"use the other initializer"];
+  return [self initWithHost:nil]; // silence warnings
+}
 @end
