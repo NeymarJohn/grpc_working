@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Copyright 2016, Google Inc.
 # All rights reserved.
 #
@@ -27,23 +27,13 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# This script is invoked by Jenkins and triggers run of distribution tests.
-#
-# To prevent cygwin bash complaining about empty lines ending with \r
-# we set the igncr option. The option doesn't exist on Linux, so we fallback
-# to just 'set -ex' there.
-# NOTE: No empty lines should appear in this file before igncr is set!
-set -ex -o igncr || set -ex
 
-curr_platform="$platform"
-unset platform  # variable named 'platform' breaks the windows build
+set -ex
 
-# Try collecting the artifacts to test from previous Jenkins build step
-mkdir -p input_artifacts
-cp -r platform=windows/artifacts/* input_artifacts || true
-cp -r platform=linux/artifacts/* input_artifacts || true
+cd $(dirname $0)/../..
 
-python tools/run_tests/task_runner.py -j 4 \
-    -f distribtest $language $curr_platform $architecture \
-    $@
+cp -r architecture={x86,x64},language=node,platform={windows,linux,macos}/artifacts/* artifacts/ || true
+
+npm pack
+
+cp grpc-*.tgz artifacts/
