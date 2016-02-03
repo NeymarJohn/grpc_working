@@ -511,7 +511,6 @@ libs:
   - src/core/support/time_precise.c
   - src/core/support/time_win32.c
   - src/core/support/tls_pthread.c
-  - src/core/support/wrap_memcpy.c
   filegroups:
   - grpc_codegen
   secure: false
@@ -875,7 +874,6 @@ libs:
   deps:
   - grpc
   - gpr
-  LDFLAGS: $(if $(subst Linux,,$(SYSTEM)),,-Wl$(comma)-wrap$(comma)memcpy)
   deps_linkage: static
   dll: only
   vs_config_type: DynamicLibrary
