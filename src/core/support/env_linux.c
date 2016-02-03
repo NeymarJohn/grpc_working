@@ -42,23 +42,33 @@
 
 #include "src/core/support/env.h"
 
-#include <dlfcn.h>
 #include <stdlib.h>
 
 #include <grpc/support/log.h>
 #include <grpc/support/string_util.h>
-#include <grpc/support/useful.h>
 
 #include "src/core/support/string.h"
 
+/* Declare weak symbols for versions of secure_getenv that *may* be
+ * on a users machine. Older libc's call this __secure_getenv, even
+ * older don't support the functionality.
+ *
+ * If a symbol is not present, these will be equal to NULL.
+ */
+char *__attribute__((weak)) secure_getenv(const char *name);
+char *__attribute__((weak)) __secure_getenv(const char *name);
+
 char *gpr_getenv(const char *name) {
-  typedef char *(*getenv_type)(const char *);
-  static getenv_type getenv_func = NULL;
+  static char *(*getenv_func)(const char *) = secure_getenv;
   /* Check to see which getenv variant is supported (go from most
    * to least secure) */
-  const char *names[] = {"secure_getenv", "__secure_getenv", "getenv"};
-  for (size_t i = 0; getenv_func == NULL && i < GPR_ARRAY_SIZE(names); i++) {
-    getenv_func = (getenv_type)dlsym(RTLD_DEFAULT, names[i]);
+  if (getenv_func == NULL) {
+    getenv_func = __secure_getenv;
+    if (getenv_func == NULL) {
+      gpr_log(GPR_DEBUG,
+              "No secure_getenv. Please consider upgrading your libc.");
+      getenv_func = getenv;
+    }
   }
   char *result = getenv_func(name);
   return result == NULL ? result : gpr_strdup(result);
