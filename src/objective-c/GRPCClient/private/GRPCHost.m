@@ -37,8 +37,7 @@
 
 #import "GRPCChannel.h"
 #import "GRPCCompletionQueue.h"
-#import "GRPCSecureChannel.h"
-#import "GRPCUnsecuredChannel.h"
+#import "NSDictionary+GRPC.h"
 
 @interface GRPCHost ()
 // TODO(mlumish): Investigate whether caching channels with strong links is a good idea.
@@ -106,13 +105,26 @@
 - (GRPCChannel *)channel {
   // Create it lazily, because we don't want to open a connection just because someone is
   // configuring a host.
+
   if (!_channel) {
+    NSMutableDictionary *args = [NSMutableDictionary dictionary];
+    if (_primaryUserAgent) {
+      args[@GRPC_ARG_PRIMARY_USER_AGENT_STRING] = _primaryUserAgent;
+    }
+    if (_secondaryUserAgent) {
+      args[@GRPC_ARG_SECONDARY_USER_AGENT_STRING] = _secondaryUserAgent;
+    }
+
     if (_secure) {
-      _channel = [[GRPCSecureChannel alloc] initWithHost:_address
-                                      pathToCertificates:_pathToCertificates
-                                        hostNameOverride:_hostNameOverride];
+      if (_hostNameOverride) {
+        args[@GRPC_SSL_TARGET_NAME_OVERRIDE_ARG] = _hostNameOverride;
+      }
+
+      _channel = [GRPCChannel secureChannelWithHost:_address
+                                 pathToCertificates:_pathToCertificates
+                                        channelArgs:args];
     } else {
-      _channel = [[GRPCUnsecuredChannel alloc] initWithHost:_address];
+      _channel = [GRPCChannel insecureChannelWithHost:_address channelArgs:args];
     }
   }
   return _channel;

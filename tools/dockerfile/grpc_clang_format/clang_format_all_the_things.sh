@@ -44,7 +44,7 @@ for dir in $DIRS
 do
   for glob in $GLOB
   do
-    files="$files `find /local-code/$dir -name $glob -and -not -name *.generated.*`"
+    files="$files `find /local-code/$dir -name $glob`"
   done
 done
 
