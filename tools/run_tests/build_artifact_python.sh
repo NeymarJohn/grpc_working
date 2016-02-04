@@ -32,15 +32,13 @@ set -ex
 
 cd $(dirname $0)/../..
 
-if [ "$SKIP_PIP_INSTALL" == "" ]
-then
-  pip install --upgrade six
-  pip install --upgrade setuptools
-  pip install -rrequirements.txt
-fi
+pip install --upgrade six
+pip install --upgrade setuptools
+
+pip install -rrequirements.txt
 
 GRPC_PYTHON_BUILD_WITH_CYTHON=1 ${SETARCH_CMD} python setup.py \
-    ${BDIST_WHEEL_MAYBE} \
+    bdist_wheel \
     sdist \
     bdist_egg_grpc_custom
 
