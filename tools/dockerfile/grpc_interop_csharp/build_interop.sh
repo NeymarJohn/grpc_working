@@ -39,6 +39,8 @@ cp -r /var/local/jenkins/service_account $HOME || true
 
 cd /var/local/git/grpc
 
+make install-certs
+
 # build C# interop client & server
 make CONFIG=dbg grpc_csharp_ext
 (cd src/csharp && mono /var/local/NuGet.exe restore Grpc.sln)
