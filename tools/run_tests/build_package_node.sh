@@ -32,8 +32,9 @@ set -ex
 
 cd $(dirname $0)/../..
 
-cp -r $EXTERNAL_GIT_ROOT/architecture={x86,x64},language=node,platform={windows,linux,macos}/artifacts/* artifacts/ || true
+mkdir -p artifacts/
+cp -r architecture={x86,x64},language=node,platform={windows,linux,macos}/artifacts/* artifacts/ || true
 
 npm pack
 
-cp grpc-*.tgz artifacts/grpc.tgz
+cp grpc-*.tgz artifacts/

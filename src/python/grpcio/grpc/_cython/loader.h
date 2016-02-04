@@ -1,7 +1,6 @@
-#!/usr/bin/env node
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,26 +31,15 @@
  *
  */
 
-var grpc = require('grpc');
+#ifndef PYGRPC_LOADER_H_
+#define PYGRPC_LOADER_H_
 
-function identity(x) {
-  return x;
-}
+#include "imports.generated.h"
 
-var Client = grpc.makeGenericClientConstructor({
-  'echo' : {
-    path: '/buffer/echo',
-    requestStream: false,
-    responseStream: false,
-    requestSerialize: identity,
-    requestDeserialize: identity,
-    responseSerialize: identity,
-    responseDeserialize: identity
-  }
-});
+/* Additional inclusions not covered by "imports.generated.h" */
+#include <grpc/byte_buffer_reader.h>
 
-var client = new Client("localhost:1000", grpc.credentials.createInsecure());
+/* Attempts to load the core if necessary, and return non-zero upon succes. */
+int pygrpc_load_core(char *path);
 
-client.$channel.close();
-
-console.log("Success!");
+#endif /* GRPC_RB_BYTE_BUFFER_H_ */
