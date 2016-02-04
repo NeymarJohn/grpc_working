@@ -97,13 +97,9 @@ class PythonArtifact:
       raise Exception('Not supported yet.')
     else:
       if self.platform == 'linux':
-        environ = {}
-        if self.arch == 'x86':
-          environ['SETARCH_CMD'] = 'linux32'
         return create_docker_jobspec(self.name,
             'tools/dockerfile/grpc_artifact_linux_%s' % self.arch,
-            'tools/run_tests/build_artifact_python.sh',
-            environ=environ)
+            'tools/run_tests/build_artifact_python.sh')
       else:
         return create_jobspec(self.name,
                               ['tools/run_tests/build_artifact_python.sh'])
@@ -131,7 +127,7 @@ class RubyArtifact:
       if self.platform == 'linux':
         environ = {}
         if self.arch == 'x86':
-          environ['SETARCH_CMD'] = 'linux32'
+          environ['SETARCH_CMD'] = 'i386'
         return create_docker_jobspec(self.name,
             'tools/dockerfile/grpc_artifact_linux_%s' % self.arch,
             'tools/run_tests/build_artifact_ruby.sh',
@@ -232,5 +228,4 @@ def targets():
           [PythonArtifact('linux', 'x86'),
            PythonArtifact('linux', 'x64'),
            RubyArtifact('linux', 'x86'),
-           RubyArtifact('linux', 'x64'),
-           RubyArtifact('macos', 'x64')])
+           RubyArtifact('linux', 'x64')])
