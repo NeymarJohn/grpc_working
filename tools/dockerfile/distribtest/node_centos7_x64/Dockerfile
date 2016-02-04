@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2016, Google Inc.
 # All rights reserved.
 #
@@ -28,20 +27,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -ex
+FROM centos:7
 
-cd $(dirname $0)/../..
+RUN yum install -y git
+RUN yum install -y curl
 
-pip install --upgrade six
-pip install --upgrade setuptools
-
-pip install -rrequirements.txt
-
-GRPC_PYTHON_BUILD_WITH_CYTHON=1 python setup.py \
-    bdist_wheel \
-    sdist \
-    bdist_egg_grpc_custom
-
-mkdir -p artifacts
-
-cp -r dist/* artifacts
+# Install nvm
+RUN touch .profile
+RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.30.2/install.sh | bash

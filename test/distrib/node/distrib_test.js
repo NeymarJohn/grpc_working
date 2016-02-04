@@ -1,6 +1,7 @@
+#!/usr/bin/env node
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,29 +32,26 @@
  *
  */
 
-#include "loader.h"
+var grpc = require('grpc');
 
-#if GPR_WIN32
-
-int pygrpc_load_core(char *path) {
-  HMODULE grpc_c;
-#ifdef GPR_ARCH_32
-  /* Close your eyes for a moment, it'll all be over soon. */
-  char *six = strrchr(path, '6');
-  *six++ = '3';
-  *six = '2';
-#endif
-  grpc_c = LoadLibraryA(path);
-  if (grpc_c) {
-    pygrpc_load_imports(grpc_c);
-    return 1;
-  }
-
-  return 0;
+function identity(x) {
+  return x;
 }
 
-#else
+var Client = grpc.makeGenericClientConstructor({
+  'echo' : {
+    path: '/buffer/echo',
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: identity,
+    requestDeserialize: identity,
+    responseSerialize: identity,
+    responseDeserialize: identity
+  }
+});
 
-int pygrpc_load_core(char *path) { return 1; }
+var client = new Client("localhost:1000", grpc.credentials.createInsecure());
 
-#endif
+client.$channel.close();
+
+console.log("Success!");

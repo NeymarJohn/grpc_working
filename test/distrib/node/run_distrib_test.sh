@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2016, Google Inc.
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,18 +30,23 @@
 
 set -ex
 
-cd $(dirname $0)/../..
+cd $(dirname $0)
 
-pip install --upgrade six
-pip install --upgrade setuptools
+nvm install $1
 
-pip install -rrequirements.txt
+npm install -g node-static
 
-GRPC_PYTHON_BUILD_WITH_CYTHON=1 python setup.py \
-    bdist_wheel \
-    sdist \
-    bdist_egg_grpc_custom
+STATIC_SERVER=localhost
+STATIC_PORT=8080
 
-mkdir -p artifacts
+# Serves the input_artifacts directory statically at localhost:8080
+static "$EXTERNAL_GIT_ROOT/input_artifacts" -a STATIC_SERVER -p STATIC_PORT &
+STATIC_PID=$!
 
-cp -r dist/* artifacts
+STATIC_URL="http://$STATIC_SERVER:$STATIC_PORT/"
+
+npm install $STATIC_URL/grpc.tgz --grpc_node_binary_host_mirror=$STATIC_URL
+
+kill $STATIC_PID
+
+./distrib_test.js

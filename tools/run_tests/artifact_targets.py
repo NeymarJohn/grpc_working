@@ -96,19 +96,13 @@ class PythonArtifact:
     if self.platform == 'windows':
       raise Exception('Not supported yet.')
     else:
-      environ = {}
       if self.platform == 'linux':
-        if self.arch == 'x86':
-          environ['SETARCH_CMD'] = 'linux32'
         return create_docker_jobspec(self.name,
             'tools/dockerfile/grpc_artifact_linux_%s' % self.arch,
-            'tools/run_tests/build_artifact_python.sh',
-            environ=environ)
+            'tools/run_tests/build_artifact_python.sh')
       else:
-        environ['SKIP_PIP_INSTALL'] = 'TRUE'
         return create_jobspec(self.name,
-                              ['tools/run_tests/build_artifact_python.sh'],
-                              environ=environ)
+                              ['tools/run_tests/build_artifact_python.sh'])
 
   def __str__(self):
     return self.name
@@ -133,7 +127,7 @@ class RubyArtifact:
       if self.platform == 'linux':
         environ = {}
         if self.arch == 'x86':
-          environ['SETARCH_CMD'] = 'linux32'
+          environ['SETARCH_CMD'] = 'i386'
         return create_docker_jobspec(self.name,
             'tools/dockerfile/grpc_artifact_linux_%s' % self.arch,
             'tools/run_tests/build_artifact_ruby.sh',
@@ -233,7 +227,5 @@ def targets():
            for arch in ('x86', 'x64')] +
           [PythonArtifact('linux', 'x86'),
            PythonArtifact('linux', 'x64'),
-           PythonArtifact('macos', 'x64'),
            RubyArtifact('linux', 'x86'),
-           RubyArtifact('linux', 'x64'),
-           RubyArtifact('macos', 'x64')])
+           RubyArtifact('linux', 'x64')])
