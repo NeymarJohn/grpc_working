@@ -32,7 +32,6 @@ set -ex
 
 cd $(dirname $0)/../..
 
-mkdir -p artifacts/
 cp -r architecture={x86,x64},language=node,platform={windows,linux,macos}/artifacts/* artifacts/ || true
 
 npm pack
