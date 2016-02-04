@@ -31,16 +31,17 @@
  *
  */
 
-#include "src/core/census/context.h"
+#ifndef GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
+#define GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
 
-#include <string.h>
 #include <grpc/census.h>
-#include <grpc/support/alloc.h>
 
-/* Placeholder implementation only. */
+#define GRPC_CENSUS_MAX_ON_THE_WIRE_TAG_BYTES 2048
 
-size_t census_context_serialize(const census_context *context, char *buffer,
-                                size_t buf_size) {
-  /* TODO(aveitch): implement serialization */
-  return 0;
-}
+/* census_context is the in-memory representation of information needed to
+ * maintain tracing, RPC statistics and resource usage information. */
+struct census_context {
+  census_tag_set *tags; /* Opaque data structure for census tags. */
+};
+
+#endif /* GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H */
