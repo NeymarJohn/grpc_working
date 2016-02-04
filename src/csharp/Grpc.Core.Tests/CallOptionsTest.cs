@@ -54,20 +54,10 @@ namespace Grpc.Core.Tests
             var deadline = DateTime.UtcNow;
             Assert.AreEqual(deadline, options.WithDeadline(deadline).Deadline.Value);
 
-            var cancellationToken = new CancellationTokenSource().Token;
-            Assert.AreEqual(cancellationToken, options.WithCancellationToken(cancellationToken).CancellationToken);
+            var token = new CancellationTokenSource().Token;
+            Assert.AreEqual(token, options.WithCancellationToken(token).CancellationToken);
 
-            var writeOptions = new WriteOptions();
-            Assert.AreSame(writeOptions, options.WithWriteOptions(writeOptions).WriteOptions);
-
-            var propagationToken = new ContextPropagationToken(CallSafeHandle.NullInstance, DateTime.UtcNow, 
-                CancellationToken.None, ContextPropagationOptions.Default);
-            Assert.AreSame(propagationToken, options.WithPropagationToken(propagationToken).PropagationToken);
-
-            var credentials = new FakeCallCredentials();
-            Assert.AreSame(credentials, options.WithCredentials(credentials).Credentials);
-
-            // Check that the original instance is unchanged.
+            // Change original instance is unchanged.
             Assert.IsNull(options.Headers);
             Assert.IsNull(options.Deadline);
             Assert.AreEqual(CancellationToken.None, options.CancellationToken);
