@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
  *
  * Copyright 2015-2016, Google Inc.
@@ -31,42 +32,26 @@
  *
  */
 
-/* for secure_getenv. */
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
+var grpc = require('grpc');
 
-#include <grpc/support/port_platform.h>
+function identity(x) {
+  return x;
+}
 
-#ifdef GPR_LINUX_ENV
-
-#include "src/core/support/env.h"
-
-#include <dlfcn.h>
-#include <stdlib.h>
-
-#include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
-#include <grpc/support/useful.h>
-
-#include "src/core/support/string.h"
-
-char *gpr_getenv(const char *name) {
-  typedef char *(*getenv_type)(const char *);
-  static getenv_type getenv_func = NULL;
-  /* Check to see which getenv variant is supported (go from most
-   * to least secure) */
-  const char *names[] = {"secure_getenv", "__secure_getenv", "getenv"};
-  for (size_t i = 0; getenv_func == NULL && i < GPR_ARRAY_SIZE(names); i++) {
-    getenv_func = (getenv_type)dlsym(RTLD_DEFAULT, names[i]);
+var Client = grpc.makeGenericClientConstructor({
+  'echo' : {
+    path: '/buffer/echo',
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: identity,
+    requestDeserialize: identity,
+    responseSerialize: identity,
+    responseDeserialize: identity
   }
-  char *result = getenv_func(name);
-  return result == NULL ? result : gpr_strdup(result);
-}
+});
 
-void gpr_setenv(const char *name, const char *value) {
-  int res = setenv(name, value, 1);
-  GPR_ASSERT(res == 0);
-}
+var client = new Client("localhost:1000", grpc.credentials.createInsecure());
 
-#endif /* GPR_LINUX_ENV */
+client.$channel.close();
+
+console.log("Success!");
