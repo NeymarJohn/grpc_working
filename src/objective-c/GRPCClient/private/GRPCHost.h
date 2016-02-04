@@ -39,7 +39,6 @@ struct grpc_call;
 @interface GRPCHost : NSObject
 
 @property(nonatomic, readonly) NSString *address;
-@property(nonatomic, copy) NSString *userAgentPrefix;
 
 /** The following properties should only be modified for testing: */
 

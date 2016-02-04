@@ -34,7 +34,6 @@
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
 
-#import <GRPCClient/GRPCCall+ChannelArg.h>
 #import <GRPCClient/GRPCCall+Tests.h>
 #import <HelloWorld/Helloworld.pbrpc.h>
 
@@ -43,7 +42,6 @@ static NSString * const kHostAddress = @"localhost:50051";
 int main(int argc, char * argv[]) {
   @autoreleasepool {
     [GRPCCall useInsecureConnectionsForHost:kHostAddress];
-    [GRPCCall setUserAgentPrefix:@"HelloWorld/1.0" forHost:kHostAddress];
 
     HLWGreeter *client = [[HLWGreeter alloc] initWithHost:kHostAddress];
 
