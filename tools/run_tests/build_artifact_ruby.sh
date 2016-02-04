@@ -32,7 +32,7 @@ set -ex
 
 cd $(dirname $0)/../..
 
-${SETARCH_CMD} bundle install
+bundle install
 
 ${SETARCH_CMD} rake native gem
 
