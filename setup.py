@@ -93,9 +93,8 @@ if "linux" in sys.platform:
 if not "win32" in sys.platform:
   EXTENSION_LIBRARIES += ('m',)
 
-DEFINE_MACROS = (('OPENSSL_NO_ASM', 1), ('_WIN32_WINNT', 0x600))
+DEFINE_MACROS = (('OPENSSL_NO_ASM', 1), ('_WIN32_WINNT', 0x600), ('GPR_BACKWARDS_COMPATIBILITY_MODE', 1),)
 
-CFLAGS = ()
 LDFLAGS = ()
 if "linux" in sys.platform:
   LDFLAGS += ('-Wl,-wrap,memcpy',)
@@ -216,7 +215,7 @@ else:
 
 setuptools.setup(
     name='grpcio',
-    version='0.12.0b9',
+    version='0.12.0b8',
     license=LICENSE,
     ext_modules=CYTHON_EXTENSION_MODULES,
     packages=list(PACKAGES),
