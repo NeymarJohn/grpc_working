@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2016, Google Inc.
 # All rights reserved.
 #
@@ -28,27 +27,28 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -ex
+"""Tests the implementations module of the gRPC Python Beta API."""
 
-cd $(dirname $0)/../..
+import unittest
 
-DIFF_COMMAND="git diff --name-only HEAD | grep -v ^third_party/"
+from grpc.beta import implementations
+from tests.unit import resources
 
-if [ "x$1" == 'x--pre-commit' ]; then
-  if eval $DIFF_COMMAND | grep '^build.yaml$'; then
-    ./tools/buildgen/generate_projects.sh
-  else
-    templates=$(eval $DIFF_COMMAND | grep '\.template$' || true)
-    if [ -n "$templates" ]; then
-      ./tools/buildgen/generate_projects.sh --templates $templates
-    fi
-  fi
-  CHANGED_FILES=$(eval $DIFF_COMMAND) ./tools/distrib/clang_format_code.sh
-  ./tools/distrib/check_copyright.py --fix --precommit
-  ./tools/distrib/check_trailing_newlines.sh
-else
-  ./tools/buildgen/generate_projects.sh
-  ./tools/distrib/clang_format_code.sh
-  ./tools/distrib/check_copyright.py --fix
-  ./tools/distrib/check_trailing_newlines.sh
-fi
+
+class ChannelCredentialsTest(unittest.TestCase):
+
+  def test_runtime_provided_root_certificates(self):
+    channel_credentials = implementations.ssl_channel_credentials(
+        None, None, None)
+    self.assertIsInstance(
+        channel_credentials, implementations.ChannelCredentials)
+  
+  def test_application_provided_root_certificates(self):
+    channel_credentials = implementations.ssl_channel_credentials(
+        resources.test_root_certificates(), None, None)
+    self.assertIsInstance(
+        channel_credentials, implementations.ChannelCredentials)
+
+
+if __name__ == '__main__':
+  unittest.main(verbosity=2)

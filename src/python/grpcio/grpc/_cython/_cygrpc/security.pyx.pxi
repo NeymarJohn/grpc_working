@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2016, Google Inc.
 # All rights reserved.
 #
@@ -28,16 +27,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -ex
+from libc.string cimport memcpy
 
-cd $(dirname $0)/../..
+import pkg_resources
 
-mkdir -p artifacts/
 
-# All the ruby packages have been built in the artifact phase already
-# and we only collect them here to deliver them to the distribtest phase.
-cp -r $EXTERNAL_GIT_ROOT/architecture={x86,x64},language=ruby,platform={windows,linux,macos}/artifacts/* artifacts/ || true
-
-# TODO: all the artifact builder configurations generate a grpc-VERSION.gem
-# source distribution package, and only one of them will end up
-# in the artifacts/ directory. They should be all equivalent though.
+cdef grpc_ssl_roots_override_result ssl_roots_override_callback(
+    char **pem_root_certs) with gil:
+  temporary_pem_root_certs = pkg_resources.resource_string(
+      'grpc._cython', '_credentials/roots.pem')
+  pem_root_certs[0] = <char *>gpr_malloc(len(temporary_pem_root_certs) + 1)
+  memcpy(
+      pem_root_certs[0], <char *>temporary_pem_root_certs,
+      len(temporary_pem_root_certs))
+  pem_root_certs[0][len(temporary_pem_root_certs)] = '\0'
+  return GRPC_SSL_ROOTS_OVERRIDE_OK
