@@ -452,46 +452,17 @@ class End2endTest : public ::testing::TestWithParam<TestScenario> {
   TestServiceImplDupPkg dup_pkg_service_;
 };
 
-static void SendRpc(grpc::testing::EchoTestService::Stub* stub, int num_rpcs,
-                    bool with_binary_metadata) {
+static void SendRpc(grpc::testing::EchoTestService::Stub* stub, int num_rpcs) {
   EchoRequest request;
   EchoResponse response;
   request.set_message("Hello hello hello hello");
 
   for (int i = 0; i < num_rpcs; ++i) {
     ClientContext context;
-    if (with_binary_metadata) {
-      char bytes[8] = {'\0', '\1', '\2', '\3', '\4', '\5', '\6', (char)i};
-      context.AddMetadata("custom-bin", grpc::string(bytes, 8));
-    }
     context.set_compression_algorithm(GRPC_COMPRESS_GZIP);
     Status s = stub->Echo(&context, request, &response);
     EXPECT_EQ(response.message(), request.message());
     EXPECT_TRUE(s.ok());
-  }
-}
-
-TEST_P(End2endTest, MultipleRpcsWithVariedBinaryMetadataValue) {
-  ResetStub();
-  std::vector<std::thread*> threads;
-  for (int i = 0; i < 10; ++i) {
-    threads.push_back(new std::thread(SendRpc, stub_.get(), 10, true));
-  }
-  for (int i = 0; i < 10; ++i) {
-    threads[i]->join();
-    delete threads[i];
-  }
-}
-
-TEST_P(End2endTest, MultipleRpcs) {
-  ResetStub();
-  std::vector<std::thread*> threads;
-  for (int i = 0; i < 10; ++i) {
-    threads.push_back(new std::thread(SendRpc, stub_.get(), 10, false));
-  }
-  for (int i = 0; i < 10; ++i) {
-    threads[i]->join();
-    delete threads[i];
   }
 }
 
@@ -832,14 +803,14 @@ class ProxyEnd2endTest : public End2endTest {
 
 TEST_P(ProxyEnd2endTest, SimpleRpc) {
   ResetStub();
-  SendRpc(stub_.get(), 1, false);
+  SendRpc(stub_.get(), 1);
 }
 
 TEST_P(ProxyEnd2endTest, MultipleRpcs) {
   ResetStub();
   std::vector<std::thread*> threads;
   for (int i = 0; i < 10; ++i) {
-    threads.push_back(new std::thread(SendRpc, stub_.get(), 10, false));
+    threads.push_back(new std::thread(SendRpc, stub_.get(), 10));
   }
   for (int i = 0; i < 10; ++i) {
     threads[i]->join();

@@ -405,7 +405,6 @@
     <ClInclude Include="$(SolutionDir)\..\src\core\transport\transport_impl.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\census\aggregation.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\census\context.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\census\log.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\census\rpc_metric_id.h" />
   </ItemGroup>
   <ItemGroup>
@@ -607,8 +606,6 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\json\json_writer.c">
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\surface\alarm.c">
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\api_trace.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\byte_buffer.c">
@@ -709,11 +706,7 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\initialize.c">
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\census\log.c">
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\operation.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\census\placeholders.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\tag_set.c">
     </ClCompile>

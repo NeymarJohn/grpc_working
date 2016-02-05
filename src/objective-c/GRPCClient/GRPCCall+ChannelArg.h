@@ -30,22 +30,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#import "GRPCCall.h"
 
-#ifndef TEST_QPS_LIMIT_CORES_H
-#define TEST_QPS_LIMIT_CORES_H
+/**
+ * Methods to configure GRPC channel options.
+ */
+@interface GRPCCall (ChannelArg)
 
-#include <vector>
+/**
+ * Use the provided @c userAgentPrefix at the beginning of the HTTP User Agent string for all calls
+ * to the specified @c host.
+ */
++ (void)setUserAgentPrefix:(NSString *)userAgentPrefix forHost:(NSString *)host;
 
-namespace grpc {
-namespace testing {
-/// LimitCores: allow this worker to only run on the cores specified in the
-/// array \a cores, which is of length \a cores_size.
-///
-/// LimitCores takes array and size arguments (instead of vector) for direct
-/// conversion from repeated field of protobuf. Use a cores_size of 0 to remove
-/// existing limits (from an empty repeated field)
-int LimitCores(const int *cores, int cores_size);
-}  // namespace testing
-}  // namespace grpc
-
-#endif  // TEST_QPS_LIMIT_CORES_H
+@end

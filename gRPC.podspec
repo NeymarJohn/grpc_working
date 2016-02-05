@@ -151,7 +151,6 @@ Pod::Spec.new do |s|
                       'src/core/support/string_posix.c',
                       'src/core/support/string_win32.c',
                       'src/core/support/subprocess_posix.c',
-                      'src/core/support/subprocess_windows.c',
                       'src/core/support/sync.c',
                       'src/core/support/sync_posix.c',
                       'src/core/support/sync_win32.c',
@@ -292,7 +291,6 @@ Pod::Spec.new do |s|
                       'src/core/transport/transport_impl.h',
                       'src/core/census/aggregation.h',
                       'src/core/census/context.h',
-                      'src/core/census/log.h',
                       'src/core/census/rpc_metric_id.h',
                       'include/grpc/grpc_security.h',
                       'include/grpc/byte_buffer.h',
@@ -400,7 +398,6 @@ Pod::Spec.new do |s|
                       'src/core/json/json_reader.c',
                       'src/core/json/json_string.c',
                       'src/core/json/json_writer.c',
-                      'src/core/surface/alarm.c',
                       'src/core/surface/api_trace.c',
                       'src/core/surface/byte_buffer.c',
                       'src/core/surface/byte_buffer_reader.c',
@@ -451,9 +448,7 @@ Pod::Spec.new do |s|
                       'src/core/transport/transport_op_string.c',
                       'src/core/census/context.c',
                       'src/core/census/initialize.c',
-                      'src/core/census/log.c',
                       'src/core/census/operation.c',
-                      'src/core/census/placeholders.c',
                       'src/core/census/tag_set.c',
                       'src/core/census/tracing.c'
 
@@ -596,7 +591,6 @@ Pod::Spec.new do |s|
                               'src/core/transport/transport_impl.h',
                               'src/core/census/aggregation.h',
                               'src/core/census/context.h',
-                              'src/core/census/log.h',
                               'src/core/census/rpc_metric_id.h'
 
     ss.header_mappings_dir = '.'
