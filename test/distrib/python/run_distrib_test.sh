@@ -52,6 +52,7 @@ pip install --upgrade futures
 
 GRPC_PYTHON_BINARIES_REPOSITORY="${BDIST_DIR}" \
     pip install \
-    "${SDIST_ARCHIVE}"
+    "${SDIST_ARCHIVE}" \
+    --install-option="--use-grpc-custom-bdist"
 
 python distribtest.py
