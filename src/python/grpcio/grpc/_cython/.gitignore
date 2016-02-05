@@ -1,4 +1,5 @@
-cygrpc.c
+*.h
+*.c
 *.a
 *.so
 *.dll

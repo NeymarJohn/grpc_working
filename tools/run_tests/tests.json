@@ -113,7 +113,7 @@
     "exclude_configs": [], 
     "flaky": false, 
     "language": "c", 
-    "name": "census_context_test", 
+    "name": "census_log_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -1437,6 +1437,26 @@
       "linux", 
       "mac", 
       "posix"
+    ]
+  }, 
+  {
+    "args": [], 
+    "ci_platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
+    ], 
+    "cpu_cost": 1.0, 
+    "exclude_configs": [], 
+    "flaky": false, 
+    "language": "c", 
+    "name": "tag_set_test", 
+    "platforms": [
+      "linux", 
+      "mac", 
+      "posix", 
+      "windows"
     ]
   }, 
   {
