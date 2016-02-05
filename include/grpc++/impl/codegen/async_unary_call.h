@@ -62,53 +62,40 @@ class ClientAsyncResponseReader GRPC_FINAL
   ClientAsyncResponseReader(ChannelInterface* channel, CompletionQueue* cq,
                             const RpcMethod& method, ClientContext* context,
                             const W& request)
-      : context_(context),
-        call_(channel->CreateCall(method, context, cq)),
-        collection_(new CallOpSetCollection) {
-    collection_->SetCollection();
-    collection_->init_buf_.SendInitialMetadata(context->send_initial_metadata_);
+      : context_(context), call_(channel->CreateCall(method, context, cq)) {
+    init_buf_.SendInitialMetadata(context->send_initial_metadata_);
     // TODO(ctiller): don't assert
-    GPR_ASSERT(collection_->init_buf_.SendMessage(request).ok());
-    collection_->init_buf_.ClientSendClose();
-    call_.PerformOps(&collection_->init_buf_);
+    GPR_ASSERT(init_buf_.SendMessage(request).ok());
+    init_buf_.ClientSendClose();
+    call_.PerformOps(&init_buf_);
   }
 
   void ReadInitialMetadata(void* tag) {
     GPR_ASSERT(!context_->initial_metadata_received_);
 
-    collection_->meta_buf_.set_output_tag(tag);
-    collection_->meta_buf_.RecvInitialMetadata(context_);
-    call_.PerformOps(&collection_->meta_buf_);
+    meta_buf_.set_output_tag(tag);
+    meta_buf_.RecvInitialMetadata(context_);
+    call_.PerformOps(&meta_buf_);
   }
 
   void Finish(R* msg, Status* status, void* tag) {
-    collection_->finish_buf_.set_output_tag(tag);
+    finish_buf_.set_output_tag(tag);
     if (!context_->initial_metadata_received_) {
-      collection_->finish_buf_.RecvInitialMetadata(context_);
+      finish_buf_.RecvInitialMetadata(context_);
     }
-    collection_->finish_buf_.RecvMessage(msg);
-    collection_->finish_buf_.ClientRecvStatus(context_, status);
-    call_.PerformOps(&collection_->finish_buf_);
+    finish_buf_.RecvMessage(msg);
+    finish_buf_.ClientRecvStatus(context_, status);
+    call_.PerformOps(&finish_buf_);
   }
 
  private:
   ClientContext* context_;
   Call call_;
-
-  class CallOpSetCollection : public CallOpSetCollectionInterface {
-   public:
-    void SetCollection() {
-      init_buf_.SetCollection(shared_from_this());
-      meta_buf_.SetCollection(shared_from_this());
-      finish_buf_.SetCollection(shared_from_this());
-    }
-    SneakyCallOpSet<CallOpSendInitialMetadata, CallOpSendMessage,
-                    CallOpClientSendClose> init_buf_;
-    CallOpSet<CallOpRecvInitialMetadata> meta_buf_;
-    CallOpSet<CallOpRecvInitialMetadata, CallOpRecvMessage<R>,
-              CallOpClientRecvStatus> finish_buf_;
-  };
-  std::shared_ptr<CallOpSetCollection> collection_;
+  SneakyCallOpSet<CallOpSendInitialMetadata, CallOpSendMessage,
+                  CallOpClientSendClose> init_buf_;
+  CallOpSet<CallOpRecvInitialMetadata> meta_buf_;
+  CallOpSet<CallOpRecvInitialMetadata, CallOpRecvMessage<R>,
+            CallOpClientRecvStatus> finish_buf_;
 };
 
 template <class W>
@@ -116,47 +103,42 @@ class ServerAsyncResponseWriter GRPC_FINAL
     : public ServerAsyncStreamingInterface {
  public:
   explicit ServerAsyncResponseWriter(ServerContext* ctx)
-      : call_(nullptr, nullptr, nullptr),
-        ctx_(ctx),
-        collection_(new CallOpSetCollection) {
-    collection_->SetCollection();
-  }
+      : call_(nullptr, nullptr, nullptr), ctx_(ctx) {}
 
   void SendInitialMetadata(void* tag) GRPC_OVERRIDE {
     GPR_ASSERT(!ctx_->sent_initial_metadata_);
 
-    collection_->meta_buf_.set_output_tag(tag);
-    collection_->meta_buf_.SendInitialMetadata(ctx_->initial_metadata_);
+    meta_buf_.set_output_tag(tag);
+    meta_buf_.SendInitialMetadata(ctx_->initial_metadata_);
     ctx_->sent_initial_metadata_ = true;
-    call_.PerformOps(&collection_->meta_buf_);
+    call_.PerformOps(&meta_buf_);
   }
 
   void Finish(const W& msg, const Status& status, void* tag) {
-    collection_->finish_buf_.set_output_tag(tag);
+    finish_buf_.set_output_tag(tag);
     if (!ctx_->sent_initial_metadata_) {
-      collection_->finish_buf_.SendInitialMetadata(ctx_->initial_metadata_);
+      finish_buf_.SendInitialMetadata(ctx_->initial_metadata_);
       ctx_->sent_initial_metadata_ = true;
     }
     // The response is dropped if the status is not OK.
     if (status.ok()) {
-      collection_->finish_buf_.ServerSendStatus(
-          ctx_->trailing_metadata_, collection_->finish_buf_.SendMessage(msg));
+      finish_buf_.ServerSendStatus(ctx_->trailing_metadata_,
+                                   finish_buf_.SendMessage(msg));
     } else {
-      collection_->finish_buf_.ServerSendStatus(ctx_->trailing_metadata_,
-                                                status);
+      finish_buf_.ServerSendStatus(ctx_->trailing_metadata_, status);
     }
-    call_.PerformOps(&collection_->finish_buf_);
+    call_.PerformOps(&finish_buf_);
   }
 
   void FinishWithError(const Status& status, void* tag) {
     GPR_ASSERT(!status.ok());
-    collection_->finish_buf_.set_output_tag(tag);
+    finish_buf_.set_output_tag(tag);
     if (!ctx_->sent_initial_metadata_) {
-      collection_->finish_buf_.SendInitialMetadata(ctx_->initial_metadata_);
+      finish_buf_.SendInitialMetadata(ctx_->initial_metadata_);
       ctx_->sent_initial_metadata_ = true;
     }
-    collection_->finish_buf_.ServerSendStatus(ctx_->trailing_metadata_, status);
-    call_.PerformOps(&collection_->finish_buf_);
+    finish_buf_.ServerSendStatus(ctx_->trailing_metadata_, status);
+    call_.PerformOps(&finish_buf_);
   }
 
  private:
@@ -164,17 +146,9 @@ class ServerAsyncResponseWriter GRPC_FINAL
 
   Call call_;
   ServerContext* ctx_;
-  class CallOpSetCollection : public CallOpSetCollectionInterface {
-   public:
-    void SetCollection() {
-      meta_buf_.SetCollection(shared_from_this());
-      finish_buf_.SetCollection(shared_from_this());
-    }
-    CallOpSet<CallOpSendInitialMetadata> meta_buf_;
-    CallOpSet<CallOpSendInitialMetadata, CallOpSendMessage,
-              CallOpServerSendStatus> finish_buf_;
-  };
-  std::shared_ptr<CallOpSetCollection> collection_;
+  CallOpSet<CallOpSendInitialMetadata> meta_buf_;
+  CallOpSet<CallOpSendInitialMetadata, CallOpSendMessage,
+            CallOpServerSendStatus> finish_buf_;
 };
 
 }  // namespace grpc
