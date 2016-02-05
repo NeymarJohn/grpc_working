@@ -29,7 +29,7 @@
 
 FROM ubuntu:16.04
 
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update && apt-get install -y curl git
 
 # Install nvm
 RUN touch .profile
