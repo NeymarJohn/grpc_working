@@ -135,15 +135,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "census_context_test", "vcxp
 		{29D16885-7228-4C31-81ED-5F9187C7F2A9} = {29D16885-7228-4C31-81ED-5F9187C7F2A9}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "census_log_test", "vcxproj\test\census_log_test\census_log_test.vcxproj", "{C27CEE16-2BEC-5572-3956-677E9F6F8BED}"
-	ProjectSection(myProperties) = preProject
-        	lib = "False"
-	EndProjectSection
-	ProjectSection(ProjectDependencies) = postProject
-		{17BCAFC0-5FDC-4C94-AEB9-95F3E220614B} = {17BCAFC0-5FDC-4C94-AEB9-95F3E220614B}
-		{29D16885-7228-4C31-81ED-5F9187C7F2A9} = {29D16885-7228-4C31-81ED-5F9187C7F2A9}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "channel_create_test", "vcxproj\test\channel_create_test\channel_create_test.vcxproj", "{AFC88484-3A2E-32BC-25B2-23DF741D4F3D}"
 	ProjectSection(myProperties) = preProject
         	lib = "False"
@@ -1374,22 +1365,6 @@ Global
 		{5C1CFC2D-AF3C-D7CB-BA74-D267E91CBC73}.Release-DLL|Win32.Build.0 = Release|Win32
 		{5C1CFC2D-AF3C-D7CB-BA74-D267E91CBC73}.Release-DLL|x64.ActiveCfg = Release|x64
 		{5C1CFC2D-AF3C-D7CB-BA74-D267E91CBC73}.Release-DLL|x64.Build.0 = Release|x64
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Debug|Win32.ActiveCfg = Debug|Win32
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Debug|x64.ActiveCfg = Debug|x64
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Release|Win32.ActiveCfg = Release|Win32
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Release|x64.ActiveCfg = Release|x64
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Debug|Win32.Build.0 = Debug|Win32
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Debug|x64.Build.0 = Debug|x64
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Release|Win32.Build.0 = Release|Win32
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Release|x64.Build.0 = Release|x64
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Debug-DLL|Win32.ActiveCfg = Debug|Win32
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Debug-DLL|Win32.Build.0 = Debug|Win32
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Debug-DLL|x64.ActiveCfg = Debug|x64
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Debug-DLL|x64.Build.0 = Debug|x64
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Release-DLL|Win32.ActiveCfg = Release|Win32
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Release-DLL|Win32.Build.0 = Release|Win32
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Release-DLL|x64.ActiveCfg = Release|x64
-		{C27CEE16-2BEC-5572-3956-677E9F6F8BED}.Release-DLL|x64.Build.0 = Release|x64
 		{AFC88484-3A2E-32BC-25B2-23DF741D4F3D}.Debug|Win32.ActiveCfg = Debug|Win32
 		{AFC88484-3A2E-32BC-25B2-23DF741D4F3D}.Debug|x64.ActiveCfg = Debug|x64
 		{AFC88484-3A2E-32BC-25B2-23DF741D4F3D}.Release|Win32.ActiveCfg = Release|Win32
