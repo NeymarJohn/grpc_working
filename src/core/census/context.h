@@ -1,7 +1,6 @@
-#!/usr/bin/env node
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,26 +31,17 @@
  *
  */
 
-var grpc = require('grpc');
+#ifndef GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
+#define GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
 
-function identity(x) {
-  return x;
-}
+#include <grpc/census.h>
 
-var Client = grpc.makeGenericClientConstructor({
-  'echo' : {
-    path: '/buffer/echo',
-    requestStream: false,
-    responseStream: false,
-    requestSerialize: identity,
-    requestDeserialize: identity,
-    responseSerialize: identity,
-    responseDeserialize: identity
-  }
-});
+#define GRPC_CENSUS_MAX_ON_THE_WIRE_TAG_BYTES 2048
 
-var client = new Client("localhost:1000", grpc.credentials.createInsecure());
+/* census_context is the in-memory representation of information needed to
+ * maintain tracing, RPC statistics and resource usage information. */
+struct census_context {
+  census_tag_set *tags; /* Opaque data structure for census tags. */
+};
 
-client.$channel.close();
-
-console.log("Success!");
+#endif /* GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H */
