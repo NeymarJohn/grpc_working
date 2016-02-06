@@ -31,27 +31,25 @@
  *
  */
 
-var PROTO_PATH = __dirname + '/helloworld.proto';
+#include <grpc/grpc.h>
 
-var grpc = require('../../');
-var hello_proto = grpc.load(PROTO_PATH).helloworld;
+#import "GRPCChannel.h"
 
-/**
- * Implements the SayHello RPC method.
- */
-function sayHello(call, callback) {
-  callback(null, {message: 'Hello ' + call.request.name});
-}
+struct grpc_channel_credentials;
+
+@interface GRPCSecureChannel : GRPCChannel
+- (instancetype)initWithHost:(NSString *)host;
 
 /**
- * Starts an RPC server that receives requests for the Greeter service at the
- * sample server port
+ * Only in tests shouldn't pathToCertificates or hostNameOverride be nil. Passing nil for
+ * pathToCertificates results in using the default root certificates distributed with the library.
  */
-function main() {
-  var server = new grpc.Server();
-  server.addProtoService(hello_proto.Greeter.service, {sayHello: sayHello});
-  server.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure());
-  server.start();
-}
+- (instancetype)initWithHost:(NSString *)host
+          pathToCertificates:(NSString *)path
+            hostNameOverride:(NSString *)hostNameOverride;
 
-main();
+/** The passed arguments aren't required to be valid beyond the invocation of this initializer. */
+- (instancetype)initWithHost:(NSString *)host
+                 credentials:(struct grpc_channel_credentials *)credentials
+                        args:(grpc_channel_args *)args NS_DESIGNATED_INITIALIZER;
+@end
