@@ -34,7 +34,7 @@
 #ifndef GRPC_IMPL_CODEGEN_H
 #define GRPC_IMPL_CODEGEN_H
 
-#include <grpc/support/port_platform.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

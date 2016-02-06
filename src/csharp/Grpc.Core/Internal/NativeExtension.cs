@@ -106,7 +106,7 @@ namespace Grpc.Core.Internal
 
         private static string GetExecutingAssemblyDirectory()
         {
-            return Path.GetDirectoryName(typeof(NativeExtension).GetTypeInfo().Assembly.Location);
+            return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         }
 
         private static string GetPlatformString()

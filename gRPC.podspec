@@ -201,6 +201,7 @@ Pod::Spec.new do |s|
                       'src/core/support/thd_internal.h',
                       'src/core/support/time_precise.h',
                       'src/core/census/aggregation.h',
+                      'src/core/census/context.h',
                       'src/core/census/rpc_metric_id.h',
                       'include/grpc/grpc_security.h',
                       'include/grpc/byte_buffer.h',
@@ -452,6 +453,7 @@ Pod::Spec.new do |s|
                       'src/core/census/initialize.c',
                       'src/core/census/operation.c',
                       'src/core/census/placeholders.c',
+                      'src/core/census/tag_set.c',
                       'src/core/census/tracing.c'
 
     ss.private_header_files = 'src/core/security/auth_filters.h',
@@ -592,6 +594,7 @@ Pod::Spec.new do |s|
                               'src/core/support/thd_internal.h',
                               'src/core/support/time_precise.h',
                               'src/core/census/aggregation.h',
+                              'src/core/census/context.h',
                               'src/core/census/rpc_metric_id.h'
 
     ss.header_mappings_dir = '.'
