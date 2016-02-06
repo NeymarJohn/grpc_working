@@ -29,4 +29,8 @@
 
 FROM ubuntu:14.04
 
-RUN apt-get update -y && apt-get install -y python python-pip
+RUN apt-get update -y
+RUN apt-get install -y git
+RUN apt-get install -y python
+RUN apt-get install -y python-pip
+

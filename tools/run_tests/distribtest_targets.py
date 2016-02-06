@@ -38,7 +38,6 @@ def create_docker_jobspec(name, dockerfile_dir, shell_command, environ={},
   """Creates jobspec for a task running under docker."""
   environ = environ.copy()
   environ['RUN_COMMAND'] = shell_command
-  environ['RELATIVE_COPY_PATH'] = 'test/distrib'
 
   docker_args=[]
   for k,v in environ.iteritems():

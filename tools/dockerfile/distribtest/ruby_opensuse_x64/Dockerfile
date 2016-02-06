@@ -29,4 +29,6 @@
 
 FROM opensuse:42.1
 
+RUN zypper --non-interactive install git
 RUN zypper --non-interactive install ruby
+
