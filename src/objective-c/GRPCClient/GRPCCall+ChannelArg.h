@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,18 +30,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#import "GRPCCall.h"
 
-#ifndef GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
-#define GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H
+/**
+ * Methods to configure GRPC channel options.
+ */
+@interface GRPCCall (ChannelArg)
 
-#include <grpc/census.h>
+/**
+ * Use the provided @c userAgentPrefix at the beginning of the HTTP User Agent string for all calls
+ * to the specified @c host.
+ */
++ (void)setUserAgentPrefix:(NSString *)userAgentPrefix forHost:(NSString *)host;
 
-#define GRPC_CENSUS_MAX_ON_THE_WIRE_TAG_BYTES 2048
-
-/* census_context is the in-memory representation of information needed to
- * maintain tracing, RPC statistics and resource usage information. */
-struct census_context {
-  census_tag_set *tags; /* Opaque data structure for census tags. */
-};
-
-#endif /* GRPC_INTERNAL_CORE_CENSUS_CONTEXT_H */
+@end
