@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2016, Google Inc.
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,20 +30,30 @@
 
 set -ex
 
-cd $(dirname $0)/../..
+CROSS_RUBY=`mktemp`
 
-if [ "$SKIP_PIP_INSTALL" == "" ]
-then
-  pip install --upgrade six
-  pip install --upgrade setuptools
-  pip install -rrequirements.txt
-fi
+curl https://raw.githubusercontent.com/rake-compiler/rake-compiler/v0.9.5/tasks/bin/cross-ruby.rake > $CROSS_RUBY
 
-GRPC_PYTHON_BUILD_WITH_CYTHON=1 ${SETARCH_CMD} python setup.py \
-    bdist_wheel \
-    sdist \
-    bdist_egg_grpc_custom
+patch $CROSS_RUBY << EOF
+--- cross-ruby.rake	2016-02-05 16:26:53.000000000 -0800
++++ cross-ruby.rake.patched	2016-02-05 16:27:33.000000000 -0800
+@@ -133,7 +133,8 @@
+     "--host=#{MINGW_HOST}",
+     "--target=#{MINGW_TARGET}",
+     "--build=#{RUBY_BUILD}",
+-    '--enable-shared',
++    '--enable-static',
++    '--disable-shared',
+     '--disable-install-doc',
+     '--without-tk',
+     '--without-tcl'
+EOF
 
-mkdir -p artifacts
+MAKE="make -j8"
 
-cp -r dist/* artifacts
+for v in 2.3.0 2.2.2 2.1.6 2.0.0-p645 ; do
+  rake -f $CROSS_RUBY cross-ruby VERSION=$v HOST=x86_64-darwin11
+done
+
+sed 's/x86_64-darwin-11/universal-darwin/' ~/.rake-compiler/config.yaml > $CROSS_RUBY
+mv $CROSS_RUBY > ~/.rake-compiler/config.yaml
