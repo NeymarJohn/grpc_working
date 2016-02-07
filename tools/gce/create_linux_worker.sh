@@ -28,9 +28,30 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -e
+# Creates a standard jenkins worker on GCE.
+
+set -ex
 
 cd $(dirname $0)
 
-# Replaces version placeholder with value provided as first argument.
-sed -i "s/__GRPC_NUGET_VERSION__/$1/g" DistribTest/packages.config DistribTest/DistribTest.csproj
+CLOUD_PROJECT=grpc-testing
+ZONE=us-central1-a
+
+INSTANCE_NAME=grpc-jenkins-worker1
+
+gcloud compute instances create $INSTANCE_NAME \
+    --project="$CLOUD_PROJECT" \
+    --zone "$ZONE" \
+    --machine-type n1-standard-8 \
+    --image ubuntu-14-04 \
+    --boot-disk-size 1000
+
+gcloud compute copy-files \
+    --project="$CLOUD_PROJECT" \
+    --zone "$ZONE" \
+    jenkins_master.pub linux_worker_init.sh ${INSTANCE_NAME}:~
+
+gcloud compute ssh \
+    --project="$CLOUD_PROJECT" \
+    --zone "$ZONE" \
+    $INSTANCE_NAME --command "./linux_worker_init.sh"
