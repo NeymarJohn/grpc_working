@@ -14,7 +14,6 @@ Gem::Specification.new do |s|
   s.license       = 'BSD-3-Clause'
 
   s.required_ruby_version = '>= 2.0.0'
-  s.requirements << 'libgrpc ~> 0.11.0 needs to be installed'
 
   s.files = %w( Makefile )
   s.files += %w( etc/roots.pem )
@@ -240,7 +239,6 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/support/thd_internal.h )
   s.files += %w( src/core/support/time_precise.h )
   s.files += %w( src/core/census/aggregation.h )
-  s.files += %w( src/core/census/log.h )
   s.files += %w( src/core/census/rpc_metric_id.h )
   s.files += %w( src/core/httpcli/httpcli_security_connector.c )
   s.files += %w( src/core/security/base64.c )
@@ -435,7 +433,6 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/support/wrap_memcpy.c )
   s.files += %w( src/core/census/context.c )
   s.files += %w( src/core/census/initialize.c )
-  s.files += %w( src/core/census/log.c )
   s.files += %w( src/core/census/operation.c )
   s.files += %w( src/core/census/placeholders.c )
   s.files += %w( src/core/census/tracing.c )
