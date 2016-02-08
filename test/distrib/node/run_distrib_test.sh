@@ -32,12 +32,7 @@ set -ex
 
 cd $(dirname $0)
 
-NODE_VERSION="$1"
-
-# make sure nvm is available
-source ~/.nvm/nvm.sh || true
-
-nvm install $NODE_VERSION
+nvm install $1
 
 npm install -g node-static
 
