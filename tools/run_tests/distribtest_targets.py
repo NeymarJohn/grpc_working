@@ -38,7 +38,6 @@ def create_docker_jobspec(name, dockerfile_dir, shell_command, environ={},
   """Creates jobspec for a task running under docker."""
   environ = environ.copy()
   environ['RUN_COMMAND'] = shell_command
-  environ['RELATIVE_COPY_PATH'] = 'test/distrib'
 
   docker_args=[]
   for k,v in environ.iteritems():
@@ -105,7 +104,8 @@ class NodeDistribTest(object):
                                  'tools/dockerfile/distribtest/node_%s_%s' % (
                                      self.docker_suffix,
                                      self.arch),
-                                 'test/distrib/node/run_distrib_test.sh %s' % (
+                                 # bash -l needed to make nvm available
+                                 'bash -l test/distrib/node/run_distrib_test.sh %s' % (
                                      self.node_version))
     def __str__(self):
       return self.name

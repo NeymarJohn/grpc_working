@@ -68,11 +68,11 @@ def create_jobspec(name, cmdline, environ=None, cwd=None, shell=False,
   return jobspec
 
 
-class CSharpPackage:
+class CSharpNugetTarget:
   """Builds C# nuget packages."""
 
   def __init__(self):
-    self.name = 'csharp_package'
+    self.name = 'csharp_nuget'
     self.labels = ['package', 'csharp', 'windows']
 
   def pre_build_jobspecs(self):
@@ -87,12 +87,11 @@ class CSharpPackage:
   def __str__(self):
     return self.name
 
-
-class NodePackage:
-  """Builds Node NPM package and collects precompiled binaries"""
+class NodeNpmBinaryTarget:
+  """Builds Node NPM package and collects binaries"""
 
   def __init__(self):
-    self.name = 'node_package'
+    self.name = 'node_npm_binary'
     self.labels = ['package', 'node', 'linux']
 
   def pre_build_jobspecs(self):
@@ -104,44 +103,6 @@ class NodePackage:
         'tools/dockerfile/grpc_artifact_linux_x64',
         'tools/run_tests/build_package_node.sh')
 
-
-class RubyPackage:
-  """Collects ruby gems created in the artifact phase"""
-
-  def __init__(self):
-    self.name = 'ruby_package'
-    self.labels = ['package', 'ruby', 'linux']
-
-  def pre_build_jobspecs(self):
-    return []
-
-  def build_jobspec(self):
-    return create_docker_jobspec(
-        self.name,
-        'tools/dockerfile/grpc_artifact_linux_x64',
-        'tools/run_tests/build_package_ruby.sh')
-
-
-class PythonPackage:
-  """Collects python eggs and wheels created in the artifact phase"""
-
-  def __init__(self):
-    self.name = 'python_package'
-    self.labels = ['package', 'python', 'linux']
-
-  def pre_build_jobspecs(self):
-    return []
-
-  def build_jobspec(self):
-    return create_docker_jobspec(
-        self.name,
-        'tools/dockerfile/grpc_artifact_linux_x64',
-        'tools/run_tests/build_package_python.sh')
-
-
 def targets():
   """Gets list of supported targets"""
-  return [CSharpPackage(),
-          NodePackage(),
-          RubyPackage(),
-          PythonPackage()]
+  return [CSharpNugetTarget(), NodeNpmBinaryTarget()]

@@ -29,4 +29,7 @@
 
 FROM ubuntu:16.04
 
-RUN apt-get update -y && apt-get install -y ruby-full
+RUN apt-get update -y
+RUN apt-get install -y git
+RUN apt-get install -y ruby-full
+

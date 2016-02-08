@@ -40,7 +40,7 @@ PROJECT_NAME           = "GRPC Core"
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = 0.13.0-dev
+PROJECT_NUMBER         = 0.13.0.0
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -953,6 +953,7 @@ src/core/support/string_win32.h \
 src/core/support/thd_internal.h \
 src/core/support/time_precise.h \
 src/core/census/aggregation.h \
+src/core/census/log.h \
 src/core/census/rpc_metric_id.h \
 src/core/httpcli/httpcli_security_connector.c \
 src/core/security/base64.c \
@@ -1147,6 +1148,7 @@ src/core/support/tls_pthread.c \
 src/core/support/wrap_memcpy.c \
 src/core/census/context.c \
 src/core/census/initialize.c \
+src/core/census/log.c \
 src/core/census/operation.c \
 src/core/census/placeholders.c \
 src/core/census/tracing.c
