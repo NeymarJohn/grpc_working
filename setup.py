@@ -54,7 +54,6 @@ sys.path.insert(0, os.path.abspath(PYTHON_STEM))
 # Break import-style to ensure we can actually find our in-repo dependencies.
 import commands
 import grpc_core_dependencies
-import grpc_version
 
 LICENSE = '3-clause BSD'
 
@@ -219,7 +218,7 @@ else:
 
 setuptools.setup(
     name='grpcio',
-    version=grpc_version.VERSION,
+    version='0.12.0b9',
     license=LICENSE,
     ext_modules=CYTHON_EXTENSION_MODULES,
     packages=list(PACKAGES),
