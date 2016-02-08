@@ -55,9 +55,7 @@ using grpc::testing::EchoRequest;
 using grpc::testing::EchoResponse;
 using std::chrono::system_clock;
 
-const int kNumThreads = 100; // Number of threads
-const int kNumAsyncSendThreads = 2;
-const int kNumAsyncReceiveThreads = 50;
+const int kNumThreads = 100;  // Number of threads
 const int kNumRpcs = 1000;    // Number of RPCs per thread
 
 namespace grpc {
@@ -275,7 +273,7 @@ class AsyncClientEnd2endTest : public ::testing::Test {
     for (int i = 0; i < num_rpcs; ++i) {
       AsyncClientCall* call = new AsyncClientCall;
       EchoRequest request;
-      request.set_message("Hello: " + std::to_string(i));
+      request.set_message("Hello");
       call->response_reader =
           common_.GetStub()->AsyncEcho(&call->context, request, &cq_);
       call->response_reader->Finish(&call->response, &call->status,
@@ -292,9 +290,7 @@ class AsyncClientEnd2endTest : public ::testing::Test {
       bool ok = false;
       if (!cq_.Next(&got_tag, &ok)) break;
       AsyncClientCall* call = static_cast<AsyncClientCall*>(got_tag);
-      if (!ok) {
-        gpr_log(GPR_DEBUG, "Error: %d", call->status.error_code());
-      }
+      GPR_ASSERT(ok);
       delete call;
 
       bool notify;
@@ -319,22 +315,22 @@ class AsyncClientEnd2endTest : public ::testing::Test {
 TEST_F(AsyncClientEnd2endTest, ThreadStress) {
   common_.ResetStub();
   std::vector<std::thread*> send_threads, completion_threads;
-  for (int i = 0; i < kNumAsyncReceiveThreads; ++i) {
+  for (int i = 0; i < kNumThreads / 2; ++i) {
     completion_threads.push_back(new std::thread(
         &AsyncClientEnd2endTest_ThreadStress_Test::AsyncCompleteRpc, this));
   }
-  for (int i = 0; i < kNumAsyncSendThreads; ++i) {
+  for (int i = 0; i < kNumThreads / 2; ++i) {
     send_threads.push_back(
         new std::thread(&AsyncClientEnd2endTest_ThreadStress_Test::AsyncSendRpc,
                         this, kNumRpcs));
   }
-  for (int i = 0; i < kNumAsyncSendThreads; ++i) {
+  for (int i = 0; i < kNumThreads / 2; ++i) {
     send_threads[i]->join();
     delete send_threads[i];
   }
 
   Wait();
-  for (int i = 0; i < kNumAsyncReceiveThreads; ++i) {
+  for (int i = 0; i < kNumThreads / 2; ++i) {
     completion_threads[i]->join();
     delete completion_threads[i];
   }
