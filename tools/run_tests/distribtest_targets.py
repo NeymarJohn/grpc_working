@@ -38,7 +38,6 @@ def create_docker_jobspec(name, dockerfile_dir, shell_command, environ={},
   """Creates jobspec for a task running under docker."""
   environ = environ.copy()
   environ['RUN_COMMAND'] = shell_command
-  environ['RELATIVE_COPY_PATH'] = 'test/distrib'
 
   docker_args=[]
   for k,v in environ.iteritems():
@@ -80,36 +79,6 @@ class CSharpDistribTest(object):
 
   def __str__(self):
     return self.name
-
-class NodeDistribTest(object):
-  """Tests Node package"""
-
-  def __init__(self, platform, arch, docker_suffix, node_version):
-    self.name = 'node_npm_%s_%s_%s_%s' % (platform, arch,
-                                          docker_suffix, node_version)
-    self.platform = platform
-    self.arch = arch
-    self.docker_suffix = docker_suffix
-    self.node_version = node_version
-    self.labels = ['distribtest', 'node', platform, arch,
-                   docker_suffix, 'node-%s' % node_version]
-
-  def pre_build_jobspecs(self):
-    return []
-
-  def build_jobspec(self):
-    if self.platform not in ('linux',):
-      raise Exception("Not supported yet.")
-
-    return create_docker_jobspec(self.name,
-                                 'tools/dockerfile/distribtest/node_%s_%s' % (
-                                     self.docker_suffix,
-                                     self.arch),
-                                 # bash -l needed to make nvm available
-                                 'bash -l test/distrib/node/run_distrib_test.sh %s' % (
-                                     self.node_version))
-    def __str__(self):
-      return self.name
 
 
 class PythonDistribTest(object):
@@ -207,10 +176,5 @@ def targets():
           RubyDistribTest('linux', 'x64', 'ubuntu1504'),
           RubyDistribTest('linux', 'x64', 'ubuntu1510'),
           RubyDistribTest('linux', 'x64', 'ubuntu1604'),
-          NodeDistribTest('linux', 'x86', 'jessie', '4')
-          ] + [
-            NodeDistribTest('linux', 'x64', os, version)
-            for os in ('wheezy', 'jessie', 'ubuntu1204', 'ubuntu1404',
-                       'ubuntu1504', 'ubuntu1510', 'ubuntu1604')
-            for version in ('0.10', '0.12', '3', '4', '5')
           ]
+

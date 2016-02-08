@@ -1,7 +1,6 @@
-#!/usr/bin/env node
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,26 +31,25 @@
  *
  */
 
-var grpc = require('grpc');
+#include <grpc/grpc.h>
 
-function identity(x) {
-  return x;
-}
+#import "GRPCChannel.h"
 
-var Client = grpc.makeGenericClientConstructor({
-  'echo' : {
-    path: '/buffer/echo',
-    requestStream: false,
-    responseStream: false,
-    requestSerialize: identity,
-    requestDeserialize: identity,
-    responseSerialize: identity,
-    responseDeserialize: identity
-  }
-});
+struct grpc_channel_credentials;
 
-var client = new Client("localhost:1000", grpc.credentials.createInsecure());
+@interface GRPCSecureChannel : GRPCChannel
+- (instancetype)initWithHost:(NSString *)host;
 
-client.$channel.close();
+/**
+ * Only in tests shouldn't pathToCertificates or hostNameOverride be nil. Passing nil for
+ * pathToCertificates results in using the default root certificates distributed with the library.
+ */
+- (instancetype)initWithHost:(NSString *)host
+          pathToCertificates:(NSString *)path
+            hostNameOverride:(NSString *)hostNameOverride;
 
-console.log("Success!");
+/** The passed arguments aren't required to be valid beyond the invocation of this initializer. */
+- (instancetype)initWithHost:(NSString *)host
+                 credentials:(struct grpc_channel_credentials *)credentials
+                        args:(grpc_channel_args *)args NS_DESIGNATED_INITIALIZER;
+@end

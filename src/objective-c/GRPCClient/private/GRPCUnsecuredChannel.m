@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,19 +31,20 @@
  *
  */
 
-#import "GRPCCall+ChannelArg.h"
+#import "GRPCUnsecuredChannel.h"
 
-#import "private/GRPCHost.h"
+#include <grpc/grpc.h>
 
-@implementation GRPCCall (ChannelArg)
+@implementation GRPCUnsecuredChannel
 
-+ (void)setUserAgentPrefix:(NSString *)userAgentPrefix forHost:(NSString *)host {
-  if (!host) {
-    [NSException raise:NSInvalidArgumentException
-                format:@"host and userAgentPrefix must be provided."];
-  }
-  GRPCHost *hostConfig = [GRPCHost hostWithAddress:host];
-  hostConfig.userAgentPrefix = userAgentPrefix;
+- (instancetype)initWithHost:(NSString *)host {
+  return (self = [super initWithChannel:grpc_insecure_channel_create(host.UTF8String, NULL, NULL)]);
 }
 
+// TODO(jcanizales): GRPCSecureChannel and GRPCUnsecuredChannel are just convenience initializers
+// for GRPCChannel. Move them into GRPCChannel, which will make the following unnecessary.
+- (instancetype)initWithChannel:(grpc_channel *)unmanagedChannel {
+  [NSException raise:NSInternalInconsistencyException format:@"use the other initializer"];
+  return [self initWithHost:nil]; // silence warnings
+}
 @end
