@@ -39,8 +39,6 @@
 #include <grpc++/impl/codegen/grpc_library.h>
 #include <grpc++/impl/codegen/time.h>
 
-struct grpc_alarm;
-
 namespace grpc {
 
 class CompletionQueue;
