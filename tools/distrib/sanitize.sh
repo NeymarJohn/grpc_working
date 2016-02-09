@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2015-2016, Google Inc.
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,29 +30,25 @@
 
 set -ex
 
-cd $(dirname $0)
+cd $(dirname $0)/../..
 
-# TODO(jtattermusch): replace the version number
-SDIST_ARCHIVE="$EXTERNAL_GIT_ROOT/input_artifacts/grpcio-0.12.0b8.tar.gz"
-BDIST_DIR="file://$EXTERNAL_GIT_ROOT/input_artifacts"
+DIFF_COMMAND="git diff --name-only HEAD | grep -v ^third_party/"
 
-if [ ! -f "${SDIST_ARCHIVE}" ]
-then
-  echo "Archive ${SDIST_ARCHIVE} does not exist."
-  exit 1
+if [ "x$1" == 'x--pre-commit' ]; then
+  if eval $DIFF_COMMAND | grep '^build.yaml$'; then
+    ./tools/buildgen/generate_projects.sh
+  else
+    templates=$(eval $DIFF_COMMAND | grep '\.template$' || true)
+    if [ -n "$templates" ]; then
+      ./tools/buildgen/generate_projects.sh --templates $templates
+    fi
+  fi
+  CHANGED_FILES=$(eval $DIFF_COMMAND) ./tools/distrib/clang_format_code.sh
+  ./tools/distrib/check_copyright.py --fix --precommit
+  ./tools/distrib/check_trailing_newlines.sh
+else
+  ./tools/buildgen/generate_projects.sh
+  ./tools/distrib/clang_format_code.sh
+  ./tools/distrib/check_copyright.py --fix
+  ./tools/distrib/check_trailing_newlines.sh
 fi
-
-PIP=pip2
-which $PIP || PIP=pip
-PYTHON=python2
-which $PYTHON || PYTHON=python
-
-# TODO(jtattermusch): this shouldn't be required
-$PIP install --upgrade six
-
-GRPC_PYTHON_BINARIES_REPOSITORY="${BDIST_DIR}" \
-    $PIP install \
-    "${SDIST_ARCHIVE}"
-
-$PYTHON distribtest.py
-
