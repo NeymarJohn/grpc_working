@@ -39,13 +39,8 @@ namespace Grpc.Core
     public static class VersionInfo
     {
         /// <summary>
-        /// Current version of gRPC C# assemblies
-        /// </summary>
-        public const string CurrentAssemblyVersion = "0.13.0.0";
-
-        /// <summary>
         /// Current version of gRPC C#
         /// </summary>
-        public const string CurrentVersion = "0.13.0-pre1";
+        public const string CurrentVersion = "0.13.0-dev";
     }
 }
