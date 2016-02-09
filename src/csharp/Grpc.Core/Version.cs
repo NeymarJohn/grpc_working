@@ -34,4 +34,4 @@
 using System.Reflection;
 
 // The current version of gRPC C#.
-[assembly: AssemblyVersion(Grpc.Core.VersionInfo.CurrentAssemblyVersion)]
+[assembly: AssemblyVersion(Grpc.Core.VersionInfo.CurrentVersion + ".0")]
