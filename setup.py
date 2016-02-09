@@ -168,7 +168,7 @@ COMMAND_CLASS = {
 }
 
 # Ensure that package data is copied over before any commands have been run:
-credentials_dir = os.path.join(PYTHON_STEM, 'grpc/_cython/_credentials')
+credentials_dir = os.path.join(PYTHON_STEM, 'grpc/_adapter/credentials')
 try:
   os.mkdir(credentials_dir)
 except OSError:
@@ -202,8 +202,10 @@ TEST_LOADER = 'tests:Loader'
 TEST_RUNNER = 'tests:Runner'
 
 PACKAGE_DATA = {
+    'grpc._adapter': [
+        'credentials/roots.pem'
+    ],
     'grpc._cython': [
-        '_credentials/roots.pem',
         '_windows/grpc_c.32.python',
         '_windows/grpc_c.64.python',
     ],
