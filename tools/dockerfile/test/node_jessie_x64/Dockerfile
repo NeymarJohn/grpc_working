@@ -1,4 +1,4 @@
-# Copyright 2016, Google Inc.
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,64 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from libc.string cimport memcpy
+FROM debian:jessie
 
-import pkg_resources
+# Install Git and basic packages.
+RUN apt-get update && apt-get install -y \
+  autoconf \
+  autotools-dev \
+  build-essential \
+  bzip2 \
+  ccache \
+  curl \
+  gcc \
+  gcc-multilib \
+  git \
+  golang \
+  gyp \
+  lcov \
+  libc6 \
+  libc6-dbg \
+  libc6-dev \
+  libgtest-dev \
+  libtool \
+  make \
+  perl \
+  strace \
+  python-dev \
+  python-setuptools \
+  python-yaml \
+  telnet \
+  unzip \
+  wget \
+  zip && apt-get clean
 
+#================
+# Build profiling
+RUN apt-get update && apt-get install -y time && apt-get clean
 
-cdef grpc_ssl_roots_override_result ssl_roots_override_callback(
-    char **pem_root_certs) with gil:
-  temporary_pem_root_certs = pkg_resources.resource_string(
-      'grpc._cython', '_credentials/roots.pem')
-  pem_root_certs[0] = <char *>gpr_malloc(len(temporary_pem_root_certs) + 1)
-  memcpy(
-      pem_root_certs[0], <char *>temporary_pem_root_certs,
-      len(temporary_pem_root_certs))
-  pem_root_certs[0][len(temporary_pem_root_certs)] = '\0'
-  return GRPC_SSL_ROOTS_OVERRIDE_OK
+#==================
+# Node dependencies
+
+# Install nvm
+RUN touch .profile
+RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.25.4/install.sh | bash
+RUN /bin/bash -l -c "nvm install 0.12 && npm config set cache /tmp/npm-cache"
+
+# Prepare ccache
+RUN ln -s /usr/bin/ccache /usr/local/bin/gcc
+RUN ln -s /usr/bin/ccache /usr/local/bin/g++
+RUN ln -s /usr/bin/ccache /usr/local/bin/cc
+RUN ln -s /usr/bin/ccache /usr/local/bin/c++
+RUN ln -s /usr/bin/ccache /usr/local/bin/clang
+RUN ln -s /usr/bin/ccache /usr/local/bin/clang++
+
+#======================
+# Zookeeper dependencies
+# TODO(jtattermusch): is zookeeper still needed?
+RUN apt-get install -y libzookeeper-mt-dev
+
+RUN mkdir /var/local/jenkins
+
+# Define the default command.
+CMD ["bash"]

@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2016, Google Inc.
 # All rights reserved.
 #
@@ -27,28 +28,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Tests the implementations module of the gRPC Python Beta API."""
+set -ex
 
-import unittest
+cd $(dirname $0)/../..
 
-from grpc.beta import implementations
-from tests.unit import resources
+mkdir -p artifacts/
 
+# All the python packages have been built in the artifact phase already
+# and we only collect them here to deliver them to the distribtest phase.
+cp -r $EXTERNAL_GIT_ROOT/architecture={x86,x64},language=python,platform={windows,linux,macos}/artifacts/* artifacts/ || true
 
-class ChannelCredentialsTest(unittest.TestCase):
-
-  def test_runtime_provided_root_certificates(self):
-    channel_credentials = implementations.ssl_channel_credentials(
-        None, None, None)
-    self.assertIsInstance(
-        channel_credentials, implementations.ChannelCredentials)
-  
-  def test_application_provided_root_certificates(self):
-    channel_credentials = implementations.ssl_channel_credentials(
-        resources.test_root_certificates(), None, None)
-    self.assertIsInstance(
-        channel_credentials, implementations.ChannelCredentials)
-
-
-if __name__ == '__main__':
-  unittest.main(verbosity=2)
+# TODO: all the artifact builder configurations generate a grpcio-VERSION.tar.gz
+# source distribution package, and only one of them will end up
+# in the artifacts/ directory. They should be all equivalent though.

@@ -27,8 +27,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Dockerfile for running gRPC sanity tests
-
 FROM debian:jessie
 
 # Install Git and basic packages.
@@ -61,21 +59,36 @@ RUN apt-get update && apt-get install -y \
   wget \
   zip && apt-get clean
 
-##################
-# Sanity test dependencies
-RUN apt-get update && apt-get install -y python-pip
-RUN pip install simplejson mako
-
-##################
-# Docker "inception".
-# Note this is quite the ugly hack.
-# This makes sure that the docker binary we inject has its dependencies.
-RUN curl https://get.docker.com/ | sh
-RUN apt-get remove --purge -y docker-engine
-
-##################
+#================
 # Build profiling
-RUN apt-get install -y time
+RUN apt-get update && apt-get install -y time && apt-get clean
+
+#=================
+# PHP dependencies
+
+# Install dependencies
+
+RUN /bin/bash -l -c "echo 'deb http://packages.dotdeb.org wheezy-php55 all' \
+    >> /etc/apt/sources.list.d/dotdeb.list"
+RUN /bin/bash -l -c "echo 'deb-src http://packages.dotdeb.org wheezy-php55 all' \
+    >> /etc/apt/sources.list.d/dotdeb.list"
+RUN wget http://www.dotdeb.org/dotdeb.gpg -O- | apt-key add -
+
+RUN apt-get update && apt-get install -y \
+    git php5 php5-dev phpunit unzip
+
+# Prepare ccache
+RUN ln -s /usr/bin/ccache /usr/local/bin/gcc
+RUN ln -s /usr/bin/ccache /usr/local/bin/g++
+RUN ln -s /usr/bin/ccache /usr/local/bin/cc
+RUN ln -s /usr/bin/ccache /usr/local/bin/c++
+RUN ln -s /usr/bin/ccache /usr/local/bin/clang
+RUN ln -s /usr/bin/ccache /usr/local/bin/clang++
+
+#======================
+# Zookeeper dependencies
+# TODO(jtattermusch): is zookeeper still needed?
+RUN apt-get install -y libzookeeper-mt-dev
 
 RUN mkdir /var/local/jenkins
 
