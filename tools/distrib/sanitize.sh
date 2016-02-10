@@ -1,4 +1,5 @@
-# Copyright 2015-2016, Google Inc.
+#!/bin/bash
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,12 +28,27 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-FROM centos:6
+set -ex
 
-RUN yum install -y python
+cd $(dirname $0)/../..
 
-RUN rpm -ivh http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
-RUN yum install -y python-pip
+DIFF_COMMAND="git diff --name-only HEAD | grep -v ^third_party/"
 
-RUN pip install --upgrade pip
-
+if [ "x$1" == 'x--pre-commit' ]; then
+  if eval $DIFF_COMMAND | grep '^build.yaml$'; then
+    ./tools/buildgen/generate_projects.sh
+  else
+    templates=$(eval $DIFF_COMMAND | grep '\.template$' || true)
+    if [ -n "$templates" ]; then
+      ./tools/buildgen/generate_projects.sh --templates $templates
+    fi
+  fi
+  CHANGED_FILES=$(eval $DIFF_COMMAND) ./tools/distrib/clang_format_code.sh
+  ./tools/distrib/check_copyright.py --fix --precommit
+  ./tools/distrib/check_trailing_newlines.sh
+else
+  ./tools/buildgen/generate_projects.sh
+  ./tools/distrib/clang_format_code.sh
+  ./tools/distrib/check_copyright.py --fix
+  ./tools/distrib/check_trailing_newlines.sh
+fi
