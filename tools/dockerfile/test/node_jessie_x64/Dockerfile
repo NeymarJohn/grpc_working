@@ -1,5 +1,4 @@
-#!/bin/bash
-# Copyright 2016, Google Inc.
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,27 +27,64 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -ex
+FROM debian:jessie
 
-cd $(dirname $0)/../..
+# Install Git and basic packages.
+RUN apt-get update && apt-get install -y \
+  autoconf \
+  autotools-dev \
+  build-essential \
+  bzip2 \
+  ccache \
+  curl \
+  gcc \
+  gcc-multilib \
+  git \
+  golang \
+  gyp \
+  lcov \
+  libc6 \
+  libc6-dbg \
+  libc6-dev \
+  libgtest-dev \
+  libtool \
+  make \
+  perl \
+  strace \
+  python-dev \
+  python-setuptools \
+  python-yaml \
+  telnet \
+  unzip \
+  wget \
+  zip && apt-get clean
 
-DIFF_COMMAND="git diff --name-only HEAD | grep -v ^third_party/"
+#================
+# Build profiling
+RUN apt-get update && apt-get install -y time && apt-get clean
 
-if [ "x$1" == 'x--pre-commit' ]; then
-  if eval $DIFF_COMMAND | grep '^build.yaml$'; then
-    ./tools/buildgen/generate_projects.sh
-  else
-    templates=$(eval $DIFF_COMMAND | grep '\.template$' || true)
-    if [ -n "$templates" ]; then
-      ./tools/buildgen/generate_projects.sh --templates $templates
-    fi
-  fi
-  CHANGED_FILES=$(eval $DIFF_COMMAND) ./tools/distrib/clang_format_code.sh
-  ./tools/distrib/check_copyright.py --fix --precommit
-  ./tools/distrib/check_trailing_newlines.sh
-else
-  ./tools/buildgen/generate_projects.sh
-  ./tools/distrib/clang_format_code.sh
-  ./tools/distrib/check_copyright.py --fix
-  ./tools/distrib/check_trailing_newlines.sh
-fi
+#==================
+# Node dependencies
+
+# Install nvm
+RUN touch .profile
+RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.25.4/install.sh | bash
+RUN /bin/bash -l -c "nvm install 0.12 && npm config set cache /tmp/npm-cache"
+
+# Prepare ccache
+RUN ln -s /usr/bin/ccache /usr/local/bin/gcc
+RUN ln -s /usr/bin/ccache /usr/local/bin/g++
+RUN ln -s /usr/bin/ccache /usr/local/bin/cc
+RUN ln -s /usr/bin/ccache /usr/local/bin/c++
+RUN ln -s /usr/bin/ccache /usr/local/bin/clang
+RUN ln -s /usr/bin/ccache /usr/local/bin/clang++
+
+#======================
+# Zookeeper dependencies
+# TODO(jtattermusch): is zookeeper still needed?
+RUN apt-get install -y libzookeeper-mt-dev
+
+RUN mkdir /var/local/jenkins
+
+# Define the default command.
+CMD ["bash"]
