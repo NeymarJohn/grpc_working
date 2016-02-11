@@ -7,8 +7,7 @@ settings:
   '#3': Use "-preN" suffixes to identify pre-release versions
   '#4': Per-language overrides are possible with (eg) ruby_version tag here
   '#5': See the expand_version.py for all the quirks here
-  ruby_version: 0.13.0-pre1.1
-  version: 0.13.0-pre1
+  version: 0.14.0-dev
 filegroups:
 - name: census
   public_headers:
@@ -166,6 +165,7 @@ filegroups:
   - src/cpp/client/credentials.cc
   - src/cpp/client/generic_stub.cc
   - src/cpp/client/insecure_credentials.cc
+  - src/cpp/common/alarm.cc
   - src/cpp/common/call.cc
   - src/cpp/common/channel_arguments.cc
   - src/cpp/common/completion_queue.cc
@@ -1706,6 +1706,16 @@ targets:
   - mac
   - linux
   - posix
+- name: alarm_cpp_test
+  build: test
+  language: c++
+  src:
+  - test/cpp/common/alarm_cpp_test.cc
+  deps:
+  - grpc++_test_util
+  - grpc_test_util
+  - grpc++
+  - grpc
 - name: async_end2end_test
   build: test
   language: c++
