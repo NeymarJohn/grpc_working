@@ -164,7 +164,7 @@ COMMAND_CLASS = {
     'build_ext': commands.BuildExt,
     'gather': commands.Gather,
     'run_interop': commands.RunInterop,
-    'bdist_wheel_grpc_custom': commands.BdistWheelCustomName,
+    'bdist_egg_grpc_custom': commands.BdistEggCustomName,
 }
 
 # Ensure that package data is copied over before any commands have been run:
