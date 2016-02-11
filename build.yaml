@@ -7,7 +7,8 @@ settings:
   '#3': Use "-preN" suffixes to identify pre-release versions
   '#4': Per-language overrides are possible with (eg) ruby_version tag here
   '#5': See the expand_version.py for all the quirks here
-  version: 0.14.0-dev
+  ruby_version: 0.13.0-pre1.1
+  version: 0.13.0-pre1
 filegroups:
 - name: census
   public_headers:
@@ -106,25 +107,8 @@ filegroups:
   - src/core/support/time_win32.c
   - src/core/support/tls_pthread.c
   - src/core/support/wrap_memcpy.c
-- name: gpr_codegen
-  public_headers:
-  - include/grpc/impl/codegen/alloc.h
-  - include/grpc/impl/codegen/atm.h
-  - include/grpc/impl/codegen/atm_gcc_atomic.h
-  - include/grpc/impl/codegen/atm_gcc_sync.h
-  - include/grpc/impl/codegen/atm_win32.h
-  - include/grpc/impl/codegen/log.h
-  - include/grpc/impl/codegen/port_platform.h
-  - include/grpc/impl/codegen/slice.h
-  - include/grpc/impl/codegen/slice_buffer.h
-  - include/grpc/impl/codegen/sync.h
-  - include/grpc/impl/codegen/sync_generic.h
-  - include/grpc/impl/codegen/sync_posix.h
-  - include/grpc/impl/codegen/sync_win32.h
-  - include/grpc/impl/codegen/time.h
 - name: grpc++_base
   public_headers:
-  - include/grpc++/alarm.h
   - include/grpc++/channel.h
   - include/grpc++/client_context.h
   - include/grpc++/completion_queue.h
@@ -172,6 +156,7 @@ filegroups:
   - src/cpp/client/create_channel_internal.h
   - src/cpp/common/create_auth_context.h
   - src/cpp/server/dynamic_thread_pool.h
+  - src/cpp/server/fixed_size_thread_pool.h
   - src/cpp/server/thread_pool_interface.h
   src:
   - src/cpp/client/channel.cc
@@ -181,7 +166,6 @@ filegroups:
   - src/cpp/client/credentials.cc
   - src/cpp/client/generic_stub.cc
   - src/cpp/client/insecure_credentials.cc
-  - src/cpp/common/alarm.cc
   - src/cpp/common/call.cc
   - src/cpp/common/channel_arguments.cc
   - src/cpp/common/completion_queue.cc
@@ -190,6 +174,7 @@ filegroups:
   - src/cpp/server/async_generic_service.cc
   - src/cpp/server/create_default_thread_pool.cc
   - src/cpp/server/dynamic_thread_pool.cc
+  - src/cpp/server/fixed_size_thread_pool.cc
   - src/cpp/server/insecure_server_credentials.cc
   - src/cpp/server/server.cc
   - src/cpp/server/server_builder.cc
@@ -485,12 +470,26 @@ filegroups:
   - src/core/transport/transport_op_string.c
 - name: grpc_codegen
   public_headers:
+  - include/grpc/impl/codegen/alloc.h
+  - include/grpc/impl/codegen/atm.h
+  - include/grpc/impl/codegen/atm_gcc_atomic.h
+  - include/grpc/impl/codegen/atm_gcc_sync.h
+  - include/grpc/impl/codegen/atm_win32.h
   - include/grpc/impl/codegen/byte_buffer.h
   - include/grpc/impl/codegen/compression_types.h
   - include/grpc/impl/codegen/connectivity_state.h
   - include/grpc/impl/codegen/grpc_types.h
+  - include/grpc/impl/codegen/log.h
+  - include/grpc/impl/codegen/port_platform.h
   - include/grpc/impl/codegen/propagation_bits.h
+  - include/grpc/impl/codegen/slice.h
+  - include/grpc/impl/codegen/slice_buffer.h
   - include/grpc/impl/codegen/status.h
+  - include/grpc/impl/codegen/sync.h
+  - include/grpc/impl/codegen/sync_generic.h
+  - include/grpc/impl/codegen/sync_posix.h
+  - include/grpc/impl/codegen/sync_win32.h
+  - include/grpc/impl/codegen/time.h
 - name: grpc_test_util_base
   headers:
   - test/core/end2end/cq_verifier.h
@@ -500,6 +499,7 @@ filegroups:
   - test/core/util/parse_hexstring.h
   - test/core/util/port.h
   - test/core/util/slice_splitter.h
+  - test/core/util/test_config.h
   src:
   - test/core/end2end/cq_verifier.c
   - test/core/end2end/fixtures/proxy.c
@@ -509,26 +509,8 @@ filegroups:
   - test/core/util/port_posix.c
   - test/core/util/port_windows.c
   - test/core/util/slice_splitter.c
-libs:
-- name: gpr
-  build: all
-  language: c
-  filegroups:
-  - gpr
-  - gpr_codegen
-  secure: false
-  vs_project_guid: '{B23D3D1A-9438-4EDA-BEB6-9A0A03D17792}'
-- name: gpr_test_util
-  build: private
-  language: c
-  headers:
-  - test/core/util/test_config.h
-  src:
   - test/core/util/test_config.c
-  deps:
-  - gpr
-  secure: false
-  vs_project_guid: '{EAB0A629-17A9-44DB-B5FF-E91A721FE037}'
+libs:
 - name: grpc
   build: all
   language: c
@@ -571,14 +553,12 @@ libs:
   - src/core/tsi/fake_transport_security.c
   - src/core/tsi/ssl_transport_security.c
   - src/core/tsi/transport_security.c
-  deps:
-  - gpr
   baselib: true
-  deps_linkage: static
   dll: true
   filegroups:
-  - grpc_codegen
   - grpc_base
+  - gpr
+  - grpc_codegen
   - census
   secure: true
   vs_packages:
@@ -597,8 +577,6 @@ libs:
   - test/core/end2end/data/test_root_cert.c
   - test/core/security/oauth2_utils.c
   deps:
-  - gpr_test_util
-  - gpr
   - grpc
   filegroups:
   - grpc_test_util_base
@@ -607,8 +585,6 @@ libs:
   build: private
   language: c
   deps:
-  - gpr
-  - gpr_test_util
   - grpc_unsecure
   filegroups:
   - grpc_test_util_base
@@ -619,14 +595,12 @@ libs:
   language: c
   src:
   - src/core/surface/init_unsecure.c
-  deps:
-  - gpr
   baselib: true
-  deps_linkage: static
   dll: true
   filegroups:
-  - grpc_base
+  - gpr
   - grpc_codegen
+  - grpc_base
   - census
   secure: false
   vs_project_guid: '{46CEDFFF-9692-456A-AA24-38B5D6BCF4C5}'
@@ -640,7 +614,6 @@ libs:
   src:
   - src/core/client_config/resolvers/zookeeper_resolver.c
   deps:
-  - gpr
   - grpc
   external_deps:
   - zookeeper
@@ -658,8 +631,6 @@ libs:
   - test_tcp_server
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: test_tcp_server
   build: private
   language: c
@@ -670,8 +641,6 @@ libs:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc++
   build: all
   language: c++
@@ -731,7 +700,6 @@ libs:
   src:
   - src/cpp/common/insecure_create_auth_context.cc
   deps:
-  - gpr
   - grpc_unsecure
   baselib: true
   dll: true
@@ -769,7 +737,6 @@ libs:
   filegroups:
   - grpc++_codegen
   - grpc_codegen
-  - gpr_codegen
   secure: false
   vs_project_guid: '{B6E81D84-2ACB-41B8-8781-493A944C7817}'
 - name: interop_client_helper
@@ -785,7 +752,6 @@ libs:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr
 - name: interop_client_main
   build: private
   language: c++
@@ -803,8 +769,6 @@ libs:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   - grpc++_test_config
 - name: interop_server_helper
   build: private
@@ -817,7 +781,6 @@ libs:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr
 - name: interop_server_main
   build: private
   language: c++
@@ -832,8 +795,6 @@ libs:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   - grpc++_test_config
 - name: qps
   build: private
@@ -880,7 +841,6 @@ libs:
   - src/csharp/ext/grpc_csharp_ext.c
   deps:
   - grpc
-  - gpr
   LDFLAGS: $(if $(subst Linux,,$(SYSTEM)),,-Wl$(comma)-wrap$(comma)memcpy)
   deps_linkage: static
   dll: only
@@ -903,8 +863,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: algorithm_test
   build: test
   language: c
@@ -913,16 +871,14 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: alloc_test
   build: test
   language: c
   src:
   - test/core/support/alloc_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: alpn_test
   build: test
   language: c
@@ -931,8 +887,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: bin_encoder_test
   build: test
   language: c
@@ -949,8 +903,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: channel_create_test
   build: test
   language: c
@@ -959,8 +911,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: chttp2_hpack_encoder_test
   build: test
   language: c
@@ -969,8 +919,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: chttp2_status_conversion_test
   build: test
   language: c
@@ -979,8 +927,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: chttp2_stream_map_test
   build: test
   language: c
@@ -989,8 +935,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: chttp2_varint_test
   build: test
   language: c
@@ -999,8 +943,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: compression_test
   build: test
   language: c
@@ -1009,8 +951,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: dns_resolver_test
   build: test
   language: c
@@ -1019,8 +959,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: dualstack_socket_test
   cpu_cost: 0.1
   build: test
@@ -1030,8 +968,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1044,8 +980,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: fd_conservation_posix_test
   build: test
   language: c
@@ -1054,8 +988,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1068,8 +1000,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1083,8 +1013,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: fling_server
   build: test
   run: false
@@ -1094,8 +1022,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: fling_stream_test
   cpu_cost: 2
   build: test
@@ -1105,8 +1031,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1120,8 +1044,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1132,7 +1054,6 @@ targets:
   src:
   - tools/codegen/core/gen_hpack_tables.c
   deps:
-  - gpr
   - grpc
 - name: gen_legal_metadata_characters
   build: tool
@@ -1146,80 +1067,80 @@ targets:
   src:
   - test/core/support/avl_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_cmdline_test
   build: test
   language: c
   src:
   - test/core/support/cmdline_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_cpu_test
   build: test
   language: c
   src:
   - test/core/support/cpu_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_env_test
   build: test
   language: c
   src:
   - test/core/support/env_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_file_test
   build: test
   language: c
   src:
   - test/core/support/file_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_histogram_test
   build: test
   language: c
   src:
   - test/core/support/histogram_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_host_port_test
   build: test
   language: c
   src:
   - test/core/support/host_port_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_log_test
   build: test
   language: c
   src:
   - test/core/support/log_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_slice_buffer_test
   build: test
   language: c
   src:
   - test/core/support/slice_buffer_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_slice_test
   build: test
   language: c
   src:
   - test/core/support/slice_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_stack_lockfree_test
   cpu_cost: 10
   build: test
@@ -1227,16 +1148,16 @@ targets:
   src:
   - test/core/support/stack_lockfree_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_string_test
   build: test
   language: c
   src:
   - test/core/support/string_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_sync_test
   cpu_cost: 10
   build: test
@@ -1244,8 +1165,8 @@ targets:
   src:
   - test/core/support/sync_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_thd_test
   cpu_cost: 10
   build: test
@@ -1253,32 +1174,32 @@ targets:
   src:
   - test/core/support/thd_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_time_test
   build: test
   language: c
   src:
   - test/core/support/time_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_tls_test
   build: test
   language: c
   src:
   - test/core/support/tls_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: gpr_useful_test
   build: test
   language: c
   src:
   - test/core/support/useful_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: grpc_auth_context_test
   build: test
   language: c
@@ -1287,8 +1208,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_base64_test
   build: test
   language: c
@@ -1297,8 +1216,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_byte_buffer_reader_test
   build: test
   language: c
@@ -1307,8 +1224,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_channel_args_test
   build: test
   language: c
@@ -1317,8 +1232,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_channel_stack_test
   build: test
   language: c
@@ -1327,8 +1240,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_completion_queue_test
   build: test
   language: c
@@ -1337,8 +1248,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_create_jwt
   build: tool
   language: c
@@ -1347,8 +1256,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_credentials_test
   build: test
   language: c
@@ -1357,8 +1264,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_fetch_oauth2
   build: tool
   language: c
@@ -1367,8 +1272,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_invalid_channel_args_test
   build: test
   language: c
@@ -1377,8 +1280,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_json_token_test
   build: test
   language: c
@@ -1387,8 +1288,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - linux
   - posix
@@ -1401,8 +1300,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_print_google_default_creds_token
   build: tool
   language: c
@@ -1411,8 +1308,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_security_connector_test
   build: test
   language: c
@@ -1421,8 +1316,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_verify_jwt
   build: tool
   language: c
@@ -1431,8 +1324,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: hpack_parser_test
   build: test
   language: c
@@ -1441,8 +1332,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: hpack_table_test
   build: test
   language: c
@@ -1451,8 +1340,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: httpcli_format_request_test
   build: test
   language: c
@@ -1461,8 +1348,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: httpcli_parser_test
   build: test
   language: c
@@ -1471,8 +1356,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: httpcli_test
   cpu_cost: 0.5
   build: test
@@ -1482,8 +1365,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1497,8 +1378,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - linux
 - name: init_test
@@ -1509,8 +1388,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: invalid_call_argument_test
   build: test
   language: c
@@ -1519,8 +1396,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: json_rewrite
   build: test
   run: false
@@ -1529,7 +1404,6 @@ targets:
   - test/core/json/json_rewrite.c
   deps:
   - grpc
-  - gpr
 - name: json_rewrite_test
   build: test
   language: c
@@ -1538,8 +1412,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: json_stream_error_test
   build: test
   language: c
@@ -1548,8 +1420,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: json_test
   build: test
   language: c
@@ -1558,8 +1428,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: lame_client_test
   build: test
   language: c
@@ -1568,8 +1436,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: lb_policies_test
   cpu_cost: 0.1
   build: test
@@ -1579,8 +1445,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: low_level_ping_pong_benchmark
   build: benchmark
   language: c
@@ -1589,8 +1453,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1603,8 +1465,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: multiple_server_queues_test
   build: test
   language: c
@@ -1613,16 +1473,14 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: murmur_hash_test
   build: test
   language: c
   src:
   - test/core/support/murmur_hash_test.c
   deps:
-  - gpr_test_util
-  - gpr
+  - grpc_test_util
+  - grpc
 - name: no_server_test
   cpu_cost: 0.1
   build: test
@@ -1632,8 +1490,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: resolve_address_test
   build: test
   language: c
@@ -1642,8 +1498,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: secure_channel_create_test
   build: test
   language: c
@@ -1652,8 +1506,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: secure_endpoint_test
   build: test
   language: c
@@ -1662,8 +1514,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: server_chttp2_test
   build: test
   language: c
@@ -1672,8 +1522,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: server_test
   build: test
   language: c
@@ -1682,8 +1530,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: set_initial_connect_string_test
   cpu_cost: 0.1
   build: test
@@ -1694,8 +1540,6 @@ targets:
   - test_tcp_server
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: sockaddr_resolver_test
   build: test
   language: c
@@ -1704,8 +1548,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: sockaddr_utils_test
   build: test
   language: c
@@ -1714,8 +1556,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: socket_utils_test
   build: test
   language: c
@@ -1724,8 +1564,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1739,8 +1577,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1754,8 +1590,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1768,8 +1602,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1782,8 +1614,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: timeout_encoding_test
   build: test
   language: c
@@ -1792,8 +1622,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: timer_heap_test
   build: test
   language: c
@@ -1802,8 +1630,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: timer_list_test
   build: test
   language: c
@@ -1812,8 +1638,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: timers_test
   build: test
   language: c
@@ -1822,8 +1646,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: transport_connectivity_state_test
   build: test
   language: c
@@ -1832,8 +1654,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: transport_metadata_test
   build: test
   language: c
@@ -1842,8 +1662,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: transport_security_test
   build: test
   language: c
@@ -1852,8 +1670,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - linux
   - posix
@@ -1866,8 +1682,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1880,8 +1694,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
 - name: workqueue_test
   build: test
   language: c
@@ -1890,24 +1702,10 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
   - posix
-- name: alarm_cpp_test
-  build: test
-  language: c++
-  src:
-  - test/cpp/common/alarm_cpp_test.cc
-  deps:
-  - grpc++_test_util
-  - grpc_test_util
-  - grpc++
-  - grpc
-  - gpr_test_util
-  - gpr
 - name: async_end2end_test
   build: test
   language: c++
@@ -1918,8 +1716,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: async_streaming_ping_pong_test
   build: test
   language: c++
@@ -1931,8 +1727,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1948,8 +1742,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -1964,8 +1756,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: channel_arguments_test
   build: test
   language: c++
@@ -1974,7 +1764,6 @@ targets:
   deps:
   - grpc++
   - grpc
-  - gpr
 - name: cli_call_test
   build: test
   language: c++
@@ -1985,8 +1774,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: client_crash_test
   cpu_cost: 0.1
   build: test
@@ -1998,8 +1785,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -2015,8 +1800,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: credentials_test
   build: test
   language: c++
@@ -2025,7 +1808,6 @@ targets:
   deps:
   - grpc++
   - grpc
-  - gpr
 - name: cxx_byte_buffer_test
   build: test
   language: c++
@@ -2035,8 +1817,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: cxx_slice_test
   build: test
   language: c++
@@ -2046,8 +1826,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: cxx_string_ref_test
   build: test
   language: c++
@@ -2064,8 +1842,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: end2end_test
   cpu_cost: 0.5
   build: test
@@ -2077,8 +1853,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: generic_async_streaming_ping_pong_test
   build: test
   language: c++
@@ -2090,8 +1864,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -2106,8 +1878,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: grpc_cli
   build: test
   run: false
@@ -2119,8 +1889,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   - grpc++_test_config
 - name: grpc_cpp_plugin
   build: protoc
@@ -2182,8 +1950,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: interop_client
   build: test
   run: false
@@ -2196,8 +1962,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   - grpc++_test_config
   platforms:
   - mac
@@ -2215,8 +1979,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   - grpc++_test_config
   platforms:
   - mac
@@ -2231,8 +1993,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -2249,7 +2009,6 @@ targets:
   deps:
   - grpc++
   - grpc
-  - gpr
   - grpc++_test_config
 - name: mock_test
   build: test
@@ -2261,8 +2020,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: qps_driver
   build: benchmark
   language: c++
@@ -2274,8 +2031,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   - grpc++_test_config
 - name: qps_interarrival_test
   build: test
@@ -2289,8 +2044,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -2307,8 +2060,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   - grpc++_test_config
   platforms:
   - mac
@@ -2326,8 +2077,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   - grpc++_test_config
   exclude_configs:
   - tsan
@@ -2349,8 +2098,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   - grpc++_test_config
 - name: reconnect_interop_client
   build: test
@@ -2366,8 +2113,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   - grpc++_test_config
 - name: reconnect_interop_server
   build: test
@@ -2385,8 +2130,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   - grpc++_test_config
 - name: secure_auth_context_test
   build: test
@@ -2398,8 +2141,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: secure_sync_unary_ping_pong_test
   build: test
   language: c++
@@ -2411,8 +2152,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -2428,8 +2167,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -2445,8 +2182,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: shutdown_test
   build: test
   language: c++
@@ -2457,8 +2192,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: status_test
   build: test
   language: c++
@@ -2468,8 +2201,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: streaming_throughput_test
   build: test
   language: c++
@@ -2480,8 +2211,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -2509,8 +2238,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   - grpc++_test_config
 - name: sync_streaming_ping_pong_test
   build: test
@@ -2523,8 +2250,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -2540,8 +2265,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
   platforms:
   - mac
   - linux
@@ -2557,8 +2280,6 @@ targets:
   - grpc_test_util
   - grpc++
   - grpc
-  - gpr_test_util
-  - gpr
 - name: zookeeper_test
   build: test
   run: false
@@ -2572,8 +2293,6 @@ targets:
   - grpc++
   - grpc_zookeeper
   - grpc
-  - gpr_test_util
-  - gpr
   external_deps:
   - zookeeper
   platforms:
@@ -2585,7 +2304,6 @@ targets:
   - test/core/surface/public_headers_must_be_c89.c
   deps:
   - grpc
-  - gpr
 vspackages:
 - linkage: static
   name: grpc.dependencies.zlib
@@ -2717,7 +2435,6 @@ defaults:
 node_modules:
 - deps:
   - grpc
-  - gpr
   - boringssl
   - z
   headers:
@@ -2753,12 +2470,10 @@ node_modules:
 python_dependencies:
   deps:
   - grpc
-  - gpr
   - boringssl
   - z
 ruby_gem:
   deps:
   - grpc
-  - gpr
   - boringssl
   - z

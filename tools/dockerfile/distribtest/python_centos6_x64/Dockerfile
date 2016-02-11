@@ -29,18 +29,10 @@
 
 FROM centos:6
 
-RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
+RUN yum install -y python
 
-# Vanilla CentOS6 only has python 2.6 and we don't support that.
-RUN yum -y install yum -y install https://centos6.iuscommunity.org/ius-release.rpm
-RUN yum install -y python27
+RUN rpm -ivh http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+RUN yum install -y python-pip
 
-# Override python2.6
-RUN ln -s /usr/bin/python2.7 /usr/local/bin/python
-RUN ln -s /usr/bin/python2.7 /usr/local/bin/python2
+RUN pip install --upgrade pip
 
-# Install pip
-RUN curl https://bootstrap.pypa.io/get-pip.py | python -
-
-# "which" command required by python's run_distrib_test.sh
-RUN yum install -y which
