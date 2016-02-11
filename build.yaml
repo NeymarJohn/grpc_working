@@ -2,24 +2,26 @@
 '#2': It is used among other things to generate all of our project files.
 '#3': Please refer to the templates directory for more information.
 settings:
-  '#1': The public version number of the library.
-  '#2': Master always has a "-dev" suffix
-  '#3': Use "-preN" suffixes to identify pre-release versions
-  '#4': Per-language overrides are possible with (eg) ruby_version tag here
-  '#5': See the expand_version.py for all the quirks here
-  version: 0.14.0-dev
+  '#': The public version number of the library.
+  version:
+    major: 0
+    minor: 13
+    micro: 0
+    build: 0
 filegroups:
 - name: census
   public_headers:
   - include/grpc/census.h
   headers:
   - src/core/census/aggregation.h
+  - src/core/census/context.h
   - src/core/census/rpc_metric_id.h
   src:
   - src/core/census/context.c
   - src/core/census/initialize.c
   - src/core/census/operation.c
   - src/core/census/placeholders.c
+  - src/core/census/tag_set.c
   - src/core/census/tracing.c
 - name: gpr
   public_headers:
@@ -108,7 +110,6 @@ filegroups:
   - src/core/support/wrap_memcpy.c
 - name: grpc++_base
   public_headers:
-  - include/grpc++/alarm.h
   - include/grpc++/channel.h
   - include/grpc++/client_context.h
   - include/grpc++/completion_queue.h
@@ -166,7 +167,6 @@ filegroups:
   - src/cpp/client/credentials.cc
   - src/cpp/client/generic_stub.cc
   - src/cpp/client/insecure_credentials.cc
-  - src/cpp/common/alarm.cc
   - src/cpp/common/call.cc
   - src/cpp/common/channel_arguments.cc
   - src/cpp/common/completion_queue.cc
@@ -896,14 +896,6 @@ targets:
   deps:
   - grpc_test_util
   - grpc
-- name: census_context_test
-  build: test
-  language: c
-  src:
-  - test/core/census/context_test.c
-  deps:
-  - grpc_test_util
-  - grpc
 - name: channel_create_test
   build: test
   language: c
@@ -1569,6 +1561,14 @@ targets:
   - mac
   - linux
   - posix
+- name: tag_set_test
+  build: test
+  language: c
+  src:
+  - test/core/census/tag_set_test.c
+  deps:
+  - grpc_test_util
+  - grpc
 - name: tcp_client_posix_test
   cpu_cost: 0.5
   build: test
@@ -1707,16 +1707,6 @@ targets:
   - mac
   - linux
   - posix
-- name: alarm_cpp_test
-  build: test
-  language: c++
-  src:
-  - test/cpp/common/alarm_cpp_test.cc
-  deps:
-  - grpc++_test_util
-  - grpc_test_util
-  - grpc++
-  - grpc
 - name: async_end2end_test
   build: test
   language: c++
@@ -2463,7 +2453,6 @@ node_modules:
   - src/node/src/client.js
   - src/node/src/common.js
   - src/node/src/credentials.js
-  - src/node/src/grpc_extension.js
   - src/node/src/metadata.js
   - src/node/src/server.js
   name: grpc_node

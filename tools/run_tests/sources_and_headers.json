@@ -68,18 +68,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "census_context_test", 
-    "src": [
-      "test/core/census/context_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "channel_create_test", 
     "src": [
       "test/core/surface/channel_create_test.c"
@@ -1000,6 +988,18 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "tag_set_test", 
+    "src": [
+      "test/core/census/tag_set_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "tcp_client_posix_test", 
     "src": [
       "test/core/iomgr/tcp_client_posix_test.c"
@@ -1159,20 +1159,6 @@
     "name": "workqueue_test", 
     "src": [
       "test/core/iomgr/workqueue_test.c"
-    ]
-  }, 
-  {
-    "deps": [
-      "grpc", 
-      "grpc++", 
-      "grpc++_test_util", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "alarm_cpp_test", 
-    "src": [
-      "test/cpp/common/alarm_cpp_test.cc"
     ]
   }, 
   {
@@ -2520,6 +2506,7 @@
       "include/grpc/support/tls_pthread.h", 
       "include/grpc/support/useful.h", 
       "src/core/census/aggregation.h", 
+      "src/core/census/context.h", 
       "src/core/census/grpc_filter.h", 
       "src/core/census/rpc_metric_id.h", 
       "src/core/channel/channel_args.h", 
@@ -2719,6 +2706,7 @@
       "include/grpc/support/useful.h", 
       "src/core/census/aggregation.h", 
       "src/core/census/context.c", 
+      "src/core/census/context.h", 
       "src/core/census/grpc_context.c", 
       "src/core/census/grpc_filter.c", 
       "src/core/census/grpc_filter.h", 
@@ -2726,6 +2714,7 @@
       "src/core/census/operation.c", 
       "src/core/census/placeholders.c", 
       "src/core/census/rpc_metric_id.h", 
+      "src/core/census/tag_set.c", 
       "src/core/census/tracing.c", 
       "src/core/channel/channel_args.c", 
       "src/core/channel/channel_args.h", 
@@ -3192,6 +3181,7 @@
       "include/grpc/support/tls_pthread.h", 
       "include/grpc/support/useful.h", 
       "src/core/census/aggregation.h", 
+      "src/core/census/context.h", 
       "src/core/census/grpc_filter.h", 
       "src/core/census/rpc_metric_id.h", 
       "src/core/channel/channel_args.h", 
@@ -3376,6 +3366,7 @@
       "include/grpc/support/useful.h", 
       "src/core/census/aggregation.h", 
       "src/core/census/context.c", 
+      "src/core/census/context.h", 
       "src/core/census/grpc_context.c", 
       "src/core/census/grpc_filter.c", 
       "src/core/census/grpc_filter.h", 
@@ -3383,6 +3374,7 @@
       "src/core/census/operation.c", 
       "src/core/census/placeholders.c", 
       "src/core/census/rpc_metric_id.h", 
+      "src/core/census/tag_set.c", 
       "src/core/census/tracing.c", 
       "src/core/channel/channel_args.c", 
       "src/core/channel/channel_args.h", 
@@ -3729,7 +3721,6 @@
       "grpc"
     ], 
     "headers": [
-      "include/grpc++/alarm.h", 
       "include/grpc++/channel.h", 
       "include/grpc++/client_context.h", 
       "include/grpc++/completion_queue.h", 
@@ -3815,7 +3806,6 @@
     "language": "c++", 
     "name": "grpc++", 
     "src": [
-      "include/grpc++/alarm.h", 
       "include/grpc++/channel.h", 
       "include/grpc++/client_context.h", 
       "include/grpc++/completion_queue.h", 
@@ -3900,7 +3890,6 @@
       "src/cpp/client/secure_credentials.cc", 
       "src/cpp/client/secure_credentials.h", 
       "src/cpp/codegen/grpc_library.cc", 
-      "src/cpp/common/alarm.cc", 
       "src/cpp/common/auth_property_iterator.cc", 
       "src/cpp/common/call.cc", 
       "src/cpp/common/channel_arguments.cc", 
@@ -3986,7 +3975,6 @@
       "grpc_unsecure"
     ], 
     "headers": [
-      "include/grpc++/alarm.h", 
       "include/grpc++/channel.h", 
       "include/grpc++/client_context.h", 
       "include/grpc++/completion_queue.h", 
@@ -4069,7 +4057,6 @@
     "language": "c++", 
     "name": "grpc++_unsecure", 
     "src": [
-      "include/grpc++/alarm.h", 
       "include/grpc++/channel.h", 
       "include/grpc++/client_context.h", 
       "include/grpc++/completion_queue.h", 
@@ -4152,7 +4139,6 @@
       "src/cpp/client/generic_stub.cc", 
       "src/cpp/client/insecure_credentials.cc", 
       "src/cpp/codegen/grpc_library.cc", 
-      "src/cpp/common/alarm.cc", 
       "src/cpp/common/call.cc", 
       "src/cpp/common/channel_arguments.cc", 
       "src/cpp/common/completion_queue.cc", 

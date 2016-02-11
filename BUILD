@@ -182,6 +182,7 @@ cc_library(
     "src/core/support/thd_internal.h",
     "src/core/support/time_precise.h",
     "src/core/census/aggregation.h",
+    "src/core/census/context.h",
     "src/core/census/rpc_metric_id.h",
     "src/core/httpcli/httpcli_security_connector.c",
     "src/core/security/base64.c",
@@ -378,6 +379,7 @@ cc_library(
     "src/core/census/initialize.c",
     "src/core/census/operation.c",
     "src/core/census/placeholders.c",
+    "src/core/census/tag_set.c",
     "src/core/census/tracing.c",
   ],
   hdrs = [
@@ -578,6 +580,7 @@ cc_library(
     "src/core/transport/transport.h",
     "src/core/transport/transport_impl.h",
     "src/core/census/aggregation.h",
+    "src/core/census/context.h",
     "src/core/census/rpc_metric_id.h",
     "src/core/surface/init_unsecure.c",
     "src/core/profiling/basic_timers.c",
@@ -754,6 +757,7 @@ cc_library(
     "src/core/census/initialize.c",
     "src/core/census/operation.c",
     "src/core/census/placeholders.c",
+    "src/core/census/tag_set.c",
     "src/core/census/tracing.c",
   ],
   hdrs = [
@@ -867,7 +871,6 @@ cc_library(
     "src/cpp/client/credentials.cc",
     "src/cpp/client/generic_stub.cc",
     "src/cpp/client/insecure_credentials.cc",
-    "src/cpp/common/alarm.cc",
     "src/cpp/common/call.cc",
     "src/cpp/common/channel_arguments.cc",
     "src/cpp/common/completion_queue.cc",
@@ -890,7 +893,6 @@ cc_library(
     "src/cpp/codegen/grpc_library.cc",
   ],
   hdrs = [
-    "include/grpc++/alarm.h",
     "include/grpc++/channel.h",
     "include/grpc++/client_context.h",
     "include/grpc++/completion_queue.h",
@@ -993,7 +995,6 @@ cc_library(
     "src/cpp/client/credentials.cc",
     "src/cpp/client/generic_stub.cc",
     "src/cpp/client/insecure_credentials.cc",
-    "src/cpp/common/alarm.cc",
     "src/cpp/common/call.cc",
     "src/cpp/common/channel_arguments.cc",
     "src/cpp/common/completion_queue.cc",
@@ -1016,7 +1017,6 @@ cc_library(
     "src/cpp/codegen/grpc_library.cc",
   ],
   hdrs = [
-    "include/grpc++/alarm.h",
     "include/grpc++/channel.h",
     "include/grpc++/client_context.h",
     "include/grpc++/completion_queue.h",
@@ -1405,6 +1405,7 @@ objc_library(
     "src/core/census/initialize.c",
     "src/core/census/operation.c",
     "src/core/census/placeholders.c",
+    "src/core/census/tag_set.c",
     "src/core/census/tracing.c",
   ],
   hdrs = [
@@ -1601,6 +1602,7 @@ objc_library(
     "src/core/support/thd_internal.h",
     "src/core/support/time_precise.h",
     "src/core/census/aggregation.h",
+    "src/core/census/context.h",
     "src/core/census/rpc_metric_id.h",
   ],
   includes = [

@@ -186,7 +186,7 @@ class CLanguage(object):
     return True
 
   def dockerfile_dir(self, config, arch):
-    return 'tools/dockerfile/test/cxx_jessie_%s' % _docker_arch_suffix(arch)
+    return None
 
   def __str__(self):
     return self.make_target
@@ -194,17 +194,13 @@ class CLanguage(object):
 
 class NodeLanguage(object):
 
-  def __init__(self):
-    self.node_version = '0.12'
-
   def test_specs(self, config, args):
-    return [config.job_spec(['tools/run_tests/run_node.sh', self.node_version],
-                            None,
+    return [config.job_spec(['tools/run_tests/run_node.sh'], None,
                             environ=_FORCE_ENVIRON_FOR_WRAPPERS)]
 
   def pre_build_steps(self):
     # Default to 1 week cache expiration
-    return [['tools/run_tests/pre_build_node.sh', self.node_version]]
+    return [['tools/run_tests/pre_build_node.sh']]
 
   def make_targets(self, test_regex):
     return []
@@ -213,7 +209,7 @@ class NodeLanguage(object):
     return []
 
   def build_steps(self):
-    return [['tools/run_tests/build_node.sh', self.node_version]]
+    return [['tools/run_tests/build_node.sh']]
 
   def post_tests_steps(self):
     return []
@@ -225,7 +221,7 @@ class NodeLanguage(object):
     return False
 
   def dockerfile_dir(self, config, arch):
-    return 'tools/dockerfile/test/node_jessie_%s' % _docker_arch_suffix(arch)
+    return None
 
   def __str__(self):
     return 'node'
@@ -259,7 +255,7 @@ class PhpLanguage(object):
     return False
 
   def dockerfile_dir(self, config, arch):
-    return 'tools/dockerfile/test/php_jessie_%s' % _docker_arch_suffix(arch)
+    return None
 
   def __str__(self):
     return 'php'
@@ -315,7 +311,7 @@ class PythonLanguage(object):
     return False
 
   def dockerfile_dir(self, config, arch):
-    return 'tools/dockerfile/test/python_jessie_%s' % _docker_arch_suffix(arch)
+    return None
 
   def __str__(self):
     return 'python'
@@ -349,7 +345,7 @@ class RubyLanguage(object):
     return False
 
   def dockerfile_dir(self, config, arch):
-    return 'tools/dockerfile/test/ruby_jessie_%s' % _docker_arch_suffix(arch)
+    return None
 
   def __str__(self):
     return 'ruby'
@@ -434,7 +430,7 @@ class CSharpLanguage(object):
     return False
 
   def dockerfile_dir(self, config, arch):
-    return 'tools/dockerfile/test/csharp_jessie_%s' % _docker_arch_suffix(arch)
+    return None
 
   def __str__(self):
     return 'csharp'
@@ -506,7 +502,7 @@ class Sanity(object):
     return False
 
   def dockerfile_dir(self, config, arch):
-    return 'tools/dockerfile/test/sanity'
+    return 'tools/dockerfile/grpc_sanity'
 
   def __str__(self):
     return 'sanity'
@@ -630,24 +626,19 @@ def _windows_toolset_option(compiler):
     sys.exit(1)
 
 
-def _docker_arch_suffix(arch):
-  """Returns suffix to dockerfile dir to use."""
-  if arch == 'default' or arch == 'x64':
-    return 'x64'
-  elif arch == 'x86':
-    return 'x86'
-  else:
-    print 'Architecture %s not supported with current settings.' % arch
-    sys.exit(1)
-
-
 def _get_dockerfile_dir(language, cfg, arch):
   """Returns dockerfile to use"""
   custom = language.dockerfile_dir(cfg, arch)
   if custom:
     return custom
   else:
-    return 'tools/dockerfile/grpc_tests_multilang_%s' % _docker_arch_suffix(arch)
+    if arch == 'default' or arch == 'x64':
+      return 'tools/dockerfile/grpc_tests_multilang_x64'
+    elif arch == 'x86':
+      return 'tools/dockerfile/grpc_tests_multilang_x86'
+    else:
+      print 'Architecture %s not supported with current settings.' % arch
+      sys.exit(1)
 
 def runs_per_test_type(arg_str):
     """Auxilary function to parse the "runs_per_test" flag.
