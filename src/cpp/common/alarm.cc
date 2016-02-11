@@ -39,8 +39,7 @@ namespace grpc {
 
 static internal::GrpcLibraryInitializer g_gli_initializer;
 Alarm::Alarm(CompletionQueue* cq, gpr_timespec deadline, void* tag)
-    : tag_(tag),
-      alarm_(grpc_alarm_create(cq->cq(), deadline, static_cast<void*>(&tag_))) {
+    : alarm_(grpc_alarm_create(cq->cq(), deadline, tag)) {
   g_gli_initializer.summon();
 }
 
