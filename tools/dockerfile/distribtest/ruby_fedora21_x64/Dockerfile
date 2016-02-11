@@ -30,5 +30,3 @@
 FROM fedora:21
 
 RUN yum clean all && yum update -y && yum install -y ruby
-
-RUN gem install bundler
