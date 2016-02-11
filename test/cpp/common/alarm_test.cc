@@ -35,40 +35,52 @@
 #include <grpc++/completion_queue.h>
 #include <gtest/gtest.h>
 
+#include <grpc++/completion_queue.h>
 #include "test/core/util/test_config.h"
 
 namespace grpc {
 namespace {
 
+class TestTag : public CompletionQueueTag {
+ public:
+  TestTag() : tag_(0) {}
+  TestTag(intptr_t tag) : tag_(tag) {}
+  bool FinalizeResult(void** tag, bool* status) { return true; }
+  intptr_t tag() { return tag_; }
+
+ private:
+  intptr_t tag_;
+};
+
 TEST(AlarmTest, RegularExpiry) {
   CompletionQueue cq;
-  void* junk = reinterpret_cast<void*>(1618033);
-  Alarm alarm(&cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1), junk);
+  TestTag input_tag(1618033);
+  Alarm alarm(&cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1), &input_tag);
 
-  void* output_tag;
+  TestTag* output_tag;
   bool ok;
   const CompletionQueue::NextStatus status = cq.AsyncNext(
       (void**)&output_tag, &ok, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(2));
 
   EXPECT_EQ(status, CompletionQueue::GOT_EVENT);
   EXPECT_TRUE(ok);
-  EXPECT_EQ(junk, output_tag);
+  EXPECT_EQ(output_tag->tag(), input_tag.tag());
 }
 
 TEST(AlarmTest, Cancellation) {
   CompletionQueue cq;
-  void* junk = reinterpret_cast<void*>(1618033);
-  Alarm alarm(&cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(2), junk);
+  TestTag input_tag(1618033);
+  Alarm alarm(&cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(2), &input_tag);
   alarm.Cancel();
 
-  void* output_tag;
+  TestTag* output_tag;
   bool ok;
   const CompletionQueue::NextStatus status = cq.AsyncNext(
       (void**)&output_tag, &ok, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1));
 
   EXPECT_EQ(status, CompletionQueue::GOT_EVENT);
   EXPECT_FALSE(ok);
-  EXPECT_EQ(junk, output_tag);
+  EXPECT_EQ(output_tag->tag(), input_tag.tag());
 }
 
 }  // namespace
