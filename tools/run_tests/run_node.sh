@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2015, Google Inc.
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+NODE_VERSION=$1
+source ~/.nvm/nvm.sh
 set -ex
+
+nvm use $NODE_VERSION
 
 CONFIG=${CONFIG:-opt}
 
@@ -51,5 +55,5 @@ then
   echo '<html><head><meta http-equiv="refresh" content="0;URL=lcov-report/index.html"></head></html>' > \
     ../reports/node_coverage/index.html
 else
-  JUNIT_REPORT_PATH=src/node/reports.xml JUNIT_REPORT_STACK=1 ./node_modules/.bin/mocha --reporter mocha-jenkins-reporter src/node/test || true
+  JUNIT_REPORT_PATH=src/node/reports.xml JUNIT_REPORT_STACK=1 ./node_modules/.bin/mocha --reporter mocha-jenkins-reporter src/node/test
 fi
