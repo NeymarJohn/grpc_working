@@ -867,6 +867,7 @@ cc_library(
     "src/cpp/client/credentials.cc",
     "src/cpp/client/generic_stub.cc",
     "src/cpp/client/insecure_credentials.cc",
+    "src/cpp/common/alarm.cc",
     "src/cpp/common/call.cc",
     "src/cpp/common/channel_arguments.cc",
     "src/cpp/common/completion_queue.cc",
@@ -889,6 +890,7 @@ cc_library(
     "src/cpp/codegen/grpc_library.cc",
   ],
   hdrs = [
+    "include/grpc++/alarm.h",
     "include/grpc++/channel.h",
     "include/grpc++/client_context.h",
     "include/grpc++/completion_queue.h",
@@ -991,6 +993,7 @@ cc_library(
     "src/cpp/client/credentials.cc",
     "src/cpp/client/generic_stub.cc",
     "src/cpp/client/insecure_credentials.cc",
+    "src/cpp/common/alarm.cc",
     "src/cpp/common/call.cc",
     "src/cpp/common/channel_arguments.cc",
     "src/cpp/common/completion_queue.cc",
@@ -1013,6 +1016,7 @@ cc_library(
     "src/cpp/codegen/grpc_library.cc",
   ],
   hdrs = [
+    "include/grpc++/alarm.h",
     "include/grpc++/channel.h",
     "include/grpc++/client_context.h",
     "include/grpc++/completion_queue.h",
