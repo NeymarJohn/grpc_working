@@ -36,11 +36,4 @@
 # NOTE: No empty lines should appear in this file before igncr is set!
 set -ex -o igncr || set -ex
 
-curr_platform="$platform"
-unset platform  # variable named 'platform' breaks the windows build
-
-if [ "$curr_platform" == "linux" ] && [ "$language" == "ruby" ] ; then
-  ./tools/run_tests/build_artifact_ruby.sh
-else
-  python tools/run_tests/task_runner.py -f artifact $language $curr_platform $architecture
-fi
+python tools/run_tests/build_artifacts.py $@

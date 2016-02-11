@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,20 +28,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cimport libc.time
+from libc.stdint cimport int64_t, uint32_t, int32_t
 
 
-cdef extern from "grpc/_cython/loader.h":
-
-  ctypedef int int32_t
-  ctypedef unsigned uint32_t
-  ctypedef long int64_t
-
-  int pygrpc_load_core(const char*)
-
+cdef extern from "grpc/support/alloc.h":
   void *gpr_malloc(size_t size)
   void gpr_free(void *ptr)
   void *gpr_realloc(void *p, size_t size)
 
+cdef extern from "grpc/support/slice.h":
   ctypedef struct gpr_slice:
     # don't worry about writing out the members of gpr_slice; we never access
     # them directly.
@@ -59,6 +54,9 @@ cdef extern from "grpc/_cython/loader.h":
   # Declare functions for function-like macros (because Cython)...
   void *gpr_slice_start_ptr "GPR_SLICE_START_PTR" (gpr_slice s)
   size_t gpr_slice_length "GPR_SLICE_LENGTH" (gpr_slice s)
+
+
+cdef extern from "grpc/support/time.h":
 
   ctypedef enum gpr_clock_type:
     GPR_CLOCK_MONOTONIC
@@ -80,6 +78,8 @@ cdef extern from "grpc/_cython/loader.h":
   gpr_timespec gpr_convert_clock_type(gpr_timespec t,
                                       gpr_clock_type target_clock)
 
+
+cdef extern from "grpc/status.h":
   ctypedef enum grpc_status_code:
     GRPC_STATUS_OK
     GRPC_STATUS_CANCELLED
@@ -100,15 +100,14 @@ cdef extern from "grpc/_cython/loader.h":
     GRPC_STATUS_DATA_LOSS
     GRPC_STATUS__DO_NOT_USE
 
-  ctypedef enum grpc_ssl_roots_override_result:
-    GRPC_SSL_ROOTS_OVERRIDE_OK
-    GRPC_SSL_ROOTS_OVERRIDE_FAILED_PERMANENTLY
-    GRPC_SSL_ROOTS_OVERRIDE_FAILED
 
+cdef extern from "grpc/byte_buffer_reader.h":
   struct grpc_byte_buffer_reader:
     # We don't care about the internals
     pass
 
+
+cdef extern from "grpc/byte_buffer.h":
   ctypedef struct grpc_byte_buffer:
     # We don't care about the internals.
     pass
@@ -123,6 +122,9 @@ cdef extern from "grpc/_cython/loader.h":
   int grpc_byte_buffer_reader_next(grpc_byte_buffer_reader *reader,
                                    gpr_slice *slice)
   void grpc_byte_buffer_reader_destroy(grpc_byte_buffer_reader *reader)
+
+
+cdef extern from "grpc/grpc.h":
 
   const char *GRPC_ARG_PRIMARY_USER_AGENT_STRING
   const char *GRPC_ARG_ENABLE_CENSUS
@@ -331,6 +333,9 @@ cdef extern from "grpc/_cython/loader.h":
   void grpc_server_cancel_all_calls(grpc_server *server)
   void grpc_server_destroy(grpc_server *server)
 
+
+cdef extern from "grpc/grpc_security.h":
+
   ctypedef struct grpc_ssl_pem_key_cert_pair:
     const char *private_key
     const char *certificate_chain "cert_chain"
@@ -342,10 +347,6 @@ cdef extern from "grpc/_cython/loader.h":
   ctypedef struct grpc_call_credentials:
     # We don't care about the internals (and in fact don't know them)
     pass
-
-  ctypedef void (*grpc_ssl_roots_override_callback)(char **pem_root_certs)
-
-  void grpc_set_ssl_roots_override_callback(grpc_ssl_roots_override_callback cb)
 
   grpc_channel_credentials *grpc_google_default_credentials_create()
   grpc_channel_credentials *grpc_ssl_credentials_create(

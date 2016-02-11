@@ -175,20 +175,6 @@
     <ClInclude Include="$(SolutionDir)\..\include\grpc\support\tls_msvc.h" />
     <ClInclude Include="$(SolutionDir)\..\include\grpc\support\tls_pthread.h" />
     <ClInclude Include="$(SolutionDir)\..\include\grpc\support\useful.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\alloc.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\atm.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\atm_gcc_atomic.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\atm_gcc_sync.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\atm_win32.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\log.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\port_platform.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\slice.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\slice_buffer.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\sync.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\sync_generic.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\sync_posix.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\sync_win32.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc\impl\codegen\time.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SolutionDir)\..\src\core\profiling\timers.h" />
@@ -263,8 +249,6 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\support\subprocess_posix.c">
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\support\subprocess_windows.c">
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\support\sync.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\support\sync_posix.c">
@@ -286,8 +270,6 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\support\time_win32.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\support\tls_pthread.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\support\wrap_memcpy.c">
     </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

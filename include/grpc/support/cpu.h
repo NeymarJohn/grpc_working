@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
 #ifndef GRPC_SUPPORT_CPU_H
 #define GRPC_SUPPORT_CPU_H
 
-#include <grpc/support/port_platform.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -44,13 +42,13 @@ extern "C" {
 
 /* Return the number of CPU cores on the current system. Will return 0 if
    the information is not available. */
-GPR_API unsigned gpr_cpu_num_cores(void);
+unsigned gpr_cpu_num_cores(void);
 
 /* Return the CPU on which the current thread is executing; N.B. This should
    be considered advisory only - it is possible that the thread is switched
    to a different CPU at any time. Returns a value in range
    [0, gpr_cpu_num_cores() - 1] */
-GPR_API unsigned gpr_cpu_current_cpu(void);
+unsigned gpr_cpu_current_cpu(void);
 
 #ifdef __cplusplus
 }  // extern "C"

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,13 @@ export ASAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer-3.5
 
 # Ensure that programs depending on current-user-ownership of cache directories
 # are satisfied (it's being mounted from outside the image).
-chown $(whoami) $XDG_CACHE_HOME
+chown `whoami` $XDG_CACHE_HOME
 
 mkdir -p /var/local/git
 git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
+
+nvm use 0.12
+rvm use ruby-2.1
 
 mkdir -p reports
 

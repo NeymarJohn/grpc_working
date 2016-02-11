@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,6 +81,15 @@ static grpc_pollset_worker *pop_front_worker(
   }
 }
 
+static void push_back_worker(grpc_pollset_worker *root,
+                             grpc_pollset_worker_link_type type,
+                             grpc_pollset_worker *worker) {
+  worker->links[type].next = root;
+  worker->links[type].prev = worker->links[type].next->links[type].prev;
+  worker->links[type].prev->links[type].next =
+      worker->links[type].next->links[type].prev = worker;
+}
+
 static void push_front_worker(grpc_pollset_worker *root,
                               grpc_pollset_worker_link_type type,
                               grpc_pollset_worker *worker) {
@@ -107,7 +116,7 @@ void grpc_pollset_shutdown(grpc_exec_ctx *exec_ctx, grpc_pollset *pollset,
   pollset->shutting_down = 1;
   grpc_pollset_kick(pollset, GRPC_POLLSET_KICK_BROADCAST);
   if (!pollset->is_iocp_worker) {
-    grpc_exec_ctx_enqueue(exec_ctx, closure, true, NULL);
+    grpc_exec_ctx_enqueue(exec_ctx, closure, 1);
   } else {
     pollset->on_shutdown = closure;
   }
@@ -165,7 +174,7 @@ void grpc_pollset_work(grpc_exec_ctx *exec_ctx, grpc_pollset *pollset,
       }
 
       if (pollset->shutting_down && pollset->on_shutdown != NULL) {
-        grpc_exec_ctx_enqueue(exec_ctx, pollset->on_shutdown, true, NULL);
+        grpc_exec_ctx_enqueue(exec_ctx, pollset->on_shutdown, 1);
         pollset->on_shutdown = NULL;
       }
       goto done;
@@ -212,8 +221,10 @@ void grpc_pollset_kick(grpc_pollset *p, grpc_pollset_worker *specific_worker) {
         grpc_iocp_kick();
       }
     } else {
-      if (p->is_iocp_worker && g_active_poller == specific_worker) {
-        grpc_iocp_kick();
+      if (p->is_iocp_worker) {
+        if (g_active_poller == specific_worker) {
+          grpc_iocp_kick();
+        }
       } else {
         specific_worker->kicked = 1;
         gpr_cv_signal(&specific_worker->cv);
