@@ -47,6 +47,8 @@ then
   rvm use ruby-2.1
 fi
 
+nvm use 4 || true
+
 cd /var/local/git/grpc
 
 $RUN_COMMAND
