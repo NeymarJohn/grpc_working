@@ -364,7 +364,6 @@
     <ClInclude Include="$(SolutionDir)\..\src\core\client_config\resolvers\sockaddr_resolver.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\client_config\subchannel.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\client_config\subchannel_factory.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\client_config\subchannel_index.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\client_config\uri_parser.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\compression\algorithm_metadata.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\compression\message_compress.h" />
@@ -463,6 +462,7 @@
     <ClInclude Include="$(SolutionDir)\..\src\core\support\thd_internal.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\support\time_precise.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\census\aggregation.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\census\log.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\census\rpc_metric_id.h" />
   </ItemGroup>
   <ItemGroup>
@@ -561,8 +561,6 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\client_config\subchannel.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\client_config\subchannel_factory.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\client_config\subchannel_index.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\client_config\uri_parser.c">
     </ClCompile>
@@ -853,6 +851,8 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\census\context.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\initialize.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\census\log.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\operation.c">
     </ClCompile>

@@ -80,6 +80,18 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "census_log_test", 
+    "src": [
+      "test/core/census/log_test.c"
+    ]
+  }, 
+  {
+    "deps": [
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "channel_create_test", 
     "src": [
       "test/core/surface/channel_create_test.c"
@@ -2507,6 +2519,7 @@
       "include/grpc/support/useful.h", 
       "src/core/census/aggregation.h", 
       "src/core/census/grpc_filter.h", 
+      "src/core/census/log.h", 
       "src/core/census/rpc_metric_id.h", 
       "src/core/channel/channel_args.h", 
       "src/core/channel/channel_stack.h", 
@@ -2533,7 +2546,6 @@
       "src/core/client_config/resolvers/sockaddr_resolver.h", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.h", 
-      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm_metadata.h", 
       "src/core/compression/message_compress.h", 
@@ -2710,6 +2722,8 @@
       "src/core/census/grpc_filter.c", 
       "src/core/census/grpc_filter.h", 
       "src/core/census/initialize.c", 
+      "src/core/census/log.c", 
+      "src/core/census/log.h", 
       "src/core/census/operation.c", 
       "src/core/census/placeholders.c", 
       "src/core/census/rpc_metric_id.h", 
@@ -2764,8 +2778,6 @@
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.c", 
       "src/core/client_config/subchannel_factory.h", 
-      "src/core/client_config/subchannel_index.c", 
-      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 
@@ -3182,6 +3194,7 @@
       "include/grpc/support/useful.h", 
       "src/core/census/aggregation.h", 
       "src/core/census/grpc_filter.h", 
+      "src/core/census/log.h", 
       "src/core/census/rpc_metric_id.h", 
       "src/core/channel/channel_args.h", 
       "src/core/channel/channel_stack.h", 
@@ -3208,7 +3221,6 @@
       "src/core/client_config/resolvers/sockaddr_resolver.h", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.h", 
-      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm_metadata.h", 
       "src/core/compression/message_compress.h", 
@@ -3370,6 +3382,8 @@
       "src/core/census/grpc_filter.c", 
       "src/core/census/grpc_filter.h", 
       "src/core/census/initialize.c", 
+      "src/core/census/log.c", 
+      "src/core/census/log.h", 
       "src/core/census/operation.c", 
       "src/core/census/placeholders.c", 
       "src/core/census/rpc_metric_id.h", 
@@ -3424,8 +3438,6 @@
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.c", 
       "src/core/client_config/subchannel_factory.h", 
-      "src/core/client_config/subchannel_index.c", 
-      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 

@@ -361,7 +361,7 @@ E = @echo
 Q = @
 endif
 
-VERSION = 0.14.0-dev
+VERSION = 0.13.0.0
 
 CPPFLAGS_NO_ARCH += $(addprefix -I, $(INCLUDES)) $(addprefix -D, $(DEFINES))
 CPPFLAGS += $(CPPFLAGS_NO_ARCH) $(ARCH_FLAGS)
@@ -832,6 +832,7 @@ alloc_test: $(BINDIR)/$(CONFIG)/alloc_test
 alpn_test: $(BINDIR)/$(CONFIG)/alpn_test
 bin_encoder_test: $(BINDIR)/$(CONFIG)/bin_encoder_test
 census_context_test: $(BINDIR)/$(CONFIG)/census_context_test
+census_log_test: $(BINDIR)/$(CONFIG)/census_log_test
 channel_create_test: $(BINDIR)/$(CONFIG)/channel_create_test
 chttp2_hpack_encoder_test: $(BINDIR)/$(CONFIG)/chttp2_hpack_encoder_test
 chttp2_status_conversion_test: $(BINDIR)/$(CONFIG)/chttp2_status_conversion_test
@@ -1139,6 +1140,7 @@ buildtests_c: privatelibs_c \
   $(BINDIR)/$(CONFIG)/alpn_test \
   $(BINDIR)/$(CONFIG)/bin_encoder_test \
   $(BINDIR)/$(CONFIG)/census_context_test \
+  $(BINDIR)/$(CONFIG)/census_log_test \
   $(BINDIR)/$(CONFIG)/channel_create_test \
   $(BINDIR)/$(CONFIG)/chttp2_hpack_encoder_test \
   $(BINDIR)/$(CONFIG)/chttp2_status_conversion_test \
@@ -1373,6 +1375,8 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/bin_encoder_test || ( echo test bin_encoder_test failed ; exit 1 )
 	$(E) "[RUN]     Testing census_context_test"
 	$(Q) $(BINDIR)/$(CONFIG)/census_context_test || ( echo test census_context_test failed ; exit 1 )
+	$(E) "[RUN]     Testing census_log_test"
+	$(Q) $(BINDIR)/$(CONFIG)/census_log_test || ( echo test census_log_test failed ; exit 1 )
 	$(E) "[RUN]     Testing channel_create_test"
 	$(Q) $(BINDIR)/$(CONFIG)/channel_create_test || ( echo test channel_create_test failed ; exit 1 )
 	$(E) "[RUN]     Testing chttp2_hpack_encoder_test"
@@ -2196,7 +2200,6 @@ LIBGRPC_SRC = \
     src/core/client_config/resolvers/sockaddr_resolver.c \
     src/core/client_config/subchannel.c \
     src/core/client_config/subchannel_factory.c \
-    src/core/client_config/subchannel_index.c \
     src/core/client_config/uri_parser.c \
     src/core/compression/algorithm.c \
     src/core/compression/message_compress.c \
@@ -2342,6 +2345,7 @@ LIBGRPC_SRC = \
     src/core/support/wrap_memcpy.c \
     src/core/census/context.c \
     src/core/census/initialize.c \
+    src/core/census/log.c \
     src/core/census/operation.c \
     src/core/census/placeholders.c \
     src/core/census/tracing.c \
@@ -2611,7 +2615,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/client_config/resolvers/sockaddr_resolver.c \
     src/core/client_config/subchannel.c \
     src/core/client_config/subchannel_factory.c \
-    src/core/client_config/subchannel_index.c \
     src/core/client_config/uri_parser.c \
     src/core/compression/algorithm.c \
     src/core/compression/message_compress.c \
@@ -2714,6 +2717,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/transport/transport_op_string.c \
     src/core/census/context.c \
     src/core/census/initialize.c \
+    src/core/census/log.c \
     src/core/census/operation.c \
     src/core/census/placeholders.c \
     src/core/census/tracing.c \
@@ -5831,6 +5835,38 @@ deps_census_context_test: $(CENSUS_CONTEXT_TEST_OBJS:.o=.dep)
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CENSUS_CONTEXT_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+CENSUS_LOG_TEST_SRC = \
+    test/core/census/log_test.c \
+
+CENSUS_LOG_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_LOG_TEST_SRC))))
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL.
+
+$(BINDIR)/$(CONFIG)/census_log_test: openssl_dep_error
+
+else
+
+
+
+$(BINDIR)/$(CONFIG)/census_log_test: $(CENSUS_LOG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(CENSUS_LOG_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/census_log_test
+
+endif
+
+$(OBJDIR)/$(CONFIG)/test/core/census/log_test.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a
+
+deps_census_log_test: $(CENSUS_LOG_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(CENSUS_LOG_TEST_OBJS:.o=.dep)
 endif
 endif
 
