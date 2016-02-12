@@ -35,9 +35,9 @@ RUN echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compa
 RUN echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
 RUN echo "deb http://download.mono-project.com/repo/debian wheezy-libtiff-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
 
-RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y \
+RUN apt-get update && apt-get install -y \
     mono-devel \
     ca-certificates-mono \
     nuget
 
-RUN apt-get update && apt-get install -y git unzip
+RUN apt-get update && apt-get install -y unzip
