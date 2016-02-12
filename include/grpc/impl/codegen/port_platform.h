@@ -347,16 +347,16 @@ typedef unsigned __int64 uint64_t;
   } while (0)
 #endif /* GPR_FORBID_UNREACHABLE_CODE */
 
-#ifndef GPRAPI
-#define GPRAPI
+#ifndef GPR_API
+#define GPR_API
 #endif
 
-#ifndef GRPCAPI
-#define GRPCAPI GPRAPI
+#ifndef GRPC_API
+#define GRPC_API GPR_API
 #endif
 
-#ifndef CENSUSAPI
-#define CENSUSAPI GRPCAPI
+#ifndef CENSUS_API
+#define CENSUS_API GRPC_API
 #endif
 
 #endif /* GRPC_IMPL_CODEGEN_PORT_PLATFORM_H */
