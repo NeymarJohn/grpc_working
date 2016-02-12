@@ -57,8 +57,7 @@
             'UNICODE',
             '_UNICODE',
             'NOMINMAX',
-            'OPENSSL_NO_ASM',
-            'GPR_BACKWARDS_COMPATIBILITY_MODE'
+            'OPENSSL_NO_ASM'
           ],
           "msvs_settings": {
             'VCCLCompilerTool': {
@@ -81,8 +80,7 @@
             # supports ALPN. The target is "[major].[minor].[patch]". We split by
             # periods and take the first field to get the major version.
           'defines': [
-            'TSI_OPENSSL_ALPN_SUPPORT=<!(echo <(target) | cut -d. -f1)',
-            'GPR_BACKWARDS_COMPATIBILITY_MODE'
+            'TSI_OPENSSL_ALPN_SUPPORT=<!(echo <(target) | cut -d. -f1)'
           ],
           'include_dirs': [
             '<(node_root_dir)/deps/openssl/openssl/include',
