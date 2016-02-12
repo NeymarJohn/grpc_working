@@ -1106,7 +1106,6 @@ void PrintSourceService(grpc::protobuf::io::Printer *printer,
 
   printer->Print(*vars, "$ns$$Service$::Service::Service() {\n");
   printer->Indent();
-  printer->Print(*vars, "(void)$prefix$$Service$_method_names;\n");
   for (int i = 0; i < service->method_count(); ++i) {
     const grpc::protobuf::MethodDescriptor *method = service->method(i);
     (*vars)["Idx"] = as_string(i);
