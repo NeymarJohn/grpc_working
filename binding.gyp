@@ -44,10 +44,7 @@
     ],
     'conditions': [
       ['OS == "win"', {
-        "include_dirs": [
-          "third_party/boringssl/include",
-          "third_party/zlib"
-        ],
+        "include_dirs": [ "third_party/boringssl/include" ],
         "defines": [
           '_WIN32_WINNT=0x0600',
           'WIN32_LEAN_AND_MEAN',
@@ -66,20 +63,19 @@
           "ws2_32"
         ]
       }, { # OS != "win"
-        'variables': {
-          'config': '<!(echo $CONFIG)',
-          # The output of "node --version" is "v[version]". We use cut to
-          # remove the first character.
-          'target%': '<!(node --version | cut -c2-)'
-        },
           # Empirically, Node only exports ALPN symbols if its major version is >0.
           # io.js always reports versions >0 and always exports ALPN symbols.
           # Therefore, Node's major version will be truthy if and only if it
-          # supports ALPN. The target is "[major].[minor].[patch]". We split by
-          # periods and take the first field to get the major version.
+          # supports ALPN. The output of "node -v" is v[major].[minor].[patch],
+          # like "v4.1.1" in a recent version. We use cut to split by period and
+          # take the first field (resulting in "v[major]"), then use cut again
+          # to take all but the first character, removing the "v".
         'defines': [
-          'TSI_OPENSSL_ALPN_SUPPORT=<!(echo <(target) | cut -d. -f1)'
+          'TSI_OPENSSL_ALPN_SUPPORT=<!(node --version | cut -d. -f1 | cut -c2-)'
         ],
+        'variables': {
+          'config': '<!(echo $CONFIG)'
+        },
         'include_dirs': [
           '<(node_root_dir)/deps/openssl/openssl/include',
           '<(node_root_dir)/deps/zlib'
@@ -685,6 +681,7 @@
         'src/core/census/initialize.c',
         'src/core/census/operation.c',
         'src/core/census/placeholders.c',
+        'src/core/census/tag_set.c',
         'src/core/census/tracing.c',
       ],
       "conditions": [
@@ -716,8 +713,7 @@
           'xcode_settings': {
             'MACOSX_DEPLOYMENT_TARGET': '10.9',
             'OTHER_CFLAGS': [
-              '-stdlib=libc++',
-              '-std=c++11'
+              '-stdlib=libc++'
             ]
           }
         }],

@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.license       = 'BSD-3-Clause'
 
   s.required_ruby_version = '>= 2.0.0'
+  s.requirements << 'libgrpc ~> 0.11.0 needs to be installed'
 
   s.files = %w( Makefile )
   s.files += %w( etc/roots.pem )
@@ -31,7 +32,7 @@ Gem::Specification.new do |s|
   s.require_paths = %w( src/ruby/bin src/ruby/lib src/ruby/pb )
   s.platform      = Gem::Platform::RUBY
 
-  s.add_dependency 'google-protobuf', '~> 3.0.0.alpha.5.0.2'
+  s.add_dependency 'google-protobuf', '~> 3.0.0alpha.1.1'
   s.add_dependency 'googleauth',      '~> 0.5.1'
 
   s.add_development_dependency 'bundler',            '~> 1.9'
@@ -39,7 +40,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'simplecov',          '~> 0.9'
   s.add_development_dependency 'rake',               '~> 10.4'
   s.add_development_dependency 'rake-compiler',      '~> 0.9'
-  s.add_development_dependency 'rake-compiler-dock', '~> 0.5.1'
+  s.add_development_dependency 'rake-compiler-dock', '~> 0.5'
   s.add_development_dependency 'rspec',              '~> 3.2'
   s.add_development_dependency 'rubocop',            '~> 0.30.0'
   s.add_development_dependency 'signet',             '~> 0.7.0'
@@ -239,6 +240,7 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/support/thd_internal.h )
   s.files += %w( src/core/support/time_precise.h )
   s.files += %w( src/core/census/aggregation.h )
+  s.files += %w( src/core/census/context.h )
   s.files += %w( src/core/census/rpc_metric_id.h )
   s.files += %w( src/core/httpcli/httpcli_security_connector.c )
   s.files += %w( src/core/security/base64.c )
@@ -435,6 +437,7 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/census/initialize.c )
   s.files += %w( src/core/census/operation.c )
   s.files += %w( src/core/census/placeholders.c )
+  s.files += %w( src/core/census/tag_set.c )
   s.files += %w( src/core/census/tracing.c )
   s.files += %w( third_party/boringssl/crypto/aes/internal.h )
   s.files += %w( third_party/boringssl/crypto/asn1/asn1_locl.h )

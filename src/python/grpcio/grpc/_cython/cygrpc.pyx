@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,6 @@
 
 cimport cpython
 
-import pkg_resources
-import os.path
-import sys
-
 # TODO(atash): figure out why the coverage tool gets confused about the Cython
 # coverage plugin when the following files don't have a '.pxi' suffix.
 include "grpc/_cython/_cygrpc/call.pyx.pxi"
@@ -48,20 +44,11 @@ include "grpc/_cython/_cygrpc/server.pyx.pxi"
 
 cdef class _ModuleState:
 
-  cdef bint is_loaded
-
   def __cinit__(self):
-    if 'win32' in sys.platform:
-      filename = pkg_resources.resource_filename(
-          'grpc._cython', '_windows/grpc_c.64.python')
-      if not pygrpc_load_core(filename):
-        raise ImportError('failed to load core gRPC library')
     grpc_init()
-    self.is_loaded = True
 
   def __dealloc__(self):
-    if self.is_loaded:
-      grpc_shutdown()
+    grpc_shutdown()
 
 _module_state = _ModuleState()
 
