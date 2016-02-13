@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
@@ -31,55 +30,22 @@
  *
  */
 
-/// An Alarm posts the user provided tag to its associated completion queue upon
-/// expiry or cancellation.
-#ifndef GRPCXX_ALARM_H
-#define GRPCXX_ALARM_H
-
-#include <grpc++/impl/codegen/completion_queue_tag.h>
-#include <grpc++/impl/codegen/grpc_library.h>
-#include <grpc++/impl/codegen/time.h>
-
-struct grpc_alarm;
+#include <grpc++/alarm.h>
+#include <grpc++/completion_queue.h>
+#include <grpc++/impl/grpc_library.h>
+#include <grpc/grpc.h>
 
 namespace grpc {
 
-class CompletionQueue;
+static internal::GrpcLibraryInitializer g_gli_initializer;
+Alarm::Alarm(CompletionQueue* cq, gpr_timespec deadline, void* tag)
+    : tag_(tag),
+      alarm_(grpc_alarm_create(cq->cq(), deadline, static_cast<void*>(&tag_))) {
+  g_gli_initializer.summon();
+}
 
-/// A thin wrapper around \a grpc_alarm (see / \a / src/core/surface/alarm.h).
-class Alarm : private GrpcLibrary {
- public:
-  /// Create a completion queue alarm instance associated to \a cq.
-  ///
-  /// Once the alarm expires (at \a deadline) or it's cancelled (see \a Cancel),
-  /// an event with tag \a tag will be added to \a cq. If the alarm expired, the
-  /// event's success bit will be true, false otherwise (ie, upon cancellation).
-  Alarm(CompletionQueue* cq, gpr_timespec deadline, void* tag);
+Alarm::~Alarm() { grpc_alarm_destroy(alarm_); }
 
-  /// Destroy the given completion queue alarm, cancelling it in the process.
-  ~Alarm();
-
-  /// Cancel a completion queue alarm. Calling this function over an alarm that
-  /// has already fired has no effect.
-  void Cancel();
-
- private:
-  class AlarmEntry : public CompletionQueueTag {
-   public:
-    AlarmEntry(void* tag) : tag_(tag) {}
-    bool FinalizeResult(void** tag, bool* status) GRPC_OVERRIDE {
-      *tag = tag_;
-      return true;
-    }
-
-   private:
-    void* tag_;
-  };
-
-  AlarmEntry tag_;
-  grpc_alarm* const alarm_;  // owned
-};
+void Alarm::Cancel() { grpc_alarm_cancel(alarm_); }
 
 }  // namespace grpc
-
-#endif  // GRPCXX_ALARM_H
