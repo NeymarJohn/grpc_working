@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
@@ -28,33 +27,58 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Creates a standard jenkins worker on GCE.
+FROM debian:squeeze
 
-set -ex
+# Install Git and basic packages.
+RUN apt-get update && apt-get install -y \
+  autoconf \
+  autotools-dev \
+  build-essential \
+  bzip2 \
+  ccache \
+  curl \
+  gcc \
+  gcc-multilib \
+  git \
+  gyp \
+  lcov \
+  libc6 \
+  libc6-dbg \
+  libc6-dev \
+  libgtest-dev \
+  libtool \
+  make \
+  perl \
+  strace \
+  python-dev \
+  python-setuptools \
+  python-yaml \
+  telnet \
+  unzip \
+  wget \
+  zip && apt-get clean
 
-cd $(dirname $0)
+#================
+# Build profiling
+RUN apt-get update && apt-get install -y time && apt-get clean
 
-CLOUD_PROJECT=grpc-testing
-ZONE=us-central1-a
 
-INSTANCE_NAME=grpc-jenkins-worker1
+# libgflags-dev is not available on squeezy
+RUN apt-get update && apt-get -y install libgtest-dev libc++-dev clang && apt-get clean
 
-gcloud compute instances create $INSTANCE_NAME \
-    --project="$CLOUD_PROJECT" \
-    --zone "$ZONE" \
-    --machine-type n1-standard-8 \
-    --image ubuntu-14-04 \
-    --boot-disk-size 1000
+RUN apt-get update && apt-get -y install python-pip && apt-get clean
+RUN pip install argparse
 
-echo 'Created GCE instance, waiting 60 seconds for it to come online.'
-sleep 60
+# Prepare ccache
+RUN ln -s /usr/bin/ccache /usr/local/bin/gcc
+RUN ln -s /usr/bin/ccache /usr/local/bin/g++
+RUN ln -s /usr/bin/ccache /usr/local/bin/cc
+RUN ln -s /usr/bin/ccache /usr/local/bin/c++
+RUN ln -s /usr/bin/ccache /usr/local/bin/clang
+RUN ln -s /usr/bin/ccache /usr/local/bin/clang++
 
-gcloud compute copy-files \
-    --project="$CLOUD_PROJECT" \
-    --zone "$ZONE" \
-    jenkins_master.pub linux_worker_init.sh ${INSTANCE_NAME}:~
 
-gcloud compute ssh \
-    --project="$CLOUD_PROJECT" \
-    --zone "$ZONE" \
-    $INSTANCE_NAME --command "./linux_worker_init.sh"
+RUN mkdir /var/local/jenkins
+
+# Define the default command.
+CMD ["bash"]
