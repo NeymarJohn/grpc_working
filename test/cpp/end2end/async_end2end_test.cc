@@ -67,10 +67,10 @@ namespace {
 void* tag(int i) { return (void*)(intptr_t)i; }
 
 #ifdef GPR_POSIX_SOCKET
-static int non_blocking_poll(struct pollfd* pfds, nfds_t nfds,
+static int assert_non_blocking_poll(struct pollfd* pfds, nfds_t nfds,
                                     int timeout) {
-  /* ignore timeout and always use timeout 0 */
-  return poll(pfds, nfds, 0);
+  GPR_ASSERT(timeout == 0);
+  return poll(pfds, nfds, timeout);
 }
 
 class PollOverride {
@@ -86,21 +86,21 @@ class PollOverride {
   grpc_poll_function_type prev_;
 };
 
-class PollingOverrider : public PollOverride {
+class PollingCheckRegion : public PollOverride {
  public:
-  explicit PollingOverrider(bool allow_blocking)
-      : PollOverride(allow_blocking ? poll : non_blocking_poll) {}
+  explicit PollingCheckRegion(bool allow_blocking)
+      : PollOverride(allow_blocking ? poll : assert_non_blocking_poll) {}
 };
 #else
-class PollingOverrider {
+class PollingCheckRegion {
  public:
-  explicit PollingOverrider(bool allow_blocking) {}
+  explicit PollingCheckRegion(bool allow_blocking) {}
 };
 #endif
 
-class Verifier {
+class Verifier : public PollingCheckRegion {
  public:
-  explicit Verifier(bool spin) : spin_(spin) {}
+  explicit Verifier(bool spin) : PollingCheckRegion(!spin), spin_(spin) {}
   Verifier& Expect(int i, bool expect_ok) {
     expectations_[tag(i)] = expect_ok;
     return *this;
@@ -183,8 +183,6 @@ class AsyncEnd2endTest : public ::testing::TestWithParam<bool> {
   AsyncEnd2endTest() {}
 
   void SetUp() GRPC_OVERRIDE {
-    poll_overrider_.reset(new PollingOverrider(!GetParam()));
-
     int port = grpc_pick_unused_port_or_die();
     server_address_ << "localhost:" << port;
 
@@ -204,7 +202,6 @@ class AsyncEnd2endTest : public ::testing::TestWithParam<bool> {
     cq_->Shutdown();
     while (cq_->Next(&ignored_tag, &ignored_ok))
       ;
-    poll_overrider_.reset();
   }
 
   void ResetStub() {
@@ -252,8 +249,6 @@ class AsyncEnd2endTest : public ::testing::TestWithParam<bool> {
   std::unique_ptr<Server> server_;
   grpc::testing::EchoTestService::AsyncService service_;
   std::ostringstream server_address_;
-
-  std::unique_ptr<PollingOverrider> poll_overrider_;
 };
 
 TEST_P(AsyncEnd2endTest, SimpleRpc) {
@@ -484,10 +479,8 @@ TEST_P(AsyncEnd2endTest, ClientInitialMetadataRpc) {
   send_request.set_message("Hello");
   std::pair<grpc::string, grpc::string> meta1("key1", "val1");
   std::pair<grpc::string, grpc::string> meta2("key2", "val2");
-  std::pair<grpc::string, grpc::string> meta3("g.r.d-bin", "xyz");
   cli_ctx.AddMetadata(meta1.first, meta1.second);
   cli_ctx.AddMetadata(meta2.first, meta2.second);
-  cli_ctx.AddMetadata(meta3.first, meta3.second);
 
   std::unique_ptr<ClientAsyncResponseReader<EchoResponse>> response_reader(
       stub_->AsyncEcho(&cli_ctx, send_request, cq_.get()));
@@ -501,8 +494,6 @@ TEST_P(AsyncEnd2endTest, ClientInitialMetadataRpc) {
             ToString(client_initial_metadata.find(meta1.first)->second));
   EXPECT_EQ(meta2.second,
             ToString(client_initial_metadata.find(meta2.first)->second));
-  EXPECT_EQ(meta3.second,
-            ToString(client_initial_metadata.find(meta3.first)->second));
   EXPECT_GE(client_initial_metadata.size(), static_cast<size_t>(2));
 
   send_response.set_message(recv_request.message());
@@ -1092,7 +1083,7 @@ class AsyncEnd2endServerTryCancelTest : public AsyncEnd2endTest {
     Verifier(GetParam()).Expect(7, true).Verify(cq_.get());
 
     // This is expected to fail in all cases i.e for all values of
-    // server_try_cancel. This is because at this point, either there are no
+    // server_try_cancel. This is becasue at this point, either there are no
     // more msgs from the client (because client called WritesDone) or the RPC
     // is cancelled on the server
     srv_stream.Read(&recv_request, tag(8));

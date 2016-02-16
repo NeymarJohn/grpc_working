@@ -1,3 +1,4 @@
+<?php
 /*
  *
  * Copyright 2015, Google Inc.
@@ -31,51 +32,42 @@
  *
  */
 
-/* generates constant table for metadata.c */
+class ChanellCredentialsTest extends PHPUnit_Framework_TestCase
+{
+    public function setUp()
+    {
+    }
 
-#include <stdio.h>
-#include <string.h>
+    public function tearDown()
+    {
+    }
 
-static unsigned char legal_bits[256 / 8];
+    public function testCreateDefault()
+    {
+        $channel_credentials = Grpc\ChannelCredentials::createDefault();
+        $this->assertSame('Grpc\ChannelCredentials', get_class($channel_credentials));
+    }
 
-static void legal(int x) {
-  int byte = x / 8;
-  int bit = x % 8;
-  /* NB: the following integer arithmetic operation needs to be in its
-   * expanded form due to the "integral promotion" performed (see section
-   * 3.2.1.1 of the C89 draft standard). A cast to the smaller container type
-   * is then required to avoid the compiler warning */
-  legal_bits[byte] =
-      (unsigned char)((legal_bits[byte] | (unsigned char)(1 << bit)));
-}
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testInvalidCreateSsl()
+    {
+        $channel_credentials = Grpc\ChannelCredentials::createSsl([]);
+    }
 
-static void dump(void) {
-  int i;
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testInvalidCreateComposite()
+    {
+        $channel_credentials = Grpc\ChannelCredentials::createComposite(
+            'something', 'something');
+    }
 
-  printf("static const gpr_uint8 legal_header_bits[256/8] = ");
-  for (i = 0; i < 256 / 8; i++)
-    printf("%c 0x%02x", i ? ',' : '{', legal_bits[i]);
-  printf(" };\n");
-}
-
-static void clear(void) { memset(legal_bits, 0, sizeof(legal_bits)); }
-
-int main(void) {
-  int i;
-
-  clear();
-  for (i = 'a'; i <= 'z'; i++) legal(i);
-  for (i = '0'; i <= '9'; i++) legal(i);
-  legal('-');
-  legal('_');
-  legal('.');
-  dump();
-
-  clear();
-  for (i = 32; i <= 126; i++) {
-    legal(i);
-  }
-  dump();
-
-  return 0;
+    public function testCreateInsecure()
+    {
+        $channel_credentials = Grpc\ChannelCredentials::createInsecure();
+        $this->assertNull($channel_credentials);
+    }
 }
