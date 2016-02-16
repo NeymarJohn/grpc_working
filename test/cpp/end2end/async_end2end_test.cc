@@ -86,21 +86,21 @@ class PollOverride {
   grpc_poll_function_type prev_;
 };
 
-class PollingOverrider : public PollOverride {
+class PollingCheckRegion : public PollOverride {
  public:
-  explicit PollingOverrider(bool allow_blocking)
+  explicit PollingCheckRegion(bool allow_blocking)
       : PollOverride(allow_blocking ? poll : assert_non_blocking_poll) {}
 };
 #else
-class PollingOverrider {
+class PollingCheckRegion {
  public:
-  explicit PollingOverrider(bool allow_blocking) {}
+  explicit PollingCheckRegion(bool allow_blocking) {}
 };
 #endif
 
-class Verifier {
+class Verifier : public PollingCheckRegion {
  public:
-  explicit Verifier(bool spin) : spin_(spin) {}
+  explicit Verifier(bool spin) : PollingCheckRegion(!spin), spin_(spin) {}
   Verifier& Expect(int i, bool expect_ok) {
     expectations_[tag(i)] = expect_ok;
     return *this;
@@ -180,7 +180,7 @@ class Verifier {
 
 class AsyncEnd2endTest : public ::testing::TestWithParam<bool> {
  protected:
-  AsyncEnd2endTest(): poll_override_(GetParam()) {}
+  AsyncEnd2endTest() {}
 
   void SetUp() GRPC_OVERRIDE {
     int port = grpc_pick_unused_port_or_die();
@@ -249,8 +249,6 @@ class AsyncEnd2endTest : public ::testing::TestWithParam<bool> {
   std::unique_ptr<Server> server_;
   grpc::testing::EchoTestService::AsyncService service_;
   std::ostringstream server_address_;
-
-  PollingOverrider poll_override_;
 };
 
 TEST_P(AsyncEnd2endTest, SimpleRpc) {
