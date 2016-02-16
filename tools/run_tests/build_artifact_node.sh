@@ -28,24 +28,20 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-NODE_TARGET_ARCH=$1
-source ~/.nvm/nvm.sh
 set -ex
-
-nvm use 4
 
 cd $(dirname $0)/../..
 
-rm -rf build || true
+rm -rf build
 
 mkdir -p artifacts
 
 npm update
 
-node_versions=( 0.12.0 1.0.0 1.1.0 2.0.0 3.0.0 4.0.0 5.0.0 )
+node_versions=( 0.10.41 0.12.0 1.0.0 1.1.0 2.0.0 3.0.0 4.0.0 5.0.0 )
 
 for version in ${node_versions[@]}
 do
-  ./node_modules/.bin/node-pre-gyp configure rebuild package testpackage --target=$version --target_arch=$NODE_TARGET_ARCH
+  node-pre-gyp configure rebuild package testpackage --target=$version --target_arch=$1
   cp -r build/stage/* artifacts/
 done

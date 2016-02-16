@@ -1,7 +1,6 @@
-<?php
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,42 +31,62 @@
  *
  */
 
-class ChanellCredentialsTest extends PHPUnit_Framework_TestCase
-{
-    public function setUp()
-    {
-    }
+#include <grpc++/alarm.h>
+#include <grpc++/completion_queue.h>
+#include <gtest/gtest.h>
 
-    public function tearDown()
-    {
-    }
+#include <grpc++/completion_queue.h>
+#include "test/core/util/test_config.h"
 
-    public function testCreateDefault()
-    {
-        $channel_credentials = Grpc\ChannelCredentials::createDefault();
-        $this->assertSame('Grpc\ChannelCredentials', get_class($channel_credentials));
-    }
+namespace grpc {
+namespace {
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function testInvalidCreateSsl()
-    {
-        $channel_credentials = Grpc\ChannelCredentials::createSsl([]);
-    }
+class TestTag : public CompletionQueueTag {
+ public:
+  TestTag() : tag_(0) {}
+  TestTag(intptr_t tag) : tag_(tag) {}
+  bool FinalizeResult(void** tag, bool* status) { return true; }
+  intptr_t tag() { return tag_; }
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function testInvalidCreateComposite()
-    {
-        $channel_credentials = Grpc\ChannelCredentials::createComposite(
-            'something', 'something');
-    }
+ private:
+  intptr_t tag_;
+};
 
-    public function testCreateInsecure()
-    {
-        $channel_credentials = Grpc\ChannelCredentials::createInsecure();
-        $this->assertNull($channel_credentials);
-    }
+TEST(AlarmTest, RegularExpiry) {
+  CompletionQueue cq;
+  TestTag input_tag(1618033);
+  Alarm alarm(&cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1), &input_tag);
+
+  TestTag* output_tag;
+  bool ok;
+  const CompletionQueue::NextStatus status = cq.AsyncNext(
+      (void**)&output_tag, &ok, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(2));
+
+  EXPECT_EQ(status, CompletionQueue::GOT_EVENT);
+  EXPECT_TRUE(ok);
+  EXPECT_EQ(output_tag->tag(), input_tag.tag());
+}
+
+TEST(AlarmTest, Cancellation) {
+  CompletionQueue cq;
+  TestTag input_tag(1618033);
+  Alarm alarm(&cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(2), &input_tag);
+  alarm.Cancel();
+
+  TestTag* output_tag;
+  bool ok;
+  const CompletionQueue::NextStatus status = cq.AsyncNext(
+      (void**)&output_tag, &ok, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1));
+
+  EXPECT_EQ(status, CompletionQueue::GOT_EVENT);
+  EXPECT_FALSE(ok);
+  EXPECT_EQ(output_tag->tag(), input_tag.tag());
+}
+
+}  // namespace
+}  // namespace grpc
+
+int main(int argc, char** argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
