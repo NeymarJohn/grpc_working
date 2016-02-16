@@ -1,6 +1,6 @@
 #region Copyright notice and license
 
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,7 @@ namespace Grpc.Core
         /// <param name="interceptor">authentication interceptor</param>
         public MetadataCredentials(AsyncAuthInterceptor interceptor)
         {
-            this.interceptor = GrpcPreconditions.CheckNotNull(interceptor);
+            this.interceptor = Preconditions.CheckNotNull(interceptor);
         }
 
         internal override CallCredentialsSafeHandle ToNativeCredentials()
@@ -111,7 +111,7 @@ namespace Grpc.Core
         /// <param name="credentials">credentials to compose</param>
         public CompositeCallCredentials(params CallCredentials[] credentials)
         {
-            GrpcPreconditions.CheckArgument(credentials.Length >= 2, "Composite credentials object can only be created from 2 or more credentials.");
+            Preconditions.CheckArgument(credentials.Length >= 2, "Composite credentials object can only be created from 2 or more credentials.");
             this.credentials = new List<CallCredentials>(credentials);
         }
 

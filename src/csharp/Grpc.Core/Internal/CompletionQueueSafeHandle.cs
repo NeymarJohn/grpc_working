@@ -101,7 +101,7 @@ namespace Grpc.Core.Internal
         {
             bool success = false;
             shutdownRefcount.IncrementIfNonzero(ref success);
-            GrpcPreconditions.CheckState(success, "Shutdown has already been called");
+            Preconditions.CheckState(success, "Shutdown has already been called");
         }
 
         private void EndOp()

@@ -1,5 +1,5 @@
 #region Copyright notice and license
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ namespace Grpc.Core
         /// <param name="options">Channel options.</param>
         public Channel(string target, ChannelCredentials credentials, IEnumerable<ChannelOption> options = null)
         {
-            this.target = GrpcPreconditions.CheckNotNull(target, "target");
+            this.target = Preconditions.CheckNotNull(target, "target");
             this.options = CreateOptionsDictionary(options);
             EnsureUserAgentChannelOption(this.options);
             this.environment = GrpcEnvironment.AddRef();
@@ -117,7 +117,7 @@ namespace Grpc.Core
         /// </summary>
         public Task WaitForStateChangedAsync(ChannelState lastObservedState, DateTime? deadline = null)
         {
-            GrpcPreconditions.CheckArgument(lastObservedState != ChannelState.FatalFailure,
+            Preconditions.CheckArgument(lastObservedState != ChannelState.FatalFailure,
                 "FatalFailure is a terminal state. No further state changes can occur.");
             var tcs = new TaskCompletionSource<object>();
             var deadlineTimespec = deadline.HasValue ? Timespec.FromDateTime(deadline.Value) : Timespec.InfFuture;
@@ -184,7 +184,7 @@ namespace Grpc.Core
         {
             lock (myLock)
             {
-                GrpcPreconditions.CheckState(!shutdownRequested);
+                Preconditions.CheckState(!shutdownRequested);
                 shutdownRequested = true;
             }
 
@@ -221,7 +221,7 @@ namespace Grpc.Core
 
             bool success = false;
             handle.DangerousAddRef(ref success);
-            GrpcPreconditions.CheckState(success);
+            Preconditions.CheckState(success);
         }
 
         internal void RemoveCallReference(object call)

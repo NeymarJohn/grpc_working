@@ -1,7 +1,6 @@
-
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,51 +31,55 @@
  *
  */
 
-#include "test/cpp/util/test_credentials_provider.h"
-
-#include "test/core/end2end/data/ssl_test_data.h"
+#include <grpc++/impl/sync.h>
+#include <grpc++/impl/thd.h>
+#include "src/cpp/server/fixed_size_thread_pool.h"
 
 namespace grpc {
-namespace testing {
 
-const char kTlsCredentialsType[] = "TLS_CREDENTIALS";
-
-std::shared_ptr<ChannelCredentials> GetChannelCredentials(
-    const grpc::string& type, ChannelArguments* args) {
-  if (type == kInsecureCredentialsType) {
-    return InsecureChannelCredentials();
-  } else if (type == kTlsCredentialsType) {
-    SslCredentialsOptions ssl_opts = {test_root_cert, "", ""};
-    args->SetSslTargetNameOverride("foo.test.google.fr");
-    return SslCredentials(ssl_opts);
-  } else {
-    gpr_log(GPR_ERROR, "Unsupported credentials type %s.", type.c_str());
+void FixedSizeThreadPool::ThreadFunc() {
+  for (;;) {
+    // Wait until work is available or we are shutting down.
+    grpc::unique_lock<grpc::mutex> lock(mu_);
+    if (!shutdown_ && callbacks_.empty()) {
+      cv_.wait(lock);
+    }
+    // Drain callbacks before considering shutdown to ensure all work
+    // gets completed.
+    if (!callbacks_.empty()) {
+      auto cb = callbacks_.front();
+      callbacks_.pop();
+      lock.unlock();
+      cb();
+    } else if (shutdown_) {
+      return;
+    }
   }
-  return nullptr;
 }
 
-std::shared_ptr<ServerCredentials> GetServerCredentials(
-    const grpc::string& type) {
-  if (type == kInsecureCredentialsType) {
-    return InsecureServerCredentials();
-  } else if (type == kTlsCredentialsType) {
-    SslServerCredentialsOptions::PemKeyCertPair pkcp = {test_server1_key,
-                                                        test_server1_cert};
-    SslServerCredentialsOptions ssl_opts;
-    ssl_opts.pem_root_certs = "";
-    ssl_opts.pem_key_cert_pairs.push_back(pkcp);
-    return SslServerCredentials(ssl_opts);
-  } else {
-    gpr_log(GPR_ERROR, "Unsupported credentials type %s.", type.c_str());
+FixedSizeThreadPool::FixedSizeThreadPool(int num_threads) : shutdown_(false) {
+  for (int i = 0; i < num_threads; i++) {
+    threads_.push_back(
+        new grpc::thread(&FixedSizeThreadPool::ThreadFunc, this));
   }
-  return nullptr;
 }
 
-std::vector<grpc::string> GetSecureCredentialsTypeList() {
-  std::vector<grpc::string> types;
-  types.push_back(kTlsCredentialsType);
-  return types;
+FixedSizeThreadPool::~FixedSizeThreadPool() {
+  {
+    grpc::lock_guard<grpc::mutex> lock(mu_);
+    shutdown_ = true;
+    cv_.notify_all();
+  }
+  for (auto t = threads_.begin(); t != threads_.end(); t++) {
+    (*t)->join();
+    delete *t;
+  }
 }
 
-}  // namespace testing
+void FixedSizeThreadPool::Add(const std::function<void()>& callback) {
+  grpc::lock_guard<grpc::mutex> lock(mu_);
+  callbacks_.push(callback);
+  cv_.notify_one();
+}
+
 }  // namespace grpc
