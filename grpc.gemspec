@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 2.0.0'
 
-  s.files = %w( Makefile .yardopts )
+  s.files = %w( Makefile )
   s.files += %w( etc/roots.pem )
   s.files += Dir.glob('src/ruby/bin/**/*')
   s.files += Dir.glob('src/ruby/ext/**/*')
@@ -31,7 +31,7 @@ Gem::Specification.new do |s|
   s.require_paths = %w( src/ruby/bin src/ruby/lib src/ruby/pb )
   s.platform      = Gem::Platform::RUBY
 
-  s.add_dependency 'google-protobuf', '~> 3.0.0.alpha.5.0.3'
+  s.add_dependency 'google-protobuf', '~> 3.0.0.alpha.5.0.2'
   s.add_dependency 'googleauth',      '~> 0.5.1'
 
   s.add_development_dependency 'bundler',            '~> 1.9'
@@ -204,10 +204,9 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/iomgr/closure.h )
   s.files += %w( src/core/iomgr/endpoint.h )
   s.files += %w( src/core/iomgr/endpoint_pair.h )
-  s.files += %w( src/core/iomgr/ev_poll_and_epoll_posix.h )
-  s.files += %w( src/core/iomgr/ev_posix.h )
   s.files += %w( src/core/iomgr/exec_ctx.h )
   s.files += %w( src/core/iomgr/executor.h )
+  s.files += %w( src/core/iomgr/fd_posix.h )
   s.files += %w( src/core/iomgr/iocp_windows.h )
   s.files += %w( src/core/iomgr/iomgr.h )
   s.files += %w( src/core/iomgr/iomgr_internal.h )
@@ -232,6 +231,7 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/iomgr/time_averaged_stats.h )
   s.files += %w( src/core/iomgr/timer.h )
   s.files += %w( src/core/iomgr/timer_heap.h )
+  s.files += %w( src/core/iomgr/timer_internal.h )
   s.files += %w( src/core/iomgr/udp_server.h )
   s.files += %w( src/core/iomgr/wakeup_fd_pipe.h )
   s.files += %w( src/core/iomgr/wakeup_fd_posix.h )
@@ -342,10 +342,9 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/iomgr/endpoint.c )
   s.files += %w( src/core/iomgr/endpoint_pair_posix.c )
   s.files += %w( src/core/iomgr/endpoint_pair_windows.c )
-  s.files += %w( src/core/iomgr/ev_poll_and_epoll_posix.c )
-  s.files += %w( src/core/iomgr/ev_posix.c )
   s.files += %w( src/core/iomgr/exec_ctx.c )
   s.files += %w( src/core/iomgr/executor.c )
+  s.files += %w( src/core/iomgr/fd_posix.c )
   s.files += %w( src/core/iomgr/iocp_windows.c )
   s.files += %w( src/core/iomgr/iomgr.c )
   s.files += %w( src/core/iomgr/iomgr_posix.c )
