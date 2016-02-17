@@ -193,15 +193,6 @@ class ClientWriter : public ClientWriterInterface<W> {
     cq_.Pluck(&ops);
   }
 
-  void WaitForInitialMetadata() {
-    GPR_ASSERT(!context_->initial_metadata_received_);
-
-    CallOpSet<CallOpRecvInitialMetadata> ops;
-    ops.RecvInitialMetadata(context_);
-    call_.PerformOps(&ops);
-    cq_.Pluck(&ops);  // status ignored
-  }
-
   using WriterInterface<W>::Write;
   bool Write(const W& msg, const WriteOptions& options) GRPC_OVERRIDE {
     CallOpSet<CallOpSendMessage> ops;
@@ -222,9 +213,6 @@ class ClientWriter : public ClientWriterInterface<W> {
   /// Read the final response and wait for the final status.
   Status Finish() GRPC_OVERRIDE {
     Status status;
-    if (!context_->initial_metadata_received_) {
-      finish_ops_.RecvInitialMetadata(context_);
-    }
     finish_ops_.ClientRecvStatus(context_, &status);
     call_.PerformOps(&finish_ops_);
     GPR_ASSERT(cq_.Pluck(&finish_ops_));
@@ -233,8 +221,7 @@ class ClientWriter : public ClientWriterInterface<W> {
 
  private:
   ClientContext* context_;
-  CallOpSet<CallOpRecvInitialMetadata, CallOpGenericRecvMessage,
-            CallOpClientRecvStatus> finish_ops_;
+  CallOpSet<CallOpGenericRecvMessage, CallOpClientRecvStatus> finish_ops_;
   CompletionQueue cq_;
   Call call_;
 };
@@ -305,10 +292,7 @@ class ClientReaderWriter GRPC_FINAL : public ClientReaderWriterInterface<W, R> {
   }
 
   Status Finish() GRPC_OVERRIDE {
-    CallOpSet<CallOpRecvInitialMetadata, CallOpClientRecvStatus> ops;
-    if (!context_->initial_metadata_received_) {
-      ops.RecvInitialMetadata(context_);
-    }
+    CallOpSet<CallOpClientRecvStatus> ops;
     Status status;
     ops.ClientRecvStatus(context_, &status);
     call_.PerformOps(&ops);

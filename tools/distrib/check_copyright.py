@@ -57,9 +57,6 @@ argp.add_argument('-a', '--ancient',
 argp.add_argument('-f', '--fix',
                   default=False,
                   action='store_true');
-argp.add_argument('--precommit',
-                  default=False,
-                  action='store_true')
 args = argp.parse_args()
 
 # open the license text
@@ -104,10 +101,6 @@ RE_LICENSE = dict(
         for line in LICENSE))
      for k, v in LICENSE_PREFIX.iteritems())
 
-if args.precommit:
-  FILE_LIST_COMMAND = 'git diff --name-only HEAD | grep -v ^third_party/'
-else:
-  FILE_LIST_COMMAND = 'git ls-tree -r --name-only -r HEAD | grep -v ^third_party/'
 
 def load(name):
   with open(name) as f:
@@ -131,14 +124,8 @@ def log(cond, why, filename):
 
 # scan files, validate the text
 ok = True
-filename_list = []
-try:
-  filename_list = subprocess.check_output(FILE_LIST_COMMAND,
-                                          shell=True).splitlines()
-except subprocess.CalledProcessError:
-  sys.exit(0)
-
-for filename in filename_list:
+for filename in subprocess.check_output('git ls-tree -r --name-only -r HEAD | grep -v ^third_party/',
+                                        shell=True).splitlines():
   if filename in KNOWN_BAD: continue
   ext = os.path.splitext(filename)[1]
   base = os.path.basename(filename)
