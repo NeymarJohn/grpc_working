@@ -1,7 +1,6 @@
-<?php
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,42 +31,55 @@
  *
  */
 
-class ChanellCredentialsTest extends PHPUnit_Framework_TestCase
-{
-    public function setUp()
-    {
-    }
+#include <grpc++/impl/sync.h>
+#include <grpc++/impl/thd.h>
+#include "src/cpp/server/fixed_size_thread_pool.h"
 
-    public function tearDown()
-    {
-    }
+namespace grpc {
 
-    public function testCreateDefault()
-    {
-        $channel_credentials = Grpc\ChannelCredentials::createDefault();
-        $this->assertSame('Grpc\ChannelCredentials', get_class($channel_credentials));
+void FixedSizeThreadPool::ThreadFunc() {
+  for (;;) {
+    // Wait until work is available or we are shutting down.
+    grpc::unique_lock<grpc::mutex> lock(mu_);
+    if (!shutdown_ && callbacks_.empty()) {
+      cv_.wait(lock);
     }
-
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function testInvalidCreateSsl()
-    {
-        $channel_credentials = Grpc\ChannelCredentials::createSsl([]);
+    // Drain callbacks before considering shutdown to ensure all work
+    // gets completed.
+    if (!callbacks_.empty()) {
+      auto cb = callbacks_.front();
+      callbacks_.pop();
+      lock.unlock();
+      cb();
+    } else if (shutdown_) {
+      return;
     }
-
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function testInvalidCreateComposite()
-    {
-        $channel_credentials = Grpc\ChannelCredentials::createComposite(
-            'something', 'something');
-    }
-
-    public function testCreateInsecure()
-    {
-        $channel_credentials = Grpc\ChannelCredentials::createInsecure();
-        $this->assertNull($channel_credentials);
-    }
+  }
 }
+
+FixedSizeThreadPool::FixedSizeThreadPool(int num_threads) : shutdown_(false) {
+  for (int i = 0; i < num_threads; i++) {
+    threads_.push_back(
+        new grpc::thread(&FixedSizeThreadPool::ThreadFunc, this));
+  }
+}
+
+FixedSizeThreadPool::~FixedSizeThreadPool() {
+  {
+    grpc::lock_guard<grpc::mutex> lock(mu_);
+    shutdown_ = true;
+    cv_.notify_all();
+  }
+  for (auto t = threads_.begin(); t != threads_.end(); t++) {
+    (*t)->join();
+    delete *t;
+  }
+}
+
+void FixedSizeThreadPool::Add(const std::function<void()>& callback) {
+  grpc::lock_guard<grpc::mutex> lock(mu_);
+  callbacks_.push(callback);
+  cv_.notify_one();
+}
+
+}  // namespace grpc
