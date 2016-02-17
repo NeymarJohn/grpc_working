@@ -737,12 +737,7 @@ Server.prototype.addService = function(service, implementation) {
  *     method implementation for the provided service.
  */
 Server.prototype.addProtoService = function(service, implementation) {
-  var options;
-  if (service.grpc_options) {
-    options = service.grpc_options;
-  }
-  this.addService(common.getProtobufServiceAttrs(service, options),
-                  implementation);
+  this.addService(common.getProtobufServiceAttrs(service), implementation);
 };
 
 /**
