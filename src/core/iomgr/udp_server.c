@@ -137,7 +137,7 @@ grpc_udp_server *grpc_udp_server_create(void) {
 }
 
 static void finish_shutdown(grpc_exec_ctx *exec_ctx, grpc_udp_server *s) {
-  grpc_exec_ctx_enqueue(exec_ctx, s->shutdown_complete, 1, NULL);
+  grpc_exec_ctx_enqueue(exec_ctx, s->shutdown_complete, 1);
 
   gpr_mu_destroy(&s->mu);
   gpr_cv_destroy(&s->cv);
@@ -146,8 +146,7 @@ static void finish_shutdown(grpc_exec_ctx *exec_ctx, grpc_udp_server *s) {
   gpr_free(s);
 }
 
-static void destroyed_port(grpc_exec_ctx *exec_ctx, void *server,
-                           bool success) {
+static void destroyed_port(grpc_exec_ctx *exec_ctx, void *server, int success) {
   grpc_udp_server *s = server;
   gpr_mu_lock(&s->mu);
   s->destroyed_ports++;
@@ -264,10 +263,10 @@ error:
 }
 
 /* event manager callback when reads are ready */
-static void on_read(grpc_exec_ctx *exec_ctx, void *arg, bool success) {
+static void on_read(grpc_exec_ctx *exec_ctx, void *arg, int success) {
   server_port *sp = arg;
 
-  if (!success) {
+  if (success == 0) {
     gpr_mu_lock(&sp->server->mu);
     if (0 == --sp->server->active_ports) {
       gpr_mu_unlock(&sp->server->mu);
