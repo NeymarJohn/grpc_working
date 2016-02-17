@@ -84,8 +84,11 @@ class SynchronousClient
 
  protected:
   void WaitToIssue(int thread_idx) {
-    if (!closed_loop_) {
-      gpr_sleep_until(NextIssueTime(thread_idx));
+    grpc_time next_time;
+    if (NextIssueTime(thread_idx, &next_time)) {
+      gpr_timespec next_timespec;
+      TimepointHR2Timespec(next_time, &next_timespec);
+      gpr_sleep_until(next_timespec);
     }
   }
 
