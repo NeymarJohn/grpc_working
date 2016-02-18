@@ -50,7 +50,7 @@
 #include <grpc/support/time.h>
 
 typedef struct {
-  grpc_pollset_worker **worker;
+  grpc_pollset_worker *worker;
   void *tag;
 } plucker;
 
@@ -252,7 +252,7 @@ void grpc_cq_end_op(grpc_exec_ctx *exec_ctx, grpc_completion_queue *cc,
     pluck_worker = NULL;
     for (i = 0; i < cc->num_pluckers; i++) {
       if (cc->pluckers[i].tag == tag) {
-        pluck_worker = *cc->pluckers[i].worker;
+        pluck_worker = cc->pluckers[i].worker;
         break;
       }
     }
@@ -275,7 +275,7 @@ void grpc_cq_end_op(grpc_exec_ctx *exec_ctx, grpc_completion_queue *cc,
 grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
                                       gpr_timespec deadline, void *reserved) {
   grpc_event ret;
-  grpc_pollset_worker *worker = NULL;
+  grpc_pollset_worker worker;
   int first_loop = 1;
   gpr_timespec now;
   grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
@@ -323,20 +323,7 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
       break;
     }
     first_loop = 0;
-    /* Check alarms - these are a global resource so we just ping
-       each time through on every pollset.
-       May update deadline to ensure timely wakeups.
-       TODO(ctiller): can this work be localized? */
-    gpr_timespec iteration_deadline = deadline;
-    if (grpc_timer_check(&exec_ctx, now, &iteration_deadline)) {
-      GPR_TIMER_MARK("alarm_triggered", 0);
-      gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
-      grpc_exec_ctx_flush(&exec_ctx);
-      gpr_mu_lock(GRPC_POLLSET_MU(&cc->pollset));
-      continue;
-    }
-    grpc_pollset_work(&exec_ctx, &cc->pollset, &worker, now,
-                      iteration_deadline);
+    grpc_pollset_work(&exec_ctx, &cc->pollset, &worker, now, deadline);
   }
   GRPC_SURFACE_TRACE_RETURNED_EVENT(cc, &ret);
   GRPC_CQ_INTERNAL_UNREF(cc, "next");
@@ -348,7 +335,7 @@ grpc_event grpc_completion_queue_next(grpc_completion_queue *cc,
 }
 
 static int add_plucker(grpc_completion_queue *cc, void *tag,
-                       grpc_pollset_worker **worker) {
+                       grpc_pollset_worker *worker) {
   if (cc->num_pluckers == GRPC_MAX_COMPLETION_QUEUE_PLUCKERS) {
     return 0;
   }
@@ -359,7 +346,7 @@ static int add_plucker(grpc_completion_queue *cc, void *tag,
 }
 
 static void del_plucker(grpc_completion_queue *cc, void *tag,
-                        grpc_pollset_worker **worker) {
+                        grpc_pollset_worker *worker) {
   int i;
   for (i = 0; i < cc->num_pluckers; i++) {
     if (cc->pluckers[i].tag == tag && cc->pluckers[i].worker == worker) {
@@ -376,7 +363,7 @@ grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
   grpc_event ret;
   grpc_cq_completion *c;
   grpc_cq_completion *prev;
-  grpc_pollset_worker *worker = NULL;
+  grpc_pollset_worker worker;
   gpr_timespec now;
   int first_loop = 1;
   grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
@@ -440,20 +427,7 @@ grpc_event grpc_completion_queue_pluck(grpc_completion_queue *cc, void *tag,
       break;
     }
     first_loop = 0;
-    /* Check alarms - these are a global resource so we just ping
-       each time through on every pollset.
-       May update deadline to ensure timely wakeups.
-       TODO(ctiller): can this work be localized? */
-    gpr_timespec iteration_deadline = deadline;
-    if (grpc_timer_check(&exec_ctx, now, &iteration_deadline)) {
-      GPR_TIMER_MARK("alarm_triggered", 0);
-      gpr_mu_unlock(GRPC_POLLSET_MU(&cc->pollset));
-      grpc_exec_ctx_flush(&exec_ctx);
-      gpr_mu_lock(GRPC_POLLSET_MU(&cc->pollset));
-      continue;
-    }
-    grpc_pollset_work(&exec_ctx, &cc->pollset, &worker, now,
-                      iteration_deadline);
+    grpc_pollset_work(&exec_ctx, &cc->pollset, &worker, now, deadline);
     del_plucker(cc, tag, &worker);
   }
 done:

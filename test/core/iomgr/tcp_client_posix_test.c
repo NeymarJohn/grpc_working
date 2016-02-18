@@ -45,7 +45,6 @@
 
 #include "src/core/iomgr/iomgr.h"
 #include "src/core/iomgr/socket_utils_posix.h"
-#include "src/core/iomgr/timer.h"
 #include "test/core/util/test_config.h"
 
 static grpc_pollset_set g_pollset_set;
@@ -121,18 +120,16 @@ void test_succeeds(void) {
   gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
 
   while (g_connections_complete == connections_complete_before) {
-    grpc_pollset_worker *worker = NULL;
+    grpc_pollset_worker worker;
     grpc_pollset_work(&exec_ctx, &g_pollset, &worker,
                       gpr_now(GPR_CLOCK_MONOTONIC),
                       GRPC_TIMEOUT_SECONDS_TO_DEADLINE(5));
     gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
-    grpc_exec_ctx_flush(&exec_ctx);
+    grpc_exec_ctx_finish(&exec_ctx);
     gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
   }
 
   gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
-
-  grpc_exec_ctx_finish(&exec_ctx);
 }
 
 void test_fails(void) {
@@ -161,19 +158,15 @@ void test_fails(void) {
 
   /* wait for the connection callback to finish */
   while (g_connections_complete == connections_complete_before) {
-    grpc_pollset_worker *worker = NULL;
-    gpr_timespec now = gpr_now(GPR_CLOCK_MONOTONIC);
-    gpr_timespec polling_deadline = test_deadline();
-    if (!grpc_timer_check(&exec_ctx, now, &polling_deadline)) {
-      grpc_pollset_work(&exec_ctx, &g_pollset, &worker, now, polling_deadline);
-    }
+    grpc_pollset_worker worker;
+    grpc_pollset_work(&exec_ctx, &g_pollset, &worker,
+                      gpr_now(GPR_CLOCK_MONOTONIC), test_deadline());
     gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
-    grpc_exec_ctx_flush(&exec_ctx);
+    grpc_exec_ctx_finish(&exec_ctx);
     gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
   }
 
   gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
-  grpc_exec_ctx_finish(&exec_ctx);
 }
 
 void test_times_out(void) {
@@ -228,7 +221,7 @@ void test_times_out(void) {
   /* Make sure the event doesn't trigger early */
   gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
   for (;;) {
-    grpc_pollset_worker *worker = NULL;
+    grpc_pollset_worker worker;
     gpr_timespec now = gpr_now(connect_deadline.clock_type);
     gpr_timespec continue_verifying_time =
         gpr_time_from_seconds(5, GPR_TIMESPAN);
@@ -250,17 +243,14 @@ void test_times_out(void) {
       GPR_ASSERT(g_connections_complete ==
                  connections_complete_before + is_after_deadline);
     }
-    gpr_timespec polling_deadline = GRPC_TIMEOUT_MILLIS_TO_DEADLINE(10);
-    if (!grpc_timer_check(&exec_ctx, now, &polling_deadline)) {
-      grpc_pollset_work(&exec_ctx, &g_pollset, &worker, now, polling_deadline);
-    }
+    grpc_pollset_work(&exec_ctx, &g_pollset, &worker,
+                      gpr_now(GPR_CLOCK_MONOTONIC),
+                      GRPC_TIMEOUT_MILLIS_TO_DEADLINE(10));
     gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
-    grpc_exec_ctx_flush(&exec_ctx);
+    grpc_exec_ctx_finish(&exec_ctx);
     gpr_mu_lock(GRPC_POLLSET_MU(&g_pollset));
   }
   gpr_mu_unlock(GRPC_POLLSET_MU(&g_pollset));
-
-  grpc_exec_ctx_finish(&exec_ctx);
 
   close(svr_fd);
   for (i = 0; i < NUM_CLIENT_CONNECTS; ++i) {

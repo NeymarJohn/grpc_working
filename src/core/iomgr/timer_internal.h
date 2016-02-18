@@ -31,12 +31,31 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_CONNECTED_CHANNEL_H
-#define GRPC_INTERNAL_CORE_CHANNEL_CONNECTED_CHANNEL_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H
+#define GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H
 
-#include "src/core/channel/channel_stack_builder.h"
+#include "src/core/iomgr/exec_ctx.h"
+#include <grpc/support/sync.h>
+#include <grpc/support/time.h>
 
-bool grpc_add_connected_filter(grpc_channel_stack_builder *builder,
-                               void *arg_must_be_null);
+/* iomgr internal api for dealing with timers */
 
-#endif /* GRPC_INTERNAL_CORE_CHANNEL_CONNECTED_CHANNEL_H */
+/* Check for timers to be run, and run them.
+   Return non zero if timer callbacks were executed.
+   Drops drop_mu if it is non-null before executing callbacks.
+   If next is non-null, TRY to update *next with the next running timer
+   IF that timer occurs before *next current value.
+   *next is never guaranteed to be updated on any given execution; however,
+   with high probability at least one thread in the system will see an update
+   at any time slice. */
+
+int grpc_timer_check(grpc_exec_ctx* exec_ctx, gpr_timespec now,
+                     gpr_timespec* next);
+void grpc_timer_list_init(gpr_timespec now);
+void grpc_timer_list_shutdown(grpc_exec_ctx* exec_ctx);
+
+/* the following must be implemented by each iomgr implementation */
+
+void grpc_kick_poller(void);
+
+#endif /* GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H */
