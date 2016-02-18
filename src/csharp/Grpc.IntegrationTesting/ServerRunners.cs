@@ -1,6 +1,6 @@
 #region Copyright notice and license
 
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,7 @@ namespace Grpc.IntegrationTesting
             var server = new Server
             {
                 Services = { BenchmarkService.BindService(new BenchmarkServiceImpl(responseSize)) },
-                Ports = { new ServerPort("[::]", config.Port, credentials) }
+                Ports = { new ServerPort(config.Host, config.Port, credentials) }
             };
 
             server.Start();

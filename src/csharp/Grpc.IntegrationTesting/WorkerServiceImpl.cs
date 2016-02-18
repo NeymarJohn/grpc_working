@@ -1,6 +1,6 @@
 #region Copyright notice and license
 
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -47,13 +47,6 @@ namespace Grpc.Testing
     /// </summary>
     public class WorkerServiceImpl : WorkerService.IWorkerService
     {
-        readonly Action stopRequestHandler;
-
-        public WorkerServiceImpl(Action stopRequestHandler)
-        {
-            this.stopRequestHandler = Grpc.Core.Utils.Preconditions.CheckNotNull(stopRequestHandler);
-        }
-        
         public async Task RunServer(IAsyncStreamReader<ServerArgs> requestStream, IServerStreamWriter<ServerStatus> responseStream, ServerCallContext context)
         {
             Grpc.Core.Utils.Preconditions.CheckState(await requestStream.MoveNext());
@@ -98,17 +91,6 @@ namespace Grpc.Testing
                 });
             }
             await runner.StopAsync();
-        }
-
-        public Task<CoreResponse> CoreCount(CoreRequest request, ServerCallContext context)
-        {
-            return Task.FromResult(new CoreResponse { Cores = Environment.ProcessorCount });
-        }
-
-        public Task<Void> QuitWorker(Void request, ServerCallContext context)
-        {
-            stopRequestHandler();
-            return Task.FromResult(new Void());
         }
     }
 }
