@@ -34,5 +34,3 @@
 #include "src/core/surface/init.h"
 
 void grpc_security_pre_init(void) {}
-
-void grpc_register_security_filters(void) {}

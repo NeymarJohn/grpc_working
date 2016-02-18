@@ -34,11 +34,14 @@
 #ifndef GRPC_INTERNAL_CORE_SURFACE_SERVER_H
 #define GRPC_INTERNAL_CORE_SURFACE_SERVER_H
 
-#include <grpc/grpc.h>
 #include "src/core/channel/channel_stack.h"
+#include <grpc/grpc.h>
 #include "src/core/transport/transport.h"
 
-extern const grpc_channel_filter grpc_server_top_filter;
+/* Create a server */
+grpc_server *grpc_server_create_from_filters(
+    const grpc_channel_filter **filters, size_t filter_count,
+    const grpc_channel_args *args);
 
 /* Add a listener to the server: when the server starts, it will call start,
    and when it shuts down, it will call destroy */
@@ -53,6 +56,8 @@ void grpc_server_add_listener(
    server */
 void grpc_server_setup_transport(grpc_exec_ctx *exec_ctx, grpc_server *server,
                                  grpc_transport *transport,
+                                 grpc_channel_filter const **extra_filters,
+                                 size_t num_extra_filters,
                                  const grpc_channel_args *args);
 
 const grpc_channel_args *grpc_server_get_channel_args(grpc_server *server);
