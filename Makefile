@@ -2398,6 +2398,7 @@ LIBGRPC_SRC = \
     src/core/client_config/resolvers/sockaddr_resolver.c \
     src/core/client_config/subchannel.c \
     src/core/client_config/subchannel_factory.c \
+    src/core/client_config/subchannel_index.c \
     src/core/client_config/uri_parser.c \
     src/core/compression/algorithm.c \
     src/core/compression/message_compress.c \
@@ -2677,6 +2678,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/client_config/resolvers/sockaddr_resolver.c \
     src/core/client_config/subchannel.c \
     src/core/client_config/subchannel_factory.c \
+    src/core/client_config/subchannel_index.c \
     src/core/client_config/uri_parser.c \
     src/core/compression/algorithm.c \
     src/core/compression/message_compress.c \
@@ -2950,6 +2952,7 @@ endif
 
 LIBGRPC++_SRC = \
     src/cpp/client/secure_credentials.cc \
+    src/cpp/codegen/grpc_library.cc \
     src/cpp/common/auth_property_iterator.cc \
     src/cpp/common/secure_auth_context.cc \
     src/cpp/common/secure_channel_arguments.cc \
@@ -3092,7 +3095,6 @@ endif
 
 
 LIBGRPC++_CODEGEN_LIB_SRC = \
-    src/cpp/codegen/grpc_library.cc \
 
 PUBLIC_HEADERS_CXX += \
     include/grpc++/impl/codegen/async_stream.h \
@@ -13038,6 +13040,7 @@ src/core/tsi/fake_transport_security.c: $(OPENSSL_DEP)
 src/core/tsi/ssl_transport_security.c: $(OPENSSL_DEP)
 src/core/tsi/transport_security.c: $(OPENSSL_DEP)
 src/cpp/client/secure_credentials.cc: $(OPENSSL_DEP)
+src/cpp/codegen/grpc_library.cc: $(OPENSSL_DEP)
 src/cpp/common/auth_property_iterator.cc: $(OPENSSL_DEP)
 src/cpp/common/secure_auth_context.cc: $(OPENSSL_DEP)
 src/cpp/common/secure_channel_arguments.cc: $(OPENSSL_DEP)

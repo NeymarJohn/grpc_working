@@ -236,6 +236,7 @@ filegroups:
   - src/core/client_config/resolvers/sockaddr_resolver.h
   - src/core/client_config/subchannel.h
   - src/core/client_config/subchannel_factory.h
+  - src/core/client_config/subchannel_index.h
   - src/core/client_config/uri_parser.h
   - src/core/compression/algorithm_metadata.h
   - src/core/compression/message_compress.h
@@ -351,6 +352,7 @@ filegroups:
   - src/core/client_config/resolvers/sockaddr_resolver.c
   - src/core/client_config/subchannel.c
   - src/core/client_config/subchannel_factory.c
+  - src/core/client_config/subchannel_index.c
   - src/core/client_config/uri_parser.c
   - src/core/compression/algorithm.c
   - src/core/compression/message_compress.c
@@ -641,6 +643,7 @@ libs:
   - src/cpp/server/secure_server_credentials.h
   src:
   - src/cpp/client/secure_credentials.cc
+  - src/cpp/codegen/grpc_library.cc
   - src/cpp/common/auth_property_iterator.cc
   - src/cpp/common/secure_auth_context.cc
   - src/cpp/common/secure_channel_arguments.cc
@@ -704,8 +707,7 @@ libs:
   - include/grpc/impl/codegen/sync_posix.h
   - include/grpc/impl/codegen/sync_win32.h
   - include/grpc/impl/codegen/time.h
-  src:
-  - src/cpp/codegen/grpc_library.cc
+  src: []
   private: true
   secure: false
 - name: grpc++_test_config
@@ -2652,8 +2654,8 @@ configs:
     LDXX: clang++
     compile_the_world: true
     test_environ:
-      ASAN_OPTIONS: suppressions=tools/asan_suppressions.txt:detect_leaks=1:color=always
-      LSAN_OPTIONS: suppressions=tools/asan_suppressions.txt:report_objects=1
+      ASAN_OPTIONS: detect_leaks=1:color=always
+      LSAN_OPTIONS: suppressions=tools/lsan_suppressions.txt:report_objects=1
     timeout_multiplier: 1.5
   asan-noleaks:
     CC: clang

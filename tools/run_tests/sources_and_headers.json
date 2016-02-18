@@ -3005,6 +3005,7 @@
       "src/core/client_config/resolvers/sockaddr_resolver.h", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.h", 
+      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm_metadata.h", 
       "src/core/compression/message_compress.h", 
@@ -3179,6 +3180,8 @@
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.c", 
       "src/core/client_config/subchannel_factory.h", 
+      "src/core/client_config/subchannel_index.c", 
+      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 
@@ -3522,6 +3525,7 @@
       "src/core/client_config/resolvers/sockaddr_resolver.h", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.h", 
+      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm_metadata.h", 
       "src/core/compression/message_compress.h", 
@@ -3681,6 +3685,8 @@
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.c", 
       "src/core/client_config/subchannel_factory.h", 
+      "src/core/client_config/subchannel_index.c", 
+      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 
@@ -4038,6 +4044,7 @@
       "src/cpp/client/insecure_credentials.cc", 
       "src/cpp/client/secure_credentials.cc", 
       "src/cpp/client/secure_credentials.h", 
+      "src/cpp/codegen/grpc_library.cc", 
       "src/cpp/common/alarm.cc", 
       "src/cpp/common/auth_property_iterator.cc", 
       "src/cpp/common/call.cc", 
@@ -4163,8 +4170,7 @@
       "include/grpc/impl/codegen/sync_generic.h", 
       "include/grpc/impl/codegen/sync_posix.h", 
       "include/grpc/impl/codegen/sync_win32.h", 
-      "include/grpc/impl/codegen/time.h", 
-      "src/cpp/codegen/grpc_library.cc"
+      "include/grpc/impl/codegen/time.h"
     ]
   }, 
   {
