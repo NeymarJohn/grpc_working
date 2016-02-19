@@ -31,50 +31,10 @@
  *
  */
 
-#include <set>
+#ifndef GRPC_INTERNAL_CORE_CENSUS_GRPC_PLUGIN_H
+#define GRPC_INTERNAL_CORE_CENSUS_GRPC_PLUGIN_H
 
-#include <grpc/support/log.h>
+void census_grpc_plugin_init(void);
+void census_grpc_plugin_destroy(void);
 
-#include "test/cpp/qps/driver.h"
-#include "test/cpp/qps/report.h"
-#include "test/cpp/util/benchmark_config.h"
-
-namespace grpc {
-namespace testing {
-
-static const int WARMUP = 5;
-static const int BENCHMARK = 10;
-
-static void RunQPS() {
-  gpr_log(GPR_INFO, "Running QPS test, open-loop");
-
-  ClientConfig client_config;
-  client_config.set_client_type(ASYNC_CLIENT);
-  client_config.set_outstanding_rpcs_per_channel(1000);
-  client_config.set_client_channels(8);
-  client_config.set_async_client_threads(8);
-  client_config.set_rpc_type(STREAMING);
-  client_config.mutable_load_params()->mutable_poisson()->set_offered_load(
-      1000.0);
-
-  ServerConfig server_config;
-  server_config.set_server_type(ASYNC_SERVER);
-  server_config.set_async_server_threads(4);
-
-  const auto result =
-      RunScenario(client_config, 1, server_config, 1, WARMUP, BENCHMARK, -2);
-
-  GetReporter()->ReportQPSPerCore(*result);
-  GetReporter()->ReportLatency(*result);
-}
-
-}  // namespace testing
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  grpc::testing::InitBenchmark(&argc, &argv, true);
-
-  grpc::testing::RunQPS();
-
-  return 0;
-}
+#endif /* GRPC_INTERNAL_CORE_CENSUS_GRPC_PLUGIN_H */
