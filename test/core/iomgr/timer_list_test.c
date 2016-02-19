@@ -35,6 +35,7 @@
 
 #include <string.h>
 
+#include "src/core/iomgr/timer_internal.h"
 #include <grpc/support/log.h>
 #include "test/core/util/test_config.h"
 
