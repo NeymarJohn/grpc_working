@@ -1,6 +1,7 @@
+
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,35 +32,49 @@
  *
  */
 
-#include <memory>
+#include "test/cpp/util/test_credentials_provider.h"
 
-#include <grpc++/channel.h>
-#include <grpc++/create_channel.h>
-#include <grpc++/impl/grpc_library.h>
-#include <grpc++/support/channel_arguments.h>
-
-#include "src/cpp/client/create_channel_internal.h"
+#include "test/core/end2end/data/ssl_test_data.h"
 
 namespace grpc {
-class ChannelArguments;
+namespace testing {
 
-std::shared_ptr<Channel> CreateChannel(
-    const grpc::string& target,
-    const std::shared_ptr<ChannelCredentials>& creds) {
-  return CreateCustomChannel(target, creds, ChannelArguments());
+std::shared_ptr<ChannelCredentials> GetChannelCredentials(
+    const grpc::string& type, ChannelArguments* args) {
+  if (type == kInsecureCredentialsType) {
+    return InsecureChannelCredentials();
+  } else if (type == kTlsCredentialsType) {
+    SslCredentialsOptions ssl_opts = {test_root_cert, "", ""};
+    args->SetSslTargetNameOverride("foo.test.google.fr");
+    return SslCredentials(ssl_opts);
+  } else {
+    gpr_log(GPR_ERROR, "Unsupported credentials type %s.", type.c_str());
+  }
+  return nullptr;
 }
 
-std::shared_ptr<Channel> CreateCustomChannel(
-    const grpc::string& target,
-    const std::shared_ptr<ChannelCredentials>& creds,
-    const ChannelArguments& args) {
-  internal::GrpcLibrary
-      init_lib;  // We need to call init in case of a bad creds.
-  return creds
-             ? creds->CreateChannel(target, args)
-             : CreateChannelInternal("", grpc_lame_client_channel_create(
-                                             NULL, GRPC_STATUS_INVALID_ARGUMENT,
-                                             "Invalid credentials."));
+std::shared_ptr<ServerCredentials> GetServerCredentials(
+    const grpc::string& type) {
+  if (type == kInsecureCredentialsType) {
+    return InsecureServerCredentials();
+  } else if (type == kTlsCredentialsType) {
+    SslServerCredentialsOptions::PemKeyCertPair pkcp = {test_server1_key,
+                                                        test_server1_cert};
+    SslServerCredentialsOptions ssl_opts;
+    ssl_opts.pem_root_certs = "";
+    ssl_opts.pem_key_cert_pairs.push_back(pkcp);
+    return SslServerCredentials(ssl_opts);
+  } else {
+    gpr_log(GPR_ERROR, "Unsupported credentials type %s.", type.c_str());
+  }
+  return nullptr;
 }
 
+std::vector<grpc::string> GetSecureCredentialsTypeList() {
+  std::vector<grpc::string> types;
+  types.push_back(kTlsCredentialsType);
+  return types;
+}
+
+}  // namespace testing
 }  // namespace grpc
