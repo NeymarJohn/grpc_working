@@ -83,7 +83,7 @@ namespace Grpc.Core
         {
             lock (staticLock)
             {
-                GrpcPreconditions.CheckState(refCount > 0);
+                Preconditions.CheckState(refCount > 0);
                 refCount--;
                 if (refCount == 0)
                 {
@@ -118,7 +118,7 @@ namespace Grpc.Core
         /// </summary>
         public static void SetLogger(ILogger customLogger)
         {
-            GrpcPreconditions.CheckNotNull(customLogger, "customLogger");
+            Preconditions.CheckNotNull(customLogger, "customLogger");
             logger = customLogger;
         }
 

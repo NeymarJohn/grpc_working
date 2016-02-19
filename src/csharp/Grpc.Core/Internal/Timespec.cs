@@ -141,8 +141,8 @@ namespace Grpc.Core.Internal
         /// </summary>
         public DateTime ToDateTime()
         {
-            GrpcPreconditions.CheckState(tv_nsec >= 0 && tv_nsec < NanosPerSecond);
-            GrpcPreconditions.CheckState(clock_type == GPRClockType.Realtime);
+            Preconditions.CheckState(tv_nsec >= 0 && tv_nsec < NanosPerSecond);
+            Preconditions.CheckState(clock_type == GPRClockType.Realtime);
 
             // fast path for InfFuture
             if (this.Equals(InfFuture))
@@ -195,7 +195,7 @@ namespace Grpc.Core.Internal
                 return Timespec.InfPast;
             }
 
-            GrpcPreconditions.CheckArgument(dateTime.Kind == DateTimeKind.Utc, "dateTime needs of kind DateTimeKind.Utc or be equal to DateTime.MaxValue or DateTime.MinValue.");
+            Preconditions.CheckArgument(dateTime.Kind == DateTimeKind.Utc, "dateTime needs of kind DateTimeKind.Utc or be equal to DateTime.MaxValue or DateTime.MinValue.");
 
             try
             {

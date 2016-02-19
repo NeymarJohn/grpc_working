@@ -1,6 +1,6 @@
 #region Copyright notice and license
 
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ namespace Grpc.Auth
         /// <returns>The interceptor.</returns>
         public static AsyncAuthInterceptor FromAccessToken(string accessToken)
         {
-            GrpcPreconditions.CheckNotNull(accessToken);
+            Preconditions.CheckNotNull(accessToken);
             return new AsyncAuthInterceptor(async (context, metadata) =>
             {
                 metadata.Add(CreateBearerTokenHeader(accessToken));
