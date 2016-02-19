@@ -716,7 +716,6 @@ libs:
   - test/cpp/util/create_test_channel.h
   - test/cpp/util/string_ref_helper.h
   - test/cpp/util/subprocess.h
-  - test/cpp/util/test_credentials_provider.h
   src:
   - src/proto/grpc/testing/echo_messages.proto
   - src/proto/grpc/testing/echo.proto
@@ -727,7 +726,6 @@ libs:
   - test/cpp/util/create_test_channel.cc
   - test/cpp/util/string_ref_helper.cc
   - test/cpp/util/subprocess.cc
-  - test/cpp/util/test_credentials_provider.cc
   deps:
   - grpc++
   - grpc_test_util
@@ -2312,6 +2310,7 @@ targets:
   - linux
   - posix
 - name: qps_openloop_test
+  cpu_cost: 10
   build: test
   language: c++
   src:
@@ -2344,8 +2343,6 @@ targets:
   - gpr_test_util
   - gpr
   - grpc++_test_config
-  exclude_configs:
-  - tsan
   platforms:
   - mac
   - linux
@@ -2633,7 +2630,7 @@ configs:
     test_environ:
       ASAN_OPTIONS: detect_leaks=1:color=always
       LSAN_OPTIONS: suppressions=tools/lsan_suppressions.txt:report_objects=1
-    timeout_multiplier: 1.5
+    timeout_multiplier: 3
   asan-noleaks:
     CC: clang
     CPPFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
@@ -2645,7 +2642,7 @@ configs:
     compile_the_world: true
     test_environ:
       ASAN_OPTIONS: detect_leaks=0:color=always
-    timeout_multiplier: 1.5
+    timeout_multiplier: 3
   basicprof:
     CPPFLAGS: -O2 -DGRPC_BASIC_PROFILER -DGRPC_TIMERS_RDTSC
     DEFINES: NDEBUG
@@ -2684,7 +2681,7 @@ configs:
       -fPIE -pie $(if $(JENKINS_BUILD),-Wl$(comma)-Ttext-segment=0x7e0000000000,)
     LDXX: clang++
     compile_the_world: true
-    timeout_multiplier: 2
+    timeout_multiplier: 4
   mutrace:
     CPPFLAGS: -O0
     DEFINES: _DEBUG DEBUG
@@ -2706,7 +2703,7 @@ configs:
     compile_the_world: true
     test_environ:
       TSAN_OPTIONS: suppressions=tools/tsan_suppressions.txt:halt_on_error=1:second_deadlock_stack=1
-    timeout_multiplier: 2
+    timeout_multiplier: 20
   ubsan:
     CC: clang
     CPPFLAGS: -O1 -fsanitize=undefined -fno-omit-frame-pointer -Wno-unused-command-line-argument

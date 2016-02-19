@@ -121,7 +121,7 @@ LD_asan-noleaks = clang
 LDXX_asan-noleaks = clang++
 CPPFLAGS_asan-noleaks = -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument -DGPR_NO_DIRECT_SYSCALLS
 LDFLAGS_asan-noleaks = -fsanitize=address
-DEFINES_asan-noleaks += GRPC_TEST_SLOWDOWN_BUILD_FACTOR=1.5
+DEFINES_asan-noleaks += GRPC_TEST_SLOWDOWN_BUILD_FACTOR=3
 
 VALID_CONFIG_ubsan = 1
 REQUIRE_CUSTOM_LIBRARIES_ubsan = 1
@@ -177,7 +177,7 @@ LD_asan = clang
 LDXX_asan = clang++
 CPPFLAGS_asan = -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument -DGPR_NO_DIRECT_SYSCALLS
 LDFLAGS_asan = -fsanitize=address
-DEFINES_asan += GRPC_TEST_SLOWDOWN_BUILD_FACTOR=1.5
+DEFINES_asan += GRPC_TEST_SLOWDOWN_BUILD_FACTOR=3
 
 VALID_CONFIG_tsan = 1
 REQUIRE_CUSTOM_LIBRARIES_tsan = 1
@@ -187,7 +187,7 @@ LD_tsan = clang
 LDXX_tsan = clang++
 CPPFLAGS_tsan = -O0 -fsanitize=thread -fno-omit-frame-pointer -Wno-unused-command-line-argument -fPIE -pie -DGPR_NO_DIRECT_SYSCALLS
 LDFLAGS_tsan = -fsanitize=thread -fPIE -pie $(if $(JENKINS_BUILD),-Wl$(comma)-Ttext-segment=0x7e0000000000,)
-DEFINES_tsan += GRPC_TEST_SLOWDOWN_BUILD_FACTOR=2
+DEFINES_tsan += GRPC_TEST_SLOWDOWN_BUILD_FACTOR=20
 
 VALID_CONFIG_msan = 1
 REQUIRE_CUSTOM_LIBRARIES_msan = 1
@@ -198,7 +198,7 @@ LDXX_msan = clang++
 CPPFLAGS_msan = -O0 -fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1 -Wno-unused-command-line-argument -fPIE -pie -DGPR_NO_DIRECT_SYSCALLS
 LDFLAGS_msan = -fsanitize=memory -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1 -fPIE -pie $(if $(JENKINS_BUILD),-Wl$(comma)-Ttext-segment=0x7e0000000000,)
 DEFINES_msan = NDEBUG
-DEFINES_msan += GRPC_TEST_SLOWDOWN_BUILD_FACTOR=2
+DEFINES_msan += GRPC_TEST_SLOWDOWN_BUILD_FACTOR=4
 
 VALID_CONFIG_mutrace = 1
 CC_mutrace = $(DEFAULT_CC)
@@ -3162,7 +3162,6 @@ LIBGRPC++_TEST_UTIL_SRC = \
     test/cpp/util/create_test_channel.cc \
     test/cpp/util/string_ref_helper.cc \
     test/cpp/util/subprocess.cc \
-    test/cpp/util/test_credentials_provider.cc \
 
 
 LIBGRPC++_TEST_UTIL_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC++_TEST_UTIL_SRC))))
@@ -3213,7 +3212,6 @@ $(OBJDIR)/$(CONFIG)/test/cpp/util/cli_call.o: $(GENDIR)/src/proto/grpc/testing/e
 $(OBJDIR)/$(CONFIG)/test/cpp/util/create_test_channel.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/string_ref_helper.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/test/cpp/util/subprocess.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/test/cpp/util/test_credentials_provider.o: $(GENDIR)/src/proto/grpc/testing/echo_messages.pb.cc $(GENDIR)/src/proto/grpc/testing/echo_messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.pb.cc $(GENDIR)/src/proto/grpc/testing/echo.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.pb.cc $(GENDIR)/src/proto/grpc/testing/duplicate/echo_duplicate.grpc.pb.cc
 
 
 LIBGRPC++_UNSECURE_SRC = \
@@ -13017,7 +13015,6 @@ test/cpp/util/create_test_channel.cc: $(OPENSSL_DEP)
 test/cpp/util/string_ref_helper.cc: $(OPENSSL_DEP)
 test/cpp/util/subprocess.cc: $(OPENSSL_DEP)
 test/cpp/util/test_config.cc: $(OPENSSL_DEP)
-test/cpp/util/test_credentials_provider.cc: $(OPENSSL_DEP)
 endif
 
 .PHONY: all strip tools dep_error openssl_dep_error openssl_dep_message git_update stop buildtests buildtests_c buildtests_cxx test test_c test_cxx install install_c install_cxx install-headers install-headers_c install-headers_cxx install-shared install-shared_c install-shared_cxx install-static install-static_c install-static_cxx strip strip-shared strip-static strip_c strip-shared_c strip-static_c strip_cxx strip-shared_cxx strip-static_cxx dep_c dep_cxx bins_dep_c bins_dep_cxx clean
