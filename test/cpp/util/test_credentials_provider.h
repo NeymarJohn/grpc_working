@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,31 +31,33 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_POSIX_H
+#ifndef GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
+#define GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
 
-#include <grpc/support/sync.h>
-#include "src/core/iomgr/ev_posix.h"
+#include <memory>
 
-typedef struct grpc_pollset_set {
-  gpr_mu mu;
+#include <grpc++/security/credentials.h>
+#include <grpc++/security/server_credentials.h>
+#include <grpc++/support/channel_arguments.h>
 
-  size_t pollset_count;
-  size_t pollset_capacity;
-  grpc_pollset **pollsets;
+namespace grpc {
+namespace testing {
 
-  size_t pollset_set_count;
-  size_t pollset_set_capacity;
-  struct grpc_pollset_set **pollset_sets;
+const char kInsecureCredentialsType[] = "INSECURE_CREDENTIALS";
 
-  size_t fd_count;
-  size_t fd_capacity;
-  grpc_fd **fds;
-} grpc_pollset_set;
+// Provide channel credentials according to the given type. Alter the channel
+// arguments if needed.
+std::shared_ptr<ChannelCredentials> GetChannelCredentials(
+    const grpc::string& type, ChannelArguments* args);
 
-void grpc_pollset_set_add_fd(grpc_exec_ctx *exec_ctx,
-                             grpc_pollset_set *pollset_set, grpc_fd *fd);
-void grpc_pollset_set_del_fd(grpc_exec_ctx *exec_ctx,
-                             grpc_pollset_set *pollset_set, grpc_fd *fd);
+// Provide server credentials according to the given type.
+std::shared_ptr<ServerCredentials> GetServerCredentials(
+    const grpc::string& type);
 
-#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_WINDOWS_H */
+// Provide a list of secure credentials type.
+std::vector<grpc::string> GetSecureCredentialsTypeList();
+
+}  // namespace testing
+}  // namespace grpc
+
+#endif  // GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
