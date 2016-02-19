@@ -79,9 +79,9 @@ namespace Grpc.Core.Internal
 
         public AsyncCallBase(Func<TWrite, byte[]> serializer, Func<byte[], TRead> deserializer, GrpcEnvironment environment)
         {
-            this.serializer = GrpcPreconditions.CheckNotNull(serializer);
-            this.deserializer = GrpcPreconditions.CheckNotNull(deserializer);
-            this.environment = GrpcPreconditions.CheckNotNull(environment);
+            this.serializer = Preconditions.CheckNotNull(serializer);
+            this.deserializer = Preconditions.CheckNotNull(deserializer);
+            this.environment = Preconditions.CheckNotNull(environment);
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace Grpc.Core.Internal
         {
             lock (myLock)
             {
-                GrpcPreconditions.CheckState(started);
+                Preconditions.CheckState(started);
                 cancelRequested = true;
 
                 if (!disposed)
@@ -135,7 +135,7 @@ namespace Grpc.Core.Internal
 
             lock (myLock)
             {
-                GrpcPreconditions.CheckNotNull(completionDelegate, "Completion delegate cannot be null");
+                Preconditions.CheckNotNull(completionDelegate, "Completion delegate cannot be null");
                 CheckSendingAllowed();
 
                 call.StartSendMessage(HandleSendFinished, payload, writeFlags, !initialMetadataSent);
@@ -154,7 +154,7 @@ namespace Grpc.Core.Internal
         {
             lock (myLock)
             {
-                GrpcPreconditions.CheckNotNull(completionDelegate, "Completion delegate cannot be null");
+                Preconditions.CheckNotNull(completionDelegate, "Completion delegate cannot be null");
                 CheckReadingAllowed();
 
                 call.StartReceiveMessage(HandleReadFinished);
@@ -204,22 +204,22 @@ namespace Grpc.Core.Internal
 
         protected void CheckSendingAllowed()
         {
-            GrpcPreconditions.CheckState(started);
+            Preconditions.CheckState(started);
             CheckNotCancelled();
-            GrpcPreconditions.CheckState(!disposed);
+            Preconditions.CheckState(!disposed);
 
-            GrpcPreconditions.CheckState(!halfcloseRequested, "Already halfclosed.");
-            GrpcPreconditions.CheckState(!finished, "Already finished.");
-            GrpcPreconditions.CheckState(sendCompletionDelegate == null, "Only one write can be pending at a time");
+            Preconditions.CheckState(!halfcloseRequested, "Already halfclosed.");
+            Preconditions.CheckState(!finished, "Already finished.");
+            Preconditions.CheckState(sendCompletionDelegate == null, "Only one write can be pending at a time");
         }
 
         protected virtual void CheckReadingAllowed()
         {
-            GrpcPreconditions.CheckState(started);
-            GrpcPreconditions.CheckState(!disposed);
+            Preconditions.CheckState(started);
+            Preconditions.CheckState(!disposed);
 
-            GrpcPreconditions.CheckState(!readingDone, "Stream has already been closed.");
-            GrpcPreconditions.CheckState(readCompletionDelegate == null, "Only one read can be pending at a time");
+            Preconditions.CheckState(!readingDone, "Stream has already been closed.");
+            Preconditions.CheckState(readCompletionDelegate == null, "Only one read can be pending at a time");
         }
 
         protected void CheckNotCancelled()
