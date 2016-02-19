@@ -270,7 +270,6 @@ filegroups:
   - src/core/client_config/resolvers/sockaddr_resolver.h
   - src/core/client_config/subchannel.h
   - src/core/client_config/subchannel_factory.h
-  - src/core/client_config/subchannel_index.h
   - src/core/client_config/uri_parser.h
   - src/core/compression/algorithm_metadata.h
   - src/core/compression/message_compress.h
@@ -386,7 +385,6 @@ filegroups:
   - src/core/client_config/resolvers/sockaddr_resolver.c
   - src/core/client_config/subchannel.c
   - src/core/client_config/subchannel_factory.c
-  - src/core/client_config/subchannel_index.c
   - src/core/client_config/uri_parser.c
   - src/core/compression/algorithm.c
   - src/core/compression/message_compress.c
@@ -589,6 +587,26 @@ libs:
   - grpc.dependencies.openssl
   - grpc.dependencies.zlib
   vs_project_guid: '{29D16885-7228-4C31-81ED-5F9187C7F2A9}'
+- name: grpc_dll
+  build: private
+  language: c
+  src:
+  - grpc.def
+  deps:
+  - grpc
+  - gpr
+  deps_linkage: static
+  dll: only
+  vs_config_type: DynamicLibrary
+  vs_packages:
+  - grpc.dependencies.openssl
+  - grpc.dependencies.zlib
+  vs_project_guid: '{A2F6CBBA-A553-41B3-A7DE-F26DECCC27F0}'
+  vs_props:
+  - zlib
+  - openssl
+  - winsock
+  - global
 - name: grpc_test_util
   build: private
   language: c
@@ -716,7 +734,6 @@ libs:
   - test/cpp/util/create_test_channel.h
   - test/cpp/util/string_ref_helper.h
   - test/cpp/util/subprocess.h
-  - test/cpp/util/test_credentials_provider.h
   src:
   - src/proto/grpc/testing/echo_messages.proto
   - src/proto/grpc/testing/echo.proto
@@ -727,7 +744,6 @@ libs:
   - test/cpp/util/create_test_channel.cc
   - test/cpp/util/string_ref_helper.cc
   - test/cpp/util/subprocess.cc
-  - test/cpp/util/test_credentials_provider.cc
   deps:
   - grpc++
   - grpc_test_util
@@ -2631,8 +2647,8 @@ configs:
     LDXX: clang++
     compile_the_world: true
     test_environ:
-      ASAN_OPTIONS: detect_leaks=1:color=always
-      LSAN_OPTIONS: suppressions=tools/lsan_suppressions.txt:report_objects=1
+      ASAN_OPTIONS: suppressions=tools/asan_suppressions.txt:detect_leaks=1:color=always
+      LSAN_OPTIONS: suppressions=tools/asan_suppressions.txt:report_objects=1
     timeout_multiplier: 1.5
   asan-noleaks:
     CC: clang
