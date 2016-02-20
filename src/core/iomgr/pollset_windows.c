@@ -38,7 +38,6 @@
 #include <grpc/support/log.h>
 #include <grpc/support/thd.h>
 
-#include "src/core/iomgr/timer_internal.h"
 #include "src/core/iomgr/iomgr_internal.h"
 #include "src/core/iomgr/iocp_windows.h"
 #include "src/core/iomgr/pollset.h"
@@ -126,25 +125,25 @@ void grpc_pollset_reset(grpc_pollset *pollset) {
 }
 
 void grpc_pollset_work(grpc_exec_ctx *exec_ctx, grpc_pollset *pollset,
-                       grpc_pollset_worker *worker, gpr_timespec now,
+                       grpc_pollset_worker **worker_hdl, gpr_timespec now,
                        gpr_timespec deadline) {
+  grpc_pollset_worker worker;
+  *worker_hdl = &worker;
+
   int added_worker = 0;
-  worker->links[GRPC_POLLSET_WORKER_LINK_POLLSET].next =
-      worker->links[GRPC_POLLSET_WORKER_LINK_POLLSET].prev =
-          worker->links[GRPC_POLLSET_WORKER_LINK_GLOBAL].next =
-              worker->links[GRPC_POLLSET_WORKER_LINK_GLOBAL].prev = NULL;
-  worker->kicked = 0;
-  worker->pollset = pollset;
-  gpr_cv_init(&worker->cv);
-  if (grpc_timer_check(exec_ctx, now, &deadline)) {
-    goto done;
-  }
+  worker.links[GRPC_POLLSET_WORKER_LINK_POLLSET].next =
+      worker.links[GRPC_POLLSET_WORKER_LINK_POLLSET].prev =
+          worker.links[GRPC_POLLSET_WORKER_LINK_GLOBAL].next =
+              worker.links[GRPC_POLLSET_WORKER_LINK_GLOBAL].prev = NULL;
+  worker.kicked = 0;
+  worker.pollset = pollset;
+  gpr_cv_init(&worker.cv);
   if (!pollset->kicked_without_pollers && !pollset->shutting_down) {
     if (g_active_poller == NULL) {
       grpc_pollset_worker *next_worker;
       /* become poller */
       pollset->is_iocp_worker = 1;
-      g_active_poller = worker;
+      g_active_poller = &worker;
       gpr_mu_unlock(&grpc_polling_mu);
       grpc_iocp_work(exec_ctx, deadline);
       grpc_exec_ctx_flush(exec_ctx);
@@ -171,12 +170,12 @@ void grpc_pollset_work(grpc_exec_ctx *exec_ctx, grpc_pollset *pollset,
       goto done;
     }
     push_front_worker(&g_global_root_worker, GRPC_POLLSET_WORKER_LINK_GLOBAL,
-                      worker);
+                      &worker);
     push_front_worker(&pollset->root_worker, GRPC_POLLSET_WORKER_LINK_POLLSET,
-                      worker);
+                      &worker);
     added_worker = 1;
-    while (!worker->kicked) {
-      if (gpr_cv_wait(&worker->cv, &grpc_polling_mu, deadline)) {
+    while (!worker.kicked) {
+      if (gpr_cv_wait(&worker.cv, &grpc_polling_mu, deadline)) {
         break;
       }
     }
@@ -190,10 +189,11 @@ done:
     gpr_mu_lock(&grpc_polling_mu);
   }
   if (added_worker) {
-    remove_worker(worker, GRPC_POLLSET_WORKER_LINK_GLOBAL);
-    remove_worker(worker, GRPC_POLLSET_WORKER_LINK_POLLSET);
+    remove_worker(&worker, GRPC_POLLSET_WORKER_LINK_GLOBAL);
+    remove_worker(&worker, GRPC_POLLSET_WORKER_LINK_POLLSET);
   }
   gpr_cv_destroy(&worker->cv);
+  *worker_hdl = NULL;
 }
 
 void grpc_pollset_kick(grpc_pollset *p, grpc_pollset_worker *specific_worker) {
