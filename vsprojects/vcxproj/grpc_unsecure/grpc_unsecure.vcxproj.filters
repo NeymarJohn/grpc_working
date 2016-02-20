@@ -85,9 +85,6 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\client_config\subchannel_factory.c">
       <Filter>src\core\client_config</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\client_config\subchannel_index.c">
-      <Filter>src\core\client_config</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\client_config\uri_parser.c">
       <Filter>src\core\client_config</Filter>
     </ClCompile>
@@ -524,9 +521,6 @@
     <ClInclude Include="$(SolutionDir)\..\src\core\client_config\subchannel_factory.h">
       <Filter>src\core\client_config</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)\..\src\core\client_config\subchannel_index.h">
-      <Filter>src\core\client_config</Filter>
-    </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\client_config\uri_parser.h">
       <Filter>src\core\client_config</Filter>
     </ClInclude>
@@ -636,6 +630,9 @@
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\timer_heap.h">
+      <Filter>src\core\iomgr</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\timer_internal.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\udp_server.h">

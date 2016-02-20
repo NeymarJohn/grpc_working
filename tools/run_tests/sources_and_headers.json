@@ -3010,7 +3010,6 @@
       "src/core/client_config/resolvers/sockaddr_resolver.h", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.h", 
-      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm_metadata.h", 
       "src/core/compression/message_compress.h", 
@@ -3048,6 +3047,7 @@
       "src/core/iomgr/time_averaged_stats.h", 
       "src/core/iomgr/timer.h", 
       "src/core/iomgr/timer_heap.h", 
+      "src/core/iomgr/timer_internal.h", 
       "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.h", 
@@ -3190,8 +3190,6 @@
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.c", 
       "src/core/client_config/subchannel_factory.h", 
-      "src/core/client_config/subchannel_index.c", 
-      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 
@@ -3270,6 +3268,7 @@
       "src/core/iomgr/timer.h", 
       "src/core/iomgr/timer_heap.c", 
       "src/core/iomgr/timer_heap.h", 
+      "src/core/iomgr/timer_internal.h", 
       "src/core/iomgr/udp_server.c", 
       "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_eventfd.c", 
@@ -3418,6 +3417,16 @@
   {
     "deps": [
       "gpr", 
+      "grpc"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "grpc_dll", 
+    "src": []
+  }, 
+  {
+    "deps": [
+      "gpr", 
       "gpr_test_util", 
       "grpc"
     ], 
@@ -3539,7 +3548,6 @@
       "src/core/client_config/resolvers/sockaddr_resolver.h", 
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.h", 
-      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm_metadata.h", 
       "src/core/compression/message_compress.h", 
@@ -3577,6 +3585,7 @@
       "src/core/iomgr/time_averaged_stats.h", 
       "src/core/iomgr/timer.h", 
       "src/core/iomgr/timer_heap.h", 
+      "src/core/iomgr/timer_internal.h", 
       "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_pipe.h", 
       "src/core/iomgr/wakeup_fd_posix.h", 
@@ -3704,8 +3713,6 @@
       "src/core/client_config/subchannel.h", 
       "src/core/client_config/subchannel_factory.c", 
       "src/core/client_config/subchannel_factory.h", 
-      "src/core/client_config/subchannel_index.c", 
-      "src/core/client_config/subchannel_index.h", 
       "src/core/client_config/uri_parser.c", 
       "src/core/client_config/uri_parser.h", 
       "src/core/compression/algorithm.c", 
@@ -3783,6 +3790,7 @@
       "src/core/iomgr/timer.h", 
       "src/core/iomgr/timer_heap.c", 
       "src/core/iomgr/timer_heap.h", 
+      "src/core/iomgr/timer_internal.h", 
       "src/core/iomgr/udp_server.c", 
       "src/core/iomgr/udp_server.h", 
       "src/core/iomgr/wakeup_fd_eventfd.c", 

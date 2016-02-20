@@ -31,24 +31,31 @@
  *
  */
 
-#include "src/core/client_config/connector.h"
+#ifndef GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H
+#define GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H
 
-void grpc_connector_ref(grpc_connector* connector) {
-  connector->vtable->ref(connector);
-}
+#include "src/core/iomgr/exec_ctx.h"
+#include <grpc/support/sync.h>
+#include <grpc/support/time.h>
 
-void grpc_connector_unref(grpc_exec_ctx* exec_ctx, grpc_connector* connector) {
-  connector->vtable->unref(exec_ctx, connector);
-}
+/* iomgr internal api for dealing with timers */
 
-void grpc_connector_connect(grpc_exec_ctx* exec_ctx, grpc_connector* connector,
-                            const grpc_connect_in_args* in_args,
-                            grpc_connect_out_args* out_args,
-                            grpc_closure* notify) {
-  connector->vtable->connect(exec_ctx, connector, in_args, out_args, notify);
-}
+/* Check for timers to be run, and run them.
+   Return non zero if timer callbacks were executed.
+   Drops drop_mu if it is non-null before executing callbacks.
+   If next is non-null, TRY to update *next with the next running timer
+   IF that timer occurs before *next current value.
+   *next is never guaranteed to be updated on any given execution; however,
+   with high probability at least one thread in the system will see an update
+   at any time slice. */
 
-void grpc_connector_shutdown(grpc_exec_ctx* exec_ctx,
-                             grpc_connector* connector) {
-  connector->vtable->shutdown(exec_ctx, connector);
-}
+int grpc_timer_check(grpc_exec_ctx* exec_ctx, gpr_timespec now,
+                     gpr_timespec* next);
+void grpc_timer_list_init(gpr_timespec now);
+void grpc_timer_list_shutdown(grpc_exec_ctx* exec_ctx);
+
+/* the following must be implemented by each iomgr implementation */
+
+void grpc_kick_poller(void);
+
+#endif /* GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H */
