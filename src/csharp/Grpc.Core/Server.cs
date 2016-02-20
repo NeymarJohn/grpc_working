@@ -1,6 +1,6 @@
 #region Copyright notice and license
 
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -125,7 +125,7 @@ namespace Grpc.Core
         {
             lock (myLock)
             {
-                GrpcPreconditions.CheckState(!startRequested);
+                Preconditions.CheckState(!startRequested);
                 startRequested = true;
                 
                 handle.Start();
@@ -142,8 +142,8 @@ namespace Grpc.Core
         {
             lock (myLock)
             {
-                GrpcPreconditions.CheckState(startRequested);
-                GrpcPreconditions.CheckState(!shutdownRequested);
+                Preconditions.CheckState(startRequested);
+                Preconditions.CheckState(!shutdownRequested);
                 shutdownRequested = true;
             }
 
@@ -162,8 +162,8 @@ namespace Grpc.Core
         {
             lock (myLock)
             {
-                GrpcPreconditions.CheckState(startRequested);
-                GrpcPreconditions.CheckState(!shutdownRequested);
+                Preconditions.CheckState(startRequested);
+                Preconditions.CheckState(!shutdownRequested);
                 shutdownRequested = true;
             }
 
@@ -181,7 +181,7 @@ namespace Grpc.Core
 
             bool success = false;
             handle.DangerousAddRef(ref success);
-            GrpcPreconditions.CheckState(success);
+            Preconditions.CheckState(success);
         }
 
         internal void RemoveCallReference(object call)
@@ -197,7 +197,7 @@ namespace Grpc.Core
         {
             lock (myLock)
             {
-                GrpcPreconditions.CheckState(!startRequested);
+                Preconditions.CheckState(!startRequested);
                 foreach (var entry in serviceDefinition.CallHandlers)
                 {
                     callHandlers.Add(entry.Key, entry.Value);
@@ -213,8 +213,8 @@ namespace Grpc.Core
         {
             lock (myLock)
             {
-                GrpcPreconditions.CheckNotNull(serverPort.Credentials, "serverPort");
-                GrpcPreconditions.CheckState(!startRequested);
+                Preconditions.CheckNotNull(serverPort.Credentials, "serverPort");
+                Preconditions.CheckState(!startRequested);
                 var address = string.Format("{0}:{1}", serverPort.Host, serverPort.Port);
                 int boundPort;
                 using (var nativeCredentials = serverPort.Credentials.ToNativeCredentials())
