@@ -309,15 +309,15 @@
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\closure.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\endpoint.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\endpoint_pair.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\ev_poll_and_epoll_posix.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\ev_posix.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\exec_ctx.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\executor.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\fd_posix.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\iocp_windows.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\iomgr.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\iomgr_internal.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\iomgr_posix.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\pollset.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\pollset_posix.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\pollset_set.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\pollset_set_posix.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\pollset_set_windows.h" />
@@ -336,6 +336,7 @@
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\time_averaged_stats.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\timer.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\timer_heap.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\timer_internal.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\udp_server.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\wakeup_fd_pipe.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\wakeup_fd_posix.h" />
@@ -470,13 +471,11 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\endpoint_pair_windows.c">
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\ev_poll_and_epoll_posix.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\ev_posix.c">
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\exec_ctx.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\executor.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\fd_posix.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\iocp_windows.c">
     </ClCompile>
@@ -485,6 +484,12 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\iomgr_posix.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\iomgr_windows.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\pollset_multipoller_with_epoll.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\pollset_multipoller_with_poll_posix.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\pollset_posix.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\pollset_set_posix.c">
     </ClCompile>
