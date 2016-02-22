@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,26 +80,6 @@ using grpc::Status;
 static bool got_sigint = false;
 static const char* kRandomFile = "test/cpp/interop/rnd.dat";
 
-const char kEchoInitialMetadataKey[] = "x-grpc-test-echo-initial";
-const char kEchoTrailingBinMetadataKey[] = "x-grpc-test-echo-trailing-bin";
-
-void MaybeEchoMetadata(ServerContext* context) {
-  const auto& client_metadata = context->client_metadata();
-  GPR_ASSERT(client_metadata.count(kEchoInitialMetadataKey) <= 1);
-  GPR_ASSERT(client_metadata.count(kEchoTrailingBinMetadataKey) <= 1);
-
-  auto iter = client_metadata.find(kEchoInitialMetadataKey);
-  if (iter != client_metadata.end()) {
-    context->AddInitialMetadata(kEchoInitialMetadataKey, iter->second.data());
-  }
-  iter = client_metadata.find(kEchoTrailingBinMetadataKey);
-  if (iter != client_metadata.end()) {
-    context->AddTrailingMetadata(
-        kEchoTrailingBinMetadataKey,
-        grpc::string(iter->second.begin(), iter->second.end()));
-  }
-}
-
 bool SetPayload(PayloadType type, int size, Payload* payload) {
   PayloadType response_type;
   if (type == PayloadType::RANDOM) {
@@ -155,7 +135,6 @@ class TestServiceImpl : public TestService::Service {
 
   Status UnaryCall(ServerContext* context, const SimpleRequest* request,
                    SimpleResponse* response) {
-    MaybeEchoMetadata(context);
     SetResponseCompression(context, *request);
     if (request->response_size() > 0) {
       if (!SetPayload(request->response_type(), request->response_size(),
@@ -213,7 +192,6 @@ class TestServiceImpl : public TestService::Service {
       ServerContext* context,
       ServerReaderWriter<StreamingOutputCallResponse,
                          StreamingOutputCallRequest>* stream) {
-    MaybeEchoMetadata(context);
     StreamingOutputCallRequest request;
     StreamingOutputCallResponse response;
     bool write_success = true;
