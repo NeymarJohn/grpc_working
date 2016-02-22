@@ -1102,7 +1102,7 @@ plugins: $(PROTOC_PLUGINS)
 
 privatelibs: privatelibs_c privatelibs_cxx
 
-privatelibs_c:  $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libreconnect_server.a $(LIBDIR)/$(CONFIG)/libtest_tcp_server.a $(LIBDIR)/$(CONFIG)/libz.a $(LIBDIR)/$(CONFIG)/libbad_client_test.a $(LIBDIR)/$(CONFIG)/libbad_ssl_test_server.a $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a $(LIBDIR)/$(CONFIG)/libend2end_certs.a
+privatelibs_c:  $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_dll.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libreconnect_server.a $(LIBDIR)/$(CONFIG)/libtest_tcp_server.a $(LIBDIR)/$(CONFIG)/libz.a $(LIBDIR)/$(CONFIG)/libbad_client_test.a $(LIBDIR)/$(CONFIG)/libbad_ssl_test_server.a $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a $(LIBDIR)/$(CONFIG)/libend2end_certs.a
 pc_c: $(LIBDIR)/$(CONFIG)/pkgconfig/grpc.pc
 
 pc_c_unsecure: $(LIBDIR)/$(CONFIG)/pkgconfig/grpc_unsecure.pc
@@ -2318,27 +2318,6 @@ endif
 
 
 LIBGRPC_SRC = \
-    src/core/httpcli/httpcli_security_connector.c \
-    src/core/security/base64.c \
-    src/core/security/client_auth_filter.c \
-    src/core/security/credentials.c \
-    src/core/security/credentials_metadata.c \
-    src/core/security/credentials_posix.c \
-    src/core/security/credentials_win32.c \
-    src/core/security/google_default_credentials.c \
-    src/core/security/handshake.c \
-    src/core/security/json_token.c \
-    src/core/security/jwt_verifier.c \
-    src/core/security/secure_endpoint.c \
-    src/core/security/security_connector.c \
-    src/core/security/security_context.c \
-    src/core/security/server_auth_filter.c \
-    src/core/security/server_secure_chttp2.c \
-    src/core/surface/init_secure.c \
-    src/core/surface/secure_channel_create.c \
-    src/core/tsi/fake_transport_security.c \
-    src/core/tsi/ssl_transport_security.c \
-    src/core/tsi/transport_security.c \
     src/core/census/grpc_context.c \
     src/core/census/grpc_filter.c \
     src/core/channel/channel_args.c \
@@ -2467,9 +2446,30 @@ LIBGRPC_SRC = \
     src/core/transport/static_metadata.c \
     src/core/transport/transport.c \
     src/core/transport/transport_op_string.c \
+    src/core/httpcli/httpcli_security_connector.c \
+    src/core/security/base64.c \
+    src/core/security/client_auth_filter.c \
+    src/core/security/credentials.c \
+    src/core/security/credentials_metadata.c \
+    src/core/security/credentials_posix.c \
+    src/core/security/credentials_win32.c \
+    src/core/security/google_default_credentials.c \
+    src/core/security/handshake.c \
+    src/core/security/json_token.c \
+    src/core/security/jwt_verifier.c \
+    src/core/security/secure_endpoint.c \
+    src/core/security/security_connector.c \
+    src/core/security/security_context.c \
+    src/core/security/server_auth_filter.c \
+    src/core/security/server_secure_chttp2.c \
+    src/core/surface/init_secure.c \
+    src/core/surface/secure_channel_create.c \
+    src/core/tsi/fake_transport_security.c \
+    src/core/tsi/ssl_transport_security.c \
+    src/core/tsi/transport_security.c \
     src/core/census/context.c \
     src/core/census/initialize.c \
-    src/core/census/log.c \
+    src/core/census/mlog.c \
     src/core/census/operation.c \
     src/core/census/placeholders.c \
     src/core/census/tracing.c \
@@ -2537,6 +2537,43 @@ endif
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC_OBJS:.o=.dep)
+endif
+endif
+
+
+LIBGRPC_DLL_SRC = \
+
+
+LIBGRPC_DLL_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_DLL_SRC))))
+
+
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure libraries if you don't have OpenSSL.
+
+$(LIBDIR)/$(CONFIG)/libgrpc_dll.a: openssl_dep_error
+
+
+else
+
+
+$(LIBDIR)/$(CONFIG)/libgrpc_dll.a: $(ZLIB_DEP) $(OPENSSL_DEP) $(LIBGRPC_DLL_OBJS) 
+	$(E) "[AR]      Creating $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libgrpc_dll.a
+	$(Q) $(AR) $(LIBDIR)/$(CONFIG)/libgrpc_dll.a $(LIBGRPC_DLL_OBJS) 
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib $(LIBDIR)/$(CONFIG)/libgrpc_dll.a
+endif
+
+
+
+
+endif
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(LIBGRPC_DLL_OBJS:.o=.dep)
 endif
 endif
 
@@ -2755,7 +2792,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/transport/transport_op_string.c \
     src/core/census/context.c \
     src/core/census/initialize.c \
-    src/core/census/log.c \
+    src/core/census/mlog.c \
     src/core/census/operation.c \
     src/core/census/placeholders.c \
     src/core/census/tracing.c \
@@ -5840,7 +5877,7 @@ endif
 
 
 CENSUS_LOG_TEST_SRC = \
-    test/core/census/log_test.c \
+    test/core/census/mlog_test.c \
 
 CENSUS_LOG_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CENSUS_LOG_TEST_SRC))))
 ifeq ($(NO_SECURE),true)
@@ -5860,7 +5897,7 @@ $(BINDIR)/$(CONFIG)/census_log_test: $(CENSUS_LOG_TEST_OBJS) $(LIBDIR)/$(CONFIG)
 
 endif
 
-$(OBJDIR)/$(CONFIG)/test/core/census/log_test.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(OBJDIR)/$(CONFIG)/test/core/census/mlog_test.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
 
 deps_census_log_test: $(CENSUS_LOG_TEST_OBJS:.o=.dep)
 
