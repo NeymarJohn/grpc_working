@@ -59,6 +59,7 @@ END2END_FIXTURES = {
         platforms=['linux']),
     'h2_full+poll+pipe': default_unsecure_fixture_options._replace(
         platforms=['linux']),
+    'h2_full+trace': default_unsecure_fixture_options._replace(tracing=True),
     'h2_oauth2': default_secure_fixture_options._replace(ci_mac=False),
     'h2_proxy': default_unsecure_fixture_options._replace(includes_proxy=True,
                                                           ci_mac=False),
@@ -66,7 +67,7 @@ END2END_FIXTURES = {
         ci_mac=False),
     'h2_sockpair': socketpair_unsecure_fixture_options._replace(ci_mac=False),
     'h2_sockpair+trace': socketpair_unsecure_fixture_options._replace(
-        tracing=True),
+        ci_mac=False, tracing=True),
     'h2_ssl': default_secure_fixture_options,
     'h2_ssl+poll': default_secure_fixture_options._replace(platforms=['linux']),
     'h2_ssl_proxy': default_secure_fixture_options._replace(includes_proxy=True,
@@ -152,11 +153,15 @@ def main():
   sec_deps = [
     'end2end_certs',
     'grpc_test_util',
-    'grpc'
+    'grpc',
+    'gpr_test_util',
+    'gpr'
   ]
   unsec_deps = [
     'grpc_test_util_unsecure',
-    'grpc_unsecure'
+    'grpc_unsecure',
+    'gpr_test_util',
+    'gpr'
   ]
   json = {
       '#': 'generated with test/end2end/gen_build_json.py',
