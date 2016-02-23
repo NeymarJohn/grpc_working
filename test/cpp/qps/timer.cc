@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,22 +31,41 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_BASE64_H
-#define GRPC_INTERNAL_CORE_SECURITY_BASE64_H
+#include "test/cpp/qps/timer.h"
 
-#include <grpc/support/slice.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <grpc/support/time.h>
 
-/* Encodes data using base64. It is the caller's responsability to free
-   the returned char * using gpr_free. Returns NULL on NULL input. */
-char *grpc_base64_encode(const void *data, size_t data_size, int url_safe,
-                         int multiline);
+Timer::Timer() : start_(Sample()) {}
 
-/* Decodes data according to the base64 specification. Returns an empty
-   slice in case of failure. */
-gpr_slice grpc_base64_decode(const char *b64, int url_safe);
+double Timer::Now() {
+  auto ts = gpr_now(GPR_CLOCK_REALTIME);
+  return ts.tv_sec + 1e-9 * ts.tv_nsec;
+}
 
-/* Same as above except that the length is provided by the caller. */
-gpr_slice grpc_base64_decode_with_len(const char *b64, size_t b64_len,
-                                      int url_safe);
+static double time_double(struct timeval* tv) {
+  return tv->tv_sec + 1e-6 * tv->tv_usec;
+}
 
-#endif /* GRPC_INTERNAL_CORE_SECURITY_BASE64_H */
+Timer::Result Timer::Sample() {
+  struct rusage usage;
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  getrusage(RUSAGE_SELF, &usage);
+
+  Result r;
+  r.wall = time_double(&tv);
+  r.user = time_double(&usage.ru_utime);
+  r.system = time_double(&usage.ru_stime);
+  return r;
+}
+
+Timer::Result Timer::Mark() const {
+  Result s = Sample();
+  Result r;
+  r.wall = s.wall - start_.wall;
+  r.user = s.user - start_.user;
+  r.system = s.system - start_.system;
+  return r;
+}

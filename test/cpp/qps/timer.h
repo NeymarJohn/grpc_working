@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,25 +31,27 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SUPPORT_TMPFILE_H
-#define GRPC_INTERNAL_CORE_SUPPORT_TMPFILE_H
+#ifndef TEST_QPS_TIMER_H
+#define TEST_QPS_TIMER_H
 
-#include <stdio.h>
+class Timer {
+ public:
+  Timer();
 
-#include <grpc/support/slice.h>
+  struct Result {
+    double wall;
+    double user;
+    double system;
+  };
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+  Result Mark() const;
 
-/* Creates a temporary file from a prefix.
-   If tmp_filename is not NULL, *tmp_filename is assigned the name of the
-   created file and it is the responsibility of the caller to gpr_free it
-   unless an error occurs in which case it will be set to NULL. */
-FILE *gpr_tmpfile(const char *prefix, char **tmp_filename);
+  static double Now();
 
-#ifdef __cplusplus
-}
-#endif
+ private:
+  static Result Sample();
 
-#endif /* GRPC_INTERNAL_CORE_SUPPORT_TMPFILE_H */
+  const Result start_;
+};
+
+#endif  // TEST_QPS_TIMER_H

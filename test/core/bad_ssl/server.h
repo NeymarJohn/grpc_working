@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,25 +31,12 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SUPPORT_LOAD_FILE_H
-#define GRPC_INTERNAL_CORE_SUPPORT_LOAD_FILE_H
+#ifndef GRPC_TEST_CORE_BAD_SSL_SERVER_H
+#define GRPC_TEST_CORE_BAD_SSL_SERVER_H
 
-#include <stdio.h>
+#include <grpc/grpc.h>
 
-#include <grpc/support/slice.h>
+const char *bad_ssl_addr(int argc, char **argv);
+void bad_ssl_run(grpc_server *server);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* Loads the content of a file into a slice. add_null_terminator will add
-   a NULL terminator if non-zero. The success parameter, if not NULL,
-   will be set to 1 in case of success and 0 in case of failure. */
-gpr_slice gpr_load_file(const char *filename, int add_null_terminator,
-                        int *success);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* GRPC_INTERNAL_CORE_SUPPORT_LOAD_FILE_H */
+#endif /* GRPC_TEST_CORE_BAD_SSL_SERVER_H */
