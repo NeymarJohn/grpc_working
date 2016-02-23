@@ -31,33 +31,11 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
-#define GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
+#ifndef GRPC_INTERNAL_CORE_SURFACE_LAME_CHANNEL_H
+#define GRPC_INTERNAL_CORE_SURFACE_LAME_CHANNEL_H
 
-#include <memory>
+#include "src/core/channel/channel_stack.h"
 
-#include <grpc++/security/credentials.h>
-#include <grpc++/security/server_credentials.h>
-#include <grpc++/support/channel_arguments.h>
+extern const grpc_channel_filter grpc_lame_filter;
 
-namespace grpc {
-namespace testing {
-
-const char kInsecureCredentialsType[] = "INSECURE_CREDENTIALS";
-
-// Provide channel credentials according to the given type. Alter the channel
-// arguments if needed.
-std::shared_ptr<ChannelCredentials> GetChannelCredentials(
-    const grpc::string& type, ChannelArguments* args);
-
-// Provide server credentials according to the given type.
-std::shared_ptr<ServerCredentials> GetServerCredentials(
-    const grpc::string& type);
-
-// Provide a list of secure credentials type.
-std::vector<grpc::string> GetSecureCredentialsTypeList();
-
-}  // namespace testing
-}  // namespace grpc
-
-#endif  // GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
+#endif  // GRPC_INTERNAL_CORE_SURFACE_LAME_CHANNEL_H
