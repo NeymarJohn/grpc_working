@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,27 @@
  *
  */
 
-#include "src/core/surface/init.h"
+#ifndef TEST_QPS_TIMER_H
+#define TEST_QPS_TIMER_H
 
-void grpc_security_pre_init(void) {}
+class Timer {
+ public:
+  Timer();
 
-void grpc_register_security_filters(void) {}
+  struct Result {
+    double wall;
+    double user;
+    double system;
+  };
+
+  Result Mark() const;
+
+  static double Now();
+
+ private:
+  static Result Sample();
+
+  const Result start_;
+};
+
+#endif  // TEST_QPS_TIMER_H

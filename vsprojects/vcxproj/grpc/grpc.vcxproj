@@ -282,9 +282,25 @@
     <ClInclude Include="$(SolutionDir)\..\include\grpc\census.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(SolutionDir)\..\src\core\security\auth_filters.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\security\base64.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\security\credentials.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\security\handshake.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\security\json_token.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\security\jwt_verifier.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\security\secure_endpoint.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\security\security_connector.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\security\security_context.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\tsi\fake_transport_security.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\tsi\ssl_transport_security.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\tsi\ssl_types.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\tsi\transport_security.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\tsi\transport_security_interface.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\census\grpc_filter.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\census\grpc_plugin.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\channel\channel_args.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\channel\channel_stack.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\channel\channel_stack_builder.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\channel\client_channel.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\channel\client_uchannel.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\channel\compress_filter.h" />
@@ -363,9 +379,12 @@
     <ClInclude Include="$(SolutionDir)\..\src\core\surface\call.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\surface\call_test_only.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\surface\channel.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\surface\channel_init.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\surface\channel_stack_type.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\surface\completion_queue.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\surface\event_string.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\surface\init.h" />
+    <ClInclude Include="$(SolutionDir)\..\src\core\surface\lame_client.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\surface\server.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\surface\surface_trace.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\transport\byte_stream.h" />
@@ -396,32 +415,64 @@
     <ClInclude Include="$(SolutionDir)\..\src\core\transport\static_metadata.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\transport\transport.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\transport\transport_impl.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\security\auth_filters.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\security\base64.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\security\credentials.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\security\handshake.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\security\json_token.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\security\jwt_verifier.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\security\secure_endpoint.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\security\security_connector.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\security\security_context.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\tsi\fake_transport_security.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\tsi\ssl_transport_security.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\tsi\ssl_types.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\tsi\transport_security.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\core\tsi\transport_security_interface.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\census\aggregation.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\census\log.h" />
     <ClInclude Include="$(SolutionDir)\..\src\core\census\rpc_metric_id.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)\..\src\core\httpcli\httpcli_security_connector.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\base64.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\client_auth_filter.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\credentials.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\credentials_metadata.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\credentials_posix.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\credentials_win32.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\google_default_credentials.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\handshake.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\json_token.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\jwt_verifier.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\secure_endpoint.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\security_connector.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\security_context.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\server_auth_filter.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\security\server_secure_chttp2.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\surface\init_secure.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\surface\secure_channel_create.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\tsi\fake_transport_security.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\tsi\ssl_transport_security.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\tsi\transport_security.c">
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\grpc_context.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\grpc_filter.c">
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\census\grpc_plugin.c">
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\channel\channel_args.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\channel\channel_stack.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\channel\channel_stack_builder.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\channel\client_channel.c">
     </ClCompile>
@@ -593,7 +644,11 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\channel_create.c">
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\surface\channel_init.c">
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\channel_ping.c">
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\surface\channel_stack_type.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\completion_queue.c">
     </ClCompile>
@@ -608,8 +663,6 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\server.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\server_chttp2.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\surface\server_create.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\validate_metadata.c">
     </ClCompile>
@@ -670,48 +723,6 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\transport\transport.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\transport\transport_op_string.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\httpcli\httpcli_security_connector.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\base64.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\client_auth_filter.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\credentials.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\credentials_metadata.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\credentials_posix.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\credentials_win32.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\google_default_credentials.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\handshake.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\json_token.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\jwt_verifier.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\secure_endpoint.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\security_connector.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\security_context.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\server_auth_filter.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\security\server_secure_chttp2.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\surface\init_secure.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\surface\secure_channel_create.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\tsi\fake_transport_security.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\tsi\ssl_transport_security.c">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\tsi\transport_security.c">
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\census\context.c">
     </ClCompile>

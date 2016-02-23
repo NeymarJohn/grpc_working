@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,18 +31,41 @@
  *
  */
 
-#include <grpc/grpc.h>
-#include "src/core/census/grpc_filter.h"
-#include "src/core/channel/channel_args.h"
-#include "src/core/channel/compress_filter.h"
-#include "src/core/surface/api_trace.h"
-#include "src/core/surface/completion_queue.h"
-#include "src/core/surface/server.h"
+#include "test/cpp/qps/timer.h"
 
-grpc_server *grpc_server_create(const grpc_channel_args *args, void *reserved) {
-  const grpc_channel_filter *filters[3];
-  size_t num_filters = 0;
-  filters[num_filters++] = &grpc_compress_filter;
-  GRPC_API_TRACE("grpc_server_create(%p, %p)", 2, (args, reserved));
-  return grpc_server_create_from_filters(filters, num_filters, args);
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <grpc/support/time.h>
+
+Timer::Timer() : start_(Sample()) {}
+
+double Timer::Now() {
+  auto ts = gpr_now(GPR_CLOCK_REALTIME);
+  return ts.tv_sec + 1e-9 * ts.tv_nsec;
+}
+
+static double time_double(struct timeval* tv) {
+  return tv->tv_sec + 1e-6 * tv->tv_usec;
+}
+
+Timer::Result Timer::Sample() {
+  struct rusage usage;
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  getrusage(RUSAGE_SELF, &usage);
+
+  Result r;
+  r.wall = time_double(&tv);
+  r.user = time_double(&usage.ru_utime);
+  r.system = time_double(&usage.ru_stime);
+  return r;
+}
+
+Timer::Result Timer::Mark() const {
+  Result s = Sample();
+  Result r;
+  r.wall = s.wall - start_.wall;
+  r.user = s.user - start_.user;
+  r.system = s.system - start_.system;
+  return r;
 }

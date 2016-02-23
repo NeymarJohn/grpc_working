@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,27 +31,11 @@
  *
  */
 
-#ifndef TEST_QPS_USAGE_TIMER_H
-#define TEST_QPS_USAGE_TIMER_H
+#ifndef GRPC_INTERNAL_CORE_SURFACE_LAME_CHANNEL_H
+#define GRPC_INTERNAL_CORE_SURFACE_LAME_CHANNEL_H
 
-class UsageTimer {
- public:
-  Timer();
+#include "src/core/channel/channel_stack.h"
 
-  struct Result {
-    double wall;
-    double user;
-    double system;
-  };
+extern const grpc_channel_filter grpc_lame_filter;
 
-  Result Mark() const;
-
-  static double Now();
-
- private:
-  static Result Sample();
-
-  const Result start_;
-};
-
-#endif  // TEST_QPS_TIMER_H
+#endif  // GRPC_INTERNAL_CORE_SURFACE_LAME_CHANNEL_H

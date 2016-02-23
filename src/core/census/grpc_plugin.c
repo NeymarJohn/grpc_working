@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,41 +31,42 @@
  *
  */
 
-#include "test/cpp/qps/usage_timer.h"
+#include "src/core/census/grpc_plugin.h"
 
-#include <grpc/support/time.h>
-#include <sys/resource.h>
-#include <sys/time.h>
+#include <limits.h>
 
-Timer::Timer() : start_(Sample()) {}
+#include <grpc/census.h>
 
-double Timer::Now() {
-  auto ts = gpr_now(GPR_CLOCK_REALTIME);
-  return ts.tv_sec + 1e-9 * ts.tv_nsec;
+#include "src/core/census/grpc_filter.h"
+#include "src/core/surface/channel_init.h"
+#include "src/core/channel/channel_stack_builder.h"
+
+static bool maybe_add_census_filter(grpc_channel_stack_builder *builder,
+                                    void *arg_must_be_null) {
+  const grpc_channel_args *args =
+      grpc_channel_stack_builder_get_channel_arguments(builder);
+  if (grpc_channel_args_is_census_enabled(args)) {
+    return grpc_channel_stack_builder_prepend_filter(
+        builder, &grpc_client_census_filter, NULL, NULL);
+  }
+  return true;
 }
 
-static double time_double(struct timeval* tv) {
-  return tv->tv_sec + 1e-6 * tv->tv_usec;
+void census_grpc_plugin_init(void) {
+  /* Only initialize census if no one else has and some features are
+   * available. */
+  if (census_enabled() == CENSUS_FEATURE_NONE &&
+      census_supported() != CENSUS_FEATURE_NONE) {
+    if (census_initialize(census_supported())) { /* enable all features. */
+      gpr_log(GPR_ERROR, "Could not initialize census.");
+    }
+  }
+  grpc_channel_init_register_stage(GRPC_CLIENT_CHANNEL, INT_MAX,
+                                   maybe_add_census_filter, NULL);
+  grpc_channel_init_register_stage(GRPC_CLIENT_UCHANNEL, INT_MAX,
+                                   maybe_add_census_filter, NULL);
+  grpc_channel_init_register_stage(GRPC_SERVER_CHANNEL, INT_MAX,
+                                   maybe_add_census_filter, NULL);
 }
 
-Timer::Result Timer::Sample() {
-  struct rusage usage;
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  getrusage(RUSAGE_SELF, &usage);
-
-  Result r;
-  r.wall = time_double(&tv);
-  r.user = time_double(&usage.ru_utime);
-  r.system = time_double(&usage.ru_stime);
-  return r;
-}
-
-Timer::Result Timer::Mark() const {
-  Result s = Sample();
-  Result r;
-  r.wall = s.wall - start_.wall;
-  r.user = s.user - start_.user;
-  r.system = s.system - start_.system;
-  return r;
-}
+void census_grpc_plugin_destroy(void) { census_shutdown(); }

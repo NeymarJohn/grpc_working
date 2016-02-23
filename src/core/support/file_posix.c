@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,33 +31,55 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
-#define GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
+#include <grpc/support/port_platform.h>
 
-#include <memory>
+#ifdef GPR_POSIX_FILE
 
-#include <grpc++/security/credentials.h>
-#include <grpc++/security/server_credentials.h>
-#include <grpc++/support/channel_arguments.h>
+#include "src/core/support/file.h"
 
-namespace grpc {
-namespace testing {
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
-const char kInsecureCredentialsType[] = "INSECURE_CREDENTIALS";
+#include <grpc/support/alloc.h>
+#include <grpc/support/log.h>
+#include <grpc/support/string_util.h>
 
-// Provide channel credentials according to the given type. Alter the channel
-// arguments if needed.
-std::shared_ptr<ChannelCredentials> GetChannelCredentials(
-    const grpc::string& type, ChannelArguments* args);
+#include "src/core/support/string.h"
 
-// Provide server credentials according to the given type.
-std::shared_ptr<ServerCredentials> GetServerCredentials(
-    const grpc::string& type);
+FILE *gpr_tmpfile(const char *prefix, char **tmp_filename) {
+  FILE *result = NULL;
+  char *template;
+  int fd;
 
-// Provide a list of secure credentials type.
-std::vector<grpc::string> GetSecureCredentialsTypeList();
+  if (tmp_filename != NULL) *tmp_filename = NULL;
 
-}  // namespace testing
-}  // namespace grpc
+  gpr_asprintf(&template, "/tmp/%s_XXXXXX", prefix);
+  GPR_ASSERT(template != NULL);
 
-#endif  // GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
+  fd = mkstemp(template);
+  if (fd == -1) {
+    gpr_log(GPR_ERROR, "mkstemp failed for template %s with error %s.",
+            template, strerror(errno));
+    goto end;
+  }
+  result = fdopen(fd, "w+");
+  if (result == NULL) {
+    gpr_log(GPR_ERROR, "Could not open file %s from fd %d (error = %s).",
+            template, fd, strerror(errno));
+    unlink(template);
+    close(fd);
+    goto end;
+  }
+
+end:
+  if (result != NULL && tmp_filename != NULL) {
+    *tmp_filename = template;
+  } else {
+    gpr_free(template);
+  }
+  return result;
+}
+
+#endif /* GPR_POSIX_FILE */

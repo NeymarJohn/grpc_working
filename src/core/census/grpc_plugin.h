@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,54 +31,10 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
+#ifndef GRPC_INTERNAL_CORE_CENSUS_GRPC_PLUGIN_H
+#define GRPC_INTERNAL_CORE_CENSUS_GRPC_PLUGIN_H
 
-#ifdef GPR_WIN32
+void census_grpc_plugin_init(void);
+void census_grpc_plugin_destroy(void);
 
-#include <io.h>
-#include <stdio.h>
-#include <string.h>
-#include <tchar.h>
-
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
-
-#include "src/core/support/string_win32.h"
-#include "src/core/support/tmpfile.h"
-
-FILE *gpr_tmpfile(const char *prefix, char **tmp_filename_out) {
-  FILE *result = NULL;
-  LPTSTR template_string = NULL;
-  TCHAR tmp_path[MAX_PATH];
-  TCHAR tmp_filename[MAX_PATH];
-  DWORD status;
-  UINT success;
-
-  if (tmp_filename_out != NULL) *tmp_filename_out = NULL;
-
-  /* Convert our prefix to TCHAR. */
-  template_string = gpr_char_to_tchar(prefix);
-  GPR_ASSERT(template_string);
-
-  /* Get the path to the best temporary folder available. */
-  status = GetTempPath(MAX_PATH, tmp_path);
-  if (status == 0 || status > MAX_PATH) goto end;
-
-  /* Generate a unique filename with our template + temporary path. */
-  success = GetTempFileName(tmp_path, template_string, 0, tmp_filename);
-  if (!success) goto end;
-
-  /* Open a file there. */
-  if (_tfopen_s(&result, tmp_filename, TEXT("wb+")) != 0) goto end;
-
-end:
-  if (result && tmp_filename_out) {
-    *tmp_filename_out = gpr_tchar_to_char(tmp_filename);
-  }
-
-  gpr_free(template_string);
-  return result;
-}
-
-#endif /* GPR_WIN32 */
+#endif /* GRPC_INTERNAL_CORE_CENSUS_GRPC_PLUGIN_H */
