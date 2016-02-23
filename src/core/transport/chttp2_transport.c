@@ -1019,6 +1019,11 @@ static void check_read_ops(grpc_exec_ctx *exec_ctx,
       stream_global->recv_initial_metadata_ready = NULL;
     }
     if (stream_global->recv_message_ready != NULL) {
+      while (stream_global->seen_error &&
+             (bs = grpc_chttp2_incoming_frame_queue_pop(
+                  &stream_global->incoming_frames)) != NULL) {
+        grpc_byte_stream_destroy(exec_ctx, bs);
+      }
       if (stream_global->incoming_frames.head != NULL) {
         *stream_global->recv_message = grpc_chttp2_incoming_frame_queue_pop(
             &stream_global->incoming_frames);
@@ -1713,9 +1718,8 @@ static char *chttp2_get_peer(grpc_exec_ctx *exec_ctx, grpc_transport *t) {
 }
 
 static const grpc_transport_vtable vtable = {
-    sizeof(grpc_chttp2_stream), "chttp2", init_stream, set_pollset,
-    perform_stream_op, perform_transport_op, destroy_stream, destroy_transport,
-    chttp2_get_peer};
+    sizeof(grpc_chttp2_stream), init_stream, set_pollset, perform_stream_op,
+    perform_transport_op, destroy_stream, destroy_transport, chttp2_get_peer};
 
 grpc_transport *grpc_create_chttp2_transport(
     grpc_exec_ctx *exec_ctx, const grpc_channel_args *channel_args,
