@@ -31,51 +31,41 @@
  *
  */
 
-#include <grpc++/alarm.h>
-#include <grpc++/completion_queue.h>
-#include <gtest/gtest.h>
+#include "test/cpp/qps/usage_timer.h"
 
-#include "test/core/util/test_config.h"
+#include <grpc/support/time.h>
+#include <sys/resource.h>
+#include <sys/time.h>
 
-namespace grpc {
-namespace {
+Timer::Timer() : start_(Sample()) {}
 
-TEST(AlarmTest, RegularExpiry) {
-  CompletionQueue cq;
-  void* junk = reinterpret_cast<void*>(1618033);
-  Alarm alarm(&cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1), junk);
-
-  void* output_tag;
-  bool ok;
-  const CompletionQueue::NextStatus status = cq.AsyncNext(
-      (void**)&output_tag, &ok, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(2));
-
-  EXPECT_EQ(status, CompletionQueue::GOT_EVENT);
-  EXPECT_TRUE(ok);
-  EXPECT_EQ(junk, output_tag);
+double Timer::Now() {
+  auto ts = gpr_now(GPR_CLOCK_REALTIME);
+  return ts.tv_sec + 1e-9 * ts.tv_nsec;
 }
 
-TEST(AlarmTest, Cancellation) {
-  CompletionQueue cq;
-  void* junk = reinterpret_cast<void*>(1618033);
-  Alarm alarm(&cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(2), junk);
-  alarm.Cancel();
-
-  void* output_tag;
-  bool ok;
-  const CompletionQueue::NextStatus status = cq.AsyncNext(
-      (void**)&output_tag, &ok, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1));
-
-  EXPECT_EQ(status, CompletionQueue::GOT_EVENT);
-  EXPECT_FALSE(ok);
-  EXPECT_EQ(junk, output_tag);
+static double time_double(struct timeval* tv) {
+  return tv->tv_sec + 1e-6 * tv->tv_usec;
 }
 
-}  // namespace
-}  // namespace grpc
+Timer::Result Timer::Sample() {
+  struct rusage usage;
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  getrusage(RUSAGE_SELF, &usage);
 
-int main(int argc, char** argv) {
-  grpc_test_init(argc, argv);
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  Result r;
+  r.wall = time_double(&tv);
+  r.user = time_double(&usage.ru_utime);
+  r.system = time_double(&usage.ru_stime);
+  return r;
+}
+
+Timer::Result Timer::Mark() const {
+  Result s = Sample();
+  Result r;
+  r.wall = s.wall - start_.wall;
+  r.user = s.user - start_.user;
+  r.system = s.system - start_.system;
+  return r;
 }
