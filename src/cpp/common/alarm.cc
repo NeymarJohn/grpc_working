@@ -31,13 +31,19 @@
  */
 
 #include <grpc++/alarm.h>
+#include <grpc++/completion_queue.h>
 #include <grpc++/impl/grpc_library.h>
+#include <grpc/grpc.h>
 
 namespace grpc {
 
-Alarm::~Alarm() {
-  grpc_alarm_destroy(alarm_);
+static internal::GrpcLibraryInitializer g_gli_initializer;
+Alarm::Alarm(CompletionQueue* cq, gpr_timespec deadline, void* tag)
+    : alarm_(grpc_alarm_create(cq->cq(), deadline, tag)) {
+  g_gli_initializer.summon();
 }
+
+Alarm::~Alarm() { grpc_alarm_destroy(alarm_); }
 
 void Alarm::Cancel() { grpc_alarm_cancel(alarm_); }
 

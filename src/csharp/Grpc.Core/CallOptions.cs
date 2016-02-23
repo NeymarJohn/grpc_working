@@ -1,6 +1,6 @@
 #region Copyright notice and license
 
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -176,13 +176,13 @@ namespace Grpc.Core
             {
                 if (propagationToken.Options.IsPropagateDeadline)
                 {
-                    GrpcPreconditions.CheckArgument(!newOptions.deadline.HasValue,
+                    Preconditions.CheckArgument(!newOptions.deadline.HasValue,
                         "Cannot propagate deadline from parent call. The deadline has already been set explicitly.");
                     newOptions.deadline = propagationToken.ParentDeadline;
                 }
                 if (propagationToken.Options.IsPropagateCancellation)
                 {
-                    GrpcPreconditions.CheckArgument(!newOptions.cancellationToken.CanBeCanceled,
+                    Preconditions.CheckArgument(!newOptions.cancellationToken.CanBeCanceled,
                         "Cannot propagate cancellation token from parent call. The cancellation token has already been set to a non-default value.");
                     newOptions.cancellationToken = propagationToken.ParentCancellationToken;
                 }

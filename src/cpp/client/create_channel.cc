@@ -32,6 +32,7 @@
  */
 
 #include <memory>
+#include <sstream>
 
 #include <grpc++/channel.h>
 #include <grpc++/create_channel.h>
@@ -55,8 +56,13 @@ std::shared_ptr<Channel> CreateCustomChannel(
     const ChannelArguments& args) {
   internal::GrpcLibrary
       init_lib;  // We need to call init in case of a bad creds.
+  ChannelArguments cp_args = args;
+  std::ostringstream user_agent_prefix;
+  user_agent_prefix << "grpc-c++/" << grpc_version_string();
+  cp_args.SetString(GRPC_ARG_PRIMARY_USER_AGENT_STRING,
+                    user_agent_prefix.str());
   return creds
-             ? creds->CreateChannel(target, args)
+             ? creds->CreateChannel(target, cp_args)
              : CreateChannelInternal("", grpc_lame_client_channel_create(
                                              NULL, GRPC_STATUS_INVALID_ARGUMENT,
                                              "Invalid credentials."));
