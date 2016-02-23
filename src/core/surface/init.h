@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@
 #ifndef GRPC_INTERNAL_CORE_SURFACE_INIT_H
 #define GRPC_INTERNAL_CORE_SURFACE_INIT_H
 
-void grpc_register_security_filters(void);
 void grpc_security_pre_init(void);
 int grpc_is_initialized(void);
 

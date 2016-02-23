@@ -1,3 +1,4 @@
+
 /*
  *
  * Copyright 2016, Google Inc.
@@ -31,26 +32,51 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
-#include "src/core/surface/channel_stack_type.h"
-#include <grpc/support/log.h>
+#include "test/cpp/util/test_credentials_provider.h"
 
-bool grpc_channel_stack_type_is_client(grpc_channel_stack_type type) {
-  switch (type) {
-    case GRPC_CLIENT_CHANNEL:
-      return true;
-    case GRPC_CLIENT_UCHANNEL:
-      return true;
-    case GRPC_CLIENT_SUBCHANNEL:
-      return true;
-    case GRPC_CLIENT_LAME_CHANNEL:
-      return true;
-    case GRPC_CLIENT_DIRECT_CHANNEL:
-      return true;
-    case GRPC_SERVER_CHANNEL:
-      return false;
-    case GRPC_NUM_CHANNEL_STACK_TYPES:
-      break;
+#include "test/core/end2end/data/ssl_test_data.h"
+
+namespace grpc {
+namespace testing {
+
+const char kTlsCredentialsType[] = "TLS_CREDENTIALS";
+
+std::shared_ptr<ChannelCredentials> GetChannelCredentials(
+    const grpc::string& type, ChannelArguments* args) {
+  if (type == kInsecureCredentialsType) {
+    return InsecureChannelCredentials();
+  } else if (type == kTlsCredentialsType) {
+    SslCredentialsOptions ssl_opts = {test_root_cert, "", ""};
+    args->SetSslTargetNameOverride("foo.test.google.fr");
+    return SslCredentials(ssl_opts);
+  } else {
+    gpr_log(GPR_ERROR, "Unsupported credentials type %s.", type.c_str());
   }
-  GPR_UNREACHABLE_CODE(return true;);
+  return nullptr;
 }
+
+std::shared_ptr<ServerCredentials> GetServerCredentials(
+    const grpc::string& type) {
+  if (type == kInsecureCredentialsType) {
+    return InsecureServerCredentials();
+  } else if (type == kTlsCredentialsType) {
+    SslServerCredentialsOptions::PemKeyCertPair pkcp = {test_server1_key,
+                                                        test_server1_cert};
+    SslServerCredentialsOptions ssl_opts;
+    ssl_opts.pem_root_certs = "";
+    ssl_opts.pem_key_cert_pairs.push_back(pkcp);
+    return SslServerCredentials(ssl_opts);
+  } else {
+    gpr_log(GPR_ERROR, "Unsupported credentials type %s.", type.c_str());
+  }
+  return nullptr;
+}
+
+std::vector<grpc::string> GetSecureCredentialsTypeList() {
+  std::vector<grpc::string> types;
+  types.push_back(kTlsCredentialsType);
+  return types;
+}
+
+}  // namespace testing
+}  // namespace grpc
