@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -ex
+# This is where you have cloned out the https://github.com/grpc/grpc repository
+# And built gRPC Python.
+# ADJUST THIS PATH TO WHERE YOUR ACTUAL LOCATION IS
+GRPC_ROOT=~/github/grpc
 
-cd $(dirname $0)/../..
-
-if [ "$SKIP_PIP_INSTALL" == "" ]
-then
-  pip install --upgrade six
-  pip install --upgrade setuptools
-  pip install -rrequirements.txt
-fi
-
-# The bdist_wheel_grpc_custom command is finicky about command output ordering
-# and thus ought to be run in a shell command separate of others. Further, it
-# trashes the actual bdist_wheel output, so it should be run first so that
-# bdist_wheel may be run unmolested.
-GRPC_PYTHON_USE_CUSTOM_BDIST=0  \
-GRPC_PYTHON_BUILD_WITH_CYTHON=1 \
-${SETARCH_CMD} python setup.py  \
-    build_tagged_ext
-
-GRPC_PYTHON_USE_CUSTOM_BDIST=0  \
-GRPC_PYTHON_BUILD_WITH_CYTHON=1 \
-${SETARCH_CMD} python setup.py  \
-    bdist_wheel                 \
-    sdist
-
-mkdir -p artifacts
-
-cp -r dist/* artifacts
+$GRPC_ROOT/python2.7_virtual_environment/bin/python greeter_client.py

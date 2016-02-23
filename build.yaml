@@ -7,7 +7,7 @@ settings:
   '#3': Use "-preN" suffixes to identify pre-release versions
   '#4': Per-language overrides are possible with (eg) ruby_version tag here
   '#5': See the expand_version.py for all the quirks here
-  version: 0.13.1-pre1
+  version: 0.14.0-dev
 filegroups:
 - name: census
   public_headers:
@@ -308,7 +308,6 @@ filegroups:
   - src/core/iomgr/time_averaged_stats.h
   - src/core/iomgr/timer.h
   - src/core/iomgr/timer_heap.h
-  - src/core/iomgr/timer_internal.h
   - src/core/iomgr/udp_server.h
   - src/core/iomgr/wakeup_fd_pipe.h
   - src/core/iomgr/wakeup_fd_posix.h
