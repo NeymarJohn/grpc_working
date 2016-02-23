@@ -20,7 +20,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A2F6CBBA-A553-41B3-A7DE-F26DECCC27F0}</ProjectGuid>
+    <ProjectGuid>{990AF023-17D7-8DBF-EB6E-14C7C016C77E}</ProjectGuid>
     <IgnoreWarnIntDirInTempDetected>true</IgnoreWarnIntDirInTempDetected>
     <IntDir>$(SolutionDir)IntDir\$(MSBuildProjectName)\</IntDir>
   </PropertyGroup>
@@ -38,12 +38,12 @@
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
@@ -53,21 +53,23 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(SolutionDir)\..\vsprojects\cpptest.props" />
     <Import Project="$(SolutionDir)\..\vsprojects\global.props" />
     <Import Project="$(SolutionDir)\..\vsprojects\openssl.props" />
+    <Import Project="$(SolutionDir)\..\vsprojects\protobuf.props" />
     <Import Project="$(SolutionDir)\..\vsprojects\winsock.props" />
     <Import Project="$(SolutionDir)\..\vsprojects\zlib.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <TargetName>grpc_dll</TargetName>
+    <TargetName>grpclb_api_test</TargetName>
     <Linkage-grpc_dependencies_zlib>static</Linkage-grpc_dependencies_zlib>
     <Configuration-grpc_dependencies_zlib>Debug</Configuration-grpc_dependencies_zlib>
     <Linkage-grpc_dependencies_openssl>static</Linkage-grpc_dependencies_openssl>
     <Configuration-grpc_dependencies_openssl>Debug</Configuration-grpc_dependencies_openssl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <TargetName>grpc_dll</TargetName>
+    <TargetName>grpclb_api_test</TargetName>
     <Linkage-grpc_dependencies_zlib>static</Linkage-grpc_dependencies_zlib>
     <Configuration-grpc_dependencies_zlib>Release</Configuration-grpc_dependencies_zlib>
     <Linkage-grpc_dependencies_openssl>static</Linkage-grpc_dependencies_openssl>
@@ -86,10 +88,9 @@
       <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
       <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
-      <ModuleDefinitionFile>$(SolutionDir)\..\grpc.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
 
@@ -106,10 +107,9 @@
       <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
       <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
-      <ModuleDefinitionFile>$(SolutionDir)\..\grpc.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
 
@@ -128,10 +128,9 @@
       <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
       <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
-      <ModuleDefinitionFile>$(SolutionDir)\..\grpc.def</ModuleDefinitionFile>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -152,25 +151,35 @@
       <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation Condition="!$(Jenkins)">true</GenerateDebugInformation>
       <GenerateDebugInformation Condition="$(Jenkins)">false</GenerateDebugInformation>
-      <ModuleDefinitionFile>$(SolutionDir)\..\grpc.def</ModuleDefinitionFile>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <None Include="$(SolutionDir)\..\grpc.def" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="$(SolutionDir)\..\vsprojects\dummy.c">
+    <ClCompile Include="$(SolutionDir)\..\src\proto\grpc\lb\v0\load_balancer.pb.cc">
+    </ClCompile>
+    <ClInclude Include="$(SolutionDir)\..\src\proto\grpc\lb\v0\load_balancer.pb.h">
+    </ClInclude>
+    <ClCompile Include="$(SolutionDir)\..\src\proto\grpc\lb\v0\load_balancer.grpc.pb.cc">
+    </ClCompile>
+    <ClInclude Include="$(SolutionDir)\..\src\proto\grpc\lb\v0\load_balancer.grpc.pb.h">
+    </ClInclude>
+    <ClCompile Include="$(SolutionDir)\..\test\cpp\grpclb\grpclb_api_test.cc">
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\..\vsprojects\vcxproj\.\gpr\gpr.vcxproj">
-      <Project>{B23D3D1A-9438-4EDA-BEB6-9A0A03D17792}</Project>
+    <ProjectReference Include="$(SolutionDir)\..\vsprojects\vcxproj\.\grpc++_test_util\grpc++_test_util.vcxproj">
+      <Project>{0BE77741-552A-929B-A497-4EF7ECE17A64}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\..\vsprojects\vcxproj\.\grpc_test_util\grpc_test_util.vcxproj">
+      <Project>{17BCAFC0-5FDC-4C94-AEB9-95F3E220614B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\..\vsprojects\vcxproj\.\grpc++\grpc++.vcxproj">
+      <Project>{C187A093-A0FE-489D-A40A-6E33DE0F9FEB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)\..\vsprojects\vcxproj\.\grpc\grpc.vcxproj">
       <Project>{29D16885-7228-4C31-81ED-5F9187C7F2A9}</Project>
