@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.7
-# Copyright 2015-2016 Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -33,9 +33,8 @@ import json
 
 _REQUEST_TIMEOUT_SECS = 10
 
-
 def _make_pod_config(pod_name, image_name, container_port_list, cmd_list,
-                     arg_list, env_dict):
+                    arg_list):
   """Creates a string containing the Pod defintion as required by the Kubernetes API"""
   body = {
       'kind': 'Pod',
@@ -49,22 +48,20 @@ def _make_pod_config(pod_name, image_name, container_port_list, cmd_list,
               {
                   'name': pod_name,
                   'image': image_name,
-                  'ports': [{'containerPort': port,
-                             'protocol': 'TCP'} for port in container_port_list],
-                  'imagePullPolicy': 'Always'
+                  'ports': []
               }
           ]
       }
   }
-
-  env_list = [{'name': k, 'value': v} for (k, v) in env_dict.iteritems()]
-  if len(env_list) > 0:
-    body['spec']['containers'][0]['env'] = env_list
+  # Populate the 'ports' list
+  for port in container_port_list:
+    port_entry = {'containerPort': port, 'protocol': 'TCP'}
+    body['spec']['containers'][0]['ports'].append(port_entry)
 
   # Add the 'Command' and 'Args' attributes if they are passed.
   # Note:
   #  - 'Command' overrides the ENTRYPOINT in the Docker Image
-  #  - 'Args' override the CMD in Docker image (yes, it is confusing!)
+  #  - 'Args' override the COMMAND in Docker image (yes, it is confusing!)
   if len(cmd_list) > 0:
     body['spec']['containers'][0]['command'] = cmd_list
   if len(arg_list) > 0:
@@ -73,7 +70,7 @@ def _make_pod_config(pod_name, image_name, container_port_list, cmd_list,
 
 
 def _make_service_config(service_name, pod_name, service_port_list,
-                         container_port_list, is_headless):
+                        container_port_list, is_headless):
   """Creates a string containing the Service definition as required by the Kubernetes API.
 
   NOTE:
@@ -127,7 +124,6 @@ def _print_connection_error(msg):
   print('ERROR: Connection failed. Did you remember to run Kubenetes proxy on '
         'localhost (i.e kubectl proxy --port=<proxy_port>) ?. Error: %s' % msg)
 
-
 def _do_post(post_url, api_name, request_body):
   """Helper to do HTTP POST.
 
@@ -139,9 +135,7 @@ def _do_post(post_url, api_name, request_body):
   """
   is_success = True
   try:
-    r = requests.post(post_url,
-                      data=request_body,
-                      timeout=_REQUEST_TIMEOUT_SECS)
+    r = requests.post(post_url, data=request_body, timeout=_REQUEST_TIMEOUT_SECS)
     if r.status_code == requests.codes.conflict:
       print('WARN: Looks like the resource already exists. Api: %s, url: %s' %
             (api_name, post_url))
@@ -149,8 +143,7 @@ def _do_post(post_url, api_name, request_body):
       print('ERROR: %s API returned error. HTTP response: (%d) %s' %
             (api_name, r.status_code, r.text))
       is_success = False
-  except (requests.exceptions.Timeout,
-          requests.exceptions.ConnectionError) as e:
+  except(requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
     is_success = False
     _print_connection_error(str(e))
   return is_success
@@ -172,8 +165,7 @@ def _do_delete(del_url, api_name):
       print('ERROR: %s API returned error. HTTP response: %s' %
             (api_name, r.text))
       is_success = False
-  except (requests.exceptions.Timeout,
-          requests.exceptions.ConnectionError) as e:
+  except(requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
     is_success = False
     _print_connection_error(str(e))
   return is_success
@@ -187,12 +179,12 @@ def create_service(kube_host, kube_port, namespace, service_name, pod_name,
   post_url = 'http://%s:%d/api/v1/namespaces/%s/services' % (
       kube_host, kube_port, namespace)
   request_body = _make_service_config(service_name, pod_name, service_port_list,
-                                      container_port_list, is_headless)
+                                     container_port_list, is_headless)
   return _do_post(post_url, 'Create Service', request_body)
 
 
 def create_pod(kube_host, kube_port, namespace, pod_name, image_name,
-               container_port_list, cmd_list, arg_list, env_dict):
+               container_port_list, cmd_list, arg_list):
   """Creates a Kubernetes Pod.
 
   Note that it is generally NOT considered a good practice to directly create
@@ -208,7 +200,7 @@ def create_pod(kube_host, kube_port, namespace, pod_name, image_name,
   post_url = 'http://%s:%d/api/v1/namespaces/%s/pods' % (kube_host, kube_port,
                                                          namespace)
   request_body = _make_pod_config(pod_name, image_name, container_port_list,
-                                  cmd_list, arg_list, env_dict)
+                                 cmd_list, arg_list)
   return _do_post(post_url, 'Create Pod', request_body)
 
 
