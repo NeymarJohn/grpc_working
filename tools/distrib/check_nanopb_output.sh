@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
@@ -31,31 +30,42 @@
 
 set -ex
 
-cd $(dirname $0)/../..
-set root=`pwd`
-CC=${CC:-cc}
+apt-get install -y autoconf automake libtool curl python-virtualenv
 
-# allow openssl to be pre-downloaded
-if [ ! -e third_party/openssl-1.0.2f.tar.gz ]
-then
-  echo "Downloading http://openssl.org/source/openssl-1.0.2f.tar.gz to third_party/openssl-1.0.2f.tar.gz"
-  wget http://openssl.org/source/openssl-1.0.2f.tar.gz -O third_party/openssl-1.0.2f.tar.gz
+readonly NANOPB_TMP_OUTPUT="${LOCAL_GIT_ROOT}/gens/src/proto/grpc/lb/v0"
+
+# install protoc version 3
+pushd third_party/protobuf
+./autogen.sh
+./configure
+make
+make install
+ldconfig
+popd
+
+if [ ! -x "/usr/local/bin/protoc" ]; then
+  echo "Error: protoc not found in path"
+  exit 1
+fi
+readonly PROTOC_PATH='/usr/local/bin'
+# stack up and change to nanopb's proto generator directory
+pushd third_party/nanopb/generator/proto
+PATH="$PROTOC_PATH:$PATH" make
+
+# back to the root directory
+popd
+
+
+# nanopb-compile the proto to a temp location
+PATH="$PROTOC_PATH:$PATH" ./tools/codegen/core/gen_load_balancing_proto.sh \
+  src/proto/grpc/lb/v0/load_balancer.proto \
+  $NANOPB_TMP_OUTPUT
+
+# compare outputs to checked compiled code
+diff -rq $NANOPB_TMP_OUTPUT src/core/proto/grpc/lb/v0
+if [ $? != 0 ]; then
+  echo "Outputs differ: $NANOPB_TMP_OUTPUT vs src/core/proto/grpc/lb/v0"
+  exit 1
 fi
 
-# clean openssl directory
-rm -rf third_party/openssl-1.0.2f
-
-# extract archive
-cd third_party
-tar xfz openssl-1.0.2f.tar.gz
-
-# build openssl
-cd openssl-1.0.2f
-CC="$CC -fPIC -fvisibility=hidden" ./config no-asm
-make
-
-# generate the 'grpc_obj' directory needed by the makefile
-mkdir grpc_obj
-cd grpc_obj
-ar x ../libcrypto.a
-ar x ../libssl.a
+rm -Rf "${LOCAL_GIT_ROOT}/gens"
