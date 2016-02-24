@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,33 +31,31 @@
  *
  */
 
-#ifndef GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
-#define GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H
+#define GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H
 
-#include <memory>
+#include "src/core/iomgr/exec_ctx.h"
+#include <grpc/support/sync.h>
+#include <grpc/support/time.h>
 
-#include <grpc++/security/credentials.h>
-#include <grpc++/security/server_credentials.h>
-#include <grpc++/support/channel_arguments.h>
+/* iomgr internal api for dealing with timers */
 
-namespace grpc {
-namespace testing {
+/* Check for timers to be run, and run them.
+   Return non zero if timer callbacks were executed.
+   Drops drop_mu if it is non-null before executing callbacks.
+   If next is non-null, TRY to update *next with the next running timer
+   IF that timer occurs before *next current value.
+   *next is never guaranteed to be updated on any given execution; however,
+   with high probability at least one thread in the system will see an update
+   at any time slice. */
 
-const char kInsecureCredentialsType[] = "INSECURE_CREDENTIALS";
+int grpc_timer_check(grpc_exec_ctx* exec_ctx, gpr_timespec now,
+                     gpr_timespec* next);
+void grpc_timer_list_init(gpr_timespec now);
+void grpc_timer_list_shutdown(grpc_exec_ctx* exec_ctx);
 
-// Provide channel credentials according to the given type. Alter the channel
-// arguments if needed.
-std::shared_ptr<ChannelCredentials> GetChannelCredentials(
-    const grpc::string& type, ChannelArguments* args);
+/* the following must be implemented by each iomgr implementation */
 
-// Provide server credentials according to the given type.
-std::shared_ptr<ServerCredentials> GetServerCredentials(
-    const grpc::string& type);
+void grpc_kick_poller(void);
 
-// Provide a list of secure credentials type.
-std::vector<grpc::string> GetSecureCredentialsTypeList();
-
-}  // namespace testing
-}  // namespace grpc
-
-#endif  // GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
+#endif /* GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H */
