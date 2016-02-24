@@ -1,6 +1,4 @@
-#!/bin/sh
-
-# Copyright 2015-2016, Google Inc.
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,27 +27,37 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# Docker file for building protoc and gRPC protoc plugin artifacts.
+# forked from https://github.com/google/protobuf/blob/master/protoc-artifacts/Dockerfile
 
-set -e
+FROM centos:6.6
 
-export TEST=true
+RUN yum install -y git \
+                   tar \
+                   wget \
+                   make \
+                   autoconf \
+                   curl-devel \
+                   unzip \
+                   automake \
+                   libtool \
+                   glibc-static.i686 \
+                   glibc-devel \
+                   glibc-devel.i686
 
-cd `dirname $0`/../../..
+# Install GCC 4.7 to support -static-libstdc++
+RUN wget http://people.centos.org/tru/devtools-1.1/devtools-1.1.repo -P /etc/yum.repos.d
+RUN bash -c 'echo "enabled=1" >> /etc/yum.repos.d/devtools-1.1.repo'
+RUN bash -c "sed -e 's/\$basearch/i386/g' /etc/yum.repos.d/devtools-1.1.repo > /etc/yum.repos.d/devtools-i386-1.1.repo"
+RUN sed -e 's/testing-/testing-i386-/g' -i /etc/yum.repos.d/devtools-i386-1.1.repo
 
-submodules=`mktemp /tmp/submXXXXXX`
-want_submodules=`mktemp /tmp/submXXXXXX`
+# We'll get and "Rpmdb checksum is invalid: dCDPT(pkg checksums)" error caused by
+# docker issue when using overlay storage driver, but all the stuff we need
+# will be installed, so for now we just ignore the error.
+# https://github.com/docker/docker/issues/10180
+RUN yum install -y devtoolset-1.1 \
+                   devtoolset-1.1-libstdc++-devel \
+                   devtoolset-1.1-libstdc++-devel.i686 || true
 
-git submodule | awk '{ print $1 }' | sort > $submodules
-cat << EOF | awk '{ print $1 }' | sort > $want_submodules
- 9f897b25800d2f54f5c442ef01a60721aeca6d87 third_party/boringssl (version_for_cocoapods_1.0-67-g9f897b2)
- 05b155ff59114735ec8cd089f669c4c3d8f59029 third_party/gflags (v2.1.0-45-g05b155f)
- c99458533a9b4c743ed51537e25989ea55944908 third_party/googletest (release-1.7.0)
- f8ac463766281625ad710900479130c7fcb4d63b third_party/nanopb (nanopb-0.3.4-29-gf8ac463)
- d5fb408ddc281ffcadeb08699e65bb694656d0bd third_party/protobuf (v3.0.0-beta-2)
- 50893291621658f355bc5b4d450a8d06a563053d third_party/zlib (v1.2.8)
-EOF
-
-diff -u $submodules $want_submodules
-
-rm $submodules $want_submodules
-
+# Start in devtoolset environment that uses GCC 4.7
+CMD ["scl", "enable", "devtoolset-1.1", "bash"]

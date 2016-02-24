@@ -1,5 +1,3 @@
-#!/bin/sh
-
 # Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
@@ -29,27 +27,58 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+FROM debian:squeeze
 
-set -e
+# Install Git and basic packages.
+RUN apt-get update && apt-get install -y \
+  autoconf \
+  autotools-dev \
+  build-essential \
+  bzip2 \
+  ccache \
+  curl \
+  gcc \
+  gcc-multilib \
+  git \
+  gyp \
+  lcov \
+  libc6 \
+  libc6-dbg \
+  libc6-dev \
+  libgtest-dev \
+  libtool \
+  make \
+  perl \
+  strace \
+  python-dev \
+  python-setuptools \
+  python-yaml \
+  telnet \
+  unzip \
+  wget \
+  zip && apt-get clean
 
-export TEST=true
+#================
+# Build profiling
+RUN apt-get update && apt-get install -y time && apt-get clean
 
-cd `dirname $0`/../../..
 
-submodules=`mktemp /tmp/submXXXXXX`
-want_submodules=`mktemp /tmp/submXXXXXX`
+# libgflags-dev is not available on squeezy
+RUN apt-get update && apt-get -y install libgtest-dev libc++-dev clang && apt-get clean
 
-git submodule | awk '{ print $1 }' | sort > $submodules
-cat << EOF | awk '{ print $1 }' | sort > $want_submodules
- 9f897b25800d2f54f5c442ef01a60721aeca6d87 third_party/boringssl (version_for_cocoapods_1.0-67-g9f897b2)
- 05b155ff59114735ec8cd089f669c4c3d8f59029 third_party/gflags (v2.1.0-45-g05b155f)
- c99458533a9b4c743ed51537e25989ea55944908 third_party/googletest (release-1.7.0)
- f8ac463766281625ad710900479130c7fcb4d63b third_party/nanopb (nanopb-0.3.4-29-gf8ac463)
- d5fb408ddc281ffcadeb08699e65bb694656d0bd third_party/protobuf (v3.0.0-beta-2)
- 50893291621658f355bc5b4d450a8d06a563053d third_party/zlib (v1.2.8)
-EOF
+RUN apt-get update && apt-get -y install python-pip && apt-get clean
+RUN pip install argparse
 
-diff -u $submodules $want_submodules
+# Prepare ccache
+RUN ln -s /usr/bin/ccache /usr/local/bin/gcc
+RUN ln -s /usr/bin/ccache /usr/local/bin/g++
+RUN ln -s /usr/bin/ccache /usr/local/bin/cc
+RUN ln -s /usr/bin/ccache /usr/local/bin/c++
+RUN ln -s /usr/bin/ccache /usr/local/bin/clang
+RUN ln -s /usr/bin/ccache /usr/local/bin/clang++
 
-rm $submodules $want_submodules
 
+RUN mkdir /var/local/jenkins
+
+# Define the default command.
+CMD ["bash"]
