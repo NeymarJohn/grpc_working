@@ -1,6 +1,6 @@
 #region Copyright notice and license
 
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -85,27 +85,24 @@ namespace Grpc.IntegrationTesting
             }
 
             var workerServer = new QpsWorker(options);
-            workerServer.RunAsync().Wait();
+            workerServer.Run();
         }
 
-        private async Task RunAsync()
+        private void Run()
         {
             string host = "0.0.0.0";
             int port = options.DriverPort;
 
-            var tcs = new TaskCompletionSource<object>();
-            var workerServiceImpl = new WorkerServiceImpl(() => { Task.Run(() => tcs.SetResult(null)); });
-                
             var server = new Server
             {
-                Services = { WorkerService.BindService(workerServiceImpl) },
+                Services = { WorkerService.BindService(new WorkerServiceImpl()) },
                 Ports = { new ServerPort(host, options.DriverPort, ServerCredentials.Insecure )}
             };
             int boundPort = server.Ports.Single().BoundPort;
             Console.WriteLine("Running qps worker server on " + string.Format("{0}:{1}", host, boundPort));
             server.Start();
-            await tcs.Task;
-            await server.ShutdownAsync();
+
+            server.ShutdownTask.Wait();
         }
     }
 }
