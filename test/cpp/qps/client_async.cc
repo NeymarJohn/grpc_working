@@ -107,14 +107,14 @@ class ClientRpcContextUnaryImpl : public ClientRpcContext {
   bool RunNextState(bool ok, Histogram* hist) GRPC_OVERRIDE {
     switch (next_state_) {
       case State::READY:
-        start_ = UsageTimer::Now();
+        start_ = Timer::Now();
         response_reader_ = start_req_(stub_, &context_, req_, cq_);
         response_reader_->Finish(&response_, &status_,
                                  ClientRpcContext::tag(this));
         next_state_ = State::RESP_DONE;
         return true;
       case State::RESP_DONE:
-        hist->Add((UsageTimer::Now() - start_) * 1e9);
+        hist->Add((Timer::Now() - start_) * 1e9);
         callback_(status_, &response_);
         next_state_ = State::INVALID;
         return false;
@@ -287,7 +287,8 @@ class ClientRpcContextStreamingImpl : public ClientRpcContext {
         next_state_(State::INVALID),
         callback_(on_done),
         next_issue_(next_issue),
-        start_req_(start_req) {}
+        start_req_(start_req),
+        start_(Timer::Now()) {}
   ~ClientRpcContextStreamingImpl() GRPC_OVERRIDE {}
   void Start(CompletionQueue* cq) GRPC_OVERRIDE {
     cq_ = cq;
@@ -313,7 +314,7 @@ class ClientRpcContextStreamingImpl : public ClientRpcContext {
           if (!ok) {
             return false;
           }
-          start_ = UsageTimer::Now();
+          start_ = Timer::Now();
           next_state_ = State::WRITE_DONE;
           stream_->Write(req_, ClientRpcContext::tag(this));
           return true;
@@ -326,7 +327,7 @@ class ClientRpcContextStreamingImpl : public ClientRpcContext {
           return true;
           break;
         case State::READ_DONE:
-          hist->Add((UsageTimer::Now() - start_) * 1e9);
+          hist->Add((Timer::Now() - start_) * 1e9);
           callback_(status_, &response_);
           next_state_ = State::STREAM_IDLE;
           break;  // loop around
@@ -414,7 +415,8 @@ class ClientRpcContextGenericStreamingImpl : public ClientRpcContext {
         next_state_(State::INVALID),
         callback_(on_done),
         next_issue_(next_issue),
-        start_req_(start_req) {}
+        start_req_(start_req),
+        start_(Timer::Now()) {}
   ~ClientRpcContextGenericStreamingImpl() GRPC_OVERRIDE {}
   void Start(CompletionQueue* cq) GRPC_OVERRIDE {
     cq_ = cq;
@@ -443,7 +445,7 @@ class ClientRpcContextGenericStreamingImpl : public ClientRpcContext {
           if (!ok) {
             return false;
           }
-          start_ = UsageTimer::Now();
+          start_ = Timer::Now();
           next_state_ = State::WRITE_DONE;
           stream_->Write(req_, ClientRpcContext::tag(this));
           return true;
@@ -456,7 +458,7 @@ class ClientRpcContextGenericStreamingImpl : public ClientRpcContext {
           return true;
           break;
         case State::READ_DONE:
-          hist->Add((UsageTimer::Now() - start_) * 1e9);
+          hist->Add((Timer::Now() - start_) * 1e9);
           callback_(status_, &response_);
           next_state_ = State::STREAM_IDLE;
           break;  // loop around

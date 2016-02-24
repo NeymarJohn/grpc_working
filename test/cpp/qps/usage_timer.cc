@@ -37,9 +37,9 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 
-UsageTimer::UsageTimer() : start_(Sample()) {}
+Timer::Timer() : start_(Sample()) {}
 
-double UsageTimer::Now() {
+double Timer::Now() {
   auto ts = gpr_now(GPR_CLOCK_REALTIME);
   return ts.tv_sec + 1e-9 * ts.tv_nsec;
 }
@@ -48,7 +48,7 @@ static double time_double(struct timeval* tv) {
   return tv->tv_sec + 1e-6 * tv->tv_usec;
 }
 
-UsageTimer::Result UsageTimer::Sample() {
+Timer::Result Timer::Sample() {
   struct rusage usage;
   struct timeval tv;
   gettimeofday(&tv, NULL);
@@ -61,7 +61,7 @@ UsageTimer::Result UsageTimer::Sample() {
   return r;
 }
 
-UsageTimer::Result UsageTimer::Mark() const {
+Timer::Result Timer::Mark() const {
   Result s = Sample();
   Result r;
   r.wall = s.wall - start_.wall;

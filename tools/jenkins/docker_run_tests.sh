@@ -45,8 +45,6 @@ git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
 
 mkdir -p reports
 
-$POST_GIT_STEP
-
 exit_code=0
 
 $RUN_TESTS_COMMAND || exit_code=$?

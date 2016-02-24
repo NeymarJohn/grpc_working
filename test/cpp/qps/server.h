@@ -50,7 +50,7 @@ namespace testing {
 
 class Server {
  public:
-  explicit Server(const ServerConfig& config) : timer_(new UsageTimer) {
+  explicit Server(const ServerConfig& config) : timer_(new Timer) {
     cores_ = LimitCores(config.core_list().data(), config.core_list_size());
     if (config.port()) {
       port_ = config.port();
@@ -62,9 +62,9 @@ class Server {
   virtual ~Server() {}
 
   ServerStats Mark(bool reset) {
-    UsageTimer::Result timer_result;
+    Timer::Result timer_result;
     if (reset) {
-      std::unique_ptr<UsageTimer> timer(new UsageTimer);
+      std::unique_ptr<Timer> timer(new Timer);
       timer.swap(timer_);
       timer_result = timer->Mark();
     } else {
@@ -108,7 +108,7 @@ class Server {
  private:
   int port_;
   int cores_;
-  std::unique_ptr<UsageTimer> timer_;
+  std::unique_ptr<Timer> timer_;
 };
 
 std::unique_ptr<Server> CreateSynchronousServer(const ServerConfig& config);
