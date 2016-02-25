@@ -2816,15 +2816,12 @@ node_modules:
   - src/node/ext/server.cc
   - src/node/ext/server_credentials.cc
   - src/node/ext/timeval.cc
-openssl_fallback:
-  base_uri: http://openssl.org/source/
-  extraction_dir: openssl-1.0.2f
-  tarball: openssl-1.0.2f.tar.gz
 php_config_m4:
   deps:
   - grpc
   - gpr
   - boringssl
+  - z
   headers:
   - src/php/ext/grpc/byte_buffer.h
   - src/php/ext/grpc/call.h

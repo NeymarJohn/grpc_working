@@ -36,7 +36,7 @@
 
 class UsageTimer {
  public:
-  UsageTimer();
+  Timer();
 
   struct Result {
     double wall;
