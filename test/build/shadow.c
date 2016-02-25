@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,20 +31,13 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SECURITY_HANDSHAKE_H
-#define GRPC_INTERNAL_CORE_SECURITY_HANDSHAKE_H
+// Check that boringssl is going to compile
 
-#include "src/core/iomgr/endpoint.h"
-#include "src/core/security/security_connector.h"
+#include <stdio.h>
+#include <unistd.h>
 
-/* Calls the callback upon completion. Takes owership of handshaker. */
-void grpc_do_security_handshake(grpc_exec_ctx *exec_ctx,
-                                tsi_handshaker *handshaker,
-                                grpc_security_connector *connector,
-                                grpc_endpoint *nonsecure_endpoint,
-                                grpc_security_handshake_done_cb cb,
-                                void *user_data);
-
-void grpc_security_handshake_shutdown(grpc_exec_ctx *exec_ctx, void *handshake);
-
-#endif /* GRPC_INTERNAL_CORE_SECURITY_HANDSHAKE_H */
+int main(void) {
+  const char *close = "this should not shadow";
+  printf("%s\n", close);
+  return 0;
+}
