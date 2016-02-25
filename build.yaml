@@ -283,17 +283,16 @@ filegroups:
   - src/core/iomgr/closure.h
   - src/core/iomgr/endpoint.h
   - src/core/iomgr/endpoint_pair.h
+  - src/core/iomgr/ev_poll_and_epoll_posix.h
+  - src/core/iomgr/ev_posix.h
   - src/core/iomgr/exec_ctx.h
   - src/core/iomgr/executor.h
-  - src/core/iomgr/fd_posix.h
   - src/core/iomgr/iocp_windows.h
   - src/core/iomgr/iomgr.h
   - src/core/iomgr/iomgr_internal.h
   - src/core/iomgr/iomgr_posix.h
   - src/core/iomgr/pollset.h
-  - src/core/iomgr/pollset_posix.h
   - src/core/iomgr/pollset_set.h
-  - src/core/iomgr/pollset_set_posix.h
   - src/core/iomgr/pollset_set_windows.h
   - src/core/iomgr/pollset_windows.h
   - src/core/iomgr/resolve_address.h
@@ -401,17 +400,14 @@ filegroups:
   - src/core/iomgr/endpoint.c
   - src/core/iomgr/endpoint_pair_posix.c
   - src/core/iomgr/endpoint_pair_windows.c
+  - src/core/iomgr/ev_poll_and_epoll_posix.c
+  - src/core/iomgr/ev_posix.c
   - src/core/iomgr/exec_ctx.c
   - src/core/iomgr/executor.c
-  - src/core/iomgr/fd_posix.c
   - src/core/iomgr/iocp_windows.c
   - src/core/iomgr/iomgr.c
   - src/core/iomgr/iomgr_posix.c
   - src/core/iomgr/iomgr_windows.c
-  - src/core/iomgr/pollset_multipoller_with_epoll.c
-  - src/core/iomgr/pollset_multipoller_with_poll_posix.c
-  - src/core/iomgr/pollset_posix.c
-  - src/core/iomgr/pollset_set_posix.c
   - src/core/iomgr/pollset_set_windows.c
   - src/core/iomgr/pollset_windows.c
   - src/core/iomgr/resolve_address_posix.c
@@ -1954,7 +1950,6 @@ targets:
   - linux
   - posix
 - name: alarm_cpp_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -1967,7 +1962,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: async_end2end_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2014,7 +2008,6 @@ targets:
   - linux
   - posix
 - name: auth_property_iterator_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2027,7 +2020,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: channel_arguments_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2037,7 +2029,6 @@ targets:
   - grpc
   - gpr
 - name: cli_call_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2050,7 +2041,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: client_crash_test
-  gtest: true
   cpu_cost: 0.1
   build: test
   language: c++
@@ -2081,7 +2071,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: credentials_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2091,7 +2080,6 @@ targets:
   - grpc
   - gpr
 - name: cxx_byte_buffer_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2103,7 +2091,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: cxx_slice_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2115,7 +2102,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: cxx_string_ref_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2123,7 +2109,6 @@ targets:
   deps:
   - grpc++
 - name: cxx_time_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2135,7 +2120,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: end2end_test
-  gtest: true
   cpu_cost: 0.5
   build: test
   language: c++
@@ -2166,7 +2150,6 @@ targets:
   - linux
   - posix
 - name: generic_end2end_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2243,7 +2226,6 @@ targets:
   vs_config_type: Application
   vs_project_guid: '{069E9D05-B78B-4751-9252-D21EBAE7DE8E}'
 - name: grpclb_api_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2255,7 +2237,6 @@ targets:
   - grpc++
   - grpc
 - name: hybrid_end2end_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2335,7 +2316,6 @@ targets:
   - gpr
   - grpc++_test_config
 - name: mock_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2471,7 +2451,6 @@ targets:
   - gpr
   - grpc++_test_config
 - name: secure_auth_context_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2501,7 +2480,6 @@ targets:
   - linux
   - posix
 - name: server_crash_test
-  gtest: true
   cpu_cost: 0.1
   build: test
   language: c++
@@ -2532,7 +2510,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: shutdown_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2556,7 +2533,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: streaming_throughput_test
-  gtest: true
   build: test
   language: c++
   src:
@@ -2633,7 +2609,6 @@ targets:
   - linux
   - posix
 - name: thread_stress_test
-  gtest: true
   cpu_cost: 100
   build: test
   language: c++
@@ -2647,7 +2622,6 @@ targets:
   - gpr_test_util
   - gpr
 - name: zookeeper_test
-  gtest: true
   build: test
   run: false
   language: c++
@@ -2847,6 +2821,7 @@ php_config_m4:
   - grpc
   - gpr
   - boringssl
+  - z
   headers:
   - src/php/ext/grpc/byte_buffer.h
   - src/php/ext/grpc/call.h
