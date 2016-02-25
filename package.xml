@@ -10,7 +10,7 @@
   <email>grpc-packages@google.com</email>
   <active>yes</active>
  </lead>
- <date>2016-02-25</date>
+ <date>2016-02-24</date>
  <time>16:06:07</time>
  <version>
   <release>0.8.0</release>
@@ -197,17 +197,17 @@
     <file baseinstalldir="/" name="src/core/iomgr/closure.h" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/endpoint.h" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/endpoint_pair.h" role="src" />
-    <file baseinstalldir="/" name="src/core/iomgr/ev_poll_and_epoll_posix.h" role="src" />
-    <file baseinstalldir="/" name="src/core/iomgr/ev_poll_posix.h" role="src" />
-    <file baseinstalldir="/" name="src/core/iomgr/ev_posix.h" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/exec_ctx.h" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/executor.h" role="src" />
+    <file baseinstalldir="/" name="src/core/iomgr/fd_posix.h" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/iocp_windows.h" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/iomgr.h" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/iomgr_internal.h" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/iomgr_posix.h" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/pollset.h" role="src" />
+    <file baseinstalldir="/" name="src/core/iomgr/pollset_posix.h" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/pollset_set.h" role="src" />
+    <file baseinstalldir="/" name="src/core/iomgr/pollset_set_posix.h" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/pollset_set_windows.h" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/pollset_windows.h" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/resolve_address.h" role="src" />
@@ -335,15 +335,17 @@
     <file baseinstalldir="/" name="src/core/iomgr/endpoint.c" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/endpoint_pair_posix.c" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/endpoint_pair_windows.c" role="src" />
-    <file baseinstalldir="/" name="src/core/iomgr/ev_poll_and_epoll_posix.c" role="src" />
-    <file baseinstalldir="/" name="src/core/iomgr/ev_poll_posix.c" role="src" />
-    <file baseinstalldir="/" name="src/core/iomgr/ev_posix.c" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/exec_ctx.c" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/executor.c" role="src" />
+    <file baseinstalldir="/" name="src/core/iomgr/fd_posix.c" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/iocp_windows.c" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/iomgr.c" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/iomgr_posix.c" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/iomgr_windows.c" role="src" />
+    <file baseinstalldir="/" name="src/core/iomgr/pollset_multipoller_with_epoll.c" role="src" />
+    <file baseinstalldir="/" name="src/core/iomgr/pollset_multipoller_with_poll_posix.c" role="src" />
+    <file baseinstalldir="/" name="src/core/iomgr/pollset_posix.c" role="src" />
+    <file baseinstalldir="/" name="src/core/iomgr/pollset_set_posix.c" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/pollset_set_windows.c" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/pollset_windows.c" role="src" />
     <file baseinstalldir="/" name="src/core/iomgr/resolve_address_posix.c" role="src" />
@@ -854,32 +856,6 @@
     <file baseinstalldir="/" name="third_party/boringssl/ssl/t1_enc.c" role="src" />
     <file baseinstalldir="/" name="third_party/boringssl/ssl/t1_lib.c" role="src" />
     <file baseinstalldir="/" name="third_party/boringssl/ssl/tls_record.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/crc32.h" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/deflate.h" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/gzguts.h" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/inffast.h" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/inffixed.h" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/inflate.h" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/inftrees.h" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/trees.h" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/zconf.h" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/zlib.h" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/zutil.h" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/adler32.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/compress.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/crc32.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/deflate.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/gzclose.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/gzlib.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/gzread.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/gzwrite.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/infback.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/inffast.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/inflate.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/inftrees.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/trees.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/uncompr.c" role="src" />
-    <file baseinstalldir="/" name="third_party/zlib/zutil.c" role="src" />
   </dir>
  </contents>
  <dependencies>
@@ -987,7 +963,7 @@ Update to wrap gRPC C Core version 0.10.0
     <release>beta</release>
     <api>beta</api>
    </stability>
-   <date>2016-02-25</date>
+   <date>2016-02-24</date>
    <license>BSD</license>
    <notes>
 - Simplify gRPC PHP installation #4517
