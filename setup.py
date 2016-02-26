@@ -154,6 +154,7 @@ INSTALL_REQUIRES = (
 
 SETUP_REQUIRES = (
     'sphinx>=1.3',
+    'sphinx_rtd_theme>=0.1.8'
 ) + INSTALL_REQUIRES
 
 COMMAND_CLASS = {
@@ -208,7 +209,6 @@ PACKAGE_DATA = {
         '_credentials/roots.pem',
         '_windows/grpc_c.32.python',
         '_windows/grpc_c.64.python',
-        'cygrpc.so',
     ],
 }
 if INSTALL_TESTS:

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,47 +31,33 @@
  *
  */
 
-// Generates Node gRPC service interface out of Protobuf IDL.
+#ifndef GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
+#define GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H
 
 #include <memory>
 
-#include "src/compiler/config.h"
-#include "src/compiler/node_generator.h"
-#include "src/compiler/node_generator_helpers.h"
+#include <grpc++/security/credentials.h>
+#include <grpc++/security/server_credentials.h>
+#include <grpc++/support/channel_arguments.h>
 
-using grpc_node_generator::GetImports;
-using grpc_node_generator::GetJSServiceFilename;
-using grpc_node_generator::GetServices;
-using grpc_node_generator::GetTransformers;
+namespace grpc {
+namespace testing {
 
-class NodeGrpcGenerator : public grpc::protobuf::compiler::CodeGenerator {
- public:
-  NodeGrpcGenerator() {}
-  ~NodeGrpcGenerator() {}
+const char kInsecureCredentialsType[] = "INSECURE_CREDENTIALS";
 
-  bool Generate(const grpc::protobuf::FileDescriptor *file,
-                const grpc::string &parameter,
-                grpc::protobuf::compiler::GeneratorContext *context,
-                grpc::string *error) const {
-    grpc::string code = GetImports(file) +
-        GetTransformers(file) +
-        GetServices(file);
-    if (code.size() == 0) {
-      return true;
-    }
+// Provide channel credentials according to the given type. Alter the channel
+// arguments if needed.
+std::shared_ptr<ChannelCredentials> GetChannelCredentials(
+    const grpc::string& type, ChannelArguments* args);
 
-    // Get output file name
-    grpc::string file_name = GetJSServiceFilename(file->name());
+// Provide server credentials according to the given type.
+std::shared_ptr<ServerCredentials> GetServerCredentials(
+    const grpc::string& type);
 
-    std::unique_ptr<grpc::protobuf::io::ZeroCopyOutputStream> output(
-        context->Open(file_name));
-    grpc::protobuf::io::CodedOutputStream coded_out(output.get());
-    coded_out.WriteRaw(code.data(), code.size());
-    return true;
-  }
-};
+// Provide a list of secure credentials type.
+std::vector<grpc::string> GetSecureCredentialsTypeList();
 
-int main(int argc, char *argv[]) {
-  NodeGrpcGenerator generator;
-  return grpc::protobuf::compiler::PluginMain(argc, argv, &generator);
-}
+}  // namespace testing
+}  // namespace grpc
+
+#endif  // GRPC_TEST_CPP_UTIL_TEST_CREDENTIALS_PROVIDER_H

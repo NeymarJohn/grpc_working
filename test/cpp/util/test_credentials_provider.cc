@@ -1,3 +1,4 @@
+
 /*
  *
  * Copyright 2016, Google Inc.
@@ -31,19 +32,51 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_COMPILER_NODE_GENERATOR_H
-#define GRPC_INTERNAL_COMPILER_NODE_GENERATOR_H
+#include "test/cpp/util/test_credentials_provider.h"
 
-#include "src/compiler/config.h"
+#include "test/core/end2end/data/ssl_test_data.h"
 
-namespace grpc_node_generator {
+namespace grpc {
+namespace testing {
 
-grpc::string GetImports(const grpc::protobuf::FileDescriptor *file);
+const char kTlsCredentialsType[] = "TLS_CREDENTIALS";
 
-grpc::string GetTransformers(const grpc::protobuf::FileDescriptor *file);
+std::shared_ptr<ChannelCredentials> GetChannelCredentials(
+    const grpc::string& type, ChannelArguments* args) {
+  if (type == kInsecureCredentialsType) {
+    return InsecureChannelCredentials();
+  } else if (type == kTlsCredentialsType) {
+    SslCredentialsOptions ssl_opts = {test_root_cert, "", ""};
+    args->SetSslTargetNameOverride("foo.test.google.fr");
+    return SslCredentials(ssl_opts);
+  } else {
+    gpr_log(GPR_ERROR, "Unsupported credentials type %s.", type.c_str());
+  }
+  return nullptr;
+}
 
-grpc::string GetServices(const grpc::protobuf::FileDescriptor *file);
+std::shared_ptr<ServerCredentials> GetServerCredentials(
+    const grpc::string& type) {
+  if (type == kInsecureCredentialsType) {
+    return InsecureServerCredentials();
+  } else if (type == kTlsCredentialsType) {
+    SslServerCredentialsOptions::PemKeyCertPair pkcp = {test_server1_key,
+                                                        test_server1_cert};
+    SslServerCredentialsOptions ssl_opts;
+    ssl_opts.pem_root_certs = "";
+    ssl_opts.pem_key_cert_pairs.push_back(pkcp);
+    return SslServerCredentials(ssl_opts);
+  } else {
+    gpr_log(GPR_ERROR, "Unsupported credentials type %s.", type.c_str());
+  }
+  return nullptr;
+}
 
-}  // namespace grpc_node_generator
+std::vector<grpc::string> GetSecureCredentialsTypeList() {
+  std::vector<grpc::string> types;
+  types.push_back(kTlsCredentialsType);
+  return types;
+}
 
-#endif  // GRPC_INTERNAL_COMPILER_NODE_GENERATOR_H
+}  // namespace testing
+}  // namespace grpc
