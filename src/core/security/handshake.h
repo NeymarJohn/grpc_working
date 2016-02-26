@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@
 void grpc_do_security_handshake(grpc_exec_ctx *exec_ctx,
                                 tsi_handshaker *handshaker,
                                 grpc_security_connector *connector,
-                                bool is_client_side,
                                 grpc_endpoint *nonsecure_endpoint,
                                 grpc_security_handshake_done_cb cb,
                                 void *user_data);

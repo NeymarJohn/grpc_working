@@ -51,7 +51,7 @@ namespace Grpc.Testing
 
         public WorkerServiceImpl(Action stopRequestHandler)
         {
-            this.stopRequestHandler = GrpcPreconditions.CheckNotNull(stopRequestHandler);
+            this.stopRequestHandler = Grpc.Core.Utils.Preconditions.CheckNotNull(stopRequestHandler);
         }
         
         public async Task RunServer(IAsyncStreamReader<ServerArgs> requestStream, IServerStreamWriter<ServerStatus> responseStream, ServerCallContext context)
