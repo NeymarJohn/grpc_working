@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,51 +31,20 @@
  *
  */
 
-#include <grpc++/alarm.h>
-#include <grpc++/completion_queue.h>
-#include <gtest/gtest.h>
+#ifndef GRPC_INTERNAL_COMPILER_NODE_GENERATOR_HELPERS_H
+#define GRPC_INTERNAL_COMPILER_NODE_GENERATOR_HELPERS_H
 
-#include "test/core/util/test_config.h"
+#include <algorithm>
 
-namespace grpc {
-namespace {
+#include "src/compiler/config.h"
+#include "src/compiler/generator_helpers.h"
 
-TEST(AlarmTest, RegularExpiry) {
-  CompletionQueue cq;
-  void* junk = reinterpret_cast<void*>(1618033);
-  Alarm alarm(&cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1), junk);
+namespace grpc_node_generator {
 
-  void* output_tag;
-  bool ok;
-  const CompletionQueue::NextStatus status = cq.AsyncNext(
-      (void**)&output_tag, &ok, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(2));
-
-  EXPECT_EQ(status, CompletionQueue::GOT_EVENT);
-  EXPECT_TRUE(ok);
-  EXPECT_EQ(junk, output_tag);
+inline grpc::string GetJSServiceFilename(const grpc::string& filename) {
+  return grpc_generator::StripProto(filename) + "_grpc_pb.js";
 }
 
-TEST(AlarmTest, Cancellation) {
-  CompletionQueue cq;
-  void* junk = reinterpret_cast<void*>(1618033);
-  Alarm alarm(&cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(2), junk);
-  alarm.Cancel();
+}  // namespace grpc_node_generator
 
-  void* output_tag;
-  bool ok;
-  const CompletionQueue::NextStatus status = cq.AsyncNext(
-      (void**)&output_tag, &ok, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1));
-
-  EXPECT_EQ(status, CompletionQueue::GOT_EVENT);
-  EXPECT_FALSE(ok);
-  EXPECT_EQ(junk, output_tag);
-}
-
-}  // namespace
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  grpc_test_init(argc, argv);
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+#endif  // GRPC_INTERNAL_COMPILER_NODE_GENERATOR_HELPERS_H

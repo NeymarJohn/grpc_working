@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,51 +31,31 @@
  *
  */
 
-#include <grpc++/alarm.h>
-#include <grpc++/completion_queue.h>
-#include <gtest/gtest.h>
+#ifndef GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H
+#define GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H
 
-#include "test/core/util/test_config.h"
+#include "src/core/iomgr/exec_ctx.h"
+#include <grpc/support/sync.h>
+#include <grpc/support/time.h>
 
-namespace grpc {
-namespace {
+/* iomgr internal api for dealing with timers */
 
-TEST(AlarmTest, RegularExpiry) {
-  CompletionQueue cq;
-  void* junk = reinterpret_cast<void*>(1618033);
-  Alarm alarm(&cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1), junk);
+/* Check for timers to be run, and run them.
+   Return non zero if timer callbacks were executed.
+   Drops drop_mu if it is non-null before executing callbacks.
+   If next is non-null, TRY to update *next with the next running timer
+   IF that timer occurs before *next current value.
+   *next is never guaranteed to be updated on any given execution; however,
+   with high probability at least one thread in the system will see an update
+   at any time slice. */
 
-  void* output_tag;
-  bool ok;
-  const CompletionQueue::NextStatus status = cq.AsyncNext(
-      (void**)&output_tag, &ok, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(2));
+int grpc_timer_check(grpc_exec_ctx* exec_ctx, gpr_timespec now,
+                     gpr_timespec* next);
+void grpc_timer_list_init(gpr_timespec now);
+void grpc_timer_list_shutdown(grpc_exec_ctx* exec_ctx);
 
-  EXPECT_EQ(status, CompletionQueue::GOT_EVENT);
-  EXPECT_TRUE(ok);
-  EXPECT_EQ(junk, output_tag);
-}
+/* the following must be implemented by each iomgr implementation */
 
-TEST(AlarmTest, Cancellation) {
-  CompletionQueue cq;
-  void* junk = reinterpret_cast<void*>(1618033);
-  Alarm alarm(&cq, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(2), junk);
-  alarm.Cancel();
+void grpc_kick_poller(void);
 
-  void* output_tag;
-  bool ok;
-  const CompletionQueue::NextStatus status = cq.AsyncNext(
-      (void**)&output_tag, &ok, GRPC_TIMEOUT_SECONDS_TO_DEADLINE(1));
-
-  EXPECT_EQ(status, CompletionQueue::GOT_EVENT);
-  EXPECT_FALSE(ok);
-  EXPECT_EQ(junk, output_tag);
-}
-
-}  // namespace
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  grpc_test_init(argc, argv);
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+#endif /* GRPC_INTERNAL_CORE_IOMGR_TIMER_INTERNAL_H */

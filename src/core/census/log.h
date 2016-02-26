@@ -31,10 +31,8 @@
  *
  */
 
-/* A very fast in-memory log, optimized for multiple writers. */
-
-#ifndef GRPC_INTERNAL_CORE_CENSUS_MLOG_H
-#define GRPC_INTERNAL_CORE_CENSUS_MLOG_H
+#ifndef GRPC_INTERNAL_CORE_CENSUS_LOG_H
+#define GRPC_INTERNAL_CORE_CENSUS_LOG_H
 
 #include <grpc/support/port_platform.h>
 #include <stddef.h>

@@ -79,8 +79,6 @@ class Server GRPC_FINAL : public ServerInterface, private GrpcLibrary {
   class GlobalCallbacks {
    public:
     virtual ~GlobalCallbacks() {}
-    /// Called before server is created.
-    virtual void UpdateArguments(ChannelArguments* args) {}
     /// Called before application callback for each synchronous server request
     virtual void PreSynchronousRequest(ServerContext* context) = 0;
     /// Called after application callback for each synchronous server request
@@ -110,7 +108,7 @@ class Server GRPC_FINAL : public ServerInterface, private GrpcLibrary {
   /// \param max_message_size Maximum message length that the channel can
   /// receive.
   Server(ThreadPoolInterface* thread_pool, bool thread_pool_owned,
-         int max_message_size, ChannelArguments* args);
+         int max_message_size, const ChannelArguments& args);
 
   /// Register a service. This call does not take ownership of the service.
   /// The service must exist for the lifetime of the Server instance.
@@ -179,7 +177,7 @@ class Server GRPC_FINAL : public ServerInterface, private GrpcLibrary {
   bool has_generic_service_;
 
   // Pointer to the c grpc server.
-  grpc_server* server_;
+  grpc_server* const server_;
 
   ThreadPoolInterface* thread_pool_;
   // Whether the thread pool is created and owned by the server.
