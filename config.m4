@@ -119,14 +119,17 @@ if test "$PHP_GRPC" != "no"; then
     src/core/iomgr/endpoint.c \
     src/core/iomgr/endpoint_pair_posix.c \
     src/core/iomgr/endpoint_pair_windows.c \
-    src/core/iomgr/ev_poll_and_epoll_posix.c \
-    src/core/iomgr/ev_posix.c \
     src/core/iomgr/exec_ctx.c \
     src/core/iomgr/executor.c \
+    src/core/iomgr/fd_posix.c \
     src/core/iomgr/iocp_windows.c \
     src/core/iomgr/iomgr.c \
     src/core/iomgr/iomgr_posix.c \
     src/core/iomgr/iomgr_windows.c \
+    src/core/iomgr/pollset_multipoller_with_epoll.c \
+    src/core/iomgr/pollset_multipoller_with_poll_posix.c \
+    src/core/iomgr/pollset_posix.c \
+    src/core/iomgr/pollset_set_posix.c \
     src/core/iomgr/pollset_set_windows.c \
     src/core/iomgr/pollset_windows.c \
     src/core/iomgr/resolve_address_posix.c \
@@ -530,7 +533,8 @@ if test "$PHP_GRPC" != "no"; then
     third_party/boringssl/ssl/t1_enc.c \
     third_party/boringssl/ssl/t1_lib.c \
     third_party/boringssl/ssl/tls_record.c \
-    , $ext_shared, , -Wall -Werror -std=c11 \
+    , $ext_shared, , -Wall -Werror \
+    -Wno-parentheses-equality -Wno-unused-value -std=c11 \
     -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN \
     -D_HAS_EXCEPTIONS=0 -DNOMINMAX)
 
