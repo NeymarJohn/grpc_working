@@ -1,6 +1,5 @@
 /*
- *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,37 +30,22 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
-#define GRPC_INTERNAL_CORE_IOMGR_POLLSET_SET_H
+#include <grpc++/alarm.h>
+#include <grpc++/completion_queue.h>
+#include <grpc++/impl/grpc_library.h>
+#include <grpc/grpc.h>
 
-#include "src/core/iomgr/pollset.h"
+namespace grpc {
 
-/* A grpc_pollset_set is a set of pollsets that are interested in an
-   action. Adding a pollset to a pollset_set automatically adds any
-   fd's (etc) that have been registered with the set_set to that pollset.
-   Registering fd's automatically adds them to all current pollsets. */
+static internal::GrpcLibraryInitializer g_gli_initializer;
+Alarm::Alarm(CompletionQueue* cq, gpr_timespec deadline, void* tag)
+    : tag_(tag),
+      alarm_(grpc_alarm_create(cq->cq(), deadline, static_cast<void*>(&tag_))) {
+  g_gli_initializer.summon();
+}
 
-#ifdef GPR_POSIX_SOCKET
-#include "src/core/iomgr/pollset_set_posix.h"
-#endif
+Alarm::~Alarm() { grpc_alarm_destroy(alarm_); }
 
-#ifdef GPR_WIN32
-#include "src/core/iomgr/pollset_set_windows.h"
-#endif
+void Alarm::Cancel() { grpc_alarm_cancel(alarm_); }
 
-void grpc_pollset_set_init(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_destroy(grpc_pollset_set *pollset_set);
-void grpc_pollset_set_add_pollset(grpc_exec_ctx *exec_ctx,
-                                  grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
-void grpc_pollset_set_del_pollset(grpc_exec_ctx *exec_ctx,
-                                  grpc_pollset_set *pollset_set,
-                                  grpc_pollset *pollset);
-void grpc_pollset_set_add_pollset_set(grpc_exec_ctx *exec_ctx,
-                                      grpc_pollset_set *bag,
-                                      grpc_pollset_set *item);
-void grpc_pollset_set_del_pollset_set(grpc_exec_ctx *exec_ctx,
-                                      grpc_pollset_set *bag,
-                                      grpc_pollset_set *item);
-
-#endif /* GRPC_INTERNAL_CORE_IOMGR_POLLSET_H */
+}  // namespace grpc
