@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
@@ -31,11 +30,22 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_EV_POLL_AND_EPOLL_POSIX_H
-#define GRPC_INTERNAL_CORE_IOMGR_EV_POLL_AND_EPOLL_POSIX_H
+#include <grpc++/alarm.h>
+#include <grpc++/completion_queue.h>
+#include <grpc++/impl/grpc_library.h>
+#include <grpc/grpc.h>
 
-#include "src/core/iomgr/ev_posix.h"
+namespace grpc {
 
-const grpc_event_engine_vtable *grpc_init_poll_and_epoll_posix(void);
+static internal::GrpcLibraryInitializer g_gli_initializer;
+Alarm::Alarm(CompletionQueue* cq, gpr_timespec deadline, void* tag)
+    : tag_(tag),
+      alarm_(grpc_alarm_create(cq->cq(), deadline, static_cast<void*>(&tag_))) {
+  g_gli_initializer.summon();
+}
 
-#endif  // GRPC_INTERNAL_CORE_IOMGR_EV_POLL_AND_EPOLL_POSIX_H
+Alarm::~Alarm() { grpc_alarm_destroy(alarm_); }
+
+void Alarm::Cancel() { grpc_alarm_cancel(alarm_); }
+
+}  // namespace grpc
