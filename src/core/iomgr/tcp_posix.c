@@ -40,8 +40,8 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
 #include <grpc/support/alloc.h>
@@ -51,10 +51,9 @@
 #include <grpc/support/sync.h>
 #include <grpc/support/time.h>
 
-#include "src/core/debug/trace.h"
-#include "src/core/iomgr/ev_posix.h"
-#include "src/core/profiling/timers.h"
 #include "src/core/support/string.h"
+#include "src/core/debug/trace.h"
+#include "src/core/profiling/timers.h"
 
 #ifdef GPR_HAVE_MSG_NOSIGNAL
 #define SENDMSG_FLAGS MSG_NOSIGNAL
@@ -453,7 +452,7 @@ grpc_endpoint *grpc_tcp_create(grpc_fd *em_fd, size_t slice_size,
   grpc_tcp *tcp = (grpc_tcp *)gpr_malloc(sizeof(grpc_tcp));
   tcp->base.vtable = &vtable;
   tcp->peer_string = gpr_strdup(peer_string);
-  tcp->fd = grpc_fd_wrapped_fd(em_fd);
+  tcp->fd = em_fd->fd;
   tcp->read_cb = NULL;
   tcp->write_cb = NULL;
   tcp->release_fd_cb = NULL;
