@@ -53,11 +53,7 @@ END2END_FIXTURES = {
     'h2_census': default_unsecure_fixture_options,
     'h2_fakesec': default_secure_fixture_options._replace(ci_mac=False),
     'h2_full': default_unsecure_fixture_options,
-    'h2_full+poll': default_unsecure_fixture_options._replace(
-        platforms=['linux']),
     'h2_full+pipe': default_unsecure_fixture_options._replace(
-        platforms=['linux']),
-    'h2_full+poll+pipe': default_unsecure_fixture_options._replace(
         platforms=['linux']),
     'h2_oauth2': default_secure_fixture_options._replace(ci_mac=False),
     'h2_proxy': default_unsecure_fixture_options._replace(includes_proxy=True,
@@ -68,11 +64,9 @@ END2END_FIXTURES = {
     'h2_sockpair+trace': socketpair_unsecure_fixture_options._replace(
         tracing=True),
     'h2_ssl': default_secure_fixture_options,
-    'h2_ssl+poll': default_secure_fixture_options._replace(platforms=['linux']),
     'h2_ssl_proxy': default_secure_fixture_options._replace(includes_proxy=True,
                                                             ci_mac=False),
     'h2_uchannel': default_unsecure_fixture_options._replace(fullstack=False),
-    'h2_uds+poll': uds_fixture_options._replace(platforms=['linux']),
     'h2_uds': uds_fixture_options,
 }
 
@@ -94,9 +88,8 @@ END2END_TESTS = {
     'cancel_before_invoke': default_test_options._replace(cpu_cost=LOWCPU),
     'cancel_in_a_vacuum': default_test_options._replace(cpu_cost=LOWCPU),
     'cancel_with_status': default_test_options._replace(cpu_cost=LOWCPU),
-    'channel_connectivity': connectivity_test_options._replace(proxyable=False, cpu_cost=LOWCPU),
-    'channel_ping': connectivity_test_options._replace(proxyable=False),
     'compressed_payload': default_test_options._replace(proxyable=False, cpu_cost=LOWCPU),
+    'connectivity': connectivity_test_options._replace(proxyable=False, cpu_cost=LOWCPU),
     'default_host': default_test_options._replace(needs_fullstack=True,
                                                   needs_dns=True),
     'disappearing_server': connectivity_test_options,
@@ -109,11 +102,11 @@ END2END_TESTS = {
     'large_metadata': default_test_options,
     'max_concurrent_streams': default_test_options._replace(proxyable=False),
     'max_message_length': default_test_options._replace(cpu_cost=LOWCPU),
-    'metadata': default_test_options,
     'negative_deadline': default_test_options,
     'no_op': default_test_options,
     'payload': default_test_options._replace(cpu_cost=LOWCPU),
     'ping_pong_streaming': default_test_options,
+    'ping': connectivity_test_options._replace(proxyable=False),
     'registered_call': default_test_options,
     'request_with_flags': default_test_options._replace(proxyable=False),
     'request_with_payload': default_test_options,
@@ -121,6 +114,7 @@ END2END_TESTS = {
     'shutdown_finishes_calls': default_test_options,
     'shutdown_finishes_tags': default_test_options,
     'simple_delayed_request': connectivity_test_options._replace(cpu_cost=LOWCPU),
+    'simple_metadata': default_test_options,
     'simple_request': default_test_options,
     'trailing_metadata': default_test_options,
 }
