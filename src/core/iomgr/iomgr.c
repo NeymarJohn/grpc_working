@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,9 @@
 #include <grpc/support/sync.h>
 #include <grpc/support/thd.h>
 
+#include "src/core/iomgr/exec_ctx.h"
 #include "src/core/iomgr/iomgr_internal.h"
-#include "src/core/iomgr/timer_internal.h"
+#include "src/core/iomgr/timer.h"
 #include "src/core/support/string.h"
 
 static gpr_mu g_mu;
@@ -55,6 +56,7 @@ void grpc_iomgr_init(void) {
   g_shutdown = 0;
   gpr_mu_init(&g_mu);
   gpr_cv_init(&g_rcv);
+  grpc_exec_ctx_global_init();
   grpc_timer_list_init(gpr_now(GPR_CLOCK_MONOTONIC));
   g_root_object.next = g_root_object.prev = &g_root_object;
   g_root_object.name = "root";
@@ -133,6 +135,7 @@ void grpc_iomgr_shutdown(void) {
 
   grpc_pollset_global_shutdown();
   grpc_iomgr_platform_shutdown();
+  grpc_exec_ctx_global_shutdown();
   gpr_mu_destroy(&g_mu);
   gpr_cv_destroy(&g_rcv);
 }
