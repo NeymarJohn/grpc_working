@@ -25,6 +25,7 @@
    <license>BSD</license>
    <notes>
   - Simplify gRPC PHP installation #4517
+  - Wrap gRPC core library version 0.13
    </notes>
    <contents>
     <dir baseinstalldir="/" name="/">
@@ -153,6 +154,7 @@
      <license>BSD</license>
      <notes>
   - Simplify gRPC PHP installation #4517
+  - Wrap gRPC core library version 0.13
      </notes>
     </release>
    </changelog>
