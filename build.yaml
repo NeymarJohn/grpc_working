@@ -1543,18 +1543,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-- name: hpack_parser_fuzzer_test
-  build: fuzzer
-  language: c
-  src:
-  - test/core/transport/chttp2/hpack_parser_fuzzer_test.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-  corpus_dirs:
-  - test/core/transport/chttp2/hpack_parser_corpus
 - name: hpack_parser_test
   build: test
   language: c
@@ -1575,18 +1563,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-- name: http_fuzzer_test
-  build: fuzzer
-  language: c
-  src:
-  - test/core/http/fuzzer.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-  corpus_dirs:
-  - test/core/http/corpus
 - name: http_parser_test
   build: test
   language: c
@@ -1655,18 +1631,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-- name: json_fuzzer_test
-  build: fuzzer
-  language: c
-  src:
-  - test/core/json/fuzzer.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-  corpus_dirs:
-  - test/core/json/corpus
 - name: json_rewrite
   build: test
   run: false
@@ -2030,18 +1994,6 @@ targets:
   - mac
   - linux
   - posix
-- name: uri_fuzzer_test
-  build: fuzzer
-  language: c
-  src:
-  - test/core/client_config/uri_fuzzer_test.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-  corpus_dirs:
-  - test/core/client_config/uri_corpus
 - name: uri_parser_test
   build: test
   language: c
@@ -2823,8 +2775,8 @@ vspackages:
 configs:
   asan:
     CC: clang
-    CPPFLAGS: -O0 -fsanitize-coverage=edge -fsanitize=address -fno-omit-frame-pointer
-      -Wno-unused-command-line-argument -DGPR_NO_DIRECT_SYSCALLS
+    CPPFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
+      -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     LD: clang
     LDFLAGS: -fsanitize=address
@@ -2836,8 +2788,8 @@ configs:
     timeout_multiplier: 3
   asan-noleaks:
     CC: clang
-    CPPFLAGS: -O0 -fsanitize-coverage=edge -fsanitize=address -fno-omit-frame-pointer
-      -Wno-unused-command-line-argument -DGPR_NO_DIRECT_SYSCALLS
+    CPPFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
+      -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     LD: clang
     LDFLAGS: -fsanitize=address
@@ -2854,8 +2806,8 @@ configs:
     DEFINES: _DEBUG DEBUG
   easan:
     CC: clang
-    CPPFLAGS: -O0 -fsanitize-coverage=edge -fsanitize=address -fno-omit-frame-pointer
-      -Wno-unused-command-line-argument -DGPR_NO_DIRECT_SYSCALLS
+    CPPFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
+      -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     DEFINES: _DEBUG DEBUG GRPC_EXECUTION_CONTEXT_SANITIZER
     LD: clang
@@ -2904,9 +2856,9 @@ configs:
     valgrind: --tool=memcheck --leak-check=full
   msan:
     CC: clang
-    CPPFLAGS: -O0 -fsanitize-coverage=edge -fsanitize=memory -fsanitize-memory-track-origins
-      -fno-omit-frame-pointer -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1
-      -Wno-unused-command-line-argument -fPIE -pie -DGPR_NO_DIRECT_SYSCALLS
+    CPPFLAGS: -O0 -fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer
+      -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1 -Wno-unused-command-line-argument
+      -fPIE -pie -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     DEFINES: NDEBUG
     LD: clang
@@ -2939,8 +2891,7 @@ configs:
     timeout_multiplier: 5
   ubsan:
     CC: clang
-    CPPFLAGS: -O1 -fsanitize-coverage=edge -fsanitize=undefined -fno-omit-frame-pointer
-      -Wno-unused-command-line-argument
+    CPPFLAGS: -O1 -fsanitize=undefined -fno-omit-frame-pointer -Wno-unused-command-line-argument
     CXX: clang++
     DEFINES: NDEBUG
     LD: clang
