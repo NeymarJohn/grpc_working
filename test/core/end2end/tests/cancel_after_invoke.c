@@ -199,5 +199,3 @@ void cancel_after_invoke(grpc_end2end_test_config config) {
     }
   }
 }
-
-void cancel_after_invoke_pre_init(void) {}
