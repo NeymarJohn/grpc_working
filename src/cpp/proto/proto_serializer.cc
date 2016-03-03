@@ -31,49 +31,11 @@
  *
  */
 
-#include "test/cpp/qps/limit_cores.h"
+// TODO(dgq): This file is part of a temporary fix to work around codegen issues related to
+// a certain sharp-sounding build system.
+// This whole file will be removed in the future.
 
-#include <grpc/support/cpu.h>
-#include <grpc/support/log.h>
-#include <grpc/support/port_platform.h>
+#include <grpc++/impl/proto_utils.h>
 
-namespace grpc {
-namespace testing {
-
-#ifdef GPR_CPU_LINUX
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-#include <sched.h>
-int LimitCores(const int* cores, int cores_size) {
-  const int num_cores = gpr_cpu_num_cores();
-  int cores_set = 0;
-
-  cpu_set_t* cpup = CPU_ALLOC(num_cores);
-  GPR_ASSERT(cpup);
-  const size_t size = CPU_ALLOC_SIZE(num_cores);
-  CPU_ZERO_S(size, cpup);
-
-  if (cores_size > 0) {
-    for (int i = 0; i < cores_size; i++) {
-      if (cores[i] < num_cores) {
-        CPU_SET_S(cores[i], size, cpup);
-        cores_set++;
-      }
-    }
-  } else {
-    for (int i = 0; i < num_cores; i++) {
-      CPU_SET_S(i, size, cpup);
-      cores_set++;
-    }
-  }
-  GPR_ASSERT(sched_setaffinity(0, size, cpup) == 0);
-  CPU_FREE(cpup);
-  return cores_set;
-}
-#else
-// LimitCores is not currently supported for non-Linux platforms
-int LimitCores(const int*, int) { return gpr_cpu_num_cores(); }
-#endif
-}  // namespace testing
-}  // namespace grpc
+static grpc::ProtoSerializer proto_serializer;
+grpc::ProtoSerializerInterface* grpc::g_proto_serializer = &proto_serializer;
