@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,15 @@
  *
  */
 
-#ifndef GRPC_CORE_TRANSPORT_CHTTP2_HPACK_ENCODER_H
-#define GRPC_CORE_TRANSPORT_CHTTP2_HPACK_ENCODER_H
+#ifndef GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_HPACK_ENCODER_H
+#define GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_HPACK_ENCODER_H
 
-#include <grpc/support/port_platform.h>
-#include <grpc/support/slice.h>
-#include <grpc/support/slice_buffer.h>
 #include "src/core/transport/chttp2/frame.h"
 #include "src/core/transport/metadata.h"
 #include "src/core/transport/metadata_batch.h"
-#include "src/core/transport/transport.h"
+#include <grpc/support/port_platform.h>
+#include <grpc/support/slice.h>
+#include <grpc/support/slice_buffer.h>
 
 #define GRPC_CHTTP2_HPACKC_NUM_FILTERS 256
 #define GRPC_CHTTP2_HPACKC_NUM_VALUES 256
@@ -91,7 +90,6 @@ void grpc_chttp2_hpack_compressor_set_max_usable_size(
 
 void grpc_chttp2_encode_header(grpc_chttp2_hpack_compressor *c, uint32_t id,
                                grpc_metadata_batch *metadata, int is_eof,
-                               grpc_transport_one_way_stats *stats,
                                gpr_slice_buffer *outbuf);
 
-#endif /* GRPC_CORE_TRANSPORT_CHTTP2_HPACK_ENCODER_H */
+#endif /* GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_HPACK_ENCODER_H */

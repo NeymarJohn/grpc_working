@@ -31,22 +31,21 @@
  *
  */
 
-#ifndef GRPC_CORE_IOMGR_UDP_SERVER_H
-#define GRPC_CORE_IOMGR_UDP_SERVER_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_UDP_SERVER_H
+#define GRPC_INTERNAL_CORE_IOMGR_UDP_SERVER_H
 
 #include "src/core/iomgr/endpoint.h"
 #include "src/core/iomgr/fd_posix.h"
 
-/* Forward decl of struct grpc_server */
-/* This is not typedef'ed to avoid a typedef-redefinition error */
-struct grpc_server;
+/* Forward decl of grpc_server */
+typedef struct grpc_server grpc_server;
 
 /* Forward decl of grpc_udp_server */
 typedef struct grpc_udp_server grpc_udp_server;
 
 /* Called when data is available to read from the socket. */
 typedef void (*grpc_udp_server_read_cb)(grpc_exec_ctx *exec_ctx, grpc_fd *emfd,
-                                        struct grpc_server *server);
+                                        grpc_server *server);
 
 /* Create a server, initially not bound to any ports */
 grpc_udp_server *grpc_udp_server_create(void);
@@ -54,7 +53,7 @@ grpc_udp_server *grpc_udp_server_create(void);
 /* Start listening to bound ports */
 void grpc_udp_server_start(grpc_exec_ctx *exec_ctx, grpc_udp_server *udp_server,
                            grpc_pollset **pollsets, size_t pollset_count,
-                           struct grpc_server *server);
+                           grpc_server *server);
 
 int grpc_udp_server_get_fd(grpc_udp_server *s, unsigned index);
 
@@ -74,4 +73,4 @@ int grpc_udp_server_add_port(grpc_udp_server *s, const void *addr,
 void grpc_udp_server_destroy(grpc_exec_ctx *exec_ctx, grpc_udp_server *server,
                              grpc_closure *on_done);
 
-#endif /* GRPC_CORE_IOMGR_UDP_SERVER_H */
+#endif /* GRPC_INTERNAL_CORE_IOMGR_UDP_SERVER_H */

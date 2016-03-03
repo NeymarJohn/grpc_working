@@ -32,7 +32,6 @@
 #endregion
 
 using System;
-using System.Globalization;
 using System.IO;
 using System.Reflection;
 
@@ -100,30 +99,14 @@ namespace Grpc.Core.Internal
             // TODO: allow customizing path to native extension (possibly through exposing a GrpcEnvironment property).
 
             var libraryFlavor = string.Format("{0}_{1}", GetPlatformString(), GetArchitectureString());
-            var fullPath = Path.Combine(Path.GetDirectoryName(GetAssemblyPath()),
+            var fullPath = Path.Combine(GetExecutingAssemblyDirectory(),
                 NativeLibrariesDir, libraryFlavor, GetNativeLibraryFilename());
             return new UnmanagedLibrary(fullPath);
         }
 
-        private static string GetAssemblyPath()
+        private static string GetExecutingAssemblyDirectory()
         {
-            var assembly = typeof(NativeExtension).GetTypeInfo().Assembly;
-
-            // If assembly is shadowed (e.g. in a webapp), EscapedCodeBase is pointing
-            // to the original location of the assembly, and Location is pointing
-            // to the shadow copy. We care about the original location because
-            // the native dlls don't get shadowed.
-            var escapedCodeBase = assembly.EscapedCodeBase;
-            if (IsFileUri(escapedCodeBase))
-            {
-                return new Uri(escapedCodeBase).LocalPath;
-            }
-            return assembly.Location;
-        }
-
-        private static bool IsFileUri(string uri)
-        {
-            return uri.ToLowerInvariant().StartsWith(Uri.UriSchemeFile);
+            return Path.GetDirectoryName(typeof(NativeExtension).GetTypeInfo().Assembly.Location);
         }
 
         private static string GetPlatformString()

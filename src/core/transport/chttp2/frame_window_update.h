@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,12 @@
  *
  */
 
-#ifndef GRPC_CORE_TRANSPORT_CHTTP2_FRAME_WINDOW_UPDATE_H
-#define GRPC_CORE_TRANSPORT_CHTTP2_FRAME_WINDOW_UPDATE_H
+#ifndef GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_WINDOW_UPDATE_H
+#define GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_WINDOW_UPDATE_H
 
-#include <grpc/support/slice.h>
 #include "src/core/iomgr/exec_ctx.h"
+#include <grpc/support/slice.h>
 #include "src/core/transport/chttp2/frame.h"
-#include "src/core/transport/transport.h"
 
 typedef struct {
   uint8_t byte;
@@ -45,8 +44,7 @@ typedef struct {
   uint32_t amount;
 } grpc_chttp2_window_update_parser;
 
-gpr_slice grpc_chttp2_window_update_create(uint32_t id, uint32_t window_delta,
-                                           grpc_transport_one_way_stats *stats);
+gpr_slice grpc_chttp2_window_update_create(uint32_t id, uint32_t window_delta);
 
 grpc_chttp2_parse_error grpc_chttp2_window_update_parser_begin_frame(
     grpc_chttp2_window_update_parser *parser, uint32_t length, uint8_t flags);
@@ -55,4 +53,4 @@ grpc_chttp2_parse_error grpc_chttp2_window_update_parser_parse(
     grpc_chttp2_transport_parsing *transport_parsing,
     grpc_chttp2_stream_parsing *stream_parsing, gpr_slice slice, int is_last);
 
-#endif /* GRPC_CORE_TRANSPORT_CHTTP2_FRAME_WINDOW_UPDATE_H */
+#endif /* GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_WINDOW_UPDATE_H */
