@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,6 @@ import abc
 import contextlib
 import threading
 import unittest
-
-import six
 
 from grpc.framework.face import exceptions
 from grpc.framework.foundation import future
@@ -107,7 +105,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testSuccessfulUnaryRequestUnaryResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.unary_unary_messages_sequences)):
+        self.digest.unary_unary_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         request = test_messages.request()
 
@@ -119,7 +117,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testSuccessfulUnaryRequestStreamResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.unary_stream_messages_sequences)):
+        self.digest.unary_stream_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         request = test_messages.request()
 
@@ -131,7 +129,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testSuccessfulStreamRequestUnaryResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.stream_unary_messages_sequences)):
+        self.digest.stream_unary_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         requests = test_messages.requests()
         request_iterator = _PauseableIterator(iter(requests))
@@ -147,7 +145,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testSuccessfulStreamRequestStreamResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.stream_stream_messages_sequences)):
+        self.digest.stream_stream_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         requests = test_messages.requests()
         request_iterator = _PauseableIterator(iter(requests))
@@ -163,7 +161,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testSequentialInvocations(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.unary_unary_messages_sequences)):
+        self.digest.unary_unary_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         first_request = test_messages.request()
         second_request = test_messages.request()
@@ -182,7 +180,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testExpiredUnaryRequestUnaryResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.unary_unary_messages_sequences)):
+        self.digest.unary_unary_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         request = test_messages.request()
 
@@ -197,7 +195,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testExpiredUnaryRequestStreamResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.unary_stream_messages_sequences)):
+        self.digest.unary_stream_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         request = test_messages.request()
 
@@ -209,7 +207,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testExpiredStreamRequestUnaryResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.stream_unary_messages_sequences)):
+        self.digest.stream_unary_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         requests = test_messages.requests()
 
@@ -224,7 +222,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testExpiredStreamRequestStreamResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.stream_stream_messages_sequences)):
+        self.digest.stream_stream_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         requests = test_messages.requests()
 
@@ -236,7 +234,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testFailedUnaryRequestUnaryResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.unary_unary_messages_sequences)):
+        self.digest.unary_unary_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         request = test_messages.request()
 
@@ -255,7 +253,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testFailedUnaryRequestStreamResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.unary_stream_messages_sequences)):
+        self.digest.unary_stream_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         request = test_messages.request()
 
@@ -270,7 +268,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testFailedStreamRequestUnaryResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.stream_unary_messages_sequences)):
+        self.digest.stream_unary_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         requests = test_messages.requests()
 
@@ -289,7 +287,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testFailedStreamRequestStreamResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.stream_stream_messages_sequences)):
+        self.digest.stream_stream_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         requests = test_messages.requests()
 
@@ -304,7 +302,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testParallelInvocations(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.unary_unary_messages_sequences)):
+        self.digest.unary_unary_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         first_request = test_messages.request()
         second_request = test_messages.request()
@@ -326,7 +324,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testCancelledUnaryRequestUnaryResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.unary_unary_messages_sequences)):
+        self.digest.unary_unary_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         request = test_messages.request()
 
@@ -340,7 +338,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testCancelledUnaryRequestStreamResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.unary_stream_messages_sequences)):
+        self.digest.unary_stream_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         request = test_messages.request()
 
@@ -354,7 +352,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testCancelledStreamRequestUnaryResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.stream_unary_messages_sequences)):
+        self.digest.stream_unary_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         requests = test_messages.requests()
 
@@ -368,7 +366,7 @@ class FutureInvocationAsynchronousEventServiceTestCase(
 
   def testCancelledStreamRequestStreamResponse(self):
     for name, test_messages_sequence in (
-        six.iteritems(self.digest.stream_stream_messages_sequences)):
+        self.digest.stream_stream_messages_sequences.iteritems()):
       for test_messages in test_messages_sequence:
         requests = test_messages.requests()
 
