@@ -35,7 +35,6 @@ coverage
 
 # cache for run_tests.py
 .run_tests_cache
-.preprocessed_build
 
 # emacs temp files
 *~
