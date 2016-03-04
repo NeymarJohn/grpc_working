@@ -83,8 +83,7 @@ int grpc_chttp2_unlocking_check_writes(
      (according to available window sizes) and add to the output buffer */
   while (grpc_chttp2_list_pop_writable_stream(
       transport_global, transport_writing, &stream_global, &stream_writing)) {
-    bool sent_initial_metadata = stream_writing->sent_initial_metadata;
-    bool become_writable = false;
+    uint8_t sent_initial_metadata;
 
     stream_writing->id = stream_global->id;
     stream_writing->read_closed = stream_global->read_closed;
@@ -93,12 +92,16 @@ int grpc_chttp2_unlocking_check_writes(
                                  outgoing_window, stream_global,
                                  outgoing_window);
 
+    sent_initial_metadata = stream_writing->sent_initial_metadata;
     if (!sent_initial_metadata && stream_global->send_initial_metadata) {
       stream_writing->send_initial_metadata =
           stream_global->send_initial_metadata;
       stream_global->send_initial_metadata = NULL;
-      become_writable = true;
-      sent_initial_metadata = true;
+      if (grpc_chttp2_list_add_writing_stream(transport_writing,
+                                              stream_writing)) {
+        GRPC_CHTTP2_STREAM_REF(stream_global, "chttp2_writing");
+      }
+      sent_initial_metadata = 1;
     }
     if (sent_initial_metadata) {
       if (stream_global->send_message != NULL) {
@@ -125,7 +128,10 @@ int grpc_chttp2_unlocking_check_writes(
            stream_writing->flow_controlled_buffer.length > 0) &&
           stream_writing->outgoing_window > 0) {
         if (transport_writing->outgoing_window > 0) {
-          become_writable = true;
+          if (grpc_chttp2_list_add_writing_stream(transport_writing,
+                                                  stream_writing)) {
+            GRPC_CHTTP2_STREAM_REF(stream_global, "chttp2_writing");
+          }
         } else {
           grpc_chttp2_list_add_stalled_by_transport(transport_writing,
                                                     stream_writing);
@@ -135,7 +141,10 @@ int grpc_chttp2_unlocking_check_writes(
         stream_writing->send_trailing_metadata =
             stream_global->send_trailing_metadata;
         stream_global->send_trailing_metadata = NULL;
-        become_writable = true;
+        if (grpc_chttp2_list_add_writing_stream(transport_writing,
+                                                stream_writing)) {
+          GRPC_CHTTP2_STREAM_REF(stream_global, "chttp2_writing");
+        }
       }
     }
 
@@ -144,13 +153,10 @@ int grpc_chttp2_unlocking_check_writes(
       GRPC_CHTTP2_FLOW_MOVE_STREAM("write", transport_global, stream_writing,
                                    announce_window, stream_global,
                                    unannounced_incoming_window_for_writing);
-      become_writable = true;
-    }
-
-    if (become_writable) {
-      grpc_chttp2_list_add_writing_stream(transport_writing, stream_writing);
-    } else {
-      GRPC_CHTTP2_STREAM_UNREF(exec_ctx, stream_global, "chttp2_writing");
+      if (grpc_chttp2_list_add_writing_stream(transport_writing,
+                                              stream_writing)) {
+        GRPC_CHTTP2_STREAM_REF(stream_global, "chttp2_writing");
+      }
     }
   }
 
@@ -304,7 +310,10 @@ static void finalize_outbuf(grpc_exec_ctx *exec_ctx,
          (stream_writing->send_message && !stream_writing->fetching)) &&
         stream_writing->outgoing_window > 0) {
       if (transport_writing->outgoing_window > 0) {
-        grpc_chttp2_list_add_writing_stream(transport_writing, stream_writing);
+        if (grpc_chttp2_list_add_writing_stream(transport_writing,
+                                                stream_writing)) {
+          /* do nothing - already reffed */
+        }
       } else {
         grpc_chttp2_list_add_writing_stalled_by_transport(transport_writing,
                                                           stream_writing);
