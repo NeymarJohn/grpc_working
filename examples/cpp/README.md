@@ -2,7 +2,7 @@
 
 ## Installation
 
-To install gRPC on your system, follow the instructions [here](../../INSTALL.md).
+To install gRPC on your system, follow the instructions [here](../../INSTALL).
 
 ## Hello C++ gRPC!
 
