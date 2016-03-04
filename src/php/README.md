@@ -39,7 +39,6 @@ Install the gRPC PHP extension
 sudo pecl install grpc-beta
 ```
 
-
 ## Build from Source
 
 Clone this repository
@@ -265,7 +264,4 @@ Connect to `localhost/math_client.php` in your browser, or run this from command
 $ curl localhost/math_client.php
 ```
 
-[homebrew]:http://brew.sh
-[gRPC install script]:https://raw.githubusercontent.com/grpc/homebrew-grpc/master/scripts/install
 [Node]:https://github.com/grpc/grpc/tree/master/src/node/examples
-[Debian jessie-backports]:http://backports.debian.org/Instructions/
