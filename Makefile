@@ -1120,7 +1120,7 @@ plugins: $(PROTOC_PLUGINS)
 
 privatelibs: privatelibs_c privatelibs_cxx
 
-privatelibs_c:  $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libreconnect_server.a $(LIBDIR)/$(CONFIG)/libtest_tcp_server.a $(LIBDIR)/$(CONFIG)/libz.a $(LIBDIR)/$(CONFIG)/libbad_client_test.a $(LIBDIR)/$(CONFIG)/libbad_ssl_test_server.a $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a $(LIBDIR)/$(CONFIG)/libend2end_certs.a
+privatelibs_c:  $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libreconnect_server.a $(LIBDIR)/$(CONFIG)/libtest_tcp_server.a $(LIBDIR)/$(CONFIG)/libz.a $(LIBDIR)/$(CONFIG)/libbad_client_test.a $(LIBDIR)/$(CONFIG)/libbad_ssl_test_server.a $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a $(LIBDIR)/$(CONFIG)/libend2end_certs.a
 pc_c: $(LIBDIR)/$(CONFIG)/pkgconfig/grpc.pc
 
 pc_c_unsecure: $(LIBDIR)/$(CONFIG)/pkgconfig/grpc_unsecure.pc
@@ -1135,7 +1135,7 @@ pc_cxx: $(LIBDIR)/$(CONFIG)/pkgconfig/grpc++.pc
 
 pc_cxx_unsecure: $(LIBDIR)/$(CONFIG)/pkgconfig/grpc++_unsecure.pc
 
-privatelibs_cxx:  $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libinterop_client_helper.a $(LIBDIR)/$(CONFIG)/libinterop_client_main.a $(LIBDIR)/$(CONFIG)/libinterop_server_helper.a $(LIBDIR)/$(CONFIG)/libinterop_server_main.a $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libboringssl_test_util.a $(LIBDIR)/$(CONFIG)/libboringssl_aes_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_base64_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_bio_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_bn_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_bytestring_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_aead_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_cipher_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_cmac_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_ed25519_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_x25519_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_dh_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_digest_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_ec_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_ecdsa_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_err_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_evp_extra_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_evp_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_pbkdf_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_hmac_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_pkcs12_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_pkcs8_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_poly1305_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_rsa_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_ssl_test_lib.a
+privatelibs_cxx:  $(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_config.a $(LIBDIR)/$(CONFIG)/libgrpc++_test_util.a $(LIBDIR)/$(CONFIG)/libinterop_client_helper.a $(LIBDIR)/$(CONFIG)/libinterop_client_main.a $(LIBDIR)/$(CONFIG)/libinterop_server_helper.a $(LIBDIR)/$(CONFIG)/libinterop_server_main.a $(LIBDIR)/$(CONFIG)/libqps.a $(LIBDIR)/$(CONFIG)/libboringssl_test_util.a $(LIBDIR)/$(CONFIG)/libboringssl_aes_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_base64_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_bio_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_bn_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_bytestring_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_aead_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_cipher_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_cmac_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_ed25519_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_x25519_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_dh_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_digest_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_ec_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_ecdsa_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_err_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_evp_extra_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_evp_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_pbkdf_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_hmac_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_pkcs12_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_pkcs8_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_poly1305_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_rsa_test_lib.a $(LIBDIR)/$(CONFIG)/libboringssl_ssl_test_lib.a
 
 ifeq ($(HAS_ZOOKEEPER),true)
 privatelibs_zookeeper: 
@@ -2517,12 +2517,6 @@ LIBGRPC_SRC = \
 
 PUBLIC_HEADERS_C += \
     include/grpc/grpc_security.h \
-    include/grpc/impl/codegen/byte_buffer.h \
-    include/grpc/impl/codegen/compression_types.h \
-    include/grpc/impl/codegen/connectivity_state.h \
-    include/grpc/impl/codegen/grpc_types.h \
-    include/grpc/impl/codegen/propagation_bits.h \
-    include/grpc/impl/codegen/status.h \
     include/grpc/byte_buffer.h \
     include/grpc/byte_buffer_reader.h \
     include/grpc/compression.h \
@@ -2556,18 +2550,18 @@ endif
 
 
 ifeq ($(SYSTEM),MINGW32)
-$(LIBDIR)/$(CONFIG)/grpc$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC_OBJS)  $(ZLIB_DEP) $(LIBDIR)/$(CONFIG)/libgpr.a $(OPENSSL_DEP)
+$(LIBDIR)/$(CONFIG)/grpc$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC_OBJS)  $(ZLIB_DEP) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a $(OPENSSL_DEP)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared grpc.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(OPENSSL_MERGE_LIBS) $(LDLIBS_SECURE) $(ZLIB_MERGE_LIBS)
+	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared grpc.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a $(OPENSSL_MERGE_LIBS) $(LDLIBS_SECURE) $(ZLIB_MERGE_LIBS)
 else
-$(LIBDIR)/$(CONFIG)/libgrpc$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC_OBJS)  $(ZLIB_DEP) $(LIBDIR)/$(CONFIG)/libgpr.a $(OPENSSL_DEP)
+$(LIBDIR)/$(CONFIG)/libgrpc$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC_OBJS)  $(ZLIB_DEP) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a $(OPENSSL_DEP)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 ifeq ($(SYSTEM),Darwin)
-	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(OPENSSL_MERGE_LIBS) $(LDLIBS_SECURE) $(ZLIB_MERGE_LIBS)
+	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a $(OPENSSL_MERGE_LIBS) $(LDLIBS_SECURE) $(ZLIB_MERGE_LIBS)
 else
-	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(OPENSSL_MERGE_LIBS) $(LDLIBS_SECURE) $(ZLIB_MERGE_LIBS)
+	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a $(OPENSSL_MERGE_LIBS) $(LDLIBS_SECURE) $(ZLIB_MERGE_LIBS)
 	$(Q) ln -sf $(SHARED_PREFIX)grpc$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc$(SHARED_VERSION).so.0
 	$(Q) ln -sf $(SHARED_PREFIX)grpc$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc$(SHARED_VERSION).so
 endif
@@ -2579,6 +2573,50 @@ ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC_OBJS:.o=.dep)
 endif
+endif
+
+
+LIBGRPC_CODEGEN_LIB_SRC = \
+
+PUBLIC_HEADERS_C += \
+    include/grpc/impl/codegen/byte_buffer.h \
+    include/grpc/impl/codegen/compression_types.h \
+    include/grpc/impl/codegen/connectivity_state.h \
+    include/grpc/impl/codegen/grpc_types.h \
+    include/grpc/impl/codegen/propagation_bits.h \
+    include/grpc/impl/codegen/status.h \
+    include/grpc/impl/codegen/alloc.h \
+    include/grpc/impl/codegen/atm.h \
+    include/grpc/impl/codegen/atm_gcc_atomic.h \
+    include/grpc/impl/codegen/atm_gcc_sync.h \
+    include/grpc/impl/codegen/atm_win32.h \
+    include/grpc/impl/codegen/log.h \
+    include/grpc/impl/codegen/port_platform.h \
+    include/grpc/impl/codegen/slice.h \
+    include/grpc/impl/codegen/slice_buffer.h \
+    include/grpc/impl/codegen/sync.h \
+    include/grpc/impl/codegen/sync_generic.h \
+    include/grpc/impl/codegen/sync_posix.h \
+    include/grpc/impl/codegen/sync_win32.h \
+    include/grpc/impl/codegen/time.h \
+
+LIBGRPC_CODEGEN_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_CODEGEN_LIB_SRC))))
+
+
+$(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a: $(ZLIB_DEP)  $(LIBGRPC_CODEGEN_LIB_OBJS) 
+	$(E) "[AR]      Creating $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a
+	$(Q) $(AR) $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a $(LIBGRPC_CODEGEN_LIB_OBJS) 
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib -no_warning_for_no_symbols $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a
+endif
+
+
+
+
+ifneq ($(NO_DEPS),true)
+-include $(LIBGRPC_CODEGEN_LIB_OBJS:.o=.dep)
 endif
 
 
@@ -2812,12 +2850,6 @@ PUBLIC_HEADERS_C += \
     include/grpc/compression.h \
     include/grpc/grpc.h \
     include/grpc/status.h \
-    include/grpc/impl/codegen/byte_buffer.h \
-    include/grpc/impl/codegen/compression_types.h \
-    include/grpc/impl/codegen/connectivity_state.h \
-    include/grpc/impl/codegen/grpc_types.h \
-    include/grpc/impl/codegen/propagation_bits.h \
-    include/grpc/impl/codegen/status.h \
     include/grpc/census.h \
 
 LIBGRPC_UNSECURE_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_UNSECURE_SRC))))
@@ -2835,18 +2867,18 @@ endif
 
 
 ifeq ($(SYSTEM),MINGW32)
-$(LIBDIR)/$(CONFIG)/grpc_unsecure$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC_UNSECURE_OBJS)  $(ZLIB_DEP) $(LIBDIR)/$(CONFIG)/libgpr.a
+$(LIBDIR)/$(CONFIG)/grpc_unsecure$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC_UNSECURE_OBJS)  $(ZLIB_DEP) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared grpc_unsecure.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc_unsecure$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc_unsecure$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_UNSECURE_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(ZLIB_MERGE_LIBS)
+	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared grpc_unsecure.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc_unsecure$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc_unsecure$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_UNSECURE_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a $(ZLIB_MERGE_LIBS)
 else
-$(LIBDIR)/$(CONFIG)/libgrpc_unsecure$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC_UNSECURE_OBJS)  $(ZLIB_DEP) $(LIBDIR)/$(CONFIG)/libgpr.a
+$(LIBDIR)/$(CONFIG)/libgrpc_unsecure$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC_UNSECURE_OBJS)  $(ZLIB_DEP) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 ifeq ($(SYSTEM),Darwin)
-	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc_unsecure$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_UNSECURE_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(ZLIB_MERGE_LIBS)
+	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc_unsecure$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_UNSECURE_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a $(ZLIB_MERGE_LIBS)
 else
-	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc_unsecure.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_UNSECURE_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(ZLIB_MERGE_LIBS)
+	$(Q) $(LD) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc_unsecure.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_UNSECURE_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc_codegen_lib.a $(ZLIB_MERGE_LIBS)
 	$(Q) ln -sf $(SHARED_PREFIX)grpc_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc_unsecure$(SHARED_VERSION).so.0
 	$(Q) ln -sf $(SHARED_PREFIX)grpc_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc_unsecure$(SHARED_VERSION).so
 endif
@@ -2978,6 +3010,7 @@ endif
 
 LIBGRPC++_SRC = \
     src/cpp/client/secure_credentials.cc \
+    src/cpp/codegen/grpc_library.cc \
     src/cpp/common/auth_property_iterator.cc \
     src/cpp/common/secure_auth_context.cc \
     src/cpp/common/secure_channel_arguments.cc \
@@ -2994,6 +3027,7 @@ LIBGRPC++_SRC = \
     src/cpp/common/channel_arguments.cc \
     src/cpp/common/completion_queue.cc \
     src/cpp/common/rpc_method.cc \
+    src/cpp/proto/proto_serializer.cc \
     src/cpp/proto/proto_utils.cc \
     src/cpp/server/async_generic_service.cc \
     src/cpp/server/create_default_thread_pool.cc \
@@ -3008,7 +3042,6 @@ LIBGRPC++_SRC = \
     src/cpp/util/status.cc \
     src/cpp/util/string_ref.cc \
     src/cpp/util/time.cc \
-    src/cpp/codegen/grpc_library.cc \
 
 PUBLIC_HEADERS_CXX += \
     include/grpc++/alarm.h \
@@ -3055,36 +3088,6 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/support/stub_options.h \
     include/grpc++/support/sync_stream.h \
     include/grpc++/support/time.h \
-    include/grpc++/impl/codegen/async_stream.h \
-    include/grpc++/impl/codegen/async_unary_call.h \
-    include/grpc++/impl/codegen/call.h \
-    include/grpc++/impl/codegen/call_hook.h \
-    include/grpc++/impl/codegen/channel_interface.h \
-    include/grpc++/impl/codegen/client_context.h \
-    include/grpc++/impl/codegen/client_unary_call.h \
-    include/grpc++/impl/codegen/completion_queue.h \
-    include/grpc++/impl/codegen/completion_queue_tag.h \
-    include/grpc++/impl/codegen/config.h \
-    include/grpc++/impl/codegen/config_protobuf.h \
-    include/grpc++/impl/codegen/grpc_library.h \
-    include/grpc++/impl/codegen/method_handler_impl.h \
-    include/grpc++/impl/codegen/proto_utils.h \
-    include/grpc++/impl/codegen/rpc_method.h \
-    include/grpc++/impl/codegen/rpc_service_method.h \
-    include/grpc++/impl/codegen/security/auth_context.h \
-    include/grpc++/impl/codegen/serialization_traits.h \
-    include/grpc++/impl/codegen/server_context.h \
-    include/grpc++/impl/codegen/server_interface.h \
-    include/grpc++/impl/codegen/service_type.h \
-    include/grpc++/impl/codegen/status.h \
-    include/grpc++/impl/codegen/status_code_enum.h \
-    include/grpc++/impl/codegen/string_ref.h \
-    include/grpc++/impl/codegen/stub_options.h \
-    include/grpc++/impl/codegen/sync.h \
-    include/grpc++/impl/codegen/sync_cxx11.h \
-    include/grpc++/impl/codegen/sync_no_cxx11.h \
-    include/grpc++/impl/codegen/sync_stream.h \
-    include/grpc++/impl/codegen/time.h \
 
 LIBGRPC++_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC++_SRC))))
 
@@ -3121,18 +3124,18 @@ endif
 
 
 ifeq ($(SYSTEM),MINGW32)
-$(LIBDIR)/$(CONFIG)/grpc++$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/grpc.$(SHARED_EXT) $(OPENSSL_DEP)
+$(LIBDIR)/$(CONFIG)/grpc++$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/grpc.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/grpc++_codegen_lib.$(SHARED_EXT) $(OPENSSL_DEP)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared grpc++.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc++$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc++$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc++$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgrpc-imp
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared grpc++.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc++$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc++$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc++$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgrpc-imp -lgrpc++_codegen_lib-imp
 else
-$(LIBDIR)/$(CONFIG)/libgrpc++$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/libgrpc.$(SHARED_EXT) $(OPENSSL_DEP)
+$(LIBDIR)/$(CONFIG)/libgrpc++$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/libgrpc.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib.$(SHARED_EXT) $(OPENSSL_DEP)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 ifeq ($(SYSTEM),Darwin)
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc++$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc++$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgrpc
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc++$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc++$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgrpc -lgrpc++_codegen_lib
 else
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc++.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc++$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgrpc
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc++.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc++$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgrpc -lgrpc++_codegen_lib
 	$(Q) ln -sf $(SHARED_PREFIX)grpc++$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc++$(SHARED_VERSION).so.0
 	$(Q) ln -sf $(SHARED_PREFIX)grpc++$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc++$(SHARED_VERSION).so
 endif
@@ -3146,6 +3149,86 @@ ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC++_OBJS:.o=.dep)
 endif
+endif
+
+
+LIBGRPC++_CODEGEN_LIB_SRC = \
+    include/grpc++/impl/codegen/proto_serializer.cc \
+
+PUBLIC_HEADERS_CXX += \
+    include/grpc++/impl/codegen/async_stream.h \
+    include/grpc++/impl/codegen/async_unary_call.h \
+    include/grpc++/impl/codegen/call.h \
+    include/grpc++/impl/codegen/call_hook.h \
+    include/grpc++/impl/codegen/channel_interface.h \
+    include/grpc++/impl/codegen/client_context.h \
+    include/grpc++/impl/codegen/client_unary_call.h \
+    include/grpc++/impl/codegen/completion_queue.h \
+    include/grpc++/impl/codegen/completion_queue_tag.h \
+    include/grpc++/impl/codegen/config.h \
+    include/grpc++/impl/codegen/config_protobuf.h \
+    include/grpc++/impl/codegen/grpc_library.h \
+    include/grpc++/impl/codegen/method_handler_impl.h \
+    include/grpc++/impl/codegen/proto_utils.h \
+    include/grpc++/impl/codegen/rpc_method.h \
+    include/grpc++/impl/codegen/rpc_service_method.h \
+    include/grpc++/impl/codegen/security/auth_context.h \
+    include/grpc++/impl/codegen/serialization_traits.h \
+    include/grpc++/impl/codegen/server_context.h \
+    include/grpc++/impl/codegen/server_interface.h \
+    include/grpc++/impl/codegen/service_type.h \
+    include/grpc++/impl/codegen/status.h \
+    include/grpc++/impl/codegen/status_code_enum.h \
+    include/grpc++/impl/codegen/string_ref.h \
+    include/grpc++/impl/codegen/stub_options.h \
+    include/grpc++/impl/codegen/sync.h \
+    include/grpc++/impl/codegen/sync_cxx11.h \
+    include/grpc++/impl/codegen/sync_no_cxx11.h \
+    include/grpc++/impl/codegen/sync_stream.h \
+    include/grpc++/impl/codegen/time.h \
+    include/grpc/impl/codegen/alloc.h \
+    include/grpc/impl/codegen/atm.h \
+    include/grpc/impl/codegen/atm_gcc_atomic.h \
+    include/grpc/impl/codegen/atm_gcc_sync.h \
+    include/grpc/impl/codegen/atm_win32.h \
+    include/grpc/impl/codegen/log.h \
+    include/grpc/impl/codegen/port_platform.h \
+    include/grpc/impl/codegen/slice.h \
+    include/grpc/impl/codegen/slice_buffer.h \
+    include/grpc/impl/codegen/sync.h \
+    include/grpc/impl/codegen/sync_generic.h \
+    include/grpc/impl/codegen/sync_posix.h \
+    include/grpc/impl/codegen/sync_win32.h \
+    include/grpc/impl/codegen/time.h \
+
+LIBGRPC++_CODEGEN_LIB_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC++_CODEGEN_LIB_SRC))))
+
+
+ifeq ($(NO_PROTOBUF),true)
+
+# You can't build a C++ library if you don't have protobuf - a bit overreached, but still okay.
+
+$(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib.a: protobuf_dep_error
+
+
+else
+
+$(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib.a: $(ZLIB_DEP)  $(PROTOBUF_DEP) $(LIBGRPC++_CODEGEN_LIB_OBJS) 
+	$(E) "[AR]      Creating $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib.a
+	$(Q) $(AR) $(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib.a $(LIBGRPC++_CODEGEN_LIB_OBJS) 
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib -no_warning_for_no_symbols $(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib.a
+endif
+
+
+
+
+endif
+
+ifneq ($(NO_DEPS),true)
+-include $(LIBGRPC++_CODEGEN_LIB_OBJS:.o=.dep)
 endif
 
 
@@ -3274,6 +3357,7 @@ LIBGRPC++_UNSECURE_SRC = \
     src/cpp/common/channel_arguments.cc \
     src/cpp/common/completion_queue.cc \
     src/cpp/common/rpc_method.cc \
+    src/cpp/proto/proto_serializer.cc \
     src/cpp/proto/proto_utils.cc \
     src/cpp/server/async_generic_service.cc \
     src/cpp/server/create_default_thread_pool.cc \
@@ -3288,7 +3372,6 @@ LIBGRPC++_UNSECURE_SRC = \
     src/cpp/util/status.cc \
     src/cpp/util/string_ref.cc \
     src/cpp/util/time.cc \
-    src/cpp/codegen/grpc_library.cc \
 
 PUBLIC_HEADERS_CXX += \
     include/grpc++/alarm.h \
@@ -3335,36 +3418,6 @@ PUBLIC_HEADERS_CXX += \
     include/grpc++/support/stub_options.h \
     include/grpc++/support/sync_stream.h \
     include/grpc++/support/time.h \
-    include/grpc++/impl/codegen/async_stream.h \
-    include/grpc++/impl/codegen/async_unary_call.h \
-    include/grpc++/impl/codegen/call.h \
-    include/grpc++/impl/codegen/call_hook.h \
-    include/grpc++/impl/codegen/channel_interface.h \
-    include/grpc++/impl/codegen/client_context.h \
-    include/grpc++/impl/codegen/client_unary_call.h \
-    include/grpc++/impl/codegen/completion_queue.h \
-    include/grpc++/impl/codegen/completion_queue_tag.h \
-    include/grpc++/impl/codegen/config.h \
-    include/grpc++/impl/codegen/config_protobuf.h \
-    include/grpc++/impl/codegen/grpc_library.h \
-    include/grpc++/impl/codegen/method_handler_impl.h \
-    include/grpc++/impl/codegen/proto_utils.h \
-    include/grpc++/impl/codegen/rpc_method.h \
-    include/grpc++/impl/codegen/rpc_service_method.h \
-    include/grpc++/impl/codegen/security/auth_context.h \
-    include/grpc++/impl/codegen/serialization_traits.h \
-    include/grpc++/impl/codegen/server_context.h \
-    include/grpc++/impl/codegen/server_interface.h \
-    include/grpc++/impl/codegen/service_type.h \
-    include/grpc++/impl/codegen/status.h \
-    include/grpc++/impl/codegen/status_code_enum.h \
-    include/grpc++/impl/codegen/string_ref.h \
-    include/grpc++/impl/codegen/stub_options.h \
-    include/grpc++/impl/codegen/sync.h \
-    include/grpc++/impl/codegen/sync_cxx11.h \
-    include/grpc++/impl/codegen/sync_no_cxx11.h \
-    include/grpc++/impl/codegen/sync_stream.h \
-    include/grpc++/impl/codegen/time.h \
 
 LIBGRPC++_UNSECURE_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC++_UNSECURE_SRC))))
 
@@ -3391,18 +3444,18 @@ endif
 
 
 ifeq ($(SYSTEM),MINGW32)
-$(LIBDIR)/$(CONFIG)/grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_UNSECURE_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/gpr.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/grpc_unsecure.$(SHARED_EXT)
+$(LIBDIR)/$(CONFIG)/grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_UNSECURE_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/gpr.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/grpc_unsecure.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/grpc++_codegen_lib.$(SHARED_EXT)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared grpc++_unsecure.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc++_unsecure$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr-imp -lgrpc_unsecure-imp
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared grpc++_unsecure.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc++_unsecure$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr-imp -lgrpc_unsecure-imp -lgrpc++_codegen_lib-imp
 else
-$(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_UNSECURE_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/libgpr.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.$(SHARED_EXT)
+$(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_UNSECURE_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/libgpr.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib.$(SHARED_EXT)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 ifeq ($(SYSTEM),Darwin)
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc_unsecure
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc_unsecure -lgrpc++_codegen_lib
 else
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc++_unsecure.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc_unsecure
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc++_unsecure.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc_unsecure -lgrpc++_codegen_lib
 	$(Q) ln -sf $(SHARED_PREFIX)grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).so.0
 	$(Q) ln -sf $(SHARED_PREFIX)grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).so
 endif
@@ -3421,45 +3474,8 @@ LIBGRPC_PLUGIN_SUPPORT_SRC = \
     src/compiler/objective_c_generator.cc \
     src/compiler/python_generator.cc \
     src/compiler/ruby_generator.cc \
-    src/cpp/codegen/grpc_library.cc \
 
 PUBLIC_HEADERS_CXX += \
-    include/grpc++/impl/codegen/async_stream.h \
-    include/grpc++/impl/codegen/async_unary_call.h \
-    include/grpc++/impl/codegen/call.h \
-    include/grpc++/impl/codegen/call_hook.h \
-    include/grpc++/impl/codegen/channel_interface.h \
-    include/grpc++/impl/codegen/client_context.h \
-    include/grpc++/impl/codegen/client_unary_call.h \
-    include/grpc++/impl/codegen/completion_queue.h \
-    include/grpc++/impl/codegen/completion_queue_tag.h \
-    include/grpc++/impl/codegen/config.h \
-    include/grpc++/impl/codegen/config_protobuf.h \
-    include/grpc++/impl/codegen/grpc_library.h \
-    include/grpc++/impl/codegen/method_handler_impl.h \
-    include/grpc++/impl/codegen/proto_utils.h \
-    include/grpc++/impl/codegen/rpc_method.h \
-    include/grpc++/impl/codegen/rpc_service_method.h \
-    include/grpc++/impl/codegen/security/auth_context.h \
-    include/grpc++/impl/codegen/serialization_traits.h \
-    include/grpc++/impl/codegen/server_context.h \
-    include/grpc++/impl/codegen/server_interface.h \
-    include/grpc++/impl/codegen/service_type.h \
-    include/grpc++/impl/codegen/status.h \
-    include/grpc++/impl/codegen/status_code_enum.h \
-    include/grpc++/impl/codegen/string_ref.h \
-    include/grpc++/impl/codegen/stub_options.h \
-    include/grpc++/impl/codegen/sync.h \
-    include/grpc++/impl/codegen/sync_cxx11.h \
-    include/grpc++/impl/codegen/sync_no_cxx11.h \
-    include/grpc++/impl/codegen/sync_stream.h \
-    include/grpc++/impl/codegen/time.h \
-    include/grpc/impl/codegen/byte_buffer.h \
-    include/grpc/impl/codegen/compression_types.h \
-    include/grpc/impl/codegen/connectivity_state.h \
-    include/grpc/impl/codegen/grpc_types.h \
-    include/grpc/impl/codegen/propagation_bits.h \
-    include/grpc/impl/codegen/status.h \
     include/grpc/impl/codegen/alloc.h \
     include/grpc/impl/codegen/atm.h \
     include/grpc/impl/codegen/atm_gcc_atomic.h \
@@ -13069,6 +13085,7 @@ src/core/tsi/fake_transport_security.c: $(OPENSSL_DEP)
 src/core/tsi/ssl_transport_security.c: $(OPENSSL_DEP)
 src/core/tsi/transport_security.c: $(OPENSSL_DEP)
 src/cpp/client/secure_credentials.cc: $(OPENSSL_DEP)
+src/cpp/codegen/grpc_library.cc: $(OPENSSL_DEP)
 src/cpp/common/auth_property_iterator.cc: $(OPENSSL_DEP)
 src/cpp/common/secure_auth_context.cc: $(OPENSSL_DEP)
 src/cpp/common/secure_channel_arguments.cc: $(OPENSSL_DEP)
