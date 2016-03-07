@@ -31,8 +31,6 @@
  *
  */
 
-// Test description at doc/connection-backoff-interop-test-description.md
-
 #include <signal.h>
 #include <unistd.h>
 
