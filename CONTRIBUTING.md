@@ -13,7 +13,7 @@ In order to protect both you and ourselves, you will need to sign the
 ### Technical requirements
 
 You will need several tools to work with this repository. In addition to all of
-the packages described in the [INSTALL](INSTALL.md) file, you will also need
+the packages described in the [INSTALL](INSTALL) file, you will also need
 python, and the mako template renderer. To install the latter, using pip, one
 should simply be able to do `pip install mako`.
 
@@ -36,9 +36,25 @@ In order to run most of the available tests, one would need to run:
 
 `./tools/run_tests/run_tests.py`
 
-If you want to run all the possible tests for any of the languages {c, c++, node, php, python}, do this:
+If you want to run tests for any of the languages {c, c++, node, php, python}, do this:
 
-`./tools/run_tests/run_tests.py -l <lang> -c all`
+`./tools/run_tests/run_tests.py -l <lang>`
+
+For list of available commands, refer to this:
+
+```
+run_tests.py [-h]
+             [-c {asan,asan-noleaks,basicprof,dbg,gcov,helgrind,memcheck,msan,mutrace,opt,stapprof,tsan,ubsan}]
+             [-n RUNS_PER_TEST] [-r REGEX] [-j JOBS] [-s SLOWDOWN] [-f]
+             [-t] [--newline_on_success]
+             [-l {all,c,c++,csharp,node,objc,php,python,ruby,sanity} [{all,c,c++,csharp,node,objc,php,python,ruby,sanity} ...]]
+             [-S] [--use_docker] [--allow_flakes]
+             [--arch {default,x86,x64}]
+             [--compiler {default,gcc4.4,gcc4.9,gcc5.3,vs2010,vs2013,vs2015}]
+             [--build_only] [--measure_cpu_costs]
+             [--update_submodules [UPDATE_SUBMODULES [UPDATE_SUBMODULES ...]]]
+             [-a ANTAGONISTS] [-x XML_REPORT]
+```
 
 ## Adding or removing source code
 
