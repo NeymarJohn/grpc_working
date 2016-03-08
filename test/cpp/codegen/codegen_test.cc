@@ -31,10 +31,20 @@
  *
  */
 
-#include <grpc++/impl/codegen/grpc_library.h>
+#include <gtest/gtest.h>
 
 namespace grpc {
+namespace {
 
-GrpcLibraryInterface *g_glip = nullptr;
+class CodegenTest : public ::testing::Test {};
 
+TEST_F(CodegenTest, Build) {
+}
+
+}  // namespace
 }  // namespace grpc
+
+int main(int argc, char** argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
