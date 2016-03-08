@@ -81,8 +81,10 @@ if test "$PHP_GRPC" != "no"; then
     src/core/support/wrap_memcpy.c \
     src/core/census/grpc_context.c \
     src/core/census/grpc_filter.c \
+    src/core/census/grpc_plugin.c \
     src/core/channel/channel_args.c \
     src/core/channel/channel_stack.c \
+    src/core/channel/channel_stack_builder.c \
     src/core/channel/client_channel.c \
     src/core/channel/client_uchannel.c \
     src/core/channel/compress_filter.c \
@@ -170,7 +172,9 @@ if test "$PHP_GRPC" != "no"; then
     src/core/surface/channel.c \
     src/core/surface/channel_connectivity.c \
     src/core/surface/channel_create.c \
+    src/core/surface/channel_init.c \
     src/core/surface/channel_ping.c \
+    src/core/surface/channel_stack_type.c \
     src/core/surface/completion_queue.c \
     src/core/surface/event_string.c \
     src/core/surface/init.c \
@@ -178,7 +182,6 @@ if test "$PHP_GRPC" != "no"; then
     src/core/surface/metadata_array.c \
     src/core/surface/server.c \
     src/core/surface/server_chttp2.c \
-    src/core/surface/server_create.c \
     src/core/surface/validate_metadata.c \
     src/core/surface/version.c \
     src/core/transport/byte_stream.c \
@@ -533,8 +536,7 @@ if test "$PHP_GRPC" != "no"; then
     third_party/boringssl/ssl/t1_enc.c \
     third_party/boringssl/ssl/t1_lib.c \
     third_party/boringssl/ssl/tls_record.c \
-    , $ext_shared, , -Wall -Werror \
-    -Wno-parentheses-equality -Wno-unused-value -std=c11 \
+    , $ext_shared, , -Wall -Werror -std=c11 \
     -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN \
     -D_HAS_EXCEPTIONS=0 -DNOMINMAX)
 

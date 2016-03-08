@@ -42,14 +42,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "src/core/iomgr/fd_posix.h"
+#include "src/core/iomgr/iomgr_internal.h"
+#include "src/core/support/block_annotate.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/useful.h>
-
-#include "src/core/iomgr/fd_posix.h"
-#include "src/core/iomgr/iomgr_internal.h"
-#include "src/core/iomgr/pollset_posix.h"
-#include "src/core/support/block_annotate.h"
 
 typedef struct {
   /* all polled fds */
@@ -122,7 +120,6 @@ static void multipoll_with_poll_pollset_maybe_work_and_unlock(
     } else {
       h->fds[fd_count++] = h->fds[i];
       watchers[pfd_count].fd = h->fds[i];
-      GRPC_FD_REF(watchers[pfd_count].fd, "multipoller_start");
       pfds[pfd_count].fd = h->fds[i]->fd;
       pfds[pfd_count].revents = 0;
       pfd_count++;
@@ -136,10 +133,8 @@ static void multipoll_with_poll_pollset_maybe_work_and_unlock(
   gpr_mu_unlock(&pollset->mu);
 
   for (i = 2; i < pfd_count; i++) {
-    grpc_fd *fd = watchers[i].fd;
-    pfds[i].events = (short)grpc_fd_begin_poll(fd, pollset, worker, POLLIN,
-                                               POLLOUT, &watchers[i]);
-    GRPC_FD_UNREF(fd, "multipoller_start");
+    pfds[i].events = (short)grpc_fd_begin_poll(watchers[i].fd, pollset, worker,
+                                               POLLIN, POLLOUT, &watchers[i]);
   }
 
   /* TODO(vpai): Consider first doing a 0 timeout poll here to avoid

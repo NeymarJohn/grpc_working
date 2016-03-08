@@ -42,12 +42,7 @@ export LDFLAGS="-L$ROOT/libs/$CONFIG"
 export GRPC_PYTHON_BUILD_WITH_CYTHON=1
 export GRPC_PYTHON_ENABLE_CYTHON_TRACING=1
 
-if [ "$CONFIG" = "gcov" ]
-then
-  tox
-else
-  $ROOT/.tox/py27/bin/python $ROOT/setup.py test_lite
-fi
+tox
 
 mkdir -p $ROOT/reports
 rm -rf $ROOT/reports/python-coverage
