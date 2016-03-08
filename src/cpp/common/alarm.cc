@@ -1,6 +1,5 @@
 /*
- *
- * Copyright 2016, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,26 +30,22 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
-#include "src/core/surface/channel_stack_type.h"
-#include <grpc/support/log.h>
+#include <grpc++/alarm.h>
+#include <grpc++/completion_queue.h>
+#include <grpc++/impl/grpc_library.h>
+#include <grpc/grpc.h>
 
-bool grpc_channel_stack_type_is_client(grpc_channel_stack_type type) {
-  switch (type) {
-    case GRPC_CLIENT_CHANNEL:
-      return true;
-    case GRPC_CLIENT_UCHANNEL:
-      return true;
-    case GRPC_CLIENT_SUBCHANNEL:
-      return true;
-    case GRPC_CLIENT_LAME_CHANNEL:
-      return true;
-    case GRPC_CLIENT_DIRECT_CHANNEL:
-      return true;
-    case GRPC_SERVER_CHANNEL:
-      return false;
-    case GRPC_NUM_CHANNEL_STACK_TYPES:
-      break;
-  }
-  GPR_UNREACHABLE_CODE(return true;);
+namespace grpc {
+
+static internal::GrpcLibraryInitializer g_gli_initializer;
+Alarm::Alarm(CompletionQueue* cq, gpr_timespec deadline, void* tag)
+    : tag_(tag),
+      alarm_(grpc_alarm_create(cq->cq(), deadline, static_cast<void*>(&tag_))) {
+  g_gli_initializer.summon();
 }
+
+Alarm::~Alarm() { grpc_alarm_destroy(alarm_); }
+
+void Alarm::Cancel() { grpc_alarm_cancel(alarm_); }
+
+}  // namespace grpc
