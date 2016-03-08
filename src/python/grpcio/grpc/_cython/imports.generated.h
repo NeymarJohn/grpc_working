@@ -610,6 +610,9 @@ extern gpr_ref_init_type gpr_ref_init_import;
 typedef void(*gpr_ref_type)(gpr_refcount *r);
 extern gpr_ref_type gpr_ref_import;
 #define gpr_ref gpr_ref_import
+typedef void(*gpr_ref_non_zero_type)(gpr_refcount *r);
+extern gpr_ref_non_zero_type gpr_ref_non_zero_import;
+#define gpr_ref_non_zero gpr_ref_non_zero_import
 typedef void(*gpr_refn_type)(gpr_refcount *r, int n);
 extern gpr_refn_type gpr_refn_import;
 #define gpr_refn gpr_refn_import
@@ -625,13 +628,13 @@ extern gpr_stats_inc_type gpr_stats_inc_import;
 typedef intptr_t(*gpr_stats_read_type)(const gpr_stats_counter *c);
 extern gpr_stats_read_type gpr_stats_read_import;
 #define gpr_stats_read gpr_stats_read_import
-typedef gpr_timespec(*gpr_time_0_type)(gpr_clock_type type);
+typedef static inline gpr_timespec(*gpr_time_0_type)(gpr_clock_type type);
 extern gpr_time_0_type gpr_time_0_import;
 #define gpr_time_0 gpr_time_0_import
-typedef gpr_timespec(*gpr_inf_future_type)(gpr_clock_type type);
+typedef static inline gpr_timespec(*gpr_inf_future_type)(gpr_clock_type type);
 extern gpr_inf_future_type gpr_inf_future_import;
 #define gpr_inf_future gpr_inf_future_import
-typedef gpr_timespec(*gpr_inf_past_type)(gpr_clock_type type);
+typedef static inline gpr_timespec(*gpr_inf_past_type)(gpr_clock_type type);
 extern gpr_inf_past_type gpr_inf_past_import;
 #define gpr_inf_past gpr_inf_past_import
 typedef void(*gpr_time_init_type)(void);
