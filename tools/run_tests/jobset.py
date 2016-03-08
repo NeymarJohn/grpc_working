@@ -384,8 +384,7 @@ class Jobset(object):
                 self._travis,
                 self._add_env)
       self._running.add(job)
-      if not self.resultset.has_key(job.GetSpec().shortname):
-        self.resultset[job.GetSpec().shortname] = []
+      self.resultset[job.GetSpec().shortname] = []
     return True
 
   def reap(self):
