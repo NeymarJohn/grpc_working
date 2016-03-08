@@ -35,8 +35,8 @@
 #define GRPCXX_IMPL_CODEGEN_ASYNC_STREAM_H
 
 #include <grpc++/impl/codegen/channel_interface.h>
-#include <grpc++/impl/codegen/core_codegen_interface.h>
 #include <grpc++/impl/codegen/call.h>
+#include <grpc++/impl/codegen/core_codegen_interface.h>
 #include <grpc++/impl/codegen/service_type.h>
 #include <grpc++/impl/codegen/server_context.h>
 #include <grpc++/impl/codegen/status.h>
