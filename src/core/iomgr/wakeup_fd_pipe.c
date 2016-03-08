@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,11 +47,6 @@
 static void pipe_init(grpc_wakeup_fd* fd_info) {
   int pipefd[2];
   /* TODO(klempner): Make this nonfatal */
-  int r = pipe(pipefd);
-  if (0 != r) {
-    gpr_log(GPR_ERROR, "pipe creation failed (%d): %s", errno, strerror(errno));
-    abort();
-  }
   GPR_ASSERT(0 == pipe(pipefd));
   GPR_ASSERT(grpc_set_socket_nonblocking(pipefd[0], 1));
   GPR_ASSERT(grpc_set_socket_nonblocking(pipefd[1], 1));
