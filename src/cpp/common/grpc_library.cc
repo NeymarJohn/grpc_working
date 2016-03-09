@@ -31,41 +31,15 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_CODEGEN_GRPC_LIBRARY_H
-#define GRPCXX_IMPL_CODEGEN_GRPC_LIBRARY_H
-
 #include <grpc++/impl/codegen/core_codegen_interface.h>
-#include <grpc/impl/codegen/log.h>
+#include <grpc++/impl/codegen/grpc_library.h>
+
+/// Definition of gRPC's globals. These should be associated with actual
+/// as part of the instantiation of a \a grpc::GrpcLibraryInitializer variable.
 
 namespace grpc {
 
-class GrpcLibraryInterface {
- public:
-  virtual void init() = 0;
-  virtual void shutdown() = 0;
-};
-
-/// Initialized by \a grpc::GrpcLibraryInitializer from
-/// <grpc++/impl/grpc_library.h>
-extern GrpcLibraryInterface* g_glip;
-
-/// Classes that require gRPC to be initialized should inherit from this class.
-class GrpcLibraryCodegen {
- public:
-  GrpcLibraryCodegen() {
-    GPR_CODEGEN_ASSERT(g_glip &&
-                       "gRPC library not initialized. See "
-                       "grpc::internal::GrpcLibraryInitializer.");
-    g_glip->init();
-  }
-  virtual ~GrpcLibraryCodegen() {
-    GPR_CODEGEN_ASSERT(g_glip &&
-                       "gRPC library not initialized. See "
-                       "grpc::internal::GrpcLibraryInitializer.");
-    g_glip->shutdown();
-  }
-};
+GrpcLibraryInterface *g_glip = nullptr;
+CoreCodegenInterface *g_core_codegen_interface = nullptr;
 
 }  // namespace grpc
-
-#endif  // GRPCXX_IMPL_CODEGEN_GRPC_LIBRARY_H
