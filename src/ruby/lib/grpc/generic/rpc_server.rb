@@ -107,9 +107,7 @@ module GRPC
 
     # Starts running the jobs in the thread pool.
     def start
-      @stop_mutex.synchronize do
-        fail 'already stopped' if @stopped
-      end
+      fail 'already stopped' if @stopped
       until @workers.size == @size.to_i
         next_thread = Thread.new do
           catch(:exit) do  # allows { throw :exit } to kill a thread
@@ -266,13 +264,10 @@ module GRPC
       @pool = Pool.new(@pool_size)
       @run_cond = ConditionVariable.new
       @run_mutex = Mutex.new
-      # running_state can take 4 values: :not_started, :running, :stopping, and
-      # :stopped. State transitions can only proceed in that order.
-      @running_state = :not_started
+      @running = false
       @server = RpcServer.setup_srv(server_override, @cq, **kw)
-      # Mutex to synchronize registration of services and registered service
-      # count. @run_mutex should not be acquired while holding @handle_mutex
-      @handle_mutex = Mutex.new
+      @stopped = false
+      @stop_mutex = Mutex.new
     end
 
     # stops a running server
@@ -280,28 +275,27 @@ module GRPC
     # the call has no impact if the server is already stopped, otherwise
     # server's current call loop is it's last.
     def stop
-      @run_mutex.synchronize do
-        fail 'Cannot stop before starting' if @running_state == :not_started
-        return if @running_state != :running
-        @running_state = :stopping
+      return unless @running
+      @stop_mutex.synchronize do
+        @stopped = true
       end
+      deadline = from_relative_time(@poll_period)
+      return if @server.close(@cq, deadline)
       deadline = from_relative_time(@poll_period)
       @server.close(@cq, deadline)
       @pool.stop
     end
 
-    def running_state
-      @run_mutex.synchronize do
-        return @running_state
+    # determines if the server has been stopped
+    def stopped?
+      @stop_mutex.synchronize do
+        return @stopped
       end
     end
 
+    # determines if the server is currently running
     def running?
-      running_state == :running
-    end
-
-    def stopped?
-      running_state == :stopped
+      @running
     end
 
     # Is called from other threads to wait for #run to start up the server.
@@ -310,11 +304,13 @@ module GRPC
     #
     # @param timeout [Numeric] number of seconds to wait
     # @result [true, false] true if the server is running, false otherwise
-    def wait_till_running(timeout = nil)
-      @run_mutex.synchronize do
-        @run_cond.wait(@run_mutex, timeout) if @running_state == :not_started
-        return @running_state == :running
+    def wait_till_running(timeout = 0.1)
+      end_time, sleep_period = Time.now + timeout, (1.0 * timeout) / 100
+      while Time.now < end_time
+        @run_mutex.synchronize { @run_cond.wait(@run_mutex) } unless running?
+        sleep(sleep_period)
       end
+      running?
     end
 
     # Runs the server in its own thread, then waits for signal INT or TERM on
@@ -364,16 +360,11 @@ module GRPC
     # @param service [Object|Class] a service class or object as described
     #        above
     def handle(service)
-      @run_mutex.synchronize do
-        unless @running_state == :not_started
-          fail 'cannot add services if the server has been started'
-        end
-        cls = service.is_a?(Class) ? service : service.class
-        assert_valid_service_class(cls)
-        @handle_mutex.synchronize do
-          add_rpc_descs_for(service)
-        end
-      end
+      fail 'cannot add services if the server is running' if running?
+      fail 'cannot add services if the server is stopped' if stopped?
+      cls = service.is_a?(Class) ? service : service.class
+      assert_valid_service_class(cls)
+      add_rpc_descs_for(service)
     end
 
     # runs the server
@@ -384,13 +375,16 @@ module GRPC
     # - #running? returns true after this is called, until #stop cause the
     #   the server to stop.
     def run
-      @run_mutex.synchronize do
-        fail 'cannot run without registering services' if rpc_descs.size.zero?
-        @pool.start
-        @server.start
-        @running_state = :running
-        @run_cond.broadcast
+      if rpc_descs.size.zero?
+        GRPC.logger.warn('did not run as no services were present')
+        return
       end
+      @run_mutex.synchronize do
+        @running = true
+        @run_cond.signal
+      end
+      @pool.start
+      @server.start
       loop_handle_server_calls
     end
 
@@ -419,9 +413,9 @@ module GRPC
 
     # handles calls to the server
     def loop_handle_server_calls
-      fail 'not started' if running_state == :not_started
+      fail 'not running' unless @running
       loop_tag = Object.new
-      while running_state == :running
+      until stopped?
         begin
           an_rpc = @server.request_call(@cq, loop_tag, INFINITE_FUTURE)
           break if (!an_rpc.nil?) && an_rpc.call.nil?
@@ -436,14 +430,11 @@ module GRPC
         rescue Core::CallError, RuntimeError => e
           # these might happen for various reasonse.  The correct behaviour of
           # the server is to log them and continue, if it's not shutting down.
-          if running_state == :running
-            GRPC.logger.warn("server call failed: #{e}")
-          end
+          GRPC.logger.warn("server call failed: #{e}") unless stopped?
           next
         end
       end
-      # @running_state should be :stopping here
-      @run_mutex.synchronize { @running_state = :stopped }
+      @running = false
       GRPC.logger.info("stopped: #{self}")
     end
 
@@ -476,15 +467,11 @@ module GRPC
     protected
 
     def rpc_descs
-      @handle_mutex.synchronize do
-        return @rpc_descs ||= {}
-      end
+      @rpc_descs ||= {}
     end
 
     def rpc_handlers
-      @handle_mutex.synchronize do
-        @rpc_handlers ||= {}
-      end
+      @rpc_handlers ||= {}
     end
 
     def assert_valid_service_class(cls)
@@ -497,10 +484,9 @@ module GRPC
       cls.assert_rpc_descs_have_methods
     end
 
-    # This should be called while holding @handle_mutex
     def add_rpc_descs_for(service)
       cls = service.is_a?(Class) ? service : service.class
-      specs, handlers = (@rpc_descs ||= {}), (@rpc_handlers ||= {})
+      specs, handlers = rpc_descs, rpc_handlers
       cls.rpc_descs.each_pair do |name, spec|
         route = "/#{cls.service_name}/#{name}".to_sym
         fail "already registered: rpc #{route} from #{spec}" if specs.key? route
