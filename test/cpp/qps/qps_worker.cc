@@ -101,19 +101,6 @@ static std::unique_ptr<Server> CreateServer(const ServerConfig& config) {
   abort();
 }
 
-class ScopedProfile GRPC_FINAL {
- public:
-  ScopedProfile(const char* filename, bool enable) : enable_(enable) {
-    if (enable_) grpc_profiler_start(filename);
-  }
-  ~ScopedProfile() {
-    if (enable_) grpc_profiler_stop();
-  }
-
- private:
-  const bool enable_;
-};
-
 class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
  public:
   WorkerServiceImpl(int server_port, QpsWorker* worker)
@@ -127,8 +114,9 @@ class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
       return Status(StatusCode::RESOURCE_EXHAUSTED, "");
     }
 
-    ScopedProfile profile("qps_client.prof", false);
+    grpc_profiler_start("qps_client.prof");
     Status ret = RunClientBody(ctx, stream);
+    grpc_profiler_stop();
     return ret;
   }
 
@@ -140,8 +128,9 @@ class WorkerServiceImpl GRPC_FINAL : public WorkerService::Service {
       return Status(StatusCode::RESOURCE_EXHAUSTED, "");
     }
 
-    ScopedProfile profile("qps_server.prof", false);
+    grpc_profiler_start("qps_server.prof");
     Status ret = RunServerBody(ctx, stream);
+    grpc_profiler_stop();
     return ret;
   }
 
