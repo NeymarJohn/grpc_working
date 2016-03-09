@@ -264,6 +264,36 @@ class Gather(setuptools.Command):
       self.distribution.fetch_build_eggs(self.distribution.tests_require)
 
 
+class TestLite(setuptools.Command):
+  """Command to run tests without fetching or building anything."""
+
+  description = 'run tests without fetching or building anything.'
+  user_options = []
+
+  def initialize_options(self):
+    pass
+
+  def finalize_options(self):
+    # distutils requires this override.
+    pass
+
+  def run(self):
+    self._add_eggs_to_path()
+
+    import tests
+    loader = tests.Loader()
+    loader.loadTestsFromNames(['tests'])
+    runner = tests.Runner()
+    result = runner.run(loader.suite)
+    if not result.wasSuccessful():
+      sys.exit('Test failure')
+
+  def _add_eggs_to_path(self):
+    """Fetch install and test requirements"""
+    self.distribution.fetch_build_eggs(self.distribution.install_requires)
+    self.distribution.fetch_build_eggs(self.distribution.tests_require)
+
+
 class RunInterop(test.test):
 
   description = 'run interop test client/server'
