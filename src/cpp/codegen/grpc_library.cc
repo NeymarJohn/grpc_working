@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,15 +31,10 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_CODEGEN_SYNC_H
-#define GRPCXX_IMPL_CODEGEN_SYNC_H
+#include <grpc++/impl/codegen/grpc_library.h>
 
-#include <grpc++/impl/codegen/config.h>
+namespace grpc {
 
-#ifdef GRPC_CXX0X_NO_THREAD
-#include <grpc++/impl/codegen/sync_no_cxx11.h>
-#else
-#include <grpc++/impl/codegen/sync_cxx11.h>
-#endif
+GrpcLibraryInterface *g_glip = nullptr;
 
-#endif  // GRPCXX_IMPL_CODEGEN_SYNC_H
+}  // namespace grpc

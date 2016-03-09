@@ -34,7 +34,6 @@
 #ifndef GRPCXX_IMPL_CODEGEN_GRPC_LIBRARY_H
 #define GRPCXX_IMPL_CODEGEN_GRPC_LIBRARY_H
 
-#include <grpc++/impl/codegen/core_codegen_interface.h>
 #include <grpc/impl/codegen/log.h>
 
 namespace grpc {
@@ -50,15 +49,15 @@ extern GrpcLibraryInterface* g_glip;
 class GrpcLibrary {
  public:
   GrpcLibrary() {
-    GPR_CODEGEN_ASSERT(g_glip &&
-                       "gRPC library not initialized. See "
-                       "grpc::internal::GrpcLibraryInitializer.");
+    GPR_ASSERT(g_glip &&
+               "gRPC library not initialized. See "
+               "grpc::internal::GrpcLibraryInitializer.");
     g_glip->init();
   }
   virtual ~GrpcLibrary() {
-    GPR_CODEGEN_ASSERT(g_glip &&
-                       "gRPC library not initialized. See "
-                       "grpc::internal::GrpcLibraryInitializer.");
+    GPR_ASSERT(g_glip &&
+               "gRPC library not initialized. See "
+               "grpc::internal::GrpcLibraryInitializer.");
     g_glip->shutdown();
   }
 };
