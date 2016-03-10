@@ -1,6 +1,6 @@
 #region Copyright notice and license
 
-// Copyright 2015-2016, Google Inc.
+// Copyright 2015, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,39 +33,38 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Utils;
 using Grpc.Testing;
-using Moq;
 using NUnit.Framework;
 
 namespace Grpc.IntegrationTesting
 {
-    public class GeneratedServiceBaseTest
+    public class HeaderInterceptorTest
     {
         const string Host = "localhost";
         Server server;
         Channel channel;
         TestService.TestServiceClient client;
 
-        [SetUp]
+        [TestFixtureSetUp]
         public void Init()
         {
             server = new Server
             {
-                Services = { TestService.BindService(new UnimplementedTestServiceImpl()) },
-                Ports = { { Host, ServerPort.PickUnused, SslServerCredentials.Insecure } }
+                Services = { TestService.BindService(new TestServiceImpl()) },
+                Ports = { { Host, ServerPort.PickUnused, ServerCredentials.Insecure } }
             };
             server.Start();
+
             channel = new Channel(Host, server.Ports.Single().BoundPort, ChannelCredentials.Insecure);
             client = TestService.NewClient(channel);
         }
 
-        [TearDown]
+        [TestFixtureTearDown]
         public void Cleanup()
         {
             channel.ShutdownAsync().Wait();
@@ -73,44 +72,42 @@ namespace Grpc.IntegrationTesting
         }
 
         [Test]
-        public void UnimplementedByDefault_Unary()
+        public async Task HeaderInterceptor_CreateMetadata()
         {
-            var ex = Assert.Throws<RpcException>(() => client.UnaryCall(new SimpleRequest { }));
-            Assert.AreEqual(StatusCode.Unimplemented, ex.Status.StatusCode);
+            var key = "x-grpc-test-echo-initial";
+            client.HeaderInterceptor = new HeaderInterceptor((method, metadata) =>
+            {
+                metadata.Add(key, "ABC");
+            });
+
+            var call = client.UnaryCallAsync(new SimpleRequest());
+            await call;
+
+           var responseHeaders = await call.ResponseHeadersAsync;
+           Assert.AreEqual("ABC", responseHeaders.First((entry) => entry.Key == key).Value);
         }
 
         [Test]
-        public async Task UnimplementedByDefault_ClientStreaming()
+        public async Task HeaderInterceptor_AppendMetadata()
         {
-            var call = client.StreamingInputCall();
+            var initialKey = "x-grpc-test-echo-initial";
+            var trailingKey = "x-grpc-test-echo-trailing-bin";
 
-            var ex = Assert.Throws<RpcException>(async () => await call);
-            Assert.AreEqual(StatusCode.Unimplemented, ex.Status.StatusCode);
-        }
+            client.HeaderInterceptor = new HeaderInterceptor((method, metadata) =>
+            {
+                metadata.Add(initialKey, "ABC");
+            });
 
-        [Test]
-        public async Task UnimplementedByDefault_ServerStreamingCall()
-        {
-            var call = client.StreamingOutputCall(new StreamingOutputCallRequest());
+            var headers = new Metadata
+            {
+                { trailingKey, new byte[] {0xaa} }
+            };
+            var call = client.UnaryCallAsync(new SimpleRequest(), headers: headers);
+            await call;
 
-            var ex = Assert.Throws<RpcException>(async () => await call.ResponseStream.MoveNext());
-            Assert.AreEqual(StatusCode.Unimplemented, ex.Status.StatusCode);
-        }
-
-        [Test]
-        public async Task UnimplementedByDefault_DuplexStreamingCall()
-        {
-            var call = client.FullDuplexCall();
-
-            var ex = Assert.Throws<RpcException>(async () => await call.ResponseStream.MoveNext());
-            Assert.AreEqual(StatusCode.Unimplemented, ex.Status.StatusCode);
-        }
-
-        /// <summary>
-        /// Implementation of TestService that doesn't override any methods.
-        /// </summary>
-        private class UnimplementedTestServiceImpl : TestService.TestServiceBase
-        {
+            var responseHeaders = await call.ResponseHeadersAsync;
+            Assert.AreEqual("ABC", responseHeaders.First((entry) => entry.Key == initialKey).Value);
+            CollectionAssert.AreEqual(new byte[] {0xaa}, call.GetTrailers().First((entry) => entry.Key == trailingKey).ValueBytes);
         }
     }
 }

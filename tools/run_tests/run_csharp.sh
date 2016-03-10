@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,26 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
 
-flags="-max_total_time=$runtime -jobs=3 -workers=3 -artifact_prefix=fuzzer_output/ -max_len=2048"
-if [ "$config" == "asan-trace-cmp" ]
+set -ex
+
+CONFIG=${CONFIG:-opt}
+NUNIT_CONSOLE="mono packages/NUnit.Runners.2.6.4/tools/nunit-console.exe"
+
+# change to gRPC repo root
+cd $(dirname $0)/../..
+
+(cd src/csharp; $NUNIT_CONSOLE $@)
+
+if [ "$CONFIG" = "gcov" ]
 then
-  flags="-use_traces=1 $flags"
+  # Generate the csharp extension coverage report
+  gcov objs/gcov/src/csharp/ext/*.o
+  lcov --base-directory . --directory . -c -o coverage.info
+  lcov -e coverage.info '**/src/csharp/ext/*' -o coverage.info
+  genhtml -o reports/csharp_ext_coverage --num-spaces 2 \
+    -t 'gRPC C# native extension test coverage' coverage.info \
+    --rc genhtml_hi_limit=95 --rc genhtml_med_limit=80 --no-prefix
 fi
 
-bins/$config/http_fuzzer_test $flags fuzzer_output test/core/http/corpus
+

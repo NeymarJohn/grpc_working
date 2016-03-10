@@ -881,7 +881,6 @@ alarm_test: $(BINDIR)/$(CONFIG)/alarm_test
 algorithm_test: $(BINDIR)/$(CONFIG)/algorithm_test
 alloc_test: $(BINDIR)/$(CONFIG)/alloc_test
 alpn_test: $(BINDIR)/$(CONFIG)/alpn_test
-api_fuzzer: $(BINDIR)/$(CONFIG)/api_fuzzer
 bin_encoder_test: $(BINDIR)/$(CONFIG)/bin_encoder_test
 census_context_test: $(BINDIR)/$(CONFIG)/census_context_test
 channel_create_test: $(BINDIR)/$(CONFIG)/channel_create_test
@@ -889,7 +888,6 @@ chttp2_hpack_encoder_test: $(BINDIR)/$(CONFIG)/chttp2_hpack_encoder_test
 chttp2_status_conversion_test: $(BINDIR)/$(CONFIG)/chttp2_status_conversion_test
 chttp2_stream_map_test: $(BINDIR)/$(CONFIG)/chttp2_stream_map_test
 chttp2_varint_test: $(BINDIR)/$(CONFIG)/chttp2_varint_test
-client_fuzzer: $(BINDIR)/$(CONFIG)/client_fuzzer
 compression_test: $(BINDIR)/$(CONFIG)/compression_test
 concurrent_connectivity_test: $(BINDIR)/$(CONFIG)/concurrent_connectivity_test
 dns_resolver_connectivity_test: $(BINDIR)/$(CONFIG)/dns_resolver_connectivity_test
@@ -1000,8 +998,7 @@ channel_arguments_test: $(BINDIR)/$(CONFIG)/channel_arguments_test
 cli_call_test: $(BINDIR)/$(CONFIG)/cli_call_test
 client_crash_test: $(BINDIR)/$(CONFIG)/client_crash_test
 client_crash_test_server: $(BINDIR)/$(CONFIG)/client_crash_test_server
-codegen_test_full: $(BINDIR)/$(CONFIG)/codegen_test_full
-codegen_test_minimal: $(BINDIR)/$(CONFIG)/codegen_test_minimal
+codegen_test: $(BINDIR)/$(CONFIG)/codegen_test
 credentials_test: $(BINDIR)/$(CONFIG)/credentials_test
 cxx_byte_buffer_test: $(BINDIR)/$(CONFIG)/cxx_byte_buffer_test
 cxx_slice_test: $(BINDIR)/$(CONFIG)/cxx_slice_test
@@ -1119,8 +1116,6 @@ h2_sockpair_nosec_test: $(BINDIR)/$(CONFIG)/h2_sockpair_nosec_test
 h2_sockpair+trace_nosec_test: $(BINDIR)/$(CONFIG)/h2_sockpair+trace_nosec_test
 h2_sockpair_1byte_nosec_test: $(BINDIR)/$(CONFIG)/h2_sockpair_1byte_nosec_test
 h2_uds_nosec_test: $(BINDIR)/$(CONFIG)/h2_uds_nosec_test
-api_fuzzer_one_entry: $(BINDIR)/$(CONFIG)/api_fuzzer_one_entry
-client_fuzzer_one_entry: $(BINDIR)/$(CONFIG)/client_fuzzer_one_entry
 hpack_parser_fuzzer_test_one_entry: $(BINDIR)/$(CONFIG)/hpack_parser_fuzzer_test_one_entry
 http_fuzzer_test_one_entry: $(BINDIR)/$(CONFIG)/http_fuzzer_test_one_entry
 json_fuzzer_test_one_entry: $(BINDIR)/$(CONFIG)/json_fuzzer_test_one_entry
@@ -1347,8 +1342,6 @@ buildtests_c: privatelibs_c \
   $(BINDIR)/$(CONFIG)/h2_sockpair+trace_nosec_test \
   $(BINDIR)/$(CONFIG)/h2_sockpair_1byte_nosec_test \
   $(BINDIR)/$(CONFIG)/h2_uds_nosec_test \
-  $(BINDIR)/$(CONFIG)/api_fuzzer_one_entry \
-  $(BINDIR)/$(CONFIG)/client_fuzzer_one_entry \
   $(BINDIR)/$(CONFIG)/hpack_parser_fuzzer_test_one_entry \
   $(BINDIR)/$(CONFIG)/http_fuzzer_test_one_entry \
   $(BINDIR)/$(CONFIG)/json_fuzzer_test_one_entry \
@@ -1368,8 +1361,7 @@ buildtests_cxx: buildtests_zookeeper privatelibs_cxx \
   $(BINDIR)/$(CONFIG)/cli_call_test \
   $(BINDIR)/$(CONFIG)/client_crash_test \
   $(BINDIR)/$(CONFIG)/client_crash_test_server \
-  $(BINDIR)/$(CONFIG)/codegen_test_full \
-  $(BINDIR)/$(CONFIG)/codegen_test_minimal \
+  $(BINDIR)/$(CONFIG)/codegen_test \
   $(BINDIR)/$(CONFIG)/credentials_test \
   $(BINDIR)/$(CONFIG)/cxx_byte_buffer_test \
   $(BINDIR)/$(CONFIG)/cxx_slice_test \
@@ -1688,10 +1680,8 @@ test_cxx: test_zookeeper buildtests_cxx
 	$(Q) $(BINDIR)/$(CONFIG)/cli_call_test || ( echo test cli_call_test failed ; exit 1 )
 	$(E) "[RUN]     Testing client_crash_test"
 	$(Q) $(BINDIR)/$(CONFIG)/client_crash_test || ( echo test client_crash_test failed ; exit 1 )
-	$(E) "[RUN]     Testing codegen_test_full"
-	$(Q) $(BINDIR)/$(CONFIG)/codegen_test_full || ( echo test codegen_test_full failed ; exit 1 )
-	$(E) "[RUN]     Testing codegen_test_minimal"
-	$(Q) $(BINDIR)/$(CONFIG)/codegen_test_minimal || ( echo test codegen_test_minimal failed ; exit 1 )
+	$(E) "[RUN]     Testing codegen_test"
+	$(Q) $(BINDIR)/$(CONFIG)/codegen_test || ( echo test codegen_test failed ; exit 1 )
 	$(E) "[RUN]     Testing credentials_test"
 	$(Q) $(BINDIR)/$(CONFIG)/credentials_test || ( echo test credentials_test failed ; exit 1 )
 	$(E) "[RUN]     Testing cxx_byte_buffer_test"
@@ -6028,38 +6018,6 @@ endif
 endif
 
 
-API_FUZZER_SRC = \
-    test/core/end2end/fuzzers/api_fuzzer.c \
-
-API_FUZZER_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(API_FUZZER_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/api_fuzzer: openssl_dep_error
-
-else
-
-
-
-$(BINDIR)/$(CONFIG)/api_fuzzer: $(API_FUZZER_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(API_FUZZER_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -lFuzzer -o $(BINDIR)/$(CONFIG)/api_fuzzer
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/core/end2end/fuzzers/api_fuzzer.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_api_fuzzer: $(API_FUZZER_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(API_FUZZER_OBJS:.o=.dep)
-endif
-endif
-
-
 BIN_ENCODER_TEST_SRC = \
     test/core/transport/chttp2/bin_encoder_test.c \
 
@@ -6280,38 +6238,6 @@ deps_chttp2_varint_test: $(CHTTP2_VARINT_TEST_OBJS:.o=.dep)
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(CHTTP2_VARINT_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-CLIENT_FUZZER_SRC = \
-    test/core/end2end/fuzzers/client_fuzzer.c \
-
-CLIENT_FUZZER_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CLIENT_FUZZER_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/client_fuzzer: openssl_dep_error
-
-else
-
-
-
-$(BINDIR)/$(CONFIG)/client_fuzzer: $(CLIENT_FUZZER_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(CLIENT_FUZZER_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -lFuzzer -o $(BINDIR)/$(CONFIG)/client_fuzzer
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/core/end2end/fuzzers/client_fuzzer.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_client_fuzzer: $(CLIENT_FUZZER_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(CLIENT_FUZZER_OBJS:.o=.dep)
 endif
 endif
 
@@ -9935,22 +9861,22 @@ endif
 endif
 
 
-CODEGEN_TEST_FULL_SRC = \
+CODEGEN_TEST_SRC = \
     $(GENDIR)/src/proto/grpc/testing/control.pb.cc $(GENDIR)/src/proto/grpc/testing/control.grpc.pb.cc \
     $(GENDIR)/src/proto/grpc/testing/messages.pb.cc $(GENDIR)/src/proto/grpc/testing/messages.grpc.pb.cc \
     $(GENDIR)/src/proto/grpc/testing/payloads.pb.cc $(GENDIR)/src/proto/grpc/testing/payloads.grpc.pb.cc \
     $(GENDIR)/src/proto/grpc/testing/perf_db.pb.cc $(GENDIR)/src/proto/grpc/testing/perf_db.grpc.pb.cc \
     $(GENDIR)/src/proto/grpc/testing/services.pb.cc $(GENDIR)/src/proto/grpc/testing/services.grpc.pb.cc \
     $(GENDIR)/src/proto/grpc/testing/stats.pb.cc $(GENDIR)/src/proto/grpc/testing/stats.grpc.pb.cc \
-    test/cpp/codegen/codegen_test_full.cc \
+    test/cpp/codegen/codegen_test.cc \
     src/cpp/codegen/codegen_init.cc \
 
-CODEGEN_TEST_FULL_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CODEGEN_TEST_FULL_SRC))))
+CODEGEN_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CODEGEN_TEST_SRC))))
 ifeq ($(NO_SECURE),true)
 
 # You can't build secure targets if you don't have OpenSSL.
 
-$(BINDIR)/$(CONFIG)/codegen_test_full: openssl_dep_error
+$(BINDIR)/$(CONFIG)/codegen_test: openssl_dep_error
 
 else
 
@@ -9961,80 +9887,14 @@ ifeq ($(NO_PROTOBUF),true)
 
 # You can't build the protoc plugins or protobuf-enabled targets if you don't have protobuf 3.0.0+.
 
-$(BINDIR)/$(CONFIG)/codegen_test_full: protobuf_dep_error
+$(BINDIR)/$(CONFIG)/codegen_test: protobuf_dep_error
 
 else
 
-$(BINDIR)/$(CONFIG)/codegen_test_full: $(PROTOBUF_DEP) $(CODEGEN_TEST_FULL_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a
+$(BINDIR)/$(CONFIG)/codegen_test: $(PROTOBUF_DEP) $(CODEGEN_TEST_OBJS)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(CODEGEN_TEST_FULL_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/codegen_test_full
-
-endif
-
-endif
-
-$(OBJDIR)/$(CONFIG)/src/proto/grpc/testing/control.o:  $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-$(OBJDIR)/$(CONFIG)/src/proto/grpc/testing/messages.o:  $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-$(OBJDIR)/$(CONFIG)/src/proto/grpc/testing/payloads.o:  $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-$(OBJDIR)/$(CONFIG)/src/proto/grpc/testing/perf_db.o:  $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-$(OBJDIR)/$(CONFIG)/src/proto/grpc/testing/services.o:  $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-$(OBJDIR)/$(CONFIG)/src/proto/grpc/testing/stats.o:  $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-$(OBJDIR)/$(CONFIG)/test/cpp/codegen/codegen_test_full.o:  $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-$(OBJDIR)/$(CONFIG)/src/cpp/codegen/codegen_init.o:  $(LIBDIR)/$(CONFIG)/libgrpc++.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_codegen_test_full: $(CODEGEN_TEST_FULL_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(CODEGEN_TEST_FULL_OBJS:.o=.dep)
-endif
-endif
-$(OBJDIR)/$(CONFIG)/test/cpp/codegen/codegen_test_full.o: $(GENDIR)/src/proto/grpc/testing/control.pb.cc $(GENDIR)/src/proto/grpc/testing/control.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/messages.pb.cc $(GENDIR)/src/proto/grpc/testing/messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/payloads.pb.cc $(GENDIR)/src/proto/grpc/testing/payloads.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/perf_db.pb.cc $(GENDIR)/src/proto/grpc/testing/perf_db.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/services.pb.cc $(GENDIR)/src/proto/grpc/testing/services.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/stats.pb.cc $(GENDIR)/src/proto/grpc/testing/stats.grpc.pb.cc
-$(OBJDIR)/$(CONFIG)/src/cpp/codegen/codegen_init.o: $(GENDIR)/src/proto/grpc/testing/control.pb.cc $(GENDIR)/src/proto/grpc/testing/control.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/messages.pb.cc $(GENDIR)/src/proto/grpc/testing/messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/payloads.pb.cc $(GENDIR)/src/proto/grpc/testing/payloads.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/perf_db.pb.cc $(GENDIR)/src/proto/grpc/testing/perf_db.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/services.pb.cc $(GENDIR)/src/proto/grpc/testing/services.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/stats.pb.cc $(GENDIR)/src/proto/grpc/testing/stats.grpc.pb.cc
-
-
-CODEGEN_TEST_MINIMAL_SRC = \
-    $(GENDIR)/src/proto/grpc/testing/control.pb.cc $(GENDIR)/src/proto/grpc/testing/control.grpc.pb.cc \
-    $(GENDIR)/src/proto/grpc/testing/messages.pb.cc $(GENDIR)/src/proto/grpc/testing/messages.grpc.pb.cc \
-    $(GENDIR)/src/proto/grpc/testing/payloads.pb.cc $(GENDIR)/src/proto/grpc/testing/payloads.grpc.pb.cc \
-    $(GENDIR)/src/proto/grpc/testing/perf_db.pb.cc $(GENDIR)/src/proto/grpc/testing/perf_db.grpc.pb.cc \
-    $(GENDIR)/src/proto/grpc/testing/services.pb.cc $(GENDIR)/src/proto/grpc/testing/services.grpc.pb.cc \
-    $(GENDIR)/src/proto/grpc/testing/stats.pb.cc $(GENDIR)/src/proto/grpc/testing/stats.grpc.pb.cc \
-    test/cpp/codegen/codegen_test_minimal.cc \
-    src/cpp/codegen/codegen_init.cc \
-
-CODEGEN_TEST_MINIMAL_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CODEGEN_TEST_MINIMAL_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/codegen_test_minimal: openssl_dep_error
-
-else
-
-
-
-
-ifeq ($(NO_PROTOBUF),true)
-
-# You can't build the protoc plugins or protobuf-enabled targets if you don't have protobuf 3.0.0+.
-
-$(BINDIR)/$(CONFIG)/codegen_test_minimal: protobuf_dep_error
-
-else
-
-$(BINDIR)/$(CONFIG)/codegen_test_minimal: $(PROTOBUF_DEP) $(CODEGEN_TEST_MINIMAL_OBJS)
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) $(CODEGEN_TEST_MINIMAL_OBJS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/codegen_test_minimal
+	$(Q) $(LDXX) $(LDFLAGS) $(CODEGEN_TEST_OBJS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) $(LDLIBS) $(LDLIBS_SECURE) $(GTEST_LIB) -o $(BINDIR)/$(CONFIG)/codegen_test
 
 endif
 
@@ -10052,18 +9912,18 @@ $(OBJDIR)/$(CONFIG)/src/proto/grpc/testing/services.o:
 
 $(OBJDIR)/$(CONFIG)/src/proto/grpc/testing/stats.o: 
 
-$(OBJDIR)/$(CONFIG)/test/cpp/codegen/codegen_test_minimal.o: 
+$(OBJDIR)/$(CONFIG)/test/cpp/codegen/codegen_test.o: 
 
 $(OBJDIR)/$(CONFIG)/src/cpp/codegen/codegen_init.o: 
 
-deps_codegen_test_minimal: $(CODEGEN_TEST_MINIMAL_OBJS:.o=.dep)
+deps_codegen_test: $(CODEGEN_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
--include $(CODEGEN_TEST_MINIMAL_OBJS:.o=.dep)
+-include $(CODEGEN_TEST_OBJS:.o=.dep)
 endif
 endif
-$(OBJDIR)/$(CONFIG)/test/cpp/codegen/codegen_test_minimal.o: $(GENDIR)/src/proto/grpc/testing/control.pb.cc $(GENDIR)/src/proto/grpc/testing/control.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/messages.pb.cc $(GENDIR)/src/proto/grpc/testing/messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/payloads.pb.cc $(GENDIR)/src/proto/grpc/testing/payloads.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/perf_db.pb.cc $(GENDIR)/src/proto/grpc/testing/perf_db.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/services.pb.cc $(GENDIR)/src/proto/grpc/testing/services.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/stats.pb.cc $(GENDIR)/src/proto/grpc/testing/stats.grpc.pb.cc
+$(OBJDIR)/$(CONFIG)/test/cpp/codegen/codegen_test.o: $(GENDIR)/src/proto/grpc/testing/control.pb.cc $(GENDIR)/src/proto/grpc/testing/control.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/messages.pb.cc $(GENDIR)/src/proto/grpc/testing/messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/payloads.pb.cc $(GENDIR)/src/proto/grpc/testing/payloads.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/perf_db.pb.cc $(GENDIR)/src/proto/grpc/testing/perf_db.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/services.pb.cc $(GENDIR)/src/proto/grpc/testing/services.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/stats.pb.cc $(GENDIR)/src/proto/grpc/testing/stats.grpc.pb.cc
 $(OBJDIR)/$(CONFIG)/src/cpp/codegen/codegen_init.o: $(GENDIR)/src/proto/grpc/testing/control.pb.cc $(GENDIR)/src/proto/grpc/testing/control.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/messages.pb.cc $(GENDIR)/src/proto/grpc/testing/messages.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/payloads.pb.cc $(GENDIR)/src/proto/grpc/testing/payloads.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/perf_db.pb.cc $(GENDIR)/src/proto/grpc/testing/perf_db.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/services.pb.cc $(GENDIR)/src/proto/grpc/testing/services.grpc.pb.cc $(GENDIR)/src/proto/grpc/testing/stats.pb.cc $(GENDIR)/src/proto/grpc/testing/stats.grpc.pb.cc
 
 
@@ -13834,70 +13694,6 @@ deps_h2_uds_nosec_test: $(H2_UDS_NOSEC_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_DEPS),true)
 -include $(H2_UDS_NOSEC_TEST_OBJS:.o=.dep)
-endif
-
-
-API_FUZZER_ONE_ENTRY_SRC = \
-    test/core/end2end/fuzzers/api_fuzzer.c \
-
-API_FUZZER_ONE_ENTRY_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(API_FUZZER_ONE_ENTRY_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/api_fuzzer_one_entry: openssl_dep_error
-
-else
-
-
-
-$(BINDIR)/$(CONFIG)/api_fuzzer_one_entry: $(API_FUZZER_ONE_ENTRY_OBJS) $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(API_FUZZER_ONE_ENTRY_OBJS) $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/api_fuzzer_one_entry
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/core/end2end/fuzzers/api_fuzzer.o:  $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_api_fuzzer_one_entry: $(API_FUZZER_ONE_ENTRY_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(API_FUZZER_ONE_ENTRY_OBJS:.o=.dep)
-endif
-endif
-
-
-CLIENT_FUZZER_ONE_ENTRY_SRC = \
-    test/core/end2end/fuzzers/client_fuzzer.c \
-
-CLIENT_FUZZER_ONE_ENTRY_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(CLIENT_FUZZER_ONE_ENTRY_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/client_fuzzer_one_entry: openssl_dep_error
-
-else
-
-
-
-$(BINDIR)/$(CONFIG)/client_fuzzer_one_entry: $(CLIENT_FUZZER_ONE_ENTRY_OBJS) $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(CLIENT_FUZZER_ONE_ENTRY_OBJS) $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/client_fuzzer_one_entry
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/core/end2end/fuzzers/client_fuzzer.o:  $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_client_fuzzer_one_entry: $(CLIENT_FUZZER_ONE_ENTRY_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(CLIENT_FUZZER_ONE_ENTRY_OBJS:.o=.dep)
-endif
 endif
 
 
