@@ -101,6 +101,7 @@ typedef struct requested_call {
 
 typedef struct channel_registered_method {
   registered_method *server_registered_method;
+  uint32_t flags;
   grpc_mdstr *method;
   grpc_mdstr *host;
 } channel_registered_method;
@@ -153,6 +154,7 @@ struct call_data {
   grpc_completion_queue *cq_new;
 
   grpc_metadata_batch *recv_initial_metadata;
+  bool recv_idempotent_request;
   grpc_metadata_array initial_metadata;
 
   grpc_closure got_initial_metadata;
@@ -172,6 +174,7 @@ struct request_matcher {
 struct registered_method {
   char *method;
   char *host;
+  uint32_t flags;
   request_matcher request_matcher;
   registered_method *next;
 };
@@ -472,6 +475,9 @@ static void start_new_rpc(grpc_exec_ctx *exec_ctx, grpc_call_element *elem) {
       if (!rm) break;
       if (rm->host != calld->host) continue;
       if (rm->method != calld->path) continue;
+      if ((rm->flags & GRPC_INITIAL_METADATA_IDEMPOTENT_REQUEST) &&
+          !calld->recv_idempotent_request)
+        continue;
       finish_start_new_rpc(exec_ctx, server, elem,
                            &rm->server_registered_method->request_matcher);
       return;
@@ -484,6 +490,9 @@ static void start_new_rpc(grpc_exec_ctx *exec_ctx, grpc_call_element *elem) {
       if (!rm) break;
       if (rm->host != NULL) continue;
       if (rm->method != calld->path) continue;
+      if ((rm->flags & GRPC_INITIAL_METADATA_IDEMPOTENT_REQUEST) &&
+          !calld->recv_idempotent_request)
+        continue;
       finish_start_new_rpc(exec_ctx, server, elem,
                            &rm->server_registered_method->request_matcher);
       return;
@@ -602,9 +611,11 @@ static void server_mutate_op(grpc_call_element *elem,
   call_data *calld = elem->call_data;
 
   if (op->recv_initial_metadata != NULL) {
+    GPR_ASSERT(op->recv_idempotent_request == NULL);
     calld->recv_initial_metadata = op->recv_initial_metadata;
     calld->on_done_recv_initial_metadata = op->recv_initial_metadata_ready;
     op->recv_initial_metadata_ready = &calld->server_on_recv_initial_metadata;
+    op->recv_idempotent_request = &calld->recv_idempotent_request;
   }
 }
 
@@ -758,10 +769,17 @@ static void destroy_channel_elem(grpc_exec_ctx *exec_ctx,
 }
 
 static const grpc_channel_filter server_surface_filter = {
-    server_start_transport_stream_op, grpc_channel_next_op, sizeof(call_data),
-    init_call_elem, grpc_call_stack_ignore_set_pollset, destroy_call_elem,
-    sizeof(channel_data), init_channel_elem, destroy_channel_elem,
-    grpc_call_next_get_peer, "server",
+    server_start_transport_stream_op,
+    grpc_channel_next_op,
+    sizeof(call_data),
+    init_call_elem,
+    grpc_call_stack_ignore_set_pollset,
+    destroy_call_elem,
+    sizeof(channel_data),
+    init_channel_elem,
+    destroy_channel_elem,
+    grpc_call_next_get_peer,
+    "server",
 };
 
 void grpc_server_register_completion_queue(grpc_server *server,
@@ -845,10 +863,12 @@ static int streq(const char *a, const char *b) {
 }
 
 void *grpc_server_register_method(grpc_server *server, const char *method,
-                                  const char *host) {
+                                  const char *host, uint32_t flags) {
   registered_method *m;
-  GRPC_API_TRACE("grpc_server_register_method(server=%p, method=%s, host=%s)",
-                 3, (server, method, host));
+  GRPC_API_TRACE(
+      "grpc_server_register_method(server=%p, method=%s, host=%s, "
+      "flags=0x%08x)",
+      4, (server, method, host, flags));
   if (!method) {
     gpr_log(GPR_ERROR,
             "grpc_server_register_method method string cannot be NULL");
@@ -861,12 +881,18 @@ void *grpc_server_register_method(grpc_server *server, const char *method,
       return NULL;
     }
   }
+  if ((flags & ~GRPC_INITIAL_METADATA_USED_MASK) != 0) {
+    gpr_log(GPR_ERROR, "grpc_server_register_method invalid flags 0x%08x",
+            flags);
+    return NULL;
+  }
   m = gpr_malloc(sizeof(registered_method));
   memset(m, 0, sizeof(*m));
   request_matcher_init(&m->request_matcher, server->max_requested_calls);
   m->method = gpr_strdup(method);
   m->host = gpr_strdup(host);
   m->next = server->registered_methods;
+  m->flags = flags;
   server->registered_methods = m;
   return m;
 }
@@ -930,7 +956,8 @@ void grpc_server_setup_transport(grpc_exec_ctx *exec_ctx, grpc_server *s,
   channel = grpc_channel_create_from_filters(exec_ctx, NULL, filters,
                                              num_filters, args, 0);
   chand = (channel_data *)grpc_channel_stack_element(
-              grpc_channel_get_channel_stack(channel), 0)->channel_data;
+              grpc_channel_get_channel_stack(channel), 0)
+              ->channel_data;
   chand->server = s;
   server_ref(s);
   chand->channel = channel;
@@ -951,12 +978,13 @@ void grpc_server_setup_transport(grpc_exec_ctx *exec_ctx, grpc_server *s,
       method = grpc_mdstr_from_string(rm->method);
       hash = GRPC_MDSTR_KV_HASH(host ? host->hash : 0, method->hash);
       for (probes = 0; chand->registered_methods[(hash + probes) % slots]
-                               .server_registered_method != NULL;
+                           .server_registered_method != NULL;
            probes++)
         ;
       if (probes > max_probes) max_probes = probes;
       crm = &chand->registered_methods[(hash + probes) % slots];
       crm->server_registered_method = rm;
+      crm->flags = rm->flags;
       crm->host = host;
       crm->method = method;
     }
@@ -1279,6 +1307,10 @@ static void begin_call(grpc_exec_ctx *exec_ctx, grpc_server *server,
       cpstr(&rc->data.batch.details->method,
             &rc->data.batch.details->method_capacity, calld->path);
       rc->data.batch.details->deadline = calld->deadline;
+      rc->data.batch.details->flags =
+          0 | (calld->recv_idempotent_request
+                   ? GRPC_INITIAL_METADATA_IDEMPOTENT_REQUEST
+                   : 0);
       break;
     case REGISTERED_CALL:
       *rc->data.registered.deadline = calld->deadline;
