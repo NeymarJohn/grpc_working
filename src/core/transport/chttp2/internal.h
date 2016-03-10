@@ -358,6 +358,9 @@ struct grpc_chttp2_transport {
     /** connectivity tracking */
     grpc_connectivity_state_tracker state_tracker;
   } channel_callback;
+
+  /** Transport op to be applied post-parsing */
+  grpc_transport_op *post_parsing_op;
 };
 
 typedef struct {
@@ -391,6 +394,9 @@ typedef struct {
   grpc_metadata_batch *recv_trailing_metadata;
   grpc_closure *recv_trailing_metadata_finished;
 
+  grpc_transport_stream_stats *collecting_stats;
+  grpc_transport_stream_stats stats;
+
   /** when the application requests writes be closed, the write_closed is
       'queued'; when the close is flow controlled into the send path, we are
       'sending' it; when the write has been performed it is 'sent' */
@@ -417,7 +423,7 @@ typedef struct {
   /** HTTP2 stream id for this stream, or zero if one has not been assigned */
   uint32_t id;
   uint8_t fetching;
-  uint8_t sent_initial_metadata;
+  bool sent_initial_metadata;
   uint8_t sent_message;
   uint8_t sent_trailing_metadata;
   uint8_t read_closed;
@@ -432,6 +438,8 @@ typedef struct {
   gpr_slice fetching_slice;
   size_t stream_fetched;
   grpc_closure finished_fetch;
+  /** stats gathered during the write */
+  grpc_transport_one_way_stats stats;
 } grpc_chttp2_stream_writing;
 
 struct grpc_chttp2_stream_parsing {
@@ -457,6 +465,8 @@ struct grpc_chttp2_stream_parsing {
   int64_t outgoing_window;
   /** number of bytes received - reset at end of parse thread execution */
   int64_t received_bytes;
+  /** stats gathered during the parse */
+  grpc_transport_stream_stats stats;
 
   /** incoming metadata */
   grpc_chttp2_incoming_metadata_buffer metadata_buffer[2];
@@ -509,7 +519,7 @@ void grpc_chttp2_publish_reads(grpc_exec_ctx *exec_ctx,
                                grpc_chttp2_transport_global *global,
                                grpc_chttp2_transport_parsing *parsing);
 
-void grpc_chttp2_list_add_writable_stream(
+bool grpc_chttp2_list_add_writable_stream(
     grpc_chttp2_transport_global *transport_global,
     grpc_chttp2_stream_global *stream_global);
 /** Get a writable stream
@@ -519,14 +529,13 @@ int grpc_chttp2_list_pop_writable_stream(
     grpc_chttp2_transport_writing *transport_writing,
     grpc_chttp2_stream_global **stream_global,
     grpc_chttp2_stream_writing **stream_writing);
-void grpc_chttp2_list_remove_writable_stream(
+bool grpc_chttp2_list_remove_writable_stream(
     grpc_chttp2_transport_global *transport_global,
-    grpc_chttp2_stream_global *stream_global);
+    grpc_chttp2_stream_global *stream_global) GRPC_MUST_USE_RESULT;
 
-/* returns 1 if stream added, 0 if it was already present */
-int grpc_chttp2_list_add_writing_stream(
+void grpc_chttp2_list_add_writing_stream(
     grpc_chttp2_transport_writing *transport_writing,
-    grpc_chttp2_stream_writing *stream_writing) GRPC_MUST_USE_RESULT;
+    grpc_chttp2_stream_writing *stream_writing);
 int grpc_chttp2_list_have_writing_streams(
     grpc_chttp2_transport_writing *transport_writing);
 int grpc_chttp2_list_pop_writing_stream(
@@ -633,6 +642,7 @@ void grpc_chttp2_parsing_become_skip_parser(
     grpc_exec_ctx *exec_ctx, grpc_chttp2_transport_parsing *transport_parsing);
 
 void grpc_chttp2_complete_closure_step(grpc_exec_ctx *exec_ctx,
+                                       grpc_chttp2_stream_global *stream_global,
                                        grpc_closure **pclosure, int success);
 
 #define GRPC_CHTTP2_CLIENT_CONNECT_STRING "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
@@ -769,5 +779,10 @@ void grpc_chttp2_incoming_byte_stream_finished(
 void grpc_chttp2_ack_ping(grpc_exec_ctx *exec_ctx,
                           grpc_chttp2_transport_parsing *parsing,
                           const uint8_t *opaque_8bytes);
+
+/** add a ref to the stream and add it to the writable list;
+    ref will be dropped in writing.c */
+void grpc_chttp2_become_writable(grpc_chttp2_transport_global *transport_global,
+                                 grpc_chttp2_stream_global *stream_global);
 
 #endif
