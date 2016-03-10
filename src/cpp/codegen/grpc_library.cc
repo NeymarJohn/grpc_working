@@ -31,35 +31,10 @@
  *
  */
 
-/**
- * "X-macro" file that lists the flags names of Apple's Network Reachability API, along with a nice
- * Objective-C method name used to query each of them.
- *
- * Example usage: To generate a dictionary from flag value to name, one can do:
+#include <grpc++/impl/codegen/grpc_library.h>
 
-  NSDictionary *flagNames = @{
-#define GRPC_XMACRO_ITEM(methodName, FlagName) \
-    @(kSCNetworkReachabilityFlags ## FlagName): @#methodName,
-#include "GRXReachabilityFlagNames.xmacro.h"
-#undef GRPC_XMACRO_ITEM
-  };
+namespace grpc {
 
-  XCTAssertEqualObjects(flagNames[@(kSCNetworkReachabilityFlagsIsWWAN)], @"isCell");
+GrpcLibraryInterface *g_glip = nullptr;
 
- */
-
-#ifndef GRPC_XMACRO_ITEM
-#error This file is to be used with the "X-macro" pattern: Please #define \
-       GRPC_XMACRO_ITEM(methodName, FlagName), then #include this file, and then #undef \
-       GRPC_XMACRO_ITEM.
-#endif
-
-GRPC_XMACRO_ITEM(isCell, IsWWAN)
-GRPC_XMACRO_ITEM(reachable, Reachable)
-GRPC_XMACRO_ITEM(transientConnection, TransientConnection)
-GRPC_XMACRO_ITEM(connectionRequired, ConnectionRequired)
-GRPC_XMACRO_ITEM(connectionOnTraffic, ConnectionOnTraffic)
-GRPC_XMACRO_ITEM(interventionRequired, InterventionRequired)
-GRPC_XMACRO_ITEM(connectionOnDemand, ConnectionOnDemand)
-GRPC_XMACRO_ITEM(isLocalAddress, IsLocalAddress)
-GRPC_XMACRO_ITEM(isDirect, IsDirect)
+}  // namespace grpc
