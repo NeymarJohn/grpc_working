@@ -36,11 +36,11 @@
 
 #include <stddef.h>
 
-#include "src/core/channel/context.h"
 #include "src/core/iomgr/pollset.h"
 #include "src/core/iomgr/pollset_set.h"
-#include "src/core/transport/byte_stream.h"
 #include "src/core/transport/metadata_batch.h"
+#include "src/core/transport/byte_stream.h"
+#include "src/core/channel/context.h"
 
 /* forward declarations */
 typedef struct grpc_transport grpc_transport;
@@ -81,12 +81,8 @@ void grpc_stream_unref(grpc_exec_ctx *exec_ctx, grpc_stream_refcount *refcount);
 /* Transport stream op: a set of operations to perform on a transport
    against a single stream */
 typedef struct grpc_transport_stream_op {
-  /** Send initial metadata to the peer, from the provided metadata batch.
-      idempotent_request MUST be set if this is non-null */
+  /** Send initial metadata to the peer, from the provided metadata batch. */
   grpc_metadata_batch *send_initial_metadata;
-  /** Iff send_initial_metadata != NULL, flags if this is an idempotent request
-      or not */
-  bool send_idempotent_request;
 
   /** Send trailing metadata to the peer, from the provided metadata batch. */
   grpc_metadata_batch *send_trailing_metadata;
@@ -96,7 +92,6 @@ typedef struct grpc_transport_stream_op {
 
   /** Receive initial metadata from the stream, into provided metadata batch. */
   grpc_metadata_batch *recv_initial_metadata;
-  bool *recv_idempotent_request;
   /** Should be enqueued when initial metadata is ready to be processed. */
   grpc_closure *recv_initial_metadata_ready;
 
@@ -128,7 +123,7 @@ typedef struct grpc_transport_stream_op {
 
 /** Transport op: a set of operations to perform on a transport as a whole */
 typedef struct grpc_transport_op {
-  /** Called when processing of this op is done. */
+  /** called when processing of this op is done */
   grpc_closure *on_consumed;
   /** connectivity monitoring - set connectivity_state to NULL to unsubscribe */
   grpc_closure *on_connectivity_state_change;
@@ -143,13 +138,9 @@ typedef struct grpc_transport_op {
   grpc_status_code goaway_status;
   gpr_slice *goaway_message;
   /** set the callback for accepting new streams;
-      this is a permanent callback, unlike the other one-shot closures.
-      If true, the callback is set to set_accept_stream_fn, with its
-      user_data argument set to set_accept_stream_user_data */
-  bool set_accept_stream;
-  void (*set_accept_stream_fn)(grpc_exec_ctx *exec_ctx, void *user_data,
-                               grpc_transport *transport,
-                               const void *server_data);
+      this is a permanent callback, unlike the other one-shot closures */
+  void (*set_accept_stream)(grpc_exec_ctx *exec_ctx, void *user_data,
+                            grpc_transport *transport, const void *server_data);
   void *set_accept_stream_user_data;
   /** add this transport to a pollset */
   grpc_pollset *bind_pollset;
