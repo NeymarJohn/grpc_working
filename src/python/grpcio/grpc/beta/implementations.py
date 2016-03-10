@@ -61,15 +61,16 @@ class ChannelCredentials(object):
     self._low_credentials = low_credentials
 
 
-def ssl_channel_credentials(root_certificates, private_key, certificate_chain):
+def ssl_channel_credentials(root_certificates=None, private_key=None,
+                            certificate_chain=None):
   """Creates a ChannelCredentials for use with an SSL-enabled Channel.
 
   Args:
-    root_certificates: The PEM-encoded root certificates or None to ask for
+    root_certificates: The PEM-encoded root certificates or unset to ask for
       them to be retrieved from a default location.
-    private_key: The PEM-encoded private key to use or None if no private key
+    private_key: The PEM-encoded private key to use or unset if no private key
       should be used.
-    certificate_chain: The PEM-encoded certificate chain to use or None if no
+    certificate_chain: The PEM-encoded certificate chain to use or unset if no
       certificate chain should be used.
 
   Returns:
@@ -187,13 +188,12 @@ def insecure_channel(host, port):
   Args:
     host: The name of the remote host to which to connect.
     port: The port of the remote host to which to connect.
-      If None only the 'host' part will be used.
 
   Returns:
     A Channel to the remote host through which RPCs may be conducted.
   """
   intermediary_low_channel = _intermediary_low.Channel(
-      '%s:%d' % (host, port) if port else host, None)
+      '%s:%d' % (host, port), None)
   return Channel(intermediary_low_channel._internal, intermediary_low_channel)  # pylint: disable=protected-access
 
 
@@ -203,15 +203,13 @@ def secure_channel(host, port, channel_credentials):
   Args:
     host: The name of the remote host to which to connect.
     port: The port of the remote host to which to connect.
-      If None only the 'host' part will be used.
     channel_credentials: A ChannelCredentials.
 
   Returns:
     A secure Channel to the remote host through which RPCs may be conducted.
   """
   intermediary_low_channel = _intermediary_low.Channel(
-      '%s:%d' % (host, port) if port else host,
-      channel_credentials._low_credentials)
+      '%s:%d' % (host, port), channel_credentials._low_credentials)
   return Channel(intermediary_low_channel._internal, intermediary_low_channel)  # pylint: disable=protected-access
 
 
