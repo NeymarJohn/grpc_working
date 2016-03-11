@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,60 +31,35 @@
  *
  */
 
-#import "GRXWriteable.h"
+#ifndef GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
+#define GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
 
-@implementation GRXWriteable {
-  GRXValueHandler _valueHandler;
-  GRXCompletionHandler _completionHandler;
-}
+#include <grpc/support/time.h>
 
-+ (instancetype)writeableWithSingleHandler:(GRXSingleHandler)handler {
-  if (!handler) {
-    return [[self alloc] init];
-  }
-  return [[self alloc] initWithValueHandler:^(id value) {
-    handler(value, nil);
-  } completionHandler:^(NSError *errorOrNil) {
-    if (errorOrNil) {
-      handler(nil, errorOrNil);
-    }
-  }];
-}
+typedef struct {
+  /// const: multiplier between retry attempts
+  double multiplier;
+  /// const: amount to randomize backoffs
+  double jitter;
+  /// const: minimum time between retries in milliseconds
+  int64_t min_timeout_millis;
+  /// const: maximum time between retries in milliseconds
+  int64_t max_timeout_millis;
 
-+ (instancetype)writeableWithEventHandler:(GRXEventHandler)handler {
-  if (!handler) {
-    return [[self alloc] init];
-  }
-  return [[self alloc] initWithValueHandler:^(id value) {
-    handler(NO, value, nil);
-  } completionHandler:^(NSError *errorOrNil) {
-    handler(YES, nil, errorOrNil);
-  }];
-}
+  /// random number generator
+  uint32_t rng_state;
 
-- (instancetype)init {
-  return [self initWithValueHandler:nil completionHandler:nil];
-}
+  /// current retry timeout in milliseconds
+  int64_t current_timeout_millis;
+} gpr_backoff;
 
-// Designated initializer
-- (instancetype)initWithValueHandler:(GRXValueHandler)valueHandler
-                   completionHandler:(GRXCompletionHandler)completionHandler {
-  if ((self = [super init])) {
-    _valueHandler = valueHandler;
-    _completionHandler = completionHandler;
-  }
-  return self;
-}
+/// Initialize backoff machinery - does not need to be destroyed
+void gpr_backoff_init(gpr_backoff *backoff, double multiplier, double jitter,
+                      int64_t min_timeout_millis, int64_t max_timeout_millis);
 
-- (void)writeValue:(id)value {
-  if (_valueHandler) {
-    _valueHandler(value);
-  }
-}
+/// Begin retry loop: returns a timespec for the NEXT retry
+gpr_timespec gpr_backoff_begin(gpr_backoff *backoff, gpr_timespec now);
+/// Step a retry loop: returns a timespec for the NEXT retry
+gpr_timespec gpr_backoff_step(gpr_backoff *backoff, gpr_timespec now);
 
-- (void)writesFinishedWithError:(NSError *)errorOrNil {
-  if (_completionHandler) {
-    _completionHandler(errorOrNil);
-  }
-}
-@end
+#endif  // GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
