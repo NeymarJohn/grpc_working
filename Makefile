@@ -849,7 +849,6 @@ chttp2_status_conversion_test: $(BINDIR)/$(CONFIG)/chttp2_status_conversion_test
 chttp2_stream_map_test: $(BINDIR)/$(CONFIG)/chttp2_stream_map_test
 chttp2_varint_test: $(BINDIR)/$(CONFIG)/chttp2_varint_test
 compression_test: $(BINDIR)/$(CONFIG)/compression_test
-dns_resolver_connectivity_test: $(BINDIR)/$(CONFIG)/dns_resolver_connectivity_test
 dns_resolver_test: $(BINDIR)/$(CONFIG)/dns_resolver_test
 dualstack_socket_test: $(BINDIR)/$(CONFIG)/dualstack_socket_test
 endpoint_pair_test: $(BINDIR)/$(CONFIG)/endpoint_pair_test
@@ -862,6 +861,7 @@ fling_test: $(BINDIR)/$(CONFIG)/fling_test
 gen_hpack_tables: $(BINDIR)/$(CONFIG)/gen_hpack_tables
 gen_legal_metadata_characters: $(BINDIR)/$(CONFIG)/gen_legal_metadata_characters
 gpr_avl_test: $(BINDIR)/$(CONFIG)/gpr_avl_test
+gpr_backoff_test: $(BINDIR)/$(CONFIG)/gpr_backoff_test
 gpr_cmdline_test: $(BINDIR)/$(CONFIG)/gpr_cmdline_test
 gpr_cpu_test: $(BINDIR)/$(CONFIG)/gpr_cpu_test
 gpr_env_test: $(BINDIR)/$(CONFIG)/gpr_env_test
@@ -1160,7 +1160,6 @@ buildtests_c: privatelibs_c \
   $(BINDIR)/$(CONFIG)/chttp2_stream_map_test \
   $(BINDIR)/$(CONFIG)/chttp2_varint_test \
   $(BINDIR)/$(CONFIG)/compression_test \
-  $(BINDIR)/$(CONFIG)/dns_resolver_connectivity_test \
   $(BINDIR)/$(CONFIG)/dns_resolver_test \
   $(BINDIR)/$(CONFIG)/dualstack_socket_test \
   $(BINDIR)/$(CONFIG)/endpoint_pair_test \
@@ -1171,6 +1170,7 @@ buildtests_c: privatelibs_c \
   $(BINDIR)/$(CONFIG)/fling_stream_test \
   $(BINDIR)/$(CONFIG)/fling_test \
   $(BINDIR)/$(CONFIG)/gpr_avl_test \
+  $(BINDIR)/$(CONFIG)/gpr_backoff_test \
   $(BINDIR)/$(CONFIG)/gpr_cmdline_test \
   $(BINDIR)/$(CONFIG)/gpr_cpu_test \
   $(BINDIR)/$(CONFIG)/gpr_env_test \
@@ -1404,8 +1404,6 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/chttp2_varint_test || ( echo test chttp2_varint_test failed ; exit 1 )
 	$(E) "[RUN]     Testing compression_test"
 	$(Q) $(BINDIR)/$(CONFIG)/compression_test || ( echo test compression_test failed ; exit 1 )
-	$(E) "[RUN]     Testing dns_resolver_connectivity_test"
-	$(Q) $(BINDIR)/$(CONFIG)/dns_resolver_connectivity_test || ( echo test dns_resolver_connectivity_test failed ; exit 1 )
 	$(E) "[RUN]     Testing dns_resolver_test"
 	$(Q) $(BINDIR)/$(CONFIG)/dns_resolver_test || ( echo test dns_resolver_test failed ; exit 1 )
 	$(E) "[RUN]     Testing dualstack_socket_test"
@@ -1422,6 +1420,8 @@ test_c: buildtests_c
 	$(Q) $(BINDIR)/$(CONFIG)/fling_test || ( echo test fling_test failed ; exit 1 )
 	$(E) "[RUN]     Testing gpr_avl_test"
 	$(Q) $(BINDIR)/$(CONFIG)/gpr_avl_test || ( echo test gpr_avl_test failed ; exit 1 )
+	$(E) "[RUN]     Testing gpr_backoff_test"
+	$(Q) $(BINDIR)/$(CONFIG)/gpr_backoff_test || ( echo test gpr_backoff_test failed ; exit 1 )
 	$(E) "[RUN]     Testing gpr_cmdline_test"
 	$(Q) $(BINDIR)/$(CONFIG)/gpr_cmdline_test || ( echo test gpr_cmdline_test failed ; exit 1 )
 	$(E) "[RUN]     Testing gpr_cpu_test"
@@ -2212,6 +2212,7 @@ LIBGPR_SRC = \
     src/core/profiling/stap_timers.c \
     src/core/support/alloc.c \
     src/core/support/avl.c \
+    src/core/support/backoff.c \
     src/core/support/cmdline.c \
     src/core/support/cpu_iphone.c \
     src/core/support/cpu_linux.c \
@@ -6079,38 +6080,6 @@ endif
 endif
 
 
-DNS_RESOLVER_CONNECTIVITY_TEST_SRC = \
-    test/core/client_config/resolvers/dns_resolver_connectivity_test.c \
-
-DNS_RESOLVER_CONNECTIVITY_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(DNS_RESOLVER_CONNECTIVITY_TEST_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/dns_resolver_connectivity_test: openssl_dep_error
-
-else
-
-
-
-$(BINDIR)/$(CONFIG)/dns_resolver_connectivity_test: $(DNS_RESOLVER_CONNECTIVITY_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(DNS_RESOLVER_CONNECTIVITY_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/dns_resolver_connectivity_test
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/core/client_config/resolvers/dns_resolver_connectivity_test.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_dns_resolver_connectivity_test: $(DNS_RESOLVER_CONNECTIVITY_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(DNS_RESOLVER_CONNECTIVITY_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
 DNS_RESOLVER_TEST_SRC = \
     test/core/client_config/resolvers/dns_resolver_test.c \
 
@@ -6491,6 +6460,38 @@ deps_gpr_avl_test: $(GPR_AVL_TEST_OBJS:.o=.dep)
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(GPR_AVL_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+GPR_BACKOFF_TEST_SRC = \
+    test/core/support/backoff_test.c \
+
+GPR_BACKOFF_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(GPR_BACKOFF_TEST_SRC))))
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL.
+
+$(BINDIR)/$(CONFIG)/gpr_backoff_test: openssl_dep_error
+
+else
+
+
+
+$(BINDIR)/$(CONFIG)/gpr_backoff_test: $(GPR_BACKOFF_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(GPR_BACKOFF_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/gpr_backoff_test
+
+endif
+
+$(OBJDIR)/$(CONFIG)/test/core/support/backoff_test.o:  $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_gpr_backoff_test: $(GPR_BACKOFF_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(GPR_BACKOFF_TEST_OBJS:.o=.dep)
 endif
 endif
 

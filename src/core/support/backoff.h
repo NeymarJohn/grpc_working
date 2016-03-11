@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,42 +31,35 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_RESOLVE_ADDRESS_H
-#define GRPC_INTERNAL_CORE_IOMGR_RESOLVE_ADDRESS_H
+#ifndef GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
+#define GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
 
-#include <stddef.h>
-#include "src/core/iomgr/exec_ctx.h"
-#include "src/core/iomgr/iomgr.h"
-
-#define GRPC_MAX_SOCKADDR_SIZE 128
+#include <grpc/support/time.h>
 
 typedef struct {
-  char addr[GRPC_MAX_SOCKADDR_SIZE];
-  size_t len;
-} grpc_resolved_address;
+  /// const: multiplier between retry attempts
+  double multiplier;
+  /// const: amount to randomize backoffs
+  double jitter;
+  /// const: minimum time between retries in milliseconds
+  int64_t min_timeout_millis;
+  /// const: maximum time between retries in milliseconds
+  int64_t max_timeout_millis;
 
-typedef struct {
-  size_t naddrs;
-  grpc_resolved_address *addrs;
-} grpc_resolved_addresses;
+  /// random number generator
+  uint32_t rng_state;
 
-/* Async result callback:
-   On success: addresses is the result, and the callee must call
-   grpc_resolved_addresses_destroy when it's done with them
-   On failure: addresses is NULL */
-typedef void (*grpc_resolve_cb)(grpc_exec_ctx *exec_ctx, void *arg,
-                                grpc_resolved_addresses *addresses);
-/* Asynchronously resolve addr. Use default_port if a port isn't designated
-   in addr, otherwise use the port in addr. */
-/* TODO(ctiller): add a timeout here */
-void grpc_resolve_address(const char *addr, const char *default_port,
-                          grpc_resolve_cb cb, void *arg);
-/* Destroy resolved addresses */
-void grpc_resolved_addresses_destroy(grpc_resolved_addresses *addresses);
+  /// current retry timeout in milliseconds
+  int64_t current_timeout_millis;
+} gpr_backoff;
 
-/* Resolve addr in a blocking fashion. Returns NULL on failure. On success,
-   result must be freed with grpc_resolved_addresses_destroy. */
-grpc_resolved_addresses *grpc_blocking_resolve_address(
-    const char *addr, const char *default_port);
+/// Initialize backoff machinery - does not need to be destroyed
+void gpr_backoff_init(gpr_backoff *backoff, double multiplier, double jitter,
+                      int64_t min_timeout_millis, int64_t max_timeout_millis);
 
-#endif /* GRPC_INTERNAL_CORE_IOMGR_RESOLVE_ADDRESS_H */
+/// Begin retry loop: returns a timespec for the NEXT retry
+gpr_timespec gpr_backoff_begin(gpr_backoff *backoff, gpr_timespec now);
+/// Step a retry loop: returns a timespec for the NEXT retry
+gpr_timespec gpr_backoff_step(gpr_backoff *backoff, gpr_timespec now);
+
+#endif  // GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
