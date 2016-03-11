@@ -36,11 +36,11 @@
 
 #include <stddef.h>
 
-#include "src/core/channel/context.h"
 #include "src/core/iomgr/pollset.h"
 #include "src/core/iomgr/pollset_set.h"
-#include "src/core/transport/byte_stream.h"
 #include "src/core/transport/metadata_batch.h"
+#include "src/core/transport/byte_stream.h"
+#include "src/core/channel/context.h"
 
 /* forward declarations */
 typedef struct grpc_transport grpc_transport;
@@ -81,12 +81,8 @@ void grpc_stream_unref(grpc_exec_ctx *exec_ctx, grpc_stream_refcount *refcount);
 /* Transport stream op: a set of operations to perform on a transport
    against a single stream */
 typedef struct grpc_transport_stream_op {
-  /** Send initial metadata to the peer, from the provided metadata batch.
-      idempotent_request MUST be set if this is non-null */
+  /** Send initial metadata to the peer, from the provided metadata batch. */
   grpc_metadata_batch *send_initial_metadata;
-  /** Iff send_initial_metadata != NULL, flags associated with
-      send_initial_metadata: a bitfield of GRPC_INITIAL_METADATA_xxx */
-  uint32_t send_initial_metadata_flags;
 
   /** Send trailing metadata to the peer, from the provided metadata batch. */
   grpc_metadata_batch *send_trailing_metadata;
@@ -96,7 +92,6 @@ typedef struct grpc_transport_stream_op {
 
   /** Receive initial metadata from the stream, into provided metadata batch. */
   grpc_metadata_batch *recv_initial_metadata;
-  bool *recv_idempotent_request;
   /** Should be enqueued when initial metadata is ready to be processed. */
   grpc_closure *recv_initial_metadata_ready;
 
