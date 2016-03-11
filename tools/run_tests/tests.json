@@ -261,27 +261,6 @@
       "posix", 
       "windows"
     ], 
-    "cpu_cost": 0.1, 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "gtest": false, 
-    "language": "c", 
-    "name": "dns_resolver_connectivity_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "args": [], 
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
     "cpu_cost": 1.0, 
     "exclude_configs": [], 
     "flaky": false, 
@@ -425,27 +404,6 @@
     "gtest": false, 
     "language": "c", 
     "name": "gpr_avl_test", 
-    "platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ]
-  }, 
-  {
-    "args": [], 
-    "ci_platforms": [
-      "linux", 
-      "mac", 
-      "posix", 
-      "windows"
-    ], 
-    "cpu_cost": 1.0, 
-    "exclude_configs": [], 
-    "flaky": false, 
-    "gtest": false, 
-    "language": "c", 
-    "name": "gpr_backoff_test", 
     "platforms": [
       "linux", 
       "mac", 
@@ -2274,7 +2232,7 @@
       "mac", 
       "posix"
     ], 
-    "cpu_cost": 0.5, 
+    "cpu_cost": 10, 
     "exclude_configs": [], 
     "flaky": false, 
     "gtest": false, 
