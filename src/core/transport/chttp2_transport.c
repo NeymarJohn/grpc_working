@@ -851,11 +851,9 @@ static void perform_stream_op_locked(
     if (stream_global->write_closed) {
       grpc_chttp2_complete_closure_step(
           exec_ctx, &stream_global->send_message_finished, 0);
-    } else {
+    } else if (stream_global->id != 0) {
       stream_global->send_message = op->send_message;
-      if (stream_global->id != 0) {
-        grpc_chttp2_become_writable(transport_global, stream_global);
-      }
+      grpc_chttp2_become_writable(transport_global, stream_global);
     }
   }
 
