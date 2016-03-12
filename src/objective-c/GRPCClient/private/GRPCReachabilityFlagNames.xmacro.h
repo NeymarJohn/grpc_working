@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,42 +31,35 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_IOMGR_RESOLVE_ADDRESS_H
-#define GRPC_INTERNAL_CORE_IOMGR_RESOLVE_ADDRESS_H
+/**
+ * "X-macro" file that lists the flags names of Apple's Network Reachability API, along with a nice
+ * Objective-C method name used to query each of them.
+ *
+ * Example usage: To generate a dictionary from flag value to name, one can do:
 
-#include <stddef.h>
-#include "src/core/iomgr/exec_ctx.h"
-#include "src/core/iomgr/iomgr.h"
+  NSDictionary *flagNames = @{
+#define GRPC_XMACRO_ITEM(methodName, FlagName) \
+    @(kSCNetworkReachabilityFlags ## FlagName): @#methodName,
+#include "GRXReachabilityFlagNames.xmacro.h"
+#undef GRPC_XMACRO_ITEM
+  };
 
-#define GRPC_MAX_SOCKADDR_SIZE 128
+  XCTAssertEqualObjects(flagNames[@(kSCNetworkReachabilityFlagsIsWWAN)], @"isCell");
 
-typedef struct {
-  char addr[GRPC_MAX_SOCKADDR_SIZE];
-  size_t len;
-} grpc_resolved_address;
+ */
 
-typedef struct {
-  size_t naddrs;
-  grpc_resolved_address *addrs;
-} grpc_resolved_addresses;
+#ifndef GRPC_XMACRO_ITEM
+#error This file is to be used with the "X-macro" pattern: Please #define \
+       GRPC_XMACRO_ITEM(methodName, FlagName), then #include this file, and then #undef \
+       GRPC_XMACRO_ITEM.
+#endif
 
-/* Async result callback:
-   On success: addresses is the result, and the callee must call
-   grpc_resolved_addresses_destroy when it's done with them
-   On failure: addresses is NULL */
-typedef void (*grpc_resolve_cb)(grpc_exec_ctx *exec_ctx, void *arg,
-                                grpc_resolved_addresses *addresses);
-/* Asynchronously resolve addr. Use default_port if a port isn't designated
-   in addr, otherwise use the port in addr. */
-/* TODO(ctiller): add a timeout here */
-void grpc_resolve_address(const char *addr, const char *default_port,
-                          grpc_resolve_cb cb, void *arg);
-/* Destroy resolved addresses */
-void grpc_resolved_addresses_destroy(grpc_resolved_addresses *addresses);
-
-/* Resolve addr in a blocking fashion. Returns NULL on failure. On success,
-   result must be freed with grpc_resolved_addresses_destroy. */
-extern grpc_resolved_addresses *(*grpc_blocking_resolve_address)(
-    const char *name, const char *default_port);
-
-#endif /* GRPC_INTERNAL_CORE_IOMGR_RESOLVE_ADDRESS_H */
+GRPC_XMACRO_ITEM(isCell, IsWWAN)
+GRPC_XMACRO_ITEM(reachable, Reachable)
+GRPC_XMACRO_ITEM(transientConnection, TransientConnection)
+GRPC_XMACRO_ITEM(connectionRequired, ConnectionRequired)
+GRPC_XMACRO_ITEM(connectionOnTraffic, ConnectionOnTraffic)
+GRPC_XMACRO_ITEM(interventionRequired, InterventionRequired)
+GRPC_XMACRO_ITEM(connectionOnDemand, ConnectionOnDemand)
+GRPC_XMACRO_ITEM(isLocalAddress, IsLocalAddress)
+GRPC_XMACRO_ITEM(isDirect, IsDirect)
