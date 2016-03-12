@@ -31,35 +31,35 @@
  *
  */
 
-/**
- * "X-macro" file that lists the flags names of Apple's Network Reachability API, along with a nice
- * Objective-C method name used to query each of them.
- *
- * Example usage: To generate a dictionary from flag value to name, one can do:
+#ifndef GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
+#define GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
 
-  NSDictionary *flagNames = @{
-#define GRPC_XMACRO_ITEM(methodName, FlagName) \
-    @(kSCNetworkReachabilityFlags ## FlagName): @#methodName,
-#include "GRXReachabilityFlagNames.xmacro.h"
-#undef GRPC_XMACRO_ITEM
-  };
+#include <grpc/support/time.h>
 
-  XCTAssertEqualObjects(flagNames[@(kSCNetworkReachabilityFlagsIsWWAN)], @"isCell");
+typedef struct {
+  /// const: multiplier between retry attempts
+  double multiplier;
+  /// const: amount to randomize backoffs
+  double jitter;
+  /// const: minimum time between retries in milliseconds
+  int64_t min_timeout_millis;
+  /// const: maximum time between retries in milliseconds
+  int64_t max_timeout_millis;
 
- */
+  /// random number generator
+  uint32_t rng_state;
 
-#ifndef GRPC_XMACRO_ITEM
-#error This file is to be used with the "X-macro" pattern: Please #define \
-       GRPC_XMACRO_ITEM(methodName, FlagName), then #include this file, and then #undef \
-       GRPC_XMACRO_ITEM.
-#endif
+  /// current retry timeout in milliseconds
+  int64_t current_timeout_millis;
+} gpr_backoff;
 
-GRPC_XMACRO_ITEM(isCell, IsWWAN)
-GRPC_XMACRO_ITEM(reachable, Reachable)
-GRPC_XMACRO_ITEM(transientConnection, TransientConnection)
-GRPC_XMACRO_ITEM(connectionRequired, ConnectionRequired)
-GRPC_XMACRO_ITEM(connectionOnTraffic, ConnectionOnTraffic)
-GRPC_XMACRO_ITEM(interventionRequired, InterventionRequired)
-GRPC_XMACRO_ITEM(connectionOnDemand, ConnectionOnDemand)
-GRPC_XMACRO_ITEM(isLocalAddress, IsLocalAddress)
-GRPC_XMACRO_ITEM(isDirect, IsDirect)
+/// Initialize backoff machinery - does not need to be destroyed
+void gpr_backoff_init(gpr_backoff *backoff, double multiplier, double jitter,
+                      int64_t min_timeout_millis, int64_t max_timeout_millis);
+
+/// Begin retry loop: returns a timespec for the NEXT retry
+gpr_timespec gpr_backoff_begin(gpr_backoff *backoff, gpr_timespec now);
+/// Step a retry loop: returns a timespec for the NEXT retry
+gpr_timespec gpr_backoff_step(gpr_backoff *backoff, gpr_timespec now);
+
+#endif  // GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
