@@ -35,7 +35,6 @@
 
 #include <grpc/grpc.h>
 
-@class GRPCCompletionQueue;
 struct grpc_channel_credentials;
 
 
@@ -81,6 +80,4 @@ struct grpc_channel_credentials;
 + (nonnull GRPCChannel *)insecureChannelWithHost:(nonnull NSString *)host
                                      channelArgs:(nullable NSDictionary *)channelArgs;
 
-- (nullable grpc_call *)unmanagedCallWithPath:(nonnull NSString *)path
-                              completionQueue:(nonnull GRPCCompletionQueue *)queue;
 @end
