@@ -31,46 +31,15 @@
  *
  */
 
-#include "src/core/iomgr/exec_ctx.h"
+#ifndef GRPCXX_IMPL_CODEGEN_SYNC_H
+#define GRPCXX_IMPL_CODEGEN_SYNC_H
 
-#include <grpc/support/log.h>
+#include <grpc++/impl/codegen/config.h>
 
-#include "src/core/profiling/timers.h"
+#ifdef GRPC_CXX0X_NO_THREAD
+#include <grpc++/impl/codegen/sync_no_cxx11.h>
+#else
+#include <grpc++/impl/codegen/sync_cxx11.h>
+#endif
 
-bool grpc_exec_ctx_flush(grpc_exec_ctx *exec_ctx) {
-  bool did_something = 0;
-  GPR_TIMER_BEGIN("grpc_exec_ctx_flush", 0);
-  while (!grpc_closure_list_empty(exec_ctx->closure_list)) {
-    grpc_closure *c = exec_ctx->closure_list.head;
-    exec_ctx->closure_list.head = exec_ctx->closure_list.tail = NULL;
-    while (c != NULL) {
-      bool success = (bool)(c->final_data & 1);
-      grpc_closure *next = (grpc_closure *)(c->final_data & ~(uintptr_t)1);
-      did_something = true;
-      GPR_TIMER_BEGIN("grpc_exec_ctx_flush.cb", 0);
-      c->cb(exec_ctx, c->cb_arg, success);
-      GPR_TIMER_END("grpc_exec_ctx_flush.cb", 0);
-      c = next;
-    }
-  }
-  GPR_TIMER_END("grpc_exec_ctx_flush", 0);
-  return did_something;
-}
-
-void grpc_exec_ctx_finish(grpc_exec_ctx *exec_ctx) {
-  grpc_exec_ctx_flush(exec_ctx);
-}
-
-void grpc_exec_ctx_enqueue(grpc_exec_ctx *exec_ctx, grpc_closure *closure,
-                           bool success,
-                           grpc_workqueue *offload_target_or_null) {
-  GPR_ASSERT(offload_target_or_null == NULL);
-  grpc_closure_list_add(&exec_ctx->closure_list, closure, success);
-}
-
-void grpc_exec_ctx_enqueue_list(grpc_exec_ctx *exec_ctx,
-                                grpc_closure_list *list,
-                                grpc_workqueue *offload_target_or_null) {
-  GPR_ASSERT(offload_target_or_null == NULL);
-  grpc_closure_list_move(list, &exec_ctx->closure_list);
-}
+#endif  // GRPCXX_IMPL_CODEGEN_SYNC_H
