@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,60 +31,47 @@
  *
  */
 
-#import "GRXWriteable.h"
+#import <Foundation/Foundation.h>
+#import <SystemConfiguration/SystemConfiguration.h>
 
-@implementation GRXWriteable {
-  GRXValueHandler _valueHandler;
-  GRXCompletionHandler _completionHandler;
-}
+@interface GRPCReachabilityFlags : NSObject
 
-+ (instancetype)writeableWithSingleHandler:(GRXSingleHandler)handler {
-  if (!handler) {
-    return [[self alloc] init];
-  }
-  return [[self alloc] initWithValueHandler:^(id value) {
-    handler(value, nil);
-  } completionHandler:^(NSError *errorOrNil) {
-    if (errorOrNil) {
-      handler(nil, errorOrNil);
-    }
-  }];
-}
++ (nonnull instancetype)flagsWithFlags:(SCNetworkReachabilityFlags)flags;
 
-+ (instancetype)writeableWithEventHandler:(GRXEventHandler)handler {
-  if (!handler) {
-    return [[self alloc] init];
-  }
-  return [[self alloc] initWithValueHandler:^(id value) {
-    handler(NO, value, nil);
-  } completionHandler:^(NSError *errorOrNil) {
-    handler(YES, nil, errorOrNil);
-  }];
-}
+/**
+ * One accessor method to query each of the different flags. Example:
 
-- (instancetype)init {
-  return [self initWithValueHandler:nil completionHandler:nil];
-}
+@property(nonatomic, readonly) BOOL isCell;
 
-// Designated initializer
-- (instancetype)initWithValueHandler:(GRXValueHandler)valueHandler
-                   completionHandler:(GRXCompletionHandler)completionHandler {
-  if ((self = [super init])) {
-    _valueHandler = valueHandler;
-    _completionHandler = completionHandler;
-  }
-  return self;
-}
+ */
+#define GRPC_XMACRO_ITEM(methodName, FlagName) \
+@property(nonatomic, readonly) BOOL methodName;
 
-- (void)writeValue:(id)value {
-  if (_valueHandler) {
-    _valueHandler(value);
-  }
-}
+#include "GRPCReachabilityFlagNames.xmacro.h"
+#undef GRPC_XMACRO_ITEM
 
-- (void)writesFinishedWithError:(NSError *)errorOrNil {
-  if (_completionHandler) {
-    _completionHandler(errorOrNil);
-  }
-}
+@property(nonatomic, readonly) BOOL isHostReachable;
+@end
+
+
+@interface GRPCConnectivityMonitor : NSObject
+
++ (nullable instancetype)monitorWithHost:(nonnull NSString *)hostName;
+
+- (nonnull instancetype)init NS_UNAVAILABLE;
+
+/**
+ * Queue on which callbacks will be dispatched. Default is the main queue. Set it before calling
+ * handleLossWithHandler:.
+ */
+// TODO(jcanizales): Default to a serial background queue instead.
+@property(nonatomic, strong, null_resettable) dispatch_queue_t queue;
+
+/**
+ * Calls handler every time the connectivity to this instance's host is lost. If this instance is
+ * released before that happens, the handler won't be called.
+ * Only one handler is active at a time, so if this method is called again before the previous
+ * handler has been called, it might never be called at all (or yes, if it has already been queued).
+ */
+- (void)handleLossWithHandler:(nonnull void (^)())handler;
 @end
