@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -162,7 +162,8 @@ void tsi_ssl_handshaker_factory_destroy(tsi_ssl_handshaker_factory *self);
    Still TODO(jboeuf):
    - handle mixed case.
    - handle %encoded chars.
-   - handle public suffix wildchar more strictly (e.g. *.co.uk) */
+   - handle public suffix wildchar more strictly (e.g. *.co.uk)
+   - handle IP addresses in SAN. */
 int tsi_ssl_peer_matches_name(const tsi_peer *peer, const char *name);
 
 #ifdef __cplusplus
