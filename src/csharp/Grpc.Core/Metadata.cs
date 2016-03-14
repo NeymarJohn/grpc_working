@@ -323,7 +323,7 @@ namespace Grpc.Core
 
             private static string NormalizeKey(string key)
             {
-                var normalized = GrpcPreconditions.CheckNotNull(key, "key").ToLowerInvariant();
+                var normalized = GrpcPreconditions.CheckNotNull(key, "key").ToLower(CultureInfo.InvariantCulture);
                 GrpcPreconditions.CheckArgument(ValidKeyRegex.IsMatch(normalized), 
                     "Metadata entry key not valid. Keys can only contain lowercase alphanumeric characters, underscores and hyphens.");
                 return normalized;
