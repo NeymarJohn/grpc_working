@@ -149,9 +149,6 @@ function _readsDone(status) {
   if (!status) {
     status = {code: grpc.status.OK, details: 'OK'};
   }
-  if (status.code !== grpc.status.OK) {
-    this.call.cancelWithStatus(status.code, status.details);
-  }
   this.finished = true;
   this.read_status = status;
   this._emitStatusIfDone();
@@ -411,7 +408,7 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
         }
       }
       if (status.code !== grpc.status.OK) {
-        error = new Error(status.details);
+        error = new Error(response.status.details);
         error.code = status.code;
         error.metadata = status.metadata;
         callback(error);
