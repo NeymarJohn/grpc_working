@@ -40,11 +40,7 @@ export PATH=$ROOT/bins/$CONFIG:$ROOT/bins/$CONFIG/protobuf:$PATH
 export CFLAGS="-I$ROOT/include -std=gnu99"
 export LDFLAGS="-L$ROOT/libs/$CONFIG"
 export GRPC_PYTHON_BUILD_WITH_CYTHON=1
-
-if [ "$CONFIG" = "gcov" ]
-then
-  export GRPC_PYTHON_ENABLE_CYTHON_TRACING=1
-fi
+export GRPC_PYTHON_ENABLE_CYTHON_TRACING=1
 
 tox --notest
 

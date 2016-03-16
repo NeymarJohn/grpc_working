@@ -4,15 +4,16 @@ gRPC in 3 minutes (PHP)
 PREREQUISITES
 -------------
 
-This requires `php` >=5.5, `phpize`, `pecl`, `phpunit`
+This requires PHP 5.5 or greater.
 
 INSTALL
 -------
- - Install the gRPC PHP extension
+ - On Mac OS X, install [homebrew][]. Run the following command to install gRPC.
 
    ```sh
-   $ [sudo] pecl install grpc-beta
+   $ curl -fsSL https://goo.gl/getgrpc | bash -s php
    ```
+   This will download and run the [gRPC install script][] and compile the gRPC PHP extension.
 
  - Clone this repository
 
@@ -36,7 +37,6 @@ TRY IT!
    Please follow the instruction in [Node][] to run the server
    ```
    $ cd examples/node
-   $ npm install
    $ nodejs greeter_server.js
    ```
 
@@ -58,5 +58,7 @@ TUTORIAL
 
 You can find a more detailed tutorial in [gRPC Basics: PHP][]
 
+[homebrew]:http://brew.sh
+[gRPC install script]:https://raw.githubusercontent.com/grpc/homebrew-grpc/master/scripts/install
 [Node]:https://github.com/grpc/grpc/tree/master/examples/node
 [gRPC Basics: PHP]:http://www.grpc.io/docs/tutorials/basic/php.html

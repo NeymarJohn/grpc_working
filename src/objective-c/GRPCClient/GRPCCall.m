@@ -37,8 +37,6 @@
 #include <grpc/support/time.h>
 #import <RxLibrary/GRXConcurrentWriteable.h>
 
-#import "private/GRPCConnectivityMonitor.h"
-#import "private/GRPCHost.h"
 #import "private/GRPCRequestHeaders.h"
 #import "private/GRPCWrappedCall.h"
 #import "private/NSData+GRPC.h"
@@ -73,11 +71,8 @@ NSString * const kGRPCTrailersKey = @"io.grpc.TrailersKey";
 @implementation GRPCCall {
   dispatch_queue_t _callQueue;
 
-  NSString *_host;
-  NSString *_path;
   GRPCWrappedCall *_wrappedCall;
   dispatch_once_t _callAlreadyInvoked;
-  GRPCConnectivityMonitor *_connectivityMonitor;
 
   // The C gRPC library has less guarantees on the ordering of events than we
   // do. Particularly, in the face of errors, there's no ordering guarantee at
@@ -120,11 +115,13 @@ NSString * const kGRPCTrailersKey = @"io.grpc.TrailersKey";
                 format:@"The requests writer can't be already started."];
   }
   if ((self = [super init])) {
-    _host = [host copy];
-    _path = [path copy];
+    _wrappedCall = [[GRPCWrappedCall alloc] initWithHost:host path:path];
+    if (!_wrappedCall) {
+      return nil;
+    }
 
     // Serial queue to invoke the non-reentrant methods of the grpc_call object.
-    _callQueue = dispatch_queue_create("io.grpc.call", NULL);
+    _callQueue = dispatch_queue_create("org.grpc.call", NULL);
 
     _requestWriter = requestWriter;
 
@@ -159,7 +156,7 @@ NSString * const kGRPCTrailersKey = @"io.grpc.TrailersKey";
 - (void)cancel {
   [self finishWithError:[NSError errorWithDomain:kGRPCErrorDomain
                                             code:GRPCErrorCodeCancelled
-                                        userInfo:@{NSLocalizedDescriptionKey: @"Canceled by app"}]];
+                                        userInfo:nil]];
   [self cancelCall];
 }
 
@@ -357,29 +354,8 @@ NSString * const kGRPCTrailersKey = @"io.grpc.TrailersKey";
   _retainSelf = self;
 
   _responseWriteable = [[GRXConcurrentWriteable alloc] initWithWriteable:writeable];
-
-  _wrappedCall = [[GRPCWrappedCall alloc] initWithHost:_host path:_path];
-  NSAssert(_wrappedCall, @"Error allocating RPC objects. Low memory?");
-
   [self sendHeaders:_requestHeaders];
   [self invokeCall];
-  // TODO(jcanizales): Extract this logic somewhere common.
-  NSString *host = [NSURL URLWithString:[@"https://" stringByAppendingString:_host]].host;
-  if (!host) {
-    // TODO(jcanizales): Check this on init.
-    [NSException raise:NSInvalidArgumentException format:@"host of %@ is nil", _host];
-  }
-  __weak typeof(self) weakSelf = self;
-  _connectivityMonitor = [GRPCConnectivityMonitor monitorWithHost:host];
-  [_connectivityMonitor handleLossWithHandler:^{
-    typeof(self) strongSelf = weakSelf;
-    if (strongSelf) {
-      [strongSelf finishWithError:[NSError errorWithDomain:kGRPCErrorDomain
-                                                      code:GRPCErrorCodeUnavailable
-                                                  userInfo:@{NSLocalizedDescriptionKey: @"Connectivity lost."}]];
-      [[GRPCHost hostWithAddress:strongSelf->_host] disconnect];
-    }
-  }];
 }
 
 - (void)setState:(GRXWriterState)newState {
@@ -409,5 +385,4 @@ NSString * const kGRPCTrailersKey = @"io.grpc.TrailersKey";
       return;
   }
 }
-
 @end

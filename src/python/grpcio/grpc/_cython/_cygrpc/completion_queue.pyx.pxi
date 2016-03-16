@@ -140,8 +140,7 @@ cdef class CompletionQueue:
         grpc_completion_queue_shutdown(self.c_completion_queue)
       # Pump the queue
       while not self.is_shutdown:
-        with nogil:
-          event = grpc_completion_queue_next(
-              self.c_completion_queue, c_deadline, NULL)
+        event = grpc_completion_queue_next(
+            self.c_completion_queue, c_deadline, NULL)
         self._interpret_event(event)
       grpc_completion_queue_destroy(self.c_completion_queue)
