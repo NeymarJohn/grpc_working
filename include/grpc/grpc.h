@@ -36,13 +36,13 @@
 
 #include <grpc/status.h>
 
+#include <stddef.h>
 #include <grpc/byte_buffer.h>
-#include <grpc/impl/codegen/connectivity_state.h>
-#include <grpc/impl/codegen/grpc_types.h>
-#include <grpc/impl/codegen/propagation_bits.h>
 #include <grpc/support/slice.h>
 #include <grpc/support/time.h>
-#include <stddef.h>
+#include <grpc/impl/codegen/connectivity_state.h>
+#include <grpc/impl/codegen/propagation_bits.h>
+#include <grpc/impl/codegen/grpc_types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -299,8 +299,7 @@ grpc_server_request_call(grpc_server *server, grpc_call **call,
     Must be called before grpc_server_start.
     Returns NULL on failure. */
 GRPCAPI void *grpc_server_register_method(grpc_server *server,
-                                          const char *method, const char *host,
-                                          uint32_t flags);
+                                          const char *method, const char *host);
 
 /** Request notification of a new pre-registered call. 'cq_for_notification'
     must have been registered to the server via
