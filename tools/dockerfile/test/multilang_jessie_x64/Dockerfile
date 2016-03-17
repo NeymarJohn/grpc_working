@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -63,42 +63,78 @@ RUN apt-get update && apt-get install -y \
 # Build profiling
 RUN apt-get update && apt-get install -y time && apt-get clean
 
+#================
+# C# dependencies
+
+# Update to a newer version of mono
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+RUN echo "deb http://download.mono-project.com/repo/debian wheezy main" | tee /etc/apt/sources.list.d/mono-xamarin.list
+RUN echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
+RUN echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
+RUN echo "deb http://download.mono-project.com/repo/debian wheezy-libtiff-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
+
+# Install dependencies
+RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y \
+    mono-devel \
+    ca-certificates-mono \
+    nuget \
+    && apt-get clean
+
 #=================
 # C++ dependencies
 RUN apt-get update && apt-get -y install libgflags-dev libgtest-dev libc++-dev clang && apt-get clean
 
+#==================
+# Node dependencies
+
+# Install nvm
+RUN touch .profile
+RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.25.4/install.sh | bash
+RUN /bin/bash -l -c "nvm install 0.12 && npm config set cache /tmp/npm-cache"
+
 #=================
-# Update clang to a version with improved tsan
+# PHP dependencies
 
-RUN apt-get update && apt-get -y install python cmake && apt-get clean
+# Install dependencies
 
-RUN git clone -n -b release_38 http://llvm.org/git/llvm.git && \
-  cd llvm && git checkout ad57503 && cd ..
-RUN git clone -n -b release_38 http://llvm.org/git/clang.git && \
-  cd clang && git checkout ad2c56e && cd ..
-RUN git clone -n -b release_38 http://llvm.org/git/compiler-rt.git && \
-  cd compiler-rt && git checkout 3176922 && cd ..
-RUN git clone -n -b release_38 \
-  http://llvm.org/git/clang-tools-extra.git && cd clang-tools-extra && \
-  git checkout c288525 && cd ..
-RUN git clone -n -b release_38 http://llvm.org/git/libcxx.git && \
-  cd libcxx && git checkout fda3549  && cd ..
-RUN git clone -n -b release_38 http://llvm.org/git/libcxxabi.git && \
-  cd libcxxabi && git checkout 8d4e51d && cd ..
+RUN /bin/bash -l -c "echo 'deb http://packages.dotdeb.org wheezy-php55 all' \
+    >> /etc/apt/sources.list.d/dotdeb.list"
+RUN /bin/bash -l -c "echo 'deb-src http://packages.dotdeb.org wheezy-php55 all' \
+    >> /etc/apt/sources.list.d/dotdeb.list"
+RUN wget http://www.dotdeb.org/dotdeb.gpg -O- | apt-key add -
 
-RUN mv clang llvm/tools
-RUN mv compiler-rt llvm/projects
-RUN mv clang-tools-extra llvm/tools/clang/tools
-RUN mv libcxx llvm/projects
-RUN mv libcxxabi llvm/projects
+RUN apt-get update && apt-get install -y \
+    git php5 php5-dev phpunit unzip
 
-RUN mkdir llvm-build
-RUN cd llvm-build && cmake \
-  -DCMAKE_BUILD_TYPE:STRING=Release \
-  -DCMAKE_INSTALL_PREFIX:STRING=/usr \
-  -DLLVM_TARGETS_TO_BUILD:STRING=X86 \
-  ../llvm
-RUN make -C llvm-build && make -C llvm-build install && rm -rf llvm-build
+#==================
+# Ruby dependencies
+
+# Install rvm
+RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+RUN \curl -sSL https://get.rvm.io | bash -s stable
+
+# Install Ruby 2.1
+RUN /bin/bash -l -c "rvm install ruby-2.1"
+RUN /bin/bash -l -c "rvm use --default ruby-2.1"
+RUN /bin/bash -l -c "echo 'gem: --no-ri --no-rdoc' > ~/.gemrc"
+RUN /bin/bash -l -c "echo 'export PATH=/usr/local/rvm/bin:$PATH' >> ~/.bashrc"
+RUN /bin/bash -l -c "echo 'rvm --default use ruby-2.1' >> ~/.bashrc"
+RUN /bin/bash -l -c "gem install bundler --no-ri --no-rdoc"
+
+#====================
+# Python dependencies
+
+# Install dependencies
+
+RUN apt-get update && apt-get install -y \
+    python-all-dev \
+    python3-all-dev \
+    python-pip
+
+# Install Python packages from PyPI
+RUN pip install pip --upgrade
+RUN pip install virtualenv
+RUN pip install futures==2.2.0 enum34==1.0.4 protobuf==3.0.0a2 tox
 
 # Prepare ccache
 RUN ln -s /usr/bin/ccache /usr/local/bin/gcc

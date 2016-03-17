@@ -1,5 +1,5 @@
-#!/bin/bash
-# Copyright 2015-2016, Google Inc.
+#!/usr/bin/env bash
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,11 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-# Creates a standard jenkins worker on GCE.
-
+#
+# This script is invoked by Jenkins and runs interop test suite.
 set -ex
 
-cd $(dirname $0)
+# Enter the gRPC repo root
+cd $(dirname $0)/../..
 
-CLOUD_PROJECT=grpc-testing
-ZONE=us-central1-a
-
-INSTANCE_NAME="${1:-grpc-jenkins-worker1}"
-
-gcloud compute instances create $INSTANCE_NAME \
-    --project="$CLOUD_PROJECT" \
-    --zone "$ZONE" \
-    --machine-type n1-standard-8 \
-    --image ubuntu-14-04 \
-    --boot-disk-size 1000
-
-echo 'Created GCE instance, waiting 60 seconds for it to come online.'
-sleep 60
-
-gcloud compute copy-files \
-    --project="$CLOUD_PROJECT" \
-    --zone "$ZONE" \
-    jenkins_master.pub linux_worker_init.sh ${INSTANCE_NAME}:~
-
-gcloud compute ssh \
-    --project="$CLOUD_PROJECT" \
-    --zone "$ZONE" \
-    $INSTANCE_NAME --command "./linux_worker_init.sh"
+tools/run_tests/run_interop_tests.py -l all -s all --cloud_to_prod --cloud_to_prod_auth --prod_servers default cloud_gateway gateway_v2 cloud_gateway_v2 gateway_v4 cloud_gateway_v4 --use_docker --http2_interop -t -j 12 $@ || true
