@@ -1,4 +1,6 @@
-# Copyright 2015-2016, Google Inc.
+#!/bin/sh
+
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,47 +29,19 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-cimport cpython
+for p in python2.7 python2.6 python2 python not_found ; do 
 
-import pkg_resources
-import os.path
-import sys
+  python=`which $p || echo not_found`
 
-# TODO(atash): figure out why the coverage tool gets confused about the Cython
-# coverage plugin when the following files don't have a '.pxi' suffix.
-include "grpc/_cython/_cygrpc/call.pyx.pxi"
-include "grpc/_cython/_cygrpc/channel.pyx.pxi"
-include "grpc/_cython/_cygrpc/credentials.pyx.pxi"
-include "grpc/_cython/_cygrpc/completion_queue.pyx.pxi"
-include "grpc/_cython/_cygrpc/records.pyx.pxi"
-include "grpc/_cython/_cygrpc/security.pyx.pxi"
-include "grpc/_cython/_cygrpc/server.pyx.pxi"
+  if [ -x "$python" ] ; then
+    break
+  fi
 
-#
-# Global state
-#
+done
 
-cdef class _ModuleState:
-
-  cdef bint is_loaded
-
-  def __cinit__(self):
-    if 'win32' in sys.platform:
-      filename = pkg_resources.resource_filename(
-          'grpc._cython', '_windows/grpc_c.64.python')
-      if not pygrpc_load_core(filename):
-        raise ImportError('failed to load core gRPC library')
-    with nogil:
-      grpc_init()
-    self.is_loaded = True
-    with nogil:
-      grpc_set_ssl_roots_override_callback(
-          <grpc_ssl_roots_override_callback>ssl_roots_override_callback)
-
-  def __dealloc__(self):
-    if self.is_loaded:
-      with nogil:
-        grpc_shutdown()
-
-_module_state = _ModuleState()
-
+if [ -x "$python" ] ; then
+  exec $python $@
+else
+  echo "No acceptable version of python found on the system"
+  exit 1
+fi
