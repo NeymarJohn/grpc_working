@@ -31,41 +31,11 @@
  *
  */
 
-#include "src/core/support/backoff.h"
+#ifndef GRPC_INTERNAL_CORE_SURFACE_LAME_CHANNEL_H
+#define GRPC_INTERNAL_CORE_SURFACE_LAME_CHANNEL_H
 
-#include <grpc/support/useful.h>
+#include "src/core/channel/channel_stack.h"
 
-void gpr_backoff_init(gpr_backoff *backoff, double multiplier, double jitter,
-                      int64_t min_timeout_millis, int64_t max_timeout_millis) {
-  backoff->multiplier = multiplier;
-  backoff->jitter = jitter;
-  backoff->min_timeout_millis = min_timeout_millis;
-  backoff->max_timeout_millis = max_timeout_millis;
-  backoff->rng_state = (uint32_t)gpr_now(GPR_CLOCK_REALTIME).tv_nsec;
-}
+extern const grpc_channel_filter grpc_lame_filter;
 
-gpr_timespec gpr_backoff_begin(gpr_backoff *backoff, gpr_timespec now) {
-  backoff->current_timeout_millis = backoff->min_timeout_millis;
-  return gpr_time_add(
-      now, gpr_time_from_millis(backoff->current_timeout_millis, GPR_TIMESPAN));
-}
-
-/* Generate a random number between 0 and 1. */
-static double generate_uniform_random_number(uint32_t *rng_state) {
-  *rng_state = (1103515245 * *rng_state + 12345) % ((uint32_t)1 << 31);
-  return *rng_state / (double)((uint32_t)1 << 31);
-}
-
-gpr_timespec gpr_backoff_step(gpr_backoff *backoff, gpr_timespec now) {
-  double new_timeout_millis =
-      backoff->multiplier * (double)backoff->current_timeout_millis;
-  double jitter_range = backoff->jitter * new_timeout_millis;
-  double jitter =
-      (2 * generate_uniform_random_number(&backoff->rng_state) - 1) *
-      jitter_range;
-  backoff->current_timeout_millis =
-      GPR_CLAMP((int64_t)(new_timeout_millis + jitter),
-                backoff->min_timeout_millis, backoff->max_timeout_millis);
-  return gpr_time_add(
-      now, gpr_time_from_millis(backoff->current_timeout_millis, GPR_TIMESPAN));
-}
+#endif  // GRPC_INTERNAL_CORE_SURFACE_LAME_CHANNEL_H

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,35 +31,42 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
-#define GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
+#include "src/core/census/grpc_plugin.h"
 
-#include <grpc/support/time.h>
+#include <limits.h>
 
-typedef struct {
-  /// const: multiplier between retry attempts
-  double multiplier;
-  /// const: amount to randomize backoffs
-  double jitter;
-  /// const: minimum time between retries in milliseconds
-  int64_t min_timeout_millis;
-  /// const: maximum time between retries in milliseconds
-  int64_t max_timeout_millis;
+#include <grpc/census.h>
 
-  /// random number generator
-  uint32_t rng_state;
+#include "src/core/census/grpc_filter.h"
+#include "src/core/surface/channel_init.h"
+#include "src/core/channel/channel_stack_builder.h"
 
-  /// current retry timeout in milliseconds
-  int64_t current_timeout_millis;
-} gpr_backoff;
+static bool maybe_add_census_filter(grpc_channel_stack_builder *builder,
+                                    void *arg_must_be_null) {
+  const grpc_channel_args *args =
+      grpc_channel_stack_builder_get_channel_arguments(builder);
+  if (grpc_channel_args_is_census_enabled(args)) {
+    return grpc_channel_stack_builder_prepend_filter(
+        builder, &grpc_client_census_filter, NULL, NULL);
+  }
+  return true;
+}
 
-/// Initialize backoff machinery - does not need to be destroyed
-void gpr_backoff_init(gpr_backoff *backoff, double multiplier, double jitter,
-                      int64_t min_timeout_millis, int64_t max_timeout_millis);
+void census_grpc_plugin_init(void) {
+  /* Only initialize census if no one else has and some features are
+   * available. */
+  if (census_enabled() == CENSUS_FEATURE_NONE &&
+      census_supported() != CENSUS_FEATURE_NONE) {
+    if (census_initialize(census_supported())) { /* enable all features. */
+      gpr_log(GPR_ERROR, "Could not initialize census.");
+    }
+  }
+  grpc_channel_init_register_stage(GRPC_CLIENT_CHANNEL, INT_MAX,
+                                   maybe_add_census_filter, NULL);
+  grpc_channel_init_register_stage(GRPC_CLIENT_UCHANNEL, INT_MAX,
+                                   maybe_add_census_filter, NULL);
+  grpc_channel_init_register_stage(GRPC_SERVER_CHANNEL, INT_MAX,
+                                   maybe_add_census_filter, NULL);
+}
 
-/// Begin retry loop: returns a timespec for the NEXT retry
-gpr_timespec gpr_backoff_begin(gpr_backoff *backoff, gpr_timespec now);
-/// Step a retry loop: returns a timespec for the NEXT retry
-gpr_timespec gpr_backoff_step(gpr_backoff *backoff, gpr_timespec now);
-
-#endif  // GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
+void census_grpc_plugin_destroy(void) { census_shutdown(); }
