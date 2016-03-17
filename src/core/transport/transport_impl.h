@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,9 +40,6 @@ typedef struct grpc_transport_vtable {
   /* Memory required for a single stream element - this is allocated by upper
      layers and initialized by the transport */
   size_t sizeof_stream; /* = sizeof(transport stream) */
-
-  /* name of this transport implementation */
-  const char *name;
 
   /* implementation of grpc_transport_init_stream */
   int (*init_stream)(grpc_exec_ctx *exec_ctx, grpc_transport *self,

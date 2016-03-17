@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,26 +31,18 @@
  *
  */
 
-#include <grpc/support/port_platform.h>
-#include "src/core/surface/channel_stack_type.h"
-#include <grpc/support/log.h>
+#include <grpc/grpc.h>
+#include "src/core/census/grpc_filter.h"
+#include "src/core/channel/channel_args.h"
+#include "src/core/channel/compress_filter.h"
+#include "src/core/surface/api_trace.h"
+#include "src/core/surface/completion_queue.h"
+#include "src/core/surface/server.h"
 
-bool grpc_channel_stack_type_is_client(grpc_channel_stack_type type) {
-  switch (type) {
-    case GRPC_CLIENT_CHANNEL:
-      return true;
-    case GRPC_CLIENT_UCHANNEL:
-      return true;
-    case GRPC_CLIENT_SUBCHANNEL:
-      return true;
-    case GRPC_CLIENT_LAME_CHANNEL:
-      return true;
-    case GRPC_CLIENT_DIRECT_CHANNEL:
-      return true;
-    case GRPC_SERVER_CHANNEL:
-      return false;
-    case GRPC_NUM_CHANNEL_STACK_TYPES:
-      break;
-  }
-  GPR_UNREACHABLE_CODE(return true;);
+grpc_server *grpc_server_create(const grpc_channel_args *args, void *reserved) {
+  const grpc_channel_filter *filters[3];
+  size_t num_filters = 0;
+  filters[num_filters++] = &grpc_compress_filter;
+  GRPC_API_TRACE("grpc_server_create(%p, %p)", 2, (args, reserved));
+  return grpc_server_create_from_filters(filters, num_filters, args);
 }
