@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,26 +31,35 @@
  *
  */
 
-#ifndef GRPC_SUPPORT_TLS_GCC_H
-#define GRPC_SUPPORT_TLS_GCC_H
+#ifndef GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
+#define GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
 
-/* Thread local storage based on gcc compiler primitives.
-   #include tls.h to use this - and see that file for documentation */
+#include <grpc/support/time.h>
 
-struct gpr_gcc_thread_local {
-  intptr_t value;
-};
+typedef struct {
+  /// const: multiplier between retry attempts
+  double multiplier;
+  /// const: amount to randomize backoffs
+  double jitter;
+  /// const: minimum time between retries in milliseconds
+  int64_t min_timeout_millis;
+  /// const: maximum time between retries in milliseconds
+  int64_t max_timeout_millis;
 
-#define GPR_TLS_DECL(name) \
-  static __thread struct gpr_gcc_thread_local name = {0}
+  /// random number generator
+  uint32_t rng_state;
 
-#define gpr_tls_init(tls) \
-  do {                    \
-  } while (0)
-#define gpr_tls_destroy(tls) \
-  do {                       \
-  } while (0)
-#define gpr_tls_set(tls, new_value) (((tls)->value) = (new_value))
-#define gpr_tls_get(tls) ((tls)->value)
+  /// current retry timeout in milliseconds
+  int64_t current_timeout_millis;
+} gpr_backoff;
 
-#endif
+/// Initialize backoff machinery - does not need to be destroyed
+void gpr_backoff_init(gpr_backoff *backoff, double multiplier, double jitter,
+                      int64_t min_timeout_millis, int64_t max_timeout_millis);
+
+/// Begin retry loop: returns a timespec for the NEXT retry
+gpr_timespec gpr_backoff_begin(gpr_backoff *backoff, gpr_timespec now);
+/// Step a retry loop: returns a timespec for the NEXT retry
+gpr_timespec gpr_backoff_step(gpr_backoff *backoff, gpr_timespec now);
+
+#endif  // GRPC_INTERNAL_CORE_SUPPORT_BACKOFF_H
