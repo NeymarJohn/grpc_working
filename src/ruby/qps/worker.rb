@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env ruby
 
 # Copyright 2016, Google Inc.
 # All rights reserved.
@@ -29,19 +29,55 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-for p in python2.7 python2.6 python2 python not_found ; do 
+# Worker and worker service implementation
 
-  python=`which $p || echo not_found`
+this_dir = File.expand_path(File.dirname(__FILE__))
+lib_dir = File.join(File.dirname(this_dir), 'lib')
+$LOAD_PATH.unshift(lib_dir) unless $LOAD_PATH.include?(lib_dir)
+$LOAD_PATH.unshift(this_dir) unless $LOAD_PATH.include?(this_dir)
 
-  if [ -x "$python" ] ; then
-    break
-  fi
+require 'grpc'
+require 'optparse'
+require 'histogram'
+require 'etc'
+require 'facter'
+require 'src/proto/grpc/testing/services_services'
 
-done
+class WorkerServiceImpl < Grpc::Testing::WorkerService::Service
+  def run_server(call)
+  end
+  def run_client(call)
+  end
+  def core_count(_args, _call)
+    Grpc::Testing::CoreResponse.new(cores: Facter.value('processors')['count'])
+  end
+  def quit_worker(_args, _call)
+    Thread.new {
+      sleep 3
+      @server.stop
+    }
+    Grpc::Testing::Void.new
+  end
+  def initialize(s)
+    @server = s
+  end
+end
 
-if [ -x "$python" ] ; then
-  exec $python $@
-else
-  echo "No acceptable version of python found on the system"
-  exit 1
-fi
+def main
+  options = {
+    'driver_port' => 0
+  }
+  OptionParser.new do |opts|
+    opts.banner = 'Usage: [--driver_port <port>]'
+    opts.on('--driver_port PORT', '<port>') do |v|
+      options['driver_port'] = v
+    end
+  end.parse!
+  s = GRPC::RpcServer.new
+  s.add_http2_port("0.0.0.0:" + options['driver_port'].to_s,
+                   :this_port_is_insecure)
+  s.handle(WorkerServiceImpl.new(s))
+  s.run
+end
+
+main
