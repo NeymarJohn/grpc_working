@@ -37,7 +37,6 @@
 
 #include "src/core/iomgr/endpoint_pair.h"
 #include "src/core/iomgr/socket_utils_posix.h"
-#include "src/core/iomgr/unix_sockets_posix.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -53,7 +52,7 @@
 
 static void create_sockets(int sv[2]) {
   int flags;
-  grpc_create_socketpair_if_unix(sv);
+  GPR_ASSERT(socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == 0);
   flags = fcntl(sv[0], F_GETFL, 0);
   GPR_ASSERT(fcntl(sv[0], F_SETFL, flags | O_NONBLOCK) == 0);
   flags = fcntl(sv[1], F_GETFL, 0);
