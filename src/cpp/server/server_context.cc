@@ -43,7 +43,6 @@
 #include <grpc/support/log.h>
 
 #include "src/core/channel/compress_filter.h"
-#include "src/core/surface/call.h"
 #include "src/cpp/common/create_auth_context.h"
 
 namespace grpc {
@@ -198,7 +197,7 @@ bool ServerContext::IsCancelled() const {
 
 void ServerContext::set_compression_level(grpc_compression_level level) {
   const grpc_compression_algorithm algorithm_for_level =
-      grpc_call_compression_for_level(call_, level);
+      grpc_compression_algorithm_for_level(level);
   set_compression_algorithm(algorithm_for_level);
 }
 
