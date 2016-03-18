@@ -39,8 +39,6 @@
 #include <grpc/support/log.h>
 #include <grpc/support/useful.h>
 
-extern int grpc_http_trace;
-
 static int handle_response_line(grpc_httpcli_parser *parser) {
   uint8_t *beg = parser->cur_line;
   uint8_t *cur = beg;
@@ -67,9 +65,7 @@ static int handle_response_line(grpc_httpcli_parser *parser) {
   return 1;
 
 error:
-  if (grpc_http_trace) {
-    gpr_log(GPR_ERROR, "Failed parsing response line");
-  }
+  gpr_log(GPR_ERROR, "Failed parsing response line");
   return 0;
 }
 
@@ -89,9 +85,7 @@ static int add_header(grpc_httpcli_parser *parser) {
   GPR_ASSERT(cur != end);
 
   if (*cur == ' ' || *cur == '\t') {
-    if (grpc_http_trace) {
-      gpr_log(GPR_ERROR, "Continued header lines not supported yet");
-    }
+    gpr_log(GPR_ERROR, "Continued header lines not supported yet");
     goto error;
   }
 
@@ -99,9 +93,7 @@ static int add_header(grpc_httpcli_parser *parser) {
     cur++;
   }
   if (cur == end) {
-    if (grpc_http_trace) {
-      gpr_log(GPR_ERROR, "Didn't find ':' in header string");
-    }
+    gpr_log(GPR_ERROR, "Didn't find ':' in header string");
     goto error;
   }
   GPR_ASSERT(cur >= beg);

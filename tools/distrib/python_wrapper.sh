@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+
 # Copyright 2016, Google Inc.
 # All rights reserved.
 #
@@ -27,6 +28,20 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
 
-bins/$config/uri_fuzzer_test -max_total_time=60 fuzzer_output test/core/client_config/uri_corpus
+for p in python2.7 python2.6 python2 python not_found ; do 
+
+  python=`which $p || echo not_found`
+
+  if [ -x "$python" ] ; then
+    break
+  fi
+
+done
+
+if [ -x "$python" ] ; then
+  exec $python $@
+else
+  echo "No acceptable version of python found on the system"
+  exit 1
+fi
