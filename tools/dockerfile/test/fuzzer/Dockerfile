@@ -115,5 +115,9 @@ RUN apt-get install -y libzookeeper-mt-dev
 
 RUN mkdir /var/local/jenkins
 
+RUN clang++ -c -g -O2 -std=c++11 llvm/lib/Fuzzer/*.cpp -IFuzzer
+RUN ar ruv libFuzzer.a Fuzzer*.o
+RUN mv libFuzzer.a /usr/lib
+RUN rm -f Fuzzer*.o
 # Define the default command.
 CMD ["bash"]

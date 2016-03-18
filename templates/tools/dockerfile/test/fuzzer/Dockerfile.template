@@ -28,12 +28,16 @@
   # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
   # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  
+
   FROM debian:jessie
-  
+
   <%include file="../../apt_get_basic.include"/>
   <%include file="../../cxx_deps.include"/>
   <%include file="../../clang_update.include"/>
   <%include file="../../run_tests_addons.include"/>
+  RUN clang++ -c -g -O2 -std=c++11 llvm/lib/Fuzzer/*.cpp -IFuzzer
+  RUN ar ruv libFuzzer.a Fuzzer*.o
+  RUN mv libFuzzer.a /usr/lib
+  RUN rm -f Fuzzer*.o
   # Define the default command.
   CMD ["bash"]
