@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,41 +31,34 @@
  *
  */
 
-// This file should be compiled as part of grpc++.
 
-#include <grpc++/impl/codegen/core_codegen_interface.h>
-#include <grpc/impl/codegen/grpc_types.h>
-#include <grpc/byte_buffer.h>
+#include "src/core/iomgr/unix_sockets_posix.h"
 
-namespace grpc {
+#ifdef GPR_POSIX_SOCKET
 
-/// Implementation of the core codegen interface.
-class CoreCodegen : public CoreCodegenInterface {
- private:
-  Status SerializeProto(const grpc::protobuf::Message& msg,
-                        grpc_byte_buffer** bp) override;
+void grpc_create_socketpair_if_unix(int sv[2]) {}
 
-  Status DeserializeProto(grpc_byte_buffer* buffer,
-                          grpc::protobuf::Message* msg,
-                          int max_message_size) override;
+grpc_resolved_addresses *grpc_resolve_unix_domain_address(const char* name) {
+  return NULL;
+}
 
-  grpc_completion_queue* grpc_completion_queue_create(void* reserved) override;
-  void grpc_completion_queue_destroy(grpc_completion_queue* cq) override;
-  grpc_event grpc_completion_queue_pluck(grpc_completion_queue* cq, void* tag,
-                                         gpr_timespec deadline,
-                                         void* reserved) override;
+int grpc_is_unix_socket(const struct sockaddr *addr) {
+  return false;
+}
 
-  void* gpr_malloc(size_t size) override;
-  void gpr_free(void* p) override;
+void unlink_if_unix_domain_socket(const struct sockaddr *addr) {}
 
-  void grpc_byte_buffer_destroy(grpc_byte_buffer* bb) override;
+int parse_unix(grpc_uri *uri, struct sockaddr_storage *addr, size_t *len) {
+  return 0;
+}
 
-  void grpc_metadata_array_init(grpc_metadata_array* array) override;
-  void grpc_metadata_array_destroy(grpc_metadata_array* array) override;
+char *unix_get_default_authority(grpc_resolver_factory *factory,
+                                 grpc_uri *uri) {
+  return NULL;
+}
 
-  gpr_timespec gpr_inf_future(gpr_clock_type type) override;
+char *grpc_sockaddr_to_uri_unix_if_possible(const struct sockaddr *addr) {
+  return NULL;
+}
 
-  void assert_fail(const char* failed_assertion) override;
-};
-
-}  // namespace grpc
+#endif

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,15 +31,34 @@
  *
  */
 
-#ifndef GRPCXX_IMPL_CODEGEN_SYNC_H
-#define GRPCXX_IMPL_CODEGEN_SYNC_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_UNIX_SOCKETS_POSIX_H
+#define GRPC_INTERNAL_CORE_IOMGR_UNIX_SOCKETS_POSIX_H
 
-#include <grpc++/impl/codegen/config.h>
+#include <grpc/support/port_platform.h>
 
-#ifdef GRPC_CXX0X_NO_THREAD
-#include <grpc++/impl/codegen/sync_no_cxx11.h>
-#else
-#include <grpc++/impl/codegen/sync_cxx11.h>
+#ifdef GPR_POSIX_SOCKET
+
+#include <sys/socket.h>
+
+#include <grpc/support/string_util.h>
+
+#include "src/core/client_config/resolver_factory.h"
+#include "src/core/client_config/uri_parser.h"
+#include "src/core/iomgr/resolve_address.h"
+
+void grpc_create_socketpair_if_unix(int sv[2]);
+
+grpc_resolved_addresses *grpc_resolve_unix_domain_address(const char* name);
+
+int grpc_is_unix_socket(const struct sockaddr *addr);
+
+void unlink_if_unix_domain_socket(const struct sockaddr *addr);
+
+int parse_unix(grpc_uri *uri, struct sockaddr_storage *addr, size_t *len);
+
+char *unix_get_default_authority(grpc_resolver_factory *factory, grpc_uri *uri);
+
+char *grpc_sockaddr_to_uri_unix_if_possible(const struct sockaddr *addr);
+
 #endif
-
-#endif  // GRPCXX_IMPL_CODEGEN_SYNC_H
+#endif /* GRPC_INTERNAL_CORE_IOMGR_UNIX_SOCKETS_POSIX_H */

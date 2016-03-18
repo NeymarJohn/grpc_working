@@ -1,16 +1,13 @@
-buildgen: Template renderer for our build system.
+buildgen: template renderer for our build system.
 
-distrib: Scripts to distribute language-specific packages.
+distrib: scripts to distribute language-specific packages.
 
 dockerfile: Docker files to test gRPC.
 
 doxygen: gRPC C/C++ documentation generation via Doxygen.
 
-gce: Scripts to help setup testing infrastructure on GCE.
+gce: scripts to help setup testing infrastructure on GCE.
 
-gcp: Helper scripts for interacting with various services on GCP (like Google
-container engine, BigQuery etc)
+jenkins: support for running tests on Jenkins.
 
-jenkins: Support for running tests on Jenkins.
-
-run_tests: Scripts to run gRPC tests in parallel.
+run_tests: scripts to run gRPC tests in parallel.
