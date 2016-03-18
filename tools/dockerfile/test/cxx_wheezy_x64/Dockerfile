@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-FROM debian:jessie
+FROM debian:wheezy
 
 # Install Git and basic packages.
 RUN apt-get update && apt-get install -y \
@@ -67,38 +67,14 @@ RUN apt-get update && apt-get install -y time && apt-get clean
 # C++ dependencies
 RUN apt-get update && apt-get -y install libgflags-dev libgtest-dev libc++-dev clang && apt-get clean
 
-#=================
-# Update clang to a version with improved tsan and fuzzing capabilities
 
-RUN apt-get update && apt-get -y install python cmake && apt-get clean
+RUN apt-get update && apt-get install -y \
+  gcc-4.4 \
+  gcc-4.4-multilib
 
-RUN git clone -n -b release_38 http://llvm.org/git/llvm.git && \
-  cd llvm && git checkout ad57503 && cd ..
-RUN git clone -n -b release_38 http://llvm.org/git/clang.git && \
-  cd clang && git checkout ad2c56e && cd ..
-RUN git clone -n -b release_38 http://llvm.org/git/compiler-rt.git && \
-  cd compiler-rt && git checkout 3176922 && cd ..
-RUN git clone -n -b release_38 \
-  http://llvm.org/git/clang-tools-extra.git && cd clang-tools-extra && \
-  git checkout c288525 && cd ..
-RUN git clone -n -b release_38 http://llvm.org/git/libcxx.git && \
-  cd libcxx && git checkout fda3549  && cd ..
-RUN git clone -n -b release_38 http://llvm.org/git/libcxxabi.git && \
-  cd libcxxabi && git checkout 8d4e51d && cd ..
+RUN wget https://openssl.org/source/old/1.0.2/openssl-1.0.2f.tar.gz
 
-RUN mv clang llvm/tools
-RUN mv compiler-rt llvm/projects
-RUN mv clang-tools-extra llvm/tools/clang/tools
-RUN mv libcxx llvm/projects
-RUN mv libcxxabi llvm/projects
-
-RUN mkdir llvm-build
-RUN cd llvm-build && cmake \
-  -DCMAKE_BUILD_TYPE:STRING=Release \
-  -DCMAKE_INSTALL_PREFIX:STRING=/usr \
-  -DLLVM_TARGETS_TO_BUILD:STRING=X86 \
-  ../llvm
-RUN make -C llvm-build -j 12 && make -C llvm-build install && rm -rf llvm-build
+ENV POST_GIT_STEP tools/dockerfile/test/cxx_wheezy_x64/post-git-setup.sh
 
 # Prepare ccache
 RUN ln -s /usr/bin/ccache /usr/local/bin/gcc
@@ -115,9 +91,5 @@ RUN apt-get install -y libzookeeper-mt-dev
 
 RUN mkdir /var/local/jenkins
 
-RUN clang++ -c -g -O2 -std=c++11 llvm/lib/Fuzzer/*.cpp -IFuzzer
-RUN ar ruv libFuzzer.a Fuzzer*.o
-RUN mv libFuzzer.a /usr/lib
-RUN rm -f Fuzzer*.o
 # Define the default command.
 CMD ["bash"]

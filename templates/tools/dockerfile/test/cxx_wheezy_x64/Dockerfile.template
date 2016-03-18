@@ -1,10 +1,5 @@
 %YAML 1.2
----
-foreach: targets
-cond: selected.build == 'fuzzer'
-output_name: ${selected.name}.sh
-template: |
-  #!/bin/bash
+--- |
   # Copyright 2016, Google Inc.
   # All rights reserved.
   #
@@ -33,6 +28,20 @@ template: |
   # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
   # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  #
 
-  bins/$config/${selected.name} -max_total_time=60 fuzzer_output ${' '.join(selected.corpus_dirs)}
+  FROM debian:wheezy
+
+  <%include file="../../apt_get_basic.include"/>
+  <%include file="../../cxx_deps.include"/>
+
+  RUN apt-get update && apt-get install -y ${'\\'}
+    gcc-4.4 ${'\\'}
+    gcc-4.4-multilib
+
+  RUN wget ${openssl_fallback.base_uri + openssl_fallback.tarball}
+
+  ENV POST_GIT_STEP tools/dockerfile/test/cxx_wheezy_x64/post-git-setup.sh
+
+  <%include file="../../run_tests_addons.include"/>
+  # Define the default command.
+  CMD ["bash"]
