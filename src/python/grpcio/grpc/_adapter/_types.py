@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,6 @@
 import abc
 import collections
 import enum
-
-import six
 
 from grpc._cython import cygrpc
 
@@ -249,7 +247,8 @@ class Event(collections.namedtuple(
   """
 
 
-class CompletionQueue(six.with_metaclass(abc.ABCMeta)):
+class CompletionQueue:
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def __init__(self):
@@ -262,9 +261,6 @@ class CompletionQueue(six.with_metaclass(abc.ABCMeta)):
     deadline of None (i.e. no deadline).
     """
     return self
-
-  def __next__(self):
-    return self.next()
 
   @abc.abstractmethod
   def next(self, deadline=float('+inf')):
@@ -289,7 +285,8 @@ class CompletionQueue(six.with_metaclass(abc.ABCMeta)):
     return None
 
 
-class Call(six.with_metaclass(abc.ABCMeta)):
+class Call:
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def start_batch(self, ops, tag):
@@ -337,7 +334,8 @@ class Call(six.with_metaclass(abc.ABCMeta)):
     return None
 
 
-class Channel(six.with_metaclass(abc.ABCMeta)):
+class Channel:
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def __init__(self, target, args, credentials=None):
@@ -401,7 +399,8 @@ class Channel(six.with_metaclass(abc.ABCMeta)):
     return None
 
 
-class Server(six.with_metaclass(abc.ABCMeta)):
+class Server:
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def __init__(self, completion_queue, args):

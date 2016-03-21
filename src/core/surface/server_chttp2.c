@@ -45,7 +45,10 @@
 
 static void setup_transport(grpc_exec_ctx *exec_ctx, void *server,
                             grpc_transport *transport) {
-  grpc_server_setup_transport(exec_ctx, server, transport,
+  static grpc_channel_filter const *extra_filters[] = {
+      &grpc_http_server_filter};
+  grpc_server_setup_transport(exec_ctx, server, transport, extra_filters,
+                              GPR_ARRAY_SIZE(extra_filters),
                               grpc_server_get_channel_args(server));
 }
 

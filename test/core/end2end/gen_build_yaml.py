@@ -59,7 +59,6 @@ END2END_FIXTURES = {
         platforms=['linux']),
     'h2_full+poll+pipe': default_unsecure_fixture_options._replace(
         platforms=['linux']),
-    'h2_full+trace': default_unsecure_fixture_options._replace(tracing=True),
     'h2_oauth2': default_secure_fixture_options._replace(ci_mac=False),
     'h2_proxy': default_unsecure_fixture_options._replace(includes_proxy=True,
                                                           ci_mac=False),
@@ -67,7 +66,7 @@ END2END_FIXTURES = {
         ci_mac=False),
     'h2_sockpair': socketpair_unsecure_fixture_options._replace(ci_mac=False),
     'h2_sockpair+trace': socketpair_unsecure_fixture_options._replace(
-        ci_mac=False, tracing=True),
+        tracing=True),
     'h2_ssl': default_secure_fixture_options,
     'h2_ssl+poll': default_secure_fixture_options._replace(platforms=['linux']),
     'h2_ssl_proxy': default_secure_fixture_options._replace(includes_proxy=True,
@@ -151,6 +150,7 @@ def without(l, e):
 
 def main():
   sec_deps = [
+    'end2end_certs',
     'grpc_test_util',
     'grpc',
     'gpr_test_util',
@@ -192,6 +192,18 @@ def main():
                           'test/core/end2end/end2end_tests.h'],
               'deps': unsec_deps,
               'vs_proj_dir': 'test/end2end/tests',
+          }
+      ] + [
+          {
+              'name': 'end2end_certs',
+              'build': 'private',
+              'language': 'c',
+              'src': [
+                  "test/core/end2end/data/test_root_cert.c",
+                  "test/core/end2end/data/server1_cert.c",
+                  "test/core/end2end/data/server1_key.c"
+              ],
+              'vs_proj_dir': 'test/end2end',
           }
       ],
       'targets': [
