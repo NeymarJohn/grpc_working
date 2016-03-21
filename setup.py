@@ -42,6 +42,7 @@ from setuptools.command import egg_info
 # Redirect the manifest template from MANIFEST.in to PYTHON-MANIFEST.in.
 egg_info.manifest_maker.template = 'PYTHON-MANIFEST.in'
 
+PY3 = sys.version_info.major == 3
 PYTHON_STEM = './src/python/grpcio'
 CORE_INCLUDE = ('./include', '.',)
 BORINGSSL_INCLUDE = ('./third_party/boringssl/include',)
@@ -103,13 +104,22 @@ if "linux" in sys.platform:
   LDFLAGS += ('-Wl,-wrap,memcpy',)
 if "linux" in sys.platform or "darwin" in sys.platform:
   CFLAGS += ('-fvisibility=hidden',)
-  DEFINE_MACROS += (('PyMODINIT_FUNC', '__attribute__((visibility ("default"))) void'),)
+
+  pymodinit_type = 'PyObject*' if PY3 else 'void'
+
+  pymodinit = '__attribute__((visibility ("default"))) {}'.format(pymodinit_type)
+  DEFINE_MACROS += (('PyMODINIT_FUNC', pymodinit),)
 
 
 def cython_extensions(package_names, module_names, extra_sources, include_dirs,
                       libraries, define_macros, build_with_cython=False):
+  # Set compiler directives linetrace argument only if we care about tracing;
+  # this is due to Cython having different behavior between linetrace being
+  # False and linetrace being unset. See issue #5689.
+  cython_compiler_directives = {}
   if ENABLE_CYTHON_TRACING:
     define_macros = define_macros + [('CYTHON_TRACE_NOGIL', 1)]
+    cython_compiler_directives['linetrace'] = True
   file_extension = 'pyx' if build_with_cython else 'c'
   module_files = [os.path.join(PYTHON_STEM,
                                name.replace('.', '/') + '.' + file_extension)
@@ -129,7 +139,7 @@ def cython_extensions(package_names, module_names, extra_sources, include_dirs,
     return Cython.Build.cythonize(
         extensions,
         include_path=include_dirs,
-        compiler_directives={'linetrace': bool(ENABLE_CYTHON_TRACING)})
+        compiler_directives=cython_compiler_directives)
   else:
     return extensions
 
