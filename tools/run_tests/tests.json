@@ -2317,7 +2317,9 @@
       "posix"
     ], 
     "cpu_cost": 0.5, 
-    "exclude_configs": [], 
+    "exclude_configs": [
+      "tsan"
+    ], 
     "flaky": false, 
     "gtest": false, 
     "language": "c++", 
@@ -2336,7 +2338,9 @@
       "posix"
     ], 
     "cpu_cost": 10, 
-    "exclude_configs": [], 
+    "exclude_configs": [
+      "tsan"
+    ], 
     "flaky": false, 
     "gtest": false, 
     "language": "c++", 
