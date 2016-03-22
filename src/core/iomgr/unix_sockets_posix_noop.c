@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,19 +31,34 @@
  *
  */
 
-#include <gtest/gtest.h>
 
-namespace grpc {
-namespace {
+#include "src/core/iomgr/unix_sockets_posix.h"
 
-class CodegenTest : public ::testing::Test {};
+#ifdef GPR_POSIX_SOCKET
 
-TEST_F(CodegenTest, Build) {}
+void grpc_create_socketpair_if_unix(int sv[2]) {}
 
-}  // namespace
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+grpc_resolved_addresses *grpc_resolve_unix_domain_address(const char* name) {
+  return NULL;
 }
+
+int grpc_is_unix_socket(const struct sockaddr *addr) {
+  return false;
+}
+
+void grpc_unlink_if_unix_domain_socket(const struct sockaddr *addr) {}
+
+int grpc_parse_unix(grpc_uri *uri, struct sockaddr_storage *addr, size_t *len) {
+  return 0;
+}
+
+char *grpc_unix_get_default_authority(grpc_resolver_factory *factory,
+                                      grpc_uri *uri) {
+  return NULL;
+}
+
+char *grpc_sockaddr_to_uri_unix_if_possible(const struct sockaddr *addr) {
+  return NULL;
+}
+
+#endif

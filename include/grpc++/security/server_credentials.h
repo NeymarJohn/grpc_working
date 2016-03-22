@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPCXX_SECURITY_SERVER_CREDENTIALS_H
-#define GRPCXX_SECURITY_SERVER_CREDENTIALS_H
+#ifndef GRPCXX_SERVER_CREDENTIALS_H
+#define GRPCXX_SERVER_CREDENTIALS_H
 
 #include <memory>
 #include <vector>
@@ -89,4 +89,4 @@ std::shared_ptr<ServerCredentials> InsecureServerCredentials();
 
 }  // namespace grpc
 
-#endif  // GRPCXX_SECURITY_SERVER_CREDENTIALS_H
+#endif  // GRPCXX_SERVER_CREDENTIALS_H
