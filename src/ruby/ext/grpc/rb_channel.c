@@ -70,10 +70,11 @@ static VALUE grpc_rb_cChannel = Qnil;
 /* Used during the conversion of a hash to channel args during channel setup */
 static VALUE grpc_rb_cChannelArgs;
 
-/* grpc_rb_channel wraps a grpc_channel. */
+/* grpc_rb_channel wraps a grpc_channel.  It provides a peer ruby object,
+ * 'mark' to minimize copying when a channel is created from ruby. */
 typedef struct grpc_rb_channel {
-  VALUE credentials;
-
+  /* Holder of ruby objects involved in constructing the channel */
+  VALUE mark;
   /* The actual channel */
   grpc_channel *wrapped;
 } grpc_rb_channel;
@@ -86,8 +87,13 @@ static void grpc_rb_channel_free(void *p) {
   };
   ch = (grpc_rb_channel *)p;
 
-  if (ch->wrapped != NULL) {
+  /* Deletes the wrapped object if the mark object is Qnil, which indicates
+   * that no other object is the actual owner. */
+  if (ch->wrapped != NULL && ch->mark == Qnil) {
     grpc_channel_destroy(ch->wrapped);
+    rb_warning("channel gc: destroyed the c channel");
+  } else {
+    rb_warning("channel gc: did not destroy the c channel");
   }
 
   xfree(p);
@@ -100,8 +106,8 @@ static void grpc_rb_channel_mark(void *p) {
     return;
   }
   channel = (grpc_rb_channel *)p;
-  if (channel->credentials != Qnil) {
-    rb_gc_mark(channel->credentials);
+  if (channel->mark != Qnil) {
+    rb_gc_mark(channel->mark);
   }
 }
 
@@ -119,7 +125,7 @@ static rb_data_type_t grpc_channel_data_type = {
 static VALUE grpc_rb_channel_alloc(VALUE cls) {
   grpc_rb_channel *wrapper = ALLOC(grpc_rb_channel);
   wrapper->wrapped = NULL;
-  wrapper->credentials = Qnil;
+  wrapper->mark = Qnil;
   return TypedData_Wrap_Struct(cls, &grpc_channel_data_type, wrapper);
 }
 
@@ -156,7 +162,6 @@ static VALUE grpc_rb_channel_init(int argc, VALUE *argv, VALUE self) {
     }
     ch = grpc_insecure_channel_create(target_chars, &args, NULL);
   } else {
-    wrapper->credentials = credentials;
     creds = grpc_rb_get_wrapped_channel_credentials(credentials);
     ch = grpc_secure_channel_create(creds, target_chars, &args, NULL);
   }
@@ -325,6 +330,7 @@ static VALUE grpc_rb_channel_destroy(VALUE self) {
   if (ch != NULL) {
     grpc_channel_destroy(ch);
     wrapper->wrapped = NULL;
+    wrapper->mark = Qnil;
   }
 
   return Qnil;

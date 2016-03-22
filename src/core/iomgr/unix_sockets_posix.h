@@ -31,11 +31,35 @@
  *
  */
 
-#ifndef GRPC_CORE_SURFACE_LAME_CLIENT_H
-#define GRPC_CORE_SURFACE_LAME_CLIENT_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_UNIX_SOCKETS_POSIX_H
+#define GRPC_INTERNAL_CORE_IOMGR_UNIX_SOCKETS_POSIX_H
 
-#include "src/core/channel/channel_stack.h"
+#include <grpc/support/port_platform.h>
 
-extern const grpc_channel_filter grpc_lame_filter;
+#ifdef GPR_POSIX_SOCKET
 
-#endif /* GRPC_CORE_SURFACE_LAME_CLIENT_H */
+#include <sys/socket.h>
+
+#include <grpc/support/string_util.h>
+
+#include "src/core/client_config/resolver_factory.h"
+#include "src/core/client_config/uri_parser.h"
+#include "src/core/iomgr/resolve_address.h"
+
+void grpc_create_socketpair_if_unix(int sv[2]);
+
+grpc_resolved_addresses *grpc_resolve_unix_domain_address(const char *name);
+
+int grpc_is_unix_socket(const struct sockaddr *addr);
+
+void grpc_unlink_if_unix_domain_socket(const struct sockaddr *addr);
+
+int grpc_parse_unix(grpc_uri *uri, struct sockaddr_storage *addr, size_t *len);
+
+char *grpc_unix_get_default_authority(grpc_resolver_factory *factory,
+                                      grpc_uri *uri);
+
+char *grpc_sockaddr_to_uri_unix_if_possible(const struct sockaddr *addr);
+
+#endif
+#endif /* GRPC_INTERNAL_CORE_IOMGR_UNIX_SOCKETS_POSIX_H */

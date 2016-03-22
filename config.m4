@@ -40,7 +40,6 @@ if test "$PHP_GRPC" != "no"; then
     src/core/profiling/stap_timers.c \
     src/core/support/alloc.c \
     src/core/support/avl.c \
-    src/core/support/backoff.c \
     src/core/support/cmdline.c \
     src/core/support/cpu_iphone.c \
     src/core/support/cpu_linux.c \
@@ -82,10 +81,8 @@ if test "$PHP_GRPC" != "no"; then
     src/core/support/wrap_memcpy.c \
     src/core/census/grpc_context.c \
     src/core/census/grpc_filter.c \
-    src/core/census/grpc_plugin.c \
     src/core/channel/channel_args.c \
     src/core/channel/channel_stack.c \
-    src/core/channel/channel_stack_builder.c \
     src/core/channel/client_channel.c \
     src/core/channel/client_uchannel.c \
     src/core/channel/compress_filter.c \
@@ -152,6 +149,8 @@ if test "$PHP_GRPC" != "no"; then
     src/core/iomgr/timer.c \
     src/core/iomgr/timer_heap.c \
     src/core/iomgr/udp_server.c \
+    src/core/iomgr/unix_sockets_posix.c \
+    src/core/iomgr/unix_sockets_posix_noop.c \
     src/core/iomgr/wakeup_fd_eventfd.c \
     src/core/iomgr/wakeup_fd_nospecial.c \
     src/core/iomgr/wakeup_fd_pipe.c \
@@ -173,9 +172,7 @@ if test "$PHP_GRPC" != "no"; then
     src/core/surface/channel.c \
     src/core/surface/channel_connectivity.c \
     src/core/surface/channel_create.c \
-    src/core/surface/channel_init.c \
     src/core/surface/channel_ping.c \
-    src/core/surface/channel_stack_type.c \
     src/core/surface/completion_queue.c \
     src/core/surface/event_string.c \
     src/core/surface/init.c \
@@ -183,6 +180,7 @@ if test "$PHP_GRPC" != "no"; then
     src/core/surface/metadata_array.c \
     src/core/surface/server.c \
     src/core/surface/server_chttp2.c \
+    src/core/surface/server_create.c \
     src/core/surface/validate_metadata.c \
     src/core/surface/version.c \
     src/core/transport/byte_stream.c \
