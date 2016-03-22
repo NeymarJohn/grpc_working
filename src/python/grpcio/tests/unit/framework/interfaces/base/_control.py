@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,6 @@ import enum
 import random  # pylint: disable=unused-import
 import threading
 import time
-
-import six
 
 from grpc.framework.interfaces.base import base
 from tests.unit.framework.common import test_constants
@@ -249,7 +247,8 @@ class Instruction(
     CONCLUDE = 'CONCLUDE'
 
 
-class Controller(six.with_metaclass(abc.ABCMeta)):
+class Controller(object):
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def failed(self, message):
@@ -309,7 +308,8 @@ class Controller(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class ControllerCreator(six.with_metaclass(abc.ABCMeta)):
+class ControllerCreator(object):
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def name(self):

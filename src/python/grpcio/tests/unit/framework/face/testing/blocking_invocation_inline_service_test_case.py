@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,6 @@
 import abc
 import unittest  # pylint: disable=unused-import
 
-import six
-
 from grpc.framework.face import exceptions
 from tests.unit.framework.common import test_constants
 from tests.unit.framework.face.testing import control
@@ -45,12 +43,12 @@ from tests.unit.framework.face.testing import test_case
 
 
 class BlockingInvocationInlineServiceTestCase(
-    six.with_metaclass(abc.ABCMeta,
-    test_case.FaceTestCase, coverage.BlockingCoverage)):
+    test_case.FaceTestCase, coverage.BlockingCoverage):
   """A test of the Face layer of RPC Framework.
 
   Concrete subclasses must also extend unittest.TestCase.
   """
+  __metaclass__ = abc.ABCMeta
 
   def setUp(self):
     """See unittest.TestCase.setUp for full specification.
