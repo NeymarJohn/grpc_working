@@ -291,26 +291,43 @@ struct grpc_chttp2_transport_parsing {
   int64_t outgoing_window;
 };
 
+typedef void (*grpc_chttp2_locked_action)(grpc_exec_ctx *ctx,
+                                          grpc_chttp2_transport *t,
+                                          grpc_chttp2_stream *s, void *arg);
+
+typedef struct grpc_chttp2_executor_action_header {
+  grpc_chttp2_stream *stream;
+  grpc_chttp2_locked_action action;
+  struct grpc_chttp2_executor_action_header *next;
+  void *arg;
+} grpc_chttp2_executor_action_header;
+
 struct grpc_chttp2_transport {
   grpc_transport base; /* must be first */
-  grpc_endpoint *ep;
   gpr_refcount refs;
+  grpc_endpoint *ep;
   char *peer_string;
 
   /** when this drops to zero it's safe to shutdown the endpoint */
   gpr_refcount shutdown_ep_refs;
 
-  gpr_mu mu;
+  struct {
+    gpr_mu mu;
+
+    /** is a thread currently in the global lock */
+    bool global_active;
+    /** is a thread currently writing */
+    bool writing_active;
+    /** is a thread currently parsing */
+    bool parsing_active;
+
+    grpc_chttp2_executor_action_header *pending_actions;
+  } executor;
 
   /** is the transport destroying itself? */
   uint8_t destroying;
   /** has the upper layer closed the transport? */
   uint8_t closed;
-
-  /** is a thread currently writing */
-  uint8_t writing_active;
-  /** is a thread currently parsing */
-  uint8_t parsing_active;
 
   /** is there a read request to the endpoint outstanding? */
   uint8_t endpoint_reading;
@@ -338,8 +355,15 @@ struct grpc_chttp2_transport {
 
   /** closure to execute writing */
   grpc_closure writing_action;
-  /** closure to finish reading from the endpoint */
-  grpc_closure recv_data;
+  /** closure to start reading from the endpoint */
+  grpc_closure reading_action;
+  /** closure to actually do parsing */
+  grpc_closure parsing_action;
+
+  struct {
+    size_t nslices;
+    gpr_slice *slices;
+  } executor_parsing;
 
   /** incoming read bytes */
   gpr_slice_buffer read_buffer;
@@ -636,6 +660,12 @@ void grpc_chttp2_parsing_become_skip_parser(
 
 void grpc_chttp2_complete_closure_step(grpc_exec_ctx *exec_ctx,
                                        grpc_closure **pclosure, int success);
+
+void grpc_chttp2_run_with_global_lock(grpc_exec_ctx *exec_ctx,
+                                      grpc_chttp2_transport *transport,
+                                      grpc_chttp2_stream *optional_stream,
+                                      grpc_chttp2_locked_action action,
+                                      void *arg, size_t sizeof_arg);
 
 #define GRPC_CHTTP2_CLIENT_CONNECT_STRING "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
 #define GRPC_CHTTP2_CLIENT_CONNECT_STRLEN \
