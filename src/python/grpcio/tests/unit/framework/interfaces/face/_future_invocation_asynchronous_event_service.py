@@ -36,8 +36,6 @@ import threading
 import unittest
 from concurrent import futures
 
-import six
-
 # test_interfaces is referenced from specification in this module.
 from grpc.framework.foundation import logging_pool
 from grpc.framework.interfaces.face import face
@@ -68,9 +66,6 @@ class _PauseableIterator(object):
 
   def __iter__(self):
     return self
-
-  def __next__(self):
-    return self.next()
 
   def next(self):
     with self._condition:
@@ -109,13 +104,14 @@ class _Callback(object):
           self._condition.wait()
 
 
-class TestCase(six.with_metaclass(abc.ABCMeta, test_coverage.Coverage, unittest.TestCase)):
+class TestCase(test_coverage.Coverage, unittest.TestCase):
   """A test of the Face layer of RPC Framework.
 
   Concrete subclasses must have an "implementation" attribute of type
   test_interfaces.Implementation and an "invoker_constructor" attribute of type
   _invocation.InvokerConstructor.
   """
+  __metaclass__ = abc.ABCMeta
 
   NAME = 'FutureInvocationAsynchronousEventServiceTest'
 

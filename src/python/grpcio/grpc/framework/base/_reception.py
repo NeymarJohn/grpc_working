@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@
 
 import abc
 
-import six
-
 from grpc.framework.base import interfaces
 from grpc.framework.base import _interfaces
 
@@ -42,8 +40,9 @@ _INITIAL_FRONT_TO_BACK_TICKET_KINDS = (
 )
 
 
-class _Receiver(six.with_metaclass(abc.ABCMeta)):
+class _Receiver(object):
   """Common specification of different ticket-handling behavior."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def abort_if_abortive(self, ticket):

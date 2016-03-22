@@ -50,7 +50,6 @@
 'use strict';
 
 var _ = require('lodash');
-var arguejs = require('arguejs');
 
 var grpc = require('./grpc_extension');
 
@@ -149,9 +148,6 @@ function _readsDone(status) {
   /* jshint validthis: true */
   if (!status) {
     status = {code: grpc.status.OK, details: 'OK'};
-  }
-  if (status.code !== grpc.status.OK) {
-    this.call.cancelWithStatus(status.code, status.details);
   }
   this.finished = true;
   this.read_status = status;
@@ -354,23 +350,21 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
    * @this {Client} Client object. Must have a channel member.
    * @param {*} argument The argument to the call. Should be serializable with
    *     serialize
-   * @param {Metadata=} metadata Metadata to add to the call
-   * @param {Object=} options Options map
    * @param {function(?Error, value=)} callback The callback to for when the
    *     response is received
+   * @param {Metadata=} metadata Metadata to add to the call
+   * @param {Object=} options Options map
    * @return {EventEmitter} An event emitter for stream related events
    */
-  function makeUnaryRequest(argument, metadata, options, callback) {
+  function makeUnaryRequest(argument, callback, metadata, options) {
     /* jshint validthis: true */
-    /* While the arguments are listed in the function signature, those variables
-     * are not used directly. Instead, ArgueJS processes the arguments
-     * object. This allows for simple handling of optional arguments in the
-     * middle of the argument list, and also provides type checking. */
-    var args = arguejs({argument: null, metadata: [Metadata, new Metadata()],
-                        options: [Object], callback: Function}, arguments);
     var emitter = new EventEmitter();
-    var call = getCall(this.$channel, method, args.options);
-    metadata = args.metadata.clone();
+    var call = getCall(this.$channel, method, options);
+    if (metadata === null || metadata === undefined) {
+      metadata = new Metadata();
+    } else {
+      metadata = metadata.clone();
+    }
     emitter.cancel = function cancel() {
       call.cancel();
     };
@@ -378,9 +372,9 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
       return call.getPeer();
     };
     var client_batch = {};
-    var message = serialize(args.argument);
-    if (args.options) {
-      message.grpcWriteFlags = args.options.flags;
+    var message = serialize(argument);
+    if (options) {
+      message.grpcWriteFlags = options.flags;
     }
     client_batch[grpc.opType.SEND_INITIAL_METADATA] =
         metadata._getCoreRepresentation();
@@ -398,7 +392,7 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
       if (status.code === grpc.status.OK) {
         if (err) {
           // Got a batch error, but OK status. Something went wrong
-          args.callback(err);
+          callback(err);
           return;
         } else {
           try {
@@ -417,9 +411,9 @@ function makeUnaryRequestFunction(method, serialize, deserialize) {
         error = new Error(status.details);
         error.code = status.code;
         error.metadata = status.metadata;
-        args.callback(error);
+        callback(error);
       } else {
-        args.callback(null, deserialized);
+        callback(null, deserialized);
       }
       emitter.emit('status', status);
       emitter.emit('metadata', Metadata._fromCoreRepresentation(
@@ -443,23 +437,21 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
    * Make a client stream request with this method on the given channel with the
    * given callback, etc.
    * @this {Client} Client object. Must have a channel member.
+   * @param {function(?Error, value=)} callback The callback to for when the
+   *     response is received
    * @param {Metadata=} metadata Array of metadata key/value pairs to add to the
    *     call
    * @param {Object=} options Options map
-   * @param {function(?Error, value=)} callback The callback to for when the
-   *     response is received
    * @return {EventEmitter} An event emitter for stream related events
    */
-  function makeClientStreamRequest(metadata, options, callback) {
+  function makeClientStreamRequest(callback, metadata, options) {
     /* jshint validthis: true */
-    /* While the arguments are listed in the function signature, those variables
-     * are not used directly. Instead, ArgueJS processes the arguments
-     * object. This allows for simple handling of optional arguments in the
-     * middle of the argument list, and also provides type checking. */
-    var args = arguejs({metadata: [Metadata, new Metadata()],
-                        options: [Object], callback: Function}, arguments);
-    var call = getCall(this.$channel, method, args.options);
-    metadata = args.metadata.clone();
+    var call = getCall(this.$channel, method, options);
+    if (metadata === null || metadata === undefined) {
+      metadata = new Metadata();
+    } else {
+      metadata = metadata.clone();
+    }
     var stream = new ClientWritableStream(call, serialize);
     var metadata_batch = {};
     metadata_batch[grpc.opType.SEND_INITIAL_METADATA] =
@@ -486,7 +478,7 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
       if (status.code === grpc.status.OK) {
         if (err) {
           // Got a batch error, but OK status. Something went wrong
-          args.callback(err);
+          callback(err);
           return;
         } else {
           try {
@@ -505,9 +497,9 @@ function makeClientStreamRequestFunction(method, serialize, deserialize) {
         error = new Error(response.status.details);
         error.code = status.code;
         error.metadata = status.metadata;
-        args.callback(error);
+        callback(error);
       } else {
-        args.callback(null, deserialized);
+        callback(null, deserialized);
       }
       stream.emit('status', status);
     });
@@ -538,18 +530,17 @@ function makeServerStreamRequestFunction(method, serialize, deserialize) {
    */
   function makeServerStreamRequest(argument, metadata, options) {
     /* jshint validthis: true */
-    /* While the arguments are listed in the function signature, those variables
-     * are not used directly. Instead, ArgueJS processes the arguments
-     * object. */
-    var args = arguejs({argument: null, metadata: [Metadata, new Metadata()],
-                        options: [Object]}, arguments);
-    var call = getCall(this.$channel, method, args.options);
-    metadata = args.metadata.clone();
+    var call = getCall(this.$channel, method, options);
+    if (metadata === null || metadata === undefined) {
+      metadata = new Metadata();
+    } else {
+      metadata = metadata.clone();
+    }
     var stream = new ClientReadableStream(call, deserialize);
     var start_batch = {};
-    var message = serialize(args.argument);
-    if (args.options) {
-      message.grpcWriteFlags = args.options.flags;
+    var message = serialize(argument);
+    if (options) {
+      message.grpcWriteFlags = options.flags;
     }
     start_batch[grpc.opType.SEND_INITIAL_METADATA] =
         metadata._getCoreRepresentation();
@@ -601,13 +592,12 @@ function makeBidiStreamRequestFunction(method, serialize, deserialize) {
    */
   function makeBidiStreamRequest(metadata, options) {
     /* jshint validthis: true */
-    /* While the arguments are listed in the function signature, those variables
-     * are not used directly. Instead, ArgueJS processes the arguments
-     * object. */
-    var args = arguejs({metadata: [Metadata, new Metadata()],
-                        options: [Object]}, arguments);
-    var call = getCall(this.$channel, method, args.options);
-    metadata = args.metadata.clone();
+    var call = getCall(this.$channel, method, options);
+    if (metadata === null || metadata === undefined) {
+      metadata = new Metadata();
+    } else {
+      metadata = metadata.clone();
+    }
     var stream = new ClientDuplexStream(call, serialize, deserialize);
     var start_batch = {};
     start_batch[grpc.opType.SEND_INITIAL_METADATA] =
