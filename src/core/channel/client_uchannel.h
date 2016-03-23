@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,11 +31,30 @@
  *
  */
 
-#ifndef GRPC_CORE_SURFACE_LAME_CLIENT_H
-#define GRPC_CORE_SURFACE_LAME_CLIENT_H
+#ifndef GRPC_INTERNAL_CORE_CHANNEL_CLIENT_MICROCHANNEL_H
+#define GRPC_INTERNAL_CORE_CHANNEL_CLIENT_MICROCHANNEL_H
 
 #include "src/core/channel/channel_stack.h"
+#include "src/core/client_config/resolver.h"
 
-extern const grpc_channel_filter grpc_lame_filter;
+#define GRPC_MICROCHANNEL_SUBCHANNEL_ARG "grpc.microchannel_subchannel_key"
 
-#endif /* GRPC_CORE_SURFACE_LAME_CLIENT_H */
+/* A client microchannel (aka uchannel) is a channel wrapping a subchannel, for
+ * the purposes of lightweight RPC communications from within the core.*/
+
+extern const grpc_channel_filter grpc_client_uchannel_filter;
+
+grpc_connectivity_state grpc_client_uchannel_check_connectivity_state(
+    grpc_exec_ctx *exec_ctx, grpc_channel_element *elem, int try_to_connect);
+
+void grpc_client_uchannel_watch_connectivity_state(
+    grpc_exec_ctx *exec_ctx, grpc_channel_element *elem, grpc_pollset *pollset,
+    grpc_connectivity_state *state, grpc_closure *on_complete);
+
+grpc_channel *grpc_client_uchannel_create(grpc_subchannel *subchannel,
+                                          grpc_channel_args *args);
+
+void grpc_client_uchannel_set_connected_subchannel(
+    grpc_channel *uchannel, grpc_connected_subchannel *connected_subchannel);
+
+#endif /* GRPC_INTERNAL_CORE_CHANNEL_CLIENT_MICROCHANNEL_H */

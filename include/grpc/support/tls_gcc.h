@@ -97,4 +97,4 @@ struct gpr_gcc_thread_local {
 
 #endif /* NDEBUG */
 
-#endif /* GRPC_SUPPORT_TLS_GCC_H */
+#endif
