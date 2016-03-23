@@ -31,42 +31,30 @@
  *
  */
 
-#include "src/core/census/grpc_plugin.h"
+#ifndef GRPC_CORE_CHANNEL_CLIENT_UCHANNEL_H
+#define GRPC_CORE_CHANNEL_CLIENT_UCHANNEL_H
 
-#include <limits.h>
+#include "src/core/channel/channel_stack.h"
+#include "src/core/client_config/resolver.h"
 
-#include <grpc/census.h>
+#define GRPC_MICROCHANNEL_SUBCHANNEL_ARG "grpc.microchannel_subchannel_key"
 
-#include "src/core/census/grpc_filter.h"
-#include "src/core/surface/channel_init.h"
-#include "src/core/channel/channel_stack_builder.h"
+/* A client microchannel (aka uchannel) is a channel wrapping a subchannel, for
+ * the purposes of lightweight RPC communications from within the core.*/
 
-static bool maybe_add_census_filter(grpc_channel_stack_builder *builder,
-                                    void *arg_must_be_null) {
-  const grpc_channel_args *args =
-      grpc_channel_stack_builder_get_channel_arguments(builder);
-  if (grpc_channel_args_is_census_enabled(args)) {
-    return grpc_channel_stack_builder_prepend_filter(
-        builder, &grpc_client_census_filter, NULL, NULL);
-  }
-  return true;
-}
+extern const grpc_channel_filter grpc_client_uchannel_filter;
 
-void census_grpc_plugin_init(void) {
-  /* Only initialize census if no one else has and some features are
-   * available. */
-  if (census_enabled() == CENSUS_FEATURE_NONE &&
-      census_supported() != CENSUS_FEATURE_NONE) {
-    if (census_initialize(census_supported())) { /* enable all features. */
-      gpr_log(GPR_ERROR, "Could not initialize census.");
-    }
-  }
-  grpc_channel_init_register_stage(GRPC_CLIENT_CHANNEL, INT_MAX,
-                                   maybe_add_census_filter, NULL);
-  grpc_channel_init_register_stage(GRPC_CLIENT_UCHANNEL, INT_MAX,
-                                   maybe_add_census_filter, NULL);
-  grpc_channel_init_register_stage(GRPC_SERVER_CHANNEL, INT_MAX,
-                                   maybe_add_census_filter, NULL);
-}
+grpc_connectivity_state grpc_client_uchannel_check_connectivity_state(
+    grpc_exec_ctx *exec_ctx, grpc_channel_element *elem, int try_to_connect);
 
-void census_grpc_plugin_destroy(void) { census_shutdown(); }
+void grpc_client_uchannel_watch_connectivity_state(
+    grpc_exec_ctx *exec_ctx, grpc_channel_element *elem, grpc_pollset *pollset,
+    grpc_connectivity_state *state, grpc_closure *on_complete);
+
+grpc_channel *grpc_client_uchannel_create(grpc_subchannel *subchannel,
+                                          grpc_channel_args *args);
+
+void grpc_client_uchannel_set_connected_subchannel(
+    grpc_channel *uchannel, grpc_connected_subchannel *connected_subchannel);
+
+#endif /* GRPC_CORE_CHANNEL_CLIENT_UCHANNEL_H */
