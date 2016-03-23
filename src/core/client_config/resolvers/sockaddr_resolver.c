@@ -37,6 +37,9 @@
 
 #include <stdio.h>
 #include <string.h>
+#ifdef GPR_POSIX_SOCKET
+#include <sys/un.h>
+#endif
 
 #include <grpc/support/alloc.h>
 #include <grpc/support/host_port.h>
@@ -44,7 +47,6 @@
 
 #include "src/core/client_config/lb_policy_registry.h"
 #include "src/core/iomgr/resolve_address.h"
-#include "src/core/iomgr/unix_sockets_posix.h"
 #include "src/core/support/string.h"
 
 typedef struct {
@@ -165,6 +167,24 @@ static void sockaddr_destroy(grpc_exec_ctx *exec_ctx, grpc_resolver *gr) {
   gpr_free(r->lb_policy_name);
   gpr_free(r);
 }
+
+#ifdef GPR_POSIX_SOCKET
+static int parse_unix(grpc_uri *uri, struct sockaddr_storage *addr,
+                      size_t *len) {
+  struct sockaddr_un *un = (struct sockaddr_un *)addr;
+
+  un->sun_family = AF_UNIX;
+  strcpy(un->sun_path, uri->path);
+  *len = strlen(un->sun_path) + sizeof(un->sun_family) + 1;
+
+  return 1;
+}
+
+static char *unix_get_default_authority(grpc_resolver_factory *factory,
+                                        grpc_uri *uri) {
+  return gpr_strdup("localhost");
+}
+#endif
 
 static char *ip_get_default_authority(grpc_uri *uri) {
   const char *path = uri->path;
@@ -287,44 +307,17 @@ static grpc_resolver *sockaddr_create(
   r->lb_policy_name = NULL;
   if (0 != strcmp(args->uri->query, "")) {
     gpr_slice query_slice;
-    gpr_slice_buffer query_parts; /* the &-separated elements of the query */
-    gpr_slice_buffer query_param_parts; /* the =-separated subelements */
+    gpr_slice_buffer query_parts;
 
     query_slice =
         gpr_slice_new(args->uri->query, strlen(args->uri->query), do_nothing);
     gpr_slice_buffer_init(&query_parts);
-    gpr_slice_buffer_init(&query_param_parts);
-    /* the query can contain "lb_policy=<policy>" and "lb_enabled=<1|0>" */
-
-    bool lb_enabled;
-    gpr_slice_split(query_slice, "&", &query_parts);
-    for (i = 0; i < query_parts.count; i++) {
-      gpr_slice_split(query_parts.slices[i], "=", &query_param_parts);
-      GPR_ASSERT(query_param_parts.count == 2);
-      if (0 == gpr_slice_str_cmp(query_param_parts.slices[0], "lb_policy")) {
-        r->lb_policy_name =
-            gpr_dump_slice(query_param_parts.slices[1], GPR_DUMP_ASCII);
-      } else if (0 ==
-                 gpr_slice_str_cmp(query_param_parts.slices[0], "lb_enabled")) {
-        if (0 != gpr_slice_str_cmp(query_param_parts.slices[1], "0")) {
-          /* anything other than 0 is taken to be true */
-          lb_enabled = true;
-        }
-      } else {
-        gpr_log(GPR_ERROR, "invalid query element value: '%s'",
-                query_parts.slices[0]);
-      }
-      gpr_slice_buffer_reset_and_unref(&query_param_parts);
-    }
-
-    if (strcmp("grpclb", r->lb_policy_name) == 0 && !lb_enabled) {
-      /* we want grpclb but the "resolved" addresses aren't LB enabled. Fall
-       * back to the default policy */
-      gpr_free(r->lb_policy_name);
-      r->lb_policy_name = gpr_strdup(default_lb_policy_name);
+    gpr_slice_split(query_slice, "=", &query_parts);
+    GPR_ASSERT(query_parts.count == 2);
+    if (0 == gpr_slice_str_cmp(query_parts.slices[0], "lb_policy")) {
+      r->lb_policy_name = gpr_dump_slice(query_parts.slices[1], GPR_DUMP_ASCII);
     }
     gpr_slice_buffer_destroy(&query_parts);
-    gpr_slice_buffer_destroy(&query_param_parts);
     gpr_slice_unref(query_slice);
   }
   if (r->lb_policy_name == NULL) {
@@ -378,22 +371,21 @@ static void sockaddr_factory_ref(grpc_resolver_factory *factory) {}
 
 static void sockaddr_factory_unref(grpc_resolver_factory *factory) {}
 
-#define DECL_FACTORY(name, prefix)                                          \
+#define DECL_FACTORY(name)                                                  \
   static grpc_resolver *name##_factory_create_resolver(                     \
       grpc_resolver_factory *factory, grpc_resolver_args *args) {           \
-    return sockaddr_create(args, "pick_first", prefix##parse_##name);       \
+    return sockaddr_create(args, "pick_first", parse_##name);               \
   }                                                                         \
   static const grpc_resolver_factory_vtable name##_factory_vtable = {       \
       sockaddr_factory_ref, sockaddr_factory_unref,                         \
-      name##_factory_create_resolver, prefix##name##_get_default_authority, \
-      #name};                                                               \
+      name##_factory_create_resolver, name##_get_default_authority, #name}; \
   static grpc_resolver_factory name##_resolver_factory = {                  \
       &name##_factory_vtable};                                              \
   grpc_resolver_factory *grpc_##name##_resolver_factory_create() {          \
     return &name##_resolver_factory;                                        \
   }
 
-#ifdef GPR_HAVE_UNIX_SOCKET
-DECL_FACTORY(unix, grpc_)
+#ifdef GPR_POSIX_SOCKET
+DECL_FACTORY(unix)
 #endif
-DECL_FACTORY(ipv4, ) DECL_FACTORY(ipv6, )
+DECL_FACTORY(ipv4) DECL_FACTORY(ipv6)
