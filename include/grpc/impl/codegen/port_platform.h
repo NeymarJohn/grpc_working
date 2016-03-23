@@ -133,7 +133,6 @@
 #define GPR_POSIX_TIME 1
 #define GPR_GETPID_IN_UNISTD_H 1
 #define GPR_HAVE_MSG_NOSIGNAL 1
-#define GPR_HAVE_UNIX_SOCKET 1
 #elif defined(__linux__)
 #define GPR_POSIX_CRASH_HANDLER 1
 #define GPR_PLATFORM_STRING "linux"
@@ -155,7 +154,6 @@
 #define GPR_POSIX_WAKEUP_FD 1
 #define GPR_POSIX_SOCKET 1
 #define GPR_POSIX_SOCKETADDR 1
-#define GPR_HAVE_UNIX_SOCKET 1
 #ifdef __GLIBC_PREREQ
 #if __GLIBC_PREREQ(2, 9)
 #define GPR_LINUX_EVENTFD 1
@@ -216,7 +214,6 @@
 #define GPR_POSIX_TIME 1
 #define GPR_GETPID_IN_UNISTD_H 1
 #define GPR_HAVE_SO_NOSIGPIPE 1
-#define GPR_HAVE_UNIX_SOCKET 1
 #ifdef _LP64
 #define GPR_ARCH_64 1
 #else /* _LP64 */
@@ -245,7 +242,6 @@
 #define GPR_POSIX_TIME 1
 #define GPR_GETPID_IN_UNISTD_H 1
 #define GPR_HAVE_SO_NOSIGPIPE 1
-#define GPR_HAVE_UNIX_SOCKET 1
 #ifdef _LP64
 #define GPR_ARCH_64 1
 #else /* _LP64 */

@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@
 
 import abc
 
-import six
-
 # interfaces is referenced from specification in this module.
 from grpc.framework.base import util as _base_util
 from grpc.framework.base import implementations
@@ -45,13 +43,15 @@ _POOL_SIZE_LIMIT = 5
 _MAXIMUM_TIMEOUT = 90
 
 
-class LinkedPair(six.with_metaclass(abc.ABCMeta)):
+class LinkedPair(object):
   """A Front and Back that are linked to one another.
 
   Attributes:
     front: An interfaces.Front.
     back: An interfaces.Back.
   """
+
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def shut_down(self):

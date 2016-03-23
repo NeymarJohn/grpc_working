@@ -27,8 +27,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import absolute_import
-
+import cStringIO as StringIO
 import collections
 import fcntl
 import multiprocessing
@@ -41,8 +40,6 @@ import threading
 import time
 import unittest
 import uuid
-
-from six import moves
 
 from tests import _loader
 from tests import _result
@@ -146,7 +143,7 @@ class Runner(object):
                        for case in filtered_cases]
     case_id_by_case = dict((augmented_case.case, augmented_case.id)
                            for augmented_case in augmented_cases)
-    result_out = moves.cStringIO()
+    result_out = StringIO.StringIO()
     result = _result.TerminalResult(
         result_out, id_map=lambda case: case_id_by_case[case])
     stdout_pipe = CaptureFile(sys.stdout.fileno())

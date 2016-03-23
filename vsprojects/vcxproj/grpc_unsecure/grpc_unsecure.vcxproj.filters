@@ -10,19 +10,16 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\census\grpc_filter.c">
       <Filter>src\core\census</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\census\grpc_plugin.c">
-      <Filter>src\core\census</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\channel\channel_args.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\channel\channel_stack.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\channel\channel_stack_builder.c">
+    <ClCompile Include="$(SolutionDir)\..\src\core\channel\client_channel.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\channel\client_channel.c">
+    <ClCompile Include="$(SolutionDir)\..\src\core\channel\client_uchannel.c">
       <Filter>src\core\channel</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\channel\compress_filter.c">
@@ -106,14 +103,14 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\debug\trace.c">
       <Filter>src\core\debug</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\http\format_request.c">
-      <Filter>src\core\http</Filter>
+    <ClCompile Include="$(SolutionDir)\..\src\core\httpcli\format_request.c">
+      <Filter>src\core\httpcli</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\http\httpcli.c">
-      <Filter>src\core\http</Filter>
+    <ClCompile Include="$(SolutionDir)\..\src\core\httpcli\httpcli.c">
+      <Filter>src\core\httpcli</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\http\parser.c">
-      <Filter>src\core\http</Filter>
+    <ClCompile Include="$(SolutionDir)\..\src\core\httpcli\parser.c">
+      <Filter>src\core\httpcli</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\closure.c">
       <Filter>src\core\iomgr</Filter>
@@ -217,12 +214,6 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\udp_server.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\unix_sockets_posix.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\unix_sockets_posix_noop.c">
-      <Filter>src\core\iomgr</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\iomgr\wakeup_fd_eventfd.c">
       <Filter>src\core\iomgr</Filter>
     </ClCompile>
@@ -286,13 +277,7 @@
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\channel_create.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\surface\channel_init.c">
-      <Filter>src\core\surface</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\channel_ping.c">
-      <Filter>src\core\surface</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\core\surface\channel_stack_type.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\completion_queue.c">
@@ -314,6 +299,9 @@
       <Filter>src\core\surface</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\server_chttp2.c">
+      <Filter>src\core\surface</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\surface\server_create.c">
       <Filter>src\core\surface</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\surface\validate_metadata.c">
@@ -476,19 +464,16 @@
     <ClInclude Include="$(SolutionDir)\..\src\core\census\grpc_filter.h">
       <Filter>src\core\census</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)\..\src\core\census\grpc_plugin.h">
-      <Filter>src\core\census</Filter>
-    </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\channel\channel_args.h">
       <Filter>src\core\channel</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\channel\channel_stack.h">
       <Filter>src\core\channel</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)\..\src\core\channel\channel_stack_builder.h">
+    <ClInclude Include="$(SolutionDir)\..\src\core\channel\client_channel.h">
       <Filter>src\core\channel</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)\..\src\core\channel\client_channel.h">
+    <ClInclude Include="$(SolutionDir)\..\src\core\channel\client_uchannel.h">
       <Filter>src\core\channel</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\channel\compress_filter.h">
@@ -572,14 +557,14 @@
     <ClInclude Include="$(SolutionDir)\..\src\core\debug\trace.h">
       <Filter>src\core\debug</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)\..\src\core\http\format_request.h">
-      <Filter>src\core\http</Filter>
+    <ClInclude Include="$(SolutionDir)\..\src\core\httpcli\format_request.h">
+      <Filter>src\core\httpcli</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)\..\src\core\http\httpcli.h">
-      <Filter>src\core\http</Filter>
+    <ClInclude Include="$(SolutionDir)\..\src\core\httpcli\httpcli.h">
+      <Filter>src\core\httpcli</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)\..\src\core\http\parser.h">
-      <Filter>src\core\http</Filter>
+    <ClInclude Include="$(SolutionDir)\..\src\core\httpcli\parser.h">
+      <Filter>src\core\httpcli</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\closure.h">
       <Filter>src\core\iomgr</Filter>
@@ -674,9 +659,6 @@
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\udp_server.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\unix_sockets_posix.h">
-      <Filter>src\core\iomgr</Filter>
-    </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\iomgr\wakeup_fd_pipe.h">
       <Filter>src\core\iomgr</Filter>
     </ClInclude>
@@ -725,12 +707,6 @@
     <ClInclude Include="$(SolutionDir)\..\src\core\surface\channel.h">
       <Filter>src\core\surface</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)\..\src\core\surface\channel_init.h">
-      <Filter>src\core\surface</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)\..\src\core\surface\channel_stack_type.h">
-      <Filter>src\core\surface</Filter>
-    </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\surface\completion_queue.h">
       <Filter>src\core\surface</Filter>
     </ClInclude>
@@ -738,9 +714,6 @@
       <Filter>src\core\surface</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\surface\init.h">
-      <Filter>src\core\surface</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)\..\src\core\surface\lame_client.h">
       <Filter>src\core\surface</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\surface\server.h">
@@ -896,8 +869,8 @@
     <Filter Include="src\core\debug">
       <UniqueIdentifier>{6d8d5774-7291-554d-fafa-583463cd3fd9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\core\http">
-      <UniqueIdentifier>{46faed8e-5cd4-98b0-05ed-ff2ac7bc2d46}</UniqueIdentifier>
+    <Filter Include="src\core\httpcli">
+      <UniqueIdentifier>{1ba3a245-47e7-89b5-b0c9-aca758bd0277}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\core\iomgr">
       <UniqueIdentifier>{a9df8b24-ecea-ff6d-8999-d8fa54cd70bf}</UniqueIdentifier>
