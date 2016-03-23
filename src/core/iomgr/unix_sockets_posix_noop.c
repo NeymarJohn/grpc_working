@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,28 +31,31 @@
  *
  */
 
-#ifndef GRPC_CORE_TRANSPORT_CHTTP2_FRAME_WINDOW_UPDATE_H
-#define GRPC_CORE_TRANSPORT_CHTTP2_FRAME_WINDOW_UPDATE_H
+#include "src/core/iomgr/unix_sockets_posix.h"
 
-#include <grpc/support/slice.h>
-#include "src/core/iomgr/exec_ctx.h"
-#include "src/core/transport/chttp2/frame.h"
-#include "src/core/transport/transport.h"
+#ifndef GPR_HAVE_UNIX_SOCKET
 
-typedef struct {
-  uint8_t byte;
-  uint8_t is_connection_update;
-  uint32_t amount;
-} grpc_chttp2_window_update_parser;
+void grpc_create_socketpair_if_unix(int sv[2]) {}
 
-gpr_slice grpc_chttp2_window_update_create(uint32_t id, uint32_t window_delta,
-                                           grpc_transport_one_way_stats *stats);
+grpc_resolved_addresses *grpc_resolve_unix_domain_address(const char *name) {
+  return NULL;
+}
 
-grpc_chttp2_parse_error grpc_chttp2_window_update_parser_begin_frame(
-    grpc_chttp2_window_update_parser *parser, uint32_t length, uint8_t flags);
-grpc_chttp2_parse_error grpc_chttp2_window_update_parser_parse(
-    grpc_exec_ctx *exec_ctx, void *parser,
-    grpc_chttp2_transport_parsing *transport_parsing,
-    grpc_chttp2_stream_parsing *stream_parsing, gpr_slice slice, int is_last);
+int grpc_is_unix_socket(const struct sockaddr *addr) { return false; }
 
-#endif /* GRPC_CORE_TRANSPORT_CHTTP2_FRAME_WINDOW_UPDATE_H */
+void grpc_unlink_if_unix_domain_socket(const struct sockaddr *addr) {}
+
+int grpc_parse_unix(grpc_uri *uri, struct sockaddr_storage *addr, size_t *len) {
+  return 0;
+}
+
+char *grpc_unix_get_default_authority(grpc_resolver_factory *factory,
+                                      grpc_uri *uri) {
+  return NULL;
+}
+
+char *grpc_sockaddr_to_uri_unix_if_possible(const struct sockaddr *addr) {
+  return NULL;
+}
+
+#endif
