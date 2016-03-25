@@ -30,6 +30,8 @@
 
 set -ex
 
+apt-get install -y autoconf automake libtool curl python-virtualenv
+
 readonly NANOPB_TMP_OUTPUT="$(mktemp -d)"
 
 # install protoc version 3

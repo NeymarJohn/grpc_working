@@ -41,8 +41,7 @@ cdef class Server:
     if arguments is not None:
       c_arguments = &arguments.c_args
       self.references.append(arguments)
-    with nogil:
-      self.c_server = grpc_server_create(c_arguments, NULL)
+    self.c_server = grpc_server_create(c_arguments, NULL)
     self.is_started = False
     self.is_shutting_down = False
     self.is_shutdown = False
@@ -54,7 +53,6 @@ cdef class Server:
       raise ValueError("server must be started and not shutting down")
     if server_queue not in self.registered_completion_queues:
       raise ValueError("server_queue must be a registered completion queue")
-    cdef grpc_call_error result
     cdef OperationTag operation_tag = OperationTag(tag)
     operation_tag.operation_call = Call()
     operation_tag.request_call_details = CallDetails()
@@ -63,22 +61,19 @@ cdef class Server:
     operation_tag.is_new_request = True
     operation_tag.batch_operations = Operations([])
     cpython.Py_INCREF(operation_tag)
-    with nogil:
-      result = grpc_server_request_call(
-          self.c_server, &operation_tag.operation_call.c_call,
-          &operation_tag.request_call_details.c_details,
-          &operation_tag.request_metadata.c_metadata_array,
-          call_queue.c_completion_queue, server_queue.c_completion_queue,
-          <cpython.PyObject *>operation_tag)
-    return result
+    return grpc_server_request_call(
+        self.c_server, &operation_tag.operation_call.c_call,
+        &operation_tag.request_call_details.c_details,
+        &operation_tag.request_metadata.c_metadata_array,
+        call_queue.c_completion_queue, server_queue.c_completion_queue,
+        <cpython.PyObject *>operation_tag)
 
   def register_completion_queue(
       self, CompletionQueue queue not None):
     if self.is_started:
       raise ValueError("cannot register completion queues after start")
-    with nogil:
-      grpc_server_register_completion_queue(
-          self.c_server, queue.c_completion_queue, NULL)
+    grpc_server_register_completion_queue(
+        self.c_server, queue.c_completion_queue, NULL)
     self.registered_completion_queues.append(queue)
 
   def start(self):
@@ -87,8 +82,7 @@ cdef class Server:
     self.backup_shutdown_queue = CompletionQueue()
     self.register_completion_queue(self.backup_shutdown_queue)
     self.is_started = True
-    with nogil:
-      grpc_server_start(self.c_server)
+    grpc_server_start(self.c_server)
     # Ensure the core has gotten a chance to do the start-up work
     self.backup_shutdown_queue.pluck(None, Timespec(None))
 
@@ -101,28 +95,22 @@ cdef class Server:
     else:
       raise TypeError("expected address to be a str or bytes")
     self.references.append(address)
-    cdef int result
-    cdef char *address_c_string = address
     if server_credentials is not None:
       self.references.append(server_credentials)
-      with nogil:
-        result = grpc_server_add_secure_http2_port(
-            self.c_server, address_c_string, server_credentials.c_credentials)
+      return grpc_server_add_secure_http2_port(
+          self.c_server, address, server_credentials.c_credentials)
     else:
-      with nogil:
-        result = grpc_server_add_insecure_http2_port(self.c_server,
-                                                     address_c_string)
-    return result
+      return grpc_server_add_insecure_http2_port(self.c_server, address)
 
   cdef _c_shutdown(self, CompletionQueue queue, tag):
     self.is_shutting_down = True
     operation_tag = OperationTag(tag)
     operation_tag.shutting_down_server = self
+    operation_tag.references.extend([self, queue])
     cpython.Py_INCREF(operation_tag)
-    with nogil:
-      grpc_server_shutdown_and_notify(
-          self.c_server, queue.c_completion_queue,
-          <cpython.PyObject *>operation_tag)
+    grpc_server_shutdown_and_notify(
+        self.c_server, queue.c_completion_queue,
+        <cpython.PyObject *>operation_tag)
 
   def shutdown(self, CompletionQueue queue not None, tag):
     cdef OperationTag operation_tag
@@ -147,8 +135,7 @@ cdef class Server:
     elif self.is_shutdown:
       return
     else:
-      with nogil:
-        grpc_server_cancel_all_calls(self.c_server)
+      grpc_server_cancel_all_calls(self.c_server)
 
   def __dealloc__(self):
     if self.c_server != NULL:
@@ -167,6 +154,5 @@ cdef class Server:
         # much but repeatedly release the GIL and wait
         while not self.is_shutdown:
           time.sleep(0)
-      with nogil:
-        grpc_server_destroy(self.c_server)
+      grpc_server_destroy(self.c_server)
 

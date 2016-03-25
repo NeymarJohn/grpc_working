@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,14 @@
 
 import abc
 
-import six
-
 # These classes are only valid when inherited by unittest.TestCases.
 # pylint: disable=invalid-name
 
 
-class BlockingCoverage(six.with_metaclass(abc.ABCMeta)):
+class BlockingCoverage(object):
   """Specification of test coverage for blocking behaviors."""
+
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def testSuccessfulUnaryRequestUnaryResponse(self):
@@ -93,8 +93,10 @@ class BlockingCoverage(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class FullCoverage(six.with_metaclass(abc.ABCMeta, BlockingCoverage)):
+class FullCoverage(BlockingCoverage):
   """Specification of test coverage for non-blocking behaviors."""
+
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def testParallelInvocations(self):
