@@ -35,7 +35,6 @@
 #include <grpc/support/alloc.h>
 #include <grpc/support/atm.h>
 #include <grpc/support/log.h>
-#include <grpc/support/sync.h>
 #include "src/core/transport/transport_impl.h"
 
 #ifdef GRPC_STREAM_REFCOUNT_DEBUG
@@ -77,24 +76,6 @@ void grpc_stream_ref_init(grpc_stream_refcount *refcount, int initial_refs,
   grpc_closure_init(&refcount->destroy, cb, cb_arg);
 }
 
-static void move64(uint64_t *from, uint64_t *to) {
-  *to += *from;
-  *from = 0;
-}
-
-void grpc_transport_move_one_way_stats(grpc_transport_one_way_stats *from,
-                                       grpc_transport_one_way_stats *to) {
-  move64(&from->framing_bytes, &to->framing_bytes);
-  move64(&from->data_bytes, &to->data_bytes);
-  move64(&from->header_bytes, &to->header_bytes);
-}
-
-void grpc_transport_move_stats(grpc_transport_stream_stats *from,
-                               grpc_transport_stream_stats *to) {
-  grpc_transport_move_one_way_stats(&from->incoming, &to->incoming);
-  grpc_transport_move_one_way_stats(&from->outgoing, &to->outgoing);
-}
-
 size_t grpc_transport_stream_size(grpc_transport *transport) {
   return transport->vtable->sizeof_stream;
 }
@@ -133,9 +114,8 @@ void grpc_transport_set_pollset(grpc_exec_ctx *exec_ctx,
 
 void grpc_transport_destroy_stream(grpc_exec_ctx *exec_ctx,
                                    grpc_transport *transport,
-                                   grpc_stream *stream, void *and_free_memory) {
-  transport->vtable->destroy_stream(exec_ctx, transport, stream,
-                                    and_free_memory);
+                                   grpc_stream *stream) {
+  transport->vtable->destroy_stream(exec_ctx, transport, stream);
 }
 
 char *grpc_transport_get_peer(grpc_exec_ctx *exec_ctx,

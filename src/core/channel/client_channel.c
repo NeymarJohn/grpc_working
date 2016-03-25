@@ -379,10 +379,9 @@ static void init_call_elem(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
 }
 
 /* Destructor for call_data */
-static void destroy_call_elem(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
-                              void *and_free_memory) {
+static void destroy_call_elem(grpc_exec_ctx *exec_ctx,
+                              grpc_call_element *elem) {
   grpc_subchannel_call_holder_destroy(exec_ctx, elem->call_data);
-  gpr_free(and_free_memory);
 }
 
 /* Constructor for channel_data */
@@ -432,9 +431,17 @@ static void cc_set_pollset(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
 }
 
 const grpc_channel_filter grpc_client_channel_filter = {
-    cc_start_transport_stream_op, cc_start_transport_op, sizeof(call_data),
-    init_call_elem, cc_set_pollset, destroy_call_elem, sizeof(channel_data),
-    init_channel_elem, destroy_channel_elem, cc_get_peer, "client-channel",
+    cc_start_transport_stream_op,
+    cc_start_transport_op,
+    sizeof(call_data),
+    init_call_elem,
+    cc_set_pollset,
+    destroy_call_elem,
+    sizeof(channel_data),
+    init_channel_elem,
+    destroy_channel_elem,
+    cc_get_peer,
+    "client-channel",
 };
 
 void grpc_client_channel_set_resolver(grpc_exec_ctx *exec_ctx,

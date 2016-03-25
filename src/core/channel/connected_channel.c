@@ -102,13 +102,12 @@ static void set_pollset(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
 }
 
 /* Destructor for call_data */
-static void destroy_call_elem(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
-                              void *and_free_memory) {
+static void destroy_call_elem(grpc_exec_ctx *exec_ctx,
+                              grpc_call_element *elem) {
   call_data *calld = elem->call_data;
   channel_data *chand = elem->channel_data;
   grpc_transport_destroy_stream(exec_ctx, chand->transport,
-                                TRANSPORT_STREAM_FROM_CALL_DATA(calld),
-                                and_free_memory);
+                                TRANSPORT_STREAM_FROM_CALL_DATA(calld));
 }
 
 /* Constructor for channel_data */
@@ -133,9 +132,17 @@ static char *con_get_peer(grpc_exec_ctx *exec_ctx, grpc_call_element *elem) {
 }
 
 static const grpc_channel_filter connected_channel_filter = {
-    con_start_transport_stream_op, con_start_transport_op, sizeof(call_data),
-    init_call_elem, set_pollset, destroy_call_elem, sizeof(channel_data),
-    init_channel_elem, destroy_channel_elem, con_get_peer, "connected",
+    con_start_transport_stream_op,
+    con_start_transport_op,
+    sizeof(call_data),
+    init_call_elem,
+    set_pollset,
+    destroy_call_elem,
+    sizeof(channel_data),
+    init_channel_elem,
+    destroy_channel_elem,
+    con_get_peer,
+    "connected",
 };
 
 static void bind_transport(grpc_channel_stack *channel_stack,
