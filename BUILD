@@ -1047,6 +1047,7 @@ cc_library(
     ".",
   ],
   deps = [
+    "//external:protobuf_compiler",
   ],
 )
 
