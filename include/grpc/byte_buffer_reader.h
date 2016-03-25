@@ -34,8 +34,8 @@
 #ifndef GRPC_BYTE_BUFFER_READER_H
 #define GRPC_BYTE_BUFFER_READER_H
 
-#include <grpc/byte_buffer.h>
 #include <grpc/grpc.h>
+#include <grpc/byte_buffer.h>
 
 #ifdef __cplusplus
 extern "C" {

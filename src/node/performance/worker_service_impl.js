@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,31 +56,18 @@ exports.runClient = function runClient(call) {
       client.on('error', function(error) {
         call.emit('error', error);
       });
-      var req_size, resp_size, generic;
-      switch (setup.payload_config.payload) {
-        case 'bytebuf_params':
-        req_size = setup.payload_config.bytebuf_params.req_size;
-        resp_size = setup.payload_config.bytebuf_params.resp_size;
-        generic = true;
-        break;
-        case 'simple_params':
-        req_size = setup.payload_config.simple_params.req_size;
-        resp_size = setup.payload_config.simple_params.resp_size;
-        generic = false;
-        break;
-        default:
-        call.emit('error', new Error('Unsupported PayloadConfig type' +
-            setup.payload_config.payload));
-      }
       switch (setup.load_params.load) {
         case 'closed_loop':
         client.startClosedLoop(setup.outstanding_rpcs_per_channel,
-                               setup.rpc_type, req_size, resp_size, generic);
+                               setup.rpc_type,
+                               setup.payload_config.simple_params.req_size,
+                               setup.payload_config.simple_params.resp_size);
         break;
         case 'poisson':
         client.startPoisson(setup.outstanding_rpcs_per_channel,
-                            setup.rpc_type, req_size, resp_size,
-                            setup.load_params.poisson.offered_load, generic);
+                            setup.rpc_type, setup.payload_config.req_size,
+                            setup.payload_config.resp_size,
+                            setup.load_params.poisson.offered_load);
         break;
         default:
         call.emit('error', new Error('Unsupported LoadParams type' +
