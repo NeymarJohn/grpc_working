@@ -86,7 +86,7 @@ struct grpc_completion_queue {
 #define POLLSET_FROM_CQ(cq) ((grpc_pollset *)(cq + 1))
 
 static gpr_mu g_freelist_mu;
-grpc_completion_queue *g_freelist;
+static grpc_completion_queue *g_freelist;
 
 static void on_pollset_shutdown_done(grpc_exec_ctx *exec_ctx, void *cc,
                                      bool success);
@@ -227,6 +227,10 @@ void grpc_cq_end_op(grpc_exec_ctx *exec_ctx, grpc_completion_queue *cc,
 #endif
 
   GPR_TIMER_BEGIN("grpc_cq_end_op", 0);
+  GRPC_API_TRACE(
+      "grpc_cq_end_op(exec_ctx=%p, cc=%p, tag=%p, success=%d, done=%p, "
+      "done_arg=%p, storage=%p)",
+      7, (exec_ctx, cc, tag, success, done, done_arg, storage));
 
   storage->tag = tag;
   storage->done = done;

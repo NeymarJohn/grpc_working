@@ -31,16 +31,16 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_TRANSPORT_TRANSPORT_H
-#define GRPC_INTERNAL_CORE_TRANSPORT_TRANSPORT_H
+#ifndef GRPC_CORE_TRANSPORT_TRANSPORT_H
+#define GRPC_CORE_TRANSPORT_TRANSPORT_H
 
 #include <stddef.h>
 
+#include "src/core/channel/context.h"
 #include "src/core/iomgr/pollset.h"
 #include "src/core/iomgr/pollset_set.h"
-#include "src/core/transport/metadata_batch.h"
 #include "src/core/transport/byte_stream.h"
-#include "src/core/channel/context.h"
+#include "src/core/transport/metadata_batch.h"
 
 /* forward declarations */
 typedef struct grpc_transport grpc_transport;
@@ -78,9 +78,31 @@ void grpc_stream_unref(grpc_exec_ctx *exec_ctx, grpc_stream_refcount *refcount);
   grpc_stream_ref_init(rc, ir, cb, cb_arg)
 #endif
 
+typedef struct {
+  uint64_t framing_bytes;
+  uint64_t data_bytes;
+  uint64_t header_bytes;
+} grpc_transport_one_way_stats;
+
+typedef struct grpc_transport_stream_stats {
+  grpc_transport_one_way_stats incoming;
+  grpc_transport_one_way_stats outgoing;
+} grpc_transport_stream_stats;
+
+void grpc_transport_move_one_way_stats(grpc_transport_one_way_stats *from,
+                                       grpc_transport_one_way_stats *to);
+
+void grpc_transport_move_stats(grpc_transport_stream_stats *from,
+                               grpc_transport_stream_stats *to);
+
 /* Transport stream op: a set of operations to perform on a transport
    against a single stream */
 typedef struct grpc_transport_stream_op {
+  /** Should be enqueued when all requested operations (excluding recv_message
+      and recv_initial_metadata which have their own closures) in a given batch
+      have been completed. */
+  grpc_closure *on_complete;
+
   /** Send initial metadata to the peer, from the provided metadata batch. */
   grpc_metadata_batch *send_initial_metadata;
 
@@ -104,10 +126,8 @@ typedef struct grpc_transport_stream_op {
    */
   grpc_metadata_batch *recv_trailing_metadata;
 
-  /** Should be enqueued when all requested operations (excluding recv_message
-      and recv_initial_metadata which have their own closures) in a given batch
-      have been completed. */
-  grpc_closure *on_complete;
+  /** Collect any stats into provided buffer, zero internal stat counters */
+  grpc_transport_stream_stats *collect_stats;
 
   /** If != GRPC_STATUS_OK, cancel this stream */
   grpc_status_code cancel_with_status;
@@ -188,7 +208,7 @@ void grpc_transport_set_pollset(grpc_exec_ctx *exec_ctx,
                  caller, but any child memory must be cleaned up) */
 void grpc_transport_destroy_stream(grpc_exec_ctx *exec_ctx,
                                    grpc_transport *transport,
-                                   grpc_stream *stream);
+                                   grpc_stream *stream, void *and_free_memory);
 
 void grpc_transport_stream_op_finish_with_failure(grpc_exec_ctx *exec_ctx,
                                                   grpc_transport_stream_op *op);
@@ -239,4 +259,4 @@ void grpc_transport_destroy(grpc_exec_ctx *exec_ctx, grpc_transport *transport);
 char *grpc_transport_get_peer(grpc_exec_ctx *exec_ctx,
                               grpc_transport *transport);
 
-#endif /* GRPC_INTERNAL_CORE_TRANSPORT_TRANSPORT_H */
+#endif /* GRPC_CORE_TRANSPORT_TRANSPORT_H */
