@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,13 @@
  *
  */
 
-#ifndef GRPC_CORE_TRANSPORT_CHTTP2_FRAME_SETTINGS_H
-#define GRPC_CORE_TRANSPORT_CHTTP2_FRAME_SETTINGS_H
+#ifndef GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_SETTINGS_H
+#define GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_SETTINGS_H
 
 #include <grpc/support/port_platform.h>
 #include <grpc/support/slice.h>
-#include "src/core/iomgr/exec_ctx.h"
 #include "src/core/transport/chttp2/frame.h"
+#include "src/core/iomgr/exec_ctx.h"
 
 typedef enum {
   GRPC_CHTTP2_SPS_ID0,
@@ -100,4 +100,4 @@ grpc_chttp2_parse_error grpc_chttp2_settings_parser_parse(
     grpc_chttp2_transport_parsing *transport_parsing,
     grpc_chttp2_stream_parsing *stream_parsing, gpr_slice slice, int is_last);
 
-#endif /* GRPC_CORE_TRANSPORT_CHTTP2_FRAME_SETTINGS_H */
+#endif /* GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_SETTINGS_H */

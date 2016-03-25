@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,14 @@
  *
  */
 
-#ifndef GRPC_CORE_TRANSPORT_CHTTP2_FRAME_GOAWAY_H
-#define GRPC_CORE_TRANSPORT_CHTTP2_FRAME_GOAWAY_H
+#ifndef GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_GOAWAY_H
+#define GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_GOAWAY_H
 
+#include "src/core/iomgr/exec_ctx.h"
+#include "src/core/transport/chttp2/frame.h"
 #include <grpc/support/port_platform.h>
 #include <grpc/support/slice.h>
 #include <grpc/support/slice_buffer.h>
-#include "src/core/iomgr/exec_ctx.h"
-#include "src/core/transport/chttp2/frame.h"
 
 typedef enum {
   GRPC_CHTTP2_GOAWAY_LSI0,
@@ -74,4 +74,4 @@ void grpc_chttp2_goaway_append(uint32_t last_stream_id, uint32_t error_code,
                                gpr_slice debug_data,
                                gpr_slice_buffer *slice_buffer);
 
-#endif /* GRPC_CORE_TRANSPORT_CHTTP2_FRAME_GOAWAY_H */
+#endif /* GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_GOAWAY_H */

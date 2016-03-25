@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """Implementations of interoperability test methods."""
-
-from __future__ import print_function
 
 import enum
 import json
@@ -175,9 +173,6 @@ class _Pipe(object):
   def __iter__(self):
     return self
 
-  def __next__(self):
-    return self.next()
-
   def next(self):
     with self._condition:
       while not self._values and self._open:
@@ -210,7 +205,7 @@ def _ping_pong(stub):
 
   with stub, _Pipe() as pipe:
     response_iterator = stub.FullDuplexCall(pipe, _TIMEOUT)
-    print('Starting ping-pong with response iterator %s' % response_iterator)
+    print 'Starting ping-pong with response iterator %s' % response_iterator
     for response_size, payload_size in zip(
         request_response_sizes, request_payload_sizes):
       request = messages_pb2.StreamingOutputCallRequest(

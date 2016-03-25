@@ -31,16 +31,16 @@
  *
  */
 
-#ifndef GRPC_CORE_TRANSPORT_TRANSPORT_H
-#define GRPC_CORE_TRANSPORT_TRANSPORT_H
+#ifndef GRPC_INTERNAL_CORE_TRANSPORT_TRANSPORT_H
+#define GRPC_INTERNAL_CORE_TRANSPORT_TRANSPORT_H
 
 #include <stddef.h>
 
-#include "src/core/channel/context.h"
 #include "src/core/iomgr/pollset.h"
 #include "src/core/iomgr/pollset_set.h"
-#include "src/core/transport/byte_stream.h"
 #include "src/core/transport/metadata_batch.h"
+#include "src/core/transport/byte_stream.h"
+#include "src/core/channel/context.h"
 
 /* forward declarations */
 typedef struct grpc_transport grpc_transport;
@@ -239,4 +239,4 @@ void grpc_transport_destroy(grpc_exec_ctx *exec_ctx, grpc_transport *transport);
 char *grpc_transport_get_peer(grpc_exec_ctx *exec_ctx,
                               grpc_transport *transport);
 
-#endif /* GRPC_CORE_TRANSPORT_TRANSPORT_H */
+#endif /* GRPC_INTERNAL_CORE_TRANSPORT_TRANSPORT_H */

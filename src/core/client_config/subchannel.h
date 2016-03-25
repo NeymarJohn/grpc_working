@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_CORE_CLIENT_CONFIG_SUBCHANNEL_H
-#define GRPC_CORE_CLIENT_CONFIG_SUBCHANNEL_H
+#ifndef GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_H
+#define GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_H
 
 #include "src/core/channel/channel_stack.h"
 #include "src/core/client_config/connector.h"
@@ -83,25 +83,25 @@ typedef struct grpc_subchannel_args grpc_subchannel_args;
 #define GRPC_SUBCHANNEL_REF_EXTRA_ARGS
 #endif
 
-grpc_subchannel *grpc_subchannel_ref(
-    grpc_subchannel *channel GRPC_SUBCHANNEL_REF_EXTRA_ARGS);
+grpc_subchannel *grpc_subchannel_ref(grpc_subchannel *channel
+                                         GRPC_SUBCHANNEL_REF_EXTRA_ARGS);
 grpc_subchannel *grpc_subchannel_ref_from_weak_ref(
     grpc_subchannel *channel GRPC_SUBCHANNEL_REF_EXTRA_ARGS);
 void grpc_subchannel_unref(grpc_exec_ctx *exec_ctx,
                            grpc_subchannel *channel
                                GRPC_SUBCHANNEL_REF_EXTRA_ARGS);
-grpc_subchannel *grpc_subchannel_weak_ref(
-    grpc_subchannel *channel GRPC_SUBCHANNEL_REF_EXTRA_ARGS);
+grpc_subchannel *grpc_subchannel_weak_ref(grpc_subchannel *channel
+                                              GRPC_SUBCHANNEL_REF_EXTRA_ARGS);
 void grpc_subchannel_weak_unref(grpc_exec_ctx *exec_ctx,
                                 grpc_subchannel *channel
                                     GRPC_SUBCHANNEL_REF_EXTRA_ARGS);
-void grpc_connected_subchannel_ref(
-    grpc_connected_subchannel *channel GRPC_SUBCHANNEL_REF_EXTRA_ARGS);
+void grpc_connected_subchannel_ref(grpc_connected_subchannel *channel
+                                       GRPC_SUBCHANNEL_REF_EXTRA_ARGS);
 void grpc_connected_subchannel_unref(grpc_exec_ctx *exec_ctx,
                                      grpc_connected_subchannel *channel
                                          GRPC_SUBCHANNEL_REF_EXTRA_ARGS);
-void grpc_subchannel_call_ref(
-    grpc_subchannel_call *call GRPC_SUBCHANNEL_REF_EXTRA_ARGS);
+void grpc_subchannel_call_ref(grpc_subchannel_call *call
+                                  GRPC_SUBCHANNEL_REF_EXTRA_ARGS);
 void grpc_subchannel_call_unref(grpc_exec_ctx *exec_ctx,
                                 grpc_subchannel_call *call
                                     GRPC_SUBCHANNEL_REF_EXTRA_ARGS);
@@ -171,4 +171,4 @@ grpc_subchannel *grpc_subchannel_create(grpc_exec_ctx *exec_ctx,
                                         grpc_connector *connector,
                                         grpc_subchannel_args *args);
 
-#endif /* GRPC_CORE_CLIENT_CONFIG_SUBCHANNEL_H */
+#endif /* GRPC_INTERNAL_CORE_CLIENT_CONFIG_SUBCHANNEL_H */

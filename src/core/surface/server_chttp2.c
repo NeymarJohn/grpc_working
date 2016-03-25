@@ -33,19 +33,22 @@
 
 #include <grpc/grpc.h>
 
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
-#include <grpc/support/useful.h>
 #include "src/core/channel/http_server_filter.h"
 #include "src/core/iomgr/resolve_address.h"
 #include "src/core/iomgr/tcp_server.h"
 #include "src/core/surface/api_trace.h"
 #include "src/core/surface/server.h"
 #include "src/core/transport/chttp2_transport.h"
+#include <grpc/support/alloc.h>
+#include <grpc/support/log.h>
+#include <grpc/support/useful.h>
 
 static void setup_transport(grpc_exec_ctx *exec_ctx, void *server,
                             grpc_transport *transport) {
-  grpc_server_setup_transport(exec_ctx, server, transport,
+  static grpc_channel_filter const *extra_filters[] = {
+      &grpc_http_server_filter};
+  grpc_server_setup_transport(exec_ctx, server, transport, extra_filters,
+                              GPR_ARRAY_SIZE(extra_filters),
                               grpc_server_get_channel_args(server));
 }
 

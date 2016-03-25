@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,13 @@
  *
  */
 
-#ifndef GRPC_CORE_SURFACE_COMPLETION_QUEUE_H
-#define GRPC_CORE_SURFACE_COMPLETION_QUEUE_H
+#ifndef GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H
+#define GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H
 
 /* Internal API for completion queues */
 
-#include <grpc/grpc.h>
 #include "src/core/iomgr/pollset.h"
+#include <grpc/grpc.h>
 
 typedef struct grpc_cq_completion {
   /** user supplied tag */
@@ -88,4 +88,4 @@ int grpc_cq_is_server_cq(grpc_completion_queue *cc);
 void grpc_cq_global_init(void);
 void grpc_cq_global_shutdown(void);
 
-#endif /* GRPC_CORE_SURFACE_COMPLETION_QUEUE_H */
+#endif /* GRPC_INTERNAL_CORE_SURFACE_COMPLETION_QUEUE_H */

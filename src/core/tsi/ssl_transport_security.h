@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_CORE_TSI_SSL_TRANSPORT_SECURITY_H
-#define GRPC_CORE_TSI_SSL_TRANSPORT_SECURITY_H
+#ifndef GRPC_INTERNAL_CORE_TSI_SSL_TRANSPORT_SECURITY_H
+#define GRPC_INTERNAL_CORE_TSI_SSL_TRANSPORT_SECURITY_H
 
 #include "src/core/tsi/transport_security_interface.h"
 
@@ -47,8 +47,6 @@ extern "C" {
 #define TSI_X509_SUBJECT_COMMON_NAME_PEER_PROPERTY "x509_subject_common_name"
 #define TSI_X509_SUBJECT_ALTERNATIVE_NAME_PEER_PROPERTY \
   "x509_subject_alternative_name"
-
-#define TSI_X509_PEM_CERT_PROPERTY "x509_pem_cert"
 
 #define TSI_SSL_ALPN_SELECTED_PROTOCOL "ssl_alpn_selected_protocol"
 
@@ -164,11 +162,12 @@ void tsi_ssl_handshaker_factory_destroy(tsi_ssl_handshaker_factory *self);
    Still TODO(jboeuf):
    - handle mixed case.
    - handle %encoded chars.
-   - handle public suffix wildchar more strictly (e.g. *.co.uk) */
+   - handle public suffix wildchar more strictly (e.g. *.co.uk)
+   - handle IP addresses in SAN. */
 int tsi_ssl_peer_matches_name(const tsi_peer *peer, const char *name);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* GRPC_CORE_TSI_SSL_TRANSPORT_SECURITY_H */
+#endif /* GRPC_INTERNAL_CORE_TSI_SSL_TRANSPORT_SECURITY_H */

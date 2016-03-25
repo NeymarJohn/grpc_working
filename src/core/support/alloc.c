@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,9 +33,9 @@
 
 #include <grpc/support/alloc.h>
 
+#include <stdlib.h>
 #include <grpc/support/log.h>
 #include <grpc/support/port_platform.h>
-#include <stdlib.h>
 #include "src/core/profiling/timers.h"
 
 static gpr_allocation_functions g_alloc_functions = {malloc, realloc, free};
@@ -87,4 +87,4 @@ void *gpr_malloc_aligned(size_t size, size_t alignment_log) {
   return (void *)ret;
 }
 
-void gpr_free_aligned(void *ptr) { gpr_free(((void **)ptr)[-1]); }
+void gpr_free_aligned(void *ptr) { free(((void **)ptr)[-1]); }

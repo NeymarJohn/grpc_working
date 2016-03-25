@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@ import enum
 import logging
 import threading
 import time
-
-import six
 
 from grpc._adapter import _intermediary_low
 from grpc._links import _constants
@@ -374,11 +372,12 @@ class _Kernel(object):
     pool.shutdown(wait=True)
 
 
-class InvocationLink(six.with_metaclass(abc.ABCMeta, links.Link, activated.Activated)):
+class InvocationLink(links.Link, activated.Activated):
   """A links.Link for use on the invocation-side of a gRPC connection.
 
   Implementations of this interface are only valid for use when activated.
   """
+  __metaclass__ = abc.ABCMeta
 
 
 class _InvocationLink(InvocationLink):

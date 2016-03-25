@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,6 @@
 import abc
 import collections
 import enum
-
-import six
 
 
 class Protocol(collections.namedtuple('Protocol', ('kind', 'value',))):
@@ -125,8 +123,9 @@ class Ticket(
     REMOTE_FAILURE = 'remote failure'
 
 
-class Link(six.with_metaclass(abc.ABCMeta)):
+class Link(object):
   """Accepts and emits tickets."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def accept_ticket(self, ticket):

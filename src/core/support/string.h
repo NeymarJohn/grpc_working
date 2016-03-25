@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,14 @@
  *
  */
 
-#ifndef GRPC_CORE_SUPPORT_STRING_H
-#define GRPC_CORE_SUPPORT_STRING_H
+#ifndef GRPC_INTERNAL_CORE_SUPPORT_STRING_H
+#define GRPC_INTERNAL_CORE_SUPPORT_STRING_H
 
 #include <stddef.h>
 
 #include <grpc/support/port_platform.h>
-#include <grpc/support/slice.h>
 #include <grpc/support/slice_buffer.h>
+#include <grpc/support/slice.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -118,4 +118,4 @@ char *gpr_strvec_flatten(gpr_strvec *strs, size_t *total_length);
 }
 #endif
 
-#endif /* GRPC_CORE_SUPPORT_STRING_H */
+#endif /* GRPC_INTERNAL_CORE_SUPPORT_STRING_H */

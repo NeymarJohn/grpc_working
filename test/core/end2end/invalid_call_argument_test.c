@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,23 +131,20 @@ static void cleanup_test() {
     grpc_server_shutdown_and_notify(g_state.server, g_state.cq, tag(1000));
     GPR_ASSERT(grpc_completion_queue_pluck(g_state.cq, tag(1000),
                                            GRPC_TIMEOUT_SECONDS_TO_DEADLINE(5),
-                                           NULL)
-                   .type == GRPC_OP_COMPLETE);
+                                           NULL).type == GRPC_OP_COMPLETE);
     grpc_server_destroy(g_state.server);
     grpc_call_details_destroy(&g_state.call_details);
     grpc_metadata_array_destroy(&g_state.server_initial_metadata_recv);
   }
   grpc_completion_queue_shutdown(g_state.cq);
   while (grpc_completion_queue_next(g_state.cq,
-                                    gpr_inf_future(GPR_CLOCK_REALTIME), NULL)
-             .type != GRPC_QUEUE_SHUTDOWN)
+                                    gpr_inf_future(GPR_CLOCK_REALTIME),
+                                    NULL).type != GRPC_QUEUE_SHUTDOWN)
     ;
   grpc_completion_queue_destroy(g_state.cq);
 }
 
 static void test_non_null_reserved_on_start_batch() {
-  gpr_log(GPR_INFO, "test_non_null_reserved_on_start_batch");
-
   prepare_test(1);
   GPR_ASSERT(GRPC_CALL_ERROR ==
              grpc_call_start_batch(g_state.call, NULL, 0, NULL, tag(1)));
@@ -155,8 +152,6 @@ static void test_non_null_reserved_on_start_batch() {
 }
 
 static void test_non_null_reserved_on_op() {
-  gpr_log(GPR_INFO, "test_non_null_reserved_on_op");
-
   grpc_op *op;
   prepare_test(1);
 
@@ -173,8 +168,6 @@ static void test_non_null_reserved_on_op() {
 }
 
 static void test_send_initial_metadata_more_than_once() {
-  gpr_log(GPR_INFO, "test_send_initial_metadata_more_than_once");
-
   grpc_op *op;
   prepare_test(1);
 
@@ -203,8 +196,6 @@ static void test_send_initial_metadata_more_than_once() {
 }
 
 static void test_too_many_metadata() {
-  gpr_log(GPR_INFO, "test_too_many_metadata");
-
   grpc_op *op;
   prepare_test(1);
 
@@ -221,8 +212,6 @@ static void test_too_many_metadata() {
 }
 
 static void test_send_null_message() {
-  gpr_log(GPR_INFO, "test_send_null_message");
-
   grpc_op *op;
   prepare_test(1);
 
@@ -244,8 +233,6 @@ static void test_send_null_message() {
 }
 
 static void test_send_messages_at_the_same_time() {
-  gpr_log(GPR_INFO, "test_send_messages_at_the_same_time");
-
   grpc_op *op;
   gpr_slice request_payload_slice = gpr_slice_from_copied_string("hello world");
   grpc_byte_buffer *request_payload =
@@ -275,8 +262,6 @@ static void test_send_messages_at_the_same_time() {
 }
 
 static void test_send_server_status_from_client() {
-  gpr_log(GPR_INFO, "test_send_server_status_from_client");
-
   grpc_op *op;
   prepare_test(1);
 
@@ -295,8 +280,6 @@ static void test_send_server_status_from_client() {
 }
 
 static void test_receive_initial_metadata_twice_at_client() {
-  gpr_log(GPR_INFO, "test_receive_initial_metadata_twice_at_client");
-
   grpc_op *op;
   prepare_test(1);
   op = g_state.ops;
@@ -323,8 +306,6 @@ static void test_receive_initial_metadata_twice_at_client() {
 }
 
 static void test_receive_message_with_invalid_flags() {
-  gpr_log(GPR_INFO, "test_receive_message_with_invalid_flags");
-
   grpc_op *op;
   grpc_byte_buffer *payload = NULL;
   prepare_test(1);
@@ -341,8 +322,6 @@ static void test_receive_message_with_invalid_flags() {
 }
 
 static void test_receive_two_messages_at_the_same_time() {
-  gpr_log(GPR_INFO, "test_receive_two_messages_at_the_same_time");
-
   grpc_op *op;
   grpc_byte_buffer *payload = NULL;
   prepare_test(1);
@@ -364,8 +343,6 @@ static void test_receive_two_messages_at_the_same_time() {
 }
 
 static void test_recv_close_on_server_from_client() {
-  gpr_log(GPR_INFO, "test_recv_close_on_server_from_client");
-
   grpc_op *op;
   prepare_test(1);
 
@@ -382,8 +359,6 @@ static void test_recv_close_on_server_from_client() {
 }
 
 static void test_recv_status_on_client_twice() {
-  gpr_log(GPR_INFO, "test_recv_status_on_client_twice");
-
   grpc_op *op;
   prepare_test(1);
 
@@ -420,8 +395,6 @@ static void test_recv_status_on_client_twice() {
 }
 
 static void test_send_close_from_client_on_server() {
-  gpr_log(GPR_INFO, "test_send_close_from_client_on_server");
-
   grpc_op *op;
   prepare_test(0);
 
@@ -437,8 +410,6 @@ static void test_send_close_from_client_on_server() {
 }
 
 static void test_recv_status_on_client_from_server() {
-  gpr_log(GPR_INFO, "test_recv_status_on_client_from_server");
-
   grpc_op *op;
   prepare_test(0);
 
@@ -460,8 +431,6 @@ static void test_recv_status_on_client_from_server() {
 }
 
 static void test_send_status_from_server_with_invalid_flags() {
-  gpr_log(GPR_INFO, "test_send_status_from_server_with_invalid_flags");
-
   grpc_op *op;
   prepare_test(0);
 
@@ -480,8 +449,6 @@ static void test_send_status_from_server_with_invalid_flags() {
 }
 
 static void test_too_many_trailing_metadata() {
-  gpr_log(GPR_INFO, "test_too_many_trailing_metadata");
-
   grpc_op *op;
   prepare_test(0);
 
@@ -501,8 +468,6 @@ static void test_too_many_trailing_metadata() {
 }
 
 static void test_send_server_status_twice() {
-  gpr_log(GPR_INFO, "test_send_server_status_twice");
-
   grpc_op *op;
   prepare_test(0);
 
@@ -528,8 +493,6 @@ static void test_send_server_status_twice() {
 }
 
 static void test_recv_close_on_server_with_invalid_flags() {
-  gpr_log(GPR_INFO, "test_recv_close_on_server_with_invalid_flags");
-
   grpc_op *op;
   prepare_test(0);
 
@@ -546,8 +509,6 @@ static void test_recv_close_on_server_with_invalid_flags() {
 }
 
 static void test_recv_close_on_server_twice() {
-  gpr_log(GPR_INFO, "test_recv_close_on_server_twice");
-
   grpc_op *op;
   prepare_test(0);
 

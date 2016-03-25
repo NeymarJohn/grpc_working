@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,17 +31,17 @@
  *
  */
 
-#ifndef GRPC_CORE_IOMGR_SOCKET_WINDOWS_H
-#define GRPC_CORE_IOMGR_SOCKET_WINDOWS_H
+#ifndef GRPC_INTERNAL_CORE_IOMGR_SOCKET_WINDOWS_H
+#define GRPC_INTERNAL_CORE_IOMGR_SOCKET_WINDOWS_H
 
 #include <grpc/support/port_platform.h>
 #include <winsock2.h>
 
-#include <grpc/support/atm.h>
 #include <grpc/support/sync.h>
+#include <grpc/support/atm.h>
 
-#include "src/core/iomgr/exec_ctx.h"
 #include "src/core/iomgr/iomgr_internal.h"
+#include "src/core/iomgr/exec_ctx.h"
 
 /* This holds the data for an outstanding read or write on a socket.
    The mutex to protect the concurrent access to that data is the one
@@ -108,4 +108,4 @@ void grpc_winsocket_shutdown(grpc_winsocket *socket);
 /* Destroy a socket. Should only be called if there's no pending operation. */
 void grpc_winsocket_destroy(grpc_winsocket *socket);
 
-#endif /* GRPC_CORE_IOMGR_SOCKET_WINDOWS_H */
+#endif /* GRPC_INTERNAL_CORE_IOMGR_SOCKET_WINDOWS_H */

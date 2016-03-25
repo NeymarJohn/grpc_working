@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,14 @@
  *
  */
 
-#ifndef GRPC_CORE_TRANSPORT_CHTTP2_FRAME_DATA_H
-#define GRPC_CORE_TRANSPORT_CHTTP2_FRAME_DATA_H
+#ifndef GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_DATA_H
+#define GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_DATA_H
 
 /* Parser for GRPC streams embedded in DATA frames */
 
+#include "src/core/iomgr/exec_ctx.h"
 #include <grpc/support/slice.h>
 #include <grpc/support/slice_buffer.h>
-#include "src/core/iomgr/exec_ctx.h"
 #include "src/core/transport/byte_stream.h"
 #include "src/core/transport/chttp2/frame.h"
 
@@ -98,4 +98,4 @@ void grpc_chttp2_encode_data(uint32_t id, gpr_slice_buffer *inbuf,
                              uint32_t write_bytes, int is_eof,
                              gpr_slice_buffer *outbuf);
 
-#endif /* GRPC_CORE_TRANSPORT_CHTTP2_FRAME_DATA_H */
+#endif /* GRPC_INTERNAL_CORE_TRANSPORT_CHTTP2_FRAME_DATA_H */
