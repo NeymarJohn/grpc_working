@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,9 +39,9 @@
 
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
+#include <grpc/support/time.h>
 #include <grpc/support/sync.h>
 #include <grpc/support/thd.h>
-#include <grpc/support/time.h>
 #include <stdio.h>
 
 typedef enum { BEGIN = '{', END = '}', MARK = '.' } marker_type;
@@ -173,7 +173,7 @@ static void flush_logs(gpr_timer_log_list *list) {
   gpr_timer_log *log;
   while ((log = timer_log_pop_front(list)) != NULL) {
     write_log(log);
-    gpr_free(log);
+    free(log);
   }
 }
 
@@ -208,7 +208,7 @@ static void init_output() {
 }
 
 static void rotate_log() {
-  gpr_timer_log *new = gpr_malloc(sizeof(*new));
+  gpr_timer_log *new = malloc(sizeof(*new));
   gpr_once_init(&g_once_init, init_output);
   new->num_entries = 0;
   pthread_mutex_lock(&g_mu);

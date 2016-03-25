@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,10 @@
 
 #ifdef GPR_CPU_LINUX
 
-#include <errno.h>
 #include <sched.h>
-#include <string.h>
+#include <errno.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <grpc/support/cpu.h>
 #include <grpc/support/log.h>

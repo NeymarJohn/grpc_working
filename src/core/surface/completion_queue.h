@@ -36,8 +36,8 @@
 
 /* Internal API for completion queues */
 
-#include <grpc/grpc.h>
 #include "src/core/iomgr/pollset.h"
+#include <grpc/grpc.h>
 
 typedef struct grpc_cq_completion {
   /** user supplied tag */

@@ -44,9 +44,9 @@
 #include "src/core/client_config/lb_policy_registry.h"
 #include "src/core/client_config/resolver_registry.h"
 #include "src/core/iomgr/resolve_address.h"
-#include "src/core/json/json.h"
 #include "src/core/support/string.h"
 #include "src/core/surface/api_trace.h"
+#include "src/core/json/json.h"
 
 /** Zookeeper session expiration time in milliseconds */
 #define GRPC_ZOOKEEPER_SESSION_TIMEOUT 15000
@@ -184,28 +184,22 @@ static void zookeeper_on_resolved(grpc_exec_ctx *exec_ctx, void *arg,
                                   grpc_resolved_addresses *addresses) {
   zookeeper_resolver *r = arg;
   grpc_client_config *config = NULL;
-  grpc_subchannel **subchannels;
-  grpc_subchannel_args args;
   grpc_lb_policy *lb_policy;
-  size_t i;
+
   if (addresses != NULL) {
     grpc_lb_policy_args lb_policy_args;
     config = grpc_client_config_create();
-    subchannels = gpr_malloc(sizeof(grpc_subchannel *) * addresses->naddrs);
-    for (i = 0; i < addresses->naddrs; i++) {
-      memset(&args, 0, sizeof(args));
-      args.addr = (struct sockaddr *)(addresses->addrs[i].addr);
-      args.addr_len = addresses->addrs[i].len;
-      subchannels[i] = grpc_subchannel_factory_create_subchannel(
-          exec_ctx, r->subchannel_factory, &args);
+
+    lb_policy_args.addresses = addresses;
+    lb_policy_args.subchannel_factory = r->subchannel_factory;
+    lb_policy =
+        grpc_lb_policy_create(exec_ctx, r->lb_policy_name, &lb_policy_args);
+
+    if (lb_policy != NULL) {
+      grpc_client_config_set_lb_policy(config, lb_policy);
+      GRPC_LB_POLICY_UNREF(exec_ctx, lb_policy, "construction");
     }
-    lb_policy_args.subchannels = subchannels;
-    lb_policy_args.num_subchannels = addresses->naddrs;
-    lb_policy = grpc_lb_policy_create(r->lb_policy_name, &lb_policy_args);
-    grpc_client_config_set_lb_policy(config, lb_policy);
-    GRPC_LB_POLICY_UNREF(exec_ctx, lb_policy, "construction");
     grpc_resolved_addresses_destroy(addresses);
-    gpr_free(subchannels);
   }
   gpr_mu_lock(&r->mu);
   GPR_ASSERT(r->resolving == 1);

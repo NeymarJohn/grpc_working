@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -134,12 +134,12 @@ static void tsi_fake_frame_reset(tsi_fake_frame *frame, int needs_draining) {
 static int tsi_fake_frame_ensure_size(tsi_fake_frame *frame) {
   if (frame->data == NULL) {
     frame->allocated_size = frame->size;
-    frame->data = gpr_malloc(frame->allocated_size);
+    frame->data = malloc(frame->allocated_size);
     if (frame->data == NULL) return 0;
   } else if (frame->size > frame->allocated_size) {
     unsigned char *new_data = realloc(frame->data, frame->size);
     if (new_data == NULL) {
-      gpr_free(frame->data);
+      free(frame->data);
       frame->data = NULL;
       return 0;
     }
@@ -160,7 +160,7 @@ static tsi_result fill_frame_from_bytes(const unsigned char *incoming_bytes,
   if (frame->needs_draining) return TSI_INTERNAL_ERROR;
   if (frame->data == NULL) {
     frame->allocated_size = TSI_FAKE_FRAME_INITIAL_ALLOCATED_SIZE;
-    frame->data = gpr_malloc(frame->allocated_size);
+    frame->data = malloc(frame->allocated_size);
     if (frame->data == NULL) return TSI_OUT_OF_RESOURCES;
   }
 
@@ -226,7 +226,7 @@ static tsi_result bytes_to_frame(unsigned char *bytes, size_t bytes_size,
 }
 
 static void tsi_fake_frame_destruct(tsi_fake_frame *frame) {
-  if (frame->data != NULL) gpr_free(frame->data);
+  if (frame->data != NULL) free(frame->data);
 }
 
 /* --- tsi_frame_protector methods implementation. ---*/
@@ -366,7 +366,7 @@ static void fake_protector_destroy(tsi_frame_protector *self) {
   tsi_fake_frame_protector *impl = (tsi_fake_frame_protector *)self;
   tsi_fake_frame_destruct(&impl->protect_frame);
   tsi_fake_frame_destruct(&impl->unprotect_frame);
-  gpr_free(self);
+  free(self);
 }
 
 static const tsi_frame_protector_vtable frame_protector_vtable = {
@@ -488,21 +488,18 @@ static void fake_handshaker_destroy(tsi_handshaker *self) {
   tsi_fake_handshaker *impl = (tsi_fake_handshaker *)self;
   tsi_fake_frame_destruct(&impl->incoming);
   tsi_fake_frame_destruct(&impl->outgoing);
-  gpr_free(self);
+  free(self);
 }
 
 static const tsi_handshaker_vtable handshaker_vtable = {
     fake_handshaker_get_bytes_to_send_to_peer,
-    fake_handshaker_process_bytes_from_peer,
-    fake_handshaker_get_result,
-    fake_handshaker_extract_peer,
-    fake_handshaker_create_frame_protector,
+    fake_handshaker_process_bytes_from_peer, fake_handshaker_get_result,
+    fake_handshaker_extract_peer, fake_handshaker_create_frame_protector,
     fake_handshaker_destroy,
 };
 
 tsi_handshaker *tsi_create_fake_handshaker(int is_client) {
-  tsi_fake_handshaker *impl = gpr_malloc(sizeof(*impl));
-  memset(impl, 0, sizeof(*impl));
+  tsi_fake_handshaker *impl = calloc(1, sizeof(tsi_fake_handshaker));
   impl->base.vtable = &handshaker_vtable;
   impl->is_client = is_client;
   impl->result = TSI_HANDSHAKE_IN_PROGRESS;
@@ -518,8 +515,8 @@ tsi_handshaker *tsi_create_fake_handshaker(int is_client) {
 
 tsi_frame_protector *tsi_create_fake_protector(
     size_t *max_protected_frame_size) {
-  tsi_fake_frame_protector *impl = gpr_malloc(sizeof(*impl));
-  memset(impl, 0, sizeof(*impl));
+  tsi_fake_frame_protector *impl = calloc(1, sizeof(tsi_fake_frame_protector));
+  if (impl == NULL) return NULL;
   impl->max_frame_size = (max_protected_frame_size == NULL)
                              ? TSI_FAKE_DEFAULT_FRAME_SIZE
                              : *max_protected_frame_size;

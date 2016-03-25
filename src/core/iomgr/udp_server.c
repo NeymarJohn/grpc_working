@@ -54,12 +54,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <grpc/grpc.h>
-#include <grpc/support/alloc.h>
-#include <grpc/support/log.h>
-#include <grpc/support/string_util.h>
-#include <grpc/support/sync.h>
-#include <grpc/support/time.h>
 #include "src/core/iomgr/fd_posix.h"
 #include "src/core/iomgr/pollset_posix.h"
 #include "src/core/iomgr/resolve_address.h"
@@ -67,6 +61,12 @@
 #include "src/core/iomgr/socket_utils_posix.h"
 #include "src/core/iomgr/unix_sockets_posix.h"
 #include "src/core/support/string.h"
+#include <grpc/grpc.h>
+#include <grpc/support/alloc.h>
+#include <grpc/support/log.h>
+#include <grpc/support/sync.h>
+#include <grpc/support/string_util.h>
+#include <grpc/support/time.h>
 
 #define INIT_PORT_CAP 2
 
@@ -337,7 +337,7 @@ int grpc_udp_server_add_port(grpc_udp_server *s, const void *addr,
                            &sockname_len)) {
         port = grpc_sockaddr_get_port((struct sockaddr *)&sockname_temp);
         if (port > 0) {
-          allocated_addr = gpr_malloc(addr_len);
+          allocated_addr = malloc(addr_len);
           memcpy(allocated_addr, addr, addr_len);
           grpc_sockaddr_set_port(allocated_addr, port);
           addr = allocated_addr;

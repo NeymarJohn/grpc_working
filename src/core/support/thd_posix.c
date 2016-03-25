@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,13 @@
 
 #ifdef GPR_POSIX_SYNC
 
+#include <pthread.h>
+#include <stdlib.h>
+#include <string.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/thd.h>
 #include <grpc/support/useful.h>
-#include <pthread.h>
-#include <stdlib.h>
-#include <string.h>
 
 struct thd_arg {
   void (*body)(void *arg); /* body of a thread */
@@ -81,7 +81,6 @@ int gpr_thd_new(gpr_thd_id *t, void (*thd_body)(void *arg), void *arg,
   thread_started = (pthread_create(&p, &attr, &thread_body, a) == 0);
   GPR_ASSERT(pthread_attr_destroy(&attr) == 0);
   if (!thread_started) {
-    /* don't use gpr_free, as this was allocated using malloc (see above) */
     free(a);
   }
   *t = (gpr_thd_id)p;
