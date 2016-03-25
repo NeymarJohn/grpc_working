@@ -30,18 +30,21 @@
 
 NODE_VERSION=$1
 source ~/.nvm/nvm.sh
+set -ex
 
 cd $(dirname $0)
 
 nvm install $NODE_VERSION
-set -ex
 
 npm install -g node-static
 
-STATIC_SERVER=127.0.0.1
-STATIC_PORT=$$
+# Kill off existing static servers
+kill -9 $(ps aux | grep '[n]ode .*static' | awk '{print $2}') || true
 
-# Serves the input_artifacts directory statically at localhost:
+STATIC_SERVER=127.0.0.1
+STATIC_PORT=8080
+
+# Serves the input_artifacts directory statically at localhost:8080
 static "$EXTERNAL_GIT_ROOT/input_artifacts" -a $STATIC_SERVER -p $STATIC_PORT &
 STATIC_PID=$!
 

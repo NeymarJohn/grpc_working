@@ -174,6 +174,9 @@ struct grpc_call {
   /* Received call statuses from various sources */
   received_status status[STATUS_SOURCE_COUNT];
 
+  /* Call stats: only valid after trailing metadata received */
+  grpc_transport_stream_stats stats;
+
   /* Compression algorithm for the call */
   grpc_compression_algorithm compression_algorithm;
   /* Supported encodings (compression algorithms), a bitset */
@@ -372,7 +375,6 @@ static void destroy_call(grpc_exec_ctx *exec_ctx, void *call, bool success) {
   if (c->receiving_stream != NULL) {
     grpc_byte_stream_destroy(exec_ctx, c->receiving_stream);
   }
-  grpc_call_stack_destroy(exec_ctx, CALL_STACK_FROM_CALL(c));
   GRPC_CHANNEL_INTERNAL_UNREF(exec_ctx, c->channel, "call");
   gpr_mu_destroy(&c->mu);
   for (i = 0; i < STATUS_SOURCE_COUNT; i++) {
@@ -391,7 +393,7 @@ static void destroy_call(grpc_exec_ctx *exec_ctx, void *call, bool success) {
   if (c->cq) {
     GRPC_CQ_INTERNAL_UNREF(c->cq, "bind");
   }
-  gpr_free(c);
+  grpc_call_stack_destroy(exec_ctx, CALL_STACK_FROM_CALL(c), c);
   GPR_TIMER_END("destroy_call", 0);
 }
 
@@ -1371,6 +1373,7 @@ static grpc_call_error call_start_batch(grpc_exec_ctx *exec_ctx,
         bctl->recv_final_op = 1;
         stream_op.recv_trailing_metadata =
             &call->metadata_batch[1 /* is_receiving */][1 /* is_trailing */];
+        stream_op.collect_stats = &call->stats;
         break;
       case GRPC_OP_RECV_CLOSE_ON_SERVER:
         /* Flag validation: currently allow no flags */
@@ -1392,6 +1395,7 @@ static grpc_call_error call_start_batch(grpc_exec_ctx *exec_ctx,
         bctl->recv_final_op = 1;
         stream_op.recv_trailing_metadata =
             &call->metadata_batch[1 /* is_receiving */][1 /* is_trailing */];
+        stream_op.collect_stats = &call->stats;
         break;
     }
   }
@@ -1481,3 +1485,11 @@ void *grpc_call_context_get(grpc_call *call, grpc_context_index elem) {
 }
 
 uint8_t grpc_call_is_client(grpc_call *call) { return call->is_client; }
+
+grpc_compression_algorithm grpc_call_compression_for_level(
+    grpc_call *call, grpc_compression_level level) {
+  gpr_mu_lock(&call->mu);
+  const uint32_t accepted_encodings = call->encodings_accepted_by_peer;
+  gpr_mu_unlock(&call->mu);
+  return grpc_compression_algorithm_for_level(level, accepted_encodings);
+}

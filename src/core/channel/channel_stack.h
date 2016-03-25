@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef GRPC_INTERNAL_CORE_CHANNEL_CHANNEL_STACK_H
-#define GRPC_INTERNAL_CORE_CHANNEL_CHANNEL_STACK_H
+#ifndef GRPC_CORE_CHANNEL_CHANNEL_STACK_H
+#define GRPC_CORE_CHANNEL_CHANNEL_STACK_H
 
 /* A channel filter defines how operations on a channel are implemented.
    Channel filters are chained together to create full channels, and if those
@@ -104,8 +104,12 @@ typedef struct {
   void (*set_pollset)(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
                       grpc_pollset *pollset);
   /* Destroy per call data.
-     The filter does not need to do any chaining */
-  void (*destroy_call_elem)(grpc_exec_ctx *exec_ctx, grpc_call_element *elem);
+     The filter does not need to do any chaining.
+     The bottom filter of a stack will be passed a non-NULL pointer to
+     \a and_free_memory that should be passed to gpr_free when destruction
+     is complete. */
+  void (*destroy_call_elem)(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
+                            void *and_free_memory);
 
   /* sizeof(per channel data) */
   size_t sizeof_channel_data;
@@ -223,7 +227,8 @@ void grpc_call_stack_set_pollset(grpc_exec_ctx *exec_ctx,
 #endif
 
 /* Destroy a call stack */
-void grpc_call_stack_destroy(grpc_exec_ctx *exec_ctx, grpc_call_stack *stack);
+void grpc_call_stack_destroy(grpc_exec_ctx *exec_ctx, grpc_call_stack *stack,
+                             void *and_free_memory);
 
 /* Ignore set pollset - used by filters to implement the set_pollset method
    if they don't care about pollsets at all. Does nothing. */
@@ -257,4 +262,4 @@ extern int grpc_trace_channel;
 #define GRPC_CALL_LOG_OP(sev, elem, op) \
   if (grpc_trace_channel) grpc_call_log_op(sev, elem, op)
 
-#endif /* GRPC_INTERNAL_CORE_CHANNEL_CHANNEL_STACK_H */
+#endif /* GRPC_CORE_CHANNEL_CHANNEL_STACK_H */
