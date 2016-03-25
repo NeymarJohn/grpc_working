@@ -1,4 +1,5 @@
-# Copyright 2015, Google Inc.
+#!/bin/bash
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,9 +28,34 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-FROM ubuntu:vivid
-RUN apt-get update
-RUN apt-get -y install clang-format-3.6
-ADD clang_format_all_the_things.sh /
-CMD ["echo 'Run with tools/distrib/clang_format_code.sh'"]
+# Creates a performance worker on GCE.
 
+set -ex
+
+cd $(dirname $0)
+
+CLOUD_PROJECT=grpc-testing
+ZONE=us-central1-b  # this zone allows 32core machines
+
+INSTANCE_NAME="${1:-grpc-performance-driver}"
+MACHINE_TYPE=n1-standard-32
+
+gcloud compute instances create $INSTANCE_NAME \
+    --project="$CLOUD_PROJECT" \
+    --zone "$ZONE" \
+    --machine-type $MACHINE_TYPE \
+    --image ubuntu-15-10 \
+    --boot-disk-size 300
+
+echo 'Created GCE instance, waiting 60 seconds for it to come online.'
+sleep 60
+
+gcloud compute copy-files \
+    --project="$CLOUD_PROJECT" \
+    --zone "$ZONE" \
+    jenkins_master.pub linux_performance_worker_init.sh ${INSTANCE_NAME}:~
+
+gcloud compute ssh \
+    --project="$CLOUD_PROJECT" \
+    --zone "$ZONE" \
+    $INSTANCE_NAME --command "./linux_performance_worker_init.sh"

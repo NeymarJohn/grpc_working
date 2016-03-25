@@ -35,8 +35,8 @@
 
 #ifdef GPR_POSIX_STRING
 
-#include <stdarg.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 
 #include <grpc/support/alloc.h>
