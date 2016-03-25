@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@
 
 import collections
 import threading
-
-import six
 
 # testing_control, interfaces, and testing_service are referenced from
 # specification in this module.
@@ -370,7 +368,7 @@ def _assemble(
   events = {}
   adaptations = {}
   messages = {}
-  for name, scenario in six.iteritems(scenarios):
+  for name, scenario in scenarios.iteritems():
     if name in names:
       raise ValueError('Repeated name "%s"!' % name)
 
