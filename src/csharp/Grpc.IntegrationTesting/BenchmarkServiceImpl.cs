@@ -46,13 +46,16 @@ namespace Grpc.Testing
     /// </summary>
     public class BenchmarkServiceImpl : BenchmarkService.IBenchmarkService
     {
-        public BenchmarkServiceImpl()
+        private readonly int responseSize;
+
+        public BenchmarkServiceImpl(int responseSize)
         {
+            this.responseSize = responseSize;
         }
 
         public Task<SimpleResponse> UnaryCall(SimpleRequest request, ServerCallContext context)
         {
-            var response = new SimpleResponse { Payload = CreateZerosPayload(request.ResponseSize) };
+            var response = new SimpleResponse { Payload = CreateZerosPayload(responseSize) };
             return Task.FromResult(response);
         }
 
@@ -60,7 +63,7 @@ namespace Grpc.Testing
         {
             await requestStream.ForEachAsync(async request =>
             {
-                var response = new SimpleResponse { Payload = CreateZerosPayload(request.ResponseSize) };
+                var response = new SimpleResponse { Payload = CreateZerosPayload(responseSize) };
                 await responseStream.WriteAsync(response);
             });
         }
