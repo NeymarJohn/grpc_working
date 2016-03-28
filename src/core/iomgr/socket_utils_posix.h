@@ -34,8 +34,8 @@
 #ifndef GRPC_CORE_IOMGR_SOCKET_UTILS_POSIX_H
 #define GRPC_CORE_IOMGR_SOCKET_UTILS_POSIX_H
 
-#include <unistd.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 /* a wrapper for accept or accept4 */
 int grpc_accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen,
@@ -67,16 +67,6 @@ int grpc_ipv6_loopback_available(void);
    Returns 1 on success, 0 on failure.
    If SO_NO_SIGPIPE is not available, returns 1. */
 int grpc_set_socket_no_sigpipe_if_possible(int fd);
-
-/* Tries to set IP_PKTINFO if available on this platform.
-   Returns 1 on success, 0 on failure.
-   If IP_PKTINFO is not available, returns 1. */
-int grpc_set_socket_ip_pktinfo_if_possible(int fd);
-
-/* Tries to set IPV6_RECVPKTINFO if available on this platform.
-   Returns 1 on success, 0 on failure.
-   If IPV6_RECVPKTINFO is not available, returns 1. */
-int grpc_set_socket_ipv6_recvpktinfo_if_possible(int fd);
 
 /* An enum to keep track of IPv4/IPv6 socket modes.
 
