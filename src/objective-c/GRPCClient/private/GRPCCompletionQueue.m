@@ -38,12 +38,7 @@
 @implementation GRPCCompletionQueue
 
 + (instancetype)completionQueue {
-  static GRPCCompletionQueue *singleton = nil;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    singleton = [[self alloc] init];
-  });
-  return singleton;
+  return [[self alloc] init];
 }
 
 - (instancetype)init {

@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@
 
 import abc
 
-import six
-
 from grpc.framework.common import cardinality
 
 _CARDINALITY_TO_GENERIC_BLOCKING_BEHAVIOR = {
@@ -64,8 +62,9 @@ _CARDINALITY_TO_MULTI_CALLABLE_ATTRIBUTE = {
 }
 
 
-class Invoker(six.with_metaclass(abc.ABCMeta)):
+class Invoker(object):
   """A type used to invoke test RPCs."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def blocking(self, group, name):
@@ -83,8 +82,9 @@ class Invoker(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class InvokerConstructor(six.with_metaclass(abc.ABCMeta)):
+class InvokerConstructor(object):
   """A type used to create Invokers."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def name(self):
