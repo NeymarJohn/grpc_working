@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -213,16 +213,14 @@ void grpc_call_stack_ignore_set_pollset(grpc_exec_ctx *exec_ctx,
                                         grpc_call_element *elem,
                                         grpc_pollset *pollset) {}
 
-void grpc_call_stack_destroy(grpc_exec_ctx *exec_ctx, grpc_call_stack *stack,
-                             void *and_free_memory) {
+void grpc_call_stack_destroy(grpc_exec_ctx *exec_ctx, grpc_call_stack *stack) {
   grpc_call_element *elems = CALL_ELEMS_FROM_STACK(stack);
   size_t count = stack->count;
   size_t i;
 
   /* destroy per-filter data */
   for (i = 0; i < count; i++) {
-    elems[i].filter->destroy_call_elem(exec_ctx, &elems[i],
-                                       i == count - 1 ? and_free_memory : NULL);
+    elems[i].filter->destroy_call_elem(exec_ctx, &elems[i]);
   }
 }
 
