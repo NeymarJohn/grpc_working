@@ -35,9 +35,7 @@
 /* This file is auto-generated */
 
 #include "test/core/end2end/end2end_tests.h"
-
 #include <string.h>
-
 #include <grpc/support/log.h>
 
 extern void bad_hostname(grpc_end2end_test_config config);
