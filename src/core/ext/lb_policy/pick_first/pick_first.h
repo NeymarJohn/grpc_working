@@ -31,16 +31,13 @@
  *
  */
 
-#ifndef GRPC_CORE_LIB_CLIENT_CONFIG_LB_POLICIES_ROUND_ROBIN_H
-#define GRPC_CORE_LIB_CLIENT_CONFIG_LB_POLICIES_ROUND_ROBIN_H
-
-#include "src/core/lib/client_config/lb_policy.h"
-
-extern int grpc_lb_round_robin_trace;
+#ifndef GRPC_CORE_EXT_LB_POLICY_PICK_FIRST_PICK_FIRST_H
+#define GRPC_CORE_EXT_LB_POLICY_PICK_FIRST_PICK_FIRST_H
 
 #include "src/core/lib/client_config/lb_policy_factory.h"
 
-/** Returns a load balancing factory for the round robin policy */
-grpc_lb_policy_factory *grpc_round_robin_lb_factory_create();
+/** Returns a load balancing factory for the pick first policy, which picks up
+ * the first subchannel from \a subchannels to succesfully connect */
+grpc_lb_policy_factory *grpc_pick_first_lb_factory_create();
 
-#endif /* GRPC_CORE_LIB_CLIENT_CONFIG_LB_POLICIES_ROUND_ROBIN_H */
+#endif /* GRPC_CORE_EXT_LB_POLICY_PICK_FIRST_PICK_FIRST_H */

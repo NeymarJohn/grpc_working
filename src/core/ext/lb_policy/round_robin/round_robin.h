@@ -31,28 +31,16 @@
  *
  */
 
-/*******************************************************************************
- * NOTE: If this test fails to compile, then the api changes are likely to cause
- *       merge failures downstream. Please pay special attention to reviewing
- *       these changes, and solicit help as appropriate when merging downstream.
- *
- * This test is NOT expected to be run directly.
- ******************************************************************************/
+#ifndef GRPC_CORE_EXT_LB_POLICY_ROUND_ROBIN_ROUND_ROBIN_H
+#define GRPC_CORE_EXT_LB_POLICY_ROUND_ROBIN_ROUND_ROBIN_H
 
-#include "src/core/lib/support/env.h"
-#include "src/core/lib/support/load_file.h"
-#include "src/core/lib/support/tmpfile.h"
+#include "src/core/lib/client_config/lb_policy.h"
 
-static void test_code(void) {
-  /* env.h */
-  gpr_set_env("abc", gpr_getenv("xyz"));
-  /* load_file.h */
-  gpr_load_file("abc", 1, NULL);
-  /* tmpfile.h */
-  fclose(gpr_tmpfile("foo", NULL));
-}
+extern int grpc_lb_round_robin_trace;
 
-int main(void) {
-  if (false) test_code();
-  return 0;
-}
+#include "src/core/lib/client_config/lb_policy_factory.h"
+
+/** Returns a load balancing factory for the round robin policy */
+grpc_lb_policy_factory *grpc_round_robin_lb_factory_create();
+
+#endif /* GRPC_CORE_EXT_LB_POLICY_ROUND_ROBIN_ROUND_ROBIN_H */

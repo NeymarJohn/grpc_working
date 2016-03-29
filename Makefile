@@ -932,9 +932,6 @@ httpcli_format_request_test: $(BINDIR)/$(CONFIG)/httpcli_format_request_test
 httpcli_test: $(BINDIR)/$(CONFIG)/httpcli_test
 httpscli_test: $(BINDIR)/$(CONFIG)/httpscli_test
 init_test: $(BINDIR)/$(CONFIG)/init_test
-internal_api_canary_iomgr_test: $(BINDIR)/$(CONFIG)/internal_api_canary_iomgr_test
-internal_api_canary_support_test: $(BINDIR)/$(CONFIG)/internal_api_canary_support_test
-internal_api_canary_transport_test: $(BINDIR)/$(CONFIG)/internal_api_canary_transport_test
 invalid_call_argument_test: $(BINDIR)/$(CONFIG)/invalid_call_argument_test
 json_rewrite: $(BINDIR)/$(CONFIG)/json_rewrite
 json_rewrite_test: $(BINDIR)/$(CONFIG)/json_rewrite_test
@@ -1244,9 +1241,6 @@ buildtests_c: privatelibs_c \
   $(BINDIR)/$(CONFIG)/httpcli_test \
   $(BINDIR)/$(CONFIG)/httpscli_test \
   $(BINDIR)/$(CONFIG)/init_test \
-  $(BINDIR)/$(CONFIG)/internal_api_canary_iomgr_test \
-  $(BINDIR)/$(CONFIG)/internal_api_canary_support_test \
-  $(BINDIR)/$(CONFIG)/internal_api_canary_transport_test \
   $(BINDIR)/$(CONFIG)/invalid_call_argument_test \
   $(BINDIR)/$(CONFIG)/json_rewrite \
   $(BINDIR)/$(CONFIG)/json_rewrite_test \
@@ -2426,6 +2420,10 @@ endif
 
 
 LIBGRPC_SRC = \
+    src/core/ext/lb_policy/grpclb/load_balancer_api.c \
+    src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c \
+    src/core/ext/lb_policy/pick_first/pick_first.c \
+    src/core/ext/lb_policy/round_robin/round_robin.c \
     src/core/ext/transport/chttp2/client/insecure/channel_create.c \
     src/core/ext/transport/chttp2/client/secure/secure_channel_create.c \
     src/core/ext/transport/chttp2/server/insecure/server_chttp2.c \
@@ -2473,9 +2471,6 @@ LIBGRPC_SRC = \
     src/core/lib/client_config/connector.c \
     src/core/lib/client_config/default_initial_connect_string.c \
     src/core/lib/client_config/initial_connect_string.c \
-    src/core/lib/client_config/lb_policies/load_balancer_api.c \
-    src/core/lib/client_config/lb_policies/pick_first.c \
-    src/core/lib/client_config/lb_policies/round_robin.c \
     src/core/lib/client_config/lb_policy.c \
     src/core/lib/client_config/lb_policy_factory.c \
     src/core/lib/client_config/lb_policy_registry.c \
@@ -2541,7 +2536,6 @@ LIBGRPC_SRC = \
     src/core/lib/json/json_reader.c \
     src/core/lib/json/json_string.c \
     src/core/lib/json/json_writer.c \
-    src/core/lib/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/lib/security/b64.c \
     src/core/lib/security/client_auth_filter.c \
     src/core/lib/security/credentials.c \
@@ -2787,6 +2781,10 @@ endif
 
 
 LIBGRPC_UNSECURE_SRC = \
+    src/core/ext/lb_policy/grpclb/load_balancer_api.c \
+    src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c \
+    src/core/ext/lb_policy/pick_first/pick_first.c \
+    src/core/ext/lb_policy/round_robin/round_robin.c \
     src/core/ext/transport/chttp2/client/insecure/channel_create.c \
     src/core/ext/transport/chttp2/server/insecure/server_chttp2.c \
     src/core/ext/transport/chttp2/transport/alpn.c \
@@ -2832,9 +2830,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/lib/client_config/connector.c \
     src/core/lib/client_config/default_initial_connect_string.c \
     src/core/lib/client_config/initial_connect_string.c \
-    src/core/lib/client_config/lb_policies/load_balancer_api.c \
-    src/core/lib/client_config/lb_policies/pick_first.c \
-    src/core/lib/client_config/lb_policies/round_robin.c \
     src/core/lib/client_config/lb_policy.c \
     src/core/lib/client_config/lb_policy_factory.c \
     src/core/lib/client_config/lb_policy_registry.c \
@@ -2899,7 +2894,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/lib/json/json_reader.c \
     src/core/lib/json/json_string.c \
     src/core/lib/json/json_writer.c \
-    src/core/lib/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/lib/surface/alarm.c \
     src/core/lib/surface/api_trace.c \
     src/core/lib/surface/byte_buffer.c \
@@ -8012,102 +8006,6 @@ deps_init_test: $(INIT_TEST_OBJS:.o=.dep)
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(INIT_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-INTERNAL_API_CANARY_IOMGR_TEST_SRC = \
-    test/core/internal_api_canaries/iomgr.c \
-
-INTERNAL_API_CANARY_IOMGR_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(INTERNAL_API_CANARY_IOMGR_TEST_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/internal_api_canary_iomgr_test: openssl_dep_error
-
-else
-
-
-
-$(BINDIR)/$(CONFIG)/internal_api_canary_iomgr_test: $(INTERNAL_API_CANARY_IOMGR_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(INTERNAL_API_CANARY_IOMGR_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/internal_api_canary_iomgr_test
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/core/internal_api_canaries/iomgr.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_internal_api_canary_iomgr_test: $(INTERNAL_API_CANARY_IOMGR_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(INTERNAL_API_CANARY_IOMGR_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-INTERNAL_API_CANARY_SUPPORT_TEST_SRC = \
-    test/core/internal_api_canaries/iomgr.c \
-
-INTERNAL_API_CANARY_SUPPORT_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(INTERNAL_API_CANARY_SUPPORT_TEST_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/internal_api_canary_support_test: openssl_dep_error
-
-else
-
-
-
-$(BINDIR)/$(CONFIG)/internal_api_canary_support_test: $(INTERNAL_API_CANARY_SUPPORT_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(INTERNAL_API_CANARY_SUPPORT_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/internal_api_canary_support_test
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/core/internal_api_canaries/iomgr.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_internal_api_canary_support_test: $(INTERNAL_API_CANARY_SUPPORT_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(INTERNAL_API_CANARY_SUPPORT_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-INTERNAL_API_CANARY_TRANSPORT_TEST_SRC = \
-    test/core/internal_api_canaries/iomgr.c \
-
-INTERNAL_API_CANARY_TRANSPORT_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(INTERNAL_API_CANARY_TRANSPORT_TEST_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/internal_api_canary_transport_test: openssl_dep_error
-
-else
-
-
-
-$(BINDIR)/$(CONFIG)/internal_api_canary_transport_test: $(INTERNAL_API_CANARY_TRANSPORT_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(INTERNAL_API_CANARY_TRANSPORT_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/internal_api_canary_transport_test
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/core/internal_api_canaries/iomgr.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_internal_api_canary_transport_test: $(INTERNAL_API_CANARY_TRANSPORT_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(INTERNAL_API_CANARY_TRANSPORT_TEST_OBJS:.o=.dep)
 endif
 endif
 
