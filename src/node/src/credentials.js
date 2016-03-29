@@ -118,6 +118,7 @@ exports.createFromMetadataGenerator = function(metadata_generator) {
 exports.createFromGoogleCredential = function(google_credential) {
   return exports.createFromMetadataGenerator(function(auth_context, callback) {
     var service_url = auth_context.service_url;
+    console.log('Service URL:', service_url);
     google_credential.getRequestMetadata(service_url, function(err, header) {
       if (err) {
         console.log('Auth error:', err);
@@ -126,6 +127,7 @@ exports.createFromGoogleCredential = function(google_credential) {
       }
       var metadata = new Metadata();
       metadata.add('authorization', header.Authorization);
+      console.log(header.Authorization);
       callback(null, metadata);
     });
   });

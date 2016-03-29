@@ -120,7 +120,6 @@
     <Compile Include="WorkerServiceImpl.cs" />
     <Compile Include="QpsWorker.cs" />
     <Compile Include="WallClockStopwatch.cs" />
-    <Compile Include="GenericService.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

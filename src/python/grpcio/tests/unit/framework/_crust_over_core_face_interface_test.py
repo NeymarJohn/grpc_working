@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@
 
 import collections
 import unittest
-
-import six
 
 from grpc.framework.core import implementations as core_implementations
 from grpc.framework.crust import implementations as crust_implementations
@@ -68,7 +66,7 @@ class _Implementation(test_interfaces.Implementation):
     # _digest.TestServiceDigest.
     cardinalities = {
         method: method_object.cardinality()
-        for (group, method), method_object in six.iteritems(methods)}
+        for (group, method), method_object in methods.iteritems()}
     dynamic_stub = crust_implementations.dynamic_stub(
         invocation_end_link, group, cardinalities, pool)
 

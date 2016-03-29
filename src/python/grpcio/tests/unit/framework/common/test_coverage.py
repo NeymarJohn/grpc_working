@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,13 @@
 
 import abc
 
-import six
-
 # This code is designed for use with the unittest module.
 # pylint: disable=invalid-name
 
 
-class Coverage(six.with_metaclass(abc.ABCMeta)):
+class Coverage(object):
   """Specification of test coverage."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def testSuccessfulUnaryRequestUnaryResponse(self):
