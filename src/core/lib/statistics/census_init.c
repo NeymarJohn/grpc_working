@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,18 @@
  *
  */
 
-#include <grpc/grpc.h>
+#include "src/core/lib/statistics/census_interface.h"
 
-extern void grpc_lb_policy_pick_first_init(void);
-extern void grpc_lb_policy_pick_first_shutdown(void);
-extern void grpc_lb_policy_round_robin_init(void);
-extern void grpc_lb_policy_round_robin_shutdown(void);
+#include <grpc/support/log.h>
+#include "src/core/lib/statistics/census_rpc_stats.h"
+#include "src/core/lib/statistics/census_tracing.h"
 
-void grpc_register_built_in_plugins(void) {
-  grpc_register_plugin(grpc_lb_policy_pick_first_init,
-                       grpc_lb_policy_pick_first_shutdown);
-  grpc_register_plugin(grpc_lb_policy_round_robin_init,
-                       grpc_lb_policy_round_robin_shutdown);
+void census_init(void) {
+  census_tracing_init();
+  census_stats_store_init();
+}
+
+void census_shutdown(void) {
+  census_stats_store_shutdown();
+  census_tracing_shutdown();
 }
