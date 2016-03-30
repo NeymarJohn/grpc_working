@@ -1,5 +1,6 @@
-#!/bin/sh
-# Copyright 2015-2016, Google Inc.
+#!/usr/bin/env ruby
+
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,31 +29,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Regenerates gRPC service stubs from proto files.
-set +e
-cd $(dirname $0)/../../..
+# Worker and worker service implementation
 
-PROTOC=bins/opt/protobuf/protoc
-PLUGIN=protoc-gen-grpc=bins/opt/grpc_ruby_plugin
+this_dir = File.expand_path(File.dirname(__FILE__))
+lib_dir = File.join(File.dirname(this_dir), 'lib')
+$LOAD_PATH.unshift(lib_dir) unless $LOAD_PATH.include?(lib_dir)
+$LOAD_PATH.unshift(this_dir) unless $LOAD_PATH.include?(this_dir)
 
-$PROTOC -I src/proto src/proto/grpc/health/v1/health.proto \
-    --grpc_out=src/ruby/pb \
-    --ruby_out=src/ruby/pb \
-    --plugin=$PLUGIN
+require 'grpc'
+require 'histogram'
+require 'src/proto/grpc/testing/services_services'
 
-$PROTOC -I . \
-    src/proto/grpc/testing/{messages,test,empty}.proto \
-    --grpc_out=src/ruby/pb \
-    --ruby_out=src/ruby/pb \
-    --plugin=$PLUGIN
+class Poisson
+  def interarrival
+    @lambda_recip * (-Math.log(1.0-rand))
+  end
+  def advance
+    t = @next_time
+    @next_time += interarrival
+    t
+  end
+  def initialize(lambda)
+    @lambda_recip = 1.0/lambda
+    @next_time = Time.now + interarrival
+  end
+end
 
-$PROTOC -I . \
-    src/proto/grpc/testing/{messages,payloads,stats,services,control}.proto \
-    --grpc_out=src/ruby/qps \
-    --ruby_out=src/ruby/qps \
-    --plugin=$PLUGIN
-
-$PROTOC -I src/proto/math src/proto/math/math.proto \
-    --grpc_out=src/ruby/bin \
-    --ruby_out=src/ruby/bin \
-    --plugin=$PLUGIN
