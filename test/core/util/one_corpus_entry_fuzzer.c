@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,20 +31,16 @@
  *
  */
 
-#include <stdint.h>
-#include <string.h>
+#include <grpc/support/log.h>
+#include "src/core/lib/support/load_file.h"
 
-#include <grpc/support/alloc.h>
+extern int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
 
-#include "src/core/lib/json/json.h"
-
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-  char *s = gpr_malloc(size);
-  memcpy(s, data, size);
-  grpc_json *x;
-  if ((x = grpc_json_parse_string_with_len(s, size))) {
-    grpc_json_destroy(x);
-  }
-  gpr_free(s);
+int main(int argc, char **argv) {
+  int ok = 0;
+  gpr_slice buffer = gpr_load_file(argv[1], 0, &ok);
+  GPR_ASSERT(ok);
+  LLVMFuzzerTestOneInput(GPR_SLICE_START_PTR(buffer), GPR_SLICE_LENGTH(buffer));
+  gpr_slice_unref(buffer);
   return 0;
 }
