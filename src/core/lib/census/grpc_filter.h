@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,14 @@
  *
  */
 
-#include <grpc/grpc.h>
+#ifndef GRPC_CORE_LIB_CENSUS_GRPC_FILTER_H
+#define GRPC_CORE_LIB_CENSUS_GRPC_FILTER_H
 
-extern void grpc_lb_policy_pick_first_init(void);
-extern void grpc_lb_policy_pick_first_shutdown(void);
-extern void grpc_lb_policy_round_robin_init(void);
-extern void grpc_lb_policy_round_robin_shutdown(void);
+#include "src/core/lib/channel/channel_stack.h"
 
-void grpc_register_built_in_plugins(void) {
-  grpc_register_plugin(grpc_lb_policy_pick_first_init,
-                       grpc_lb_policy_pick_first_shutdown);
-  grpc_register_plugin(grpc_lb_policy_round_robin_init,
-                       grpc_lb_policy_round_robin_shutdown);
-}
+/* Census filters: provides tracing and stats collection functionalities. It
+   needs to reside right below the surface filter in the channel stack. */
+extern const grpc_channel_filter grpc_client_census_filter;
+extern const grpc_channel_filter grpc_server_census_filter;
+
+#endif /* GRPC_CORE_LIB_CENSUS_GRPC_FILTER_H */
