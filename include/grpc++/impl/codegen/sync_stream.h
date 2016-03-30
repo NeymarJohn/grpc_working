@@ -38,7 +38,6 @@
 #include <grpc++/impl/codegen/channel_interface.h>
 #include <grpc++/impl/codegen/client_context.h>
 #include <grpc++/impl/codegen/completion_queue.h>
-#include <grpc++/impl/codegen/core_codegen_interface.h>
 #include <grpc++/impl/codegen/server_context.h>
 #include <grpc++/impl/codegen/service_type.h>
 #include <grpc++/impl/codegen/status.h>
@@ -123,18 +122,17 @@ class ClientReader GRPC_FINAL : public ClientReaderInterface<R> {
                ClientContext* context, const W& request)
       : context_(context), call_(channel->CreateCall(method, context, &cq_)) {
     CallOpSet<CallOpSendInitialMetadata, CallOpSendMessage,
-              CallOpClientSendClose>
-        ops;
+              CallOpClientSendClose> ops;
     ops.SendInitialMetadata(context->send_initial_metadata_);
     // TODO(ctiller): don't assert
-    GPR_CODEGEN_ASSERT(ops.SendMessage(request).ok());
+    GPR_ASSERT(ops.SendMessage(request).ok());
     ops.ClientSendClose();
     call_.PerformOps(&ops);
     cq_.Pluck(&ops);
   }
 
   void WaitForInitialMetadata() GRPC_OVERRIDE {
-    GPR_CODEGEN_ASSERT(!context_->initial_metadata_received_);
+    GPR_ASSERT(!context_->initial_metadata_received_);
 
     CallOpSet<CallOpRecvInitialMetadata> ops;
     ops.RecvInitialMetadata(context_);
@@ -157,7 +155,7 @@ class ClientReader GRPC_FINAL : public ClientReaderInterface<R> {
     Status status;
     ops.ClientRecvStatus(context_, &status);
     call_.PerformOps(&ops);
-    GPR_CODEGEN_ASSERT(cq_.Pluck(&ops));
+    GPR_ASSERT(cq_.Pluck(&ops));
     return status;
   }
 
@@ -196,7 +194,7 @@ class ClientWriter : public ClientWriterInterface<W> {
   }
 
   void WaitForInitialMetadata() {
-    GPR_CODEGEN_ASSERT(!context_->initial_metadata_received_);
+    GPR_ASSERT(!context_->initial_metadata_received_);
 
     CallOpSet<CallOpRecvInitialMetadata> ops;
     ops.RecvInitialMetadata(context_);
@@ -229,15 +227,14 @@ class ClientWriter : public ClientWriterInterface<W> {
     }
     finish_ops_.ClientRecvStatus(context_, &status);
     call_.PerformOps(&finish_ops_);
-    GPR_CODEGEN_ASSERT(cq_.Pluck(&finish_ops_));
+    GPR_ASSERT(cq_.Pluck(&finish_ops_));
     return status;
   }
 
  private:
   ClientContext* context_;
   CallOpSet<CallOpRecvInitialMetadata, CallOpGenericRecvMessage,
-            CallOpClientRecvStatus>
-      finish_ops_;
+            CallOpClientRecvStatus> finish_ops_;
   CompletionQueue cq_;
   Call call_;
 };
@@ -274,7 +271,7 @@ class ClientReaderWriter GRPC_FINAL : public ClientReaderWriterInterface<W, R> {
   }
 
   void WaitForInitialMetadata() GRPC_OVERRIDE {
-    GPR_CODEGEN_ASSERT(!context_->initial_metadata_received_);
+    GPR_ASSERT(!context_->initial_metadata_received_);
 
     CallOpSet<CallOpRecvInitialMetadata> ops;
     ops.RecvInitialMetadata(context_);
@@ -315,7 +312,7 @@ class ClientReaderWriter GRPC_FINAL : public ClientReaderWriterInterface<W, R> {
     Status status;
     ops.ClientRecvStatus(context_, &status);
     call_.PerformOps(&ops);
-    GPR_CODEGEN_ASSERT(cq_.Pluck(&ops));
+    GPR_ASSERT(cq_.Pluck(&ops));
     return status;
   }
 
@@ -331,7 +328,7 @@ class ServerReader GRPC_FINAL : public ReaderInterface<R> {
   ServerReader(Call* call, ServerContext* ctx) : call_(call), ctx_(ctx) {}
 
   void SendInitialMetadata() {
-    GPR_CODEGEN_ASSERT(!ctx_->sent_initial_metadata_);
+    GPR_ASSERT(!ctx_->sent_initial_metadata_);
 
     CallOpSet<CallOpSendInitialMetadata> ops;
     ops.SendInitialMetadata(ctx_->initial_metadata_);
@@ -358,7 +355,7 @@ class ServerWriter GRPC_FINAL : public WriterInterface<W> {
   ServerWriter(Call* call, ServerContext* ctx) : call_(call), ctx_(ctx) {}
 
   void SendInitialMetadata() {
-    GPR_CODEGEN_ASSERT(!ctx_->sent_initial_metadata_);
+    GPR_ASSERT(!ctx_->sent_initial_metadata_);
 
     CallOpSet<CallOpSendInitialMetadata> ops;
     ops.SendInitialMetadata(ctx_->initial_metadata_);
@@ -394,7 +391,7 @@ class ServerReaderWriter GRPC_FINAL : public WriterInterface<W>,
   ServerReaderWriter(Call* call, ServerContext* ctx) : call_(call), ctx_(ctx) {}
 
   void SendInitialMetadata() {
-    GPR_CODEGEN_ASSERT(!ctx_->sent_initial_metadata_);
+    GPR_ASSERT(!ctx_->sent_initial_metadata_);
 
     CallOpSet<CallOpSendInitialMetadata> ops;
     ops.SendInitialMetadata(ctx_->initial_metadata_);

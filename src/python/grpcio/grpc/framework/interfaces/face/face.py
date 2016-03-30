@@ -33,8 +33,6 @@ import abc
 import collections
 import enum
 
-import six
-
 # cardinality, style, abandonment, future, and stream are
 # referenced from specification in this module.
 from grpc.framework.common import cardinality  # pylint: disable=unused-import
@@ -98,7 +96,7 @@ class Abortion(
     REMOTE_FAILURE = 'remote failure'
 
 
-class AbortionError(six.with_metaclass(abc.ABCMeta, Exception)):
+class AbortionError(Exception):
   """Common super type for exceptions indicating RPC abortion.
 
     initial_metadata: The initial metadata from the other side of the RPC or
@@ -110,6 +108,7 @@ class AbortionError(six.with_metaclass(abc.ABCMeta, Exception)):
     details: The details value from the other side of the RPC or None if no
       details value was received.
   """
+  __metaclass__ = abc.ABCMeta
 
   def __init__(self, initial_metadata, terminal_metadata, code, details):
     super(AbortionError, self).__init__()
@@ -151,8 +150,9 @@ class RemoteError(AbortionError):
   """Indicates that an RPC has terminated due to a remote defect."""
 
 
-class RpcContext(six.with_metaclass(abc.ABCMeta)):
+class RpcContext(object):
   """Provides RPC-related information and action."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def is_active(self):
@@ -199,8 +199,9 @@ class RpcContext(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class Call(six.with_metaclass(abc.ABCMeta, RpcContext)):
+class Call(RpcContext):
   """Invocation-side utility object for an RPC."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def initial_metadata(self):
@@ -255,8 +256,9 @@ class Call(six.with_metaclass(abc.ABCMeta, RpcContext)):
     raise NotImplementedError()
 
 
-class ServicerContext(six.with_metaclass(abc.ABCMeta, RpcContext)):
+class ServicerContext(RpcContext):
   """A context object passed to method implementations."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def invocation_metadata(self):
@@ -324,8 +326,9 @@ class ServicerContext(six.with_metaclass(abc.ABCMeta, RpcContext)):
     raise NotImplementedError()
 
 
-class ResponseReceiver(six.with_metaclass(abc.ABCMeta)):
+class ResponseReceiver(object):
   """Invocation-side object used to accept the output of an RPC."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def initial_metadata(self, initial_metadata):
@@ -359,8 +362,9 @@ class ResponseReceiver(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class UnaryUnaryMultiCallable(six.with_metaclass(abc.ABCMeta)):
+class UnaryUnaryMultiCallable(object):
   """Affords invoking a unary-unary RPC in any call style."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def __call__(
@@ -430,8 +434,9 @@ class UnaryUnaryMultiCallable(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class UnaryStreamMultiCallable(six.with_metaclass(abc.ABCMeta)):
+class UnaryStreamMultiCallable(object):
   """Affords invoking a unary-stream RPC in any call style."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def __call__(self, request, timeout, metadata=None, protocol_options=None):
@@ -475,8 +480,9 @@ class UnaryStreamMultiCallable(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class StreamUnaryMultiCallable(six.with_metaclass(abc.ABCMeta)):
+class StreamUnaryMultiCallable(object):
   """Affords invoking a stream-unary RPC in any call style."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def __call__(
@@ -547,8 +553,9 @@ class StreamUnaryMultiCallable(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class StreamStreamMultiCallable(six.with_metaclass(abc.ABCMeta)):
+class StreamStreamMultiCallable(object):
   """Affords invoking a stream-stream RPC in any call style."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def __call__(
@@ -593,7 +600,7 @@ class StreamStreamMultiCallable(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class MethodImplementation(six.with_metaclass(abc.ABCMeta)):
+class MethodImplementation(object):
   """A sum type that describes a method implementation.
 
   Attributes:
@@ -636,10 +643,12 @@ class MethodImplementation(six.with_metaclass(abc.ABCMeta)):
       is cardinality.Cardinality.STREAM_STREAM and style is
       style.Service.EVENT.
   """
+  __metaclass__ = abc.ABCMeta
 
 
-class MultiMethodImplementation(six.with_metaclass(abc.ABCMeta)):
+class MultiMethodImplementation(object):
   """A general type able to service many methods."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def service(self, group, method, response_consumer, context):
@@ -669,8 +678,9 @@ class MultiMethodImplementation(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class GenericStub(six.with_metaclass(abc.ABCMeta)):
+class GenericStub(object):
   """Affords RPC invocation via generic methods."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def blocking_unary_unary(
@@ -967,7 +977,7 @@ class GenericStub(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class DynamicStub(six.with_metaclass(abc.ABCMeta)):
+class DynamicStub(object):
   """Affords RPC invocation via attributes corresponding to afforded methods.
 
   Instances of this type may be scoped to a single group so that attribute
@@ -983,3 +993,4 @@ class DynamicStub(six.with_metaclass(abc.ABCMeta)):
   if the requested attribute is the name of a stream-stream method, the value of
   the attribute will be a StreamStreamMultiCallable with which to invoke an RPC.
   """
+  __metaclass__ = abc.ABCMeta

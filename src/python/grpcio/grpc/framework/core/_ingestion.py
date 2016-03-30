@@ -1,4 +1,4 @@
-# Copyright 2015-2016, Google Inc.
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,6 @@
 import abc
 import collections
 import enum
-
-import six
 
 from grpc.framework.core import _constants
 from grpc.framework.core import _interfaces
@@ -72,8 +70,9 @@ class _SubscriptionCreation(
     ABANDONED = 'abandoned'
 
 
-class _SubscriptionCreator(six.with_metaclass(abc.ABCMeta)):
+class _SubscriptionCreator(object):
   """Common specification of subscription-creating behavior."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def create(self, group, method):

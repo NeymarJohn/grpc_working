@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,12 @@
  *
  */
 
-#include <stdio.h>
 #include <string.h>
+#include <stdio.h>
 
+#include "src/core/statistics/census_interface.h"
+#include "src/core/statistics/census_tracing.h"
+#include "src/core/statistics/census_tracing.h"
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/port_platform.h>
@@ -41,9 +44,6 @@
 #include <grpc/support/thd.h>
 #include <grpc/support/time.h>
 #include <grpc/support/useful.h>
-#include "src/core/lib/statistics/census_interface.h"
-#include "src/core/lib/statistics/census_tracing.h"
-#include "src/core/lib/statistics/census_tracing.h"
 #include "test/core/util/test_config.h"
 
 /* Ensure all possible state transitions are called without causing problem */
