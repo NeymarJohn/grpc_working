@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,25 @@
  *
  */
 
-#include <grpc/support/log.h>
-#include "src/core/lib/support/load_file.h"
+#include "src/core/lib/client_config/client_channel_factory.h"
 
-extern int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
+void grpc_client_channel_factory_ref(grpc_client_channel_factory* factory) {
+  factory->vtable->ref(factory);
+}
 
-int main(int argc, char **argv) {
-  int ok = 0;
-  gpr_slice buffer = gpr_load_file(argv[1], 0, &ok);
-  GPR_ASSERT(ok);
-  LLVMFuzzerTestOneInput(GPR_SLICE_START_PTR(buffer), GPR_SLICE_LENGTH(buffer));
-  gpr_slice_unref(buffer);
-  return 0;
+void grpc_client_channel_factory_unref(grpc_exec_ctx* exec_ctx,
+                                       grpc_client_channel_factory* factory) {
+  factory->vtable->unref(exec_ctx, factory);
+}
+
+grpc_subchannel* grpc_client_channel_factory_create_subchannel(
+    grpc_exec_ctx* exec_ctx, grpc_client_channel_factory* factory,
+    grpc_subchannel_args* args) {
+  return factory->vtable->create_subchannel(exec_ctx, factory, args);
+}
+
+grpc_channel* grpc_client_channel_factory_create_channel(
+    grpc_exec_ctx* exec_ctx, grpc_client_channel_factory* factory,
+    const char* target, grpc_channel_args* args) {
+  return factory->vtable->create_channel(exec_ctx, factory, target, args);
 }
