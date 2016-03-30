@@ -35,17 +35,15 @@
 
 #include <string.h>
 
-#include <grpc/grpc.h>
+#include "src/core/lib/http/httpcli.h"
+#include "src/core/lib/security/b64.h"
+#include "src/core/lib/security/json_token.h"
+#include "test/core/util/test_config.h"
 
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/slice.h>
 #include <grpc/support/string_util.h>
-
-#include "src/core/lib/http/httpcli.h"
-#include "src/core/lib/security/b64.h"
-#include "src/core/lib/security/json_token.h"
-#include "test/core/util/test_config.h"
 
 /* This JSON key was generated with the GCE console and revoked immediately.
    The identifiers have been changed as well.
@@ -570,7 +568,6 @@ static void test_jwt_verifier_bad_format(void) {
 
 int main(int argc, char **argv) {
   grpc_test_init(argc, argv);
-  grpc_init();
   test_claims_success();
   test_expired_claims_failure();
   test_invalid_claims_failure();
@@ -582,6 +579,5 @@ int main(int argc, char **argv) {
   test_jwt_verifier_bad_json_key();
   test_jwt_verifier_bad_signature();
   test_jwt_verifier_bad_format();
-  grpc_shutdown();
   return 0;
 }
