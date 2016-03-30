@@ -41,6 +41,7 @@ package(default_visibility = ["//visibility:public"])
 
 
 
+
 cc_library(
   name = "gpr",
   srcs = [
@@ -154,6 +155,7 @@ cc_library(
 )
 
 
+
 cc_library(
   name = "grpc",
   srcs = [
@@ -220,10 +222,9 @@ cc_library(
     "src/core/lib/iomgr/closure.h",
     "src/core/lib/iomgr/endpoint.h",
     "src/core/lib/iomgr/endpoint_pair.h",
-    "src/core/lib/iomgr/ev_poll_and_epoll_posix.h",
-    "src/core/lib/iomgr/ev_posix.h",
     "src/core/lib/iomgr/exec_ctx.h",
     "src/core/lib/iomgr/executor.h",
+    "src/core/lib/iomgr/fd_posix.h",
     "src/core/lib/iomgr/iocp_windows.h",
     "src/core/lib/iomgr/iomgr.h",
     "src/core/lib/iomgr/iomgr_internal.h",
@@ -295,10 +296,6 @@ cc_library(
     "src/core/lib/tsi/ssl_types.h",
     "src/core/lib/tsi/transport_security.h",
     "src/core/lib/tsi/transport_security_interface.h",
-    "third_party/nanopb/pb.h",
-    "third_party/nanopb/pb_common.h",
-    "third_party/nanopb/pb_decode.h",
-    "third_party/nanopb/pb_encode.h",
     "src/core/ext/transport/chttp2/client/insecure/channel_create.c",
     "src/core/ext/transport/chttp2/client/secure/secure_channel_create.c",
     "src/core/ext/transport/chttp2/server/insecure/server_chttp2.c",
@@ -372,14 +369,17 @@ cc_library(
     "src/core/lib/iomgr/endpoint.c",
     "src/core/lib/iomgr/endpoint_pair_posix.c",
     "src/core/lib/iomgr/endpoint_pair_windows.c",
-    "src/core/lib/iomgr/ev_poll_and_epoll_posix.c",
-    "src/core/lib/iomgr/ev_posix.c",
     "src/core/lib/iomgr/exec_ctx.c",
     "src/core/lib/iomgr/executor.c",
+    "src/core/lib/iomgr/fd_posix.c",
     "src/core/lib/iomgr/iocp_windows.c",
     "src/core/lib/iomgr/iomgr.c",
     "src/core/lib/iomgr/iomgr_posix.c",
     "src/core/lib/iomgr/iomgr_windows.c",
+    "src/core/lib/iomgr/pollset_multipoller_with_epoll.c",
+    "src/core/lib/iomgr/pollset_multipoller_with_poll_posix.c",
+    "src/core/lib/iomgr/pollset_posix.c",
+    "src/core/lib/iomgr/pollset_set_posix.c",
     "src/core/lib/iomgr/pollset_set_windows.c",
     "src/core/lib/iomgr/pollset_windows.c",
     "src/core/lib/iomgr/resolve_address_posix.c",
@@ -457,9 +457,6 @@ cc_library(
     "src/core/lib/tsi/fake_transport_security.c",
     "src/core/lib/tsi/ssl_transport_security.c",
     "src/core/lib/tsi/transport_security.c",
-    "third_party/nanopb/pb_common.c",
-    "third_party/nanopb/pb_decode.c",
-    "third_party/nanopb/pb_encode.c",
   ],
   hdrs = [
     "include/grpc/byte_buffer.h",
@@ -484,11 +481,13 @@ cc_library(
     "//external:libssl",
     "//external:zlib",
     ":gpr",
+    "//external:nanopb",
   ],
   copts = [
     "-std=gnu99",
   ],
 )
+
 
 
 cc_library(
@@ -525,6 +524,7 @@ cc_library(
     "//external:protobuf_compiler",
   ],
 )
+
 
 
 cc_library(
@@ -593,10 +593,9 @@ cc_library(
     "src/core/lib/iomgr/closure.h",
     "src/core/lib/iomgr/endpoint.h",
     "src/core/lib/iomgr/endpoint_pair.h",
-    "src/core/lib/iomgr/ev_poll_and_epoll_posix.h",
-    "src/core/lib/iomgr/ev_posix.h",
     "src/core/lib/iomgr/exec_ctx.h",
     "src/core/lib/iomgr/executor.h",
+    "src/core/lib/iomgr/fd_posix.h",
     "src/core/lib/iomgr/iocp_windows.h",
     "src/core/lib/iomgr/iomgr.h",
     "src/core/lib/iomgr/iomgr_internal.h",
@@ -654,10 +653,6 @@ cc_library(
     "src/core/lib/transport/static_metadata.h",
     "src/core/lib/transport/transport.h",
     "src/core/lib/transport/transport_impl.h",
-    "third_party/nanopb/pb.h",
-    "third_party/nanopb/pb_common.h",
-    "third_party/nanopb/pb_decode.h",
-    "third_party/nanopb/pb_encode.h",
     "src/core/ext/transport/chttp2/client/insecure/channel_create.c",
     "src/core/ext/transport/chttp2/server/insecure/server_chttp2.c",
     "src/core/ext/transport/chttp2/transport/alpn.c",
@@ -728,14 +723,17 @@ cc_library(
     "src/core/lib/iomgr/endpoint.c",
     "src/core/lib/iomgr/endpoint_pair_posix.c",
     "src/core/lib/iomgr/endpoint_pair_windows.c",
-    "src/core/lib/iomgr/ev_poll_and_epoll_posix.c",
-    "src/core/lib/iomgr/ev_posix.c",
     "src/core/lib/iomgr/exec_ctx.c",
     "src/core/lib/iomgr/executor.c",
+    "src/core/lib/iomgr/fd_posix.c",
     "src/core/lib/iomgr/iocp_windows.c",
     "src/core/lib/iomgr/iomgr.c",
     "src/core/lib/iomgr/iomgr_posix.c",
     "src/core/lib/iomgr/iomgr_windows.c",
+    "src/core/lib/iomgr/pollset_multipoller_with_epoll.c",
+    "src/core/lib/iomgr/pollset_multipoller_with_poll_posix.c",
+    "src/core/lib/iomgr/pollset_posix.c",
+    "src/core/lib/iomgr/pollset_set_posix.c",
     "src/core/lib/iomgr/pollset_set_windows.c",
     "src/core/lib/iomgr/pollset_windows.c",
     "src/core/lib/iomgr/resolve_address_posix.c",
@@ -796,9 +794,6 @@ cc_library(
     "src/core/lib/transport/static_metadata.c",
     "src/core/lib/transport/transport.c",
     "src/core/lib/transport/transport_op_string.c",
-    "third_party/nanopb/pb_common.c",
-    "third_party/nanopb/pb_decode.c",
-    "third_party/nanopb/pb_encode.c",
   ],
   hdrs = [
     "include/grpc/byte_buffer.h",
@@ -820,11 +815,13 @@ cc_library(
   ],
   deps = [
     ":gpr",
+    "//external:nanopb",
   ],
   copts = [
     "-std=gnu99",
   ],
 )
+
 
 
 cc_library(
@@ -845,6 +842,7 @@ cc_library(
     ":grpc",
   ],
 )
+
 
 
 cc_library(
@@ -979,6 +977,7 @@ cc_library(
 )
 
 
+
 cc_library(
   name = "grpc++_codegen_lib",
   srcs = [
@@ -1042,8 +1041,10 @@ cc_library(
     ".",
   ],
   deps = [
+    "//external:protobuf_clib",
   ],
 )
+
 
 
 cc_library(
@@ -1170,6 +1171,7 @@ cc_library(
 )
 
 
+
 cc_library(
   name = "grpc_plugin_support",
   srcs = [
@@ -1221,6 +1223,7 @@ cc_library(
 )
 
 
+
 cc_library(
   name = "grpc_csharp_ext",
   srcs = [
@@ -1237,6 +1240,7 @@ cc_library(
     ":gpr",
   ],
 )
+
 
 
 
@@ -1353,6 +1357,7 @@ objc_library(
 )
 
 
+
 objc_library(
   name = "grpc_objc",
   srcs = [
@@ -1429,14 +1434,17 @@ objc_library(
     "src/core/lib/iomgr/endpoint.c",
     "src/core/lib/iomgr/endpoint_pair_posix.c",
     "src/core/lib/iomgr/endpoint_pair_windows.c",
-    "src/core/lib/iomgr/ev_poll_and_epoll_posix.c",
-    "src/core/lib/iomgr/ev_posix.c",
     "src/core/lib/iomgr/exec_ctx.c",
     "src/core/lib/iomgr/executor.c",
+    "src/core/lib/iomgr/fd_posix.c",
     "src/core/lib/iomgr/iocp_windows.c",
     "src/core/lib/iomgr/iomgr.c",
     "src/core/lib/iomgr/iomgr_posix.c",
     "src/core/lib/iomgr/iomgr_windows.c",
+    "src/core/lib/iomgr/pollset_multipoller_with_epoll.c",
+    "src/core/lib/iomgr/pollset_multipoller_with_poll_posix.c",
+    "src/core/lib/iomgr/pollset_posix.c",
+    "src/core/lib/iomgr/pollset_set_posix.c",
     "src/core/lib/iomgr/pollset_set_windows.c",
     "src/core/lib/iomgr/pollset_windows.c",
     "src/core/lib/iomgr/resolve_address_posix.c",
@@ -1514,9 +1522,6 @@ objc_library(
     "src/core/lib/tsi/fake_transport_security.c",
     "src/core/lib/tsi/ssl_transport_security.c",
     "src/core/lib/tsi/transport_security.c",
-    "third_party/nanopb/pb_common.c",
-    "third_party/nanopb/pb_decode.c",
-    "third_party/nanopb/pb_encode.c",
   ],
   hdrs = [
     "include/grpc/byte_buffer.h",
@@ -1595,10 +1600,9 @@ objc_library(
     "src/core/lib/iomgr/closure.h",
     "src/core/lib/iomgr/endpoint.h",
     "src/core/lib/iomgr/endpoint_pair.h",
-    "src/core/lib/iomgr/ev_poll_and_epoll_posix.h",
-    "src/core/lib/iomgr/ev_posix.h",
     "src/core/lib/iomgr/exec_ctx.h",
     "src/core/lib/iomgr/executor.h",
+    "src/core/lib/iomgr/fd_posix.h",
     "src/core/lib/iomgr/iocp_windows.h",
     "src/core/lib/iomgr/iomgr.h",
     "src/core/lib/iomgr/iomgr_internal.h",
@@ -1670,10 +1674,6 @@ objc_library(
     "src/core/lib/tsi/ssl_types.h",
     "src/core/lib/tsi/transport_security.h",
     "src/core/lib/tsi/transport_security_interface.h",
-    "third_party/nanopb/pb.h",
-    "third_party/nanopb/pb_common.h",
-    "third_party/nanopb/pb_decode.h",
-    "third_party/nanopb/pb_encode.h",
   ],
   includes = [
     "include",
@@ -1682,6 +1682,7 @@ objc_library(
   deps = [
     ":gpr_objc",
     "//external:libssl_objc",
+    "//external:nanopb",
   ],
   sdk_dylibs = ["libz"],
 )
