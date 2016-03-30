@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env ruby
 
-# Copyright 2015-2016, Google Inc.
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,16 +29,48 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-NODE_VERSION=$1
-source ~/.nvm/nvm.sh
-set -ex
+# Worker and worker service implementation
 
-nvm use $NODE_VERSION
+this_dir = File.expand_path(File.dirname(__FILE__))
+lib_dir = File.join(File.dirname(this_dir), 'lib')
+$LOAD_PATH.unshift(lib_dir) unless $LOAD_PATH.include?(lib_dir)
+$LOAD_PATH.unshift(this_dir) unless $LOAD_PATH.include?(this_dir)
 
-export GRPC_CONFIG=${CONFIG:-opt}
+require 'grpc'
 
-# Expire cache after 1 week
-npm update --cache-min 604800
+# produces a string of null chars (\0 aka pack 'x') of length l.
+def nulls(l)
+  fail 'requires #{l} to be +ve' if l < 0
+  [].pack('x' * l).force_encoding('ascii-8bit')
+end
 
-npm install node-gyp-install
-./node_modules/.bin/node-gyp-install
+# load the test-only certificates
+def load_test_certs
+  this_dir = File.expand_path(File.dirname(__FILE__))
+  data_dir = File.join(File.dirname(this_dir), 'spec/testdata')
+  files = ['ca.pem', 'server1.key', 'server1.pem']
+  files.map { |f| File.open(File.join(data_dir, f)).read }
+end
+
+# A EnumeratorQueue wraps a Queue yielding the items added to it via each_item.
+class EnumeratorQueue
+  extend Forwardable
+  def_delegators :@q, :push
+
+  def initialize(sentinel)
+    @q = Queue.new
+    @sentinel = sentinel
+  end
+
+  def each_item
+    return enum_for(:each_item) unless block_given?
+    loop do
+      r = @q.pop
+      break if r.equal?(@sentinel)
+      fail r if r.is_a? Exception
+      yield r
+    end
+  end
+end
+
+

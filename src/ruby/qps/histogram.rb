@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env ruby
 
-# Copyright 2015-2016, Google Inc.
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,16 +29,60 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-NODE_VERSION=$1
-source ~/.nvm/nvm.sh
-set -ex
+# Histogram class for use in performance testing and measurement
 
-nvm use $NODE_VERSION
-
-export GRPC_CONFIG=${CONFIG:-opt}
-
-# Expire cache after 1 week
-npm update --cache-min 604800
-
-npm install node-gyp-install
-./node_modules/.bin/node-gyp-install
+class Histogram
+  # Determine the bucket index for a given value
+  # @param {number} value The value to check
+  # @return {number} The bucket index
+  def bucket_for(value)
+    (Math.log(value)/Math.log(@multiplier)).to_i
+  end
+  # Initialize an empty histogram
+  # @param {number} resolution The resolution of the histogram
+  # @param {number} max_possible The maximum value for the histogram
+  def initialize(resolution, max_possible)
+    @resolution=resolution
+    @max_possible=max_possible
+    @sum=0
+    @sum_of_squares=0
+    @multiplier=1+resolution
+    @count=0
+    @min_seen=max_possible
+    @max_seen=0
+    @buckets=Array.new(bucket_for(max_possible)+1, 0)
+  end
+  # Add a value to the histogram. This updates all statistics with the new
+  # value. Those statistics should not be modified except with this function
+  # @param {number} value The value to add
+  def add(value)
+    @sum += value
+    @sum_of_squares += value * value
+    @count += 1
+    if value < @min_seen
+      @min_seen = value
+    end
+    if value > @max_seen
+      @max_seen = value
+    end
+    @buckets[bucket_for(value)] += 1
+  end
+  def minimum
+    @min_seen
+  end
+  def maximum
+    @max_seen
+  end
+  def sum
+    @sum
+  end
+  def sum_of_squares
+    @sum_of_squares
+  end
+  def count
+    @count
+  end
+  def contents
+    @buckets
+  end
+end
