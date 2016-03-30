@@ -286,9 +286,10 @@ filegroups:
   - src/core/lib/iomgr/closure.h
   - src/core/lib/iomgr/endpoint.h
   - src/core/lib/iomgr/endpoint_pair.h
+  - src/core/lib/iomgr/ev_poll_and_epoll_posix.h
+  - src/core/lib/iomgr/ev_posix.h
   - src/core/lib/iomgr/exec_ctx.h
   - src/core/lib/iomgr/executor.h
-  - src/core/lib/iomgr/fd_posix.h
   - src/core/lib/iomgr/iocp_windows.h
   - src/core/lib/iomgr/iomgr.h
   - src/core/lib/iomgr/iomgr_internal.h
@@ -388,17 +389,14 @@ filegroups:
   - src/core/lib/iomgr/endpoint.c
   - src/core/lib/iomgr/endpoint_pair_posix.c
   - src/core/lib/iomgr/endpoint_pair_windows.c
+  - src/core/lib/iomgr/ev_poll_and_epoll_posix.c
+  - src/core/lib/iomgr/ev_posix.c
   - src/core/lib/iomgr/exec_ctx.c
   - src/core/lib/iomgr/executor.c
-  - src/core/lib/iomgr/fd_posix.c
   - src/core/lib/iomgr/iocp_windows.c
   - src/core/lib/iomgr/iomgr.c
   - src/core/lib/iomgr/iomgr_posix.c
   - src/core/lib/iomgr/iomgr_windows.c
-  - src/core/lib/iomgr/pollset_multipoller_with_epoll.c
-  - src/core/lib/iomgr/pollset_multipoller_with_poll_posix.c
-  - src/core/lib/iomgr/pollset_posix.c
-  - src/core/lib/iomgr/pollset_set_posix.c
   - src/core/lib/iomgr/pollset_set_windows.c
   - src/core/lib/iomgr/pollset_windows.c
   - src/core/lib/iomgr/resolve_address_posix.c
@@ -1273,21 +1271,6 @@ targets:
   src:
   - tools/codegen/core/gen_legal_metadata_characters.c
   deps: []
-- name: goaway_server_test
-  cpu_cost: 0.1
-  build: test
-  language: c
-  src:
-  - test/core/end2end/goaway_server_test.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-  platforms:
-  - mac
-  - linux
-  - posix
 - name: gpr_avl_test
   build: test
   language: c
@@ -1589,18 +1572,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-- name: hpack_parser_fuzzer_test
-  build: fuzzer
-  language: c
-  src:
-  - test/core/transport/chttp2/hpack_parser_fuzzer_test.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-  corpus_dirs:
-  - test/core/transport/chttp2/hpack_parser_corpus
 - name: hpack_parser_test
   build: test
   language: c
@@ -1621,18 +1592,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-- name: http_fuzzer_test
-  build: fuzzer
-  language: c
-  src:
-  - test/core/http/fuzzer.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-  corpus_dirs:
-  - test/core/http/corpus
 - name: http_parser_test
   build: test
   language: c
@@ -1691,39 +1650,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-- name: internal_api_canary_iomgr_test
-  build: test
-  run: false
-  language: c
-  src:
-  - test/core/internal_api_canaries/iomgr.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-- name: internal_api_canary_support_test
-  build: test
-  run: false
-  language: c
-  src:
-  - test/core/internal_api_canaries/iomgr.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-- name: internal_api_canary_transport_test
-  build: test
-  run: false
-  language: c
-  src:
-  - test/core/internal_api_canaries/iomgr.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
 - name: invalid_call_argument_test
   build: test
   language: c
@@ -1734,18 +1660,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-- name: json_fuzzer_test
-  build: fuzzer
-  language: c
-  src:
-  - test/core/json/fuzzer.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-  corpus_dirs:
-  - test/core/json/corpus
 - name: json_rewrite
   build: test
   run: false
@@ -2109,18 +2023,6 @@ targets:
   - mac
   - linux
   - posix
-- name: uri_fuzzer_test
-  build: fuzzer
-  language: c
-  src:
-  - test/core/client_config/uri_fuzzer_test.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-  corpus_dirs:
-  - test/core/client_config/uri_corpus
 - name: uri_parser_test
   build: test
   language: c
@@ -2902,8 +2804,8 @@ vspackages:
 configs:
   asan:
     CC: clang
-    CPPFLAGS: -O0 -fsanitize-coverage=edge -fsanitize=address -fno-omit-frame-pointer
-      -Wno-unused-command-line-argument -DGPR_NO_DIRECT_SYSCALLS
+    CPPFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
+      -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     LD: clang
     LDFLAGS: -fsanitize=address
@@ -2915,8 +2817,8 @@ configs:
     timeout_multiplier: 3
   asan-noleaks:
     CC: clang
-    CPPFLAGS: -O0 -fsanitize-coverage=edge -fsanitize=address -fno-omit-frame-pointer
-      -Wno-unused-command-line-argument -DGPR_NO_DIRECT_SYSCALLS
+    CPPFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
+      -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     LD: clang
     LDFLAGS: -fsanitize=address
@@ -2924,19 +2826,6 @@ configs:
     compile_the_world: true
     test_environ:
       ASAN_OPTIONS: detect_leaks=0:color=always
-    timeout_multiplier: 3
-  asan-trace-cmp:
-    CC: clang
-    CPPFLAGS: -O0 -fsanitize-coverage=edge -fsanitize-coverage=trace-cmp -fsanitize=address
-      -fno-omit-frame-pointer -Wno-unused-command-line-argument -DGPR_NO_DIRECT_SYSCALLS
-    CXX: clang++
-    LD: clang
-    LDFLAGS: -fsanitize=address
-    LDXX: clang++
-    compile_the_world: true
-    test_environ:
-      ASAN_OPTIONS: detect_leaks=1:color=always
-      LSAN_OPTIONS: suppressions=tools/lsan_suppressions.txt:report_objects=1
     timeout_multiplier: 3
   basicprof:
     CPPFLAGS: -O2 -DGRPC_BASIC_PROFILER -DGRPC_TIMERS_RDTSC
@@ -2946,8 +2835,8 @@ configs:
     DEFINES: _DEBUG DEBUG
   easan:
     CC: clang
-    CPPFLAGS: -O0 -fsanitize-coverage=edge -fsanitize=address -fno-omit-frame-pointer
-      -Wno-unused-command-line-argument -DGPR_NO_DIRECT_SYSCALLS
+    CPPFLAGS: -O0 -fsanitize=address -fno-omit-frame-pointer -Wno-unused-command-line-argument
+      -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     DEFINES: _DEBUG DEBUG GRPC_EXECUTION_CONTEXT_SANITIZER
     LD: clang
@@ -2996,9 +2885,9 @@ configs:
     valgrind: --tool=memcheck --leak-check=full
   msan:
     CC: clang
-    CPPFLAGS: -O0 -fsanitize-coverage=edge -fsanitize=memory -fsanitize-memory-track-origins
-      -fno-omit-frame-pointer -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1
-      -Wno-unused-command-line-argument -fPIE -pie -DGPR_NO_DIRECT_SYSCALLS
+    CPPFLAGS: -O0 -fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer
+      -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=1 -Wno-unused-command-line-argument
+      -fPIE -pie -DGPR_NO_DIRECT_SYSCALLS
     CXX: clang++
     DEFINES: NDEBUG
     LD: clang
@@ -3031,8 +2920,7 @@ configs:
     timeout_multiplier: 5
   ubsan:
     CC: clang
-    CPPFLAGS: -O1 -fsanitize-coverage=edge -fsanitize=undefined -fno-omit-frame-pointer
-      -Wno-unused-command-line-argument
+    CPPFLAGS: -O1 -fsanitize=undefined -fno-omit-frame-pointer -Wno-unused-command-line-argument
     CXX: clang++
     DEFINES: NDEBUG
     LD: clang
