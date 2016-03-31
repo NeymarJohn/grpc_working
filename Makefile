@@ -5,7 +5,7 @@
 # This file can be regenerated from the template by running
 # tools/buildgen/generate_projects.sh
 
-# Copyright 2015, Google Inc.
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -944,9 +944,6 @@ httpcli_format_request_test: $(BINDIR)/$(CONFIG)/httpcli_format_request_test
 httpcli_test: $(BINDIR)/$(CONFIG)/httpcli_test
 httpscli_test: $(BINDIR)/$(CONFIG)/httpscli_test
 init_test: $(BINDIR)/$(CONFIG)/init_test
-internal_api_canary_iomgr_test: $(BINDIR)/$(CONFIG)/internal_api_canary_iomgr_test
-internal_api_canary_support_test: $(BINDIR)/$(CONFIG)/internal_api_canary_support_test
-internal_api_canary_transport_test: $(BINDIR)/$(CONFIG)/internal_api_canary_transport_test
 invalid_call_argument_test: $(BINDIR)/$(CONFIG)/invalid_call_argument_test
 json_fuzzer_test: $(BINDIR)/$(CONFIG)/json_fuzzer_test
 json_rewrite: $(BINDIR)/$(CONFIG)/json_rewrite
@@ -1116,6 +1113,10 @@ h2_sockpair+trace_nosec_test: $(BINDIR)/$(CONFIG)/h2_sockpair+trace_nosec_test
 h2_sockpair_1byte_nosec_test: $(BINDIR)/$(CONFIG)/h2_sockpair_1byte_nosec_test
 h2_uds_nosec_test: $(BINDIR)/$(CONFIG)/h2_uds_nosec_test
 h2_uds+poll_nosec_test: $(BINDIR)/$(CONFIG)/h2_uds+poll_nosec_test
+hpack_parser_fuzzer_test_one_entry: $(BINDIR)/$(CONFIG)/hpack_parser_fuzzer_test_one_entry
+http_fuzzer_test_one_entry: $(BINDIR)/$(CONFIG)/http_fuzzer_test_one_entry
+json_fuzzer_test_one_entry: $(BINDIR)/$(CONFIG)/json_fuzzer_test_one_entry
+uri_fuzzer_test_one_entry: $(BINDIR)/$(CONFIG)/uri_fuzzer_test_one_entry
 
 run_dep_checks:
 	$(OPENSSL_ALPN_CHECK_CMD) || true
@@ -1172,7 +1173,7 @@ plugins: $(PROTOC_PLUGINS)
 
 privatelibs: privatelibs_c privatelibs_cxx
 
-privatelibs_c:  $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libreconnect_server.a $(LIBDIR)/$(CONFIG)/libtest_tcp_server.a $(LIBDIR)/$(CONFIG)/libz.a $(LIBDIR)/$(CONFIG)/libbad_client_test.a $(LIBDIR)/$(CONFIG)/libbad_ssl_test_server.a $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a
+privatelibs_c:  $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libreconnect_server.a $(LIBDIR)/$(CONFIG)/libtest_tcp_server.a $(LIBDIR)/$(CONFIG)/libz.a $(LIBDIR)/$(CONFIG)/libbad_client_test.a $(LIBDIR)/$(CONFIG)/libbad_ssl_test_server.a $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a
 pc_c: $(LIBDIR)/$(CONFIG)/pkgconfig/grpc.pc
 
 pc_c_unsecure: $(LIBDIR)/$(CONFIG)/pkgconfig/grpc_unsecure.pc
@@ -1258,9 +1259,6 @@ buildtests_c: privatelibs_c \
   $(BINDIR)/$(CONFIG)/httpcli_test \
   $(BINDIR)/$(CONFIG)/httpscli_test \
   $(BINDIR)/$(CONFIG)/init_test \
-  $(BINDIR)/$(CONFIG)/internal_api_canary_iomgr_test \
-  $(BINDIR)/$(CONFIG)/internal_api_canary_support_test \
-  $(BINDIR)/$(CONFIG)/internal_api_canary_transport_test \
   $(BINDIR)/$(CONFIG)/invalid_call_argument_test \
   $(BINDIR)/$(CONFIG)/json_rewrite \
   $(BINDIR)/$(CONFIG)/json_rewrite_test \
@@ -1340,6 +1338,10 @@ buildtests_c: privatelibs_c \
   $(BINDIR)/$(CONFIG)/h2_sockpair_1byte_nosec_test \
   $(BINDIR)/$(CONFIG)/h2_uds_nosec_test \
   $(BINDIR)/$(CONFIG)/h2_uds+poll_nosec_test \
+  $(BINDIR)/$(CONFIG)/hpack_parser_fuzzer_test_one_entry \
+  $(BINDIR)/$(CONFIG)/http_fuzzer_test_one_entry \
+  $(BINDIR)/$(CONFIG)/json_fuzzer_test_one_entry \
+  $(BINDIR)/$(CONFIG)/uri_fuzzer_test_one_entry \
 
 
 buildtests_cxx: buildtests_zookeeper privatelibs_cxx \
@@ -2440,10 +2442,6 @@ endif
 
 
 LIBGRPC_SRC = \
-    src/core/ext/lb_policy/grpclb/load_balancer_api.c \
-    src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c \
-    src/core/ext/lb_policy/pick_first/pick_first.c \
-    src/core/ext/lb_policy/round_robin/round_robin.c \
     src/core/ext/transport/chttp2/client/insecure/channel_create.c \
     src/core/ext/transport/chttp2/client/secure/secure_channel_create.c \
     src/core/ext/transport/chttp2/server/insecure/server_chttp2.c \
@@ -2491,6 +2489,9 @@ LIBGRPC_SRC = \
     src/core/lib/client_config/connector.c \
     src/core/lib/client_config/default_initial_connect_string.c \
     src/core/lib/client_config/initial_connect_string.c \
+    src/core/lib/client_config/lb_policies/load_balancer_api.c \
+    src/core/lib/client_config/lb_policies/pick_first.c \
+    src/core/lib/client_config/lb_policies/round_robin.c \
     src/core/lib/client_config/lb_policy.c \
     src/core/lib/client_config/lb_policy_factory.c \
     src/core/lib/client_config/lb_policy_registry.c \
@@ -2556,6 +2557,7 @@ LIBGRPC_SRC = \
     src/core/lib/json/json_reader.c \
     src/core/lib/json/json_string.c \
     src/core/lib/json/json_writer.c \
+    src/core/lib/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/lib/security/b64.c \
     src/core/lib/security/client_auth_filter.c \
     src/core/lib/security/credentials.c \
@@ -2601,7 +2603,6 @@ LIBGRPC_SRC = \
     src/core/lib/tsi/fake_transport_security.c \
     src/core/lib/tsi/ssl_transport_security.c \
     src/core/lib/tsi/transport_security.c \
-    src/core/plugin_registry/grpc_plugin_registry.c \
     third_party/nanopb/pb_common.c \
     third_party/nanopb/pb_decode.c \
     third_party/nanopb/pb_encode.c \
@@ -2802,10 +2803,6 @@ endif
 
 
 LIBGRPC_UNSECURE_SRC = \
-    src/core/ext/lb_policy/grpclb/load_balancer_api.c \
-    src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c \
-    src/core/ext/lb_policy/pick_first/pick_first.c \
-    src/core/ext/lb_policy/round_robin/round_robin.c \
     src/core/ext/transport/chttp2/client/insecure/channel_create.c \
     src/core/ext/transport/chttp2/server/insecure/server_chttp2.c \
     src/core/ext/transport/chttp2/transport/alpn.c \
@@ -2851,6 +2848,9 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/lib/client_config/connector.c \
     src/core/lib/client_config/default_initial_connect_string.c \
     src/core/lib/client_config/initial_connect_string.c \
+    src/core/lib/client_config/lb_policies/load_balancer_api.c \
+    src/core/lib/client_config/lb_policies/pick_first.c \
+    src/core/lib/client_config/lb_policies/round_robin.c \
     src/core/lib/client_config/lb_policy.c \
     src/core/lib/client_config/lb_policy_factory.c \
     src/core/lib/client_config/lb_policy_registry.c \
@@ -2915,6 +2915,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/lib/json/json_reader.c \
     src/core/lib/json/json_string.c \
     src/core/lib/json/json_writer.c \
+    src/core/lib/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/lib/surface/alarm.c \
     src/core/lib/surface/api_trace.c \
     src/core/lib/surface/byte_buffer.c \
@@ -2943,7 +2944,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/lib/transport/static_metadata.c \
     src/core/lib/transport/transport.c \
     src/core/lib/transport/transport_op_string.c \
-    src/core/plugin_registry/grpc_unsecure_plugin_registry.c \
     third_party/nanopb/pb_common.c \
     third_party/nanopb/pb_decode.c \
     third_party/nanopb/pb_encode.c \
@@ -3039,6 +3039,31 @@ endif
 
 ifneq ($(NO_DEPS),true)
 -include $(LIBGRPC_ZOOKEEPER_OBJS:.o=.dep)
+endif
+
+
+LIBONE_INPUT_FUZZER_SRC = \
+    test/core/util/one_corpus_entry_fuzzer.c \
+
+PUBLIC_HEADERS_C += \
+
+LIBONE_INPUT_FUZZER_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBONE_INPUT_FUZZER_SRC))))
+
+
+$(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a: $(ZLIB_DEP)  $(LIBONE_INPUT_FUZZER_OBJS) 
+	$(E) "[AR]      Creating $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) rm -f $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a
+	$(Q) $(AR) $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBONE_INPUT_FUZZER_OBJS) 
+ifeq ($(SYSTEM),Darwin)
+	$(Q) ranlib -no_warning_for_no_symbols $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a
+endif
+
+
+
+
+ifneq ($(NO_DEPS),true)
+-include $(LIBONE_INPUT_FUZZER_OBJS:.o=.dep)
 endif
 
 
@@ -5832,7 +5857,6 @@ LIBEND2END_TESTS_SRC = \
     test/core/end2end/tests/graceful_server_shutdown.c \
     test/core/end2end/tests/high_initial_seqno.c \
     test/core/end2end/tests/hpack_size.c \
-    test/core/end2end/tests/idempotent_request.c \
     test/core/end2end/tests/invoke_large_request.c \
     test/core/end2end/tests/large_metadata.c \
     test/core/end2end/tests/max_concurrent_streams.c \
@@ -5907,7 +5931,6 @@ LIBEND2END_NOSEC_TESTS_SRC = \
     test/core/end2end/tests/graceful_server_shutdown.c \
     test/core/end2end/tests/high_initial_seqno.c \
     test/core/end2end/tests/hpack_size.c \
-    test/core/end2end/tests/idempotent_request.c \
     test/core/end2end/tests/invoke_large_request.c \
     test/core/end2end/tests/large_metadata.c \
     test/core/end2end/tests/max_concurrent_streams.c \
@@ -8094,102 +8117,6 @@ deps_init_test: $(INIT_TEST_OBJS:.o=.dep)
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(INIT_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-INTERNAL_API_CANARY_IOMGR_TEST_SRC = \
-    test/core/internal_api_canaries/iomgr.c \
-
-INTERNAL_API_CANARY_IOMGR_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(INTERNAL_API_CANARY_IOMGR_TEST_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/internal_api_canary_iomgr_test: openssl_dep_error
-
-else
-
-
-
-$(BINDIR)/$(CONFIG)/internal_api_canary_iomgr_test: $(INTERNAL_API_CANARY_IOMGR_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(INTERNAL_API_CANARY_IOMGR_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/internal_api_canary_iomgr_test
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/core/internal_api_canaries/iomgr.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_internal_api_canary_iomgr_test: $(INTERNAL_API_CANARY_IOMGR_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(INTERNAL_API_CANARY_IOMGR_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-INTERNAL_API_CANARY_SUPPORT_TEST_SRC = \
-    test/core/internal_api_canaries/iomgr.c \
-
-INTERNAL_API_CANARY_SUPPORT_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(INTERNAL_API_CANARY_SUPPORT_TEST_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/internal_api_canary_support_test: openssl_dep_error
-
-else
-
-
-
-$(BINDIR)/$(CONFIG)/internal_api_canary_support_test: $(INTERNAL_API_CANARY_SUPPORT_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(INTERNAL_API_CANARY_SUPPORT_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/internal_api_canary_support_test
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/core/internal_api_canaries/iomgr.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_internal_api_canary_support_test: $(INTERNAL_API_CANARY_SUPPORT_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(INTERNAL_API_CANARY_SUPPORT_TEST_OBJS:.o=.dep)
-endif
-endif
-
-
-INTERNAL_API_CANARY_TRANSPORT_TEST_SRC = \
-    test/core/internal_api_canaries/iomgr.c \
-
-INTERNAL_API_CANARY_TRANSPORT_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(INTERNAL_API_CANARY_TRANSPORT_TEST_SRC))))
-ifeq ($(NO_SECURE),true)
-
-# You can't build secure targets if you don't have OpenSSL.
-
-$(BINDIR)/$(CONFIG)/internal_api_canary_transport_test: openssl_dep_error
-
-else
-
-
-
-$(BINDIR)/$(CONFIG)/internal_api_canary_transport_test: $(INTERNAL_API_CANARY_TRANSPORT_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-	$(E) "[LD]      Linking $@"
-	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(INTERNAL_API_CANARY_TRANSPORT_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/internal_api_canary_transport_test
-
-endif
-
-$(OBJDIR)/$(CONFIG)/test/core/internal_api_canaries/iomgr.o:  $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
-
-deps_internal_api_canary_transport_test: $(INTERNAL_API_CANARY_TRANSPORT_TEST_OBJS:.o=.dep)
-
-ifneq ($(NO_SECURE),true)
-ifneq ($(NO_DEPS),true)
--include $(INTERNAL_API_CANARY_TRANSPORT_TEST_OBJS:.o=.dep)
 endif
 endif
 
@@ -13711,6 +13638,134 @@ ifneq ($(NO_DEPS),true)
 endif
 
 
+HPACK_PARSER_FUZZER_TEST_ONE_ENTRY_SRC = \
+    test/core/transport/chttp2/hpack_parser_fuzzer_test.c \
+
+HPACK_PARSER_FUZZER_TEST_ONE_ENTRY_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(HPACK_PARSER_FUZZER_TEST_ONE_ENTRY_SRC))))
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL.
+
+$(BINDIR)/$(CONFIG)/hpack_parser_fuzzer_test_one_entry: openssl_dep_error
+
+else
+
+
+
+$(BINDIR)/$(CONFIG)/hpack_parser_fuzzer_test_one_entry: $(HPACK_PARSER_FUZZER_TEST_ONE_ENTRY_OBJS) $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(HPACK_PARSER_FUZZER_TEST_ONE_ENTRY_OBJS) $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/hpack_parser_fuzzer_test_one_entry
+
+endif
+
+$(OBJDIR)/$(CONFIG)/test/core/transport/chttp2/hpack_parser_fuzzer_test.o:  $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_hpack_parser_fuzzer_test_one_entry: $(HPACK_PARSER_FUZZER_TEST_ONE_ENTRY_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(HPACK_PARSER_FUZZER_TEST_ONE_ENTRY_OBJS:.o=.dep)
+endif
+endif
+
+
+HTTP_FUZZER_TEST_ONE_ENTRY_SRC = \
+    test/core/http/fuzzer.c \
+
+HTTP_FUZZER_TEST_ONE_ENTRY_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(HTTP_FUZZER_TEST_ONE_ENTRY_SRC))))
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL.
+
+$(BINDIR)/$(CONFIG)/http_fuzzer_test_one_entry: openssl_dep_error
+
+else
+
+
+
+$(BINDIR)/$(CONFIG)/http_fuzzer_test_one_entry: $(HTTP_FUZZER_TEST_ONE_ENTRY_OBJS) $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(HTTP_FUZZER_TEST_ONE_ENTRY_OBJS) $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/http_fuzzer_test_one_entry
+
+endif
+
+$(OBJDIR)/$(CONFIG)/test/core/http/fuzzer.o:  $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_http_fuzzer_test_one_entry: $(HTTP_FUZZER_TEST_ONE_ENTRY_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(HTTP_FUZZER_TEST_ONE_ENTRY_OBJS:.o=.dep)
+endif
+endif
+
+
+JSON_FUZZER_TEST_ONE_ENTRY_SRC = \
+    test/core/json/fuzzer.c \
+
+JSON_FUZZER_TEST_ONE_ENTRY_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(JSON_FUZZER_TEST_ONE_ENTRY_SRC))))
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL.
+
+$(BINDIR)/$(CONFIG)/json_fuzzer_test_one_entry: openssl_dep_error
+
+else
+
+
+
+$(BINDIR)/$(CONFIG)/json_fuzzer_test_one_entry: $(JSON_FUZZER_TEST_ONE_ENTRY_OBJS) $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(JSON_FUZZER_TEST_ONE_ENTRY_OBJS) $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/json_fuzzer_test_one_entry
+
+endif
+
+$(OBJDIR)/$(CONFIG)/test/core/json/fuzzer.o:  $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_json_fuzzer_test_one_entry: $(JSON_FUZZER_TEST_ONE_ENTRY_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(JSON_FUZZER_TEST_ONE_ENTRY_OBJS:.o=.dep)
+endif
+endif
+
+
+URI_FUZZER_TEST_ONE_ENTRY_SRC = \
+    test/core/client_config/uri_fuzzer_test.c \
+
+URI_FUZZER_TEST_ONE_ENTRY_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(URI_FUZZER_TEST_ONE_ENTRY_SRC))))
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL.
+
+$(BINDIR)/$(CONFIG)/uri_fuzzer_test_one_entry: openssl_dep_error
+
+else
+
+
+
+$(BINDIR)/$(CONFIG)/uri_fuzzer_test_one_entry: $(URI_FUZZER_TEST_ONE_ENTRY_OBJS) $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(URI_FUZZER_TEST_ONE_ENTRY_OBJS) $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/uri_fuzzer_test_one_entry
+
+endif
+
+$(OBJDIR)/$(CONFIG)/test/core/client_config/uri_fuzzer_test.o:  $(LIBDIR)/$(CONFIG)/libone_input_fuzzer.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_uri_fuzzer_test_one_entry: $(URI_FUZZER_TEST_ONE_ENTRY_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(URI_FUZZER_TEST_ONE_ENTRY_OBJS:.o=.dep)
+endif
+endif
+
+
 
 
 
@@ -13740,7 +13795,6 @@ src/core/lib/surface/init_secure.c: $(OPENSSL_DEP)
 src/core/lib/tsi/fake_transport_security.c: $(OPENSSL_DEP)
 src/core/lib/tsi/ssl_transport_security.c: $(OPENSSL_DEP)
 src/core/lib/tsi/transport_security.c: $(OPENSSL_DEP)
-src/core/plugin_registry/grpc_plugin_registry.c: $(OPENSSL_DEP)
 src/cpp/client/secure_credentials.cc: $(OPENSSL_DEP)
 src/cpp/common/auth_property_iterator.cc: $(OPENSSL_DEP)
 src/cpp/common/secure_auth_context.cc: $(OPENSSL_DEP)

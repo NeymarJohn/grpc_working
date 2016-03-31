@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -297,8 +297,7 @@ GRPCAPI grpc_call_error grpc_server_request_call(
     Must be called before grpc_server_start.
     Returns NULL on failure. */
 GRPCAPI void *grpc_server_register_method(grpc_server *server,
-                                          const char *method, const char *host,
-                                          uint32_t flags);
+                                          const char *method, const char *host);
 
 /** Request notification of a new pre-registered call. 'cq_for_notification'
     must have been registered to the server via
