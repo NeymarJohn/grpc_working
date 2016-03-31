@@ -37,7 +37,6 @@
 #include <grpc/support/slice.h>
 #include "src/core/ext/transport/chttp2/transport/frame.h"
 #include "src/core/lib/iomgr/exec_ctx.h"
-#include "src/core/lib/transport/transport.h"
 
 typedef struct {
   uint8_t byte;
@@ -45,8 +44,7 @@ typedef struct {
   uint32_t amount;
 } grpc_chttp2_window_update_parser;
 
-gpr_slice grpc_chttp2_window_update_create(uint32_t id, uint32_t window_delta,
-                                           grpc_transport_one_way_stats *stats);
+gpr_slice grpc_chttp2_window_update_create(uint32_t id, uint32_t window_delta);
 
 grpc_chttp2_parse_error grpc_chttp2_window_update_parser_begin_frame(
     grpc_chttp2_window_update_parser *parser, uint32_t length, uint8_t flags);
