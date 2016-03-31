@@ -1090,6 +1090,8 @@ h2_compress_test: $(BINDIR)/$(CONFIG)/h2_compress_test
 h2_fakesec_test: $(BINDIR)/$(CONFIG)/h2_fakesec_test
 h2_full_test: $(BINDIR)/$(CONFIG)/h2_full_test
 h2_full+pipe_test: $(BINDIR)/$(CONFIG)/h2_full+pipe_test
+h2_full+poll_test: $(BINDIR)/$(CONFIG)/h2_full+poll_test
+h2_full+poll+pipe_test: $(BINDIR)/$(CONFIG)/h2_full+poll+pipe_test
 h2_full+trace_test: $(BINDIR)/$(CONFIG)/h2_full+trace_test
 h2_oauth2_test: $(BINDIR)/$(CONFIG)/h2_oauth2_test
 h2_proxy_test: $(BINDIR)/$(CONFIG)/h2_proxy_test
@@ -1097,18 +1099,23 @@ h2_sockpair_test: $(BINDIR)/$(CONFIG)/h2_sockpair_test
 h2_sockpair+trace_test: $(BINDIR)/$(CONFIG)/h2_sockpair+trace_test
 h2_sockpair_1byte_test: $(BINDIR)/$(CONFIG)/h2_sockpair_1byte_test
 h2_ssl_test: $(BINDIR)/$(CONFIG)/h2_ssl_test
+h2_ssl+poll_test: $(BINDIR)/$(CONFIG)/h2_ssl+poll_test
 h2_ssl_proxy_test: $(BINDIR)/$(CONFIG)/h2_ssl_proxy_test
 h2_uds_test: $(BINDIR)/$(CONFIG)/h2_uds_test
+h2_uds+poll_test: $(BINDIR)/$(CONFIG)/h2_uds+poll_test
 h2_census_nosec_test: $(BINDIR)/$(CONFIG)/h2_census_nosec_test
 h2_compress_nosec_test: $(BINDIR)/$(CONFIG)/h2_compress_nosec_test
 h2_full_nosec_test: $(BINDIR)/$(CONFIG)/h2_full_nosec_test
 h2_full+pipe_nosec_test: $(BINDIR)/$(CONFIG)/h2_full+pipe_nosec_test
+h2_full+poll_nosec_test: $(BINDIR)/$(CONFIG)/h2_full+poll_nosec_test
+h2_full+poll+pipe_nosec_test: $(BINDIR)/$(CONFIG)/h2_full+poll+pipe_nosec_test
 h2_full+trace_nosec_test: $(BINDIR)/$(CONFIG)/h2_full+trace_nosec_test
 h2_proxy_nosec_test: $(BINDIR)/$(CONFIG)/h2_proxy_nosec_test
 h2_sockpair_nosec_test: $(BINDIR)/$(CONFIG)/h2_sockpair_nosec_test
 h2_sockpair+trace_nosec_test: $(BINDIR)/$(CONFIG)/h2_sockpair+trace_nosec_test
 h2_sockpair_1byte_nosec_test: $(BINDIR)/$(CONFIG)/h2_sockpair_1byte_nosec_test
 h2_uds_nosec_test: $(BINDIR)/$(CONFIG)/h2_uds_nosec_test
+h2_uds+poll_nosec_test: $(BINDIR)/$(CONFIG)/h2_uds+poll_nosec_test
 
 run_dep_checks:
 	$(OPENSSL_ALPN_CHECK_CMD) || true
@@ -1307,6 +1314,8 @@ buildtests_c: privatelibs_c \
   $(BINDIR)/$(CONFIG)/h2_fakesec_test \
   $(BINDIR)/$(CONFIG)/h2_full_test \
   $(BINDIR)/$(CONFIG)/h2_full+pipe_test \
+  $(BINDIR)/$(CONFIG)/h2_full+poll_test \
+  $(BINDIR)/$(CONFIG)/h2_full+poll+pipe_test \
   $(BINDIR)/$(CONFIG)/h2_full+trace_test \
   $(BINDIR)/$(CONFIG)/h2_oauth2_test \
   $(BINDIR)/$(CONFIG)/h2_proxy_test \
@@ -1314,18 +1323,23 @@ buildtests_c: privatelibs_c \
   $(BINDIR)/$(CONFIG)/h2_sockpair+trace_test \
   $(BINDIR)/$(CONFIG)/h2_sockpair_1byte_test \
   $(BINDIR)/$(CONFIG)/h2_ssl_test \
+  $(BINDIR)/$(CONFIG)/h2_ssl+poll_test \
   $(BINDIR)/$(CONFIG)/h2_ssl_proxy_test \
   $(BINDIR)/$(CONFIG)/h2_uds_test \
+  $(BINDIR)/$(CONFIG)/h2_uds+poll_test \
   $(BINDIR)/$(CONFIG)/h2_census_nosec_test \
   $(BINDIR)/$(CONFIG)/h2_compress_nosec_test \
   $(BINDIR)/$(CONFIG)/h2_full_nosec_test \
   $(BINDIR)/$(CONFIG)/h2_full+pipe_nosec_test \
+  $(BINDIR)/$(CONFIG)/h2_full+poll_nosec_test \
+  $(BINDIR)/$(CONFIG)/h2_full+poll+pipe_nosec_test \
   $(BINDIR)/$(CONFIG)/h2_full+trace_nosec_test \
   $(BINDIR)/$(CONFIG)/h2_proxy_nosec_test \
   $(BINDIR)/$(CONFIG)/h2_sockpair_nosec_test \
   $(BINDIR)/$(CONFIG)/h2_sockpair+trace_nosec_test \
   $(BINDIR)/$(CONFIG)/h2_sockpair_1byte_nosec_test \
   $(BINDIR)/$(CONFIG)/h2_uds_nosec_test \
+  $(BINDIR)/$(CONFIG)/h2_uds+poll_nosec_test \
 
 
 buildtests_cxx: buildtests_zookeeper privatelibs_cxx \
@@ -2426,10 +2440,6 @@ endif
 
 
 LIBGRPC_SRC = \
-    src/core/ext/lb_policy/grpclb/load_balancer_api.c \
-    src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c \
-    src/core/ext/lb_policy/pick_first/pick_first.c \
-    src/core/ext/lb_policy/round_robin/round_robin.c \
     src/core/ext/transport/chttp2/client/insecure/channel_create.c \
     src/core/ext/transport/chttp2/client/secure/secure_channel_create.c \
     src/core/ext/transport/chttp2/server/insecure/server_chttp2.c \
@@ -2477,6 +2487,9 @@ LIBGRPC_SRC = \
     src/core/lib/client_config/connector.c \
     src/core/lib/client_config/default_initial_connect_string.c \
     src/core/lib/client_config/initial_connect_string.c \
+    src/core/lib/client_config/lb_policies/load_balancer_api.c \
+    src/core/lib/client_config/lb_policies/pick_first.c \
+    src/core/lib/client_config/lb_policies/round_robin.c \
     src/core/lib/client_config/lb_policy.c \
     src/core/lib/client_config/lb_policy_factory.c \
     src/core/lib/client_config/lb_policy_registry.c \
@@ -2500,14 +2513,17 @@ LIBGRPC_SRC = \
     src/core/lib/iomgr/endpoint.c \
     src/core/lib/iomgr/endpoint_pair_posix.c \
     src/core/lib/iomgr/endpoint_pair_windows.c \
-    src/core/lib/iomgr/ev_poll_and_epoll_posix.c \
-    src/core/lib/iomgr/ev_posix.c \
     src/core/lib/iomgr/exec_ctx.c \
     src/core/lib/iomgr/executor.c \
+    src/core/lib/iomgr/fd_posix.c \
     src/core/lib/iomgr/iocp_windows.c \
     src/core/lib/iomgr/iomgr.c \
     src/core/lib/iomgr/iomgr_posix.c \
     src/core/lib/iomgr/iomgr_windows.c \
+    src/core/lib/iomgr/pollset_multipoller_with_epoll.c \
+    src/core/lib/iomgr/pollset_multipoller_with_poll_posix.c \
+    src/core/lib/iomgr/pollset_posix.c \
+    src/core/lib/iomgr/pollset_set_posix.c \
     src/core/lib/iomgr/pollset_set_windows.c \
     src/core/lib/iomgr/pollset_windows.c \
     src/core/lib/iomgr/resolve_address_posix.c \
@@ -2539,6 +2555,7 @@ LIBGRPC_SRC = \
     src/core/lib/json/json_reader.c \
     src/core/lib/json/json_string.c \
     src/core/lib/json/json_writer.c \
+    src/core/lib/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/lib/security/b64.c \
     src/core/lib/security/client_auth_filter.c \
     src/core/lib/security/credentials.c \
@@ -2584,7 +2601,6 @@ LIBGRPC_SRC = \
     src/core/lib/tsi/fake_transport_security.c \
     src/core/lib/tsi/ssl_transport_security.c \
     src/core/lib/tsi/transport_security.c \
-    src/core/plugin_registry/grpc_plugin_registry.c \
     third_party/nanopb/pb_common.c \
     third_party/nanopb/pb_decode.c \
     third_party/nanopb/pb_encode.c \
@@ -2785,10 +2801,6 @@ endif
 
 
 LIBGRPC_UNSECURE_SRC = \
-    src/core/ext/lb_policy/grpclb/load_balancer_api.c \
-    src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c \
-    src/core/ext/lb_policy/pick_first/pick_first.c \
-    src/core/ext/lb_policy/round_robin/round_robin.c \
     src/core/ext/transport/chttp2/client/insecure/channel_create.c \
     src/core/ext/transport/chttp2/server/insecure/server_chttp2.c \
     src/core/ext/transport/chttp2/transport/alpn.c \
@@ -2834,6 +2846,9 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/lib/client_config/connector.c \
     src/core/lib/client_config/default_initial_connect_string.c \
     src/core/lib/client_config/initial_connect_string.c \
+    src/core/lib/client_config/lb_policies/load_balancer_api.c \
+    src/core/lib/client_config/lb_policies/pick_first.c \
+    src/core/lib/client_config/lb_policies/round_robin.c \
     src/core/lib/client_config/lb_policy.c \
     src/core/lib/client_config/lb_policy_factory.c \
     src/core/lib/client_config/lb_policy_registry.c \
@@ -2856,14 +2871,17 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/lib/iomgr/endpoint.c \
     src/core/lib/iomgr/endpoint_pair_posix.c \
     src/core/lib/iomgr/endpoint_pair_windows.c \
-    src/core/lib/iomgr/ev_poll_and_epoll_posix.c \
-    src/core/lib/iomgr/ev_posix.c \
     src/core/lib/iomgr/exec_ctx.c \
     src/core/lib/iomgr/executor.c \
+    src/core/lib/iomgr/fd_posix.c \
     src/core/lib/iomgr/iocp_windows.c \
     src/core/lib/iomgr/iomgr.c \
     src/core/lib/iomgr/iomgr_posix.c \
     src/core/lib/iomgr/iomgr_windows.c \
+    src/core/lib/iomgr/pollset_multipoller_with_epoll.c \
+    src/core/lib/iomgr/pollset_multipoller_with_poll_posix.c \
+    src/core/lib/iomgr/pollset_posix.c \
+    src/core/lib/iomgr/pollset_set_posix.c \
     src/core/lib/iomgr/pollset_set_windows.c \
     src/core/lib/iomgr/pollset_windows.c \
     src/core/lib/iomgr/resolve_address_posix.c \
@@ -2895,6 +2913,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/lib/json/json_reader.c \
     src/core/lib/json/json_string.c \
     src/core/lib/json/json_writer.c \
+    src/core/lib/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/lib/surface/alarm.c \
     src/core/lib/surface/api_trace.c \
     src/core/lib/surface/byte_buffer.c \
@@ -2923,7 +2942,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/lib/transport/static_metadata.c \
     src/core/lib/transport/transport.c \
     src/core/lib/transport/transport_op_string.c \
-    src/core/plugin_registry/grpc_unsecure_plugin_registry.c \
     third_party/nanopb/pb_common.c \
     third_party/nanopb/pb_decode.c \
     third_party/nanopb/pb_encode.c \
@@ -13015,6 +13033,70 @@ endif
 endif
 
 
+H2_FULL+POLL_TEST_SRC = \
+    test/core/end2end/fixtures/h2_full+poll.c \
+
+H2_FULL+POLL_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(H2_FULL+POLL_TEST_SRC))))
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL.
+
+$(BINDIR)/$(CONFIG)/h2_full+poll_test: openssl_dep_error
+
+else
+
+
+
+$(BINDIR)/$(CONFIG)/h2_full+poll_test: $(H2_FULL+POLL_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(H2_FULL+POLL_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/h2_full+poll_test
+
+endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/h2_full+poll.o:  $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_h2_full+poll_test: $(H2_FULL+POLL_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(H2_FULL+POLL_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+H2_FULL+POLL+PIPE_TEST_SRC = \
+    test/core/end2end/fixtures/h2_full+poll+pipe.c \
+
+H2_FULL+POLL+PIPE_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(H2_FULL+POLL+PIPE_TEST_SRC))))
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL.
+
+$(BINDIR)/$(CONFIG)/h2_full+poll+pipe_test: openssl_dep_error
+
+else
+
+
+
+$(BINDIR)/$(CONFIG)/h2_full+poll+pipe_test: $(H2_FULL+POLL+PIPE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(H2_FULL+POLL+PIPE_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/h2_full+poll+pipe_test
+
+endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/h2_full+poll+pipe.o:  $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_h2_full+poll+pipe_test: $(H2_FULL+POLL+PIPE_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(H2_FULL+POLL+PIPE_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
 H2_FULL+TRACE_TEST_SRC = \
     test/core/end2end/fixtures/h2_full+trace.c \
 
@@ -13239,6 +13321,38 @@ endif
 endif
 
 
+H2_SSL+POLL_TEST_SRC = \
+    test/core/end2end/fixtures/h2_ssl+poll.c \
+
+H2_SSL+POLL_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(H2_SSL+POLL_TEST_SRC))))
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL.
+
+$(BINDIR)/$(CONFIG)/h2_ssl+poll_test: openssl_dep_error
+
+else
+
+
+
+$(BINDIR)/$(CONFIG)/h2_ssl+poll_test: $(H2_SSL+POLL_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(H2_SSL+POLL_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/h2_ssl+poll_test
+
+endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/h2_ssl+poll.o:  $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_h2_ssl+poll_test: $(H2_SSL+POLL_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(H2_SSL+POLL_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
 H2_SSL_PROXY_TEST_SRC = \
     test/core/end2end/fixtures/h2_ssl_proxy.c \
 
@@ -13299,6 +13413,38 @@ deps_h2_uds_test: $(H2_UDS_TEST_OBJS:.o=.dep)
 ifneq ($(NO_SECURE),true)
 ifneq ($(NO_DEPS),true)
 -include $(H2_UDS_TEST_OBJS:.o=.dep)
+endif
+endif
+
+
+H2_UDS+POLL_TEST_SRC = \
+    test/core/end2end/fixtures/h2_uds+poll.c \
+
+H2_UDS+POLL_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(H2_UDS+POLL_TEST_SRC))))
+ifeq ($(NO_SECURE),true)
+
+# You can't build secure targets if you don't have OpenSSL.
+
+$(BINDIR)/$(CONFIG)/h2_uds+poll_test: openssl_dep_error
+
+else
+
+
+
+$(BINDIR)/$(CONFIG)/h2_uds+poll_test: $(H2_UDS+POLL_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(H2_UDS+POLL_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) $(LDLIBS_SECURE) -o $(BINDIR)/$(CONFIG)/h2_uds+poll_test
+
+endif
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/h2_uds+poll.o:  $(LIBDIR)/$(CONFIG)/libend2end_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_h2_uds+poll_test: $(H2_UDS+POLL_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_SECURE),true)
+ifneq ($(NO_DEPS),true)
+-include $(H2_UDS+POLL_TEST_OBJS:.o=.dep)
 endif
 endif
 
@@ -13380,6 +13526,46 @@ deps_h2_full+pipe_nosec_test: $(H2_FULL+PIPE_NOSEC_TEST_OBJS:.o=.dep)
 
 ifneq ($(NO_DEPS),true)
 -include $(H2_FULL+PIPE_NOSEC_TEST_OBJS:.o=.dep)
+endif
+
+
+H2_FULL+POLL_NOSEC_TEST_SRC = \
+    test/core/end2end/fixtures/h2_full+poll.c \
+
+H2_FULL+POLL_NOSEC_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(H2_FULL+POLL_NOSEC_TEST_SRC))))
+
+
+$(BINDIR)/$(CONFIG)/h2_full+poll_nosec_test: $(H2_FULL+POLL_NOSEC_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(H2_FULL+POLL_NOSEC_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/h2_full+poll_nosec_test
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/h2_full+poll.o:  $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_h2_full+poll_nosec_test: $(H2_FULL+POLL_NOSEC_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_DEPS),true)
+-include $(H2_FULL+POLL_NOSEC_TEST_OBJS:.o=.dep)
+endif
+
+
+H2_FULL+POLL+PIPE_NOSEC_TEST_SRC = \
+    test/core/end2end/fixtures/h2_full+poll+pipe.c \
+
+H2_FULL+POLL+PIPE_NOSEC_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(H2_FULL+POLL+PIPE_NOSEC_TEST_SRC))))
+
+
+$(BINDIR)/$(CONFIG)/h2_full+poll+pipe_nosec_test: $(H2_FULL+POLL+PIPE_NOSEC_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(H2_FULL+POLL+PIPE_NOSEC_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/h2_full+poll+pipe_nosec_test
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/h2_full+poll+pipe.o:  $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_h2_full+poll+pipe_nosec_test: $(H2_FULL+POLL+PIPE_NOSEC_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_DEPS),true)
+-include $(H2_FULL+POLL+PIPE_NOSEC_TEST_OBJS:.o=.dep)
 endif
 
 
@@ -13503,6 +13689,26 @@ ifneq ($(NO_DEPS),true)
 endif
 
 
+H2_UDS+POLL_NOSEC_TEST_SRC = \
+    test/core/end2end/fixtures/h2_uds+poll.c \
+
+H2_UDS+POLL_NOSEC_TEST_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(H2_UDS+POLL_NOSEC_TEST_SRC))))
+
+
+$(BINDIR)/$(CONFIG)/h2_uds+poll_nosec_test: $(H2_UDS+POLL_NOSEC_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+	$(E) "[LD]      Linking $@"
+	$(Q) mkdir -p `dirname $@`
+	$(Q) $(LD) $(LDFLAGS) $(H2_UDS+POLL_NOSEC_TEST_OBJS) $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a $(LDLIBS) -o $(BINDIR)/$(CONFIG)/h2_uds+poll_nosec_test
+
+$(OBJDIR)/$(CONFIG)/test/core/end2end/fixtures/h2_uds+poll.o:  $(LIBDIR)/$(CONFIG)/libend2end_nosec_tests.a $(LIBDIR)/$(CONFIG)/libgrpc_test_util_unsecure.a $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.a $(LIBDIR)/$(CONFIG)/libgpr_test_util.a $(LIBDIR)/$(CONFIG)/libgpr.a
+
+deps_h2_uds+poll_nosec_test: $(H2_UDS+POLL_NOSEC_TEST_OBJS:.o=.dep)
+
+ifneq ($(NO_DEPS),true)
+-include $(H2_UDS+POLL_NOSEC_TEST_OBJS:.o=.dep)
+endif
+
+
 
 
 
@@ -13532,7 +13738,6 @@ src/core/lib/surface/init_secure.c: $(OPENSSL_DEP)
 src/core/lib/tsi/fake_transport_security.c: $(OPENSSL_DEP)
 src/core/lib/tsi/ssl_transport_security.c: $(OPENSSL_DEP)
 src/core/lib/tsi/transport_security.c: $(OPENSSL_DEP)
-src/core/plugin_registry/grpc_plugin_registry.c: $(OPENSSL_DEP)
 src/cpp/client/secure_credentials.cc: $(OPENSSL_DEP)
 src/cpp/common/auth_property_iterator.cc: $(OPENSSL_DEP)
 src/cpp/common/secure_auth_context.cc: $(OPENSSL_DEP)

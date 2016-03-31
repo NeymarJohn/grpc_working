@@ -31,16 +31,57 @@
  *
  */
 
-#include <grpc/grpc.h>
+'use strict';
 
-extern void grpc_lb_policy_pick_first_init(void);
-extern void grpc_lb_policy_pick_first_shutdown(void);
-extern void grpc_lb_policy_round_robin_init(void);
-extern void grpc_lb_policy_round_robin_shutdown(void);
+var _ = require('lodash');
 
-void grpc_register_built_in_plugins(void) {
-  grpc_register_plugin(grpc_lb_policy_pick_first_init,
-                       grpc_lb_policy_pick_first_shutdown);
-  grpc_register_plugin(grpc_lb_policy_round_robin_init,
-                       grpc_lb_policy_round_robin_shutdown);
+var grpc = require('../../..');
+
+var proto = grpc.load(__dirname + '/../../proto/grpc/testing/metrics.proto');
+var metrics = proto.grpc.testing;
+
+function getGauge(call, callback) {
+  /* jshint validthis: true */
+  // Should be bound to a MetricsServer object
+  var name = call.request.name;
+  if (this.gauges.hasOwnProperty(name)) {
+    callback(null, _.assign({name: name}, this.gauges[name]()));
+  } else {
+    callback({code: grpc.status.NOT_FOUND,
+              details: 'No such gauge: ' + name});
+  }
 }
+
+function getAllGauges(call) {
+  /* jshint validthis: true */
+  // Should be bound to a MetricsServer object
+  _.each(this.gauges, function(getter, name) {
+    call.write(_.assign({name: name}, getter()));
+  });
+  call.end();
+}
+
+function MetricsServer(port) {
+  var server = new grpc.Server();
+  server.addProtoService(metrics.MetricsService.service, {
+    getGauge: _.bind(getGauge, this),
+    getAllGauges: _.bind(getAllGauges, this)
+  });
+  server.bind('localhost:' + port, grpc.ServerCredentials.createInsecure());
+  this.server = server;
+  this.gauges = {};
+}
+
+MetricsServer.prototype.start = function() {
+  this.server.start();
+}
+
+MetricsServer.prototype.registerGauge = function(name, getter) {
+  this.gauges[name] = getter;
+};
+
+MetricsServer.prototype.shutdown = function() {
+  this.server.forceShutdown();
+};
+
+module.exports = MetricsServer;

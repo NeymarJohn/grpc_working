@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,15 @@
  *
  */
 
-#include <grpc/grpc.h>
+#ifndef GRPC_CORE_LIB_IOMGR_POLLSET_SET_POSIX_H
+#define GRPC_CORE_LIB_IOMGR_POLLSET_SET_POSIX_H
 
-extern void grpc_lb_policy_pick_first_init(void);
-extern void grpc_lb_policy_pick_first_shutdown(void);
-extern void grpc_lb_policy_round_robin_init(void);
-extern void grpc_lb_policy_round_robin_shutdown(void);
+#include "src/core/lib/iomgr/fd_posix.h"
+#include "src/core/lib/iomgr/pollset_set.h"
 
-void grpc_register_built_in_plugins(void) {
-  grpc_register_plugin(grpc_lb_policy_pick_first_init,
-                       grpc_lb_policy_pick_first_shutdown);
-  grpc_register_plugin(grpc_lb_policy_round_robin_init,
-                       grpc_lb_policy_round_robin_shutdown);
-}
+void grpc_pollset_set_add_fd(grpc_exec_ctx *exec_ctx,
+                             grpc_pollset_set *pollset_set, grpc_fd *fd);
+void grpc_pollset_set_del_fd(grpc_exec_ctx *exec_ctx,
+                             grpc_pollset_set *pollset_set, grpc_fd *fd);
+
+#endif /* GRPC_CORE_LIB_IOMGR_POLLSET_SET_POSIX_H */

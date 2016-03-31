@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,31 +31,13 @@
  *
  */
 
-#include "src/core/lib/iomgr/unix_sockets_posix.h"
+#ifndef GRPC_CORE_LIB_CLIENT_CONFIG_LB_POLICIES_PICK_FIRST_H
+#define GRPC_CORE_LIB_CLIENT_CONFIG_LB_POLICIES_PICK_FIRST_H
 
-#ifndef GPR_HAVE_UNIX_SOCKET
+#include "src/core/lib/client_config/lb_policy_factory.h"
 
-void grpc_create_socketpair_if_unix(int sv[2]) {}
+/** Returns a load balancing factory for the pick first policy, which picks up
+ * the first subchannel from \a subchannels to succesfully connect */
+grpc_lb_policy_factory *grpc_pick_first_lb_factory_create();
 
-grpc_resolved_addresses *grpc_resolve_unix_domain_address(const char *name) {
-  return NULL;
-}
-
-int grpc_is_unix_socket(const struct sockaddr *addr) { return false; }
-
-void grpc_unlink_if_unix_domain_socket(const struct sockaddr *addr) {}
-
-int grpc_parse_unix(grpc_uri *uri, struct sockaddr_storage *addr, size_t *len) {
-  return 0;
-}
-
-char *grpc_unix_get_default_authority(grpc_resolver_factory *factory,
-                                      grpc_uri *uri) {
-  return NULL;
-}
-
-char *grpc_sockaddr_to_uri_unix_if_possible(const struct sockaddr *addr) {
-  return NULL;
-}
-
-#endif
+#endif /* GRPC_CORE_LIB_CLIENT_CONFIG_LB_POLICIES_PICK_FIRST_H */

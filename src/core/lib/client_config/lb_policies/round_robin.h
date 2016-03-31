@@ -31,11 +31,16 @@
  *
  */
 
-#ifndef GRPC_CORE_LIB_IOMGR_EV_POLL_AND_EPOLL_POSIX_H
-#define GRPC_CORE_LIB_IOMGR_EV_POLL_AND_EPOLL_POSIX_H
+#ifndef GRPC_CORE_LIB_CLIENT_CONFIG_LB_POLICIES_ROUND_ROBIN_H
+#define GRPC_CORE_LIB_CLIENT_CONFIG_LB_POLICIES_ROUND_ROBIN_H
 
-#include "src/core/lib/iomgr/ev_posix.h"
+#include "src/core/lib/client_config/lb_policy.h"
 
-const grpc_event_engine_vtable *grpc_init_poll_and_epoll_posix(void);
+extern int grpc_lb_round_robin_trace;
 
-#endif /* GRPC_CORE_LIB_IOMGR_EV_POLL_AND_EPOLL_POSIX_H */
+#include "src/core/lib/client_config/lb_policy_factory.h"
+
+/** Returns a load balancing factory for the round robin policy */
+grpc_lb_policy_factory *grpc_round_robin_lb_factory_create();
+
+#endif /* GRPC_CORE_LIB_CLIENT_CONFIG_LB_POLICIES_ROUND_ROBIN_H */

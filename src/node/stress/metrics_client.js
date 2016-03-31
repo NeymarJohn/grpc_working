@@ -31,31 +31,31 @@
  *
  */
 
-#include "src/core/lib/iomgr/unix_sockets_posix.h"
+'use strict';
 
-#ifndef GPR_HAVE_UNIX_SOCKET
+var grpc = require('../../..');
 
-void grpc_create_socketpair_if_unix(int sv[2]) {}
+var proto = grpc.load(__dirname + '/../../proto/grpc/testing/metrics.proto');
+var metrics = proto.grpc.testing;
 
-grpc_resolved_addresses *grpc_resolve_unix_domain_address(const char *name) {
-  return NULL;
+function main() {
+  var parseArgs = require('minimist');
+  var argv = parseArgs(process.argv, {
+    string: 'metrics_server_address',
+    boolean: 'total_only'
+  });
+  var client = new metrics.MetricsService(argv.metrics_server_address,
+                                          grpc.credentials.createInsecure());
+  if (argv.total_only) {
+    client.getGauge({name: 'qps'}, function(err, data) {
+      console.log(data.name + ':', data.long_value);
+    });
+  } else {
+    var call = client.getAllGauges({});
+    call.on('data', function(data) {
+      console.log(data.name + ':', data.long_value);
+    });
+  }
 }
 
-int grpc_is_unix_socket(const struct sockaddr *addr) { return false; }
-
-void grpc_unlink_if_unix_domain_socket(const struct sockaddr *addr) {}
-
-int grpc_parse_unix(grpc_uri *uri, struct sockaddr_storage *addr, size_t *len) {
-  return 0;
-}
-
-char *grpc_unix_get_default_authority(grpc_resolver_factory *factory,
-                                      grpc_uri *uri) {
-  return NULL;
-}
-
-char *grpc_sockaddr_to_uri_unix_if_possible(const struct sockaddr *addr) {
-  return NULL;
-}
-
-#endif
+main();

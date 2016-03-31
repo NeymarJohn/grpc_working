@@ -31,12 +31,11 @@
  *
  */
 
+#include "src/core/lib/client_config/lb_policies/round_robin.h"
+
 #include <string.h>
 
 #include <grpc/support/alloc.h>
-
-#include "src/core/lib/client_config/lb_policy_registry.h"
-#include "src/core/lib/debug/trace.h"
 #include "src/core/lib/transport/connectivity_state.h"
 
 typedef struct round_robin_lb_policy round_robin_lb_policy;
@@ -200,7 +199,7 @@ static void remove_disconnected_sc_locked(round_robin_lb_policy *p,
   gpr_free(node);
 }
 
-static void rr_destroy(grpc_exec_ctx *exec_ctx, grpc_lb_policy *pol) {
+void rr_destroy(grpc_exec_ctx *exec_ctx, grpc_lb_policy *pol) {
   round_robin_lb_policy *p = (round_robin_lb_policy *)pol;
   size_t i;
   ready_list *elem;
@@ -227,7 +226,7 @@ static void rr_destroy(grpc_exec_ctx *exec_ctx, grpc_lb_policy *pol) {
   gpr_free(p);
 }
 
-static void rr_shutdown(grpc_exec_ctx *exec_ctx, grpc_lb_policy *pol) {
+void rr_shutdown(grpc_exec_ctx *exec_ctx, grpc_lb_policy *pol) {
   round_robin_lb_policy *p = (round_robin_lb_policy *)pol;
   pending_pick *pp;
   size_t i;
@@ -292,7 +291,7 @@ static void start_picking(grpc_exec_ctx *exec_ctx, round_robin_lb_policy *p) {
   }
 }
 
-static void rr_exit_idle(grpc_exec_ctx *exec_ctx, grpc_lb_policy *pol) {
+void rr_exit_idle(grpc_exec_ctx *exec_ctx, grpc_lb_policy *pol) {
   round_robin_lb_policy *p = (round_robin_lb_policy *)pol;
   gpr_mu_lock(&p->mu);
   if (!p->started_picking) {
@@ -301,10 +300,9 @@ static void rr_exit_idle(grpc_exec_ctx *exec_ctx, grpc_lb_policy *pol) {
   gpr_mu_unlock(&p->mu);
 }
 
-static int rr_pick(grpc_exec_ctx *exec_ctx, grpc_lb_policy *pol,
-                   grpc_pollset *pollset, grpc_metadata_batch *initial_metadata,
-                   grpc_connected_subchannel **target,
-                   grpc_closure *on_complete) {
+int rr_pick(grpc_exec_ctx *exec_ctx, grpc_lb_policy *pol, grpc_pollset *pollset,
+            grpc_metadata_batch *initial_metadata,
+            grpc_connected_subchannel **target, grpc_closure *on_complete) {
   round_robin_lb_policy *p = (round_robin_lb_policy *)pol;
   pending_pick *pp;
   ready_list *selected;
@@ -560,15 +558,6 @@ static const grpc_lb_policy_factory_vtable round_robin_factory_vtable = {
 static grpc_lb_policy_factory round_robin_lb_policy_factory = {
     &round_robin_factory_vtable};
 
-static grpc_lb_policy_factory *round_robin_lb_factory_create() {
+grpc_lb_policy_factory *grpc_round_robin_lb_factory_create() {
   return &round_robin_lb_policy_factory;
 }
-
-/* Plugin registration */
-
-void grpc_lb_policy_round_robin_init() {
-  grpc_register_lb_policy(round_robin_lb_factory_create());
-  grpc_register_tracer("round_robin", &grpc_lb_round_robin_trace);
-}
-
-void grpc_lb_policy_round_robin_shutdown() {}
