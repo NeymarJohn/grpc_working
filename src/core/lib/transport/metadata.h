@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,6 +109,8 @@ grpc_mdelem *grpc_mdelem_from_slices(gpr_slice key, gpr_slice value);
 grpc_mdelem *grpc_mdelem_from_string_and_buffer(const char *key,
                                                 const uint8_t *value,
                                                 size_t value_length);
+
+size_t grpc_mdelem_get_size_in_hpack_table(grpc_mdelem *elem);
 
 /* Mutator and accessor for grpc_mdelem user data. The destructor function
    is used as a type tag and is checked during user_data fetch. */
