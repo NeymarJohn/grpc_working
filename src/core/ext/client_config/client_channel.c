@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
  *
  */
 
-#include "src/core/lib/channel/client_channel.h"
+#include "src/core/ext/client_config/client_channel.h"
 
 #include <stdio.h>
 #include <string.h>

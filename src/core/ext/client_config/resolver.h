@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,8 @@
 #ifndef GRPC_CORE_LIB_CLIENT_CONFIG_RESOLVER_H
 #define GRPC_CORE_LIB_CLIENT_CONFIG_RESOLVER_H
 
-#include "src/core/lib/client_config/client_config.h"
-#include "src/core/lib/client_config/subchannel.h"
+#include "src/core/ext/client_config/client_config.h"
+#include "src/core/ext/client_config/subchannel.h"
 #include "src/core/lib/iomgr/iomgr.h"
 
 typedef struct grpc_resolver grpc_resolver;

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,23 +31,21 @@
  *
  */
 
-#ifndef GRPC_CORE_LIB_CLIENT_CONFIG_CLIENT_CONFIG_H
-#define GRPC_CORE_LIB_CLIENT_CONFIG_CLIENT_CONFIG_H
+#ifndef GRPC_CORE_LIB_CLIENT_CONFIG_URI_PARSER_H
+#define GRPC_CORE_LIB_CLIENT_CONFIG_URI_PARSER_H
 
-#include "src/core/lib/client_config/lb_policy.h"
+typedef struct {
+  char *scheme;
+  char *authority;
+  char *path;
+  char *query;
+  char *fragment;
+} grpc_uri;
 
-/** Total configuration for a client. Provided, and updated, by
-    grpc_resolver */
-typedef struct grpc_client_config grpc_client_config;
+/** parse a uri, return NULL on failure */
+grpc_uri *grpc_uri_parse(const char *uri_text, int suppress_errors);
 
-grpc_client_config *grpc_client_config_create();
-void grpc_client_config_ref(grpc_client_config *client_config);
-void grpc_client_config_unref(grpc_exec_ctx *exec_ctx,
-                              grpc_client_config *client_config);
+/** destroy a uri */
+void grpc_uri_destroy(grpc_uri *uri);
 
-void grpc_client_config_set_lb_policy(grpc_client_config *client_config,
-                                      grpc_lb_policy *lb_policy);
-grpc_lb_policy *grpc_client_config_get_lb_policy(
-    grpc_client_config *client_config);
-
-#endif /* GRPC_CORE_LIB_CLIENT_CONFIG_CLIENT_CONFIG_H */
+#endif /* GRPC_CORE_LIB_CLIENT_CONFIG_URI_PARSER_H */

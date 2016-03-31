@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,36 @@
  *
  */
 
-#include <grpc/support/slice.h>
-#include "src/core/lib/iomgr/sockaddr.h"
+#ifndef GRPC_CORE_LIB_CLIENT_CONFIG_SUBCHANNEL_FACTORY_H
+#define GRPC_CORE_LIB_CLIENT_CONFIG_SUBCHANNEL_FACTORY_H
 
-void grpc_set_default_initial_connect_string(struct sockaddr **addr,
-                                             size_t *addr_len,
-                                             gpr_slice *initial_str) {}
+#include "src/core/lib/channel/channel_stack.h"
+#include "src/core/ext/client_config/subchannel.h"
+
+typedef struct grpc_subchannel_factory grpc_subchannel_factory;
+typedef struct grpc_subchannel_factory_vtable grpc_subchannel_factory_vtable;
+
+/** Constructor for new configured channels.
+    Creating decorators around this type is encouraged to adapt behavior. */
+struct grpc_subchannel_factory {
+  const grpc_subchannel_factory_vtable *vtable;
+};
+
+struct grpc_subchannel_factory_vtable {
+  void (*ref)(grpc_subchannel_factory *factory);
+  void (*unref)(grpc_exec_ctx *exec_ctx, grpc_subchannel_factory *factory);
+  grpc_subchannel *(*create_subchannel)(grpc_exec_ctx *exec_ctx,
+                                        grpc_subchannel_factory *factory,
+                                        grpc_subchannel_args *args);
+};
+
+void grpc_subchannel_factory_ref(grpc_subchannel_factory *factory);
+void grpc_subchannel_factory_unref(grpc_exec_ctx *exec_ctx,
+                                   grpc_subchannel_factory *factory);
+
+/** Create a new grpc_subchannel */
+grpc_subchannel *grpc_subchannel_factory_create_subchannel(
+    grpc_exec_ctx *exec_ctx, grpc_subchannel_factory *factory,
+    grpc_subchannel_args *args);
+
+#endif /* GRPC_CORE_LIB_CLIENT_CONFIG_SUBCHANNEL_FACTORY_H */

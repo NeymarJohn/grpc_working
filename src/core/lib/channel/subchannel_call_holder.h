@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 #ifndef GRPC_CORE_LIB_CHANNEL_SUBCHANNEL_CALL_HOLDER_H
 #define GRPC_CORE_LIB_CHANNEL_SUBCHANNEL_CALL_HOLDER_H
 
-#include "src/core/lib/client_config/subchannel.h"
+#include "src/core/ext/client_config/subchannel.h"
 
 /** Pick a subchannel for grpc_subchannel_call_holder;
     Return 1 if subchannel is available immediately (in which case on_ready

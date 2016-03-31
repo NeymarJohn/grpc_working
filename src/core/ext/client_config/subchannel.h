@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 #define GRPC_CORE_LIB_CLIENT_CONFIG_SUBCHANNEL_H
 
 #include "src/core/lib/channel/channel_stack.h"
-#include "src/core/lib/client_config/connector.h"
+#include "src/core/ext/client_config/connector.h"
 #include "src/core/lib/transport/connectivity_state.h"
 
 /** A (sub-)channel that knows how to connect to exactly one target

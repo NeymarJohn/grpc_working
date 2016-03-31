@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,23 +31,19 @@
  *
  */
 
-#include "src/core/lib/client_config/initial_connect_string.h"
+#include "src/core/ext/client_config/lb_policy_factory.h"
 
-#include <stddef.h>
-
-extern void grpc_set_default_initial_connect_string(struct sockaddr **addr,
-                                                    size_t *addr_len,
-                                                    gpr_slice *initial_str);
-
-static grpc_set_initial_connect_string_func g_set_initial_connect_string_func =
-    grpc_set_default_initial_connect_string;
-
-void grpc_test_set_initial_connect_string_function(
-    grpc_set_initial_connect_string_func func) {
-  g_set_initial_connect_string_func = func;
+void grpc_lb_policy_factory_ref(grpc_lb_policy_factory* factory) {
+  factory->vtable->ref(factory);
 }
 
-void grpc_set_initial_connect_string(struct sockaddr **addr, size_t *addr_len,
-                                     gpr_slice *initial_str) {
-  g_set_initial_connect_string_func(addr, addr_len, initial_str);
+void grpc_lb_policy_factory_unref(grpc_lb_policy_factory* factory) {
+  factory->vtable->unref(factory);
+}
+
+grpc_lb_policy* grpc_lb_policy_factory_create_lb_policy(
+    grpc_exec_ctx* exec_ctx, grpc_lb_policy_factory* factory,
+    grpc_lb_policy_args* args) {
+  if (factory == NULL) return NULL;
+  return factory->vtable->create_lb_policy(exec_ctx, factory, args);
 }

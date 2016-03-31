@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,21 +31,9 @@
  *
  */
 
-#ifndef GRPC_CORE_LIB_CLIENT_CONFIG_URI_PARSER_H
-#define GRPC_CORE_LIB_CLIENT_CONFIG_URI_PARSER_H
+#include <grpc/support/slice.h>
+#include "src/core/lib/iomgr/sockaddr.h"
 
-typedef struct {
-  char *scheme;
-  char *authority;
-  char *path;
-  char *query;
-  char *fragment;
-} grpc_uri;
-
-/** parse a uri, return NULL on failure */
-grpc_uri *grpc_uri_parse(const char *uri_text, int suppress_errors);
-
-/** destroy a uri */
-void grpc_uri_destroy(grpc_uri *uri);
-
-#endif /* GRPC_CORE_LIB_CLIENT_CONFIG_URI_PARSER_H */
+void grpc_set_default_initial_connect_string(struct sockaddr **addr,
+                                             size_t *addr_len,
+                                             gpr_slice *initial_str) {}

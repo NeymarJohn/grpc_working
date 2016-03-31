@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,19 +31,20 @@
  *
  */
 
-#include "src/core/lib/client_config/subchannel_factory.h"
+#ifndef GRPC_CORE_LIB_CLIENT_CONFIG_INITIAL_CONNECT_STRING_H
+#define GRPC_CORE_LIB_CLIENT_CONFIG_INITIAL_CONNECT_STRING_H
 
-void grpc_subchannel_factory_ref(grpc_subchannel_factory* factory) {
-  factory->vtable->ref(factory);
-}
+#include <grpc/support/slice.h>
+#include "src/core/lib/iomgr/sockaddr.h"
 
-void grpc_subchannel_factory_unref(grpc_exec_ctx* exec_ctx,
-                                   grpc_subchannel_factory* factory) {
-  factory->vtable->unref(exec_ctx, factory);
-}
+typedef void (*grpc_set_initial_connect_string_func)(struct sockaddr **addr,
+                                                     size_t *addr_len,
+                                                     gpr_slice *initial_str);
+void grpc_test_set_initial_connect_string_function(
+    grpc_set_initial_connect_string_func func);
 
-grpc_subchannel* grpc_subchannel_factory_create_subchannel(
-    grpc_exec_ctx* exec_ctx, grpc_subchannel_factory* factory,
-    grpc_subchannel_args* args) {
-  return factory->vtable->create_subchannel(exec_ctx, factory, args);
-}
+/** Set a string to be sent once connected. Optionally reset addr. */
+void grpc_set_initial_connect_string(struct sockaddr **addr, size_t *addr_len,
+                                     gpr_slice *connect_string);
+
+#endif /* GRPC_CORE_LIB_CLIENT_CONFIG_INITIAL_CONNECT_STRING_H */

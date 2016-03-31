@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,25 +31,23 @@
  *
  */
 
-#ifndef GRPC_CORE_LIB_CLIENT_CONFIG_LB_POLICY_REGISTRY_H
-#define GRPC_CORE_LIB_CLIENT_CONFIG_LB_POLICY_REGISTRY_H
+#ifndef GRPC_CORE_LIB_CLIENT_CONFIG_CLIENT_CONFIG_H
+#define GRPC_CORE_LIB_CLIENT_CONFIG_CLIENT_CONFIG_H
 
-#include "src/core/lib/client_config/lb_policy_factory.h"
-#include "src/core/lib/iomgr/exec_ctx.h"
+#include "src/core/ext/client_config/lb_policy.h"
 
-/** Initialize the registry and set \a default_factory as the factory to be
- * returned when no name is provided in a lookup */
-void grpc_lb_policy_registry_init(void);
-void grpc_lb_policy_registry_shutdown(void);
+/** Total configuration for a client. Provided, and updated, by
+    grpc_resolver */
+typedef struct grpc_client_config grpc_client_config;
 
-/** Register a LB policy factory. */
-void grpc_register_lb_policy(grpc_lb_policy_factory *factory);
+grpc_client_config *grpc_client_config_create();
+void grpc_client_config_ref(grpc_client_config *client_config);
+void grpc_client_config_unref(grpc_exec_ctx *exec_ctx,
+                              grpc_client_config *client_config);
 
-/** Create a \a grpc_lb_policy instance.
- *
- * If \a name is NULL, the default factory from \a grpc_lb_policy_registry_init
- * will be returned. */
-grpc_lb_policy *grpc_lb_policy_create(grpc_exec_ctx *exec_ctx, const char *name,
-                                      grpc_lb_policy_args *args);
+void grpc_client_config_set_lb_policy(grpc_client_config *client_config,
+                                      grpc_lb_policy *lb_policy);
+grpc_lb_policy *grpc_client_config_get_lb_policy(
+    grpc_client_config *client_config);
 
-#endif /* GRPC_CORE_LIB_CLIENT_CONFIG_LB_POLICY_REGISTRY_H */
+#endif /* GRPC_CORE_LIB_CLIENT_CONFIG_CLIENT_CONFIG_H */
