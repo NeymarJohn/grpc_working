@@ -1,4 +1,5 @@
-# Copyright 2016, Google Inc.
+#!/bin/bash
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,31 +28,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Create tests for each fuzzer"""
+source ~/.nvm/nvm.sh
+nvm use 0.12
 
-import copy
-import glob
+set -ex
 
-def mako_plugin(dictionary):
-  targets = dictionary['targets']
-  tests = dictionary['tests']
-  for tgt in targets:
-    if tgt['build'] == 'fuzzer':
-      new_target = copy.deepcopy(tgt)
-      new_target['build'] = 'test'
-      new_target['name'] += '_one_entry'
-      new_target['run'] = False
-      new_target['deps'].insert(0, 'one_input_fuzzer')
-      targets.append(new_target)
-      for corpus in new_target['corpus_dirs']:
-        for fn in sorted(glob.glob('%s/*' % corpus)):
-          tests.append({
-              'name': new_target['name'],
-              'args': [fn],
-              'exclude_configs': [],
-              'platforms': ['linux', 'mac', 'windows', 'posix'],
-              'ci_platforms': ['linux', 'mac', 'windows', 'posix'],
-              'flaky': False,
-              'language': 'c',
-              'cpu_cost': 0.1,
-          })
+cd $(dirname $0)/../../..
+
+node src/node/performance/worker.js $@

@@ -31,16 +31,16 @@
  *
  */
 
-#include <grpc/support/log.h>
-#include "src/core/lib/support/load_file.h"
+#include <grpc/grpc.h>
 
-extern int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
+extern void grpc_lb_policy_pick_first_init(void);
+extern void grpc_lb_policy_pick_first_shutdown(void);
+extern void grpc_lb_policy_round_robin_init(void);
+extern void grpc_lb_policy_round_robin_shutdown(void);
 
-int main(int argc, char **argv) {
-  int ok = 0;
-  gpr_slice buffer = gpr_load_file(argv[1], 0, &ok);
-  GPR_ASSERT(ok);
-  LLVMFuzzerTestOneInput(GPR_SLICE_START_PTR(buffer), GPR_SLICE_LENGTH(buffer));
-  gpr_slice_unref(buffer);
-  return 0;
+void grpc_register_built_in_plugins(void) {
+  grpc_register_plugin(grpc_lb_policy_pick_first_init,
+                       grpc_lb_policy_pick_first_shutdown);
+  grpc_register_plugin(grpc_lb_policy_round_robin_init,
+                       grpc_lb_policy_round_robin_shutdown);
 }
