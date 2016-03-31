@@ -1035,6 +1035,54 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "internal_api_canary_iomgr_test", 
+    "src": [
+      "test/core/internal_api_canaries/iomgr.c"
+    ], 
+    "third_party": false, 
+    "type": "target"
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "internal_api_canary_support_test", 
+    "src": [
+      "test/core/internal_api_canaries/iomgr.c"
+    ], 
+    "third_party": false, 
+    "type": "target"
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "internal_api_canary_transport_test", 
+    "src": [
+      "test/core/internal_api_canaries/iomgr.c"
+    ], 
+    "third_party": false, 
+    "type": "target"
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "invalid_call_argument_test", 
     "src": [
       "test/core/end2end/invalid_call_argument_test.c"
@@ -3359,40 +3407,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "h2_full+poll_test", 
-    "src": [
-      "test/core/end2end/fixtures/h2_full+poll.c"
-    ], 
-    "third_party": false, 
-    "type": "target"
-  }, 
-  {
-    "deps": [
-      "end2end_tests", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "h2_full+poll+pipe_test", 
-    "src": [
-      "test/core/end2end/fixtures/h2_full+poll+pipe.c"
-    ], 
-    "third_party": false, 
-    "type": "target"
-  }, 
-  {
-    "deps": [
-      "end2end_tests", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "h2_full+trace_test", 
     "src": [
       "test/core/end2end/fixtures/h2_full+trace.c"
@@ -3512,23 +3526,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "h2_ssl+poll_test", 
-    "src": [
-      "test/core/end2end/fixtures/h2_ssl+poll.c"
-    ], 
-    "third_party": false, 
-    "type": "target"
-  }, 
-  {
-    "deps": [
-      "end2end_tests", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "h2_ssl_proxy_test", 
     "src": [
       "test/core/end2end/fixtures/h2_ssl_proxy.c"
@@ -3549,23 +3546,6 @@
     "name": "h2_uds_test", 
     "src": [
       "test/core/end2end/fixtures/h2_uds.c"
-    ], 
-    "third_party": false, 
-    "type": "target"
-  }, 
-  {
-    "deps": [
-      "end2end_tests", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "h2_uds+poll_test", 
-    "src": [
-      "test/core/end2end/fixtures/h2_uds+poll.c"
     ], 
     "third_party": false, 
     "type": "target"
@@ -3634,40 +3614,6 @@
     "name": "h2_full+pipe_nosec_test", 
     "src": [
       "test/core/end2end/fixtures/h2_full+pipe.c"
-    ], 
-    "third_party": false, 
-    "type": "target"
-  }, 
-  {
-    "deps": [
-      "end2end_nosec_tests", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "h2_full+poll_nosec_test", 
-    "src": [
-      "test/core/end2end/fixtures/h2_full+poll.c"
-    ], 
-    "third_party": false, 
-    "type": "target"
-  }, 
-  {
-    "deps": [
-      "end2end_nosec_tests", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "h2_full+poll+pipe_nosec_test", 
-    "src": [
-      "test/core/end2end/fixtures/h2_full+poll+pipe.c"
     ], 
     "third_party": false, 
     "type": "target"
@@ -3770,23 +3716,6 @@
     "name": "h2_uds_nosec_test", 
     "src": [
       "test/core/end2end/fixtures/h2_uds.c"
-    ], 
-    "third_party": false, 
-    "type": "target"
-  }, 
-  {
-    "deps": [
-      "end2end_nosec_tests", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
-    "name": "h2_uds+poll_nosec_test", 
-    "src": [
-      "test/core/end2end/fixtures/h2_uds+poll.c"
     ], 
     "third_party": false, 
     "type": "target"
@@ -4051,17 +3980,16 @@
       "src/core/lib/iomgr/closure.h", 
       "src/core/lib/iomgr/endpoint.h", 
       "src/core/lib/iomgr/endpoint_pair.h", 
+      "src/core/lib/iomgr/ev_poll_and_epoll_posix.h", 
+      "src/core/lib/iomgr/ev_posix.h", 
       "src/core/lib/iomgr/exec_ctx.h", 
       "src/core/lib/iomgr/executor.h", 
-      "src/core/lib/iomgr/fd_posix.h", 
       "src/core/lib/iomgr/iocp_windows.h", 
       "src/core/lib/iomgr/iomgr.h", 
       "src/core/lib/iomgr/iomgr_internal.h", 
       "src/core/lib/iomgr/iomgr_posix.h", 
       "src/core/lib/iomgr/pollset.h", 
-      "src/core/lib/iomgr/pollset_posix.h", 
       "src/core/lib/iomgr/pollset_set.h", 
-      "src/core/lib/iomgr/pollset_set_posix.h", 
       "src/core/lib/iomgr/pollset_set_windows.h", 
       "src/core/lib/iomgr/pollset_windows.h", 
       "src/core/lib/iomgr/resolve_address.h", 
@@ -4282,12 +4210,14 @@
       "src/core/lib/iomgr/endpoint_pair.h", 
       "src/core/lib/iomgr/endpoint_pair_posix.c", 
       "src/core/lib/iomgr/endpoint_pair_windows.c", 
+      "src/core/lib/iomgr/ev_poll_and_epoll_posix.c", 
+      "src/core/lib/iomgr/ev_poll_and_epoll_posix.h", 
+      "src/core/lib/iomgr/ev_posix.c", 
+      "src/core/lib/iomgr/ev_posix.h", 
       "src/core/lib/iomgr/exec_ctx.c", 
       "src/core/lib/iomgr/exec_ctx.h", 
       "src/core/lib/iomgr/executor.c", 
       "src/core/lib/iomgr/executor.h", 
-      "src/core/lib/iomgr/fd_posix.c", 
-      "src/core/lib/iomgr/fd_posix.h", 
       "src/core/lib/iomgr/iocp_windows.c", 
       "src/core/lib/iomgr/iocp_windows.h", 
       "src/core/lib/iomgr/iomgr.c", 
@@ -4297,13 +4227,7 @@
       "src/core/lib/iomgr/iomgr_posix.h", 
       "src/core/lib/iomgr/iomgr_windows.c", 
       "src/core/lib/iomgr/pollset.h", 
-      "src/core/lib/iomgr/pollset_multipoller_with_epoll.c", 
-      "src/core/lib/iomgr/pollset_multipoller_with_poll_posix.c", 
-      "src/core/lib/iomgr/pollset_posix.c", 
-      "src/core/lib/iomgr/pollset_posix.h", 
       "src/core/lib/iomgr/pollset_set.h", 
-      "src/core/lib/iomgr/pollset_set_posix.c", 
-      "src/core/lib/iomgr/pollset_set_posix.h", 
       "src/core/lib/iomgr/pollset_set_windows.c", 
       "src/core/lib/iomgr/pollset_set_windows.h", 
       "src/core/lib/iomgr/pollset_windows.c", 
@@ -4679,17 +4603,16 @@
       "src/core/lib/iomgr/closure.h", 
       "src/core/lib/iomgr/endpoint.h", 
       "src/core/lib/iomgr/endpoint_pair.h", 
+      "src/core/lib/iomgr/ev_poll_and_epoll_posix.h", 
+      "src/core/lib/iomgr/ev_posix.h", 
       "src/core/lib/iomgr/exec_ctx.h", 
       "src/core/lib/iomgr/executor.h", 
-      "src/core/lib/iomgr/fd_posix.h", 
       "src/core/lib/iomgr/iocp_windows.h", 
       "src/core/lib/iomgr/iomgr.h", 
       "src/core/lib/iomgr/iomgr_internal.h", 
       "src/core/lib/iomgr/iomgr_posix.h", 
       "src/core/lib/iomgr/pollset.h", 
-      "src/core/lib/iomgr/pollset_posix.h", 
       "src/core/lib/iomgr/pollset_set.h", 
-      "src/core/lib/iomgr/pollset_set_posix.h", 
       "src/core/lib/iomgr/pollset_set_windows.h", 
       "src/core/lib/iomgr/pollset_windows.h", 
       "src/core/lib/iomgr/resolve_address.h", 
@@ -4892,12 +4815,14 @@
       "src/core/lib/iomgr/endpoint_pair.h", 
       "src/core/lib/iomgr/endpoint_pair_posix.c", 
       "src/core/lib/iomgr/endpoint_pair_windows.c", 
+      "src/core/lib/iomgr/ev_poll_and_epoll_posix.c", 
+      "src/core/lib/iomgr/ev_poll_and_epoll_posix.h", 
+      "src/core/lib/iomgr/ev_posix.c", 
+      "src/core/lib/iomgr/ev_posix.h", 
       "src/core/lib/iomgr/exec_ctx.c", 
       "src/core/lib/iomgr/exec_ctx.h", 
       "src/core/lib/iomgr/executor.c", 
       "src/core/lib/iomgr/executor.h", 
-      "src/core/lib/iomgr/fd_posix.c", 
-      "src/core/lib/iomgr/fd_posix.h", 
       "src/core/lib/iomgr/iocp_windows.c", 
       "src/core/lib/iomgr/iocp_windows.h", 
       "src/core/lib/iomgr/iomgr.c", 
@@ -4907,13 +4832,7 @@
       "src/core/lib/iomgr/iomgr_posix.h", 
       "src/core/lib/iomgr/iomgr_windows.c", 
       "src/core/lib/iomgr/pollset.h", 
-      "src/core/lib/iomgr/pollset_multipoller_with_epoll.c", 
-      "src/core/lib/iomgr/pollset_multipoller_with_poll_posix.c", 
-      "src/core/lib/iomgr/pollset_posix.c", 
-      "src/core/lib/iomgr/pollset_posix.h", 
       "src/core/lib/iomgr/pollset_set.h", 
-      "src/core/lib/iomgr/pollset_set_posix.c", 
-      "src/core/lib/iomgr/pollset_set_posix.h", 
       "src/core/lib/iomgr/pollset_set_windows.c", 
       "src/core/lib/iomgr/pollset_set_windows.h", 
       "src/core/lib/iomgr/pollset_windows.c", 

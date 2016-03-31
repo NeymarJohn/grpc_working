@@ -31,15 +31,28 @@
  *
  */
 
-#ifndef GRPC_CORE_LIB_IOMGR_POLLSET_SET_POSIX_H
-#define GRPC_CORE_LIB_IOMGR_POLLSET_SET_POSIX_H
+/*******************************************************************************
+ * NOTE: If this test fails to compile, then the api changes are likely to cause
+ *       merge failures downstream. Please pay special attention to reviewing
+ *       these changes, and solicit help as appropriate when merging downstream.
+ *
+ * This test is NOT expected to be run directly.
+ ******************************************************************************/
 
-#include "src/core/lib/iomgr/fd_posix.h"
-#include "src/core/lib/iomgr/pollset_set.h"
+#include "src/core/lib/support/env.h"
+#include "src/core/lib/support/load_file.h"
+#include "src/core/lib/support/tmpfile.h"
 
-void grpc_pollset_set_add_fd(grpc_exec_ctx *exec_ctx,
-                             grpc_pollset_set *pollset_set, grpc_fd *fd);
-void grpc_pollset_set_del_fd(grpc_exec_ctx *exec_ctx,
-                             grpc_pollset_set *pollset_set, grpc_fd *fd);
+static void test_code(void) {
+  /* env.h */
+  gpr_set_env("abc", gpr_getenv("xyz"));
+  /* load_file.h */
+  gpr_load_file("abc", 1, NULL);
+  /* tmpfile.h */
+  fclose(gpr_tmpfile("foo", NULL));
+}
 
-#endif /* GRPC_CORE_LIB_IOMGR_POLLSET_SET_POSIX_H */
+int main(void) {
+  if (false) test_code();
+  return 0;
+}

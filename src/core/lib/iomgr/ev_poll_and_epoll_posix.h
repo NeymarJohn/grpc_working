@@ -31,28 +31,11 @@
  *
  */
 
-#ifndef GRPC_CORE_LIB_IOMGR_IOMGR_INTERNAL_H
-#define GRPC_CORE_LIB_IOMGR_IOMGR_INTERNAL_H
+#ifndef GRPC_CORE_LIB_IOMGR_EV_POLL_AND_EPOLL_POSIX_H
+#define GRPC_CORE_LIB_IOMGR_EV_POLL_AND_EPOLL_POSIX_H
 
-#include <stdbool.h>
+#include "src/core/lib/iomgr/ev_posix.h"
 
-#include "src/core/lib/iomgr/iomgr.h"
+const grpc_event_engine_vtable *grpc_init_poll_and_epoll_posix(void);
 
-typedef struct grpc_iomgr_object {
-  char *name;
-  struct grpc_iomgr_object *next;
-  struct grpc_iomgr_object *prev;
-} grpc_iomgr_object;
-
-void grpc_iomgr_register_object(grpc_iomgr_object *obj, const char *name);
-void grpc_iomgr_unregister_object(grpc_iomgr_object *obj);
-
-void grpc_iomgr_platform_init(void);
-/** flush any globally queued work from iomgr */
-void grpc_iomgr_platform_flush(void);
-/** tear down all platform specific global iomgr structures */
-void grpc_iomgr_platform_shutdown(void);
-
-bool grpc_iomgr_abort_on_leaks(void);
-
-#endif /* GRPC_CORE_LIB_IOMGR_IOMGR_INTERNAL_H */
+#endif /* GRPC_CORE_LIB_IOMGR_EV_POLL_AND_EPOLL_POSIX_H */
