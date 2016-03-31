@@ -179,7 +179,6 @@ template <class Service>
 class CommonStressTest {
  public:
   CommonStressTest() : kMaxMessageSize_(8192) {}
-  virtual ~CommonStressTest() {}
   virtual void SetUp() = 0;
   virtual void TearDown() = 0;
   void ResetStub() {
