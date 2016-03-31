@@ -45,7 +45,6 @@
 namespace grpc {
 
 class CompletionQueue;
-extern CoreCodegenInterface* g_core_codegen_interface;
 
 template <class R>
 class ClientAsyncResponseReaderInterface {
@@ -69,13 +68,13 @@ class ClientAsyncResponseReader GRPC_FINAL
     collection_->init_buf_.SetCollection(collection_);
     collection_->init_buf_.SendInitialMetadata(context->send_initial_metadata_);
     // TODO(ctiller): don't assert
-    GPR_CODEGEN_ASSERT(collection_->init_buf_.SendMessage(request).ok());
+    GPR_ASSERT(collection_->init_buf_.SendMessage(request).ok());
     collection_->init_buf_.ClientSendClose();
     call_.PerformOps(&collection_->init_buf_);
   }
 
   void ReadInitialMetadata(void* tag) {
-    GPR_CODEGEN_ASSERT(!context_->initial_metadata_received_);
+    GPR_ASSERT(!context_->initial_metadata_received_);
 
     collection_->meta_buf_.SetCollection(collection_);
     collection_->meta_buf_.set_output_tag(tag);
@@ -101,12 +100,10 @@ class ClientAsyncResponseReader GRPC_FINAL
   class CallOpSetCollection : public CallOpSetCollectionInterface {
    public:
     SneakyCallOpSet<CallOpSendInitialMetadata, CallOpSendMessage,
-                    CallOpClientSendClose>
-        init_buf_;
+                    CallOpClientSendClose> init_buf_;
     CallOpSet<CallOpRecvInitialMetadata> meta_buf_;
     CallOpSet<CallOpRecvInitialMetadata, CallOpRecvMessage<R>,
-              CallOpClientRecvStatus>
-        finish_buf_;
+              CallOpClientRecvStatus> finish_buf_;
   };
   std::shared_ptr<CallOpSetCollection> collection_;
 };
@@ -119,7 +116,7 @@ class ServerAsyncResponseWriter GRPC_FINAL
       : call_(nullptr, nullptr, nullptr), ctx_(ctx) {}
 
   void SendInitialMetadata(void* tag) GRPC_OVERRIDE {
-    GPR_CODEGEN_ASSERT(!ctx_->sent_initial_metadata_);
+    GPR_ASSERT(!ctx_->sent_initial_metadata_);
 
     meta_buf_.set_output_tag(tag);
     meta_buf_.SendInitialMetadata(ctx_->initial_metadata_);
@@ -144,7 +141,7 @@ class ServerAsyncResponseWriter GRPC_FINAL
   }
 
   void FinishWithError(const Status& status, void* tag) {
-    GPR_CODEGEN_ASSERT(!status.ok());
+    GPR_ASSERT(!status.ok());
     finish_buf_.set_output_tag(tag);
     if (!ctx_->sent_initial_metadata_) {
       finish_buf_.SendInitialMetadata(ctx_->initial_metadata_);
@@ -161,8 +158,7 @@ class ServerAsyncResponseWriter GRPC_FINAL
   ServerContext* ctx_;
   CallOpSet<CallOpSendInitialMetadata> meta_buf_;
   CallOpSet<CallOpSendInitialMetadata, CallOpSendMessage,
-            CallOpServerSendStatus>
-      finish_buf_;
+            CallOpServerSendStatus> finish_buf_;
 };
 
 }  // namespace grpc
