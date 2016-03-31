@@ -5,7 +5,7 @@
 # This file can be regenerated from the template by running
 # tools/buildgen/generate_projects.sh
 
-# Copyright 2015, Google Inc.
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -2440,10 +2440,21 @@ endif
 
 
 LIBGRPC_SRC = \
+    src/core/ext/census/context.c \
+    src/core/ext/census/grpc_context.c \
+    src/core/ext/census/grpc_filter.c \
+    src/core/ext/census/grpc_plugin.c \
+    src/core/ext/census/initialize.c \
+    src/core/ext/census/mlog.c \
+    src/core/ext/census/operation.c \
+    src/core/ext/census/placeholders.c \
+    src/core/ext/census/tracing.c \
     src/core/ext/lb_policy/grpclb/load_balancer_api.c \
     src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/ext/lb_policy/pick_first/pick_first.c \
     src/core/ext/lb_policy/round_robin/round_robin.c \
+    src/core/ext/resolver/dns/native/dns_resolver.c \
+    src/core/ext/resolver/sockaddr/sockaddr_resolver.c \
     src/core/ext/transport/chttp2/client/insecure/channel_create.c \
     src/core/ext/transport/chttp2/client/secure/secure_channel_create.c \
     src/core/ext/transport/chttp2/server/insecure/server_chttp2.c \
@@ -2469,15 +2480,6 @@ LIBGRPC_SRC = \
     src/core/ext/transport/chttp2/transport/timeout_encoding.c \
     src/core/ext/transport/chttp2/transport/varint.c \
     src/core/ext/transport/chttp2/transport/writing.c \
-    src/core/lib/census/context.c \
-    src/core/lib/census/grpc_context.c \
-    src/core/lib/census/grpc_filter.c \
-    src/core/lib/census/grpc_plugin.c \
-    src/core/lib/census/initialize.c \
-    src/core/lib/census/mlog.c \
-    src/core/lib/census/operation.c \
-    src/core/lib/census/placeholders.c \
-    src/core/lib/census/tracing.c \
     src/core/lib/channel/channel_args.c \
     src/core/lib/channel/channel_stack.c \
     src/core/lib/channel/channel_stack_builder.c \
@@ -2497,8 +2499,6 @@ LIBGRPC_SRC = \
     src/core/lib/client_config/resolver.c \
     src/core/lib/client_config/resolver_factory.c \
     src/core/lib/client_config/resolver_registry.c \
-    src/core/lib/client_config/resolvers/dns_resolver.c \
-    src/core/lib/client_config/resolvers/sockaddr_resolver.c \
     src/core/lib/client_config/subchannel.c \
     src/core/lib/client_config/subchannel_factory.c \
     src/core/lib/client_config/subchannel_index.c \
@@ -2802,10 +2802,21 @@ endif
 
 
 LIBGRPC_UNSECURE_SRC = \
+    src/core/ext/census/context.c \
+    src/core/ext/census/grpc_context.c \
+    src/core/ext/census/grpc_filter.c \
+    src/core/ext/census/grpc_plugin.c \
+    src/core/ext/census/initialize.c \
+    src/core/ext/census/mlog.c \
+    src/core/ext/census/operation.c \
+    src/core/ext/census/placeholders.c \
+    src/core/ext/census/tracing.c \
     src/core/ext/lb_policy/grpclb/load_balancer_api.c \
     src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/ext/lb_policy/pick_first/pick_first.c \
     src/core/ext/lb_policy/round_robin/round_robin.c \
+    src/core/ext/resolver/dns/native/dns_resolver.c \
+    src/core/ext/resolver/sockaddr/sockaddr_resolver.c \
     src/core/ext/transport/chttp2/client/insecure/channel_create.c \
     src/core/ext/transport/chttp2/server/insecure/server_chttp2.c \
     src/core/ext/transport/chttp2/transport/alpn.c \
@@ -2829,15 +2840,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/ext/transport/chttp2/transport/timeout_encoding.c \
     src/core/ext/transport/chttp2/transport/varint.c \
     src/core/ext/transport/chttp2/transport/writing.c \
-    src/core/lib/census/context.c \
-    src/core/lib/census/grpc_context.c \
-    src/core/lib/census/grpc_filter.c \
-    src/core/lib/census/grpc_plugin.c \
-    src/core/lib/census/initialize.c \
-    src/core/lib/census/mlog.c \
-    src/core/lib/census/operation.c \
-    src/core/lib/census/placeholders.c \
-    src/core/lib/census/tracing.c \
     src/core/lib/channel/channel_args.c \
     src/core/lib/channel/channel_stack.c \
     src/core/lib/channel/channel_stack_builder.c \
@@ -2857,8 +2859,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/lib/client_config/resolver.c \
     src/core/lib/client_config/resolver_factory.c \
     src/core/lib/client_config/resolver_registry.c \
-    src/core/lib/client_config/resolvers/dns_resolver.c \
-    src/core/lib/client_config/resolvers/sockaddr_resolver.c \
     src/core/lib/client_config/subchannel.c \
     src/core/lib/client_config/subchannel_factory.c \
     src/core/lib/client_config/subchannel_index.c \
