@@ -41,7 +41,6 @@ package(default_visibility = ["//visibility:public"])
 
 
 
-
 cc_library(
   name = "gpr",
   srcs = [
@@ -155,12 +154,9 @@ cc_library(
 )
 
 
-
 cc_library(
   name = "grpc",
   srcs = [
-    "src/core/ext/lb_policy/grpclb/load_balancer_api.h",
-    "src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.h",
     "src/core/ext/transport/chttp2/transport/alpn.h",
     "src/core/ext/transport/chttp2/transport/bin_encoder.h",
     "src/core/ext/transport/chttp2/transport/chttp2_transport.h",
@@ -200,6 +196,9 @@ cc_library(
     "src/core/lib/client_config/client_config.h",
     "src/core/lib/client_config/connector.h",
     "src/core/lib/client_config/initial_connect_string.h",
+    "src/core/lib/client_config/lb_policies/load_balancer_api.h",
+    "src/core/lib/client_config/lb_policies/pick_first.h",
+    "src/core/lib/client_config/lb_policies/round_robin.h",
     "src/core/lib/client_config/lb_policy.h",
     "src/core/lib/client_config/lb_policy_factory.h",
     "src/core/lib/client_config/lb_policy_registry.h",
@@ -259,6 +258,7 @@ cc_library(
     "src/core/lib/json/json_common.h",
     "src/core/lib/json/json_reader.h",
     "src/core/lib/json/json_writer.h",
+    "src/core/lib/proto/grpc/lb/v0/load_balancer.pb.h",
     "src/core/lib/security/auth_filters.h",
     "src/core/lib/security/b64.h",
     "src/core/lib/security/credentials.h",
@@ -294,10 +294,10 @@ cc_library(
     "src/core/lib/tsi/ssl_types.h",
     "src/core/lib/tsi/transport_security.h",
     "src/core/lib/tsi/transport_security_interface.h",
-    "src/core/ext/lb_policy/grpclb/load_balancer_api.c",
-    "src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c",
-    "src/core/ext/lb_policy/pick_first/pick_first.c",
-    "src/core/ext/lb_policy/round_robin/round_robin.c",
+    "third_party/nanopb/pb.h",
+    "third_party/nanopb/pb_common.h",
+    "third_party/nanopb/pb_decode.h",
+    "third_party/nanopb/pb_encode.h",
     "src/core/ext/transport/chttp2/client/insecure/channel_create.c",
     "src/core/ext/transport/chttp2/client/secure/secure_channel_create.c",
     "src/core/ext/transport/chttp2/server/insecure/server_chttp2.c",
@@ -345,6 +345,9 @@ cc_library(
     "src/core/lib/client_config/connector.c",
     "src/core/lib/client_config/default_initial_connect_string.c",
     "src/core/lib/client_config/initial_connect_string.c",
+    "src/core/lib/client_config/lb_policies/load_balancer_api.c",
+    "src/core/lib/client_config/lb_policies/pick_first.c",
+    "src/core/lib/client_config/lb_policies/round_robin.c",
     "src/core/lib/client_config/lb_policy.c",
     "src/core/lib/client_config/lb_policy_factory.c",
     "src/core/lib/client_config/lb_policy_registry.c",
@@ -410,6 +413,7 @@ cc_library(
     "src/core/lib/json/json_reader.c",
     "src/core/lib/json/json_string.c",
     "src/core/lib/json/json_writer.c",
+    "src/core/lib/proto/grpc/lb/v0/load_balancer.pb.c",
     "src/core/lib/security/b64.c",
     "src/core/lib/security/client_auth_filter.c",
     "src/core/lib/security/credentials.c",
@@ -455,7 +459,9 @@ cc_library(
     "src/core/lib/tsi/fake_transport_security.c",
     "src/core/lib/tsi/ssl_transport_security.c",
     "src/core/lib/tsi/transport_security.c",
-    "src/core/plugin_registry/grpc_plugin_registry.c",
+    "third_party/nanopb/pb_common.c",
+    "third_party/nanopb/pb_decode.c",
+    "third_party/nanopb/pb_encode.c",
   ],
   hdrs = [
     "include/grpc/byte_buffer.h",
@@ -480,13 +486,11 @@ cc_library(
     "//external:libssl",
     "//external:zlib",
     ":gpr",
-    "//external:nanopb",
   ],
   copts = [
     "-std=gnu99",
   ],
 )
-
 
 
 cc_library(
@@ -525,12 +529,9 @@ cc_library(
 )
 
 
-
 cc_library(
   name = "grpc_unsecure",
   srcs = [
-    "src/core/ext/lb_policy/grpclb/load_balancer_api.h",
-    "src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.h",
     "src/core/ext/transport/chttp2/transport/alpn.h",
     "src/core/ext/transport/chttp2/transport/bin_encoder.h",
     "src/core/ext/transport/chttp2/transport/chttp2_transport.h",
@@ -570,6 +571,9 @@ cc_library(
     "src/core/lib/client_config/client_config.h",
     "src/core/lib/client_config/connector.h",
     "src/core/lib/client_config/initial_connect_string.h",
+    "src/core/lib/client_config/lb_policies/load_balancer_api.h",
+    "src/core/lib/client_config/lb_policies/pick_first.h",
+    "src/core/lib/client_config/lb_policies/round_robin.h",
     "src/core/lib/client_config/lb_policy.h",
     "src/core/lib/client_config/lb_policy_factory.h",
     "src/core/lib/client_config/lb_policy_registry.h",
@@ -629,6 +633,7 @@ cc_library(
     "src/core/lib/json/json_common.h",
     "src/core/lib/json/json_reader.h",
     "src/core/lib/json/json_writer.h",
+    "src/core/lib/proto/grpc/lb/v0/load_balancer.pb.h",
     "src/core/lib/statistics/census_interface.h",
     "src/core/lib/statistics/census_rpc_stats.h",
     "src/core/lib/surface/api_trace.h",
@@ -650,10 +655,10 @@ cc_library(
     "src/core/lib/transport/static_metadata.h",
     "src/core/lib/transport/transport.h",
     "src/core/lib/transport/transport_impl.h",
-    "src/core/ext/lb_policy/grpclb/load_balancer_api.c",
-    "src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c",
-    "src/core/ext/lb_policy/pick_first/pick_first.c",
-    "src/core/ext/lb_policy/round_robin/round_robin.c",
+    "third_party/nanopb/pb.h",
+    "third_party/nanopb/pb_common.h",
+    "third_party/nanopb/pb_decode.h",
+    "third_party/nanopb/pb_encode.h",
     "src/core/ext/transport/chttp2/client/insecure/channel_create.c",
     "src/core/ext/transport/chttp2/server/insecure/server_chttp2.c",
     "src/core/ext/transport/chttp2/transport/alpn.c",
@@ -699,6 +704,9 @@ cc_library(
     "src/core/lib/client_config/connector.c",
     "src/core/lib/client_config/default_initial_connect_string.c",
     "src/core/lib/client_config/initial_connect_string.c",
+    "src/core/lib/client_config/lb_policies/load_balancer_api.c",
+    "src/core/lib/client_config/lb_policies/pick_first.c",
+    "src/core/lib/client_config/lb_policies/round_robin.c",
     "src/core/lib/client_config/lb_policy.c",
     "src/core/lib/client_config/lb_policy_factory.c",
     "src/core/lib/client_config/lb_policy_registry.c",
@@ -763,6 +771,7 @@ cc_library(
     "src/core/lib/json/json_reader.c",
     "src/core/lib/json/json_string.c",
     "src/core/lib/json/json_writer.c",
+    "src/core/lib/proto/grpc/lb/v0/load_balancer.pb.c",
     "src/core/lib/surface/alarm.c",
     "src/core/lib/surface/api_trace.c",
     "src/core/lib/surface/byte_buffer.c",
@@ -791,7 +800,9 @@ cc_library(
     "src/core/lib/transport/static_metadata.c",
     "src/core/lib/transport/transport.c",
     "src/core/lib/transport/transport_op_string.c",
-    "src/core/plugin_registry/grpc_unsecure_plugin_registry.c",
+    "third_party/nanopb/pb_common.c",
+    "third_party/nanopb/pb_decode.c",
+    "third_party/nanopb/pb_encode.c",
   ],
   hdrs = [
     "include/grpc/byte_buffer.h",
@@ -813,13 +824,11 @@ cc_library(
   ],
   deps = [
     ":gpr",
-    "//external:nanopb",
   ],
   copts = [
     "-std=gnu99",
   ],
 )
-
 
 
 cc_library(
@@ -840,7 +849,6 @@ cc_library(
     ":grpc",
   ],
 )
-
 
 
 cc_library(
@@ -975,7 +983,6 @@ cc_library(
 )
 
 
-
 cc_library(
   name = "grpc++_codegen_lib",
   srcs = [
@@ -1039,10 +1046,8 @@ cc_library(
     ".",
   ],
   deps = [
-    "//external:protobuf_clib",
   ],
 )
-
 
 
 cc_library(
@@ -1169,7 +1174,6 @@ cc_library(
 )
 
 
-
 cc_library(
   name = "grpc_plugin_support",
   srcs = [
@@ -1221,7 +1225,6 @@ cc_library(
 )
 
 
-
 cc_library(
   name = "grpc_csharp_ext",
   srcs = [
@@ -1238,7 +1241,6 @@ cc_library(
     ":gpr",
   ],
 )
-
 
 
 
@@ -1355,14 +1357,9 @@ objc_library(
 )
 
 
-
 objc_library(
   name = "grpc_objc",
   srcs = [
-    "src/core/ext/lb_policy/grpclb/load_balancer_api.c",
-    "src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c",
-    "src/core/ext/lb_policy/pick_first/pick_first.c",
-    "src/core/ext/lb_policy/round_robin/round_robin.c",
     "src/core/ext/transport/chttp2/client/insecure/channel_create.c",
     "src/core/ext/transport/chttp2/client/secure/secure_channel_create.c",
     "src/core/ext/transport/chttp2/server/insecure/server_chttp2.c",
@@ -1410,6 +1407,9 @@ objc_library(
     "src/core/lib/client_config/connector.c",
     "src/core/lib/client_config/default_initial_connect_string.c",
     "src/core/lib/client_config/initial_connect_string.c",
+    "src/core/lib/client_config/lb_policies/load_balancer_api.c",
+    "src/core/lib/client_config/lb_policies/pick_first.c",
+    "src/core/lib/client_config/lb_policies/round_robin.c",
     "src/core/lib/client_config/lb_policy.c",
     "src/core/lib/client_config/lb_policy_factory.c",
     "src/core/lib/client_config/lb_policy_registry.c",
@@ -1475,6 +1475,7 @@ objc_library(
     "src/core/lib/json/json_reader.c",
     "src/core/lib/json/json_string.c",
     "src/core/lib/json/json_writer.c",
+    "src/core/lib/proto/grpc/lb/v0/load_balancer.pb.c",
     "src/core/lib/security/b64.c",
     "src/core/lib/security/client_auth_filter.c",
     "src/core/lib/security/credentials.c",
@@ -1520,7 +1521,9 @@ objc_library(
     "src/core/lib/tsi/fake_transport_security.c",
     "src/core/lib/tsi/ssl_transport_security.c",
     "src/core/lib/tsi/transport_security.c",
-    "src/core/plugin_registry/grpc_plugin_registry.c",
+    "third_party/nanopb/pb_common.c",
+    "third_party/nanopb/pb_decode.c",
+    "third_party/nanopb/pb_encode.c",
   ],
   hdrs = [
     "include/grpc/byte_buffer.h",
@@ -1536,8 +1539,6 @@ objc_library(
     "include/grpc/impl/codegen/propagation_bits.h",
     "include/grpc/impl/codegen/status.h",
     "include/grpc/status.h",
-    "src/core/ext/lb_policy/grpclb/load_balancer_api.h",
-    "src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.h",
     "src/core/ext/transport/chttp2/transport/alpn.h",
     "src/core/ext/transport/chttp2/transport/bin_encoder.h",
     "src/core/ext/transport/chttp2/transport/chttp2_transport.h",
@@ -1577,6 +1578,9 @@ objc_library(
     "src/core/lib/client_config/client_config.h",
     "src/core/lib/client_config/connector.h",
     "src/core/lib/client_config/initial_connect_string.h",
+    "src/core/lib/client_config/lb_policies/load_balancer_api.h",
+    "src/core/lib/client_config/lb_policies/pick_first.h",
+    "src/core/lib/client_config/lb_policies/round_robin.h",
     "src/core/lib/client_config/lb_policy.h",
     "src/core/lib/client_config/lb_policy_factory.h",
     "src/core/lib/client_config/lb_policy_registry.h",
@@ -1636,6 +1640,7 @@ objc_library(
     "src/core/lib/json/json_common.h",
     "src/core/lib/json/json_reader.h",
     "src/core/lib/json/json_writer.h",
+    "src/core/lib/proto/grpc/lb/v0/load_balancer.pb.h",
     "src/core/lib/security/auth_filters.h",
     "src/core/lib/security/b64.h",
     "src/core/lib/security/credentials.h",
@@ -1671,6 +1676,10 @@ objc_library(
     "src/core/lib/tsi/ssl_types.h",
     "src/core/lib/tsi/transport_security.h",
     "src/core/lib/tsi/transport_security_interface.h",
+    "third_party/nanopb/pb.h",
+    "third_party/nanopb/pb_common.h",
+    "third_party/nanopb/pb_decode.h",
+    "third_party/nanopb/pb_encode.h",
   ],
   includes = [
     "include",
@@ -1679,7 +1688,6 @@ objc_library(
   deps = [
     ":gpr_objc",
     "//external:libssl_objc",
-    "//external:nanopb",
   ],
   sdk_dylibs = ["libz"],
 )

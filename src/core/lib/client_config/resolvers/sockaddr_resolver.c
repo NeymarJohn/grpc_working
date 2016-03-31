@@ -35,7 +35,6 @@
 
 #include "src/core/lib/client_config/resolvers/sockaddr_resolver.h"
 
-#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -59,7 +58,11 @@ typedef struct {
   char *lb_policy_name;
 
   /** the addresses that we've 'resolved' */
-  grpc_resolved_addresses *addresses;
+  struct sockaddr_storage *addrs;
+  /** the corresponding length of the addresses */
+  size_t *addrs_len;
+  /** how many elements in \a addrs */
+  size_t num_addrs;
 
   /** mutex guarding the rest of the state */
   gpr_mu mu;
@@ -122,14 +125,28 @@ static void sockaddr_next(grpc_exec_ctx *exec_ctx, grpc_resolver *resolver,
 
 static void sockaddr_maybe_finish_next_locked(grpc_exec_ctx *exec_ctx,
                                               sockaddr_resolver *r) {
+  grpc_client_config *cfg;
+  grpc_lb_policy *lb_policy;
+  grpc_lb_policy_args lb_policy_args;
+  grpc_subchannel **subchannels;
+  grpc_subchannel_args args;
+
   if (r->next_completion != NULL && !r->published) {
-    grpc_client_config *cfg = grpc_client_config_create();
-    grpc_lb_policy_args lb_policy_args;
+    size_t i;
+    cfg = grpc_client_config_create();
+    subchannels = gpr_malloc(sizeof(grpc_subchannel *) * r->num_addrs);
+    for (i = 0; i < r->num_addrs; i++) {
+      memset(&args, 0, sizeof(args));
+      args.addr = (struct sockaddr *)&r->addrs[i];
+      args.addr_len = r->addrs_len[i];
+      subchannels[i] = grpc_subchannel_factory_create_subchannel(
+          exec_ctx, r->subchannel_factory, &args);
+    }
     memset(&lb_policy_args, 0, sizeof(lb_policy_args));
-    lb_policy_args.addresses = r->addresses;
-    lb_policy_args.subchannel_factory = r->subchannel_factory;
-    grpc_lb_policy *lb_policy =
-        grpc_lb_policy_create(exec_ctx, r->lb_policy_name, &lb_policy_args);
+    lb_policy_args.subchannels = subchannels;
+    lb_policy_args.num_subchannels = r->num_addrs;
+    lb_policy = grpc_lb_policy_create(r->lb_policy_name, &lb_policy_args);
+    gpr_free(subchannels);
     grpc_client_config_set_lb_policy(cfg, lb_policy);
     GRPC_LB_POLICY_UNREF(exec_ctx, lb_policy, "sockaddr");
     r->published = 1;
@@ -143,7 +160,8 @@ static void sockaddr_destroy(grpc_exec_ctx *exec_ctx, grpc_resolver *gr) {
   sockaddr_resolver *r = (sockaddr_resolver *)gr;
   gpr_mu_destroy(&r->mu);
   grpc_subchannel_factory_unref(exec_ctx, r->subchannel_factory);
-  grpc_resolved_addresses_destroy(r->addresses);
+  gpr_free(r->addrs);
+  gpr_free(r->addrs_len);
   gpr_free(r->lb_policy_name);
   gpr_free(r);
 }
@@ -251,6 +269,7 @@ static void do_nothing(void *ignored) {}
 static grpc_resolver *sockaddr_create(
     grpc_resolver_args *args, const char *default_lb_policy_name,
     int parse(grpc_uri *uri, struct sockaddr_storage *dst, size_t *len)) {
+  size_t i;
   int errors_found = 0; /* GPR_FALSE */
   sockaddr_resolver *r;
   gpr_slice path_slice;
@@ -265,24 +284,22 @@ static grpc_resolver *sockaddr_create(
   r = gpr_malloc(sizeof(sockaddr_resolver));
   memset(r, 0, sizeof(*r));
 
-  r->lb_policy_name =
-      gpr_strdup(grpc_uri_get_query_arg(args->uri, "lb_policy"));
-  const char *lb_enabled_qpart =
-      grpc_uri_get_query_arg(args->uri, "lb_enabled");
-  /* anything other than "0" is interpreted as true */
-  const bool lb_enabled =
-      (lb_enabled_qpart != NULL && (strcmp("0", lb_enabled_qpart) != 0));
+  r->lb_policy_name = NULL;
+  if (0 != strcmp(args->uri->query, "")) {
+    gpr_slice query_slice;
+    gpr_slice_buffer query_parts;
 
-  if (r->lb_policy_name != NULL && strcmp("grpclb", r->lb_policy_name) == 0 &&
-      !lb_enabled) {
-    /* we want grpclb but the "resolved" addresses aren't LB enabled. Bail
-     * out, as this is meant mostly for tests. */
-    gpr_log(GPR_ERROR,
-            "Requested 'grpclb' LB policy but resolved addresses don't "
-            "support load balancing.");
-    abort();
+    query_slice =
+        gpr_slice_new(args->uri->query, strlen(args->uri->query), do_nothing);
+    gpr_slice_buffer_init(&query_parts);
+    gpr_slice_split(query_slice, "=", &query_parts);
+    GPR_ASSERT(query_parts.count == 2);
+    if (0 == gpr_slice_str_cmp(query_parts.slices[0], "lb_policy")) {
+      r->lb_policy_name = gpr_dump_slice(query_parts.slices[1], GPR_DUMP_ASCII);
+    }
+    gpr_slice_buffer_destroy(&query_parts);
+    gpr_slice_unref(query_slice);
   }
-
   if (r->lb_policy_name == NULL) {
     r->lb_policy_name = gpr_strdup(default_lb_policy_name);
   }
@@ -292,18 +309,15 @@ static grpc_resolver *sockaddr_create(
   gpr_slice_buffer_init(&path_parts);
 
   gpr_slice_split(path_slice, ",", &path_parts);
-  r->addresses = gpr_malloc(sizeof(grpc_resolved_addresses));
-  r->addresses->naddrs = path_parts.count;
-  r->addresses->addrs =
-      gpr_malloc(sizeof(grpc_resolved_address) * r->addresses->naddrs);
+  r->num_addrs = path_parts.count;
+  r->addrs = gpr_malloc(sizeof(struct sockaddr_storage) * r->num_addrs);
+  r->addrs_len = gpr_malloc(sizeof(*r->addrs_len) * r->num_addrs);
 
-  for (size_t i = 0; i < r->addresses->naddrs; i++) {
+  for (i = 0; i < r->num_addrs; i++) {
     grpc_uri ith_uri = *args->uri;
     char *part_str = gpr_dump_slice(path_parts.slices[i], GPR_DUMP_ASCII);
     ith_uri.path = part_str;
-    if (!parse(&ith_uri,
-               (struct sockaddr_storage *)(&r->addresses->addrs[i].addr),
-               &r->addresses->addrs[i].len)) {
+    if (!parse(&ith_uri, &r->addrs[i], &r->addrs_len[i])) {
       errors_found = 1; /* GPR_TRUE */
     }
     gpr_free(part_str);
@@ -314,7 +328,8 @@ static grpc_resolver *sockaddr_create(
   gpr_slice_unref(path_slice);
   if (errors_found) {
     gpr_free(r->lb_policy_name);
-    grpc_resolved_addresses_destroy(r->addresses);
+    gpr_free(r->addrs);
+    gpr_free(r->addrs_len);
     gpr_free(r);
     return NULL;
   }
