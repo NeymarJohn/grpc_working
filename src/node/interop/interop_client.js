@@ -545,8 +545,6 @@ var test_cases = {
                   Client: testProto.TestService}
 };
 
-exports.test_cases = test_cases;
-
 /**
  * Execute a single test case.
  * @param {string} address The address of the server to connect to, in the
