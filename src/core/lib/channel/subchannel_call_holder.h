@@ -34,7 +34,7 @@
 #ifndef GRPC_CORE_LIB_CHANNEL_SUBCHANNEL_CALL_HOLDER_H
 #define GRPC_CORE_LIB_CHANNEL_SUBCHANNEL_CALL_HOLDER_H
 
-#include "src/core/lib/client_config/subchannel.h"
+#include "src/core/ext/client_config/subchannel.h"
 
 /** Pick a subchannel for grpc_subchannel_call_holder;
     Return 1 if subchannel is available immediately (in which case on_ready
@@ -42,7 +42,6 @@
     called when the subchannel is available) */
 typedef int (*grpc_subchannel_call_holder_pick_subchannel)(
     grpc_exec_ctx *exec_ctx, void *arg, grpc_metadata_batch *initial_metadata,
-    uint32_t initial_metadata_flags,
     grpc_connected_subchannel **connected_subchannel, grpc_closure *on_ready);
 
 typedef enum {

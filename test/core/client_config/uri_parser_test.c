@@ -31,7 +31,7 @@
  *
  */
 
-#include "src/core/lib/client_config/uri_parser.h"
+#include "src/core/ext/client_config/uri_parser.h"
 
 #include <string.h>
 
@@ -86,6 +86,23 @@ static void test_query_parts() {
     GPR_ASSERT(NULL == grpc_uri_get_query_arg(uri, ""));
 
     GPR_ASSERT(0 == strcmp("frag", uri->fragment));
+    grpc_uri_destroy(uri);
+  }
+  {
+    /* test the current behavior of multiple query part values */
+    const char *uri_text = "http://auth/path?foo=bar=baz&foobar==";
+    grpc_uri *uri = grpc_uri_parse(uri_text, 0);
+    GPR_ASSERT(uri);
+
+    GPR_ASSERT(0 == strcmp("http", uri->scheme));
+    GPR_ASSERT(0 == strcmp("auth", uri->authority));
+    GPR_ASSERT(0 == strcmp("/path", uri->path));
+    GPR_ASSERT(0 == strcmp("foo=bar=baz&foobar==", uri->query));
+    GPR_ASSERT(2 == uri->num_query_parts);
+
+    GPR_ASSERT(0 == strcmp("bar", grpc_uri_get_query_arg(uri, "foo")));
+    GPR_ASSERT(0 == strcmp("", grpc_uri_get_query_arg(uri, "foobar")));
+
     grpc_uri_destroy(uri);
   }
   {
