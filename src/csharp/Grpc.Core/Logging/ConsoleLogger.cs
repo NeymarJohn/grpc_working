@@ -33,16 +33,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace Grpc.Core.Logging
 {
     /// <summary>Logger that logs to System.Console.</summary>
     public class ConsoleLogger : ILogger
     {
-        // Format similar enough to C core log format except nanosecond precision is not supported.
-        const string DateTimeFormatString = "MMdd HH:mm:ss.ffffff";
-
         readonly Type forType;
         readonly string forTypeString;
 
@@ -146,7 +142,7 @@ namespace Grpc.Core.Logging
         {
             Console.Error.WriteLine("{0}{1} {2}{3}",
                 severityString,
-                DateTime.Now.ToString(DateTimeFormatString, CultureInfo.InvariantCulture),
+                DateTime.Now,
                 forTypeString,
                 message);
         }

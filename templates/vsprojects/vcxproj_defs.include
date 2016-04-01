@@ -227,7 +227,7 @@ ${gen_package_props(packages, repo_root)}\
       % endif
     % endfor
   </ItemGroup>
-  % else:
+  % elif configuration_type != 'StaticLibrary':
   <ItemGroup>
     <ClCompile Include="${repo_root}\${to_windows_path('vsprojects/dummy.c')}">
     </ClCompile>

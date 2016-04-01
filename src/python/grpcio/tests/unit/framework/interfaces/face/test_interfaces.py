@@ -31,14 +31,13 @@
 
 import abc
 
-import six
-
 from grpc.framework.common import cardinality  # pylint: disable=unused-import
 from grpc.framework.interfaces.face import face  # pylint: disable=unused-import
 
 
-class Method(six.with_metaclass(abc.ABCMeta)):
+class Method(object):
   """Specifies a method to be used in tests."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def group(self):
@@ -127,8 +126,9 @@ class Method(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class Implementation(six.with_metaclass(abc.ABCMeta)):
+class Implementation(object):
   """Specifies an implementation of the Face layer."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def instantiate(

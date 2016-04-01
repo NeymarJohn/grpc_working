@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2015, Google Inc.
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 set -ex
+
+apt-get install -y autoconf automake libtool curl python-virtualenv
 
 readonly NANOPB_TMP_OUTPUT="$(mktemp -d)"
 
@@ -60,7 +62,7 @@ PATH="$PROTOC_PATH:$PATH" ./tools/codegen/core/gen_load_balancing_proto.sh \
   $NANOPB_TMP_OUTPUT
 
 # compare outputs to checked compiled code
-if ! diff -r $NANOPB_TMP_OUTPUT src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0; then
-  echo "Outputs differ: $NANOPB_TMP_OUTPUT vs src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0"
+if ! diff -r $NANOPB_TMP_OUTPUT src/core/proto/grpc/lb/v0; then
+  echo "Outputs differ: $NANOPB_TMP_OUTPUT vs src/core/proto/grpc/lb/v0"
   exit 2
 fi

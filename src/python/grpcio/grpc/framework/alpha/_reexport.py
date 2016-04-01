@@ -27,8 +27,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import six
-
 from grpc.framework.common import cardinality
 from grpc.framework.face import exceptions as face_exceptions
 from grpc.framework.face import interfaces as face_interfaces
@@ -183,7 +181,7 @@ def common_cardinality(early_adopter_cardinality):
 
 def common_cardinalities(early_adopter_cardinalities):
   common_cardinalities = {}
-  for name, early_adopter_cardinality in six.iteritems(early_adopter_cardinalities):
+  for name, early_adopter_cardinality in early_adopter_cardinalities.iteritems():
     common_cardinalities[name] = _EARLY_ADOPTER_CARDINALITY_TO_COMMON_CARDINALITY[
         early_adopter_cardinality]
   return common_cardinalities

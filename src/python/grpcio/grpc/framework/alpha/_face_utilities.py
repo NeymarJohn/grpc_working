@@ -30,8 +30,6 @@
 import abc
 import collections
 
-import six
-
 # face_interfaces is referenced from specification in this module.
 from grpc.framework.common import cardinality
 from grpc.framework.face import interfaces as face_interfaces  # pylint: disable=unused-import
@@ -47,7 +45,7 @@ def _qualified_name(service_name, method_name):
 # TODO(nathaniel): This structure is getting bloated; it could be shrunk if
 # implementations._Stub used a generic rather than a dynamic underlying
 # face-layer stub.
-class InvocationBreakdown(six.with_metaclass(abc.ABCMeta)):
+class InvocationBreakdown(object):
   """An intermediate representation of invocation-side views of RPC methods.
 
   Attributes:
@@ -63,6 +61,7 @@ class InvocationBreakdown(six.with_metaclass(abc.ABCMeta)):
       to callable behavior to be used deserializing response values for the
       RPC.
   """
+  __metaclass__ = abc.ABCMeta
 
 
 class _EasyInvocationBreakdown(
@@ -74,7 +73,7 @@ class _EasyInvocationBreakdown(
   pass
 
 
-class ServiceBreakdown(six.with_metaclass(abc.ABCMeta)):
+class ServiceBreakdown(object):
   """An intermediate representation of service-side views of RPC methods.
 
   Attributes:
@@ -85,6 +84,7 @@ class ServiceBreakdown(six.with_metaclass(abc.ABCMeta)):
     response_serializers: A dictionary from service-qualified RPC method name
       to callable behavior to be used serializing response values for the RPC.
   """
+  __metaclass__ = abc.ABCMeta
 
 
 class _EasyServiceBreakdown(
@@ -111,7 +111,7 @@ def break_down_invocation(service_name, method_descriptions):
   face_cardinalities = {}
   request_serializers = {}
   response_deserializers = {}
-  for name, method_description in six.iteritems(method_descriptions):
+  for name, method_description in method_descriptions.iteritems():
     qualified_name = _qualified_name(service_name, name)
     method_cardinality = method_description.cardinality()
     cardinalities[name] = method_description.cardinality()
@@ -139,7 +139,7 @@ def break_down_service(service_name, method_descriptions):
   implementations = {}
   request_deserializers = {}
   response_serializers = {}
-  for name, method_description in six.iteritems(method_descriptions):
+  for name, method_description in method_descriptions.iteritems():
     qualified_name = _qualified_name(service_name, name)
     method_cardinality = method_description.cardinality()
     if method_cardinality is interfaces.Cardinality.UNARY_UNARY:

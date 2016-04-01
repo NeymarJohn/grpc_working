@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.7
-# Copyright 2015, Google Inc.
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -589,11 +589,7 @@ prod_servers = {
     'cloud_gateway': ('216.239.32.255', 'grpc-test.sandbox.googleapis.com',
                       False),
     'cloud_gateway_v2': ('216.239.32.255', 'grpc-test2.sandbox.googleapis.com',
-                         True),
-    'gateway_v4': ('grpc-test4.sandbox.googleapis.com', 
-                   'grpc-test4.sandbox.googleapis.com', True), 
-    'cloud_gateway_v4': ('216.239.32.255', 'grpc-test4.sandbox.googleapis.com',
-                         True),
+                         True)
 }
 
 argp = argparse.ArgumentParser(description='Run interop tests.')

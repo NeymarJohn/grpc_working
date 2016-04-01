@@ -1,4 +1,4 @@
-# Copyright 2015, Google Inc.
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -288,9 +288,15 @@ class TestLite(setuptools.Command):
       sys.exit('Test failure')
 
   def _add_eggs_to_path(self):
-    """Fetch install and test requirements"""
-    self.distribution.fetch_build_eggs(self.distribution.install_requires)
-    self.distribution.fetch_build_eggs(self.distribution.tests_require)
+    """Adds all egg files under .eggs to sys.path"""
+    # TODO(jtattemusch): there has to be a cleaner way to do this
+    import pkg_resources
+    eggs_dir = os.path.join(PYTHON_STEM, '../../../.eggs')
+    eggs = [os.path.join(eggs_dir, filename)
+            for filename in os.listdir(eggs_dir)
+            if filename.endswith('.egg')]
+    for egg in eggs:
+      sys.path.insert(0, pkg_resources.normalize_path(egg))
 
 
 class RunInterop(test.test):

@@ -33,8 +33,6 @@ import abc
 import threading
 import uuid
 
-import six
-
 from grpc.framework.core import _operation
 from grpc.framework.core import _utilities
 from grpc.framework.foundation import callable_util
@@ -47,7 +45,7 @@ from grpc.framework.interfaces.links import utilities
 _IDLE_ACTION_EXCEPTION_LOG_MESSAGE = 'Exception calling idle action!'
 
 
-class End(six.with_metaclass(abc.ABCMeta, base.End, links.Link)):
+class End(base.End, links.Link):
   """A bridge between base.End and links.Link.
 
   Implementations of this interface translate arriving tickets into
@@ -55,6 +53,7 @@ class End(six.with_metaclass(abc.ABCMeta, base.End, links.Link)):
   translate calls from application objects implementing base interfaces
   into tickets sent to a joined link.
   """
+  __metaclass__ = abc.ABCMeta
 
 
 class _Cycle(object):
