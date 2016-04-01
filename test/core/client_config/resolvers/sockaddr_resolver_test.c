@@ -40,28 +40,20 @@
 #include "src/core/lib/client_config/resolver.h"
 #include "test/core/util/test_config.h"
 
-static void client_channel_factory_ref(grpc_client_channel_factory *scv) {}
-static void client_channel_factory_unref(grpc_exec_ctx *exec_ctx,
-                                         grpc_client_channel_factory *scv) {}
-static grpc_subchannel *client_channel_factory_create_subchannel(
-    grpc_exec_ctx *exec_ctx, grpc_client_channel_factory *factory,
+static void subchannel_factory_ref(grpc_subchannel_factory *scv) {}
+static void subchannel_factory_unref(grpc_exec_ctx *exec_ctx,
+                                     grpc_subchannel_factory *scv) {}
+static grpc_subchannel *subchannel_factory_create_subchannel(
+    grpc_exec_ctx *exec_ctx, grpc_subchannel_factory *factory,
     grpc_subchannel_args *args) {
   GPR_UNREACHABLE_CODE(return NULL);
 }
 
-static grpc_channel *client_channel_factory_create_channel(
-    grpc_exec_ctx *exec_ctx, grpc_client_channel_factory *cc_factory,
-    const char *target, grpc_client_channel_type type,
-    grpc_channel_args *args) {
-  GPR_UNREACHABLE_CODE(return NULL);
-}
+static const grpc_subchannel_factory_vtable sc_vtable = {
+    subchannel_factory_ref, subchannel_factory_unref,
+    subchannel_factory_create_subchannel};
 
-static const grpc_client_channel_factory_vtable sc_vtable = {
-    client_channel_factory_ref, client_channel_factory_unref,
-    client_channel_factory_create_subchannel,
-    client_channel_factory_create_channel};
-
-static grpc_client_channel_factory cc_factory = {&sc_vtable};
+static grpc_subchannel_factory sc_factory = {&sc_vtable};
 
 static void test_succeeds(grpc_resolver_factory *factory, const char *string) {
   grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
@@ -73,7 +65,7 @@ static void test_succeeds(grpc_resolver_factory *factory, const char *string) {
   GPR_ASSERT(uri);
   memset(&args, 0, sizeof(args));
   args.uri = uri;
-  args.client_channel_factory = &cc_factory;
+  args.subchannel_factory = &sc_factory;
   resolver = grpc_resolver_factory_create_resolver(factory, &args);
   GPR_ASSERT(resolver != NULL);
   GRPC_RESOLVER_UNREF(&exec_ctx, resolver, "test_succeeds");
@@ -106,6 +98,7 @@ int main(int argc, char **argv) {
 
   test_fails(ipv4, "ipv4:10.2.1.1");
   test_succeeds(ipv4, "ipv4:10.2.1.1:1234");
+  test_succeeds(ipv4, "ipv4:10.2.1.1:1234,127.0.0.1:4321");
   test_fails(ipv4, "ipv4:10.2.1.1:123456");
   test_fails(ipv4, "ipv4:www.google.com");
   test_fails(ipv4, "ipv4:[");

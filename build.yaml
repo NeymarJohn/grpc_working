@@ -13,16 +13,23 @@ filegroups:
   public_headers:
   - include/grpc/census.h
   headers:
-  - src/core/lib/census/aggregation.h
-  - src/core/lib/census/mlog.h
-  - src/core/lib/census/rpc_metric_id.h
+  - src/core/ext/census/aggregation.h
+  - src/core/ext/census/census_interface.h
+  - src/core/ext/census/census_rpc_stats.h
+  - src/core/ext/census/grpc_filter.h
+  - src/core/ext/census/mlog.h
+  - src/core/ext/census/rpc_metric_id.h
   src:
-  - src/core/lib/census/context.c
-  - src/core/lib/census/initialize.c
-  - src/core/lib/census/mlog.c
-  - src/core/lib/census/operation.c
-  - src/core/lib/census/placeholders.c
-  - src/core/lib/census/tracing.c
+  - src/core/ext/census/context.c
+  - src/core/ext/census/grpc_context.c
+  - src/core/ext/census/grpc_filter.c
+  - src/core/ext/census/grpc_plugin.c
+  - src/core/ext/census/initialize.c
+  - src/core/ext/census/mlog.c
+  - src/core/ext/census/operation.c
+  - src/core/ext/census/placeholders.c
+  - src/core/ext/census/tracing.c
+  plugin: census_grpc_plugin
 - name: gpr
   public_headers:
   - include/grpc/support/alloc.h
@@ -247,8 +254,6 @@ filegroups:
   - include/grpc/grpc.h
   - include/grpc/status.h
   headers:
-  - src/core/lib/census/grpc_filter.h
-  - src/core/lib/census/grpc_plugin.h
   - src/core/lib/channel/channel_args.h
   - src/core/lib/channel/channel_stack.h
   - src/core/lib/channel/channel_stack_builder.h
@@ -259,7 +264,6 @@ filegroups:
   - src/core/lib/channel/http_client_filter.h
   - src/core/lib/channel/http_server_filter.h
   - src/core/lib/channel/subchannel_call_holder.h
-  - src/core/lib/client_config/client_channel_factory.h
   - src/core/lib/client_config/client_config.h
   - src/core/lib/client_config/connector.h
   - src/core/lib/client_config/initial_connect_string.h
@@ -272,6 +276,7 @@ filegroups:
   - src/core/lib/client_config/resolvers/dns_resolver.h
   - src/core/lib/client_config/resolvers/sockaddr_resolver.h
   - src/core/lib/client_config/subchannel.h
+  - src/core/lib/client_config/subchannel_factory.h
   - src/core/lib/client_config/subchannel_index.h
   - src/core/lib/client_config/uri_parser.h
   - src/core/lib/compression/algorithm_metadata.h
@@ -321,8 +326,6 @@ filegroups:
   - src/core/lib/json/json_common.h
   - src/core/lib/json/json_reader.h
   - src/core/lib/json/json_writer.h
-  - src/core/lib/statistics/census_interface.h
-  - src/core/lib/statistics/census_rpc_stats.h
   - src/core/lib/surface/api_trace.h
   - src/core/lib/surface/call.h
   - src/core/lib/surface/call_test_only.h
@@ -343,9 +346,6 @@ filegroups:
   - src/core/lib/transport/transport.h
   - src/core/lib/transport/transport_impl.h
   src:
-  - src/core/lib/census/grpc_context.c
-  - src/core/lib/census/grpc_filter.c
-  - src/core/lib/census/grpc_plugin.c
   - src/core/lib/channel/channel_args.c
   - src/core/lib/channel/channel_stack.c
   - src/core/lib/channel/channel_stack_builder.c
@@ -355,7 +355,6 @@ filegroups:
   - src/core/lib/channel/http_client_filter.c
   - src/core/lib/channel/http_server_filter.c
   - src/core/lib/channel/subchannel_call_holder.c
-  - src/core/lib/client_config/client_channel_factory.c
   - src/core/lib/client_config/client_config.c
   - src/core/lib/client_config/connector.c
   - src/core/lib/client_config/default_initial_connect_string.c
@@ -369,6 +368,7 @@ filegroups:
   - src/core/lib/client_config/resolvers/dns_resolver.c
   - src/core/lib/client_config/resolvers/sockaddr_resolver.c
   - src/core/lib/client_config/subchannel.c
+  - src/core/lib/client_config/subchannel_factory.c
   - src/core/lib/client_config/subchannel_index.c
   - src/core/lib/client_config/uri_parser.c
   - src/core/lib/compression/compression_algorithm.c
