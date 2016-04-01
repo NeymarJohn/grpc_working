@@ -1,5 +1,4 @@
-#!/bin/bash
-# Copyright 2015, Google Inc.
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,39 +27,31 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -ex
+"""Create tests for each fuzzer"""
 
-readonly NANOPB_TMP_OUTPUT="$(mktemp -d)"
+import copy
+import glob
 
-# install protoc version 3
-pushd third_party/protobuf
-./autogen.sh
-./configure
-make
-make install
-ldconfig
-popd
-
-if [ ! -x "/usr/local/bin/protoc" ]; then
-  echo "Error: protoc not found in path"
-  exit 1
-fi
-readonly PROTOC_PATH='/usr/local/bin'
-# stack up and change to nanopb's proto generator directory
-pushd third_party/nanopb/generator/proto
-PATH="$PROTOC_PATH:$PATH" make
-
-# back to the root directory
-popd
-
-
-# nanopb-compile the proto to a temp location
-PATH="$PROTOC_PATH:$PATH" ./tools/codegen/core/gen_load_balancing_proto.sh \
-  src/proto/grpc/lb/v0/load_balancer.proto \
-  $NANOPB_TMP_OUTPUT
-
-# compare outputs to checked compiled code
-if ! diff -r $NANOPB_TMP_OUTPUT src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0; then
-  echo "Outputs differ: $NANOPB_TMP_OUTPUT vs src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0"
-  exit 2
-fi
+def mako_plugin(dictionary):
+  targets = dictionary['targets']
+  tests = dictionary['tests']
+  for tgt in targets:
+    if tgt['build'] == 'fuzzer':
+      new_target = copy.deepcopy(tgt)
+      new_target['build'] = 'test'
+      new_target['name'] += '_one_entry'
+      new_target['run'] = False
+      new_target['deps'].insert(0, 'one_input_fuzzer')
+      targets.append(new_target)
+      for corpus in new_target['corpus_dirs']:
+        for fn in sorted(glob.glob('%s/*' % corpus)):
+          tests.append({
+              'name': new_target['name'],
+              'args': [fn],
+              'exclude_configs': [],
+              'platforms': ['linux', 'mac', 'windows', 'posix'],
+              'ci_platforms': ['linux', 'mac', 'windows', 'posix'],
+              'flaky': False,
+              'language': 'c',
+              'cpu_cost': 0.1,
+          })

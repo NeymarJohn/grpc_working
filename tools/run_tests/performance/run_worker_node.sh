@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2015, Google Inc.
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+source ~/.nvm/nvm.sh
+nvm use 0.12
+
 set -ex
 
-readonly NANOPB_TMP_OUTPUT="$(mktemp -d)"
+cd $(dirname $0)/../../..
 
-# install protoc version 3
-pushd third_party/protobuf
-./autogen.sh
-./configure
-make
-make install
-ldconfig
-popd
-
-if [ ! -x "/usr/local/bin/protoc" ]; then
-  echo "Error: protoc not found in path"
-  exit 1
-fi
-readonly PROTOC_PATH='/usr/local/bin'
-# stack up and change to nanopb's proto generator directory
-pushd third_party/nanopb/generator/proto
-PATH="$PROTOC_PATH:$PATH" make
-
-# back to the root directory
-popd
-
-
-# nanopb-compile the proto to a temp location
-PATH="$PROTOC_PATH:$PATH" ./tools/codegen/core/gen_load_balancing_proto.sh \
-  src/proto/grpc/lb/v0/load_balancer.proto \
-  $NANOPB_TMP_OUTPUT
-
-# compare outputs to checked compiled code
-if ! diff -r $NANOPB_TMP_OUTPUT src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0; then
-  echo "Outputs differ: $NANOPB_TMP_OUTPUT vs src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0"
-  exit 2
-fi
+node src/node/performance/worker.js $@
