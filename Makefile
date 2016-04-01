@@ -2452,15 +2452,6 @@ endif
 
 
 LIBGRPC_SRC = \
-    src/core/ext/census/context.c \
-    src/core/ext/census/grpc_context.c \
-    src/core/ext/census/grpc_filter.c \
-    src/core/ext/census/grpc_plugin.c \
-    src/core/ext/census/initialize.c \
-    src/core/ext/census/mlog.c \
-    src/core/ext/census/operation.c \
-    src/core/ext/census/placeholders.c \
-    src/core/ext/census/tracing.c \
     src/core/ext/lb_policy/grpclb/load_balancer_api.c \
     src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/ext/lb_policy/pick_first/pick_first.c \
@@ -2490,6 +2481,15 @@ LIBGRPC_SRC = \
     src/core/ext/transport/chttp2/transport/timeout_encoding.c \
     src/core/ext/transport/chttp2/transport/varint.c \
     src/core/ext/transport/chttp2/transport/writing.c \
+    src/core/lib/census/context.c \
+    src/core/lib/census/grpc_context.c \
+    src/core/lib/census/grpc_filter.c \
+    src/core/lib/census/grpc_plugin.c \
+    src/core/lib/census/initialize.c \
+    src/core/lib/census/mlog.c \
+    src/core/lib/census/operation.c \
+    src/core/lib/census/placeholders.c \
+    src/core/lib/census/tracing.c \
     src/core/lib/channel/channel_args.c \
     src/core/lib/channel/channel_stack.c \
     src/core/lib/channel/channel_stack_builder.c \
@@ -2814,15 +2814,6 @@ endif
 
 
 LIBGRPC_UNSECURE_SRC = \
-    src/core/ext/census/context.c \
-    src/core/ext/census/grpc_context.c \
-    src/core/ext/census/grpc_filter.c \
-    src/core/ext/census/grpc_plugin.c \
-    src/core/ext/census/initialize.c \
-    src/core/ext/census/mlog.c \
-    src/core/ext/census/operation.c \
-    src/core/ext/census/placeholders.c \
-    src/core/ext/census/tracing.c \
     src/core/ext/lb_policy/grpclb/load_balancer_api.c \
     src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/ext/lb_policy/pick_first/pick_first.c \
@@ -2850,6 +2841,15 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/ext/transport/chttp2/transport/timeout_encoding.c \
     src/core/ext/transport/chttp2/transport/varint.c \
     src/core/ext/transport/chttp2/transport/writing.c \
+    src/core/lib/census/context.c \
+    src/core/lib/census/grpc_context.c \
+    src/core/lib/census/grpc_filter.c \
+    src/core/lib/census/grpc_plugin.c \
+    src/core/lib/census/initialize.c \
+    src/core/lib/census/mlog.c \
+    src/core/lib/census/operation.c \
+    src/core/lib/census/placeholders.c \
+    src/core/lib/census/tracing.c \
     src/core/lib/channel/channel_args.c \
     src/core/lib/channel/channel_stack.c \
     src/core/lib/channel/channel_stack_builder.c \
