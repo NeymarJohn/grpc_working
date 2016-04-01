@@ -39,17 +39,19 @@
 #include <grpc/grpc.h>
 #include <grpc/support/alloc.h>
 #include <grpc/support/time.h>
-#include "src/core/ext/client_config/client_channel.h"
-#include "src/core/ext/client_config/lb_policy_registry.h"
-#include "src/core/ext/client_config/resolver_registry.h"
-#include "src/core/ext/client_config/subchannel.h"
-#include "src/core/ext/client_config/subchannel_index.h"
 #include "src/core/ext/transport/chttp2/transport/chttp2_transport.h"
 #include "src/core/lib/channel/channel_stack.h"
+#include "src/core/lib/channel/client_channel.h"
 #include "src/core/lib/channel/compress_filter.h"
 #include "src/core/lib/channel/connected_channel.h"
 #include "src/core/lib/channel/http_client_filter.h"
 #include "src/core/lib/channel/http_server_filter.h"
+#include "src/core/lib/client_config/lb_policy_registry.h"
+#include "src/core/lib/client_config/resolver_registry.h"
+#include "src/core/lib/client_config/resolvers/dns_resolver.h"
+#include "src/core/lib/client_config/resolvers/sockaddr_resolver.h"
+#include "src/core/lib/client_config/subchannel.h"
+#include "src/core/lib/client_config/subchannel_index.h"
 #include "src/core/lib/debug/trace.h"
 #include "src/core/lib/iomgr/executor.h"
 #include "src/core/lib/iomgr/iomgr.h"
@@ -163,6 +165,12 @@ void grpc_init(void) {
     grpc_channel_init_init();
     grpc_lb_policy_registry_init();
     grpc_resolver_registry_init(GRPC_DEFAULT_NAME_PREFIX);
+    grpc_register_resolver_type(grpc_dns_resolver_factory_create());
+    grpc_register_resolver_type(grpc_ipv4_resolver_factory_create());
+    grpc_register_resolver_type(grpc_ipv6_resolver_factory_create());
+#ifdef GPR_HAVE_UNIX_SOCKET
+    grpc_register_resolver_type(grpc_unix_resolver_factory_create());
+#endif
     grpc_register_tracer("api", &grpc_api_trace);
     grpc_register_tracer("channel", &grpc_trace_channel);
     grpc_register_tracer("http", &grpc_http_trace);
