@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,6 @@
 #include "src/core/ext/transport/chttp2/transport/hpack_table.h"
 #include "src/core/ext/transport/chttp2/transport/timeout_encoding.h"
 #include "src/core/ext/transport/chttp2/transport/varint.h"
-#include "src/core/lib/transport/metadata.h"
 #include "src/core/lib/transport/static_metadata.h"
 
 #define HASH_FRAGMENT_1(x) ((x)&255)
@@ -183,7 +182,8 @@ static void add_elem(grpc_chttp2_hpack_compressor *c, grpc_mdelem *elem) {
   uint32_t key_hash = elem->key->hash;
   uint32_t elem_hash = GRPC_MDSTR_KV_HASH(key_hash, elem->value->hash);
   uint32_t new_index = c->tail_remote_index + c->table_elems + 1;
-  size_t elem_size = grpc_mdelem_get_size_in_hpack_table(elem);
+  size_t elem_size = 32 + GPR_SLICE_LENGTH(elem->key->slice) +
+                     GPR_SLICE_LENGTH(elem->value->slice);
 
   GPR_ASSERT(elem_size < 65536);
 
@@ -399,7 +399,8 @@ static void hpack_enc(grpc_chttp2_hpack_compressor *c, grpc_mdelem *elem,
   }
 
   /* should this elem be in the table? */
-  decoder_space_usage = grpc_mdelem_get_size_in_hpack_table(elem);
+  decoder_space_usage = 32 + GPR_SLICE_LENGTH(elem->key->slice) +
+                        GPR_SLICE_LENGTH(elem->value->slice);
   should_add_elem = decoder_space_usage < MAX_DECODER_SPACE_USAGE &&
                     c->filter_elems[HASH_FRAGMENT_1(elem_hash)] >=
                         c->filter_elems_sum / ONE_ON_ADD_PROBABILITY;
