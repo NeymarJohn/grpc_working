@@ -112,7 +112,7 @@ namespace Grpc.IntegrationTesting
         readonly PayloadConfig payloadConfig;
         readonly Histogram histogram;
 
-        readonly BenchmarkService.BenchmarkServiceClient client;
+        readonly BenchmarkService.IBenchmarkServiceClient client;
         readonly Task runnerTask;
         readonly CancellationTokenSource stoppedCts;
         readonly WallClockStopwatch wallClockStopwatch = new WallClockStopwatch();
