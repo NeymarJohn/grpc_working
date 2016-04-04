@@ -275,5 +275,3 @@ void ping_pong_streaming(grpc_end2end_test_config config) {
     test_pingpong_streaming(config, i);
   }
 }
-
-void ping_pong_streaming_pre_init(void) {}

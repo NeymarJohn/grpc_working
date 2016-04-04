@@ -34,5 +34,4 @@ set -ex
 cd $(dirname $0)/../..
 make CONFIG=$config $1 -j3
 mkdir -p fuzzer_output
-export ASAN_OPTIONS=handle_abort=1
 . tools/fuzzer/runners/$1.sh

@@ -179,5 +179,3 @@ void negative_deadline(grpc_end2end_test_config config) {
     test_invoke_simple_request(config, i);
   }
 }
-
-void negative_deadline_pre_init(void) {}
