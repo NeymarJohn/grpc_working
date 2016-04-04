@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2016, Google Inc.
 # All rights reserved.
 #
@@ -26,3 +27,12 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+flags="-max_total_time=300"
+if [ "$config" == "asan-trace-cmp" ]
+then
+  flags="-use_traces=1 $flags"
+fi
+
+bins/$config/server_fuzzer $flags fuzzer_output test/core/end2end/fuzzers/server_fuzzer_corpus
