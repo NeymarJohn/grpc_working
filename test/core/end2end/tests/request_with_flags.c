@@ -214,5 +214,3 @@ void request_with_flags(grpc_end2end_test_config config) {
     }
   }
 }
-
-void request_with_flags_pre_init(void) {}
