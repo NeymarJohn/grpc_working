@@ -104,5 +104,3 @@ static void test_no_op(grpc_end2end_test_config config) {
 }
 
 void no_op(grpc_end2end_test_config config) { test_no_op(config); }
-
-void no_op_pre_init(void) {}
