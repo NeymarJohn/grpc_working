@@ -525,7 +525,6 @@ filegroups:
   - test/core/end2end/fixtures/proxy.h
   - test/core/iomgr/endpoint_tests.h
   - test/core/util/grpc_profiler.h
-  - test/core/util/mock_endpoint.h
   - test/core/util/parse_hexstring.h
   - test/core/util/port.h
   - test/core/util/port_server_client.h
@@ -535,7 +534,6 @@ filegroups:
   - test/core/end2end/fixtures/proxy.c
   - test/core/iomgr/endpoint_tests.c
   - test/core/util/grpc_profiler.c
-  - test/core/util/mock_endpoint.c
   - test/core/util/parse_hexstring.c
   - test/core/util/port_posix.c
   - test/core/util/port_server_client.c
@@ -1948,18 +1946,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-- name: server_fuzzer
-  build: fuzzer
-  language: c
-  src:
-  - test/core/end2end/fuzzers/server_fuzzer.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-  corpus_dirs:
-  - test/core/end2end/fuzzers/server_fuzzer_corpus
 - name: server_test
   build: test
   language: c
