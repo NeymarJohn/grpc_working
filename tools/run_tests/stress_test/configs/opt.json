@@ -74,8 +74,8 @@
 
   "globalSettings": {
     "buildDockerImages": true,
-    "pollIntervalSecs": 60,
-    "testDurationSecs": 7200,
+    "pollIntervalSecs": 10,
+    "testDurationSecs": 120,
     "kubernetesProxyPort": 8001,
     "datasetIdNamePrefix": "stress_test_opt",
     "summaryTableId": "summary",

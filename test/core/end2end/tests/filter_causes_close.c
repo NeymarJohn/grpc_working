@@ -33,6 +33,7 @@
 
 #include "test/core/end2end/end2end_tests.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -41,9 +42,13 @@
 #include <grpc/support/log.h>
 #include <grpc/support/time.h>
 #include <grpc/support/useful.h>
+#include "src/core/lib/channel/channel_stack_builder.h"
+#include "src/core/lib/surface/channel_init.h"
 #include "test/core/end2end/cq_verifier.h"
 
 enum { TIMEOUT = 200000 };
+
+static bool g_enable_filter = false;
 
 static void *tag(intptr_t t) { return (void *)t; }
 
@@ -98,7 +103,7 @@ static void end_test(grpc_end2end_test_fixture *f) {
 }
 
 /* Request with a large amount of metadata.*/
-static void test_request_with_large_metadata(grpc_end2end_test_config config) {
+static void test_request(grpc_end2end_test_config config) {
   grpc_call *c;
   grpc_call *s;
   gpr_slice request_payload_slice = gpr_slice_from_copied_string("hello world");
@@ -107,7 +112,7 @@ static void test_request_with_large_metadata(grpc_end2end_test_config config) {
   gpr_timespec deadline = five_seconds_time();
   grpc_metadata meta;
   grpc_end2end_test_fixture f =
-      begin_test(config, "test_request_with_large_metadata", NULL, NULL);
+      begin_test(config, "filter_causes_close", NULL, NULL);
   cq_verifier *cqv = cq_verifier_create(f.cq);
   grpc_op ops[6];
   grpc_op *op;
@@ -120,18 +125,10 @@ static void test_request_with_large_metadata(grpc_end2end_test_config config) {
   grpc_call_error error;
   char *details = NULL;
   size_t details_capacity = 0;
-  int was_cancelled = 2;
-  const size_t large_size = 64 * 1024;
 
   c = grpc_channel_create_call(f.client, NULL, GRPC_PROPAGATE_DEFAULTS, f.cq,
                                "/foo", "foo.test.google.fr", deadline, NULL);
   GPR_ASSERT(c);
-
-  meta.key = "key";
-  meta.value = gpr_malloc(large_size + 1);
-  memset((char *)meta.value, 'a', large_size);
-  ((char *)meta.value)[large_size] = 0;
-  meta.value_length = large_size;
 
   grpc_metadata_array_init(&initial_metadata_recv);
   grpc_metadata_array_init(&trailing_metadata_recv);
@@ -140,8 +137,8 @@ static void test_request_with_large_metadata(grpc_end2end_test_config config) {
 
   op = ops;
   op->op = GRPC_OP_SEND_INITIAL_METADATA;
-  op->data.send_initial_metadata.count = 1;
-  op->data.send_initial_metadata.metadata = &meta;
+  op->data.send_initial_metadata.count = 0;
+  op->data.send_initial_metadata.metadata = NULL;
   op->flags = 0;
   op->reserved = NULL;
   op++;
@@ -174,51 +171,12 @@ static void test_request_with_large_metadata(grpc_end2end_test_config config) {
       grpc_server_request_call(f.server, &s, &call_details,
                                &request_metadata_recv, f.cq, f.cq, tag(101));
   GPR_ASSERT(GRPC_CALL_OK == error);
-  cq_expect_completion(cqv, tag(101), 1);
-  cq_verify(cqv);
 
-  op = ops;
-  op->op = GRPC_OP_SEND_INITIAL_METADATA;
-  op->data.send_initial_metadata.count = 0;
-  op->flags = 0;
-  op->reserved = NULL;
-  op++;
-  op->op = GRPC_OP_RECV_MESSAGE;
-  op->data.recv_message = &request_payload_recv;
-  op->flags = 0;
-  op->reserved = NULL;
-  op++;
-  error = grpc_call_start_batch(s, ops, (size_t)(op - ops), tag(102), NULL);
-  GPR_ASSERT(GRPC_CALL_OK == error);
-
-  cq_expect_completion(cqv, tag(102), 1);
-  cq_verify(cqv);
-
-  op = ops;
-  op->op = GRPC_OP_RECV_CLOSE_ON_SERVER;
-  op->data.recv_close_on_server.cancelled = &was_cancelled;
-  op->flags = 0;
-  op->reserved = NULL;
-  op++;
-  op->op = GRPC_OP_SEND_STATUS_FROM_SERVER;
-  op->data.send_status_from_server.trailing_metadata_count = 0;
-  op->data.send_status_from_server.status = GRPC_STATUS_OK;
-  op->data.send_status_from_server.status_details = "xyz";
-  op->flags = 0;
-  op->reserved = NULL;
-  op++;
-  error = grpc_call_start_batch(s, ops, (size_t)(op - ops), tag(103), NULL);
-  GPR_ASSERT(GRPC_CALL_OK == error);
-
-  cq_expect_completion(cqv, tag(103), 1);
   cq_expect_completion(cqv, tag(1), 1);
   cq_verify(cqv);
 
-  GPR_ASSERT(status == GRPC_STATUS_OK);
-  GPR_ASSERT(0 == strcmp(details, "xyz"));
-  GPR_ASSERT(0 == strcmp(call_details.method, "/foo"));
-  GPR_ASSERT(0 == strcmp(call_details.host, "foo.test.google.fr"));
-  GPR_ASSERT(was_cancelled == 0);
+  GPR_ASSERT(status == GRPC_STATUS_PERMISSION_DENIED);
+  GPR_ASSERT(0 == strcmp(details, "Random failure that's not preventable."));
   GPR_ASSERT(byte_buffer_eq_string(request_payload_recv, "hello world"));
   GPR_ASSERT(contains_metadata(&request_metadata_recv, "key", meta.value));
 
@@ -242,8 +200,97 @@ static void test_request_with_large_metadata(grpc_end2end_test_config config) {
   config.tear_down_data(&f);
 }
 
-void large_metadata(grpc_end2end_test_config config) {
-  test_request_with_large_metadata(config);
+/*******************************************************************************
+ * Test filter - always closes incoming requests
+ */
+
+typedef struct { grpc_closure *recv_im_ready; } call_data;
+
+typedef struct {
+} channel_data;
+
+static void recv_im_ready(grpc_exec_ctx *exec_ctx, void *arg, bool success) {
+  grpc_call_element *elem = arg;
+  call_data *calld = elem->call_data;
+  if (success) {
+    // close the stream with an error.
+    gpr_slice message;
+    grpc_transport_stream_op close_op;
+    memset(&close_op, 0, sizeof(close_op));
+    message =
+        gpr_slice_from_copied_string("Random failure that's not preventable.");
+    grpc_transport_stream_op op;
+    memset(&op, 0, sizeof(op));
+    grpc_transport_stream_op_add_close(&op, GRPC_STATUS_PERMISSION_DENIED,
+                                       &message);
+    grpc_call_next_op(exec_ctx, elem, &op);
+  }
+  calld->recv_im_ready->cb(exec_ctx, calld->recv_im_ready->cb_arg, false);
 }
 
-void large_metadata_pre_init(void) {}
+static void start_transport_stream_op(grpc_exec_ctx *exec_ctx,
+                                      grpc_call_element *elem,
+                                      grpc_transport_stream_op *op) {
+  call_data *calld = elem->call_data;
+  if (op->recv_initial_metadata != NULL) {
+    calld->recv_im_ready = op->recv_initial_metadata_ready;
+    op->recv_initial_metadata_ready = grpc_closure_create(recv_im_ready, elem);
+  }
+  grpc_call_next_op(exec_ctx, elem, op);
+}
+
+static void init_call_elem(grpc_exec_ctx *exec_ctx, grpc_call_element *elem,
+                           grpc_call_element_args *args) {}
+
+static void destroy_call_elem(grpc_exec_ctx *exec_ctx,
+                              grpc_call_element *elem) {}
+
+static void init_channel_elem(grpc_exec_ctx *exec_ctx,
+                              grpc_channel_element *elem,
+                              grpc_channel_element_args *args) {}
+
+static void destroy_channel_elem(grpc_exec_ctx *exec_ctx,
+                                 grpc_channel_element *elem) {}
+
+static const grpc_channel_filter test_filter = {
+    start_transport_stream_op,
+    grpc_channel_next_op,
+    sizeof(call_data),
+    init_call_elem,
+    grpc_call_stack_ignore_set_pollset,
+    destroy_call_elem,
+    sizeof(channel_data),
+    init_channel_elem,
+    destroy_channel_elem,
+    grpc_call_next_get_peer,
+    "filter_causes_close"};
+
+/*******************************************************************************
+ * Registration
+ */
+
+static bool maybe_add_filter(grpc_channel_stack_builder *builder, void *arg) {
+  if (g_enable_filter) {
+    return grpc_channel_stack_builder_prepend_filter(builder, &test_filter,
+                                                     NULL, NULL);
+  } else {
+    return true;
+  }
+}
+
+static void init_plugin(void) {
+  grpc_channel_init_register_stage(GRPC_SERVER_CHANNEL, 0, maybe_add_filter,
+                                   NULL);
+}
+
+static void destroy_plugin(void) {}
+
+void filter_causes_close(grpc_end2end_test_config config) {
+  g_enable_filter = true;
+  test_request(config);
+  g_enable_filter = false;
+}
+
+void filter_causes_close_pre_init(void) {
+  grpc_register_plugin(init_plugin, destroy_plugin);
+}
