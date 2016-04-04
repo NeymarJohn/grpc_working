@@ -444,5 +444,3 @@ void hpack_size(grpc_end2end_test_config config) {
     }
   }
 }
-
-void hpack_size_pre_init(void) {}
