@@ -436,5 +436,3 @@ static void test_max_concurrent_streams(grpc_end2end_test_config config) {
 void max_concurrent_streams(grpc_end2end_test_config config) {
   test_max_concurrent_streams(config);
 }
-
-void max_concurrent_streams_pre_init(void) {}

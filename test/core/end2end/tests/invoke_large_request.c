@@ -254,5 +254,3 @@ static void test_invoke_large_request(grpc_end2end_test_config config) {
 void invoke_large_request(grpc_end2end_test_config config) {
   test_invoke_large_request(config);
 }
-
-void invoke_large_request_pre_init(void) {}
