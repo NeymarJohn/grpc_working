@@ -74,8 +74,6 @@ namespace Grpc.Core.Tests
         /// (~110ns .NET Windows)
         /// </summary>
         [Test]
-        [Category("Performance")]
-        [Ignore("Prevent running on Jenkins")]
         public void NativeCallbackBenchmark()
         {
             OpCompletionDelegate handler = Handler;
@@ -97,8 +95,6 @@ namespace Grpc.Core.Tests
         /// (~1.1us on .NET Windows)
         /// </summary>
         [Test]
-        [Category("Performance")]
-        [Ignore("Prevent running on Jenkins")]
         public void NewNativeCallbackBenchmark()
         {
             counter = 0;
@@ -116,8 +112,6 @@ namespace Grpc.Core.Tests
         /// (~46ns .NET Windows)
         /// </summary>
         [Test]
-        [Category("Performance")]
-        [Ignore("Prevent running on Jenkins")]
         public void NopPInvokeBenchmark()
         {
             BenchmarkUtil.RunBenchmark(
