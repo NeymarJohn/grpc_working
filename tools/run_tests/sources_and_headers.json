@@ -1383,22 +1383,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "server_fuzzer", 
-    "src": [
-      "test/core/end2end/fuzzers/server_fuzzer.c"
-    ], 
-    "third_party": false, 
-    "type": "target"
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "server_test", 
     "src": [
       "test/core/surface/server_test.c"
@@ -3186,23 +3170,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "head_of_line_blocking_bad_client_test", 
-    "src": [
-      "test/core/bad_client/tests/head_of_line_blocking.c"
-    ], 
-    "third_party": false, 
-    "type": "target"
-  }, 
-  {
-    "deps": [
-      "bad_client_test", 
-      "gpr", 
-      "gpr_test_util", 
-      "grpc_test_util_unsecure", 
-      "grpc_unsecure"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "headers_bad_client_test", 
     "src": [
       "test/core/bad_client/tests/headers.c"
@@ -3830,23 +3797,6 @@
     ], 
     "headers": [], 
     "language": "c", 
-    "name": "server_fuzzer_one_entry", 
-    "src": [
-      "test/core/end2end/fuzzers/server_fuzzer.c"
-    ], 
-    "third_party": false, 
-    "type": "target"
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc_test_util", 
-      "one_input_fuzzer"
-    ], 
-    "headers": [], 
-    "language": "c", 
     "name": "uri_fuzzer_test_one_entry", 
     "src": [
       "test/core/client_config/uri_fuzzer_test.c"
@@ -4113,6 +4063,7 @@
       "src/core/lib/iomgr/endpoint.h", 
       "src/core/lib/iomgr/endpoint_pair.h", 
       "src/core/lib/iomgr/ev_poll_and_epoll_posix.h", 
+      "src/core/lib/iomgr/ev_poll_posix.h", 
       "src/core/lib/iomgr/ev_posix.h", 
       "src/core/lib/iomgr/exec_ctx.h", 
       "src/core/lib/iomgr/executor.h", 
@@ -4340,6 +4291,8 @@
       "src/core/lib/iomgr/endpoint_pair_windows.c", 
       "src/core/lib/iomgr/ev_poll_and_epoll_posix.c", 
       "src/core/lib/iomgr/ev_poll_and_epoll_posix.h", 
+      "src/core/lib/iomgr/ev_poll_posix.c", 
+      "src/core/lib/iomgr/ev_poll_posix.h", 
       "src/core/lib/iomgr/ev_posix.c", 
       "src/core/lib/iomgr/ev_posix.h", 
       "src/core/lib/iomgr/exec_ctx.c", 
@@ -4573,7 +4526,6 @@
       "test/core/iomgr/endpoint_tests.h", 
       "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.h", 
-      "test/core/util/mock_endpoint.h", 
       "test/core/util/parse_hexstring.h", 
       "test/core/util/port.h", 
       "test/core/util/port_server_client.h", 
@@ -4596,8 +4548,6 @@
       "test/core/security/oauth2_utils.h", 
       "test/core/util/grpc_profiler.c", 
       "test/core/util/grpc_profiler.h", 
-      "test/core/util/mock_endpoint.c", 
-      "test/core/util/mock_endpoint.h", 
       "test/core/util/parse_hexstring.c", 
       "test/core/util/parse_hexstring.h", 
       "test/core/util/port.h", 
@@ -4622,7 +4572,6 @@
       "test/core/end2end/fixtures/proxy.h", 
       "test/core/iomgr/endpoint_tests.h", 
       "test/core/util/grpc_profiler.h", 
-      "test/core/util/mock_endpoint.h", 
       "test/core/util/parse_hexstring.h", 
       "test/core/util/port.h", 
       "test/core/util/port_server_client.h", 
@@ -4639,8 +4588,6 @@
       "test/core/iomgr/endpoint_tests.h", 
       "test/core/util/grpc_profiler.c", 
       "test/core/util/grpc_profiler.h", 
-      "test/core/util/mock_endpoint.c", 
-      "test/core/util/mock_endpoint.h", 
       "test/core/util/parse_hexstring.c", 
       "test/core/util/parse_hexstring.h", 
       "test/core/util/port.h", 
@@ -4733,6 +4680,7 @@
       "src/core/lib/iomgr/endpoint.h", 
       "src/core/lib/iomgr/endpoint_pair.h", 
       "src/core/lib/iomgr/ev_poll_and_epoll_posix.h", 
+      "src/core/lib/iomgr/ev_poll_posix.h", 
       "src/core/lib/iomgr/ev_posix.h", 
       "src/core/lib/iomgr/exec_ctx.h", 
       "src/core/lib/iomgr/executor.h", 
@@ -4942,6 +4890,8 @@
       "src/core/lib/iomgr/endpoint_pair_windows.c", 
       "src/core/lib/iomgr/ev_poll_and_epoll_posix.c", 
       "src/core/lib/iomgr/ev_poll_and_epoll_posix.h", 
+      "src/core/lib/iomgr/ev_poll_posix.c", 
+      "src/core/lib/iomgr/ev_poll_posix.h", 
       "src/core/lib/iomgr/ev_posix.c", 
       "src/core/lib/iomgr/ev_posix.h", 
       "src/core/lib/iomgr/exec_ctx.c", 
@@ -6628,7 +6578,6 @@
       "test/core/end2end/tests/default_host.c", 
       "test/core/end2end/tests/disappearing_server.c", 
       "test/core/end2end/tests/empty_batch.c", 
-      "test/core/end2end/tests/filter_causes_close.c", 
       "test/core/end2end/tests/graceful_server_shutdown.c", 
       "test/core/end2end/tests/high_initial_seqno.c", 
       "test/core/end2end/tests/hpack_size.c", 
@@ -6686,7 +6635,6 @@
       "test/core/end2end/tests/default_host.c", 
       "test/core/end2end/tests/disappearing_server.c", 
       "test/core/end2end/tests/empty_batch.c", 
-      "test/core/end2end/tests/filter_causes_close.c", 
       "test/core/end2end/tests/graceful_server_shutdown.c", 
       "test/core/end2end/tests/high_initial_seqno.c", 
       "test/core/end2end/tests/hpack_size.c", 

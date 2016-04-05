@@ -287,6 +287,7 @@ filegroups:
   - src/core/lib/iomgr/endpoint.h
   - src/core/lib/iomgr/endpoint_pair.h
   - src/core/lib/iomgr/ev_poll_and_epoll_posix.h
+  - src/core/lib/iomgr/ev_poll_posix.h
   - src/core/lib/iomgr/ev_posix.h
   - src/core/lib/iomgr/exec_ctx.h
   - src/core/lib/iomgr/executor.h
@@ -377,6 +378,7 @@ filegroups:
   - src/core/lib/iomgr/endpoint_pair_posix.c
   - src/core/lib/iomgr/endpoint_pair_windows.c
   - src/core/lib/iomgr/ev_poll_and_epoll_posix.c
+  - src/core/lib/iomgr/ev_poll_posix.c
   - src/core/lib/iomgr/ev_posix.c
   - src/core/lib/iomgr/exec_ctx.c
   - src/core/lib/iomgr/executor.c
@@ -525,7 +527,6 @@ filegroups:
   - test/core/end2end/fixtures/proxy.h
   - test/core/iomgr/endpoint_tests.h
   - test/core/util/grpc_profiler.h
-  - test/core/util/mock_endpoint.h
   - test/core/util/parse_hexstring.h
   - test/core/util/port.h
   - test/core/util/port_server_client.h
@@ -535,7 +536,6 @@ filegroups:
   - test/core/end2end/fixtures/proxy.c
   - test/core/iomgr/endpoint_tests.c
   - test/core/util/grpc_profiler.c
-  - test/core/util/mock_endpoint.c
   - test/core/util/parse_hexstring.c
   - test/core/util/port_posix.c
   - test/core/util/port_server_client.c
@@ -1638,7 +1638,6 @@ targets:
   - gpr
   corpus_dirs:
   - test/core/transport/chttp2/hpack_parser_corpus
-  maxlen: 512
 - name: hpack_parser_test
   build: test
   language: c
@@ -1671,7 +1670,6 @@ targets:
   - gpr
   corpus_dirs:
   - test/core/http/corpus
-  maxlen: 2048
 - name: http_parser_test
   build: test
   language: c
@@ -1785,7 +1783,6 @@ targets:
   - gpr
   corpus_dirs:
   - test/core/json/corpus
-  maxlen: 512
 - name: json_rewrite
   build: test
   run: false
@@ -1951,19 +1948,6 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
-- name: server_fuzzer
-  build: fuzzer
-  language: c
-  src:
-  - test/core/end2end/fuzzers/server_fuzzer.c
-  deps:
-  - grpc_test_util
-  - grpc
-  - gpr_test_util
-  - gpr
-  corpus_dirs:
-  - test/core/end2end/fuzzers/server_fuzzer_corpus
-  maxlen: 2048
 - name: server_test
   build: test
   language: c
@@ -2174,7 +2158,6 @@ targets:
   - gpr
   corpus_dirs:
   - test/core/client_config/uri_corpus
-  maxlen: 128
 - name: uri_parser_test
   build: test
   language: c

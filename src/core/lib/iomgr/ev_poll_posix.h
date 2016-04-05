@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,11 @@
  *
  */
 
-#ifndef MOCK_ENDPOINT_H
-#define MOCK_ENDPOINT_H
+#ifndef GRPC_CORE_LIB_IOMGR_EV_POLL_POSIX_H
+#define GRPC_CORE_LIB_IOMGR_EV_POLL_POSIX_H
 
-#include "src/core/lib/iomgr/endpoint.h"
+#include "src/core/lib/iomgr/ev_posix.h"
 
-grpc_endpoint *grpc_mock_endpoint_create(void (*on_write)(gpr_slice slice));
-void grpc_mock_endpoint_put_read(grpc_exec_ctx *exec_ctx,
-                                 grpc_endpoint *mock_endpoint, gpr_slice slice);
+const grpc_event_engine_vtable *grpc_init_poll_posix(void);
 
-#endif
+#endif /* GRPC_CORE_LIB_IOMGR_EV_POLL_POSIX_H */
