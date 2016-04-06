@@ -44,12 +44,13 @@
 #include <grpc/support/string_util.h>
 #include <grpc/support/time.h>
 
-#include "src/core/ext/transport/chttp2/transport/bin_encoder.h"
 #include "src/core/lib/iomgr/iomgr_internal.h"
 #include "src/core/lib/profiling/timers.h"
 #include "src/core/lib/support/murmur_hash.h"
 #include "src/core/lib/support/string.h"
 #include "src/core/lib/transport/static_metadata.h"
+
+gpr_slice (*grpc_chttp2_base64_encode_and_huffman_compress)(gpr_slice input);
 
 /* There are two kinds of mdelem and mdstr instances.
  * Static instances are declared in static_metadata.{h,c} and
@@ -242,12 +243,6 @@ void grpc_mdctx_global_shutdown(void) {
     if (shard->count != 0) {
       gpr_log(GPR_DEBUG, "WARNING: %d metadata strings were leaked",
               shard->count);
-      for (size_t j = 0; j < shard->capacity; j++) {
-        for (internal_string *s = shard->strs[j]; s; s = s->bucket_next) {
-          gpr_log(GPR_DEBUG, "LEAKED: %s",
-                  grpc_mdstr_as_c_string((grpc_mdstr *)s));
-        }
-      }
       if (grpc_iomgr_abort_on_leaks()) {
         abort();
       }
