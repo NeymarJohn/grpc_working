@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,11 +31,26 @@
  *
  */
 
-#ifndef GRPC_CORE_LIB_IOMGR_EV_POLL_POSIX_H
-#define GRPC_CORE_LIB_IOMGR_EV_POLL_POSIX_H
+#include "src/core/ext/transport/chttp2/alpn/alpn.h"
+#include <grpc/support/log.h>
+#include <grpc/support/useful.h>
 
-#include "src/core/lib/iomgr/ev_posix.h"
+/* in order of preference */
+static const char *const supported_versions[] = {"h2"};
 
-const grpc_event_engine_vtable *grpc_init_poll_posix(void);
+int grpc_chttp2_is_alpn_version_supported(const char *version, size_t size) {
+  size_t i;
+  for (i = 0; i < GPR_ARRAY_SIZE(supported_versions); i++) {
+    if (!strncmp(version, supported_versions[i], size)) return 1;
+  }
+  return 0;
+}
 
-#endif /* GRPC_CORE_LIB_IOMGR_EV_POLL_POSIX_H */
+size_t grpc_chttp2_num_alpn_versions(void) {
+  return GPR_ARRAY_SIZE(supported_versions);
+}
+
+const char *grpc_chttp2_get_alpn_version_index(size_t i) {
+  GPR_ASSERT(i < GPR_ARRAY_SIZE(supported_versions));
+  return supported_versions[i];
+}

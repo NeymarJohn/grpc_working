@@ -51,7 +51,6 @@ def mako_plugin(dictionary):
               'exclude_configs': [],
               'platforms': ['linux', 'mac', 'windows', 'posix'],
               'ci_platforms': ['linux', 'mac', 'windows', 'posix'],
-              'uses_polling': False,
               'flaky': False,
               'language': 'c',
               'cpu_cost': 0.1,

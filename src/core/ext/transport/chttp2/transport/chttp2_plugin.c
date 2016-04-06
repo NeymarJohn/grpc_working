@@ -31,26 +31,16 @@
  *
  */
 
-#include "src/core/ext/transport/chttp2/transport/alpn.h"
-#include <grpc/support/log.h>
-#include <grpc/support/useful.h>
+#include "src/core/ext/transport/chttp2/transport/bin_encoder.h"
+#include "src/core/ext/transport/chttp2/transport/chttp2_transport.h"
+#include "src/core/lib/debug/trace.h"
+#include "src/core/lib/transport/metadata.h"
 
-/* in order of preference */
-static const char *const supported_versions[] = {"h2"};
-
-int grpc_chttp2_is_alpn_version_supported(const char *version, size_t size) {
-  size_t i;
-  for (i = 0; i < GPR_ARRAY_SIZE(supported_versions); i++) {
-    if (!strncmp(version, supported_versions[i], size)) return 1;
-  }
-  return 0;
+void grpc_chttp2_plugin_init(void) {
+  grpc_chttp2_base64_encode_and_huffman_compress =
+      grpc_chttp2_base64_encode_and_huffman_compress_impl;
+  grpc_register_tracer("http", &grpc_http_trace);
+  grpc_register_tracer("flowctl", &grpc_flowctl_trace);
 }
 
-size_t grpc_chttp2_num_alpn_versions(void) {
-  return GPR_ARRAY_SIZE(supported_versions);
-}
-
-const char *grpc_chttp2_get_alpn_version_index(size_t i) {
-  GPR_ASSERT(i < GPR_ARRAY_SIZE(supported_versions));
-  return supported_versions[i];
-}
+void grpc_chttp2_plugin_shutdown(void) {}
