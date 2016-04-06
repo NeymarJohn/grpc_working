@@ -1,4 +1,4 @@
-# Copyright 2015, Google Inc.
+# Copyright 2015-2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,7 @@ import time
 cdef class CompletionQueue:
 
   def __cinit__(self):
-    with nogil:
-      self.c_completion_queue = grpc_completion_queue_create(NULL)
+    self.c_completion_queue = grpc_completion_queue_create(NULL)
     self.is_shutting_down = False
     self.is_shutdown = False
     self.pluck_condition = threading.Condition()
@@ -83,9 +82,8 @@ cdef class CompletionQueue:
   def poll(self, Timespec deadline=None):
     # We name this 'poll' to avoid problems with CPython's expectations for
     # 'special' methods (like next and __next__).
-    cdef gpr_timespec c_deadline
-    with nogil:
-      c_deadline = gpr_inf_future(GPR_CLOCK_REALTIME)
+    cdef gpr_timespec c_deadline = gpr_inf_future(
+        GPR_CLOCK_REALTIME)
     if deadline is not None:
       c_deadline = deadline.c_time
     cdef grpc_event event
@@ -125,8 +123,7 @@ cdef class CompletionQueue:
     return self._interpret_event(event)
 
   def shutdown(self):
-    with nogil:
-      grpc_completion_queue_shutdown(self.c_completion_queue)
+    grpc_completion_queue_shutdown(self.c_completion_queue)
     self.is_shutting_down = True
 
   def clear(self):
@@ -136,19 +133,15 @@ cdef class CompletionQueue:
       pass
 
   def __dealloc__(self):
-    cdef gpr_timespec c_deadline
-    with nogil:
-      c_deadline = gpr_inf_future(GPR_CLOCK_REALTIME)
+    cdef gpr_timespec c_deadline = gpr_inf_future(GPR_CLOCK_REALTIME)
     if self.c_completion_queue != NULL:
       # Ensure shutdown
       if not self.is_shutting_down:
-        with nogil:
-          grpc_completion_queue_shutdown(self.c_completion_queue)
+        grpc_completion_queue_shutdown(self.c_completion_queue)
       # Pump the queue
       while not self.is_shutdown:
         with nogil:
           event = grpc_completion_queue_next(
               self.c_completion_queue, c_deadline, NULL)
         self._interpret_event(event)
-      with nogil:
-        grpc_completion_queue_destroy(self.c_completion_queue)
+      grpc_completion_queue_destroy(self.c_completion_queue)

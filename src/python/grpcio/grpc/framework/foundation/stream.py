@@ -31,10 +31,10 @@
 
 import abc
 
-import six
 
-class Consumer(six.with_metaclass(abc.ABCMeta)):
+class Consumer(object):
   """Interface for consumers of finite streams of values or objects."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def consume(self, value):

@@ -36,9 +36,7 @@ require dirname(__FILE__) . '/vendor/autoload.php';
 require dirname(__FILE__) . '/helloworld.php';
 
 function greet($name) {
-  $client = new helloworld\GreeterClient('localhost:50051', [
-    'credentials' => Grpc\ChannelCredentials::createInsecure()
-  ]);
+  $client = new helloworld\GreeterClient('localhost:50051', []);
   $request = new helloworld\HelloRequest();
   $request->setName($name);
   list($reply, $status) = $client->SayHello($request)->wait();

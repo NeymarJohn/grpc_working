@@ -31,12 +31,13 @@
 
 Only GRPC should instantiate and raise these exceptions.
 """
+
 import abc
 
-import six
 
-class RpcError(six.with_metaclass(abc.ABCMeta, Exception)):
+class RpcError(Exception):
   """Common super type for all exceptions raised by GRPC."""
+  __metaclass__ = abc.ABCMeta
 
 
 class CancellationError(RpcError):

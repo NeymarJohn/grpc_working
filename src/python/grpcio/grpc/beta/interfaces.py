@@ -32,8 +32,6 @@
 import abc
 import enum
 
-import six
-
 from grpc._adapter import _types
 
 
@@ -107,17 +105,19 @@ def grpc_call_options(disable_compression=False, credentials=None):
   return GRPCCallOptions(disable_compression, None, credentials)
 
 
-class GRPCAuthMetadataContext(six.with_metaclass(abc.ABCMeta)):
+class GRPCAuthMetadataContext(object):
   """Provides information to call credentials metadata plugins.
 
   Attributes:
     service_url: A string URL of the service being called into.
     method_name: A string of the fully qualified method name being called.
   """
+  __metaclass__ = abc.ABCMeta
 
 
-class GRPCAuthMetadataPluginCallback(six.with_metaclass(abc.ABCMeta)):
+class GRPCAuthMetadataPluginCallback(object):
   """Callback object received by a metadata plugin."""
+  __metaclass__ = abc.ABCMeta
 
   def __call__(self, metadata, error):
     """Inform the gRPC runtime of the metadata to construct a CallCredentials.
@@ -130,9 +130,10 @@ class GRPCAuthMetadataPluginCallback(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class GRPCAuthMetadataPlugin(six.with_metaclass(abc.ABCMeta)):
+class GRPCAuthMetadataPlugin(object):
   """
   """
+  __metaclass__ = abc.ABCMeta
 
   def __call__(self, context, callback):
     """Invoke the plugin.
@@ -148,8 +149,9 @@ class GRPCAuthMetadataPlugin(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class GRPCServicerContext(six.with_metaclass(abc.ABCMeta)):
+class GRPCServicerContext(object):
   """Exposes gRPC-specific options and behaviors to code servicing RPCs."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def peer(self):
@@ -166,8 +168,9 @@ class GRPCServicerContext(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class GRPCInvocationContext(six.with_metaclass(abc.ABCMeta)):
+class GRPCInvocationContext(object):
   """Exposes gRPC-specific options and behaviors to code invoking RPCs."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def disable_next_request_compression(self):
@@ -175,8 +178,9 @@ class GRPCInvocationContext(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class Server(six.with_metaclass(abc.ABCMeta)):
+class Server(object):
   """Services RPCs."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def add_insecure_port(self, address):

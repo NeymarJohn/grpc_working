@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
  *
  */
 
-#include "src/core/lib/iomgr/timer_heap.h"
+#include "src/core/iomgr/timer_heap.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -177,12 +177,11 @@ static void test2(void) {
 
   grpc_timer_heap pq;
 
-  static const size_t elems_size = 1000;
-  elem_struct *elems = gpr_malloc(elems_size * sizeof(elem_struct));
+  elem_struct elems[1000];
   size_t num_inserted = 0;
 
   grpc_timer_heap_init(&pq);
-  memset(elems, 0, elems_size);
+  memset(elems, 0, sizeof(elems));
 
   for (size_t round = 0; round < 10000; round++) {
     int r = rand() % 1000;
@@ -210,7 +209,7 @@ static void test2(void) {
       if (num_inserted > 0) {
         grpc_timer *top = grpc_timer_heap_top(&pq);
         grpc_timer_heap_pop(&pq);
-        for (size_t i = 0; i < elems_size; i++) {
+        for (size_t i = 0; i < GPR_ARRAY_SIZE(elems); i++) {
           if (top == &elems[i].elem) {
             GPR_ASSERT(elems[i].inserted);
             elems[i].inserted = false;
@@ -223,7 +222,7 @@ static void test2(void) {
 
     if (num_inserted) {
       gpr_timespec *min_deadline = NULL;
-      for (size_t i = 0; i < elems_size; i++) {
+      for (size_t i = 0; i < GPR_ARRAY_SIZE(elems); i++) {
         if (elems[i].inserted) {
           if (min_deadline == NULL) {
             min_deadline = &elems[i].elem.deadline;
@@ -240,7 +239,6 @@ static void test2(void) {
   }
 
   grpc_timer_heap_destroy(&pq);
-  gpr_free(elems);
 }
 
 static void shrink_test(void) {

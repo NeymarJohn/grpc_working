@@ -33,8 +33,6 @@ import abc
 import collections
 import enum
 
-import six
-
 # stream is referenced from specification in this module.
 from grpc.framework.foundation import stream  # pylint: disable=unused-import
 
@@ -52,12 +50,13 @@ class Outcome(enum.Enum):
   SERVICED_FAILURE = 'serviced failure'
 
 
-class OperationContext(six.with_metaclass(abc.ABCMeta)):
+class OperationContext(object):
   """Provides operation-related information and action.
 
   Attributes:
     trace_id: A uuid.UUID identifying a particular set of related operations.
   """
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def is_active(self):
@@ -94,8 +93,9 @@ class OperationContext(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class Servicer(six.with_metaclass(abc.ABCMeta)):
+class Servicer(object):
   """Interface for service implementations."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def service(self, name, context, output_consumer):
@@ -120,7 +120,7 @@ class Servicer(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class Operation(six.with_metaclass(abc.ABCMeta)):
+class Operation(object):
   """Representation of an in-progress operation.
 
   Attributes:
@@ -129,6 +129,7 @@ class Operation(six.with_metaclass(abc.ABCMeta)):
     context: An OperationContext affording information and action about the
       operation.
   """
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def cancel(self):
@@ -136,8 +137,9 @@ class Operation(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class ServicedIngestor(six.with_metaclass(abc.ABCMeta)):
+class ServicedIngestor(object):
   """Responsible for accepting the result of an operation."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def consumer(self, operation_context):
@@ -157,7 +159,7 @@ class ServicedIngestor(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class ServicedSubscription(six.with_metaclass(abc.ABCMeta)):
+class ServicedSubscription(object):
   """A sum type representing a serviced's interest in an operation.
 
   Attributes:
@@ -165,6 +167,7 @@ class ServicedSubscription(six.with_metaclass(abc.ABCMeta)):
     ingestor: A ServicedIngestor. Must be present if kind is Kind.FULL. Must
       be None if kind is Kind.TERMINATION_ONLY or Kind.NONE.
   """
+  __metaclass__ = abc.ABCMeta
 
   @enum.unique
   class Kind(enum.Enum):
@@ -175,8 +178,9 @@ class ServicedSubscription(six.with_metaclass(abc.ABCMeta)):
     NONE = 'none'
 
 
-class End(six.with_metaclass(abc.ABCMeta)):
+class End(object):
   """Common type for entry-point objects on both sides of an operation."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def operation_stats(self):
@@ -198,8 +202,9 @@ class End(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class Front(six.with_metaclass(abc.ABCMeta, End)):
+class Front(End):
   """Clientish objects that afford the invocation of operations."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def operate(
@@ -223,8 +228,9 @@ class Front(six.with_metaclass(abc.ABCMeta, End)):
     raise NotImplementedError()
 
 
-class Back(six.with_metaclass(abc.ABCMeta, End)):
+class Back(End):
   """Serverish objects that perform the work of operations."""
+  __metaclass__ = abc.ABCMeta
 
 
 class FrontToBackTicket(
@@ -309,8 +315,9 @@ class BackToFrontTicket(
     TRANSMISSION_FAILURE = 'transmission failure'
 
 
-class ForeLink(six.with_metaclass(abc.ABCMeta)):
+class ForeLink(object):
   """Accepts back-to-front tickets and emits front-to-back tickets."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def accept_back_to_front_ticket(self, ticket):
@@ -327,8 +334,9 @@ class ForeLink(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class RearLink(six.with_metaclass(abc.ABCMeta)):
+class RearLink(object):
   """Accepts front-to-back tickets and emits back-to-front tickets."""
+  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def accept_front_to_back_ticket(self, ticket):
@@ -345,9 +353,11 @@ class RearLink(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-class FrontLink(six.with_metaclass(abc.ABCMeta, Front, ForeLink)):
+class FrontLink(Front, ForeLink):
   """Clientish objects that operate by sending and receiving tickets."""
+  __metaclass__ = abc.ABCMeta
 
 
-class BackLink(six.with_metaclass(abc.ABCMeta, Back, RearLink)):
+class BackLink(Back, RearLink):
   """Serverish objects that operate by sending and receiving tickets."""
+  __metaclass__ = abc.ABCMeta

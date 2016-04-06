@@ -31,8 +31,6 @@
 
 import abc
 
-import six
-
 
 class NoSuchMethodError(Exception):
   """Raised by customer code to indicate an unrecognized RPC method name.
@@ -51,11 +49,12 @@ class NoSuchMethodError(Exception):
     self.name = name
 
 
-class RpcError(six.with_metaclass(abc.ABCMeta, Exception)):
+class RpcError(Exception):
   """Common super type for all exceptions raised by the Face layer.
 
   Only RPC Framework should instantiate and raise these exceptions.
   """
+  __metaclass__ = abc.ABCMeta
 
 
 class CancellationError(RpcError):

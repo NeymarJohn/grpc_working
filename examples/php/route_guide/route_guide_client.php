@@ -37,9 +37,7 @@ require dirname(__FILE__) . '/route_guide.php';
 
 define('COORD_FACTOR', 1e7);
 
-$client = new routeguide\RouteGuideClient('localhost:50051', [
-  'credentials' => Grpc\ChannelCredentials::createInsecure()
-]);
+$client = new routeguide\RouteGuideClient('localhost:50051', []);
 
 function printFeature($feature) {
   $name = $feature->getName();

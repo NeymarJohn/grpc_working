@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@
  *
  */
 
-// Test description at doc/connection-backoff-interop-test-description.md
-
 #include <signal.h>
 #include <unistd.h>
 
@@ -42,17 +40,17 @@
 #include <sstream>
 
 #include <gflags/gflags.h>
+#include <grpc/grpc.h>
+#include <grpc/support/log.h>
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 #include <grpc++/server_context.h>
-#include <grpc/grpc.h>
-#include <grpc/support/log.h>
 
-#include "src/proto/grpc/testing/empty.grpc.pb.h"
-#include "src/proto/grpc/testing/messages.grpc.pb.h"
-#include "src/proto/grpc/testing/test.grpc.pb.h"
 #include "test/core/util/reconnect_server.h"
 #include "test/cpp/util/test_config.h"
+#include "src/proto/grpc/testing/test.grpc.pb.h"
+#include "src/proto/grpc/testing/empty.grpc.pb.h"
+#include "src/proto/grpc/testing/messages.grpc.pb.h"
 
 DEFINE_int32(control_port, 0, "Server port for controlling the server.");
 DEFINE_int32(retry_port, 0,
@@ -71,7 +69,6 @@ using grpc::Status;
 using grpc::testing::Empty;
 using grpc::testing::ReconnectService;
 using grpc::testing::ReconnectInfo;
-using grpc::testing::ReconnectParams;
 
 static bool got_sigint = false;
 
@@ -93,8 +90,7 @@ class ReconnectServiceImpl : public ReconnectService::Service {
 
   void Poll(int seconds) { reconnect_server_poll(&tcp_server_, seconds); }
 
-  Status Start(ServerContext* context, const ReconnectParams* request,
-               Empty* response) {
+  Status Start(ServerContext* context, const Empty* request, Empty* response) {
     bool start_server = true;
     std::unique_lock<std::mutex> lock(mu_);
     while (serving_ && !shutdown_) {
@@ -107,8 +103,6 @@ class ReconnectServiceImpl : public ReconnectService::Service {
     if (server_started_) {
       start_server = false;
     } else {
-      tcp_server_.max_reconnect_backoff_ms =
-          request->max_reconnect_backoff_ms();
       server_started_ = true;
     }
     lock.unlock();
@@ -137,9 +131,7 @@ class ReconnectServiceImpl : public ReconnectService::Service {
     const double kTransmissionDelay = 100.0;
     const double kBackoffMultiplier = 1.6;
     const double kJitterFactor = 0.2;
-    const int kMaxBackoffMs = tcp_server_.max_reconnect_backoff_ms
-                                  ? tcp_server_.max_reconnect_backoff_ms
-                                  : 120 * 1000;
+    const int kMaxBackoffMs = 120 * 1000;
     bool passed = true;
     for (timestamp_list* cur = tcp_server_.head; cur && cur->next;
          cur = cur->next) {
