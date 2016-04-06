@@ -33,10 +33,8 @@
 import argparse
 import itertools
 import jobset
-import json
 import multiprocessing
 import os
-import pipes
 import subprocess
 import sys
 import tempfile
@@ -89,34 +87,18 @@ def create_qpsworker_job(language, shortname=None,
   return QpsWorkerJob(jobspec, language, host_and_port)
 
 
-def create_scenario_jobspec(scenario_json, workers, remote_host=None):
+def create_scenario_jobspec(scenario_name, driver_args, workers, remote_host=None):
   """Runs one scenario using QPS driver."""
   # setting QPS_WORKERS env variable here makes sure it works with SSH too.
-  cmd = 'QPS_WORKERS="%s" bins/opt/qps_json_driver ' % ','.join(workers)
-  cmd += '--scenarios_json=%s' % pipes.quote(json.dumps({'scenarios': [scenario_json]}))
+  cmd = 'QPS_WORKERS="%s" bins/opt/qps_driver ' % ','.join(workers)
+  cmd += ' '.join(driver_args)
   if remote_host:
     user_at_host = '%s@%s' % (_REMOTE_HOST_USERNAME, remote_host)
     cmd = 'ssh %s "cd ~/performance_workspace/grpc/ && %s"' % (user_at_host, cmd)
 
   return jobset.JobSpec(
       cmdline=[cmd],
-      shortname='qps_json_driver.%s' % scenario_json['name'],
-      timeout_seconds=3*60,
-      shell=True,
-      verbose_success=True)
-
-
-def create_quit_jobspec(workers, remote_host=None):
-  """Runs quit using QPS driver."""
-  # setting QPS_WORKERS env variable here makes sure it works with SSH too.
-  cmd = 'QPS_WORKERS="%s" bins/opt/qps_driver --quit' % ','.join(workers)
-  if remote_host:
-    user_at_host = '%s@%s' % (_REMOTE_HOST_USERNAME, remote_host)
-    cmd = 'ssh %s "cd ~/performance_workspace/grpc/ && %s"' % (user_at_host, cmd)
-
-  return jobset.JobSpec(
-      cmdline=[cmd],
-      shortname='qps_driver.quit',
+      shortname='qps_driver.%s' % scenario_name,
       timeout_seconds=3*60,
       shell=True,
       verbose_success=True)
@@ -225,8 +207,9 @@ def create_scenarios(languages, workers_by_lang, remote_host=None):
   """Create jobspecs for scenarios to run."""
   scenarios = []
   for language in languages:
-    for scenario_json in language.scenarios():
-      scenario = create_scenario_jobspec(scenario_json,
+    for scenario_name, driver_args in language.scenarios().iteritems():
+      scenario = create_scenario_jobspec(scenario_name,
+                                         driver_args,
                                          workers_by_lang[str(language)],
                                          remote_host=remote_host)
       scenarios.append(scenario)
@@ -235,7 +218,10 @@ def create_scenarios(languages, workers_by_lang, remote_host=None):
   all_workers = [worker
                  for workers in workers_by_lang.values()
                  for worker in workers]
-  scenarios.append(create_quit_jobspec(all_workers, remote_host=remote_host))
+  scenarios.append(create_scenario_jobspec('quit_workers',
+                                           ['--quit=true'],
+                                           all_workers,
+                                           remote_host=remote_host))
   return scenarios
 
 

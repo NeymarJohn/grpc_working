@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015-2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,56 +31,16 @@
  *
  */
 
-#include <memory>
-#include <sstream>
-#include <string>
+#include "src/core/ext/transport/chttp2/transport/bin_encoder.h"
+#include "src/core/ext/transport/chttp2/transport/chttp2_transport.h"
+#include "src/core/lib/debug/trace.h"
+#include "src/core/lib/transport/metadata.h"
 
-#include <grpc/support/log.h>
-
-#include "src/core/lib/support/env.h"
-#include "test/core/util/port.h"
-#include "test/cpp/util/subprocess.h"
-
-using grpc::SubProcess;
-
-template <class T>
-std::string as_string(const T& val) {
-  std::ostringstream out;
-  out << val;
-  return out.str();
+void grpc_chttp2_plugin_init(void) {
+  grpc_chttp2_base64_encode_and_huffman_compress =
+      grpc_chttp2_base64_encode_and_huffman_compress_impl;
+  grpc_register_tracer("http", &grpc_http_trace);
+  grpc_register_tracer("flowctl", &grpc_flowctl_trace);
 }
 
-int main(int argc, char** argv) {
-  typedef std::unique_ptr<SubProcess> SubProcessPtr;
-  std::vector<SubProcessPtr> jobs;
-
-  std::string my_bin = argv[0];
-  std::string bin_dir = my_bin.substr(0, my_bin.rfind('/'));
-
-  std::ostringstream env;
-  bool first = true;
-
-  for (int i = 0; i < 2; i++) {
-    auto port = grpc_pick_unused_port_or_die();
-    std::vector<std::string> args = {bin_dir + "/qps_worker", "-driver_port",
-                                     as_string(port)};
-    jobs.emplace_back(new SubProcess(args));
-    if (!first) env << ",";
-    env << "localhost:" << port;
-    first = false;
-  }
-
-  gpr_setenv("QPS_WORKERS", env.str().c_str());
-  std::vector<std::string> args = {bin_dir + "/qps_json_driver"};
-  for (int i = 1; i < argc; i++) {
-    args.push_back(argv[i]);
-  }
-  SubProcess(args).Join();
-
-  for (auto it = jobs.begin(); it != jobs.end(); ++it) {
-    (*it)->Interrupt();
-  }
-  for (auto it = jobs.begin(); it != jobs.end(); ++it) {
-    (*it)->Join();
-  }
-}
+void grpc_chttp2_plugin_shutdown(void) {}
