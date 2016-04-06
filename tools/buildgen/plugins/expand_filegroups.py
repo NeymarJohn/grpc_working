@@ -42,14 +42,7 @@ def excluded(filename, exclude_res):
   return False
 
 
-FILEGROUP_LISTS = ['src', 'headers', 'public_headers', 'deps']
-
-
-FILEGROUP_DEFAULTS = {
-  'language': 'c',
-  'boringssl': False,
-  'zlib': False,
-}
+FILEGROUP_LISTS = ['src', 'headers', 'public_headers']
 
 
 def mako_plugin(dictionary):
@@ -64,15 +57,7 @@ def mako_plugin(dictionary):
   filegroups_list = dictionary.get('filegroups')
   filegroups = {}
 
-  for fg in filegroups_list:
-    for lst in FILEGROUP_LISTS:
-      fg[lst] = fg.get(lst, [])
-      fg['own_%s' % lst] = list(fg[lst])
-    for attr, val in FILEGROUP_DEFAULTS.iteritems():
-      if attr not in fg:
-        fg[attr] = val
-
-  todo = list(filegroups_list)
+  todo = filegroups_list[:]
   skips = 0
 
   while todo:
@@ -111,18 +96,9 @@ def mako_plugin(dictionary):
     for lst in FILEGROUP_LISTS:
       fg[lst] = sorted(list(set(fg.get(lst, []))))
 
-  for tgt in dictionary['targets']:
-    for lst in FILEGROUP_LISTS:
-      tgt[lst] = tgt.get(lst, [])
-      tgt['own_%s' % lst] = list(tgt[lst])
-
   for lib in libs:
     assert 'plugins' not in lib
     plugins = []
-    for lst in FILEGROUP_LISTS:
-      vals = lib.get(lst, [])
-      lib[lst] = list(vals)
-      lib['own_%s' % lst] = list(vals)
     for fg_name in lib.get('filegroups', []):
       fg = filegroups[fg_name]
       for plugin in fg['plugins']:

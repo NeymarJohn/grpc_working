@@ -110,15 +110,13 @@ grpc_grpclb_response *grpc_grpclb_response_parse(gpr_slice encoded_response) {
   grpc_grpclb_response *res = gpr_malloc(sizeof(grpc_grpclb_response));
   memset(res, 0, sizeof(*res));
   status = pb_decode(&stream, grpc_lb_v0_LoadBalanceResponse_fields, res);
-  if (!status) {
-    grpc_grpclb_response_destroy(res);
-    return NULL;
-  }
+  GPR_ASSERT(status == true);
   return res;
 }
 
 grpc_grpclb_serverlist *grpc_grpclb_response_parse_serverlist(
     gpr_slice encoded_response) {
+  grpc_grpclb_serverlist *sl = gpr_malloc(sizeof(grpc_grpclb_serverlist));
   bool status;
   decode_serverlist_arg arg;
   pb_istream_t stream =
@@ -133,20 +131,15 @@ grpc_grpclb_serverlist *grpc_grpclb_response_parse_serverlist(
   res->server_list.servers.arg = &arg;
   arg.first_pass = 1;
   status = pb_decode(&stream, grpc_lb_v0_LoadBalanceResponse_fields, res);
-  if (!status) {
-    grpc_grpclb_response_destroy(res);
-    return NULL;
-  }
+  GPR_ASSERT(status == true);
+  GPR_ASSERT(arg.num_servers > 0);
 
   arg.first_pass = 0;
   status =
       pb_decode(&stream_at_start, grpc_lb_v0_LoadBalanceResponse_fields, res);
-  if (!status) {
-    grpc_grpclb_response_destroy(res);
-    return NULL;
-  }
+  GPR_ASSERT(status == true);
+  GPR_ASSERT(arg.servers != NULL);
 
-  grpc_grpclb_serverlist *sl = gpr_malloc(sizeof(grpc_grpclb_serverlist));
   sl->num_servers = arg.num_servers;
   sl->servers = arg.servers;
   if (res->server_list.has_expiration_interval) {
@@ -157,10 +150,8 @@ grpc_grpclb_serverlist *grpc_grpclb_response_parse_serverlist(
 }
 
 void grpc_grpclb_destroy_serverlist(grpc_grpclb_serverlist *serverlist) {
-  if (serverlist == NULL) {
-    return;
-  }
-  for (size_t i = 0; i < serverlist->num_servers; i++) {
+  size_t i;
+  for (i = 0; i < serverlist->num_servers; i++) {
     gpr_free(serverlist->servers[i]);
   }
   gpr_free(serverlist->servers);

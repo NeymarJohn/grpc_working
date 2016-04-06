@@ -51,7 +51,7 @@ namespace Grpc.IntegrationTesting
         const string Host = "localhost";
         Server server;
         Channel channel;
-        TestService.TestServiceClient client;
+        TestService.ITestServiceClient client;
 
         [TestFixtureSetUp]
         public void Init()
