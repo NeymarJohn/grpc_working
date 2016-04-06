@@ -52,13 +52,6 @@ grpc_channel_stack_builder *grpc_channel_stack_builder_create(void);
 void grpc_channel_stack_builder_set_name(grpc_channel_stack_builder *builder,
                                          const char *name);
 
-/// Set the target uri
-void grpc_channel_stack_builder_set_target(grpc_channel_stack_builder *b,
-                                           const char *target);
-
-const char *grpc_channel_stack_builder_get_target(
-    grpc_channel_stack_builder *b);
-
 /// Attach \a transport to the builder (does not take ownership)
 void grpc_channel_stack_builder_set_transport(
     grpc_channel_stack_builder *builder, grpc_transport *transport);
@@ -67,7 +60,8 @@ void grpc_channel_stack_builder_set_transport(
 grpc_transport *grpc_channel_stack_builder_get_transport(
     grpc_channel_stack_builder *builder);
 
-/// Set channel arguments: copies args
+/// Set channel arguments: \a args must continue to exist until after
+/// grpc_channel_stack_builder_finish returns
 void grpc_channel_stack_builder_set_channel_arguments(
     grpc_channel_stack_builder *builder, const grpc_channel_args *args);
 

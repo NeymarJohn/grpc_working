@@ -36,7 +36,6 @@
 #include <string.h>
 
 #include <grpc/support/alloc.h>
-#include <grpc/support/string_util.h>
 
 int grpc_trace_channel_stack_builder = 0;
 
@@ -53,9 +52,8 @@ struct grpc_channel_stack_builder {
   filter_node begin;
   filter_node end;
   // various set/get-able parameters
-  grpc_channel_args *args;
+  const grpc_channel_args *args;
   grpc_transport *transport;
-  char *target;
   const char *name;
 };
 
@@ -76,17 +74,6 @@ grpc_channel_stack_builder *grpc_channel_stack_builder_create(void) {
   b->end.prev = &b->begin;
 
   return b;
-}
-
-void grpc_channel_stack_builder_set_target(grpc_channel_stack_builder *b,
-                                           const char *target) {
-  gpr_free(b->target);
-  b->target = gpr_strdup(target);
-}
-
-const char *grpc_channel_stack_builder_get_target(
-    grpc_channel_stack_builder *b) {
-  return b->target;
 }
 
 static grpc_channel_stack_builder_iterator *create_iterator_at_filter_node(
@@ -139,10 +126,8 @@ void grpc_channel_stack_builder_set_name(grpc_channel_stack_builder *builder,
 
 void grpc_channel_stack_builder_set_channel_arguments(
     grpc_channel_stack_builder *builder, const grpc_channel_args *args) {
-  if (builder->args != NULL) {
-    grpc_channel_args_destroy(builder->args);
-  }
-  builder->args = grpc_channel_args_copy(args);
+  GPR_ASSERT(builder->args == NULL);
+  builder->args = args;
 }
 
 void grpc_channel_stack_builder_set_transport(
@@ -220,10 +205,6 @@ void grpc_channel_stack_builder_destroy(grpc_channel_stack_builder *builder) {
     gpr_free(p);
     p = next;
   }
-  if (builder->args != NULL) {
-    grpc_channel_args_destroy(builder->args);
-  }
-  gpr_free(builder->target);
   gpr_free(builder);
 }
 
