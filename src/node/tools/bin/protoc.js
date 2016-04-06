@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
  *
  * Copyright 2015, Google Inc.
@@ -31,26 +32,23 @@
  *
  */
 
-#include "src/core/ext/transport/chttp2/alpn/alpn.h"
-#include <grpc/support/log.h>
-#include <grpc/support/useful.h>
+/**
+ * This file is required because package.json cannot reference a file that
+ * is not distributed with the package, and we use node-pre-gyp to distribute
+ * the protoc binary
+ */
 
-/* in order of preference */
-static const char *const supported_versions[] = {"h2"};
+'use strict';
 
-int grpc_chttp2_is_alpn_version_supported(const char *version, size_t size) {
-  size_t i;
-  for (i = 0; i < GPR_ARRAY_SIZE(supported_versions); i++) {
-    if (!strncmp(version, supported_versions[i], size)) return 1;
+var path = require('path');
+var execFile = require('child_process').execFile;
+
+var protoc = path.resolve(__dirname, 'protoc');
+
+execFile(protoc, process.argv.slice(2), function(error, stdout, stderr) {
+  if (error) {
+    throw error;
   }
-  return 0;
-}
-
-size_t grpc_chttp2_num_alpn_versions(void) {
-  return GPR_ARRAY_SIZE(supported_versions);
-}
-
-const char *grpc_chttp2_get_alpn_version_index(size_t i) {
-  GPR_ASSERT(i < GPR_ARRAY_SIZE(supported_versions));
-  return supported_versions[i];
-}
+  console.log(stdout);
+  console.log(stderr);
+});

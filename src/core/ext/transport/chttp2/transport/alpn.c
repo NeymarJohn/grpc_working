@@ -31,38 +31,26 @@
  *
  */
 
-#include <limits.h>
+#include "src/core/ext/transport/chttp2/transport/alpn.h"
+#include <grpc/support/log.h>
+#include <grpc/support/useful.h>
 
-#include <grpc/census.h>
+/* in order of preference */
+static const char *const supported_versions[] = {"h2"};
 
-#include "src/core/ext/census/grpc_filter.h"
-#include "src/core/lib/channel/channel_stack_builder.h"
-#include "src/core/lib/surface/channel_init.h"
-
-static bool maybe_add_census_filter(grpc_channel_stack_builder *builder,
-                                    void *arg_must_be_null) {
-  const grpc_channel_args *args =
-      grpc_channel_stack_builder_get_channel_arguments(builder);
-  if (grpc_channel_args_is_census_enabled(args)) {
-    return grpc_channel_stack_builder_prepend_filter(
-        builder, &grpc_client_census_filter, NULL, NULL);
+int grpc_chttp2_is_alpn_version_supported(const char *version, size_t size) {
+  size_t i;
+  for (i = 0; i < GPR_ARRAY_SIZE(supported_versions); i++) {
+    if (!strncmp(version, supported_versions[i], size)) return 1;
   }
-  return true;
+  return 0;
 }
 
-void census_grpc_plugin_init(void) {
-  /* Only initialize census if no one else has and some features are
-   * available. */
-  if (census_enabled() == CENSUS_FEATURE_NONE &&
-      census_supported() != CENSUS_FEATURE_NONE) {
-    if (census_initialize(census_supported())) { /* enable all features. */
-      gpr_log(GPR_ERROR, "Could not initialize census.");
-    }
-  }
-  grpc_channel_init_register_stage(GRPC_CLIENT_CHANNEL, INT_MAX,
-                                   maybe_add_census_filter, NULL);
-  grpc_channel_init_register_stage(GRPC_SERVER_CHANNEL, INT_MAX,
-                                   maybe_add_census_filter, NULL);
+size_t grpc_chttp2_num_alpn_versions(void) {
+  return GPR_ARRAY_SIZE(supported_versions);
 }
 
-void census_grpc_plugin_shutdown(void) { census_shutdown(); }
+const char *grpc_chttp2_get_alpn_version_index(size_t i) {
+  GPR_ASSERT(i < GPR_ARRAY_SIZE(supported_versions));
+  return supported_versions[i];
+}
