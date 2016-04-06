@@ -2451,18 +2451,36 @@ LIBGRPC_SRC = \
     src/core/ext/census/operation.c \
     src/core/ext/census/placeholders.c \
     src/core/ext/census/tracing.c \
+    src/core/ext/client_config/channel_connectivity.c \
+    src/core/ext/client_config/client_channel.c \
+    src/core/ext/client_config/client_channel_factory.c \
+    src/core/ext/client_config/client_config.c \
+    src/core/ext/client_config/connector.c \
+    src/core/ext/client_config/default_initial_connect_string.c \
+    src/core/ext/client_config/initial_connect_string.c \
+    src/core/ext/client_config/lb_policy.c \
+    src/core/ext/client_config/lb_policy_factory.c \
+    src/core/ext/client_config/lb_policy_registry.c \
+    src/core/ext/client_config/resolver.c \
+    src/core/ext/client_config/resolver_factory.c \
+    src/core/ext/client_config/resolver_registry.c \
+    src/core/ext/client_config/subchannel.c \
+    src/core/ext/client_config/subchannel_call_holder.c \
+    src/core/ext/client_config/subchannel_index.c \
+    src/core/ext/client_config/uri_parser.c \
     src/core/ext/lb_policy/grpclb/load_balancer_api.c \
     src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/ext/lb_policy/pick_first/pick_first.c \
     src/core/ext/lb_policy/round_robin/round_robin.c \
     src/core/ext/resolver/dns/native/dns_resolver.c \
     src/core/ext/resolver/sockaddr/sockaddr_resolver.c \
+    src/core/ext/transport/chttp2/alpn/alpn.c \
     src/core/ext/transport/chttp2/client/insecure/channel_create.c \
     src/core/ext/transport/chttp2/client/secure/secure_channel_create.c \
     src/core/ext/transport/chttp2/server/insecure/server_chttp2.c \
     src/core/ext/transport/chttp2/server/secure/server_secure_chttp2.c \
-    src/core/ext/transport/chttp2/transport/alpn.c \
     src/core/ext/transport/chttp2/transport/bin_encoder.c \
+    src/core/ext/transport/chttp2/transport/chttp2_plugin.c \
     src/core/ext/transport/chttp2/transport/chttp2_transport.c \
     src/core/ext/transport/chttp2/transport/frame_data.c \
     src/core/ext/transport/chttp2/transport/frame_goaway.c \
@@ -2485,26 +2503,10 @@ LIBGRPC_SRC = \
     src/core/lib/channel/channel_args.c \
     src/core/lib/channel/channel_stack.c \
     src/core/lib/channel/channel_stack_builder.c \
-    src/core/lib/channel/client_channel.c \
     src/core/lib/channel/compress_filter.c \
     src/core/lib/channel/connected_channel.c \
     src/core/lib/channel/http_client_filter.c \
     src/core/lib/channel/http_server_filter.c \
-    src/core/lib/channel/subchannel_call_holder.c \
-    src/core/lib/client_config/client_channel_factory.c \
-    src/core/lib/client_config/client_config.c \
-    src/core/lib/client_config/connector.c \
-    src/core/lib/client_config/default_initial_connect_string.c \
-    src/core/lib/client_config/initial_connect_string.c \
-    src/core/lib/client_config/lb_policy.c \
-    src/core/lib/client_config/lb_policy_factory.c \
-    src/core/lib/client_config/lb_policy_registry.c \
-    src/core/lib/client_config/resolver.c \
-    src/core/lib/client_config/resolver_factory.c \
-    src/core/lib/client_config/resolver_registry.c \
-    src/core/lib/client_config/subchannel.c \
-    src/core/lib/client_config/subchannel_index.c \
-    src/core/lib/client_config/uri_parser.c \
     src/core/lib/compression/compression_algorithm.c \
     src/core/lib/compression/message_compress.c \
     src/core/lib/debug/trace.c \
@@ -2577,7 +2579,6 @@ LIBGRPC_SRC = \
     src/core/lib/surface/call_details.c \
     src/core/lib/surface/call_log_batch.c \
     src/core/lib/surface/channel.c \
-    src/core/lib/surface/channel_connectivity.c \
     src/core/lib/surface/channel_init.c \
     src/core/lib/surface/channel_ping.c \
     src/core/lib/surface/channel_stack_type.c \
@@ -2810,16 +2811,34 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/ext/census/operation.c \
     src/core/ext/census/placeholders.c \
     src/core/ext/census/tracing.c \
+    src/core/ext/client_config/channel_connectivity.c \
+    src/core/ext/client_config/client_channel.c \
+    src/core/ext/client_config/client_channel_factory.c \
+    src/core/ext/client_config/client_config.c \
+    src/core/ext/client_config/connector.c \
+    src/core/ext/client_config/default_initial_connect_string.c \
+    src/core/ext/client_config/initial_connect_string.c \
+    src/core/ext/client_config/lb_policy.c \
+    src/core/ext/client_config/lb_policy_factory.c \
+    src/core/ext/client_config/lb_policy_registry.c \
+    src/core/ext/client_config/resolver.c \
+    src/core/ext/client_config/resolver_factory.c \
+    src/core/ext/client_config/resolver_registry.c \
+    src/core/ext/client_config/subchannel.c \
+    src/core/ext/client_config/subchannel_call_holder.c \
+    src/core/ext/client_config/subchannel_index.c \
+    src/core/ext/client_config/uri_parser.c \
     src/core/ext/lb_policy/grpclb/load_balancer_api.c \
     src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0/load_balancer.pb.c \
     src/core/ext/lb_policy/pick_first/pick_first.c \
     src/core/ext/lb_policy/round_robin/round_robin.c \
     src/core/ext/resolver/dns/native/dns_resolver.c \
     src/core/ext/resolver/sockaddr/sockaddr_resolver.c \
+    src/core/ext/transport/chttp2/alpn/alpn.c \
     src/core/ext/transport/chttp2/client/insecure/channel_create.c \
     src/core/ext/transport/chttp2/server/insecure/server_chttp2.c \
-    src/core/ext/transport/chttp2/transport/alpn.c \
     src/core/ext/transport/chttp2/transport/bin_encoder.c \
+    src/core/ext/transport/chttp2/transport/chttp2_plugin.c \
     src/core/ext/transport/chttp2/transport/chttp2_transport.c \
     src/core/ext/transport/chttp2/transport/frame_data.c \
     src/core/ext/transport/chttp2/transport/frame_goaway.c \
@@ -2842,26 +2861,10 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/lib/channel/channel_args.c \
     src/core/lib/channel/channel_stack.c \
     src/core/lib/channel/channel_stack_builder.c \
-    src/core/lib/channel/client_channel.c \
     src/core/lib/channel/compress_filter.c \
     src/core/lib/channel/connected_channel.c \
     src/core/lib/channel/http_client_filter.c \
     src/core/lib/channel/http_server_filter.c \
-    src/core/lib/channel/subchannel_call_holder.c \
-    src/core/lib/client_config/client_channel_factory.c \
-    src/core/lib/client_config/client_config.c \
-    src/core/lib/client_config/connector.c \
-    src/core/lib/client_config/default_initial_connect_string.c \
-    src/core/lib/client_config/initial_connect_string.c \
-    src/core/lib/client_config/lb_policy.c \
-    src/core/lib/client_config/lb_policy_factory.c \
-    src/core/lib/client_config/lb_policy_registry.c \
-    src/core/lib/client_config/resolver.c \
-    src/core/lib/client_config/resolver_factory.c \
-    src/core/lib/client_config/resolver_registry.c \
-    src/core/lib/client_config/subchannel.c \
-    src/core/lib/client_config/subchannel_index.c \
-    src/core/lib/client_config/uri_parser.c \
     src/core/lib/compression/compression_algorithm.c \
     src/core/lib/compression/message_compress.c \
     src/core/lib/debug/trace.c \
@@ -2919,7 +2922,6 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/lib/surface/call_details.c \
     src/core/lib/surface/call_log_batch.c \
     src/core/lib/surface/channel.c \
-    src/core/lib/surface/channel_connectivity.c \
     src/core/lib/surface/channel_init.c \
     src/core/lib/surface/channel_ping.c \
     src/core/lib/surface/channel_stack_type.c \
@@ -3395,18 +3397,18 @@ endif
 
 
 ifeq ($(SYSTEM),MINGW32)
-$(LIBDIR)/$(CONFIG)/grpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_CODEGEN_LIB_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP)
+$(LIBDIR)/$(CONFIG)/grpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_CODEGEN_LIB_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/gpr.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/grpc.$(SHARED_EXT)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared grpc++_codegen_lib.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc++_codegen_lib$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_CODEGEN_LIB_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF)
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared grpc++_codegen_lib.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc++_codegen_lib$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_CODEGEN_LIB_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr-imp -lgrpc-imp
 else
-$(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_CODEGEN_LIB_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP)
+$(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_CODEGEN_LIB_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/libgpr.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc.$(SHARED_EXT)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 ifeq ($(SYSTEM),Darwin)
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_CODEGEN_LIB_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF)
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_CODEGEN_LIB_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc
 else
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc++_codegen_lib.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_CODEGEN_LIB_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF)
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc++_codegen_lib.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_CODEGEN_LIB_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc
 	$(Q) ln -sf $(SHARED_PREFIX)grpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib$(SHARED_VERSION).so.0
 	$(Q) ln -sf $(SHARED_PREFIX)grpc++_codegen_lib$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc++_codegen_lib$(SHARED_VERSION).so
 endif
@@ -3663,18 +3665,18 @@ endif
 
 
 ifeq ($(SYSTEM),MINGW32)
-$(LIBDIR)/$(CONFIG)/grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_UNSECURE_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/gpr.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/grpc_unsecure.$(SHARED_EXT)
+$(LIBDIR)/$(CONFIG)/grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_UNSECURE_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/gpr.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/grpc.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/grpc_unsecure.$(SHARED_EXT)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared grpc++_unsecure.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc++_unsecure$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr-imp -lgrpc_unsecure-imp
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared grpc++_unsecure.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc++_unsecure$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr-imp -lgrpc-imp -lgrpc_unsecure-imp
 else
-$(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_UNSECURE_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/libgpr.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.$(SHARED_EXT)
+$(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC++_UNSECURE_OBJS)  $(ZLIB_DEP) $(PROTOBUF_DEP) $(LIBDIR)/$(CONFIG)/libgpr.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc.$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc_unsecure.$(SHARED_EXT)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 ifeq ($(SYSTEM),Darwin)
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc_unsecure
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc -lgrpc_unsecure
 else
-	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc++_unsecure.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc_unsecure
+	$(Q) $(LDXX) $(LDFLAGS) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc++_unsecure.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC++_UNSECURE_OBJS) $(LDLIBS) $(ZLIB_MERGE_LIBS) $(LDLIBSXX) $(LDLIBS_PROTOBUF) -lgpr -lgrpc -lgrpc_unsecure
 	$(Q) ln -sf $(SHARED_PREFIX)grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).so.0
 	$(Q) ln -sf $(SHARED_PREFIX)grpc++_unsecure$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc++_unsecure$(SHARED_VERSION).so
 endif
@@ -4056,18 +4058,18 @@ endif
 
 
 ifeq ($(SYSTEM),MINGW32)
-$(LIBDIR)/$(CONFIG)/grpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC_CSHARP_EXT_OBJS)  $(ZLIB_DEP) $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a $(OPENSSL_DEP)
+$(LIBDIR)/$(CONFIG)/grpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC_CSHARP_EXT_OBJS)  $(ZLIB_DEP) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(OPENSSL_DEP)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
-	$(Q) $(LD) $(LDFLAGS) $(if $(subst Linux,,$(SYSTEM)),,-Wl$(comma)-wrap$(comma)memcpy) -L$(LIBDIR)/$(CONFIG) -shared grpc_csharp_ext.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc_csharp_ext$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_CSHARP_EXT_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a $(ZLIB_MERGE_LIBS)
+	$(Q) $(LD) $(LDFLAGS) $(if $(subst Linux,,$(SYSTEM)),,-Wl$(comma)-wrap$(comma)memcpy) -L$(LIBDIR)/$(CONFIG) -shared grpc_csharp_ext.def -Wl,--output-def=$(LIBDIR)/$(CONFIG)/grpc_csharp_ext$(SHARED_VERSION).def -Wl,--out-implib=$(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext$(SHARED_VERSION)-dll.a -o $(LIBDIR)/$(CONFIG)/grpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_CSHARP_EXT_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(ZLIB_MERGE_LIBS)
 else
-$(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC_CSHARP_EXT_OBJS)  $(ZLIB_DEP) $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a $(OPENSSL_DEP)
+$(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT): $(LIBGRPC_CSHARP_EXT_OBJS)  $(ZLIB_DEP) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(OPENSSL_DEP)
 	$(E) "[LD]      Linking $@"
 	$(Q) mkdir -p `dirname $@`
 ifeq ($(SYSTEM),Darwin)
-	$(Q) $(LD) $(LDFLAGS) $(if $(subst Linux,,$(SYSTEM)),,-Wl$(comma)-wrap$(comma)memcpy) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_CSHARP_EXT_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a $(ZLIB_MERGE_LIBS)
+	$(Q) $(LD) $(LDFLAGS) $(if $(subst Linux,,$(SYSTEM)),,-Wl$(comma)-wrap$(comma)memcpy) -L$(LIBDIR)/$(CONFIG) -install_name $(SHARED_PREFIX)grpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT) -dynamiclib -o $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_CSHARP_EXT_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(ZLIB_MERGE_LIBS)
 else
-	$(Q) $(LD) $(LDFLAGS) $(if $(subst Linux,,$(SYSTEM)),,-Wl$(comma)-wrap$(comma)memcpy) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc_csharp_ext.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_CSHARP_EXT_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgrpc.a $(LIBDIR)/$(CONFIG)/libgpr.a $(ZLIB_MERGE_LIBS)
+	$(Q) $(LD) $(LDFLAGS) $(if $(subst Linux,,$(SYSTEM)),,-Wl$(comma)-wrap$(comma)memcpy) -L$(LIBDIR)/$(CONFIG) -shared -Wl,-soname,libgrpc_csharp_ext.so.0 -o $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT) $(LIBGRPC_CSHARP_EXT_OBJS) $(LDLIBS) $(LIBDIR)/$(CONFIG)/libgpr.a $(LIBDIR)/$(CONFIG)/libgrpc.a $(ZLIB_MERGE_LIBS)
 	$(Q) ln -sf $(SHARED_PREFIX)grpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext$(SHARED_VERSION).so.0
 	$(Q) ln -sf $(SHARED_PREFIX)grpc_csharp_ext$(SHARED_VERSION).$(SHARED_EXT) $(LIBDIR)/$(CONFIG)/libgrpc_csharp_ext$(SHARED_VERSION).so
 endif
