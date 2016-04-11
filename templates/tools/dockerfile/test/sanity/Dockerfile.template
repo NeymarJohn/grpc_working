@@ -40,8 +40,7 @@
         automake ${"\\"}
         libtool ${"\\"}
         curl ${"\\"}
-        python-virtualenv ${"\\"}
-        python-lxml
+        python-virtualenv
   RUN pip install simplejson mako
 
   #===================
