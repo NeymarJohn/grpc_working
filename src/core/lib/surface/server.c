@@ -251,7 +251,9 @@ static void channel_broadcaster_init(grpc_server *s, channel_broadcaster *cb) {
     count++;
   }
   cb->num_channels = count;
-  cb->channels = gpr_malloc(sizeof(*cb->channels) * cb->num_channels);
+  cb->channels = cb->num_channels
+                     ? gpr_malloc(sizeof(*cb->channels) * cb->num_channels)
+                     : NULL;
   count = 0;
   for (c = s->root_channel_data.next; c != &s->root_channel_data; c = c->next) {
     cb->channels[count++] = c->channel;
@@ -1018,6 +1020,7 @@ void grpc_server_start(grpc_server *server) {
 void grpc_server_setup_transport(grpc_exec_ctx *exec_ctx, grpc_server *s,
                                  grpc_transport *transport,
                                  const grpc_channel_args *args) {
+  size_t i;
   size_t num_registered_methods;
   size_t alloc;
   registered_method *rm;
@@ -1031,6 +1034,12 @@ void grpc_server_setup_transport(grpc_exec_ctx *exec_ctx, grpc_server *s,
   uint32_t probes;
   uint32_t max_probes = 0;
   grpc_transport_op op;
+
+  for (i = 0; i < s->cq_count; i++) {
+    memset(&op, 0, sizeof(op));
+    op.bind_pollset = grpc_cq_pollset(s->cqs[i]);
+    grpc_transport_perform_op(exec_ctx, transport, &op);
+  }
 
   channel =
       grpc_channel_create(exec_ctx, NULL, args, GRPC_SERVER_CHANNEL, transport);
