@@ -1,6 +1,7 @@
+#!/usr/bin/env node
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,35 +32,23 @@
  *
  */
 
-#ifndef TEST_QPS_PARSE_JSON_H
-#define TEST_QPS_PARSE_JSON_H
+/**
+ * This file is required because package.json cannot reference a file that
+ * is not distributed with the package, and we use node-pre-gyp to distribute
+ * the protoc binary
+ */
 
-#include <google/protobuf/util/json_util.h>
-#include <google/protobuf/util/type_resolver_util.h>
+'use strict';
 
-namespace grpc {
-namespace testing {
+var path = require('path');
+var execFile = require('child_process').execFile;
 
-template <class Msg>
-void ParseJson(const grpc::string& json, const grpc::string& type, Msg& msg) {
-  std::unique_ptr<google::protobuf::util::TypeResolver> type_resolver(
-      google::protobuf::util::NewTypeResolverForDescriptorPool(
-          "type.googleapis.com",
-          google::protobuf::DescriptorPool::generated_pool()));
-  grpc::string binary;
-  auto status = JsonToBinaryString(
-      type_resolver.get(), "type.googleapis.com/" + type, json, &binary);
-  if (!status.ok()) {
-    grpc::string errmsg(status.error_message());
-    gpr_log(GPR_ERROR, "Failed to convert json to binary: errcode=%d msg=%s",
-            status.error_code(), errmsg.c_str());
-    gpr_log(GPR_ERROR, "JSON: ", json.c_str());
-    abort();
+var protoc = path.resolve(__dirname, 'protoc');
+
+execFile(protoc, process.argv.slice(2), function(error, stdout, stderr) {
+  if (error) {
+    throw error;
   }
-  GPR_ASSERT(msg.ParseFromString(binary));
-}
-
-}  // testing
-}  // grpc
-
-#endif  // TEST_QPS_PARSE_JSON_H
+  console.log(stdout);
+  console.log(stderr);
+});

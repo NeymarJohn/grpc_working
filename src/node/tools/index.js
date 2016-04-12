@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,19 +31,11 @@
  *
  */
 
-#include <gtest/gtest.h>
+'use strict';
 
-namespace grpc {
-namespace {
+/**
+ * package.json requires this file to be present. In the future, this can
+ * export useful information about the included tools.
+ */
 
-class CodegenTest : public ::testing::Test {};
-
-TEST_F(CodegenTest, Build) {}
-
-}  // namespace
-}  // namespace grpc
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+module.exports = {};
