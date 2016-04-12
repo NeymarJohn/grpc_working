@@ -558,7 +558,6 @@
         'gpr',
       ],
       'sources': [
-        'src/core/lib/surface/init.c',
         'src/core/lib/channel/channel_args.c',
         'src/core/lib/channel/channel_stack.c',
         'src/core/lib/channel/channel_stack_builder.c',
@@ -628,6 +627,7 @@
         'src/core/lib/surface/channel_stack_type.c',
         'src/core/lib/surface/completion_queue.c',
         'src/core/lib/surface/event_string.c',
+        'src/core/lib/surface/init.c',
         'src/core/lib/surface/lame_client.c',
         'src/core/lib/surface/metadata_array.c',
         'src/core/lib/surface/server.c',
