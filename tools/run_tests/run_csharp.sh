@@ -1,4 +1,5 @@
-# Copyright 2016, Google Inc.
+#!/bin/bash
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,45 +28,25 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'open3'
-require 'tmpdir'
+set -ex
 
-def can_run_codegen_check
-  system('which grpc_ruby_plugin') && system('which protoc')
-end
+CONFIG=${CONFIG:-opt}
+NUNIT_CONSOLE="mono packages/NUnit.Runners.2.6.4/tools/nunit-console.exe"
 
-describe 'Ping protobuf code generation' do
-  if !can_run_codegen_check
-    skip 'protoc || grpc_ruby_plugin missing, cannot verify ping code-gen'
-  else
-    it 'should have the same content as created by code generation' do
-      root_dir = File.join(File.dirname(__FILE__), '..', '..', '..', '..', '..')
+# change to gRPC repo root
+cd $(dirname $0)/../..
 
-      # Get the current content
-      service_path = File.join(root_dir, 'src', 'ruby', 'pb', 'grpc',
-                               'testing', 'duplicate',
-                               'echo_duplicate_services.rb')
-      want = nil
-      File.open(service_path) { |f| want = f.read }
+(cd src/csharp; $NUNIT_CONSOLE $@)
 
-      # Regenerate it
-      plugin, = Open3.capture2('which', 'grpc_ruby_plugin')
-      plugin = plugin.strip
-      got = nil
-      Dir.mktmpdir do |tmp_dir|
-        gen_out = File.join(tmp_dir, 'src', 'proto', 'grpc', 'testing',
-                            'duplicate', 'echo_duplicate_services.rb')
-        pid = spawn(
-          'protoc',
-          '-I.',
-          'src/proto/grpc/testing/duplicate/echo_duplicate.proto',
-          "--grpc_out=#{tmp_dir}",
-          "--plugin=protoc-gen-grpc=#{plugin}",
-          chdir: root_dir)
-        Process.wait(pid)
-        File.open(gen_out) { |f| got = f.read }
-      end
-      expect(got).to eq(want)
-    end
-  end
-end
+if [ "$CONFIG" = "gcov" ]
+then
+  # Generate the csharp extension coverage report
+  gcov objs/gcov/src/csharp/ext/*.o
+  lcov --base-directory . --directory . -c -o coverage.info
+  lcov -e coverage.info '**/src/csharp/ext/*' -o coverage.info
+  genhtml -o reports/csharp_ext_coverage --num-spaces 2 \
+    -t 'gRPC C# native extension test coverage' coverage.info \
+    --rc genhtml_hi_limit=95 --rc genhtml_med_limit=80 --no-prefix
+fi
+
+
