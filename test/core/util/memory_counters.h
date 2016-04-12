@@ -31,19 +31,18 @@
  *
  */
 
-#ifndef TEST_QPS_PARSE_JSON_H
-#define TEST_QPS_PARSE_JSON_H
+#ifndef GRPC_TEST_CORE_UTIL_MEMORY_COUNTERS_H
+#define GRPC_TEST_CORE_UTIL_MEMORY_COUNTERS_H
 
-#include <grpc++/support/config.h>
-#include <grpc++/support/config_protobuf.h>
+struct grpc_memory_counters {
+  size_t total_size_relative;
+  size_t total_size_absolute;
+  size_t total_allocs_relative;
+  size_t total_allocs_absolute;
+};
 
-namespace grpc {
-namespace testing {
+void grpc_memory_counters_init();
+void grpc_memory_counters_destroy();
+struct grpc_memory_counters grpc_memory_counters_snapshot();
 
-void ParseJson(const grpc::string& json, const grpc::string& type,
-               GRPC_CUSTOM_MESSAGE* msg);
-
-}  // testing
-}  // grpc
-
-#endif  // TEST_QPS_PARSE_JSON_H
+#endif
