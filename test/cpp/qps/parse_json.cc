@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,57 +31,37 @@
  *
  */
 
-#include <stdint.h>
-#include <string.h>
+#include <grpc++/support/config_protobuf.h>
 
-#include <grpc/support/alloc.h>
+#include "test/cpp/qps/parse_json.h"
+
+#include <string>
+
+#include <google/protobuf/util/json_util.h>
+#include <google/protobuf/util/type_resolver_util.h>
 #include <grpc/support/log.h>
 
-#include "src/core/lib/json/json.h"
+namespace grpc {
+namespace testing {
 
-static size_t g_total_size = 0;
-static gpr_allocation_functions g_old_allocs;
-
-void *guard_malloc(size_t size) {
-  size_t *ptr;
-  g_total_size += size;
-  ptr = g_old_allocs.malloc_fn(size + sizeof(size));
-  *ptr++ = size;
-  return ptr;
-}
-
-void *guard_realloc(void *vptr, size_t size) {
-  size_t *ptr = vptr;
-  --ptr;
-  g_total_size -= *ptr;
-  ptr = g_old_allocs.realloc_fn(ptr, size + sizeof(size));
-  g_total_size += size;
-  *ptr++ = size;
-  return ptr;
-}
-
-void guard_free(void *vptr) {
-  size_t *ptr = vptr;
-  --ptr;
-  g_total_size -= *ptr;
-  g_old_allocs.free_fn(ptr);
-}
-
-struct gpr_allocation_functions g_guard_allocs = {guard_malloc, guard_realloc,
-                                                  guard_free};
-
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-  char *s;
-  g_old_allocs = gpr_get_allocation_functions();
-  gpr_set_allocation_functions(g_guard_allocs);
-  s = gpr_malloc(size);
-  memcpy(s, data, size);
-  grpc_json *x;
-  if ((x = grpc_json_parse_string_with_len(s, size))) {
-    grpc_json_destroy(x);
+void ParseJson(const grpc::string& json, const grpc::string& type,
+               GRPC_CUSTOM_MESSAGE* msg) {
+  std::unique_ptr<google::protobuf::util::TypeResolver> type_resolver(
+      google::protobuf::util::NewTypeResolverForDescriptorPool(
+          "type.googleapis.com",
+          google::protobuf::DescriptorPool::generated_pool()));
+  grpc::string binary;
+  auto status = JsonToBinaryString(
+      type_resolver.get(), "type.googleapis.com/" + type, json, &binary);
+  if (!status.ok()) {
+    grpc::string errmsg(status.error_message());
+    gpr_log(GPR_ERROR, "Failed to convert json to binary: errcode=%d msg=%s",
+            status.error_code(), errmsg.c_str());
+    gpr_log(GPR_ERROR, "JSON: ", json.c_str());
+    abort();
   }
-  gpr_free(s);
-  gpr_set_allocation_functions(g_old_allocs);
-  GPR_ASSERT(g_total_size == 0);
-  return 0;
+  GPR_ASSERT(msg->ParseFromString(binary));
 }
+
+}  // testing
+}  // grpc

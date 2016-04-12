@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2016, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,18 +31,18 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_UTIL_MEMORY_COUNTERS_H
-#define GRPC_TEST_CORE_UTIL_MEMORY_COUNTERS_H
+#ifndef GRPCXX_IMPL_CODEGEN_CREATE_AUTH_CONTEXT_H
+#define GRPCXX_IMPL_CODEGEN_CREATE_AUTH_CONTEXT_H
 
-struct grpc_memory_counters {
-  size_t total_size_relative;
-  size_t total_size_absolute;
-  size_t total_allocs_relative;
-  size_t total_allocs_absolute;
-};
+#include <memory>
 
-void grpc_memory_counters_init();
-void grpc_memory_counters_destroy();
-struct grpc_memory_counters grpc_memory_counters_snapshot();
+#include <grpc++/security/auth_context.h>
+#include <grpc/grpc.h>
 
-#endif
+namespace grpc {
+
+std::shared_ptr<const AuthContext> CreateAuthContext(grpc_call* call);
+
+}  // namespace grpc
+
+#endif  // GRPCXX_IMPL_CODEGEN_CREATE_AUTH_CONTEXT_H
