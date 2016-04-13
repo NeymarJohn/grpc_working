@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,60 +31,37 @@
  *
  */
 
-#include <grpc/support/alloc.h>
+#include <grpc++/support/config_protobuf.h>
 
+#include "test/cpp/qps/parse_json.h"
+
+#include <string>
+
+#include <google/protobuf/util/json_util.h>
+#include <google/protobuf/util/type_resolver_util.h>
 #include <grpc/support/log.h>
-#include <grpc/support/port_platform.h>
-#include <stdlib.h>
-#include "src/core/lib/profiling/timers.h"
 
-static gpr_allocation_functions g_alloc_functions = {malloc, realloc, free};
+namespace grpc {
+namespace testing {
 
-gpr_allocation_functions gpr_get_allocation_functions() {
-  return g_alloc_functions;
-}
-
-void gpr_set_allocation_functions(gpr_allocation_functions functions) {
-  GPR_ASSERT(functions.malloc_fn != NULL);
-  GPR_ASSERT(functions.realloc_fn != NULL);
-  GPR_ASSERT(functions.free_fn != NULL);
-  g_alloc_functions = functions;
-}
-
-void *gpr_malloc(size_t size) {
-  void *p;
-  GPR_TIMER_BEGIN("gpr_malloc", 0);
-  p = g_alloc_functions.malloc_fn(size);
-  if (!p) {
+void ParseJson(const grpc::string& json, const grpc::string& type,
+               GRPC_CUSTOM_MESSAGE* msg) {
+  std::unique_ptr<google::protobuf::util::TypeResolver> type_resolver(
+      google::protobuf::util::NewTypeResolverForDescriptorPool(
+          "type.googleapis.com",
+          google::protobuf::DescriptorPool::generated_pool()));
+  grpc::string binary;
+  auto status = JsonToBinaryString(
+      type_resolver.get(), "type.googleapis.com/" + type, json, &binary);
+  if (!status.ok()) {
+    grpc::string errmsg(status.error_message());
+    gpr_log(GPR_ERROR, "Failed to convert json to binary: errcode=%d msg=%s",
+            status.error_code(), errmsg.c_str());
+    gpr_log(GPR_ERROR, "JSON: ", json.c_str());
     abort();
   }
-  GPR_TIMER_END("gpr_malloc", 0);
-  return p;
+  GPR_ASSERT(msg->ParseFromString(binary));
 }
 
-void gpr_free(void *p) {
-  GPR_TIMER_BEGIN("gpr_free", 0);
-  g_alloc_functions.free_fn(p);
-  GPR_TIMER_END("gpr_free", 0);
-}
-
-void *gpr_realloc(void *p, size_t size) {
-  GPR_TIMER_BEGIN("gpr_realloc", 0);
-  p = g_alloc_functions.realloc_fn(p, size);
-  if (!p) {
-    abort();
-  }
-  GPR_TIMER_END("gpr_realloc", 0);
-  return p;
-}
-
-void *gpr_malloc_aligned(size_t size, size_t alignment_log) {
-  size_t alignment = ((size_t)1) << alignment_log;
-  size_t extra = alignment - 1 + sizeof(void *);
-  void *p = gpr_malloc(size + extra);
-  void **ret = (void **)(((uintptr_t)p + extra) & ~(alignment - 1));
-  ret[-1] = p;
-  return (void *)ret;
-}
-
-void gpr_free_aligned(void *ptr) { gpr_free(((void **)ptr)[-1]); }
+}  // testing
+}  // grpc
