@@ -31,12 +31,18 @@
  *
  */
 
-#ifndef MOCK_ENDPOINT_H
-#define MOCK_ENDPOINT_H
+#ifndef GRPC_TEST_CORE_UTIL_MEMORY_COUNTERS_H
+#define GRPC_TEST_CORE_UTIL_MEMORY_COUNTERS_H
 
-#include "src/core/lib/iomgr/endpoint.h"
+struct grpc_memory_counters {
+  size_t total_size_relative;
+  size_t total_size_absolute;
+  size_t total_allocs_relative;
+  size_t total_allocs_absolute;
+};
 
-void grpc_passthru_endpoint_create(grpc_endpoint **client,
-                                   grpc_endpoint **server);
+void grpc_memory_counters_init();
+void grpc_memory_counters_destroy();
+struct grpc_memory_counters grpc_memory_counters_snapshot();
 
 #endif
