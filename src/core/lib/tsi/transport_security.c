@@ -33,15 +33,25 @@
 
 #include "src/core/lib/tsi/transport_security.h"
 
-#include <grpc/support/alloc.h>
-#include <grpc/support/string_util.h>
-
 #include <stdlib.h>
 #include <string.h>
 
 /* --- Tracing. --- */
 
 int tsi_tracing_enabled = 0;
+
+/* --- Utils. --- */
+
+char *tsi_strdup(const char *src) {
+  char *dst;
+  size_t len;
+  if (!src) return NULL;
+  len = strlen(src) + 1;
+  dst = malloc(len);
+  if (!dst) return NULL;
+  memcpy(dst, src, len);
+  return dst;
+}
 
 /* --- tsi_result common implementation. --- */
 
@@ -204,15 +214,15 @@ static void tsi_peer_destroy_list_property(tsi_peer_property *children,
   for (i = 0; i < child_count; i++) {
     tsi_peer_property_destruct(&children[i]);
   }
-  gpr_free(children);
+  free(children);
 }
 
 void tsi_peer_property_destruct(tsi_peer_property *property) {
   if (property->name != NULL) {
-    gpr_free(property->name);
+    free(property->name);
   }
   if (property->value.data != NULL) {
-    gpr_free(property->value.data);
+    free(property->value.data);
   }
   *property = tsi_init_peer_property(); /* Reset everything to 0. */
 }
@@ -229,10 +239,16 @@ void tsi_peer_destruct(tsi_peer *self) {
 tsi_result tsi_construct_allocated_string_peer_property(
     const char *name, size_t value_length, tsi_peer_property *property) {
   *property = tsi_init_peer_property();
-  if (name != NULL) property->name = gpr_strdup(name);
+  if (name != NULL) {
+    property->name = tsi_strdup(name);
+    if (property->name == NULL) return TSI_OUT_OF_RESOURCES;
+  }
   if (value_length > 0) {
-    property->value.data = gpr_malloc(value_length);
-    memset(property->value.data, 0, value_length);
+    property->value.data = calloc(1, value_length);
+    if (property->value.data == NULL) {
+      tsi_peer_property_destruct(property);
+      return TSI_OUT_OF_RESOURCES;
+    }
     property->value.length = value_length;
   }
   return TSI_OK;
@@ -260,8 +276,8 @@ tsi_result tsi_construct_string_peer_property(const char *name,
 tsi_result tsi_construct_peer(size_t property_count, tsi_peer *peer) {
   memset(peer, 0, sizeof(tsi_peer));
   if (property_count > 0) {
-    peer->properties = gpr_malloc(property_count * sizeof(tsi_peer_property));
-    memset(peer->properties, 0, property_count * sizeof(tsi_peer_property));
+    peer->properties = calloc(property_count, sizeof(tsi_peer_property));
+    if (peer->properties == NULL) return TSI_OUT_OF_RESOURCES;
     peer->property_count = property_count;
   }
   return TSI_OK;
