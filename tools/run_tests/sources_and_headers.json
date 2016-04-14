@@ -1241,6 +1241,22 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "load_reporting_registration_test", 
+    "src": [
+      "test/core/load_reporting/load_reporting_registration.c"
+    ], 
+    "third_party": false, 
+    "type": "target"
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "low_level_ping_pong_benchmark", 
     "src": [
       "test/core/network_benchmarks/low_level_ping_pong.c"
@@ -5742,6 +5758,7 @@
       "include/grpc/compression.h", 
       "include/grpc/grpc.h", 
       "include/grpc/status.h", 
+      "src/core/ext/load_reporting/load_reporting_filter.h", 
       "src/core/lib/channel/channel_args.h", 
       "src/core/lib/channel/channel_stack.h", 
       "src/core/lib/channel/channel_stack_builder.h", 
@@ -5796,6 +5813,7 @@
       "src/core/lib/json/json_common.h", 
       "src/core/lib/json/json_reader.h", 
       "src/core/lib/json/json_writer.h", 
+      "src/core/lib/load_reporting/load_reporting.h", 
       "src/core/lib/surface/api_trace.h", 
       "src/core/lib/surface/call.h", 
       "src/core/lib/surface/call_test_only.h", 
@@ -5824,6 +5842,8 @@
       "include/grpc/compression.h", 
       "include/grpc/grpc.h", 
       "include/grpc/status.h", 
+      "src/core/ext/load_reporting/load_reporting_filter.c", 
+      "src/core/ext/load_reporting/load_reporting_filter.h", 
       "src/core/lib/channel/channel_args.c", 
       "src/core/lib/channel/channel_args.h", 
       "src/core/lib/channel/channel_stack.c", 
@@ -5934,6 +5954,8 @@
       "src/core/lib/json/json_string.c", 
       "src/core/lib/json/json_writer.c", 
       "src/core/lib/json/json_writer.h", 
+      "src/core/lib/load_reporting/load_reporting.c", 
+      "src/core/lib/load_reporting/load_reporting.h", 
       "src/core/lib/surface/alarm.c", 
       "src/core/lib/surface/api_trace.c", 
       "src/core/lib/surface/api_trace.h", 

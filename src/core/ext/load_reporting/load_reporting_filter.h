@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,47 +31,11 @@
  *
  */
 
-#ifndef TEST_QPS_DRIVER_H
-#define TEST_QPS_DRIVER_H
+#ifndef GRPC_CORE_EXT_LOAD_REPORTING_LOAD_REPORTING_FILTER_H
+#define GRPC_CORE_EXT_LOAD_REPORTING_LOAD_REPORTING_FILTER_H
 
-#include <memory>
+#include "src/core/lib/channel/channel_stack.h"
 
-#include "src/proto/grpc/testing/control.grpc.pb.h"
-#include "test/cpp/qps/histogram.h"
+extern const grpc_channel_filter grpc_load_reporting_filter;
 
-namespace grpc {
-namespace testing {
-class ResourceUsage {
- public:
-  ResourceUsage(double w, double u, double s, int c)
-      : wall_time_(w), user_time_(u), system_time_(s), cores_(c) {}
-  double wall_time() const { return wall_time_; }
-  double user_time() const { return user_time_; }
-  double system_time() const { return system_time_; }
-  int cores() const { return cores_; }
-
- private:
-  double wall_time_;
-  double user_time_;
-  double system_time_;
-  int cores_;
-};
-
-struct ScenarioResult {
-  Histogram latencies;
-  std::vector<ResourceUsage> client_resources;
-  std::vector<ResourceUsage> server_resources;
-  ClientConfig client_config;
-  ServerConfig server_config;
-};
-
-std::unique_ptr<ScenarioResult> RunScenario(
-    const grpc::testing::ClientConfig& client_config, size_t num_clients,
-    const grpc::testing::ServerConfig& server_config, size_t num_servers,
-    int warmup_seconds, int benchmark_seconds, int spawn_local_worker_count);
-
-void RunQuit();
-}  // namespace testing
-}  // namespace grpc
-
-#endif
+#endif /* GRPC_CORE_EXT_LOAD_REPORTING_LOAD_REPORTING_FILTER_H */

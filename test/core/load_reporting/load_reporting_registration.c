@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2015-2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,47 +31,51 @@
  *
  */
 
-#ifndef TEST_QPS_DRIVER_H
-#define TEST_QPS_DRIVER_H
+#include <grpc/grpc.h>
+#include <grpc/support/alloc.h>
+#include <grpc/support/log.h>
+#include <grpc/support/useful.h>
 
-#include <memory>
+#include "src/core/lib/load_reporting/load_reporting.h"
+#include "src/core/lib/surface/api_trace.h"
+#include "test/core/util/test_config.h"
 
-#include "src/proto/grpc/testing/control.grpc.pb.h"
-#include "test/cpp/qps/histogram.h"
+typedef struct { uint64_t total_bytes; } aggregated_bw_stats;
 
-namespace grpc {
-namespace testing {
-class ResourceUsage {
- public:
-  ResourceUsage(double w, double u, double s, int c)
-      : wall_time_(w), user_time_(u), system_time_(s), cores_(c) {}
-  double wall_time() const { return wall_time_; }
-  double user_time() const { return user_time_; }
-  double system_time() const { return system_time_; }
-  int cores() const { return cores_; }
+static void sample_fn(void *lr_data, const grpc_call_stats *stats) {
+  aggregated_bw_stats *custom_stats = (aggregated_bw_stats *)lr_data;
+  custom_stats->total_bytes =
+      stats->transport_stream_stats.outgoing.data_bytes +
+      stats->transport_stream_stats.incoming.data_bytes;
+}
 
- private:
-  double wall_time_;
-  double user_time_;
-  double system_time_;
-  int cores_;
-};
+static void lr_plugin_init(void) {
+  aggregated_bw_stats *data = gpr_malloc(sizeof(aggregated_bw_stats));
+  grpc_load_reporting_init(sample_fn, data);
+}
 
-struct ScenarioResult {
-  Histogram latencies;
-  std::vector<ResourceUsage> client_resources;
-  std::vector<ResourceUsage> server_resources;
-  ClientConfig client_config;
-  ServerConfig server_config;
-};
+static void lr_plugin_destroy(void) { grpc_load_reporting_destroy(); }
 
-std::unique_ptr<ScenarioResult> RunScenario(
-    const grpc::testing::ClientConfig& client_config, size_t num_clients,
-    const grpc::testing::ServerConfig& server_config, size_t num_servers,
-    int warmup_seconds, int benchmark_seconds, int spawn_local_worker_count);
+static void load_reporting_register() {
+  grpc_register_plugin(lr_plugin_init, lr_plugin_destroy);
+}
 
-void RunQuit();
-}  // namespace testing
-}  // namespace grpc
+static void test_load_reporter_registration(void) {
+  grpc_call_stats stats;
+  stats.transport_stream_stats.outgoing.data_bytes = 123;
+  stats.transport_stream_stats.incoming.data_bytes = 456;
 
-#endif
+  grpc_load_reporting_call(&stats);
+
+  GPR_ASSERT(((aggregated_bw_stats *)grpc_load_reporting_data())->total_bytes ==
+             123 + 456);
+}
+
+int main(int argc, char **argv) {
+  load_reporting_register();
+  grpc_init();
+  test_load_reporter_registration();
+  grpc_shutdown();
+
+  return 0;
+}

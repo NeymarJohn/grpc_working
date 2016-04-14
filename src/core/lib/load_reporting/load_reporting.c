@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,47 +31,42 @@
  *
  */
 
-#ifndef TEST_QPS_DRIVER_H
-#define TEST_QPS_DRIVER_H
+#include <grpc/support/alloc.h>
+#include <grpc/support/sync.h>
 
-#include <memory>
+#include "src/core/lib/load_reporting/load_reporting.h"
 
-#include "src/proto/grpc/testing/control.grpc.pb.h"
-#include "test/cpp/qps/histogram.h"
+typedef struct load_reporting {
+  gpr_mu mu;
+  load_reporting_fn fn;
+  void *data;
+} load_reporting;
 
-namespace grpc {
-namespace testing {
-class ResourceUsage {
- public:
-  ResourceUsage(double w, double u, double s, int c)
-      : wall_time_(w), user_time_(u), system_time_(s), cores_(c) {}
-  double wall_time() const { return wall_time_; }
-  double user_time() const { return user_time_; }
-  double system_time() const { return system_time_; }
-  int cores() const { return cores_; }
+static load_reporting g_load_reporting;
 
- private:
-  double wall_time_;
-  double user_time_;
-  double system_time_;
-  int cores_;
-};
+void grpc_load_reporting_init(load_reporting_fn fn, void *data) {
+  gpr_mu_init(&g_load_reporting.mu);
+  g_load_reporting.fn = fn;
+  g_load_reporting.data = data;
+}
 
-struct ScenarioResult {
-  Histogram latencies;
-  std::vector<ResourceUsage> client_resources;
-  std::vector<ResourceUsage> server_resources;
-  ClientConfig client_config;
-  ServerConfig server_config;
-};
+void grpc_load_reporting_destroy() {
+  gpr_free(g_load_reporting.data);
+  g_load_reporting.data = NULL;
+  gpr_mu_destroy(&g_load_reporting.mu);
+}
 
-std::unique_ptr<ScenarioResult> RunScenario(
-    const grpc::testing::ClientConfig& client_config, size_t num_clients,
-    const grpc::testing::ServerConfig& server_config, size_t num_servers,
-    int warmup_seconds, int benchmark_seconds, int spawn_local_worker_count);
+void grpc_load_reporting_call(const grpc_call_stats *stats) {
+  if (g_load_reporting.fn != NULL) {
+    gpr_mu_lock(&g_load_reporting.mu);
+    g_load_reporting.fn(g_load_reporting.data, stats);
+    gpr_mu_unlock(&g_load_reporting.mu);
+  }
+}
 
-void RunQuit();
-}  // namespace testing
-}  // namespace grpc
-
-#endif
+void *grpc_load_reporting_data() {
+  gpr_mu_lock(&g_load_reporting.mu);
+  void *data = g_load_reporting.data;
+  gpr_mu_unlock(&g_load_reporting.mu);
+  return data;
+}

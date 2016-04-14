@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)\..\src\core\ext\load_reporting\load_reporting_filter.c">
+      <Filter>src\core\ext\load_reporting</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\lib\channel\channel_args.c">
       <Filter>src\core\lib\channel</Filter>
     </ClCompile>
@@ -168,6 +171,9 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\lib\json\json_writer.c">
       <Filter>src\core\lib\json</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)\..\src\core\lib\load_reporting\load_reporting.c">
+      <Filter>src\core\lib\load_reporting</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)\..\src\core\lib\surface\alarm.c">
       <Filter>src\core\lib\surface</Filter>
@@ -578,6 +584,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(SolutionDir)\..\src\core\ext\load_reporting\load_reporting_filter.h">
+      <Filter>src\core\ext\load_reporting</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\lib\channel\channel_args.h">
       <Filter>src\core\lib\channel</Filter>
     </ClInclude>
@@ -739,6 +748,9 @@
     </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\lib\json\json_writer.h">
       <Filter>src\core\lib\json</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)\..\src\core\lib\load_reporting\load_reporting.h">
+      <Filter>src\core\lib\load_reporting</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)\..\src\core\lib\surface\api_trace.h">
       <Filter>src\core\lib\surface</Filter>
@@ -1037,6 +1049,9 @@
     <Filter Include="src\core\ext\lb_policy\round_robin">
       <UniqueIdentifier>{2472d352-cf94-f317-646e-72b769cea846}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\core\ext\load_reporting">
+      <UniqueIdentifier>{b6c863cd-a135-32e8-df03-02365f526f0d}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\core\ext\resolver">
       <UniqueIdentifier>{6bfa6808-9dcb-8990-deed-5cf58a149dda}</UniqueIdentifier>
     </Filter>
@@ -1099,6 +1114,9 @@
     </Filter>
     <Filter Include="src\core\lib\json">
       <UniqueIdentifier>{cb2b0073-f2a7-5c63-d182-8874b24bdf36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\core\lib\load_reporting">
+      <UniqueIdentifier>{0048bb64-a4b2-9f8e-c029-b43c8c207264}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\core\lib\security">
       <UniqueIdentifier>{c4661d64-349f-01c1-1ba8-0602f9047595}</UniqueIdentifier>

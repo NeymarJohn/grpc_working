@@ -85,8 +85,7 @@ module GRPC
     # when present, this is the default timeout used for calls
     #
     # @param host [String] the host the stub connects to
-    # @param q [Core::CompletionQueue] used to wait for events - now deprecated
-    #        since each new active call gets its own separately
+    # @param q [Core::CompletionQueue] used to wait for events
     # @param creds [Core::ChannelCredentials|Symbol] the channel credentials, or
     #     :this_channel_is_insecure
     # @param channel_override [Core::Channel] a pre-created channel
@@ -98,6 +97,7 @@ module GRPC
                    propagate_mask: nil,
                    **kw)
       fail(TypeError, '!CompletionQueue') unless q.is_a?(Core::CompletionQueue)
+      @queue = q
       @ch = ClientStub.setup_channel(channel_override, host, creds, **kw)
       alt_host = kw[Core::Channel::SSL_TARGET]
       @host = alt_host.nil? ? host : alt_host
@@ -458,17 +458,14 @@ module GRPC
       if deadline.nil?
         deadline = from_relative_time(timeout.nil? ? @timeout : timeout)
       end
-      # Provide each new client call with its own completion queue
-      call_queue = Core::CompletionQueue.new
-      call = @ch.create_call(call_queue,
+      call = @ch.create_call(@queue,
                              parent, # parent call
                              @propagate_mask, # propagation options
                              method,
                              nil, # host use nil,
                              deadline)
       call.set_credentials! credentials unless credentials.nil?
-      ActiveCall.new(call, call_queue, marshal, unmarshal, deadline,
-                     started: false)
+      ActiveCall.new(call, @queue, marshal, unmarshal, deadline, started: false)
     end
   end
 end

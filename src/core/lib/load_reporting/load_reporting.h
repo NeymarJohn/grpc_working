@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,47 +31,35 @@
  *
  */
 
-#ifndef TEST_QPS_DRIVER_H
-#define TEST_QPS_DRIVER_H
+#ifndef GRPC_CORE_LIB_LOAD_REPORTING_LOAD_REPORTING_H
+#define GRPC_CORE_LIB_LOAD_REPORTING_LOAD_REPORTING_H
 
-#include <memory>
+#include "src/core/lib/iomgr/closure.h"
+#include "src/core/lib/surface/call.h"
 
-#include "src/proto/grpc/testing/control.grpc.pb.h"
-#include "test/cpp/qps/histogram.h"
+/** Custom function to be called by the load reporting filter.
+ *
+ * The \a data pointer is the same as the one passed to \a
+ * grpc_load_reporting_init. \a stats are the final per-call statistics gathered
+ * by the gRPC runtime. */
+typedef void (*load_reporting_fn)(void *data, const grpc_call_stats *stats);
 
-namespace grpc {
-namespace testing {
-class ResourceUsage {
- public:
-  ResourceUsage(double w, double u, double s, int c)
-      : wall_time_(w), user_time_(u), system_time_(s), cores_(c) {}
-  double wall_time() const { return wall_time_; }
-  double user_time() const { return user_time_; }
-  double system_time() const { return system_time_; }
-  int cores() const { return cores_; }
+/** Register \a fn as the function to be invoked by the load reporting filter,
+ * passing \a data as its namesake argument. To be called only from a plugin
+ * init function. */
+void grpc_load_reporting_init(load_reporting_fn fn, void *data);
 
- private:
-  double wall_time_;
-  double user_time_;
-  double system_time_;
-  int cores_;
-};
+/** Takes care of freeing the memory allocated for \a data (see \a
+ * grpc_load_reporting_init), if any. To be called only from a plugin destroy
+ * function. */
+void grpc_load_reporting_destroy();
 
-struct ScenarioResult {
-  Histogram latencies;
-  std::vector<ResourceUsage> client_resources;
-  std::vector<ResourceUsage> server_resources;
-  ClientConfig client_config;
-  ServerConfig server_config;
-};
+/** Invoke the function registered by \a grpc_load_reporting_init, passing it \a
+ * stats as one of the arguments (see \a load_reporting_fn). */
+void grpc_load_reporting_call(const grpc_call_stats *stats);
 
-std::unique_ptr<ScenarioResult> RunScenario(
-    const grpc::testing::ClientConfig& client_config, size_t num_clients,
-    const grpc::testing::ServerConfig& server_config, size_t num_servers,
-    int warmup_seconds, int benchmark_seconds, int spawn_local_worker_count);
+/** Returns the custom load reporting data, as registered in \a
+ * grpc_load_reporting_init. */
+void *grpc_load_reporting_data();
 
-void RunQuit();
-}  // namespace testing
-}  // namespace grpc
-
-#endif
+#endif /* GRPC_CORE_LIB_LOAD_REPORTING_LOAD_REPORTING_H */

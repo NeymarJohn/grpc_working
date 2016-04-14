@@ -175,7 +175,7 @@ struct grpc_call {
   received_status status[STATUS_SOURCE_COUNT];
 
   /* Call stats: only valid after trailing metadata received */
-  grpc_transport_stream_stats stats;
+  grpc_call_stats stats;
 
   /* Compression algorithm for the call */
   grpc_compression_algorithm compression_algorithm;
@@ -375,7 +375,7 @@ static void destroy_call(grpc_exec_ctx *exec_ctx, void *call, bool success) {
   if (c->receiving_stream != NULL) {
     grpc_byte_stream_destroy(exec_ctx, c->receiving_stream);
   }
-  grpc_call_stack_destroy(exec_ctx, CALL_STACK_FROM_CALL(c));
+  grpc_call_stack_destroy(exec_ctx, CALL_STACK_FROM_CALL(c), &c->stats);
   GRPC_CHANNEL_INTERNAL_UNREF(exec_ctx, c->channel, "call");
   gpr_mu_destroy(&c->mu);
   for (i = 0; i < STATUS_SOURCE_COUNT; i++) {
@@ -1392,7 +1392,7 @@ static grpc_call_error call_start_batch(grpc_exec_ctx *exec_ctx,
         bctl->recv_final_op = 1;
         stream_op.recv_trailing_metadata =
             &call->metadata_batch[1 /* is_receiving */][1 /* is_trailing */];
-        stream_op.collect_stats = &call->stats;
+        stream_op.collect_stats = &call->stats.transport_stream_stats;
         break;
       case GRPC_OP_RECV_CLOSE_ON_SERVER:
         /* Flag validation: currently allow no flags */
@@ -1414,7 +1414,7 @@ static grpc_call_error call_start_batch(grpc_exec_ctx *exec_ctx,
         bctl->recv_final_op = 1;
         stream_op.recv_trailing_metadata =
             &call->metadata_batch[1 /* is_receiving */][1 /* is_trailing */];
-        stream_op.collect_stats = &call->stats;
+        stream_op.collect_stats = &call->stats.transport_stream_stats;
         break;
     }
   }
@@ -1511,41 +1511,4 @@ grpc_compression_algorithm grpc_call_compression_for_level(
   const uint32_t accepted_encodings = call->encodings_accepted_by_peer;
   gpr_mu_unlock(&call->mu);
   return grpc_compression_algorithm_for_level(level, accepted_encodings);
-}
-
-const char *grpc_call_error_to_string(grpc_call_error error) {
-  switch (error) {
-    case GRPC_CALL_ERROR:
-      return "GRPC_CALL_ERROR";
-    case GRPC_CALL_ERROR_ALREADY_ACCEPTED:
-      return "GRPC_CALL_ERROR_ALREADY_ACCEPTED";
-    case GRPC_CALL_ERROR_ALREADY_FINISHED:
-      return "GRPC_CALL_ERROR_ALREADY_FINISHED";
-    case GRPC_CALL_ERROR_ALREADY_INVOKED:
-      return "GRPC_CALL_ERROR_ALREADY_INVOKED";
-    case GRPC_CALL_ERROR_BATCH_TOO_BIG:
-      return "GRPC_CALL_ERROR_BATCH_TOO_BIG";
-    case GRPC_CALL_ERROR_INVALID_FLAGS:
-      return "GRPC_CALL_ERROR_INVALID_FLAGS";
-    case GRPC_CALL_ERROR_INVALID_MESSAGE:
-      return "GRPC_CALL_ERROR_INVALID_MESSAGE";
-    case GRPC_CALL_ERROR_INVALID_METADATA:
-      return "GRPC_CALL_ERROR_INVALID_METADATA";
-    case GRPC_CALL_ERROR_NOT_INVOKED:
-      return "GRPC_CALL_ERROR_NOT_INVOKED";
-    case GRPC_CALL_ERROR_NOT_ON_CLIENT:
-      return "GRPC_CALL_ERROR_NOT_ON_CLIENT";
-    case GRPC_CALL_ERROR_NOT_ON_SERVER:
-      return "GRPC_CALL_ERROR_NOT_ON_SERVER";
-    case GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE:
-      return "GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE";
-    case GRPC_CALL_ERROR_PAYLOAD_TYPE_MISMATCH:
-      return "GRPC_CALL_ERROR_PAYLOAD_TYPE_MISMATCH";
-    case GRPC_CALL_ERROR_TOO_MANY_OPERATIONS:
-      return "GRPC_CALL_ERROR_TOO_MANY_OPERATIONS";
-    case GRPC_CALL_OK:
-      return "GRPC_CALL_OK";
-    default:
-      return "GRPC_CALL_ERROR_UNKNOW";
-  }
 }
