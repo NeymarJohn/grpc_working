@@ -33,7 +33,6 @@
 
 'use strict';
 
-var console = require('console');
 var worker_service_impl = require('./worker_service_impl');
 
 var grpc = require('../../../');
@@ -49,7 +48,6 @@ function runServer(port) {
   var address = '0.0.0.0:' + port;
   server.bind(address, server_creds);
   server.start();
-  console.log('running QPS worker on %s', address);
   return server;
 }
 
