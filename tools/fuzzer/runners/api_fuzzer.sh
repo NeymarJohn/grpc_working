@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2015, Google Inc.
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,18 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 
-set -ex
+flags="-max_total_time=$runtime -artifact_prefix=fuzzer_output/ -max_len=2048"
 
-cd $(dirname $0)/../../..
-
-bins/opt/qps_json_driver "$@"
-
-if [ "$BQ_RESULT_TABLE" != "" ]
+if [ "$jobs" != "1" ]
 then
-  tools/run_tests/performance/bq_upload_result.py --bq_result_table="$BQ_RESULT_TABLE"
+  flags="-jobs=$jobs -workers=$jobs"
 fi
+
+if [ "$config" == "asan-trace-cmp" ]
+then
+  flags="-use_traces=1 $flags"
+fi
+
+bins/$config/api_fuzzer $flags fuzzer_output test/core/end2end/fuzzers/api_fuzzer_corpus
