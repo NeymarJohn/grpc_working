@@ -31,34 +31,12 @@
  *
  */
 
-#include <fstream>
-#include <sstream>
+#ifndef MOCK_ENDPOINT_H
+#define MOCK_ENDPOINT_H
 
-#include <gtest/gtest.h>
+#include "src/core/lib/iomgr/endpoint.h"
 
-// These paths rely on the fact that we run our tests under grpc/
-const char kGeneratedFilePath[] =
-    "gens/src/proto/grpc/testing/compiler_test.grpc.pb.h";
-const char kGoldenFilePath[] = "test/cpp/codegen/compiler_test_golden";
+void grpc_passthru_endpoint_create(grpc_endpoint **client,
+                                   grpc_endpoint **server);
 
-TEST(GoldenFileTest, TestGeneratedFile) {
-  std::ifstream generated(kGeneratedFilePath);
-  std::ifstream golden(kGoldenFilePath);
-
-  ASSERT_TRUE(generated.good());
-  ASSERT_TRUE(golden.good());
-
-  std::ostringstream gen_oss;
-  std::ostringstream gold_oss;
-  gen_oss << generated.rdbuf();
-  gold_oss << golden.rdbuf();
-  EXPECT_EQ(gold_oss.str(), gen_oss.str());
-
-  generated.close();
-  golden.close();
-}
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+#endif

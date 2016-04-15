@@ -567,8 +567,10 @@ filegroups:
   - test/core/end2end/fixtures/proxy.h
   - test/core/iomgr/endpoint_tests.h
   - test/core/util/grpc_profiler.h
+  - test/core/util/memory_counters.h
   - test/core/util/mock_endpoint.h
   - test/core/util/parse_hexstring.h
+  - test/core/util/passthru_endpoint.h
   - test/core/util/port.h
   - test/core/util/port_server_client.h
   - test/core/util/slice_splitter.h
@@ -577,8 +579,10 @@ filegroups:
   - test/core/end2end/fixtures/proxy.c
   - test/core/iomgr/endpoint_tests.c
   - test/core/util/grpc_profiler.c
+  - test/core/util/memory_counters.c
   - test/core/util/mock_endpoint.c
   - test/core/util/parse_hexstring.c
+  - test/core/util/passthru_endpoint.c
   - test/core/util/port_posix.c
   - test/core/util/port_server_client.c
   - test/core/util/port_windows.c
@@ -1103,6 +1107,19 @@ targets:
   - grpc
   - gpr_test_util
   - gpr
+- name: api_fuzzer
+  build: fuzzer
+  language: c
+  src:
+  - test/core/end2end/fuzzers/api_fuzzer.c
+  deps:
+  - grpc_test_util
+  - grpc
+  - gpr_test_util
+  - gpr
+  corpus_dirs:
+  - test/core/end2end/fuzzers/api_fuzzer_corpus
+  maxlen: 2048
 - name: bin_encoder_test
   build: test
   language: c
@@ -2515,17 +2532,6 @@ targets:
   - grpc++
   - grpc
   - gpr_test_util
-  - gpr
-- name: golden_file_test
-  gtest: true
-  build: test
-  language: c++
-  src:
-  - src/proto/grpc/testing/compiler_test.proto
-  - test/cpp/codegen/golden_file_test.cc
-  deps:
-  - grpc++
-  - grpc
   - gpr
 - name: grpc_cli
   build: test
