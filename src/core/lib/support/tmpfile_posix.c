@@ -33,7 +33,7 @@
 
 #include <grpc/support/port_platform.h>
 
-#ifdef GPR_POSIX_TMPFILE
+#ifdef GPR_POSIX_FILE
 
 #include "src/core/lib/support/tmpfile.h"
 
@@ -82,4 +82,4 @@ end:
   return result;
 }
 
-#endif /* GPR_POSIX_TMPFILE */
+#endif /* GPR_POSIX_FILE */

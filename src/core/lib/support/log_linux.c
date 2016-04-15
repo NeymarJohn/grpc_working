@@ -41,7 +41,7 @@
 
 #include <grpc/support/port_platform.h>
 
-#ifdef GPR_LINUX_LOG
+#ifdef GPR_LINUX
 
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
@@ -103,4 +103,4 @@ void gpr_default_log(gpr_log_func_args *args) {
   gpr_free(prefix);
 }
 
-#endif /* GPR_LINUX_LOG */
+#endif

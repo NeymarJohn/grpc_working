@@ -31,31 +31,23 @@
  *
  */
 
-/* Windows code for gpr snprintf support. */
+/* Posix code for gpr snprintf support. */
 
 #include <grpc/support/port_platform.h>
 
-#ifdef GPR_WIN32_STRING
-
-/* Some platforms (namely msys) need wchar to be included BEFORE
-   anything else, especially strsafe.h. */
-#include <wchar.h>
+#ifdef GPR_WIN32
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <strsafe.h>
 
 #include <grpc/support/alloc.h>
-#include <grpc/support/string_util.h>
 
 #include "src/core/lib/support/string.h"
 
 int gpr_asprintf(char **strp, const char *format, ...) {
   va_list args;
   int ret;
-
-  HRESULT success;
   size_t strp_buflen;
 
   /* Determine the length. */
@@ -76,9 +68,9 @@ int gpr_asprintf(char **strp, const char *format, ...) {
 
   /* Print to the buffer. */
   va_start(args, format);
-  success = StringCbVPrintfA(*strp, strp_buflen, format, args);
+  ret = vsnprintf_s(*strp, strp_buflen, _TRUNCATE, format, args);
   va_end(args);
-  if (success == S_OK) {
+  if ((size_t)ret == strp_buflen - 1) {
     return ret;
   }
 
@@ -88,4 +80,30 @@ int gpr_asprintf(char **strp, const char *format, ...) {
   return -1;
 }
 
-#endif /* GPR_WIN32_STRING */
+#if defined UNICODE || defined _UNICODE
+LPTSTR
+gpr_char_to_tchar(LPCSTR input) {
+  LPTSTR ret;
+  int needed = MultiByteToWideChar(CP_UTF8, 0, input, -1, NULL, 0);
+  if (needed <= 0) return NULL;
+  ret = gpr_malloc((unsigned)needed * sizeof(TCHAR));
+  MultiByteToWideChar(CP_UTF8, 0, input, -1, ret, needed);
+  return ret;
+}
+
+LPSTR
+gpr_tchar_to_char(LPCTSTR input) {
+  LPSTR ret;
+  int needed = WideCharToMultiByte(CP_UTF8, 0, input, -1, NULL, 0, NULL, NULL);
+  if (needed <= 0) return NULL;
+  ret = gpr_malloc((unsigned)needed);
+  WideCharToMultiByte(CP_UTF8, 0, input, -1, ret, needed, NULL, NULL);
+  return ret;
+}
+#else
+char *gpr_tchar_to_char(LPTSTR input) { return gpr_strdup(input); }
+
+char *gpr_char_to_tchar(LPTSTR input) { return gpr_strdup(input); }
+#endif
+
+#endif /* GPR_WIN32 */
