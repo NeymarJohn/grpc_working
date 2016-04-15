@@ -31,18 +31,34 @@
  *
  */
 
-#ifndef GRPC_TEST_CORE_UTIL_MEMORY_COUNTERS_H
-#define GRPC_TEST_CORE_UTIL_MEMORY_COUNTERS_H
+#include <fstream>
+#include <sstream>
 
-struct grpc_memory_counters {
-  size_t total_size_relative;
-  size_t total_size_absolute;
-  size_t total_allocs_relative;
-  size_t total_allocs_absolute;
-};
+#include <gtest/gtest.h>
 
-void grpc_memory_counters_init();
-void grpc_memory_counters_destroy();
-struct grpc_memory_counters grpc_memory_counters_snapshot();
+// These paths rely on the fact that we run our tests under grpc/
+const char kGeneratedFilePath[] =
+    "gens/src/proto/grpc/testing/compiler_test.grpc.pb.h";
+const char kGoldenFilePath[] = "test/cpp/codegen/compiler_test_golden";
 
-#endif
+TEST(GoldenFileTest, TestGeneratedFile) {
+  std::ifstream generated(kGeneratedFilePath);
+  std::ifstream golden(kGoldenFilePath);
+
+  ASSERT_TRUE(generated.good());
+  ASSERT_TRUE(golden.good());
+
+  std::ostringstream gen_oss;
+  std::ostringstream gold_oss;
+  gen_oss << generated.rdbuf();
+  gold_oss << golden.rdbuf();
+  EXPECT_EQ(gold_oss.str(), gen_oss.str());
+
+  generated.close();
+  golden.close();
+}
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

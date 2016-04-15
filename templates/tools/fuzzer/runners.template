@@ -39,7 +39,7 @@ template: |
   
   if [ "$jobs" != "1" ]
   then
-    flags="-jobs=$jobs -workers=$jobs $flags"
+    flags="-jobs=$jobs -workers=$jobs"
   fi
 
   if [ "$config" == "asan-trace-cmp" ]
