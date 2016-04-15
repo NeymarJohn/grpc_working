@@ -33,47 +33,41 @@
 
 #include <grpc/support/port_platform.h>
 
-#ifdef GPR_WIN32_ENV
-
-#include <windows.h>
+#ifdef GPR_WIN32
 
 #include "src/core/lib/support/env.h"
 #include "src/core/lib/support/string.h"
-#include "src/core/lib/support/string_win32.h"
+
+#ifdef __MINGW32__
+errno_t getenv_s(size_t *size_needed, char *buffer, size_t size,
+                 const char *varname);
+#else
+#include <stdlib.h>
+#endif
 
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
 #include <grpc/support/string_util.h>
 
 char *gpr_getenv(const char *name) {
+  size_t size;
   char *result = NULL;
-  DWORD size;
-  LPTSTR tresult = NULL;
-  LPTSTR tname = gpr_char_to_tchar(name);
-  DWORD ret;
+  errno_t err;
 
-  ret = GetEnvironmentVariable(tname, NULL, 0);
-  if (ret == 0) return NULL;
-  size = ret * (DWORD)sizeof(TCHAR);
-  tresult = gpr_malloc(size);
-  ret = GetEnvironmentVariable(tname, tresult, size);
-  gpr_free(tname);
-  if (ret == 0) {
-    gpr_free(tresult);
+  err = getenv_s(&size, NULL, 0, name);
+  if (err || (size == 0)) return NULL;
+  result = gpr_malloc(size);
+  err = getenv_s(&size, result, size, name);
+  if (err) {
+    gpr_free(result);
     return NULL;
   }
-  result = gpr_tchar_to_char(tresult);
-  gpr_free(tresult);
   return result;
 }
 
 void gpr_setenv(const char *name, const char *value) {
-  LPTSTR tname = gpr_char_to_tchar(name);
-  LPTSTR tvalue = gpr_char_to_tchar(value);
-  BOOL res = SetEnvironmentVariable(tname, tvalue);
-  gpr_free(tname);
-  gpr_free(tvalue);
-  GPR_ASSERT(res);
+  errno_t res = _putenv_s(name, value);
+  GPR_ASSERT(res == 0);
 }
 
-#endif /* GPR_WIN32_ENV */
+#endif /* GPR_WIN32 */
