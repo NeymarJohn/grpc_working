@@ -35,6 +35,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'googleauth',      '~> 0.5.1'
 
   s.add_development_dependency 'bundler',            '~> 1.9'
+  s.add_development_dependency 'facter',             '~> 2.4'
   s.add_development_dependency 'logging',            '~> 2.0'
   s.add_development_dependency 'simplecov',          '~> 0.9'
   s.add_development_dependency 'rake',               '~> 10.4'
@@ -127,6 +128,7 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/lib/support/stack_lockfree.c )
   s.files += %w( src/core/lib/support/string.c )
   s.files += %w( src/core/lib/support/string_posix.c )
+  s.files += %w( src/core/lib/support/string_util_win32.c )
   s.files += %w( src/core/lib/support/string_win32.c )
   s.files += %w( src/core/lib/support/subprocess_posix.c )
   s.files += %w( src/core/lib/support/subprocess_windows.c )
@@ -141,6 +143,7 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/lib/support/time_precise.c )
   s.files += %w( src/core/lib/support/time_win32.c )
   s.files += %w( src/core/lib/support/tls_pthread.c )
+  s.files += %w( src/core/lib/support/tmpfile_msys.c )
   s.files += %w( src/core/lib/support/tmpfile_posix.c )
   s.files += %w( src/core/lib/support/tmpfile_win32.c )
   s.files += %w( src/core/lib/support/wrap_memcpy.c )
