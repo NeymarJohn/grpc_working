@@ -2583,6 +2583,7 @@ LIBGRPC_SRC = \
     src/core/ext/client_config/lb_policy.c \
     src/core/ext/client_config/lb_policy_factory.c \
     src/core/ext/client_config/lb_policy_registry.c \
+    src/core/ext/client_config/parse_address.c \
     src/core/ext/client_config/resolver.c \
     src/core/ext/client_config/resolver_factory.c \
     src/core/ext/client_config/resolver_registry.c \
@@ -2702,6 +2703,7 @@ LIBGRPC_TEST_UTIL_SRC = \
     test/core/end2end/fixtures/proxy.c \
     test/core/iomgr/endpoint_tests.c \
     test/core/util/grpc_profiler.c \
+    test/core/util/memory_counters.c \
     test/core/util/mock_endpoint.c \
     test/core/util/parse_hexstring.c \
     test/core/util/port_posix.c \
@@ -2750,6 +2752,7 @@ LIBGRPC_TEST_UTIL_UNSECURE_SRC = \
     test/core/end2end/fixtures/proxy.c \
     test/core/iomgr/endpoint_tests.c \
     test/core/util/grpc_profiler.c \
+    test/core/util/memory_counters.c \
     test/core/util/mock_endpoint.c \
     test/core/util/parse_hexstring.c \
     test/core/util/port_posix.c \
@@ -2898,6 +2901,7 @@ LIBGRPC_UNSECURE_SRC = \
     src/core/ext/client_config/lb_policy.c \
     src/core/ext/client_config/lb_policy_factory.c \
     src/core/ext/client_config/lb_policy_registry.c \
+    src/core/ext/client_config/parse_address.c \
     src/core/ext/client_config/resolver.c \
     src/core/ext/client_config/resolver_factory.c \
     src/core/ext/client_config/resolver_registry.c \
