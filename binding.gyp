@@ -558,7 +558,6 @@
         'gpr',
       ],
       'sources': [
-        'src/core/ext/load_reporting/load_reporting_filter.c',
         'src/core/lib/channel/channel_args.c',
         'src/core/lib/channel/channel_stack.c',
         'src/core/lib/channel/channel_stack_builder.c',
@@ -615,7 +614,6 @@
         'src/core/lib/json/json_reader.c',
         'src/core/lib/json/json_string.c',
         'src/core/lib/json/json_writer.c',
-        'src/core/lib/load_reporting/load_reporting.c',
         'src/core/lib/surface/alarm.c',
         'src/core/lib/surface/api_trace.c',
         'src/core/lib/surface/byte_buffer.c',

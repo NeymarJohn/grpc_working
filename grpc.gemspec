@@ -35,6 +35,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'googleauth',      '~> 0.5.1'
 
   s.add_development_dependency 'bundler',            '~> 1.9'
+  s.add_development_dependency 'facter',             '~> 2.4'
   s.add_development_dependency 'logging',            '~> 2.0'
   s.add_development_dependency 'simplecov',          '~> 0.9'
   s.add_development_dependency 'rake',               '~> 10.4'
@@ -171,7 +172,6 @@ Gem::Specification.new do |s|
   s.files += %w( include/grpc/impl/codegen/time.h )
   s.files += %w( include/grpc/grpc_security.h )
   s.files += %w( include/grpc/census.h )
-  s.files += %w( src/core/ext/load_reporting/load_reporting_filter.h )
   s.files += %w( src/core/lib/channel/channel_args.h )
   s.files += %w( src/core/lib/channel/channel_stack.h )
   s.files += %w( src/core/lib/channel/channel_stack_builder.h )
@@ -226,7 +226,6 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/lib/json/json_common.h )
   s.files += %w( src/core/lib/json/json_reader.h )
   s.files += %w( src/core/lib/json/json_writer.h )
-  s.files += %w( src/core/lib/load_reporting/load_reporting.h )
   s.files += %w( src/core/lib/surface/api_trace.h )
   s.files += %w( src/core/lib/surface/call.h )
   s.files += %w( src/core/lib/surface/call_test_only.h )
@@ -308,7 +307,6 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/ext/census/grpc_filter.h )
   s.files += %w( src/core/ext/census/mlog.h )
   s.files += %w( src/core/ext/census/rpc_metric_id.h )
-  s.files += %w( src/core/ext/load_reporting/load_reporting_filter.c )
   s.files += %w( src/core/lib/channel/channel_args.c )
   s.files += %w( src/core/lib/channel/channel_stack.c )
   s.files += %w( src/core/lib/channel/channel_stack_builder.c )
@@ -365,7 +363,6 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/lib/json/json_reader.c )
   s.files += %w( src/core/lib/json/json_string.c )
   s.files += %w( src/core/lib/json/json_writer.c )
-  s.files += %w( src/core/lib/load_reporting/load_reporting.c )
   s.files += %w( src/core/lib/surface/alarm.c )
   s.files += %w( src/core/lib/surface/api_trace.c )
   s.files += %w( src/core/lib/surface/byte_buffer.c )

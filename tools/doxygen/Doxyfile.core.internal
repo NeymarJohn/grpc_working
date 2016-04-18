@@ -787,7 +787,6 @@ include/grpc/impl/codegen/sync_win32.h \
 include/grpc/impl/codegen/time.h \
 include/grpc/grpc_security.h \
 include/grpc/census.h \
-src/core/ext/load_reporting/load_reporting_filter.h \
 src/core/lib/channel/channel_args.h \
 src/core/lib/channel/channel_stack.h \
 src/core/lib/channel/channel_stack_builder.h \
@@ -842,7 +841,6 @@ src/core/lib/json/json.h \
 src/core/lib/json/json_common.h \
 src/core/lib/json/json_reader.h \
 src/core/lib/json/json_writer.h \
-src/core/lib/load_reporting/load_reporting.h \
 src/core/lib/surface/api_trace.h \
 src/core/lib/surface/call.h \
 src/core/lib/surface/call_test_only.h \
@@ -924,7 +922,6 @@ src/core/ext/census/census_rpc_stats.h \
 src/core/ext/census/grpc_filter.h \
 src/core/ext/census/mlog.h \
 src/core/ext/census/rpc_metric_id.h \
-src/core/ext/load_reporting/load_reporting_filter.c \
 src/core/lib/channel/channel_args.c \
 src/core/lib/channel/channel_stack.c \
 src/core/lib/channel/channel_stack_builder.c \
@@ -981,7 +978,6 @@ src/core/lib/json/json.c \
 src/core/lib/json/json_reader.c \
 src/core/lib/json/json_string.c \
 src/core/lib/json/json_writer.c \
-src/core/lib/load_reporting/load_reporting.c \
 src/core/lib/surface/alarm.c \
 src/core/lib/surface/api_trace.c \
 src/core/lib/surface/byte_buffer.c \
