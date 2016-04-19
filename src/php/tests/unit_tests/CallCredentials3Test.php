@@ -132,4 +132,5 @@ class CallCredentials3Test extends PHPUnit_Framework_TestCase
         unset($call);
         unset($server_call);
     }
+
 }
