@@ -69,7 +69,7 @@ class ClientTemplate:
 
   def __init__(self, name, stress_client_cmd, metrics_client_cmd, metrics_port,
                wrapper_script_path, poll_interval_secs, client_args_dict,
-               metrics_args_dict, will_run_forever):
+               metrics_args_dict):
     self.name = name
     self.stress_client_cmd = stress_client_cmd
     self.metrics_client_cmd = metrics_client_cmd
@@ -78,20 +78,18 @@ class ClientTemplate:
     self.poll_interval_secs = poll_interval_secs
     self.client_args_dict = client_args_dict
     self.metrics_args_dict = metrics_args_dict
-    self.will_run_forever = will_run_forever
 
 
 class ServerTemplate:
   """ Contains all the common settings used by a stress server """
 
   def __init__(self, name, server_cmd, wrapper_script_path, server_port,
-               server_args_dict, will_run_forever):
+               server_args_dict):
     self.name = name
     self.server_cmd = server_cmd
     self.wrapper_script_path = wrapper_script_path
     self.server_port = server_port
     self.server_args_dict = server_args_dict
-    self.will_run_forever = will_run_forever
 
 
 class DockerImage:
@@ -244,8 +242,7 @@ class Gke:
         'STRESS_TEST_IMAGE_TYPE': 'SERVER',
         'STRESS_TEST_CMD': server_pod_spec.template.server_cmd,
         'STRESS_TEST_ARGS_STR': self._args_dict_to_str(
-            server_pod_spec.template.server_args_dict),
-        'WILL_RUN_FOREVER': str(server_pod_spec.template.will_run_forever)
+            server_pod_spec.template.server_args_dict)
     })
 
     for pod_name in server_pod_spec.pod_names():
@@ -291,8 +288,7 @@ class Gke:
         'METRICS_CLIENT_CMD': client_pod_spec.template.metrics_client_cmd,
         'METRICS_CLIENT_ARGS_STR': self._args_dict_to_str(
             client_pod_spec.template.metrics_args_dict),
-        'POLL_INTERVAL_SECS': str(client_pod_spec.template.poll_interval_secs),
-        'WILL_RUN_FOREVER': str(client_pod_spec.template.will_run_forever)
+        'POLL_INTERVAL_SECS': str(client_pod_spec.template.poll_interval_secs)
     })
 
     for pod_name in client_pod_spec.pod_names():
@@ -425,7 +421,7 @@ class Config:
           template_name, stress_client_cmd, metrics_client_cmd,
           temp_dict['metricsPort'], temp_dict['wrapperScriptPath'],
           temp_dict['pollIntervalSecs'], temp_dict['clientArgs'].copy(),
-          temp_dict['metricsArgs'].copy(), temp_dict.get('willRunForever', 1))
+          temp_dict['metricsArgs'].copy())
 
     return client_templates_dict
 
@@ -460,8 +456,7 @@ class Config:
       stress_server_cmd = ' '.join(temp_dict['stressServerCmd'])
       server_templates_dict[template_name] = ServerTemplate(
           template_name, stress_server_cmd, temp_dict['wrapperScriptPath'],
-          temp_dict['serverPort'], temp_dict['serverArgs'].copy(),
-          temp_dict.get('willRunForever', 1))
+          temp_dict['serverPort'], temp_dict['serverArgs'].copy())
 
     return server_templates_dict
 
