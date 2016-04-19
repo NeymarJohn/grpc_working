@@ -322,9 +322,6 @@ extern grpc_header_nonbin_value_is_legal_type grpc_header_nonbin_value_is_legal_
 typedef int(*grpc_is_binary_header_type)(const char *key, size_t length);
 extern grpc_is_binary_header_type grpc_is_binary_header_import;
 #define grpc_is_binary_header grpc_is_binary_header_import
-typedef const char *(*grpc_call_error_to_string_type)(grpc_call_error error);
-extern grpc_call_error_to_string_type grpc_call_error_to_string_import;
-#define grpc_call_error_to_string grpc_call_error_to_string_import
 typedef const grpc_auth_property *(*grpc_auth_property_iterator_next_type)(grpc_auth_property_iterator *it);
 extern grpc_auth_property_iterator_next_type grpc_auth_property_iterator_next_import;
 #define grpc_auth_property_iterator_next grpc_auth_property_iterator_next_import
@@ -475,6 +472,12 @@ extern gpr_log_type gpr_log_import;
 typedef void(*gpr_log_message_type)(const char *file, int line, gpr_log_severity severity, const char *message);
 extern gpr_log_message_type gpr_log_message_import;
 #define gpr_log_message gpr_log_message_import
+typedef void(*gpr_set_log_verbosity_type)(gpr_log_severity min_severity_to_print);
+extern gpr_set_log_verbosity_type gpr_set_log_verbosity_import;
+#define gpr_set_log_verbosity gpr_set_log_verbosity_import
+typedef void(*gpr_log_verbosity_init_type)();
+extern gpr_log_verbosity_init_type gpr_log_verbosity_init_import;
+#define gpr_log_verbosity_init gpr_log_verbosity_init_import
 typedef void(*gpr_set_log_function_type)(gpr_log_func func);
 extern gpr_set_log_function_type gpr_set_log_function_import;
 #define gpr_set_log_function gpr_set_log_function_import
