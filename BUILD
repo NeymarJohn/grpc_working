@@ -481,7 +481,6 @@ cc_library(
     "include/grpc/impl/codegen/sync_win32.h",
     "include/grpc/impl/codegen/time.h",
     "include/grpc/grpc_security.h",
-    "include/grpc/grpc_security_constants.h",
     "include/grpc/census.h",
   ],
   includes = [
@@ -1493,7 +1492,6 @@ objc_library(
     "include/grpc/impl/codegen/sync_win32.h",
     "include/grpc/impl/codegen/time.h",
     "include/grpc/grpc_security.h",
-    "include/grpc/grpc_security_constants.h",
     "include/grpc/census.h",
     "src/core/lib/channel/channel_args.h",
     "src/core/lib/channel/channel_stack.h",
