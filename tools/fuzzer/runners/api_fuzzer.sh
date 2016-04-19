@@ -29,11 +29,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-flags="-max_total_time=$runtime -artifact_prefix=fuzzer_output/ -max_len=128"
+flags="-max_total_time=$runtime -artifact_prefix=fuzzer_output/ -max_len=2048"
 
 if [ "$jobs" != "1" ]
 then
-  flags="-jobs=$jobs -workers=$jobs $flags"
+  flags="-jobs=$jobs -workers=$jobs"
 fi
 
 if [ "$config" == "asan-trace-cmp" ]
@@ -41,4 +41,4 @@ then
   flags="-use_traces=1 $flags"
 fi
 
-bins/$config/nanopb_fuzzer_serverlist_test $flags fuzzer_output test/core/nanopb/corpus_serverlist
+bins/$config/api_fuzzer $flags fuzzer_output test/core/end2end/fuzzers/api_fuzzer_corpus
