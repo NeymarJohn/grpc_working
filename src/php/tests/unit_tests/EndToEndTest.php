@@ -261,8 +261,7 @@ class EndToEndTest extends PHPUnit_Framework_TestCase
             Grpc\OP_SEND_INITIAL_METADATA => [],
             Grpc\OP_SEND_CLOSE_FROM_CLIENT => true,
             Grpc\OP_SEND_MESSAGE => ['message' => 'abc',
-                                     'flags' => 'invalid',
-                                     ],
+                                     'flags' => 'invalid'],
         ]);
     }
 
@@ -575,7 +574,7 @@ class EndToEndTest extends PHPUnit_Framework_TestCase
     public function testGetConnectivityStateInvalidParam()
     {
         $this->assertTrue($this->channel->getConnectivityState(
-            new Grpc\Timeval()));
+            new Grpc\Timeval));
     }
 
     /**
@@ -592,11 +591,12 @@ class EndToEndTest extends PHPUnit_Framework_TestCase
      */
     public function testChannelConstructorInvalidParam()
     {
-        $this->channel = new Grpc\Channel('localhost:'.$this->port, null);
+        $this->channel = new Grpc\Channel('localhost:'.$this->port, NULL);
     }
 
     public function testClose()
     {
         $this->assertNull($this->channel->close());
     }
+
 }
