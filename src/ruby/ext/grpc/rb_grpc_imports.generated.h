@@ -283,7 +283,7 @@ extern grpc_call_destroy_type grpc_call_destroy_import;
 typedef grpc_call_error(*grpc_server_request_call_type)(grpc_server *server, grpc_call **call, grpc_call_details *details, grpc_metadata_array *request_metadata, grpc_completion_queue *cq_bound_to_call, grpc_completion_queue *cq_for_notification, void *tag_new);
 extern grpc_server_request_call_type grpc_server_request_call_import;
 #define grpc_server_request_call grpc_server_request_call_import
-typedef void *(*grpc_server_register_method_type)(grpc_server *server, const char *method, const char *host, uint32_t flags);
+typedef void *(*grpc_server_register_method_type)(grpc_server *server, const char *method, const char *host, grpc_server_register_method_payload_handling payload_handling, uint32_t flags);
 extern grpc_server_register_method_type grpc_server_register_method_import;
 #define grpc_server_register_method grpc_server_register_method_import
 typedef grpc_call_error(*grpc_server_request_registered_call_type)(grpc_server *server, void *registered_method, grpc_call **call, gpr_timespec *deadline, grpc_metadata_array *request_metadata, grpc_byte_buffer **optional_payload, grpc_completion_queue *cq_bound_to_call, grpc_completion_queue *cq_for_notification, void *tag_new);
@@ -322,6 +322,9 @@ extern grpc_header_nonbin_value_is_legal_type grpc_header_nonbin_value_is_legal_
 typedef int(*grpc_is_binary_header_type)(const char *key, size_t length);
 extern grpc_is_binary_header_type grpc_is_binary_header_import;
 #define grpc_is_binary_header grpc_is_binary_header_import
+typedef const char *(*grpc_call_error_to_string_type)(grpc_call_error error);
+extern grpc_call_error_to_string_type grpc_call_error_to_string_import;
+#define grpc_call_error_to_string grpc_call_error_to_string_import
 typedef const grpc_auth_property *(*grpc_auth_property_iterator_next_type)(grpc_auth_property_iterator *it);
 extern grpc_auth_property_iterator_next_type grpc_auth_property_iterator_next_import;
 #define grpc_auth_property_iterator_next grpc_auth_property_iterator_next_import

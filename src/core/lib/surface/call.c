@@ -81,11 +81,11 @@ typedef enum {
   /* Status came from the application layer overriding whatever
      the wire says */
   STATUS_FROM_API_OVERRIDE = 0,
-  /* Status was created by some internal channel stack operation */
-  STATUS_FROM_CORE,
   /* Status came from 'the wire' - or somewhere below the surface
      layer */
   STATUS_FROM_WIRE,
+  /* Status was created by some internal channel stack operation */
+  STATUS_FROM_CORE,
   /* Status came from the server sending status */
   STATUS_FROM_SERVER_STATUS,
   STATUS_SOURCE_COUNT
@@ -1074,24 +1074,29 @@ static void receiving_initial_metadata_ready(grpc_exec_ctx *exec_ctx,
 
   gpr_mu_lock(&call->mu);
 
-  grpc_metadata_batch *md =
-      &call->metadata_batch[1 /* is_receiving */][0 /* is_trailing */];
-  grpc_metadata_batch_filter(md, recv_initial_filter, call);
-  call->has_initial_md_been_received = true;
+  if (!success) {
+    bctl->success = false;
+  } else {
+    grpc_metadata_batch *md =
+        &call->metadata_batch[1 /* is_receiving */][0 /* is_trailing */];
+    grpc_metadata_batch_filter(md, recv_initial_filter, call);
 
-  if (gpr_time_cmp(md->deadline, gpr_inf_future(md->deadline.clock_type)) !=
-          0 &&
-      !call->is_client) {
-    GPR_TIMER_BEGIN("set_deadline_alarm", 0);
-    set_deadline_alarm(exec_ctx, call, md->deadline);
-    GPR_TIMER_END("set_deadline_alarm", 0);
+    if (gpr_time_cmp(md->deadline, gpr_inf_future(md->deadline.clock_type)) !=
+            0 &&
+        !call->is_client) {
+      GPR_TIMER_BEGIN("set_deadline_alarm", 0);
+      set_deadline_alarm(exec_ctx, call, md->deadline);
+      GPR_TIMER_END("set_deadline_alarm", 0);
+    }
   }
 
+  call->has_initial_md_been_received = true;
   if (call->saved_receiving_stream_ready_ctx.bctlp != NULL) {
     grpc_closure *saved_rsr_closure = grpc_closure_create(
         receiving_stream_ready, call->saved_receiving_stream_ready_ctx.bctlp);
-    grpc_exec_ctx_enqueue(exec_ctx, saved_rsr_closure,
-                          call->saved_receiving_stream_ready_ctx.success, NULL);
+    grpc_exec_ctx_enqueue(
+        exec_ctx, saved_rsr_closure,
+        call->saved_receiving_stream_ready_ctx.success && success, NULL);
     call->saved_receiving_stream_ready_ctx.bctlp = NULL;
   }
 
@@ -1110,6 +1115,9 @@ static void finish_batch(grpc_exec_ctx *exec_ctx, void *bctlp, bool success) {
 
   gpr_mu_lock(&call->mu);
   if (bctl->send_initial_metadata) {
+    if (!success) {
+      set_status_code(call, STATUS_FROM_CORE, GRPC_STATUS_UNAVAILABLE);
+    }
     grpc_metadata_batch_destroy(
         &call->metadata_batch[0 /* is_receiving */][0 /* is_trailing */]);
   }
@@ -1232,8 +1240,7 @@ static grpc_call_error call_start_batch(grpc_exec_ctx *exec_ctx,
         call->metadata_batch[0][0].deadline = call->send_deadline;
         stream_op.send_initial_metadata =
             &call->metadata_batch[0 /* is_receiving */][0 /* is_trailing */];
-        stream_op.send_idempotent_request =
-            (op->flags & GRPC_INITIAL_METADATA_IDEMPOTENT_REQUEST) != 0;
+        stream_op.send_initial_metadata_flags = op->flags;
         break;
       case GRPC_OP_SEND_MESSAGE:
         if (!are_write_flags_valid(op->flags)) {
@@ -1504,4 +1511,40 @@ grpc_compression_algorithm grpc_call_compression_for_level(
   const uint32_t accepted_encodings = call->encodings_accepted_by_peer;
   gpr_mu_unlock(&call->mu);
   return grpc_compression_algorithm_for_level(level, accepted_encodings);
+}
+
+const char *grpc_call_error_to_string(grpc_call_error error) {
+  switch (error) {
+    case GRPC_CALL_ERROR:
+      return "GRPC_CALL_ERROR";
+    case GRPC_CALL_ERROR_ALREADY_ACCEPTED:
+      return "GRPC_CALL_ERROR_ALREADY_ACCEPTED";
+    case GRPC_CALL_ERROR_ALREADY_FINISHED:
+      return "GRPC_CALL_ERROR_ALREADY_FINISHED";
+    case GRPC_CALL_ERROR_ALREADY_INVOKED:
+      return "GRPC_CALL_ERROR_ALREADY_INVOKED";
+    case GRPC_CALL_ERROR_BATCH_TOO_BIG:
+      return "GRPC_CALL_ERROR_BATCH_TOO_BIG";
+    case GRPC_CALL_ERROR_INVALID_FLAGS:
+      return "GRPC_CALL_ERROR_INVALID_FLAGS";
+    case GRPC_CALL_ERROR_INVALID_MESSAGE:
+      return "GRPC_CALL_ERROR_INVALID_MESSAGE";
+    case GRPC_CALL_ERROR_INVALID_METADATA:
+      return "GRPC_CALL_ERROR_INVALID_METADATA";
+    case GRPC_CALL_ERROR_NOT_INVOKED:
+      return "GRPC_CALL_ERROR_NOT_INVOKED";
+    case GRPC_CALL_ERROR_NOT_ON_CLIENT:
+      return "GRPC_CALL_ERROR_NOT_ON_CLIENT";
+    case GRPC_CALL_ERROR_NOT_ON_SERVER:
+      return "GRPC_CALL_ERROR_NOT_ON_SERVER";
+    case GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE:
+      return "GRPC_CALL_ERROR_NOT_SERVER_COMPLETION_QUEUE";
+    case GRPC_CALL_ERROR_PAYLOAD_TYPE_MISMATCH:
+      return "GRPC_CALL_ERROR_PAYLOAD_TYPE_MISMATCH";
+    case GRPC_CALL_ERROR_TOO_MANY_OPERATIONS:
+      return "GRPC_CALL_ERROR_TOO_MANY_OPERATIONS";
+    case GRPC_CALL_OK:
+      return "GRPC_CALL_OK";
+  }
+  GPR_UNREACHABLE_CODE(return "GRPC_CALL_ERROR_UNKNOW");
 }
