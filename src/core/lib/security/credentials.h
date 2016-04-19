@@ -169,8 +169,7 @@ typedef void (*grpc_credentials_metadata_cb)(grpc_exec_ctx *exec_ctx,
 typedef struct {
   void (*destruct)(grpc_call_credentials *c);
   void (*get_request_metadata)(grpc_exec_ctx *exec_ctx,
-                               grpc_call_credentials *c,
-                               grpc_pollset_set *pollset_set,
+                               grpc_call_credentials *c, grpc_pollset *pollset,
                                grpc_auth_metadata_context context,
                                grpc_credentials_metadata_cb cb,
                                void *user_data);
@@ -186,7 +185,7 @@ grpc_call_credentials *grpc_call_credentials_ref(grpc_call_credentials *creds);
 void grpc_call_credentials_unref(grpc_call_credentials *creds);
 void grpc_call_credentials_get_request_metadata(
     grpc_exec_ctx *exec_ctx, grpc_call_credentials *creds,
-    grpc_pollset_set *pollset_set, grpc_auth_metadata_context context,
+    grpc_pollset *pollset, grpc_auth_metadata_context context,
     grpc_credentials_metadata_cb cb, void *user_data);
 
 typedef struct {
@@ -318,7 +317,7 @@ typedef struct grpc_credentials_metadata_request
 typedef void (*grpc_fetch_oauth2_func)(grpc_exec_ctx *exec_ctx,
                                        grpc_credentials_metadata_request *req,
                                        grpc_httpcli_context *http_context,
-                                       grpc_pollset_set *pollset_set,
+                                       grpc_pollset *pollset,
                                        grpc_httpcli_response_cb response_cb,
                                        gpr_timespec deadline);
 
