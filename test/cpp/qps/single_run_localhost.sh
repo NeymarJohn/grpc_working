@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,9 +28,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-source ~/.rvm/scripts/rvm
+# performs a single qps run with one client and one server
+
 set -ex
 
 cd $(dirname $0)/../../..
 
-ruby src/ruby/qps/worker.rb $@
+killall qps_worker || true
+
+config=opt
+
+NUMCPUS=`python2.7 -c 'import multiprocessing; print multiprocessing.cpu_count()'`
+
+make CONFIG=$config qps_worker qps_driver -j$NUMCPUS
+
+bins/$config/qps_worker -driver_port 10000 &
+PID1=$!
+bins/$config/qps_worker -driver_port 10010 &
+PID2=$!
+
+export QPS_WORKERS="localhost:10000,localhost:10010"
+
+bins/$config/qps_driver $*
+
+kill -2 $PID1 $PID2
+wait
+
