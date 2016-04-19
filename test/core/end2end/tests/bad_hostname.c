@@ -179,5 +179,3 @@ void bad_hostname(grpc_end2end_test_config config) {
     test_invoke_simple_request(config);
   }
 }
-
-void bad_hostname_pre_init(void) {}
