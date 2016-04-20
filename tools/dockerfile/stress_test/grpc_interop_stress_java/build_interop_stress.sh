@@ -27,34 +27,25 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Builds C++ interop server and client in a base image.
+set -e
 
-source ~/.rvm/scripts/rvm
-set -ex
+mkdir -p /var/local/git
+# grpc-java repo
+git clone --recursive --depth 1 /var/local/jenkins/grpc-java /var/local/git/grpc-java
 
-cd $(dirname $0)/../../..
+# grpc repo (for metrics client and for the stress test wrapper scripts)
+git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
 
-#TODO(jtattermusch): add support for more languages
+# Copy service account keys if available
+cp -r /var/local/jenkins/service_account $HOME || true
 
-CONFIG=${CONFIG:-opt}
+# First build the metrics client in grpc repo
+cd /var/local/git/grpc
+make metrics_client
 
-# build C++ qps worker & driver always - we need at least the driver to
-# run any of the scenarios.
-# TODO(jtattermusch): not embedding OpenSSL breaks the C# build because
-# grpc_csharp_ext needs OpenSSL embedded and some intermediate files from
-# this build will be reused.
-make CONFIG=${CONFIG} EMBED_OPENSSL=true EMBED_ZLIB=true qps_worker qps_driver qps_json_driver -j8
-
-for language in $@
-do
-  case "$language" in
-  "c++")
-    ;;  # C++ has already been built.
-  "java")
-    (cd ../grpc-java/ &&
-      ./gradlew -PskipCodegen=true :grpc-benchmarks:installDist)
-    ;;
-  *)
-    tools/run_tests/run_tests.py -l $language -c $CONFIG --build_only -j 8
-    ;;
-  esac
-done
+# Build all interop test targets (which includes interop server and stress test
+# client) in grpc-java repo
+cd /var/local/git/grpc-java
+./gradlew :grpc-interop-testing:installDist -PskipCodegen=true

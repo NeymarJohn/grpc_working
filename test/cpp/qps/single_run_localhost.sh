@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,33 +28,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-source ~/.rvm/scripts/rvm
+# performs a single qps run with one client and one server
+
 set -ex
 
 cd $(dirname $0)/../../..
 
-#TODO(jtattermusch): add support for more languages
+killall qps_worker || true
 
-CONFIG=${CONFIG:-opt}
+config=opt
 
-# build C++ qps worker & driver always - we need at least the driver to
-# run any of the scenarios.
-# TODO(jtattermusch): not embedding OpenSSL breaks the C# build because
-# grpc_csharp_ext needs OpenSSL embedded and some intermediate files from
-# this build will be reused.
-make CONFIG=${CONFIG} EMBED_OPENSSL=true EMBED_ZLIB=true qps_worker qps_driver qps_json_driver -j8
+NUMCPUS=`python2.7 -c 'import multiprocessing; print multiprocessing.cpu_count()'`
 
-for language in $@
-do
-  case "$language" in
-  "c++")
-    ;;  # C++ has already been built.
-  "java")
-    (cd ../grpc-java/ &&
-      ./gradlew -PskipCodegen=true :grpc-benchmarks:installDist)
-    ;;
-  *)
-    tools/run_tests/run_tests.py -l $language -c $CONFIG --build_only -j 8
-    ;;
-  esac
-done
+make CONFIG=$config qps_worker qps_driver -j$NUMCPUS
+
+bins/$config/qps_worker -driver_port 10000 &
+PID1=$!
+bins/$config/qps_worker -driver_port 10010 &
+PID2=$!
+
+export QPS_WORKERS="localhost:10000,localhost:10010"
+
+bins/$config/qps_driver $*
+
+kill -2 $PID1 $PID2
+wait
+
