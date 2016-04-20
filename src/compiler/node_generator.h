@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,36 +31,19 @@
  *
  */
 
-#include <grpc/support/log.h>
-#include <grpc/support/port_platform.h>
+#ifndef GRPC_INTERNAL_COMPILER_NODE_GENERATOR_H
+#define GRPC_INTERNAL_COMPILER_NODE_GENERATOR_H
 
-#include <stdio.h>
-#include <string.h>
+#include "src/compiler/config.h"
 
-extern void gpr_default_log(gpr_log_func_args *args);
-static gpr_log_func g_log_func = gpr_default_log;
+namespace grpc_node_generator {
 
-const char *gpr_log_severity_string(gpr_log_severity severity) {
-  switch (severity) {
-    case GPR_LOG_SEVERITY_DEBUG:
-      return "D";
-    case GPR_LOG_SEVERITY_INFO:
-      return "I";
-    case GPR_LOG_SEVERITY_ERROR:
-      return "E";
-  }
-  GPR_UNREACHABLE_CODE(return "UNKNOWN");
-}
+grpc::string GetImports(const grpc::protobuf::FileDescriptor *file);
 
-void gpr_log_message(const char *file, int line, gpr_log_severity severity,
-                     const char *message) {
-  gpr_log_func_args lfargs;
-  memset(&lfargs, 0, sizeof(lfargs));
-  lfargs.file = file;
-  lfargs.line = line;
-  lfargs.severity = severity;
-  lfargs.message = message;
-  g_log_func(&lfargs);
-}
+grpc::string GetTransformers(const grpc::protobuf::FileDescriptor *file);
 
-void gpr_set_log_function(gpr_log_func f) { g_log_func = f; }
+grpc::string GetServices(const grpc::protobuf::FileDescriptor *file);
+
+}  // namespace grpc_node_generator
+
+#endif  // GRPC_INTERNAL_COMPILER_NODE_GENERATOR_H

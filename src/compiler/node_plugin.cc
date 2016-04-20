@@ -31,36 +31,47 @@
  *
  */
 
-#include <grpc/support/log.h>
-#include <grpc/support/port_platform.h>
+// Generates Node gRPC service interface out of Protobuf IDL.
 
-#include <stdio.h>
-#include <string.h>
+#include <memory>
 
-extern void gpr_default_log(gpr_log_func_args *args);
-static gpr_log_func g_log_func = gpr_default_log;
+#include "src/compiler/config.h"
+#include "src/compiler/node_generator.h"
+#include "src/compiler/node_generator_helpers.h"
 
-const char *gpr_log_severity_string(gpr_log_severity severity) {
-  switch (severity) {
-    case GPR_LOG_SEVERITY_DEBUG:
-      return "D";
-    case GPR_LOG_SEVERITY_INFO:
-      return "I";
-    case GPR_LOG_SEVERITY_ERROR:
-      return "E";
+using grpc_node_generator::GetImports;
+using grpc_node_generator::GetJSServiceFilename;
+using grpc_node_generator::GetServices;
+using grpc_node_generator::GetTransformers;
+
+class NodeGrpcGenerator : public grpc::protobuf::compiler::CodeGenerator {
+ public:
+  NodeGrpcGenerator() {}
+  ~NodeGrpcGenerator() {}
+
+  bool Generate(const grpc::protobuf::FileDescriptor *file,
+                const grpc::string &parameter,
+                grpc::protobuf::compiler::GeneratorContext *context,
+                grpc::string *error) const {
+    grpc::string code = GetImports(file) +
+        GetTransformers(file) +
+        GetServices(file);
+    if (code.size() == 0) {
+      return true;
+    }
+
+    // Get output file name
+    grpc::string file_name = GetJSServiceFilename(file->name());
+
+    std::unique_ptr<grpc::protobuf::io::ZeroCopyOutputStream> output(
+        context->Open(file_name));
+    grpc::protobuf::io::CodedOutputStream coded_out(output.get());
+    coded_out.WriteRaw(code.data(), code.size());
+    return true;
   }
-  GPR_UNREACHABLE_CODE(return "UNKNOWN");
-}
+};
 
-void gpr_log_message(const char *file, int line, gpr_log_severity severity,
-                     const char *message) {
-  gpr_log_func_args lfargs;
-  memset(&lfargs, 0, sizeof(lfargs));
-  lfargs.file = file;
-  lfargs.line = line;
-  lfargs.severity = severity;
-  lfargs.message = message;
-  g_log_func(&lfargs);
+int main(int argc, char *argv[]) {
+  NodeGrpcGenerator generator;
+  return grpc::protobuf::compiler::PluginMain(argc, argv, &generator);
 }
-
-void gpr_set_log_function(gpr_log_func f) { g_log_func = f; }

@@ -131,16 +131,11 @@ def create_quit_jobspec(workers, remote_host=None):
       verbose_success=True)
 
 
-def archive_repo(languages):
+def archive_repo():
   """Archives local version of repo including submodules."""
-  cmdline=['tar', '-cf', '../grpc.tar', '../grpc/']
-  if 'java' in languages:
-    cmdline.append('../grpc-java')
-  if 'go' in languages:
-    cmdline.append('../grpc-go')
-
+  # TODO: also archive grpc-go and grpc-java repos
   archive_job = jobset.JobSpec(
-      cmdline=cmdline,
+      cmdline=['tar', '-cf', '../grpc.tar', '../grpc/'],
       shortname='archive_repo',
       timeout_seconds=3*60)
 
@@ -149,7 +144,7 @@ def archive_repo(languages):
       [archive_job], newline_on_success=True, maxjobs=1)
   if num_failures == 0:
     jobset.message('SUCCESS',
-                   'Archive with local repository created successfully.',
+                   'Archive with local repository create successfully.',
                    do_newline=True)
   else:
     jobset.message('FAILED', 'Failed to archive local repository.',
@@ -321,7 +316,7 @@ if args.remote_driver_host:
   remote_hosts.add(args.remote_driver_host)
 
 if remote_hosts:
-  archive_repo(languages=[str(l) for l in languages])
+  archive_repo()
   prepare_remote_hosts(remote_hosts)
 
 build_local = False
