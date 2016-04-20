@@ -35,7 +35,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'googleauth',      '~> 0.5.1'
 
   s.add_development_dependency 'bundler',            '~> 1.9'
-  s.add_development_dependency 'facter',             '~> 2.4'
   s.add_development_dependency 'logging',            '~> 2.0'
   s.add_development_dependency 'simplecov',          '~> 0.9'
   s.add_development_dependency 'rake',               '~> 10.4'
@@ -288,7 +287,6 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/ext/client_config/lb_policy.h )
   s.files += %w( src/core/ext/client_config/lb_policy_factory.h )
   s.files += %w( src/core/ext/client_config/lb_policy_registry.h )
-  s.files += %w( src/core/ext/client_config/parse_address.h )
   s.files += %w( src/core/ext/client_config/resolver.h )
   s.files += %w( src/core/ext/client_config/resolver_factory.h )
   s.files += %w( src/core/ext/client_config/resolver_registry.h )
@@ -444,7 +442,6 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/ext/client_config/lb_policy.c )
   s.files += %w( src/core/ext/client_config/lb_policy_factory.c )
   s.files += %w( src/core/ext/client_config/lb_policy_registry.c )
-  s.files += %w( src/core/ext/client_config/parse_address.c )
   s.files += %w( src/core/ext/client_config/resolver.c )
   s.files += %w( src/core/ext/client_config/resolver_factory.c )
   s.files += %w( src/core/ext/client_config/resolver_registry.c )
