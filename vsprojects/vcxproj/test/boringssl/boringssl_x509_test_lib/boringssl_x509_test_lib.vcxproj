@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B6E81D84-2ACB-41B8-8781-493A944C7817}</ProjectGuid>
+    <ProjectGuid>{62DBB3BA-05D6-D2CF-7EC5-253F2AC25892}</ProjectGuid>
     <IgnoreWarnIntDirInTempDetected>true</IgnoreWarnIntDirInTempDetected>
     <IntDir>$(SolutionDir)IntDir\$(MSBuildProjectName)\</IntDir>
   </PropertyGroup>
@@ -53,15 +53,14 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)\..\vsprojects\global.props" />
-    <Import Project="$(SolutionDir)\..\vsprojects\protoc.props" />
     <Import Project="$(SolutionDir)\..\vsprojects\winsock.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <TargetName>grpc_plugin_support</TargetName>
+    <TargetName>boringssl_x509_test_lib</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <TargetName>grpc_plugin_support</TargetName>
+    <TargetName>boringssl_x509_test_lib</TargetName>
   </PropertyGroup>
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -71,7 +70,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
       <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
       <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
@@ -90,7 +89,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
       <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
       <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
@@ -111,7 +110,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
       <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
       <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
@@ -134,7 +133,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
       <DebugInformationFormat Condition="$(Jenkins)">None</DebugInformationFormat>
       <MinimalRebuild Condition="$(Jenkins)">false</MinimalRebuild>
     </ClCompile>
@@ -148,37 +147,16 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\support\config.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\support\config_protobuf.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\config.h" />
-    <ClInclude Include="$(SolutionDir)\..\include\grpc++\impl\codegen\config_protobuf.h" />
+    <ClCompile Include="$(SolutionDir)\..\third_party\boringssl\crypto\x509\x509_test.cc">
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\config.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\cpp_generator.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\cpp_generator_helpers.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\csharp_generator.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\csharp_generator_helpers.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\generator_helpers.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\objective_c_generator.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\objective_c_generator_helpers.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\python_generator.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\ruby_generator.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\ruby_generator_helpers-inl.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\ruby_generator_map-inl.h" />
-    <ClInclude Include="$(SolutionDir)\..\src\compiler\ruby_generator_string-inl.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="$(SolutionDir)\..\src\compiler\cpp_generator.cc">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\compiler\csharp_generator.cc">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\compiler\objective_c_generator.cc">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\compiler\python_generator.cc">
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)\..\src\compiler\ruby_generator.cc">
-    </ClCompile>
+    <ProjectReference Include="$(SolutionDir)\..\vsprojects\vcxproj\.\boringssl_test_util\boringssl_test_util.vcxproj">
+      <Project>{427037B1-B51B-D6F1-5025-AD12B200266A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\..\vsprojects\vcxproj\.\boringssl\boringssl.vcxproj">
+      <Project>{9FD9A3EF-C4A3-8390-D8F4-6F86C22A58CE}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
