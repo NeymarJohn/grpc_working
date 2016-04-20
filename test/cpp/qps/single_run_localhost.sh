@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,18 +28,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# performs a single qps run with one client and one server
+
 set -ex
 
 cd $(dirname $0)/../../..
 
-# cleanup after previous builds
-ssh "${USER_AT_HOST}" "rm -rf ~/performance_workspace && mkdir -p ~/performance_workspace"
+killall qps_worker || true
 
-# TODO(jtattermusch): To be sure there are no running processes that would
-# mess with the results, be rough and reboot the slave here
-# and wait for it to come back online.
-ssh "${USER_AT_HOST}" "killall qps_worker mono node || true"
+config=opt
 
-# push the current sources to the slave and unpack it.
-scp ../grpc.tar "${USER_AT_HOST}:~/performance_workspace"
-ssh "${USER_AT_HOST}" "tar -xf ~/performance_workspace/grpc.tar -C ~/performance_workspace"
+NUMCPUS=`python2.7 -c 'import multiprocessing; print multiprocessing.cpu_count()'`
+
+make CONFIG=$config qps_worker qps_driver -j$NUMCPUS
+
+bins/$config/qps_worker -driver_port 10000 &
+PID1=$!
+bins/$config/qps_worker -driver_port 10010 &
+PID2=$!
+
+export QPS_WORKERS="localhost:10000,localhost:10010"
+
+bins/$config/qps_driver $*
+
+kill -2 $PID1 $PID2
+wait
+
