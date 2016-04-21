@@ -34,7 +34,6 @@
 'use strict';
 
 var os = require('os');
-var console = require('console');
 var BenchmarkClient = require('./benchmark_client');
 var BenchmarkServer = require('./benchmark_server');
 
@@ -50,7 +49,6 @@ exports.runClient = function runClient(call) {
     switch (request.argtype) {
       case 'setup':
       var setup = request.setup;
-      console.log('ClientConfig %j', setup);
       client = new BenchmarkClient(setup.server_targets,
                                    setup.client_channels,
                                    setup.histogram_params,
@@ -120,7 +118,6 @@ exports.runServer = function runServer(call) {
     var stats;
     switch (request.argtype) {
       case 'setup':
-      console.log('ServerConfig %j', request.setup);
       server = new BenchmarkServer('[::]', request.setup.port,
                                    request.setup.security_params);
       server.start();

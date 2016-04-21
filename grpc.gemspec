@@ -24,6 +24,10 @@ Gem::Specification.new do |s|
   s.files += Dir.glob('include/grpc/**/*')
   s.test_files = Dir.glob('src/ruby/spec/**/*')
   s.bindir = 'src/ruby/bin'
+  %w(math noproto).each do |b|
+    s.executables += ["#{b}_client.rb", "#{b}_server.rb"]
+  end
+  s.executables += %w(grpc_ruby_interop_client grpc_ruby_interop_server)
   s.require_paths = %w( src/ruby/bin src/ruby/lib src/ruby/pb )
   s.platform      = Gem::Platform::RUBY
 
@@ -284,7 +288,6 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/ext/client_config/lb_policy.h )
   s.files += %w( src/core/ext/client_config/lb_policy_factory.h )
   s.files += %w( src/core/ext/client_config/lb_policy_registry.h )
-  s.files += %w( src/core/ext/client_config/parse_address.h )
   s.files += %w( src/core/ext/client_config/resolver.h )
   s.files += %w( src/core/ext/client_config/resolver_factory.h )
   s.files += %w( src/core/ext/client_config/resolver_registry.h )
@@ -440,7 +443,6 @@ Gem::Specification.new do |s|
   s.files += %w( src/core/ext/client_config/lb_policy.c )
   s.files += %w( src/core/ext/client_config/lb_policy_factory.c )
   s.files += %w( src/core/ext/client_config/lb_policy_registry.c )
-  s.files += %w( src/core/ext/client_config/parse_address.c )
   s.files += %w( src/core/ext/client_config/resolver.c )
   s.files += %w( src/core/ext/client_config/resolver_factory.c )
   s.files += %w( src/core/ext/client_config/resolver_registry.c )

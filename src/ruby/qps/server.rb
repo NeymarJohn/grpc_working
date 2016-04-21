@@ -88,7 +88,4 @@ class BenchmarkServer
   def get_port
     @port
   end
-  def stop
-    @server.stop
-  end
 end
