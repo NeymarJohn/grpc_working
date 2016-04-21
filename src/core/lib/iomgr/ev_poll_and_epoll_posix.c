@@ -126,9 +126,6 @@ struct grpc_fd {
   grpc_closure *on_done_closure;
 
   grpc_iomgr_object iomgr_object;
-
-  /* The pollset that last noticed and notified that the fd is readable */
-  grpc_pollset *read_notifier_pollset;
 };
 
 /* Begin polling on an fd.
@@ -150,8 +147,7 @@ static uint32_t fd_begin_poll(grpc_fd *fd, grpc_pollset *pollset,
    if got_read or got_write are 1, also does the become_{readable,writable} as
    appropriate. */
 static void fd_end_poll(grpc_exec_ctx *exec_ctx, grpc_fd_watcher *rec,
-                        int got_read, int got_write,
-                        grpc_pollset *read_notifier_pollset);
+                        int got_read, int got_write);
 
 /* Return 1 if this fd is orphaned, 0 otherwise */
 static bool fd_is_orphaned(grpc_fd *fd);
@@ -346,7 +342,6 @@ static grpc_fd *alloc_fd(int fd) {
   r->on_done_closure = NULL;
   r->closed = 0;
   r->released = 0;
-  r->read_notifier_pollset = NULL;
   gpr_mu_unlock(&r->mu);
   return r;
 }
@@ -550,11 +545,6 @@ static int set_ready_locked(grpc_exec_ctx *exec_ctx, grpc_fd *fd,
   }
 }
 
-static void set_read_notifier_pollset_locked(
-    grpc_exec_ctx *exec_ctx, grpc_fd *fd, grpc_pollset *read_notifier_pollset) {
-  fd->read_notifier_pollset = read_notifier_pollset;
-}
-
 static void fd_shutdown(grpc_exec_ctx *exec_ctx, grpc_fd *fd) {
   gpr_mu_lock(&fd->mu);
   GPR_ASSERT(!fd->shutdown);
@@ -576,18 +566,6 @@ static void fd_notify_on_write(grpc_exec_ctx *exec_ctx, grpc_fd *fd,
   gpr_mu_lock(&fd->mu);
   notify_on_locked(exec_ctx, fd, &fd->write_closure, closure);
   gpr_mu_unlock(&fd->mu);
-}
-
-/* Return the read-notifier pollset */
-static grpc_pollset *fd_get_read_notifier_pollset(grpc_exec_ctx *exec_ctx,
-                                                  grpc_fd *fd) {
-  grpc_pollset *notifier = NULL;
-
-  gpr_mu_lock(&fd->mu);
-  notifier = fd->read_notifier_pollset;
-  gpr_mu_unlock(&fd->mu);
-
-  return notifier;
 }
 
 static uint32_t fd_begin_poll(grpc_fd *fd, grpc_pollset *pollset,
@@ -642,8 +620,7 @@ static uint32_t fd_begin_poll(grpc_fd *fd, grpc_pollset *pollset,
 }
 
 static void fd_end_poll(grpc_exec_ctx *exec_ctx, grpc_fd_watcher *watcher,
-                        int got_read, int got_write,
-                        grpc_pollset *read_notifier_pollset) {
+                        int got_read, int got_write) {
   int was_polling = 0;
   int kick = 0;
   grpc_fd *fd = watcher->fd;
@@ -678,10 +655,6 @@ static void fd_end_poll(grpc_exec_ctx *exec_ctx, grpc_fd_watcher *watcher,
   if (got_read) {
     if (set_ready_locked(exec_ctx, fd, &fd->read_closure)) {
       kick = 1;
-    }
-
-    if (read_notifier_pollset != NULL) {
-      set_read_notifier_pollset_locked(exec_ctx, fd, read_notifier_pollset);
     }
   }
   if (got_write) {
@@ -783,14 +756,9 @@ static void pollset_kick_ext(grpc_pollset *p,
     specific_worker = pop_front_worker(p);
     if (specific_worker != NULL) {
       if (gpr_tls_get(&g_current_thread_worker) == (intptr_t)specific_worker) {
-        /* Prefer not to kick self. Push the worker to the end of the list and
-         * pop the one from front */
         GPR_TIMER_MARK("kick_anonymous_not_self", 0);
         push_back_worker(p, specific_worker);
         specific_worker = pop_front_worker(p);
-        /* If there was only one worker on the pollset, we would get the same
-         * worker we pushed (the one set on current thread local) back. If so,
-         * kick it only if GRPC_POLLSET_CAN_KICK_SELF flag is set */
         if ((flags & GRPC_POLLSET_CAN_KICK_SELF) == 0 &&
             gpr_tls_get(&g_current_thread_worker) ==
                 (intptr_t)specific_worker) {
@@ -1235,11 +1203,11 @@ static void basic_pollset_maybe_work_and_unlock(grpc_exec_ctx *exec_ctx,
       gpr_log(GPR_ERROR, "poll() failed: %s", strerror(errno));
     }
     if (fd) {
-      fd_end_poll(exec_ctx, &fd_watcher, 0, 0, NULL);
+      fd_end_poll(exec_ctx, &fd_watcher, 0, 0);
     }
   } else if (r == 0) {
     if (fd) {
-      fd_end_poll(exec_ctx, &fd_watcher, 0, 0, NULL);
+      fd_end_poll(exec_ctx, &fd_watcher, 0, 0);
     }
   } else {
     if (pfd[0].revents & POLLIN_CHECK) {
@@ -1250,9 +1218,9 @@ static void basic_pollset_maybe_work_and_unlock(grpc_exec_ctx *exec_ctx,
     }
     if (nfds > 2) {
       fd_end_poll(exec_ctx, &fd_watcher, pfd[2].revents & POLLIN_CHECK,
-                  pfd[2].revents & POLLOUT_CHECK, pollset);
+                  pfd[2].revents & POLLOUT_CHECK);
     } else if (fd) {
-      fd_end_poll(exec_ctx, &fd_watcher, 0, 0, NULL);
+      fd_end_poll(exec_ctx, &fd_watcher, 0, 0);
     }
   }
 
@@ -1388,11 +1356,11 @@ static void multipoll_with_poll_pollset_maybe_work_and_unlock(
       gpr_log(GPR_ERROR, "poll() failed: %s", strerror(errno));
     }
     for (i = 2; i < pfd_count; i++) {
-      fd_end_poll(exec_ctx, &watchers[i], 0, 0, NULL);
+      fd_end_poll(exec_ctx, &watchers[i], 0, 0);
     }
   } else if (r == 0) {
     for (i = 2; i < pfd_count; i++) {
-      fd_end_poll(exec_ctx, &watchers[i], 0, 0, NULL);
+      fd_end_poll(exec_ctx, &watchers[i], 0, 0);
     }
   } else {
     if (pfds[0].revents & POLLIN_CHECK) {
@@ -1403,11 +1371,11 @@ static void multipoll_with_poll_pollset_maybe_work_and_unlock(
     }
     for (i = 2; i < pfd_count; i++) {
       if (watchers[i].fd == NULL) {
-        fd_end_poll(exec_ctx, &watchers[i], 0, 0, NULL);
+        fd_end_poll(exec_ctx, &watchers[i], 0, 0);
         continue;
       }
       fd_end_poll(exec_ctx, &watchers[i], pfds[i].revents & POLLIN_CHECK,
-                  pfds[i].revents & POLLOUT_CHECK, pollset);
+                  pfds[i].revents & POLLOUT_CHECK);
     }
   }
 
@@ -1483,31 +1451,20 @@ static void poll_become_multipoller(grpc_exec_ctx *exec_ctx,
 #include "src/core/lib/profiling/timers.h"
 #include "src/core/lib/support/block_annotate.h"
 
-static void set_ready(grpc_exec_ctx *exec_ctx, grpc_fd *fd, grpc_closure **st,
-                      grpc_pollset *read_notifier_pollset) {
+static void set_ready(grpc_exec_ctx *exec_ctx, grpc_fd *fd, grpc_closure **st) {
   /* only one set_ready can be active at once (but there may be a racing
      notify_on) */
   gpr_mu_lock(&fd->mu);
   set_ready_locked(exec_ctx, fd, st);
-
-  /* A non-NULL read_notifier_pollset means that the fd is readable. */
-  if (read_notifier_pollset != NULL) {
-    /* Note: Since the fd might be a part of multiple pollsets, this might be
-     * called multiple times (for each time the fd becomes readable) and it is
-     * okay to set the fd's read-notifier pollset to anyone of these pollsets */
-    set_read_notifier_pollset_locked(exec_ctx, fd, read_notifier_pollset);
-  }
-
   gpr_mu_unlock(&fd->mu);
 }
 
-static void fd_become_readable(grpc_exec_ctx *exec_ctx, grpc_fd *fd,
-                               grpc_pollset *notifier_pollset) {
-  set_ready(exec_ctx, fd, &fd->read_closure, notifier_pollset);
+static void fd_become_readable(grpc_exec_ctx *exec_ctx, grpc_fd *fd) {
+  set_ready(exec_ctx, fd, &fd->read_closure);
 }
 
 static void fd_become_writable(grpc_exec_ctx *exec_ctx, grpc_fd *fd) {
-  set_ready(exec_ctx, fd, &fd->write_closure, NULL);
+  set_ready(exec_ctx, fd, &fd->write_closure);
 }
 
 struct epoll_fd_list {
@@ -1599,7 +1556,7 @@ static void finally_add_fd(grpc_exec_ctx *exec_ctx, grpc_pollset *pollset,
       }
     }
   }
-  fd_end_poll(exec_ctx, &watcher, 0, 0, NULL);
+  fd_end_poll(exec_ctx, &watcher, 0, 0);
 }
 
 static void perform_delayed_add(grpc_exec_ctx *exec_ctx, void *arg,
@@ -1713,7 +1670,7 @@ static void multipoll_with_epoll_pollset_maybe_work_and_unlock(
               grpc_wakeup_fd_consume_wakeup(&grpc_global_wakeup_fd);
             } else {
               if (read_ev || cancel) {
-                fd_become_readable(exec_ctx, fd, pollset);
+                fd_become_readable(exec_ctx, fd);
               }
               if (write_ev || cancel) {
                 fd_become_writable(exec_ctx, fd);
@@ -1942,7 +1899,6 @@ static const grpc_event_engine_vtable vtable = {
     .fd_shutdown = fd_shutdown,
     .fd_notify_on_read = fd_notify_on_read,
     .fd_notify_on_write = fd_notify_on_write,
-    .fd_get_read_notifier_pollset = fd_get_read_notifier_pollset,
 
     .pollset_init = pollset_init,
     .pollset_shutdown = pollset_shutdown,
