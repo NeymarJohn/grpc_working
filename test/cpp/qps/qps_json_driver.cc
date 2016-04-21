@@ -48,7 +48,6 @@ DEFINE_string(scenarios_file, "",
               "JSON file containing an array of Scenario objects");
 DEFINE_string(scenarios_json, "",
               "JSON string containing an array of Scenario objects");
-DEFINE_bool(quit, false, "Quit the workers");
 
 namespace grpc {
 namespace testing {
@@ -56,17 +55,12 @@ namespace testing {
 static void QpsDriver() {
   grpc::string json;
 
-  bool scfile = (FLAGS_scenarios_file != "");
-  bool scjson = (FLAGS_scenarios_json != "");
-  if ((!scfile && !scjson && !FLAGS_quit) ||
-      (scfile && (scjson || FLAGS_quit)) || (scjson && FLAGS_quit)) {
-    gpr_log(GPR_ERROR,
-            "Exactly one of --scenarios_file, --scenarios_json, "
-            "or --quit must be set");
-    abort();
-  }
-
-  if (scfile) {
+  if (FLAGS_scenarios_file != "") {
+    if (FLAGS_scenarios_json != "") {
+      gpr_log(GPR_ERROR,
+              "Only one of --scenarios_file or --scenarios_json must be set");
+      abort();
+    }
     // Read the json data from disk
     FILE *json_file = fopen(FLAGS_scenarios_file.c_str(), "r");
     GPR_ASSERT(json_file != NULL);
@@ -78,11 +72,12 @@ static void QpsDriver() {
     fclose(json_file);
     json = grpc::string(data, data + len);
     delete[] data;
-  } else if (scjson) {
+  } else if (FLAGS_scenarios_json != "") {
     json = FLAGS_scenarios_json.c_str();
-  } else if (FLAGS_quit) {
-    RunQuit();
-    return;
+  } else {
+    gpr_log(GPR_ERROR,
+            "One of --scenarios_file or --scenarios_json must be set");
+    abort();
   }
 
   // Parse into an array of scenarios
@@ -103,9 +98,6 @@ static void QpsDriver() {
     abort();
   }
   GPR_ASSERT(scenarios.ParseFromString(binary));
-
-  // Make sure that there is at least some valid scenario here
-  GPR_ASSERT(scenarios.scenarios_size() > 0);
 
   for (int i = 0; i < scenarios.scenarios_size(); i++) {
     const Scenario &scenario = scenarios.scenarios(i);
