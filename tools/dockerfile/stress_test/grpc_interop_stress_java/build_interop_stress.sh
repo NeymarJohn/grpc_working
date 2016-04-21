@@ -1,5 +1,4 @@
-#!/usr/bin/env ruby
-
+#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,6 +27,25 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Builds C++ interop server and client in a base image.
+set -e
 
-# Provides a gem binary entry point for the interop client.
-require 'test/client'
+mkdir -p /var/local/git
+# grpc-java repo
+git clone --recursive --depth 1 /var/local/jenkins/grpc-java /var/local/git/grpc-java
+
+# grpc repo (for metrics client and for the stress test wrapper scripts)
+git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
+
+# Copy service account keys if available
+cp -r /var/local/jenkins/service_account $HOME || true
+
+# First build the metrics client in grpc repo
+cd /var/local/git/grpc
+make metrics_client
+
+# Build all interop test targets (which includes interop server and stress test
+# client) in grpc-java repo
+cd /var/local/git/grpc-java
+./gradlew :grpc-interop-testing:installDist -PskipCodegen=true

@@ -1,5 +1,4 @@
-#!/usr/bin/env ruby
-
+#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -29,22 +28,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# #######################################################################
-# DEPRECATED: The behaviour in this file has been moved to pb/test/server.rb
-#
-# This file remains to support existing tools and scripts that use it.
-# ######################################################################
-#
-# interop_server is a Testing app that runs a gRPC interop testing server.
-#
-# It helps validate interoperation b/w gRPC in different environments
-#
-# Helps validate interoperation b/w different gRPC implementations.
-#
-# Usage: $ path/to/interop_server.rb --port
+set -ex
 
-this_dir = File.expand_path(File.dirname(__FILE__))
-pb_dir = File.join(File.dirname(File.dirname(this_dir)), 'pb')
-$LOAD_PATH.unshift(pb_dir) unless $LOAD_PATH.include?(pb_dir)
+cd $(dirname $0)/../../..
 
-require 'test/server'
+bins/opt/qps_json_driver "$@"
+
+if [ "$BQ_RESULT_TABLE" != "" ]
+then
+  tools/run_tests/performance/bq_upload_result.py --bq_result_table="$BQ_RESULT_TABLE"
+fi

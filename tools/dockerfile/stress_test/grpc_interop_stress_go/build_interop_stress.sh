@@ -1,5 +1,4 @@
-#!/usr/bin/env ruby
-
+#!/bin/bash
 # Copyright 2015, Google Inc.
 # All rights reserved.
 #
@@ -28,6 +27,32 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Builds Go interop server, Stress client and metrics client in a base image.
+set -e
 
-# Provides a gem binary entry point for the interop server
-require 'test/server'
+# Clone just the grpc-go source code without any dependencies.
+# We are cloning from a local git repo that contains the right revision
+# to test instead of using "go get" to download from Github directly.
+git clone --recursive /var/local/jenkins/grpc-go src/google.golang.org/grpc
+
+# Clone the 'grpc' repo. We just need this for the wrapper scripts under
+# grpc/tools/gcp/stress_tests
+git clone --recursive /var/local/jenkins/grpc /var/local/git/grpc
+
+# copy service account keys if available
+cp -r /var/local/jenkins/service_account $HOME || true
+
+# Get dependencies from GitHub
+# NOTE: once grpc-go dependencies change, this needs to be updated manually
+# but we don't expect this to happen any time soon.
+go get github.com/golang/protobuf/proto
+go get golang.org/x/net/context
+go get golang.org/x/net/trace
+go get golang.org/x/oauth2
+go get google.golang.org/cloud
+
+# Build the interop server, stress client and stress metrics client
+(cd src/google.golang.org/grpc/interop/server && go install)
+(cd src/google.golang.org/grpc/stress/client && go install)
+(cd src/google.golang.org/grpc/stress/metrics_client && go install)
