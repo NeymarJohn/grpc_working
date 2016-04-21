@@ -46,8 +46,9 @@ ServerBuilder::ServerBuilder()
   grpc_compression_options_init(&compression_options_);
 }
 
-std::unique_ptr<ServerCompletionQueue> ServerBuilder::AddCompletionQueue() {
-  ServerCompletionQueue* cq = new ServerCompletionQueue();
+std::unique_ptr<ServerCompletionQueue> ServerBuilder::AddCompletionQueue(
+    bool is_frequently_polled) {
+  ServerCompletionQueue* cq = new ServerCompletionQueue(is_frequently_polled);
   cqs_.push_back(cq);
   return std::unique_ptr<ServerCompletionQueue>(cq);
 }
@@ -85,8 +86,11 @@ void ServerBuilder::AddListeningPort(const grpc::string& addr,
 
 std::unique_ptr<Server> ServerBuilder::BuildAndStart() {
   std::unique_ptr<ThreadPoolInterface> thread_pool;
+  // Does this server have atleast one sync method
+  bool has_sync_methods = false;
   for (auto it = services_.begin(); it != services_.end(); ++it) {
     if ((*it)->service->has_synchronous_methods()) {
+      has_sync_methods = true;
       if (thread_pool == nullptr) {
         thread_pool.reset(CreateDefaultThreadPool());
         break;
@@ -104,10 +108,33 @@ std::unique_ptr<Server> ServerBuilder::BuildAndStart() {
               compression_options_.enabled_algorithms_bitset);
   std::unique_ptr<Server> server(
       new Server(thread_pool.release(), true, max_message_size_, &args));
+
+  // If the server has atleast one sync methods, we know that this is a Sync
+  // server or a Hybrid server and the completion queue (server->cq_) would be
+  // frequently polled.
+  int num_frequently_polled_cqs = has_sync_methods ? 1 : 0;
+
   for (auto cq = cqs_.begin(); cq != cqs_.end(); ++cq) {
-    grpc_server_register_completion_queue(server->server_, (*cq)->cq(),
-                                          nullptr);
+    // A completion queue that is not polled frequently (by calling Next() or
+    // AsyncNext()) is not safe to use for listening to incoming channels.
+    // Register all such completion queues as non-listening completion queues
+    // with the GRPC core library.
+    if ((*cq)->IsFrequentlyPolled()) {
+      grpc_server_register_completion_queue(server->server_, (*cq)->cq(),
+                                            nullptr);
+      num_frequently_polled_cqs++;
+    } else {
+      grpc_server_register_non_listening_completion_queue(server->server_,
+                                                          (*cq)->cq(), nullptr);
+    }
   }
+
+  if (num_frequently_polled_cqs == 0) {
+    gpr_log(GPR_ERROR,
+            "Atleast one of the completion queues must be frequently polled");
+    return nullptr;
+  }
+
   for (auto service = services_.begin(); service != services_.end();
        service++) {
     if (!server->RegisterService((*service)->host.get(), (*service)->service)) {
