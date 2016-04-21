@@ -31,46 +31,34 @@
  *
  */
 
-#include <grpc/byte_buffer.h>
-#include <grpc/byte_buffer_reader.h>
-#include <grpc/census.h>
-#include <grpc/compression.h>
-#include <grpc/grpc.h>
-#include <grpc/grpc_security.h>
-#include <grpc/impl/codegen/alloc.h>
-#include <grpc/impl/codegen/atm.h>
-#include <grpc/impl/codegen/byte_buffer.h>
-#include <grpc/impl/codegen/compression_types.h>
-#include <grpc/impl/codegen/connectivity_state.h>
-#include <grpc/impl/codegen/grpc_types.h>
-#include <grpc/impl/codegen/log.h>
-#include <grpc/impl/codegen/port_platform.h>
-#include <grpc/impl/codegen/propagation_bits.h>
-#include <grpc/impl/codegen/slice.h>
-#include <grpc/impl/codegen/slice_buffer.h>
-#include <grpc/impl/codegen/status.h>
-#include <grpc/impl/codegen/sync.h>
-#include <grpc/impl/codegen/sync_generic.h>
-#include <grpc/impl/codegen/time.h>
-#include <grpc/status.h>
-#include <grpc/support/alloc.h>
-#include <grpc/support/atm.h>
-#include <grpc/support/avl.h>
-#include <grpc/support/cmdline.h>
-#include <grpc/support/cpu.h>
-#include <grpc/support/histogram.h>
-#include <grpc/support/host_port.h>
-#include <grpc/support/log.h>
-#include <grpc/support/port_platform.h>
-#include <grpc/support/slice.h>
-#include <grpc/support/slice_buffer.h>
-#include <grpc/support/string_util.h>
-#include <grpc/support/subprocess.h>
-#include <grpc/support/sync.h>
-#include <grpc/support/sync_generic.h>
-#include <grpc/support/thd.h>
-#include <grpc/support/time.h>
-#include <grpc/support/tls.h>
-#include <grpc/support/useful.h>
+#include <fstream>
+#include <sstream>
 
-int main(int argc, char **argv) { return 0; }
+#include <gtest/gtest.h>
+
+// These paths rely on the fact that we run our tests under grpc/
+const char kGeneratedFilePath[] =
+    "gens/src/proto/grpc/testing/compiler_test.grpc.pb.h";
+const char kGoldenFilePath[] = "test/cpp/codegen/compiler_test_golden";
+
+TEST(GoldenFileTest, TestGeneratedFile) {
+  std::ifstream generated(kGeneratedFilePath);
+  std::ifstream golden(kGoldenFilePath);
+
+  ASSERT_TRUE(generated.good());
+  ASSERT_TRUE(golden.good());
+
+  std::ostringstream gen_oss;
+  std::ostringstream gold_oss;
+  gen_oss << generated.rdbuf();
+  gold_oss << golden.rdbuf();
+  EXPECT_EQ(gold_oss.str(), gen_oss.str());
+
+  generated.close();
+  golden.close();
+}
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
