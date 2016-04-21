@@ -361,6 +361,5 @@ try:
     sys.exit(1)
 except:
   traceback.print_exc()
-  raise
 finally:
   finish_qps_workers(qpsworker_jobs)
