@@ -35,11 +35,15 @@
 //
 
 #include <memory>
+#include <sstream>
 
 #include "src/compiler/config.h"
 
 #include "src/compiler/cpp_generator.h"
 #include "src/compiler/cpp_generator_helpers.h"
+#include "src/compiler/generator_helpers.h"
+
+using grpc_generator::GetComments;
 
 class ProtoBufMethod : public grpc_cpp_generator::Method {
  public:
@@ -71,6 +75,12 @@ class ProtoBufMethod : public grpc_cpp_generator::Method {
     return method_->client_streaming() && method_->server_streaming();
   }
 
+  grpc::string GetLeadingComments() const { return GetComments(method_, true); }
+
+  grpc::string GetTrailingComments() const {
+    return GetComments(method_, false);
+  }
+
  private:
   const grpc::protobuf::MethodDescriptor *method_;
 };
@@ -87,6 +97,14 @@ class ProtoBufService : public grpc_cpp_generator::Service {
     return std::unique_ptr<const grpc_cpp_generator::Method>(
           new ProtoBufMethod(service_->method(i)));
   };
+
+  grpc::string GetLeadingComments() const {
+    return GetComments(service_, true);
+  }
+
+  grpc::string GetTrailingComments() const {
+    return GetComments(service_, false);
+  }
 
  private:
   const grpc::protobuf::ServiceDescriptor *service_;
@@ -135,6 +153,10 @@ class ProtoBufFile : public grpc_cpp_generator::File {
     return std::unique_ptr<grpc_cpp_generator::Printer>(
           new ProtoBufPrinter(str));
   }
+
+  grpc::string GetLeadingComments() const { return GetComments(file_, true); }
+
+  grpc::string GetTrailingComments() const { return GetComments(file_, false); }
 
  private:
   const grpc::protobuf::FileDescriptor *file_;
