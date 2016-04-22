@@ -56,6 +56,9 @@ extern void gpr_default_log(gpr_log_func_args* args);
 
 DEFINE_int32(metrics_port, 8081, "The metrics server port.");
 
+DEFINE_int32(metrics_collection_interval_secs, 5,
+             "How often (in seconds) should metrics be recorded.");
+
 DEFINE_int32(sleep_duration_ms, 0,
              "The duration (in millisec) between two"
              " consecutive test calls (per server) issued by the server.");
@@ -272,19 +275,19 @@ int main(int argc, char** argv) {
            stub_idx++) {
         StressTestInteropClient* client = new StressTestInteropClient(
             ++thread_idx, *it, channel, test_selector, FLAGS_test_duration_secs,
-            FLAGS_sleep_duration_ms);
+            FLAGS_sleep_duration_ms, FLAGS_metrics_collection_interval_secs);
 
-        bool is_already_created = false;
-        // QpsGauge name
+        bool is_already_created;
+        // Gauge name
         std::snprintf(buffer, sizeof(buffer),
                       "/stress_test/server_%d/channel_%d/stub_%d/qps",
                       server_idx, channel_idx, stub_idx);
 
         test_threads.emplace_back(grpc::thread(
             &StressTestInteropClient::MainLoop, client,
-            metrics_service.CreateQpsGauge(buffer, &is_already_created)));
+            metrics_service.CreateGauge(buffer, &is_already_created)));
 
-        // The QpsGauge should not have been already created
+        // The Gauge should not have been already created
         GPR_ASSERT(!is_already_created);
       }
     }

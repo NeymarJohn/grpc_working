@@ -34,9 +34,6 @@ WARMUP_SECONDS=5
 JAVA_WARMUP_SECONDS=15  # Java needs more warmup time for JIT to kick in.
 BENCHMARK_SECONDS=30
 
-SECURE_SECARGS = {'use_test_ca': True,
-                  'server_host_override': 'foo.test.google.fr'}
-
 HISTOGRAM_PARAMS = {
   'resolution': 0.01,
   'max_possible': 60e9,
@@ -85,7 +82,8 @@ class CXXLanguage:
     for secure in [True, False]:
       if secure:
         secstr = 'secure'
-        secargs = SECURE_SECARGS
+        secargs = {'use_test_ca': True,
+                   'server_host_override': 'foo.test.google.fr'}
       else:
         secstr = 'insecure'
         secargs = None
@@ -327,33 +325,8 @@ class CSharpLanguage:
     return 100
 
   def scenarios(self):
-    secargs = SECURE_SECARGS
-    yield {
-        'name': 'csharp_protobuf_async_streaming_qps_unconstrained',
-        'num_servers': 1,
-        'num_clients': 0,
-        'client_config': {
-          'client_type': 'ASYNC_CLIENT',
-          'security_params': secargs,
-          'outstanding_rpcs_per_channel': DEEP,
-          'client_channels': WIDE,
-          'async_client_threads': 0,
-          'rpc_type': 'STREAMING',
-          'load_params': {
-            'closed_loop': {}
-          },
-          'payload_config': EMPTY_PROTO_PAYLOAD,
-          'histogram_params': HISTOGRAM_PARAMS,
-        },
-        'server_config': {
-          'server_type': 'ASYNC_SERVER',
-          'security_params': secargs,
-          'core_limit': 0,
-          'async_server_threads': 0,
-        },
-        'warmup_seconds': WARMUP_SECONDS,
-        'benchmark_seconds': BENCHMARK_SECONDS
-    }
+    # TODO(jtattermusch): add more scenarios
+    secargs = None
     yield {
         'name': 'csharp_generic_async_streaming_ping_pong',
         'num_servers': 1,
@@ -375,7 +348,7 @@ class CSharpLanguage:
           'server_type': 'ASYNC_GENERIC_SERVER',
           'security_params': secargs,
           'core_limit': 0,
-          'async_server_threads': 0,
+          'async_server_threads': 1,
           'payload_config': EMPTY_GENERIC_PAYLOAD,
         },
         'warmup_seconds': WARMUP_SECONDS,
@@ -402,7 +375,7 @@ class CSharpLanguage:
           'server_type': 'ASYNC_SERVER',
           'security_params': secargs,
           'core_limit': 0,
-          'async_server_threads': 0,
+          'async_server_threads': 1,
         },
         'warmup_seconds': WARMUP_SECONDS,
         'benchmark_seconds': BENCHMARK_SECONDS
@@ -428,7 +401,7 @@ class CSharpLanguage:
           'server_type': 'ASYNC_SERVER',
           'security_params': secargs,
           'core_limit': 0,
-          'async_server_threads': 0,
+          'async_server_threads': 1,
         },
         'warmup_seconds': WARMUP_SECONDS,
         'benchmark_seconds': BENCHMARK_SECONDS
@@ -453,7 +426,7 @@ class CSharpLanguage:
         'server_config': {
           'server_type': 'SYNC_SERVER',
           'security_params': secargs,
-          'core_limit': 1,
+          'core_limit': 0,
           'async_server_threads': 1,
         },
         'warmup_seconds': WARMUP_SECONDS,
@@ -479,7 +452,7 @@ class NodeLanguage:
 
   def scenarios(self):
     # TODO(jtattermusch): add more scenarios
-    secargs = SECURE_SECARGS
+    secargs = None
     yield {
         'name': 'node_protobuf_unary_ping_pong',
         'num_servers': 1,
@@ -525,7 +498,7 @@ class RubyLanguage:
 
   def scenarios(self):
     # TODO(jtattermusch): add more scenarios
-    secargs = SECURE_SECARGS
+    secargs = None
     yield {
         'name': 'ruby_protobuf_unary_ping_pong',
         'num_servers': 1,
@@ -571,40 +544,33 @@ class JavaLanguage:
 
   def scenarios(self):
     # TODO(jtattermusch): add more scenarios
-    for secure in [True, False]:
-      if secure:
-        secstr = 'secure'
-        secargs = SECURE_SECARGS
-      else:
-        secstr = 'insecure'
-        secargs = None
-
-      yield {
-          'name': 'java_protobuf_unary_ping_pong_%s' % secstr,
-          'num_servers': 1,
-          'num_clients': 1,
-          'client_config': {
-            'client_type': 'SYNC_CLIENT',
-            'security_params': secargs,
-            'outstanding_rpcs_per_channel': 1,
-            'client_channels': 1,
-            'async_client_threads': 1,
-            'rpc_type': 'UNARY',
-            'load_params': {
-              'closed_loop': {}
-            },
-            'payload_config': EMPTY_PROTO_PAYLOAD,
-            'histogram_params': HISTOGRAM_PARAMS,
+    secargs = None
+    yield {
+        'name': 'java_protobuf_unary_ping_pong',
+        'num_servers': 1,
+        'num_clients': 1,
+        'client_config': {
+          'client_type': 'SYNC_CLIENT',
+          'security_params': secargs,
+          'outstanding_rpcs_per_channel': 1,
+          'client_channels': 1,
+          'async_client_threads': 1,
+          'rpc_type': 'UNARY',
+          'load_params': {
+            'closed_loop': {}
           },
-          'server_config': {
-            'server_type': 'SYNC_SERVER',
-            'security_params': secargs,
-            'core_limit': 0,
-            'async_server_threads': 1,
-          },
-          'warmup_seconds': JAVA_WARMUP_SECONDS,
-          'benchmark_seconds': BENCHMARK_SECONDS
-      }
+          'payload_config': EMPTY_PROTO_PAYLOAD,
+          'histogram_params': HISTOGRAM_PARAMS,
+        },
+        'server_config': {
+          'server_type': 'SYNC_SERVER',
+          'security_params': secargs,
+          'core_limit': 0,
+          'async_server_threads': 1,
+        },
+        'warmup_seconds': JAVA_WARMUP_SECONDS,
+        'benchmark_seconds': BENCHMARK_SECONDS
+    }
 
   def __str__(self):
     return 'java'

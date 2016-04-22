@@ -36,7 +36,6 @@
 #include <map>
 #include <mutex>
 
-#include "grpc/support/time.h"
 #include "src/proto/grpc/testing/metrics.grpc.pb.h"
 #include "src/proto/grpc/testing/metrics.pb.h"
 
@@ -49,13 +48,10 @@
  * Example:
  *    MetricsServiceImpl metricsImpl;
  *    ..
- *    // Create QpsGauge(s). Note: QpsGauges can be created even after calling
+ *    // Create Gauge(s). Note: Gauges can be created even after calling
  *    // 'StartServer'.
- *    QpsGauge qps_gauge1 = metricsImpl.CreateQpsGauge("foo", is_present);
- *    // qps_gauge1 can now be used anywhere in the program by first making a
- *    // one-time call qps_gauge1.Reset() and then calling qps_gauge1.Incr()
- *    // every time to increment a query counter
- *
+ *    Gauge gauge1 = metricsImpl.CreateGauge("foo",is_present);
+ *    // gauge1 can now be used anywhere in the program to set values.
  *    ...
  *    // Create the metrics server
  *    std::unique_ptr<grpc::Server> server = metricsImpl.StartServer(port);
@@ -64,24 +60,17 @@
 namespace grpc {
 namespace testing {
 
-class QpsGauge {
+// TODO(sreek): Add support for other types of Gauges like Double, String in
+// future
+class Gauge {
  public:
-  QpsGauge();
-
-  // Initialize the internal timer and reset the query count to 0
-  void Reset();
-
-  // Increment the query count by 1
-  void Incr();
-
-  // Return the current qps (i.e query count divided by the time since this
-  // QpsGauge object created (or Reset() was called))
+  Gauge(long initial_val);
+  void Set(long new_val);
   long Get();
 
  private:
-  gpr_timespec start_time_;
-  long num_queries_;
-  std::mutex num_queries_mu_;
+  long val_;
+  std::mutex val_mu_;
 };
 
 class MetricsServiceImpl GRPC_FINAL : public MetricsService::Service {
@@ -92,17 +81,17 @@ class MetricsServiceImpl GRPC_FINAL : public MetricsService::Service {
   grpc::Status GetGauge(ServerContext* context, const GaugeRequest* request,
                         GaugeResponse* response) GRPC_OVERRIDE;
 
-  // Create a QpsGauge with name 'name'. is_present is set to true if the Gauge
+  // Create a Gauge with name 'name'. is_present is set to true if the Gauge
   // is already present in the map.
-  // NOTE: CreateQpsGauge can be called anytime (i.e before or after calling
+  // NOTE: CreateGauge can be called anytime (i.e before or after calling
   // StartServer).
-  std::shared_ptr<QpsGauge> CreateQpsGauge(const grpc::string& name,
+  std::shared_ptr<Gauge> CreateGauge(const grpc::string& name,
                                      bool* already_present);
 
   std::unique_ptr<grpc::Server> StartServer(int port);
 
  private:
-  std::map<string, std::shared_ptr<QpsGauge>> qps_gauges_;
+  std::map<string, std::shared_ptr<Gauge>> gauges_;
   std::mutex mu_;
 };
 
