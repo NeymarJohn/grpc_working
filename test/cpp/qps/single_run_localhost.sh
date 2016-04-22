@@ -1,4 +1,5 @@
-# Copyright 2016, Google Inc.
+#!/bin/sh
+# Copyright 2015, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,15 +28,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-FROM golang:1.5
+# performs a single qps run with one client and one server
 
-# Google Cloud platform API libraries
-RUN apt-get update && apt-get install -y python-pip && apt-get clean
-RUN pip install --upgrade google-api-python-client
+set -ex
 
+cd $(dirname $0)/../../..
 
-# Using login shell removes Go from path, so we add it.
-RUN ln -s /usr/local/go/bin/go /usr/local/bin
+killall qps_worker || true
 
-# Define the default command.
-CMD ["bash"]
+config=opt
+
+NUMCPUS=`python2.7 -c 'import multiprocessing; print multiprocessing.cpu_count()'`
+
+make CONFIG=$config qps_worker qps_driver -j$NUMCPUS
+
+bins/$config/qps_worker -driver_port 10000 &
+PID1=$!
+bins/$config/qps_worker -driver_port 10010 &
+PID2=$!
+
+export QPS_WORKERS="localhost:10000,localhost:10010"
+
+bins/$config/qps_driver $*
+
+kill -2 $PID1 $PID2
+wait
+

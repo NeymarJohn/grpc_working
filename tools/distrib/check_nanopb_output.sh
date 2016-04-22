@@ -31,42 +31,36 @@
 set -ex
 
 readonly NANOPB_TMP_OUTPUT="$(mktemp -d)"
-readonly PROTOBUF_INSTALL_PREFIX="$(mktemp -d)"
 
 # install protoc version 3
 pushd third_party/protobuf
 ./autogen.sh
-./configure --prefix="$PROTOBUF_INSTALL_PREFIX"
+./configure
 make
 make install
-#ldconfig
+ldconfig
 popd
 
-readonly PROTOC_BIN_PATH="$PROTOBUF_INSTALL_PREFIX/bin"
-if [ ! -x "$PROTOBUF_INSTALL_PREFIX/bin/protoc" ]; then
-  echo "Error: protoc not found in temp install dir '$PROTOBUF_INSTALL_PREFIX'"
+if [ ! -x "/usr/local/bin/protoc" ]; then
+  echo "Error: protoc not found in path"
   exit 1
 fi
-
+readonly PROTOC_PATH='/usr/local/bin'
 # stack up and change to nanopb's proto generator directory
 pushd third_party/nanopb/generator/proto
-export PATH="$PROTOC_BIN_PATH:$PATH"
-make
+PATH="$PROTOC_PATH:$PATH" make
+
 # back to the root directory
 popd
 
-#
-# Checks for load_balancer.proto
-#
-readonly LOAD_BALANCER_GRPC_OUTPUT_PATH='src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0'
+
 # nanopb-compile the proto to a temp location
-./tools/codegen/core/gen_nano_proto.sh \
+PATH="$PROTOC_PATH:$PATH" ./tools/codegen/core/gen_load_balancing_proto.sh \
   src/proto/grpc/lb/v0/load_balancer.proto \
-  "$NANOPB_TMP_OUTPUT" \
-  "$LOAD_BALANCER_GRPC_OUTPUT_PATH"
+  $NANOPB_TMP_OUTPUT
 
 # compare outputs to checked compiled code
 if ! diff -r $NANOPB_TMP_OUTPUT src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0; then
-  echo "Outputs differ: $NANOPB_TMP_OUTPUT vs $LOAD_BALANCER_GRPC_OUTPUT_PATH"
+  echo "Outputs differ: $NANOPB_TMP_OUTPUT vs src/core/ext/lb_policy/grpclb/proto/grpc/lb/v0"
   exit 2
 fi
