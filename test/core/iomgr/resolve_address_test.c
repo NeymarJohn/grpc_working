@@ -59,36 +59,28 @@ static void must_fail(grpc_exec_ctx *exec_ctx, void *evp,
 static void test_localhost(void) {
   gpr_event ev;
   gpr_event_init(&ev);
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-  grpc_resolve_address(&exec_ctx, "localhost:1", NULL, must_succeed, &ev);
-  grpc_exec_ctx_finish(&exec_ctx);
+  grpc_resolve_address("localhost:1", NULL, must_succeed, &ev);
   GPR_ASSERT(gpr_event_wait(&ev, test_deadline()));
 }
 
 static void test_default_port(void) {
   gpr_event ev;
   gpr_event_init(&ev);
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-  grpc_resolve_address(&exec_ctx, "localhost", "1", must_succeed, &ev);
-  grpc_exec_ctx_finish(&exec_ctx);
+  grpc_resolve_address("localhost", "1", must_succeed, &ev);
   GPR_ASSERT(gpr_event_wait(&ev, test_deadline()));
 }
 
 static void test_missing_default_port(void) {
   gpr_event ev;
   gpr_event_init(&ev);
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-  grpc_resolve_address(&exec_ctx, "localhost", NULL, must_fail, &ev);
-  grpc_exec_ctx_finish(&exec_ctx);
+  grpc_resolve_address("localhost", NULL, must_fail, &ev);
   GPR_ASSERT(gpr_event_wait(&ev, test_deadline()));
 }
 
 static void test_ipv6_with_port(void) {
   gpr_event ev;
   gpr_event_init(&ev);
-  grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-  grpc_resolve_address(&exec_ctx, "[2001:db8::1]:1", NULL, must_succeed, &ev);
-  grpc_exec_ctx_finish(&exec_ctx);
+  grpc_resolve_address("[2001:db8::1]:1", NULL, must_succeed, &ev);
   GPR_ASSERT(gpr_event_wait(&ev, test_deadline()));
 }
 
@@ -100,9 +92,7 @@ static void test_ipv6_without_port(void) {
   for (i = 0; i < sizeof(kCases) / sizeof(*kCases); i++) {
     gpr_event ev;
     gpr_event_init(&ev);
-    grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-    grpc_resolve_address(&exec_ctx, kCases[i], "80", must_succeed, &ev);
-    grpc_exec_ctx_finish(&exec_ctx);
+    grpc_resolve_address(kCases[i], "80", must_succeed, &ev);
     GPR_ASSERT(gpr_event_wait(&ev, test_deadline()));
   }
 }
@@ -115,9 +105,7 @@ static void test_invalid_ip_addresses(void) {
   for (i = 0; i < sizeof(kCases) / sizeof(*kCases); i++) {
     gpr_event ev;
     gpr_event_init(&ev);
-    grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-    grpc_resolve_address(&exec_ctx, kCases[i], NULL, must_fail, &ev);
-    grpc_exec_ctx_finish(&exec_ctx);
+    grpc_resolve_address(kCases[i], NULL, must_fail, &ev);
     GPR_ASSERT(gpr_event_wait(&ev, test_deadline()));
   }
 }
@@ -130,9 +118,7 @@ static void test_unparseable_hostports(void) {
   for (i = 0; i < sizeof(kCases) / sizeof(*kCases); i++) {
     gpr_event ev;
     gpr_event_init(&ev);
-    grpc_exec_ctx exec_ctx = GRPC_EXEC_CTX_INIT;
-    grpc_resolve_address(&exec_ctx, kCases[i], "1", must_fail, &ev);
-    grpc_exec_ctx_finish(&exec_ctx);
+    grpc_resolve_address(kCases[i], "1", must_fail, &ev);
     GPR_ASSERT(gpr_event_wait(&ev, test_deadline()));
   }
 }
