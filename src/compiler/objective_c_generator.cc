@@ -75,11 +75,11 @@ void PrintMethodSignature(Printer *printer, const MethodDescriptor *method,
   if (method->server_streaming()) {
     printer->Print(vars,
                    " eventHandler:(void(^)(BOOL done, "
-                   "$response_class$ *_Nullable response, NSError *_Nullable error))eventHandler");
+                   "$response_class$ *response, NSError *error))eventHandler");
   } else {
     printer->Print(vars,
-                   " handler:(void(^)($response_class$ *_Nullable response, "
-                   "NSError *_Nullable error))handler");
+                   " handler:(void(^)($response_class$ *response, "
+                   "NSError *error))handler");
   }
 }
 
