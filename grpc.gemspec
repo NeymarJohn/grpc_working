@@ -24,10 +24,6 @@ Gem::Specification.new do |s|
   s.files += Dir.glob('include/grpc/**/*')
   s.test_files = Dir.glob('src/ruby/spec/**/*')
   s.bindir = 'src/ruby/bin'
-  %w(math noproto).each do |b|
-    s.executables += ["#{b}_client.rb", "#{b}_server.rb"]
-  end
-  s.executables += %w(grpc_ruby_interop_client grpc_ruby_interop_server)
   s.require_paths = %w( src/ruby/bin src/ruby/lib src/ruby/pb )
   s.platform      = Gem::Platform::RUBY
 
@@ -171,7 +167,6 @@ Gem::Specification.new do |s|
   s.files += %w( include/grpc/impl/codegen/sync_win32.h )
   s.files += %w( include/grpc/impl/codegen/time.h )
   s.files += %w( include/grpc/grpc_security.h )
-  s.files += %w( include/grpc/grpc_security_constants.h )
   s.files += %w( include/grpc/census.h )
   s.files += %w( src/core/lib/channel/channel_args.h )
   s.files += %w( src/core/lib/channel/channel_stack.h )
@@ -483,12 +478,12 @@ Gem::Specification.new do |s|
   s.files += %w( third_party/boringssl/crypto/cipher/internal.h )
   s.files += %w( third_party/boringssl/crypto/conf/conf_def.h )
   s.files += %w( third_party/boringssl/crypto/conf/internal.h )
-  s.files += %w( third_party/boringssl/crypto/curve25519/internal.h )
   s.files += %w( third_party/boringssl/crypto/des/internal.h )
   s.files += %w( third_party/boringssl/crypto/dh/internal.h )
   s.files += %w( third_party/boringssl/crypto/digest/internal.h )
   s.files += %w( third_party/boringssl/crypto/digest/md32_common.h )
   s.files += %w( third_party/boringssl/crypto/directory.h )
+  s.files += %w( third_party/boringssl/crypto/dsa/internal.h )
   s.files += %w( third_party/boringssl/crypto/ec/internal.h )
   s.files += %w( third_party/boringssl/crypto/ec/p256-x86_64-table.h )
   s.files += %w( third_party/boringssl/crypto/evp/internal.h )
@@ -653,7 +648,6 @@ Gem::Specification.new do |s|
   s.files += %w( third_party/boringssl/crypto/bn/shift.c )
   s.files += %w( third_party/boringssl/crypto/bn/sqrt.c )
   s.files += %w( third_party/boringssl/crypto/buf/buf.c )
-  s.files += %w( third_party/boringssl/crypto/bytestring/asn1_compat.c )
   s.files += %w( third_party/boringssl/crypto/bytestring/ber.c )
   s.files += %w( third_party/boringssl/crypto/bytestring/cbb.c )
   s.files += %w( third_party/boringssl/crypto/bytestring/cbs.c )
@@ -677,7 +671,6 @@ Gem::Specification.new do |s|
   s.files += %w( third_party/boringssl/crypto/cpu-intel.c )
   s.files += %w( third_party/boringssl/crypto/crypto.c )
   s.files += %w( third_party/boringssl/crypto/curve25519/curve25519.c )
-  s.files += %w( third_party/boringssl/crypto/curve25519/x25519-x86_64.c )
   s.files += %w( third_party/boringssl/crypto/des/des.c )
   s.files += %w( third_party/boringssl/crypto/dh/check.c )
   s.files += %w( third_party/boringssl/crypto/dh/dh.c )
@@ -869,7 +862,6 @@ Gem::Specification.new do |s|
   s.files += %w( third_party/boringssl/ssl/ssl_buffer.c )
   s.files += %w( third_party/boringssl/ssl/ssl_cert.c )
   s.files += %w( third_party/boringssl/ssl/ssl_cipher.c )
-  s.files += %w( third_party/boringssl/ssl/ssl_ecdh.c )
   s.files += %w( third_party/boringssl/ssl/ssl_file.c )
   s.files += %w( third_party/boringssl/ssl/ssl_lib.c )
   s.files += %w( third_party/boringssl/ssl/ssl_rsa.c )

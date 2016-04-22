@@ -1,6 +1,4 @@
-#!/bin/sh
-
-# Copyright 2015, Google Inc.
+# Copyright 2016, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,27 +27,57 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+require_relative '../pb/grpc/testing/metrics.rb'
+require_relative '../pb/grpc/testing/metrics_services.rb'
 
-set -e
+class Gauge
+  def get_name
+    raise NoMethodError.new
+  end
 
-export TEST=true
+  def get_type
+    raise NoMethodError.new
+  end
 
-cd `dirname $0`/../../..
+  def get_value
+    raise NoMethodError.new
+  end
+end
 
-submodules=`mktemp /tmp/submXXXXXX`
-want_submodules=`mktemp /tmp/submXXXXXX`
+class MetricsServiceImpl < Grpc::Testing::MetricsService::Service
+  include Grpc::Testing
+  @gauges
 
-git submodule | awk '{ print $1 }' | sort > $submodules
-cat << EOF | awk '{ print $1 }' | sort > $want_submodules
- 907ae62b9d81121cb86b604f83e6b811a43f7a87 third_party/boringssl (version_for_cocoapods_1.0-72-g907ae62)
- 05b155ff59114735ec8cd089f669c4c3d8f59029 third_party/gflags (v2.1.0-45-g05b155f)
- c99458533a9b4c743ed51537e25989ea55944908 third_party/googletest (release-1.7.0)
- f8ac463766281625ad710900479130c7fcb4d63b third_party/nanopb (nanopb-0.3.4-29-gf8ac463)
- d5fb408ddc281ffcadeb08699e65bb694656d0bd third_party/protobuf (v3.0.0-beta-2)
- 50893291621658f355bc5b4d450a8d06a563053d third_party/zlib (v1.2.8)
-EOF
+  def initialize
+    @gauges = {}
+  end
 
-diff -u $submodules $want_submodules
+  def register_gauge(gauge)
+    @gauges[gauge.get_name] = gauge
+  end
 
-rm $submodules $want_submodules
+  def make_gauge_response(gauge)
+    response = GaugeResponse.new(:name => gauge.get_name)
+    value = gauge.get_value
+    case gauge.get_type
+    when 'long'
+      response.long_value = value
+    when 'double'
+      response.double_value = value
+    when 'string'
+      response.string_value = value
+    end
+    response
+  end
 
+  def get_all_gauges(_empty, _call)
+    @gauges.values.map do |gauge|
+      make_gauge_response gauge
+    end
+  end
+
+  def get_gauge(gauge_req, _call)
+    gauge = @gauges[gauge_req.name]
+    make_gauge_response gauge
+  end
+end
