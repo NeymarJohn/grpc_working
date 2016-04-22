@@ -481,6 +481,7 @@ cc_library(
     "include/grpc/impl/codegen/sync_win32.h",
     "include/grpc/impl/codegen/time.h",
     "include/grpc/grpc_security.h",
+    "include/grpc/grpc_security_constants.h",
     "include/grpc/census.h",
   ],
   includes = [
@@ -1135,8 +1136,6 @@ cc_library(
     "src/compiler/csharp_generator.h",
     "src/compiler/csharp_generator_helpers.h",
     "src/compiler/generator_helpers.h",
-    "src/compiler/node_generator.h",
-    "src/compiler/node_generator_helpers.h",
     "src/compiler/objective_c_generator.h",
     "src/compiler/objective_c_generator_helpers.h",
     "src/compiler/python_generator.h",
@@ -1146,7 +1145,6 @@ cc_library(
     "src/compiler/ruby_generator_string-inl.h",
     "src/compiler/cpp_generator.cc",
     "src/compiler/csharp_generator.cc",
-    "src/compiler/node_generator.cc",
     "src/compiler/objective_c_generator.cc",
     "src/compiler/python_generator.cc",
     "src/compiler/ruby_generator.cc",
@@ -1495,6 +1493,7 @@ objc_library(
     "include/grpc/impl/codegen/sync_win32.h",
     "include/grpc/impl/codegen/time.h",
     "include/grpc/grpc_security.h",
+    "include/grpc/grpc_security_constants.h",
     "include/grpc/census.h",
     "src/core/lib/channel/channel_args.h",
     "src/core/lib/channel/channel_stack.h",
@@ -1659,18 +1658,6 @@ cc_binary(
   name = "grpc_csharp_plugin",
   srcs = [
     "src/compiler/csharp_plugin.cc",
-  ],
-  deps = [
-    "//external:protobuf_compiler",
-    ":grpc_plugin_support",
-  ],
-)
-
-
-cc_binary(
-  name = "grpc_node_plugin",
-  srcs = [
-    "src/compiler/node_plugin.cc",
   ],
   deps = [
     "//external:protobuf_compiler",

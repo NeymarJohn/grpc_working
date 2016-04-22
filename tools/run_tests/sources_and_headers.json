@@ -65,6 +65,22 @@
   }, 
   {
     "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "api_fuzzer", 
+    "src": [
+      "test/core/end2end/fuzzers/api_fuzzer.c"
+    ], 
+    "third_party": false, 
+    "type": "target"
+  }, 
+  {
+    "deps": [
       "grpc", 
       "grpc_test_util"
     ], 
@@ -2160,19 +2176,6 @@
     ], 
     "headers": [], 
     "language": "c++", 
-    "name": "grpc_node_plugin", 
-    "src": [
-      "src/compiler/node_plugin.cc"
-    ], 
-    "third_party": false, 
-    "type": "target"
-  }, 
-  {
-    "deps": [
-      "grpc_plugin_support"
-    ], 
-    "headers": [], 
-    "language": "c++", 
     "name": "grpc_objective_c_plugin", 
     "src": [
       "src/compiler/objective_c_plugin.cc"
@@ -2351,26 +2354,6 @@
     "name": "mock_test", 
     "src": [
       "test/cpp/end2end/mock_test.cc"
-    ], 
-    "third_party": false, 
-    "type": "target"
-  }, 
-  {
-    "deps": [
-      "gpr", 
-      "gpr_test_util", 
-      "grpc", 
-      "grpc++", 
-      "grpc++_test_config", 
-      "grpc++_test_util", 
-      "grpc_test_util", 
-      "qps"
-    ], 
-    "headers": [], 
-    "language": "c++", 
-    "name": "qps_driver", 
-    "src": [
-      "test/cpp/qps/qps_driver.cc"
     ], 
     "third_party": false, 
     "type": "target"
@@ -3222,6 +3205,19 @@
   {
     "deps": [
       "boringssl", 
+      "boringssl_test_util", 
+      "boringssl_x509_test_lib"
+    ], 
+    "headers": [], 
+    "language": "c++", 
+    "name": "boringssl_x509_test", 
+    "src": [], 
+    "third_party": true, 
+    "type": "target"
+  }, 
+  {
+    "deps": [
+      "boringssl", 
       "boringssl_tab_test_lib", 
       "boringssl_test_util"
     ], 
@@ -3704,6 +3700,23 @@
     ], 
     "headers": [], 
     "language": "c", 
+    "name": "h2_ssl_cert_test", 
+    "src": [
+      "test/core/end2end/fixtures/h2_ssl_cert.c"
+    ], 
+    "third_party": false, 
+    "type": "target"
+  }, 
+  {
+    "deps": [
+      "end2end_tests", 
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util"
+    ], 
+    "headers": [], 
+    "language": "c", 
     "name": "h2_ssl_proxy_test", 
     "src": [
       "test/core/end2end/fixtures/h2_ssl_proxy.c"
@@ -3894,6 +3907,23 @@
     "name": "h2_uds_nosec_test", 
     "src": [
       "test/core/end2end/fixtures/h2_uds.c"
+    ], 
+    "third_party": false, 
+    "type": "target"
+  }, 
+  {
+    "deps": [
+      "gpr", 
+      "gpr_test_util", 
+      "grpc", 
+      "grpc_test_util", 
+      "one_input_fuzzer"
+    ], 
+    "headers": [], 
+    "language": "c", 
+    "name": "api_fuzzer_one_entry", 
+    "src": [
+      "test/core/end2end/fuzzers/api_fuzzer.c"
     ], 
     "third_party": false, 
     "type": "target"
@@ -4110,6 +4140,7 @@
     "language": "c", 
     "name": "grpc_test_util", 
     "src": [
+      "test/core/end2end/data/client_certs.c", 
       "test/core/end2end/data/server1_cert.c", 
       "test/core/end2end/data/server1_key.c", 
       "test/core/end2end/data/ssl_test_data.h", 
@@ -4338,8 +4369,6 @@
       "src/compiler/csharp_generator.h", 
       "src/compiler/csharp_generator_helpers.h", 
       "src/compiler/generator_helpers.h", 
-      "src/compiler/node_generator.h", 
-      "src/compiler/node_generator_helpers.h", 
       "src/compiler/objective_c_generator.h", 
       "src/compiler/objective_c_generator_helpers.h", 
       "src/compiler/python_generator.h", 
@@ -4359,9 +4388,6 @@
       "src/compiler/csharp_generator.h", 
       "src/compiler/csharp_generator_helpers.h", 
       "src/compiler/generator_helpers.h", 
-      "src/compiler/node_generator.cc", 
-      "src/compiler/node_generator.h", 
-      "src/compiler/node_generator_helpers.h", 
       "src/compiler/objective_c_generator.cc", 
       "src/compiler/objective_c_generator.h", 
       "src/compiler/objective_c_generator_helpers.h", 
@@ -4562,12 +4588,12 @@
       "third_party/boringssl/crypto/cipher/internal.h", 
       "third_party/boringssl/crypto/conf/conf_def.h", 
       "third_party/boringssl/crypto/conf/internal.h", 
+      "third_party/boringssl/crypto/curve25519/internal.h", 
       "third_party/boringssl/crypto/des/internal.h", 
       "third_party/boringssl/crypto/dh/internal.h", 
       "third_party/boringssl/crypto/digest/internal.h", 
       "third_party/boringssl/crypto/digest/md32_common.h", 
       "third_party/boringssl/crypto/directory.h", 
-      "third_party/boringssl/crypto/dsa/internal.h", 
       "third_party/boringssl/crypto/ec/internal.h", 
       "third_party/boringssl/crypto/ec/p256-x86_64-table.h", 
       "third_party/boringssl/crypto/evp/internal.h", 
@@ -5070,6 +5096,18 @@
     "headers": [], 
     "language": "c", 
     "name": "boringssl_pkcs7_test_lib", 
+    "src": [], 
+    "third_party": true, 
+    "type": "lib"
+  }, 
+  {
+    "deps": [
+      "boringssl", 
+      "boringssl_test_util"
+    ], 
+    "headers": [], 
+    "language": "c++", 
+    "name": "boringssl_x509_test_lib", 
     "src": [], 
     "third_party": true, 
     "type": "lib"
@@ -6181,6 +6219,7 @@
     ], 
     "headers": [
       "include/grpc/grpc_security.h", 
+      "include/grpc/grpc_security_constants.h", 
       "src/core/lib/security/auth_filters.h", 
       "src/core/lib/security/b64.h", 
       "src/core/lib/security/credentials.h", 
@@ -6200,6 +6239,7 @@
     "name": "grpc_secure", 
     "src": [
       "include/grpc/grpc_security.h", 
+      "include/grpc/grpc_security_constants.h", 
       "src/core/lib/http/httpcli_security_connector.c", 
       "src/core/lib/security/auth_filters.h", 
       "src/core/lib/security/b64.c", 
@@ -6250,6 +6290,7 @@
       "test/core/util/memory_counters.h", 
       "test/core/util/mock_endpoint.h", 
       "test/core/util/parse_hexstring.h", 
+      "test/core/util/passthru_endpoint.h", 
       "test/core/util/port.h", 
       "test/core/util/port_server_client.h", 
       "test/core/util/slice_splitter.h"
@@ -6271,6 +6312,8 @@
       "test/core/util/mock_endpoint.h", 
       "test/core/util/parse_hexstring.c", 
       "test/core/util/parse_hexstring.h", 
+      "test/core/util/passthru_endpoint.c", 
+      "test/core/util/passthru_endpoint.h", 
       "test/core/util/port.h", 
       "test/core/util/port_posix.c", 
       "test/core/util/port_server_client.c", 

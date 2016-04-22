@@ -34,8 +34,8 @@
 'use strict';
 
 var grpc = require('../..');
-var grpcMath = require('./math_grpc_pb');
-var math = require('./math_pb');
+var math = grpc.load(__dirname + '/../../../proto/math/math.proto').math;
+
 
 /**
  * Server function for division. Provides the /Math/DivMany and /Math/Div
@@ -46,16 +46,14 @@ var math = require('./math_pb');
  */
 function mathDiv(call, cb) {
   var req = call.request;
-  var divisor = req.getDivisor();
-  var dividend = req.getDividend();
   // Unary + is explicit coersion to integer
-  if (req.getDivisor() === 0) {
+  if (+req.divisor === 0) {
     cb(new Error('cannot divide by zero'));
   } else {
-    var response = new math.DivReply();
-    response.setQuotient(Math.floor(dividend / divisor));
-    response.setRemainder(dividend % divisor);
-    cb(null, response);
+    cb(null, {
+      quotient: req.dividend / req.divisor,
+      remainder: req.dividend % req.divisor
+    });
   }
 }
 
@@ -69,9 +67,7 @@ function mathFib(stream) {
   // Here, call is a standard writable Node object Stream
   var previous = 0, current = 1;
   for (var i = 0; i < stream.request.limit; i++) {
-    var response = new math.Num();
-    response.setNum(current);
-    stream.write(response);
+    stream.write({num: current});
     var temp = current;
     current += previous;
     previous = temp;
@@ -89,26 +85,22 @@ function mathSum(call, cb) {
   // Here, call is a standard readable Node object Stream
   var sum = 0;
   call.on('data', function(data) {
-    sum += data.getNum();
+    sum += (+data.num);
   });
   call.on('end', function() {
-    var response = new math.Num();
-    response.setNum(sum);
-    cb(null, response);
+    cb(null, {num: sum});
   });
 }
 
 function mathDivMany(stream) {
   stream.on('data', function(div_args) {
-    var divisor = div_args.getDivisor();
-    var dividend = div_args.getDividend();
-    if (divisor === 0) {
+    if (+div_args.divisor === 0) {
       stream.emit('error', new Error('cannot divide by zero'));
     } else {
-      var response = new math.DivReply();
-      response.setQuotient(Math.floor(dividend / divisor));
-      response.setRemainder(dividend % divisor);
-      stream.write(response);
+      stream.write({
+        quotient: div_args.dividend / div_args.divisor,
+        remainder: div_args.dividend % div_args.divisor
+      });
     }
   });
   stream.on('end', function() {
@@ -118,7 +110,7 @@ function mathDivMany(stream) {
 
 function getMathServer() {
   var server = new grpc.Server();
-  server.addService(grpcMath.MathService, {
+  server.addProtoService(math.Math.service, {
     div: mathDiv,
     fib: mathFib,
     sum: mathSum,
