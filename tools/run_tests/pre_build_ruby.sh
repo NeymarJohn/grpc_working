@@ -33,7 +33,7 @@ set -ex
 
 export GRPC_CONFIG=${CONFIG:-opt}
 
-# change to grpc repo root
-cd $(dirname $0)/../..
+# change to grpc's ruby directory
+cd $(dirname $0)/../../src/ruby
 
 bundle install

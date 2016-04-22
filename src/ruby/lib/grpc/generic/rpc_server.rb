@@ -27,9 +27,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require_relative '../grpc'
-require_relative 'active_call'
-require_relative 'service'
+require 'grpc/grpc'
+require 'grpc/generic/active_call'
+require 'grpc/generic/service'
 require 'thread'
 
 # A global that contains signals the gRPC servers should respond to.
@@ -332,15 +332,10 @@ module GRPC
     # the current thread to terminate it.
     def run_till_terminated
       GRPC.trap_signals
-      stopped = false
-      t = Thread.new do
-        run
-        stopped = true
-      end
+      t = Thread.new { run }
       wait_till_running
       loop do
         sleep SIGNAL_CHECK_PERIOD
-        break if stopped
         break unless GRPC.handle_signals
       end
       stop
@@ -439,6 +434,7 @@ module GRPC
         begin
           an_rpc = @server.request_call(@cq, loop_tag, INFINITE_FUTURE)
           break if (!an_rpc.nil?) && an_rpc.call.nil?
+
           active_call = new_active_server_call(an_rpc)
           unless active_call.nil?
             @pool.schedule(active_call) do |ac|

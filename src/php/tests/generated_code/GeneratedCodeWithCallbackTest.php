@@ -46,8 +46,7 @@ class GeneratedCodeWithCallbackTest extends AbstractGeneratedCodeTest
                                 $a_copy['foo'] = ['bar'];
 
                                 return $a_copy;
-                              },
-         ]);
+                              }]);
     }
 
     public function tearDown()
